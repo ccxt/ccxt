@@ -1185,18 +1185,17 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var instrumentsResponses []any = []any{}
 	var result []any = []any{}
 	var parsedMarkets map[string]any = map[string]any{}
-	var fetchAllMarkets any = nil
-	var fetchAllMarketsparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMarkets", "fetchAllMarkets", true)
-	fetchAllMarkets = GetValue(fetchAllMarketsparamsVariable, 0)
-	params = MapTyped(GetValue(fetchAllMarketsparamsVariable, 1))
-	if fetchAllMarkets == true {
+	var fetchAllMarketsparamsFetchAllMarketsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMarkets", "fetchAllMarkets", true)
+	var fetchAllMarkets bool = GetValueBool(fetchAllMarketsparamsFetchAllMarketsVariable, 0, false)
+	var paramsFetchAllMarkets map[string]any = MapTyped(GetValue(fetchAllMarketsparamsFetchAllMarketsVariable, 1))
+	if fetchAllMarkets {
 
-		instrumentsResponse := (<-this.PublicGetGetInstruments(params)).Raw
+		instrumentsResponse := (<-this.PublicGetGetInstruments(paramsFetchAllMarkets)).Raw
 		PanicOnError(instrumentsResponse)
 		instrumentsResponses = append(instrumentsResponses, instrumentsResponse)
 	} else {
 
-		var currenciesResponse map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetCurrencies(params)).Raw))
+		var currenciesResponse map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetCurrencies(paramsFetchAllMarkets)).Raw))
 		//
 		//     {
 		//         "jsonrpc": "2.0",
@@ -1233,7 +1232,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				"currency": currencyId,
 			}
 
-			instrumentsResponse := (<-this.PublicGetGetInstruments(this.Extend(request, params))).Raw
+			instrumentsResponse := (<-this.PublicGetGetInstruments(this.Extend(request, paramsFetchAllMarkets))).Raw
 			PanicOnError(instrumentsResponse)
 			//
 			//     {
@@ -1517,7 +1516,7 @@ func (this *Deribit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var code *string = this.SafeString(params, "code")
-	params = MapTyped(this.Omit(params, "code"))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "code"))
 	var request map[string]any = map[string]any{}
 	if code != nil {
 		request["currency"] = this.CurrencyId(code)
@@ -1525,10 +1524,10 @@ func (this *Deribit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if code == nil {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetGetAccountSummaries(params)).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivateGetGetAccountSummaries(paramsOmitted)).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetGetAccountSummary(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivateGetGetAccountSummary(this.Extend(request, paramsOmitted))).Raw))
 	}
 	//
 	//     {
@@ -1863,13 +1862,13 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 	var code *string = this.SafeString2(params, "code", "currency")
 	var typeVar *string = nil
-	params = MapTyped(this.Omit(params, []any{"code"}))
-	if symbols != nil {
-		for i := 0; i < GetArrayLength(symbols); i++ {
-			var market map[string]any = this.Market(GetValue(symbols, i))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"code"}))
+	if !IsEqual(symbolsNormalized, nil) {
+		for i := 0; i < GetArrayLength(symbolsNormalized); i++ {
+			var market map[string]any = this.Market(GetValue(symbolsNormalized, i))
 			if (code != nil) && !IsEqual(code, GetValue(market, "base")) {
 				panic(BadRequest(this.Id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency"))
 			}
@@ -1900,7 +1899,7 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetBookSummaryByCurrency(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetBookSummaryByCurrency(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -1946,7 +1945,7 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)
+	ch <- this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized)
 	return nil
 }
 
@@ -1974,7 +1973,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1985,12 +1984,13 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes150519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))))
+		var retRes150519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 5000))))
 		ch <- BoxAbsent(retRes150519)
 		return nil
 	}
@@ -2001,28 +2001,48 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var duration int64 = this.ParseTimeframe(timeframe)
 	var now int64 = this.Milliseconds()
-	if since == nil {
+	// at max, it provides 5000 bars, but we set generous default here
+	var windowLimit any = func() any {
 		if limit == nil {
-			limit = Int64PtrTyped(1000) // at max, it provides 5000 bars, but we set generous default here
+			return 1000
 		}
-		request["start_timestamp"] = Subtract(now, Multiply(Multiply((Subtract(limit, 1)), duration), 1000))
+		return limit
+	}()
+	var limitResolved any = func() any {
+		if since == nil {
+			return windowLimit
+		}
+		return limit
+	}()
+	var sinceResolved any = func() any {
+		if since == nil {
+			return nil
+		}
+		return mathMax(Subtract(since, 1), 0)
+	}()
+	if since == nil {
+		request["start_timestamp"] = Subtract(now, Multiply(Multiply((Subtract(windowLimit, 1)), duration), 1000))
 		request["end_timestamp"] = now
 	} else {
-		since = mathMax(Subtract(since, 1), 0)
-		request["start_timestamp"] = since
+		request["start_timestamp"] = sinceResolved
 		if limit == nil {
 			request["end_timestamp"] = now
 		} else {
-			request["end_timestamp"] = this.Sum(since, Multiply(Multiply(limit, duration), 1000))
+			request["end_timestamp"] = this.Sum(sinceResolved, Multiply(Multiply(limit, duration), 1000))
 		}
 	}
-	var until *int64 = this.SafeInteger(params, "until")
+	var until *int64 = this.SafeInteger(paramsPaginate, "until")
+	var paramsOmitted any = func() any {
+		if until != nil {
+			return this.Omit(paramsPaginate, "until")
+		}
+		return paramsPaginate
+	}()
 	if until != nil {
-		params = MapTyped(this.Omit(params, "until"))
 		request["end_timestamp"] = until
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetTradingviewChartData(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetTradingviewChartData(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2045,7 +2065,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 	var ohlcvs any = this.ConvertTradingViewToOHLCV(result, "ticks", "open", "high", "low", "close", "volume", true)
 
-	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
+	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, sinceResolved, limitResolved)
 	return nil
 }
 func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
@@ -2091,7 +2111,7 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
 	//         "amount": 11
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(trade, "trade_id")
 	var marketId *string = this.SafeString(trade, "instrument_name")
@@ -2099,12 +2119,12 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var side *string = this.SafeString(trade, "direction")
 	var priceString *string = this.SafeString(trade, "price")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	// Amount for inverse perpetual and futures is in USD which in ccxt is the cost
 	// For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
 	var amount *string = this.SafeString(trade, "amount")
 	var cost *string = Precise.StringMul(amount, priceString)
-	if GetValue(market, "inverse") == true {
+	if marketResolved["inverse"] == true {
 		cost = Precise.StringDiv(amount, priceString)
 	}
 	var liquidity *string = this.SafeString(trade, "liquidity")
@@ -2142,7 +2162,7 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         cost,
 		"fee":          fee,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -2188,17 +2208,22 @@ func (this *Deribit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["count"] = mathMin(limit, 1000) // default 10
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end_timestamp")
+	var paramsOmitted any = func() any {
+		if until != nil {
+			return this.Omit(params, []any{"until"})
+		}
+		return params
+	}()
 	if until != nil {
-		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["end_timestamp"] = until
 	}
 	var response map[string]any = nil
 	if (since == nil) && !(func() bool { _, ok := request["end_timestamp"]; return ok }()) {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetGetLastTradesByInstrument(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PublicGetGetLastTradesByInstrument(this.Extend(request, paramsOmitted))).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetGetLastTradesByInstrumentAndTime(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PublicGetGetLastTradesByInstrumentAndTime(this.Extend(request, paramsOmitted))).Raw))
 	}
 	//
 	//      {
@@ -2512,7 +2537,7 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "instrument_name")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(order, "creation_timestamp")
 	var lastUpdate *int64 = this.SafeInteger(order, "last_update_timestamp")
 	var id *string = this.SafeString(order, "order_id")
@@ -2526,7 +2551,7 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 	var filledString *string = this.SafeString(order, "filled_amount")
 	var amount *string = this.SafeString(order, "amount")
 	var cost *string = Precise.StringMul(filledString, averageString)
-	if IsEqual(this.SafeBool(market, "inverse"), true) {
+	if IsEqual(this.SafeBool(marketResolved, "inverse"), true) {
 		if averageString == nil || *averageString != "0" {
 			cost = Precise.StringDiv(amount, averageString)
 		}
@@ -2546,7 +2571,7 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 		feeCostString = Precise.StringAbs(feeCostString)
 		fee = map[string]any{
 			"cost":     feeCostString,
-			"currency": GetValue(market, "base"),
+			"currency": marketResolved["base"],
 		}
 	}
 	var rawType *string = this.SafeString(order, "order_type")
@@ -2562,7 +2587,7 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": lastTradeTimestamp,
-		"symbol":             GetValue(market, "symbol"),
+		"symbol":             marketResolved["symbol"],
 		"type":               typeVar,
 		"timeInForce":        timeInForce,
 		"postOnly":           postOnly,
@@ -2577,7 +2602,7 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 		"status":             status,
 		"fee":                fee,
 		"trades":             trades,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -2765,14 +2790,14 @@ func (this *Deribit) createOrderBody(ch chan any, symbol any, typeVar string, si
 			request["time_in_force"] = "fill_or_kill"
 		}
 	}
-	params = MapTyped(this.Omit(params, []any{"timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"}))
 	var response map[string]any = nil
 	if this.Capitalize(side) == "Buy" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetBuy(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivateGetBuy(this.Extend(request, paramsOmitted))).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetSell(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivateGetSell(this.Extend(request, paramsOmitted))).Raw))
 	}
 	//
 	//     {
@@ -2880,12 +2905,15 @@ func (this *Deribit) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	}
 	var trailingAmount *string = this.SafeString2(params, "trailingAmount", "trigger_offset")
 	var isTrailingAmountOrder bool = (trailingAmount != nil)
+	var paramsOmitted any = params
+	if isTrailingAmountOrder {
+		paramsOmitted = this.Omit(params, "trigger_offset")
+	}
 	if isTrailingAmountOrder {
 		request["trigger_offset"] = this.ParseToNumeric(trailingAmount)
-		params = MapTyped(this.Omit(params, "trigger_offset"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetEdit(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetEdit(this.Extend(request, paramsOmitted))).Raw))
 	var result map[string]any = SafeMapTyped(response, "result")
 	var order any = this.SafeValue(result, "order")
 	var trades any = this.SafeList(result, "trades", []any{})
@@ -3530,7 +3558,7 @@ func (this *Deribit) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var contract *string = this.SafeString(position, "instrument_name")
-	market = this.SafeMarket(contract, market)
+	var marketResolved map[string]any = this.SafeMarket(contract, market)
 	var side *string = this.SafeString(position, "direction")
 	side = SafeStringPtr(func() string {
 		if side != nil && *side == "buy" {
@@ -3546,7 +3574,7 @@ func (this *Deribit) ParsePosition(position any, optionalArgs ...any) any {
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
-		"symbol":                      this.SafeString(market, "symbol"),
+		"symbol":                      this.SafeString(marketResolved, "symbol"),
 		"timestamp":                   nil,
 		"datetime":                    nil,
 		"lastUpdateTimestamp":         nil,
@@ -3666,13 +3694,18 @@ func (this *Deribit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var code *string = this.SafeString(params, "currency")
 	var request map[string]any = map[string]any{}
+	var paramsOmitted any = func() any {
+		if code != nil {
+			return this.Omit(params, "currency")
+		}
+		return params
+	}()
 	if code != nil {
-		params = MapTyped(this.Omit(params, "currency"))
 		var currency map[string]any = this.Currency(code)
 		request["currency"] = currency["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetPositions(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetPositions(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -3912,7 +3945,7 @@ func (this *Deribit) transferBody(ch chan any, code any, amount any, fromAccount
 		"destination": toAccount,
 	}
 	var method *string = this.SafeString(params, "method")
-	params = MapTyped(this.Omit(params, "method"))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "method"))
 	if method == nil {
 		var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 		method = this.SafeString(transferOptions, "method", "privateGetSubmitTransferToSubaccount")
@@ -3920,10 +3953,10 @@ func (this *Deribit) transferBody(ch chan any, code any, amount any, fromAccount
 	var response map[string]any = nil
 	if method != nil && *method == "privateGetSubmitTransferToUser" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetSubmitTransferToUser(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivateGetSubmitTransferToUser(this.Extend(request, paramsOmitted))).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetSubmitTransferToSubaccount(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivateGetSubmitTransferToSubaccount(this.Extend(request, paramsOmitted))).Raw))
 	}
 	//
 	//     {
@@ -4024,9 +4057,8 @@ func (this *Deribit) withdrawBody(ch chan any, code any, amount any, address any
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagAndParams any = this.HandleWithdrawTagAndParams(tag, params)
+	var paramsWithdrawTag any = GetValue(tagAndParams, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -4042,7 +4074,7 @@ func (this *Deribit) withdrawBody(ch chan any, code any, amount any, address any
 		request["tfa"] = Totp(this.Twofa)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWithdraw(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWithdraw(this.Extend(request, paramsWithdrawTag))).Raw))
 
 	ch <- this.ParseTransaction(response, currency)
 	return nil
@@ -4203,7 +4235,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -4215,50 +4247,67 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var market map[string]any = this.Market(symbol)
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	var maxEntriesPerRequest int = 744 // seems exchange returns max 744 items per request
 	var eachItemDuration string = "1h"
 	if paginate {
 		// fix for: https://github.com/ccxt/ccxt/issues/25040
-		var paginationParams map[string]any = this.Extend(params, map[string]any{
+		var paginationParams map[string]any = this.Extend(paramsPaginate, map[string]any{
 			"isDeribitPaginationCall": true,
 		})
 
-		var retRes333119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest))))
-		ch <- BoxAbsent(retRes333119)
+		var retRes333619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest))))
+		ch <- BoxAbsent(retRes333619)
 		return nil
 	}
 	var duration int64 = this.ParseTimeframe(eachItemDuration) * 1000
-	var time any = this.Milliseconds()
+	var now int64 = this.Milliseconds()
 	var month int64 = Multiply(Multiply(Multiply(Multiply(30, 24), 60), 60), 1000).(int64)
-	if since == nil {
-		since = Subtract(time, month)
-	} else {
-		time = Add(since, month)
-	}
+	var sinceResolved any = func() any {
+		if since == nil {
+			return now - month
+		}
+		return since
+	}()
+	var time any = func() any {
+		if since == nil {
+			return now
+		}
+		return Add(since, month)
+	}()
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
-		"start_timestamp": Subtract(since, 1),
+		"start_timestamp": Subtract(sinceResolved, 1),
 	}
-	var until *int64 = this.SafeInteger2(params, "until", "end_timestamp")
+	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end_timestamp")
+	var paramsUntil any = func() any {
+		if until != nil {
+			return this.Omit(paramsPaginate, []any{"until"})
+		}
+		return paramsPaginate
+	}()
 	if until != nil {
-		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["end_timestamp"] = until
 	} else {
 		request["end_timestamp"] = time
 	}
-	if InOp(params, "isDeribitPaginationCall") {
-		params = MapTyped(this.Omit(params, "isDeribitPaginationCall"))
+	var isPaginationCall bool = (InOp(paramsUntil, "isDeribitPaginationCall"))
+	var paramsOmitted any = paramsUntil
+	if isPaginationCall {
+		paramsOmitted = this.Omit(paramsUntil, "isDeribitPaginationCall")
+	}
+	if isPaginationCall {
 		if limit == nil {
 			panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a limit argument"))
 		}
-		var maxUntil any = this.Sum(since, Multiply(limit, duration))
+		var maxUntil any = this.Sum(sinceResolved, Multiply(limit, duration))
 		request["end_timestamp"] = mathMin(request["end_timestamp"], maxUntil)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetFundingRateHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetFundingRateHistory(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//    {
 	//        "jsonrpc": "2.0",
@@ -4282,7 +4331,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		rates = append(rates, rate)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(rates, symbol, since, limit)
+	ch <- this.FilterBySymbolSinceLimit(rates, symbol, sinceResolved, limit)
 	return nil
 }
 func (this *Deribit) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -4362,13 +4411,14 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchLiquidations", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchLiquidations", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes344919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLiquidations", symbol, since, limit, params, "continuation", "continuation", nil))))
-		ch <- BoxAbsent(retRes344919)
+		var retRes345619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLiquidations", symbol, since, limit, paramsPaginate, "continuation", "continuation", nil))))
+		ch <- BoxAbsent(retRes345619)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -4386,7 +4436,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 		request["count"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetLastSettlementsByInstrument(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetLastSettlementsByInstrument(this.Extend(request, paramsPaginate))).Raw))
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -4856,14 +4906,14 @@ func (this *Deribit) ParseOption(chain any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = market
 	var marketId *string = this.SafeString(chain, "instrument_name")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var currencyId *string = this.SafeString(chain, "base_currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(chain, "timestamp")
 	return map[string]any{
 		"info":              chain,
 		"currency":          code,
-		"symbol":            GetValue(market, "symbol"),
+		"symbol":            marketResolved["symbol"],
 		"timestamp":         timestamp,
 		"datetime":          this.Iso8601(timestamp),
 		"impliedVolatility": nil,
@@ -4975,27 +5025,27 @@ func (this *Deribit) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//         "mid_price": 87116.25
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(interest, "creation_timestamp")
 	var marketId *string = this.SafeString(interest, "instrument_name")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var openInterest *float64 = this.SafeNumber(interest, "open_interest")
 	var openInterestAmount *float64 = nil
 	var openInterestValue *float64 = nil
-	if (GetValue(market, "option") == true) || ((GetValue(market, "future") == true) && (GetValue(market, "linear") == true)) {
+	if (marketResolved["option"] == true) || ((marketResolved["future"] == true) && (marketResolved["linear"] == true)) {
 		openInterestAmount = openInterest
 	} else {
 		openInterestValue = openInterest
 	}
 	return this.SafeOpenInterest(map[string]any{
-		"symbol":             this.SafeSymbol(marketId, market),
+		"symbol":             this.SafeSymbol(marketId, marketResolved),
 		"openInterestAmount": openInterestAmount,
 		"openInterestValue":  openInterestValue,
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"info":               interest,
-	}, market)
+	}, marketResolved)
 }
 func (this *Deribit) Nonce() any {
 	return this.Milliseconds()
@@ -5028,8 +5078,15 @@ func (this *Deribit) Sign(path any, optionalArgs ...any) any {
 		var requestData any = Add(Add(Add(Add(method+"\n", request), "\n"), requestBody), "\n") // eslint-disable-line quotes
 		var auth *string = SafeStringPtr(Add(timestamp+"\n"+nonce+"\n", requestData))           // eslint-disable-line quotes
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
-		headers = map[string]any{
+		var signedHeaders map[string]any = map[string]any{
 			"Authorization": Add(Add(Add(Add(Add(Add(Add(Add("deri-hmac-sha256 id=", this.ApiKey), ",ts="), timestamp), ",sig="), signature), ","), "nonce="), nonce),
+		}
+		var signedUrl any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), request)
+		return map[string]any{
+			"url":     signedUrl,
+			"method":  method,
+			"body":    body,
+			"headers": signedHeaders,
 		}
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")

@@ -690,15 +690,15 @@ class coinspot(Exchange, ImplicitAPI):
         side = self.safe_string(params, 'side')
         if side != 'buy' and side != 'sell':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a side parameter, "buy" or "sell"')
-        params = self.omit(params, 'side')
+        paramsOmitted = self.omit(params, 'side')
         request = {
             'id': id,
         }
         response: dict
         if side == 'buy':
-            response = await self.privatePostMyBuyCancel(self.extend(request, params))
+            response = await self.privatePostMyBuyCancel(self.extend(request, paramsOmitted))
         else:
-            response = await self.privatePostMySellCancel(self.extend(request, params))
+            response = await self.privatePostMySellCancel(self.extend(request, paramsOmitted))
         #
         # status - ok, error
         #
@@ -720,6 +720,8 @@ class coinspot(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        requestHeaders = headers
+        requestBody = body
         isVersionedApi = isinstance(api, list)
         version = api[0] if isVersionedApi else None
         accessType = api[1] if isVersionedApi else api
@@ -735,10 +737,10 @@ class coinspot(Exchange, ImplicitAPI):
             self.check_required_credentials()
             # coinspot requires an increasing nonce
             nonce = self.incrementing_nonce()
-            body = self.json(self.extend({'nonce': nonce}, params))
-            headers = {
+            requestBody = self.json(self.extend({'nonce': nonce}, params))
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'key': self.apiKey,
-                'sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
+                'sign': self.hmac(self.encode(requestBody), self.encode(self.secret), hashlib.sha512),
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}

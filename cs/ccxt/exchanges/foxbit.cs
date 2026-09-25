@@ -677,7 +677,7 @@ public partial class foxbit : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.v3PublicGetMarketsTicker24hr(parameters);
         //  {
         //    "data": [
@@ -701,7 +701,7 @@ public partial class foxbit : Exchange
         //    ]
         //  }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbolsNormalized));
     }
 
     /**
@@ -1037,17 +1037,16 @@ public partial class foxbit : Exchange
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
-        string typeVar = type;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        typeVar = typeVar.ToUpper();
-        if (!(typeVar == "LIMIT") && !(typeVar == "MARKET") && !(typeVar == "STOP_MARKET") && !(typeVar == "STOP_LIMIT") && !(typeVar == "INSTANT"))
+        string typeValue = type.ToUpper();
+        if (typeValue != "LIMIT" && typeValue != "MARKET" && typeValue != "STOP_MARKET" && typeValue != "STOP_LIMIT" && typeValue != "INSTANT")
         {
-            throw new InvalidOrder ((("Invalid order type: " + (typeVar)) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
+            throw new InvalidOrder ((("Invalid order type: " + typeValue) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
         }
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         bool? postOnly = this.safeBool(parameters, "postOnly", false);
@@ -1056,13 +1055,13 @@ public partial class foxbit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side.ToUpper() },
-            { "type", typeVar },
+            { "type", typeValue },
         };
-        if ((typeVar == "STOP_MARKET") || (typeVar == "STOP_LIMIT"))
+        if (typeValue == "STOP_MARKET" || typeValue == "STOP_LIMIT")
         {
             if ((triggerPrice == null))
             {
-                throw new InvalidOrder ((("Invalid order type: " + (typeVar)) + ". Must have triggerPrice.")) ;
+                throw new InvalidOrder ((("Invalid order type: " + typeValue) + ". Must have triggerPrice.")) ;
             }
         }
         if ((timeInForce != null))
@@ -1083,14 +1082,14 @@ public partial class foxbit : Exchange
         {
             request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        if ((typeVar == "INSTANT"))
+        if (typeValue == "INSTANT")
         {
             request["amount"] = this.priceToPrecision(symbol, amount);
         } else
         {
             request["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if ((typeVar == "LIMIT") || (typeVar == "STOP_LIMIT"))
+        if (typeValue == "LIMIT" || typeValue == "STOP_LIMIT")
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
@@ -1099,8 +1098,8 @@ public partial class foxbit : Exchange
         {
             request["client_order_id"] = clientOrderId;
         }
-        parameters = this.omit(parameters, new List<object>() {"timeInForce", "postOnly", "triggerPrice", "clientOrderId"});
-        Dictionary<string, object> response = await this.v3PrivatePostOrders(this.extend(request, parameters));
+        object paramsOmitted = this.omit(parameters, new List<object>() {"timeInForce", "postOnly", "triggerPrice", "clientOrderId"});
+        Dictionary<string, object> response = await this.v3PrivatePostOrders(this.extend(request, paramsOmitted));
         // {
         //     "id": 1234567890,
         //     "sn": "OKMAKSDHRVVREK",
@@ -1470,8 +1469,8 @@ public partial class foxbit : Exchange
             { "currency_symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         IList<object> networkCodeparamsOmitedVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        var networkCode = networkCodeparamsOmitedVariable[0];
-        var paramsOmited = networkCodeparamsOmitedVariable[1];
+        string? networkCode = (string)networkCodeparamsOmitedVariable[0];
+        IDictionary<string, object> paramsOmited = ((IDictionary<string, object>)networkCodeparamsOmitedVariable[1]);
         if ((networkCode != null))
         {
             request["network_code"] = this.networkCodeToId(networkCode, code);
@@ -1693,13 +1692,12 @@ public partial class foxbit : Exchange
      */
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
-        string typeVar = type;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("editOrder", symbol, "symbol");
-        typeVar = typeVar.ToUpper();
-        if (!(typeVar == "LIMIT") && !(typeVar == "MARKET") && !(typeVar == "STOP_MARKET") && !(typeVar == "INSTANT"))
+        string typeValue = type.ToUpper();
+        if (typeValue != "LIMIT" && typeValue != "MARKET" && typeValue != "STOP_MARKET" && typeValue != "INSTANT")
         {
-            throw new InvalidOrder ((("Invalid order type: " + (typeVar)) + ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")) ;
+            throw new InvalidOrder ((("Invalid order type: " + typeValue) + ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")) ;
         }
         if ((this.markets == null))
         {
@@ -1714,25 +1712,25 @@ public partial class foxbit : Exchange
                 { "id", this.parseNumber(id) },
             } },
             { "create", new Dictionary<string, object>() {
-                { "type", typeVar },
+                { "type", typeValue },
                 { "side", side.ToUpper() },
                 { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
-        if ((typeVar == "LIMIT") || (typeVar == "MARKET"))
+        if (typeValue == "LIMIT" || typeValue == "MARKET")
         {
             ((IDictionary<string,object>)request["create"])["quantity"] = this.amountToPrecision(symbol, amount);
-            if ((typeVar == "LIMIT"))
+            if (typeValue == "LIMIT")
             {
                 ((IDictionary<string,object>)request["create"])["price"] = this.priceToPrecision(symbol, price);
             }
         }
-        if ((typeVar == "STOP_MARKET"))
+        if (typeValue == "STOP_MARKET")
         {
             ((IDictionary<string,object>)request["create"])["stop_price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)request["create"])["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if ((typeVar == "INSTANT"))
+        if (typeValue == "INSTANT")
         {
             ((IDictionary<string,object>)request["create"])["amount"] = this.priceToPrecision(symbol, amount);
         }
@@ -1764,11 +1762,10 @@ public partial class foxbit : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
-        parameters = tagparametersVariable[1];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
+        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1779,19 +1776,18 @@ public partial class foxbit : Exchange
             { "amount", this.numberToString(amount) },
             { "destination_address", address },
         };
-        if ((tagVar != null))
+        if ((tagWithdrawTag != null))
         {
-            request["destination_tag"] = tagVar;
+            request["destination_tag"] = tagWithdrawTag;
         }
-        string? networkCode = null;
-        IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = (string)networkCodeparametersVariable[0];
-        parameters = networkCodeparametersVariable[1];
+        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
+        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
+        var paramsNetworkCode = networkCodeparamsNetworkCodeVariable[1];
         if ((networkCode != null))
         {
             request["network_code"] = this.networkCodeToId(networkCode, code);
         }
-        Dictionary<string, object> response = await this.v3PrivatePostWithdrawals(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v3PrivatePostWithdrawals(this.extend(request, paramsNetworkCode));
         // {
         //     "amount": "2",
         //     "currency_symbol": "xrp",
@@ -2011,13 +2007,14 @@ public partial class foxbit : Exchange
     public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeString(order, "market_symbol");
-        if ((market == null) && (symbol != null))
+        object marketResolved = market;
+        if (((market == null)) && ((symbol != null)))
         {
-            market = this.market(symbol);
+            marketResolved = this.market(symbol);
         }
-        if ((market != null))
+        if ((marketResolved != null))
         {
-            symbol = this.safeString(market, "symbol");
+            symbol = this.safeString(marketResolved, "symbol");
         }
         Int64? timestamp = this.parseDate(this.safeString(order, "created_at"));
         string? price = this.safeString(order, "price");
@@ -2037,10 +2034,10 @@ public partial class foxbit : Exchange
             cost = Precise.stringMul(priceToCalculate, amount);
         }
         string? side = this.safeStringLower(order, "side");
-        string? feeCurrency = this.safeStringUpper(market, "quoteId");
+        string? feeCurrency = this.safeStringUpper(marketResolved, "quoteId");
         if (side == "buy")
         {
-            feeCurrency = this.safeStringUpper(market, "baseId");
+            feeCurrency = this.safeStringUpper(marketResolved, "baseId");
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "id") },
@@ -2050,7 +2047,7 @@ public partial class foxbit : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "status", this.parseOrderStatus(this.safeString(order, "state")) },
-            { "symbol", this.safeString(market, "symbol") },
+            { "symbol", this.safeString(marketResolved, "symbol") },
             { "type", this.safeString(order, "type") },
             { "timeInForce", this.safeString(order, "time_in_force") },
             { "postOnly", this.safeBool(order, "post_only") },
@@ -2260,23 +2257,23 @@ public partial class foxbit : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + fullPath);
-        parameters = this.omit(parameters, this.extractParams(path));
+        object paramsOmitted = this.omit(parameters, this.extractParams(path));
         Int64 timestamp = this.milliseconds();
         string query = "";
         object signatureQuery = "";
         if ((method == "GET"))
         {
-            List<object> paramKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+            List<object> paramKeys = new List<object>(((IDictionary<string,object>)paramsOmitted).Keys);
             int paramKeysLength = paramKeys.Count;
             if (paramKeysLength > 0)
             {
-                query = this.urlencode(parameters);
+                query = this.urlencode(paramsOmitted);
                 url = url + ("?" + query);
             }
             for (int i = 0; i < paramKeys.Count; i++)
             {
                 object key = paramKeys[i];
-                string? value = this.safeString(parameters, key);
+                string? value = this.safeString(paramsOmitted, key);
                 if ((value != null))
                 {
                     signatureQuery = add(signatureQuery, add(add(key, "="), value));
@@ -2287,16 +2284,17 @@ public partial class foxbit : Exchange
                 }
             }
         }
+        object requestBody = body;
         if ((method == "POST") || (method == "PUT"))
         {
-            body = this.json(parameters);
+            requestBody = this.json(paramsOmitted);
         }
         object bodyToSignature = "";
-        if ((body != null))
+        if ((requestBody != null))
         {
-            bodyToSignature = body;
+            bodyToSignature = requestBody;
         }
-        headers = new Dictionary<string, object>() {
+        Dictionary<string, object> headersValue = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
             { "X-FB-CLIENT", "ccxt" },
             { "X-FB-CLIENT-VERSION", this.getCcxtVersion() },
@@ -2306,15 +2304,15 @@ public partial class foxbit : Exchange
             this.checkRequiredCredentials();
             string preHash = ((((this.numberToString(timestamp) + method) + fullPath) + (signatureQuery)) + (bodyToSignature));
             string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
-            ((IDictionary<string,object>)headers)["X-FB-ACCESS-KEY"] = this.apiKey;
-            ((IDictionary<string,object>)headers)["X-FB-ACCESS-TIMESTAMP"] = this.numberToString(timestamp);
-            ((IDictionary<string,object>)headers)["X-FB-ACCESS-SIGNATURE"] = signature;
+            headersValue["X-FB-ACCESS-KEY"] = this.apiKey;
+            headersValue["X-FB-ACCESS-TIMESTAMP"] = this.numberToString(timestamp);
+            headersValue["X-FB-ACCESS-SIGNATURE"] = signature;
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", requestBody },
+            { "headers", headersValue },
         };
     }
 

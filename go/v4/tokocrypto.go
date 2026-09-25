@@ -1679,7 +1679,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1694,8 +1694,8 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var maxLimit int = 1500
 	var price *string = this.SafeString(params, "price")
 	var until *int64 = this.SafeInteger(params, "until")
-	params = MapTyped(this.Omit(params, []any{"price", "until"}))
-	limit = func() any {
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"price", "until"}))
+	var limitValue any = func() any {
 		if limit == nil {
 			return defaultLimit
 		}
@@ -1703,7 +1703,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	}()
 	var request map[string]any = map[string]any{
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
-		"limit":    limit,
+		"limit":    limitValue,
 	}
 	if price != nil && *price == "index" {
 		request["pair"] = market["id"] // Index price takes this argument instead of symbol
@@ -1720,11 +1720,11 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var response any = nil
 	if EvalTruthy(this.IsNativeMarket(market)) {
 
-		response = (<-this.PublicGetOpenV1MarketKlines(this.Extend(request, params))).Raw
+		response = (<-this.PublicGetOpenV1MarketKlines(this.Extend(request, paramsOmitted))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.BinanceGetKlines(this.Extend(request, params))).Raw
+		response = (<-this.BinanceGetKlines(this.Extend(request, paramsOmitted))).Raw
 		PanicOnError(response)
 	}
 	//
@@ -1773,7 +1773,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		}
 	}
 
-	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
+	ch <- this.ParseOHLCVs(data, market, timeframe, since, limitValue)
 	return nil
 }
 
@@ -2081,15 +2081,23 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar string,
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientId")
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	// only supported for spot/margin api
-	if postOnly != nil && *postOnly == true {
-		typeVar = "LIMIT_MAKER"
-	}
-	params = MapTyped(this.Omit(params, []any{"clientId", "clientOrderId"}))
-	var initialUppercaseType string = strings.ToUpper(typeVar)
+	var typeResolved any = func() any {
+		if postOnly != nil && *postOnly == true {
+			return "LIMIT_MAKER"
+		}
+		return typeVar
+	}()
+	var initialUppercaseType string = ToUpper(typeResolved)
 	var uppercaseType string = initialUppercaseType
 	var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
+	var triggerKeys any = func() any {
+		if !IsEqual(triggerPrice, nil) {
+			return []any{"triggerPrice", "stopPrice"}
+		}
+		return []any{}
+	}()
+	var paramsRequest any = this.Omit(params, this.ArrayConcat([]any{"clientId", "clientOrderId"}, triggerKeys))
 	if !IsEqual(triggerPrice, nil) {
-		params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice"}))
 		if uppercaseType == "MARKET" {
 			uppercaseType = "STOP_LOSS"
 		} else if uppercaseType == "LIMIT" {
@@ -2099,9 +2107,9 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar string,
 	var validOrderTypes any = this.SafeValue(market["info"], "orderTypes")
 	if !this.InArray(uppercaseType, validOrderTypes) {
 		if initialUppercaseType != uppercaseType {
-			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" triggerPrice parameter is not allowed for ", symbol), " "), typeVar), " orders")))
+			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" triggerPrice parameter is not allowed for ", symbol), " "), typeResolved), " orders")))
 		} else {
-			panic(InvalidOrder(Add(Add(this.Id+" "+typeVar+" is not a valid order type for the ", symbol), " market")))
+			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" ", typeResolved), " is not a valid order type for the "), symbol), " market")))
 		}
 	}
 	var reverseOrderTypeMapping map[string]any = map[string]any{
@@ -2153,11 +2161,11 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar string,
 			var precision any = GetValue(market["precision"], "price")
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice bool = true
-			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
-			params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
-			var cost *float64 = this.SafeNumber2(params, "cost", "quoteOrderQty")
-			params = MapTyped(this.Omit(params, []any{"cost", "quoteOrderQty"}))
+			var createMarketBuyOrderRequiresPriceparamsRequestVariable []any = this.HandleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsRequestVariable, 0, false)
+			paramsRequest = GetValue(createMarketBuyOrderRequiresPriceparamsRequestVariable, 1)
+			var cost *float64 = this.SafeNumber2(paramsRequest, "cost", "quoteOrderQty")
+			paramsRequest = this.Omit(paramsRequest, []any{"cost", "quoteOrderQty"})
 			if cost != nil {
 				quoteAmount = cost
 			} else if createMarketBuyOrderRequiresPrice {
@@ -2197,19 +2205,19 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar string,
 	}
 	if priceIsRequired {
 		if price == nil {
-			panic(InvalidOrder(this.Id + " createOrder() requires a price argument for a " + typeVar + " order"))
+			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeResolved), " order")))
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if triggerPriceIsRequired {
 		if IsEqual(triggerPrice, nil) {
-			panic(InvalidOrder(this.Id + " createOrder() requires a triggerPrice extra param for a " + typeVar + " order"))
+			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a triggerPrice extra param for a ", typeResolved), " order")))
 		} else {
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenV1Orders(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenV1Orders(this.Extend(request, paramsRequest))).Raw))
 	//
 	//     {
 	//         "code": 0,
@@ -2426,8 +2434,8 @@ func (this *Tokocrypto) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		"type": 1,
 	} // -1 = all, 1 = open, 2 = closed
 
-	var retRes212515 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes212515)
+	var retRes212315 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes212315)
 	return nil
 }
 
@@ -2462,8 +2470,8 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 		"type": 2,
 	} // -1 = all, 1 = open, 2 = closed
 
-	var retRes214115 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes214115)
+	var retRes213915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes213915)
 	return nil
 }
 
@@ -2569,15 +2577,20 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	if since != nil {
 		request["startTime"] = since
 	}
+	var paramsOmitted any = func() any {
+		if endTime != nil {
+			return this.Omit(params, []any{"endTime", "until"})
+		}
+		return params
+	}()
 	if endTime != nil {
 		request["endTime"] = endTime
-		params = MapTyped(this.Omit(params, []any{"endTime", "until"}))
 	}
 	if limit != nil {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1OrdersTrades(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1OrdersTrades(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     {
 	//         "code": 0,
@@ -2640,14 +2653,19 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan any, code any, optionalA
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper(params, "network") // this line allows the user to specify either ERC20 or ETH
 	network = this.SafeString(networks, network, network)         // handle ERC20>ETH alias
+	var paramsOmitted any = func() any {
+		if network != nil {
+			return this.Omit(params, "network")
+		}
+		return params
+	}()
 	if network != nil {
 		request["network"] = network
-		params = MapTyped(this.Omit(params, "network"))
 	}
 	// has support for the 'network' parameter
 	// https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
 
-	response := (<-this.PrivateGetOpenV1DepositsAddress(this.Extend(request, params))).Raw
+	response := (<-this.PrivateGetOpenV1DepositsAddress(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
 	//
 	//     {
@@ -3017,9 +3035,9 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3031,10 +3049,10 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
 		"address": address,
 		"amount":  this.NumberToString(amount),
 	}
-	if tag != nil {
-		request["addressTag"] = tag
+	if !IsEqual(tagWithdrawTag, nil) {
+		request["addressTag"] = tagWithdrawTag
 	}
-	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(params)
+	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	var networkCode *string = SafeStringPtr(GetValue(networkCodequeryVariable, 0))
 	var query map[string]any = MapTyped(GetValue(networkCodequeryVariable, 1))
 	var networkId any = this.NetworkCodeToId(networkCode, code)
@@ -3066,7 +3084,7 @@ func (this *Tokocrypto) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	if !(InOp(GetValue(GetValue(this.Urls, "api"), "rest"), api)) {
 		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", api), " endpoints")))
@@ -3080,12 +3098,21 @@ func (this *Tokocrypto) Sign(path any, optionalArgs ...any) any {
 	if userDataStream {
 		if (!IsEqual(this.ApiKey, nil)) && (this.ApiKey != "") {
 			// v1 special case for userDataStream
-			headers = map[string]any{
+			var headersStream map[string]any = map[string]any{
 				"X-MBX-APIKEY": this.ApiKey,
 				"Content-Type": "application/x-www-form-urlencoded",
 			}
-			if method != "GET" {
-				body = this.Urlencode(params)
+			var bodyStream *string = func() *string {
+				if method != "GET" {
+					return SafeStringPtr(this.Urlencode(params))
+				}
+				return body
+			}()
+			return map[string]any{
+				"url":     url,
+				"method":  method,
+				"body":    bodyStream,
+				"headers": headersStream,
 			}
 		} else {
 			panic(AuthenticationError(this.Id + " userDataStream endpoint requires `apiKey` credential"))
@@ -3113,14 +3140,24 @@ func (this *Tokocrypto) Sign(path any, optionalArgs ...any) any {
 		}
 		var signature string = this.Hmac(this.Encode(query), this.Encode(this.Secret), sha256)
 		query = Add(query, "&"+"signature="+signature)
-		headers = map[string]any{
+		var headersSigned map[string]any = map[string]any{
 			"X-MBX-APIKEY": this.ApiKey,
 		}
-		if (method == "GET") || (method == "DELETE") || (IsEqual(api, "wapi")) {
+		var queryInUrl bool = (method == "GET") || (method == "DELETE") || (IsEqual(api, "wapi"))
+		var bodySigned any = query
+		if queryInUrl {
+			bodySigned = body
+		}
+		if queryInUrl {
 			url = Add(url, Add("?", query))
 		} else {
-			body = query
-			AddElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded")
+			headersSigned["Content-Type"] = "application/x-www-form-urlencoded"
+		}
+		return map[string]any{
+			"url":     url,
+			"method":  method,
+			"body":    bodySigned,
+			"headers": headersSigned,
 		}
 	} else {
 		if len(ObjectKeys(params)) > 0 {
@@ -3158,9 +3195,9 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 	// check success value for wapi endpoints
 	// response in format {'msg': 'The coin does not exist.', 'success': true/false}
 	var success *bool = this.SafeBool(response, "success", true)
+	var parsedMessage any = nil
 	if success == nil || *success != true {
 		var messageInner *string = this.SafeString(response, "msg")
-		var parsedMessage any = nil
 		if messageInner != nil {
 
 			{
@@ -3184,18 +3221,21 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 				}(this)
 
 			}
-			if !IsEqual(parsedMessage, nil) {
-				response = parsedMessage
-			}
 		}
 	}
-	var message *string = this.SafeString(response, "msg")
+	var responseParsed any = func() any {
+		if !IsEqual(parsedMessage, nil) {
+			return parsedMessage
+		}
+		return response
+	}()
+	var message *string = this.SafeString(responseParsed, "msg")
 	if message != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, this.Id+" "+*message)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, this.Id+" "+*message)
 	}
 	// checks against error codes
-	var error *string = this.SafeString(response, "code")
+	var error *string = this.SafeString(responseParsed, "code")
 	if error != nil {
 		// https://github.com/ccxt/ccxt/issues/6501
 		// https://github.com/ccxt/ccxt/issues/7742

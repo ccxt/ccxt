@@ -2994,8 +2994,7 @@ public partial class hyperliquid : Exchange
         }
         cancelAction["type"] = cancelByCloid ? "cancelByCloid" : "cancel";
         cancelAction["cancels"] = cancelReq;
-        IList<object> vaultAddressOptionVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress");
-        string? vaultAddressOption = (string)vaultAddressOptionVariable[0];
+        string? vaultAddressOption = ((string)getValue(this.handleOptionStringAndParams2(parameters, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress"), 0));
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Dictionary<string, object> signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         request["action"] = cancelAction;
@@ -4540,8 +4539,7 @@ public partial class hyperliquid : Exchange
             { "isBuy", true },
             { "ntli", sz },
         };
-        IList<object> vaultAddressOptionVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, "modifyMargin", "vaultAddress", "subAccountAddress");
-        string? vaultAddressOption = (string)vaultAddressOptionVariable[0];
+        string? vaultAddressOption = ((string)getValue(this.handleOptionStringAndParams2(parameters, "modifyMargin", "vaultAddress", "subAccountAddress"), 0));
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Dictionary<string, object> signature = this.signL1Action(updateAction, nonce, vaultAddress);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4775,8 +4773,7 @@ public partial class hyperliquid : Exchange
                 throw new NotSupported ((this.id + " withdraw() only support USDC")) ;
             }
         }
-        IList<object> vaultAddressOptionVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "withdraw", "vaultAddress");
-        string? vaultAddressOption = (string)vaultAddressOptionVariable[0];
+        string? vaultAddressOption = ((string)getValue(this.handleOptionStringAndParams(parameters, "withdraw", "vaultAddress"), 0));
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Int64? nonce = this.incrementingNonce();
         Dictionary<string, object> action = new Dictionary<string, object>() {};

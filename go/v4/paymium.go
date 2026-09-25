@@ -405,10 +405,10 @@ func (this *Paymium) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp(trade, "created_at_int")
 	var id *string = this.SafeString(trade, "uuid")
-	market = this.SafeMarket(nil, market)
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var side *string = this.SafeString(trade, "side")
 	var price *string = this.SafeString(trade, "price")
-	var amountField string = "traded_" + ToLower(GetValue(market, "base"))
+	var amountField string = "traded_" + ToLower(marketResolved["base"])
 	var amount *string = this.SafeString(trade, amountField)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -416,7 +416,7 @@ func (this *Paymium) ParseTrade(trade any, optionalArgs ...any) any {
 		"order":        nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"type":         nil,
 		"side":         side,
 		"takerOrMaker": nil,
@@ -424,7 +424,7 @@ func (this *Paymium) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          nil,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -856,24 +856,34 @@ func (this *Paymium) Sign(path any, optionalArgs ...any) any {
 		// paymium requires an increasing nonce
 		var nonce string = ToString(this.IncrementingNonce())
 		var auth any = Add(nonce, url)
-		headers = map[string]any{
+		var signedHeaders map[string]any = map[string]any{
 			"Api-Key":   this.ApiKey,
 			"Api-Nonce": nonce,
 		}
+		var hasQuery bool = (len(ObjectKeys(query)) > 0)
+		var signedBody any = body
+		if (method == "POST") && hasQuery {
+			signedBody = this.Json(query)
+		}
 		if method == "POST" {
-			if len(ObjectKeys(query)) > 0 {
-				body = this.Json(query)
-				auth = Add(auth, body)
-				AddElementToObject(headers, "Content-Type", "application/json")
+			if hasQuery {
+				auth = Add(auth, signedBody)
+				signedHeaders["Content-Type"] = "application/json"
 			}
 		} else {
-			if len(ObjectKeys(query)) > 0 {
+			if hasQuery {
 				var queryString string = this.Urlencode(query)
 				auth = Add(auth, queryString)
 				url = Add(url, "?"+queryString)
 			}
 		}
-		AddElementToObject(headers, "Api-Signature", this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
+		signedHeaders["Api-Signature"] = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+		return map[string]any{
+			"url":     url,
+			"method":  method,
+			"body":    signedBody,
+			"headers": signedHeaders,
+		}
 	}
 	return map[string]any{
 		"url":     url,

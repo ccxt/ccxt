@@ -1570,8 +1570,8 @@ func (this *Myriad) createMarketBuyOrderWithCostBody(ch chan any, outcome any, c
 		"costDenominated": true,
 	})
 
-	var retRes112415 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, "market", "buy", cost, nil, request))))
-	ch <- ccxt.BoxAbsent(retRes112415)
+	var retRes112015 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, "market", "buy", cost, nil, request))))
+	ch <- ccxt.BoxAbsent(retRes112015)
 	return nil
 }
 
@@ -1785,7 +1785,7 @@ func (this *Myriad) ParseOrderStatus(status *string) *string {
 	return this.SafeString(statuses, status, status)
 }
 func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var inner map[string]any = ccxt.SafeMapTyped(order, "order")
 	var orderHash *string = this.SafeString2(order, "orderHash", "hash")
@@ -2007,9 +2007,9 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	params = ccxt.MapTyped(this.Omit(params, []any{"trader", "address", "status"}))
+	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"trader", "address", "status"}))
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetUsersAddressEvents(this.Extend(request, params))).Raw))
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetUsersAddressEvents(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     {
 	//         "data": [
@@ -2097,12 +2097,12 @@ func (this *Myriad) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var fetched any = this.GetOrderResponseFromParams(id, params)
 	var networkIdParam *string = this.SafeString2(params, "networkId", "network_id")
-	params = ccxt.MapTyped(this.Omit(params, []any{"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"}))
+	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"}))
 	if ccxt.IsEqual(fetched, nil) {
 
 		fetched = (<-this.MyriadPublicGetOrdersHash(this.Extend(map[string]any{
 			"hash": id,
-		}, params))).Raw
+		}, paramsOmitted))).Raw
 		ccxt.PanicOnError(fetched)
 	}
 	var fetchedInfo map[string]any = ccxt.SafeMapTyped(fetched, "info")
@@ -2131,7 +2131,7 @@ func (this *Myriad) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"network_id": this.ParseToInt(networkId),
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicDeleteOrdersHash(this.Extend(request, params))).Raw))
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicDeleteOrdersHash(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     {
 	//         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -2251,7 +2251,7 @@ func (this *Myriad) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	}
 	var paramsForLookup any = params
 	var networkIdParam *string = this.SafeString2(params, "networkId", "network_id")
-	params = ccxt.MapTyped(this.Omit(params, []any{"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"}))
+	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"}))
 	var idsLength int = ccxt.GetArrayLength(ids)
 	var signedOrders []any = []any{}
 	var wrappers []any = []any{}
@@ -2299,7 +2299,7 @@ func (this *Myriad) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		"network_id": this.ParseToInt(networkId),
 	}
 
-	ccxt.PanicOnError((<-this.MyriadPublicPostOrdersCancelBatch(this.Extend(request, params))).Raw)
+	ccxt.PanicOnError((<-this.MyriadPublicPostOrdersCancelBatch(this.Extend(request, paramsOmitted))).Raw)
 
 	//
 	//     {
@@ -2416,7 +2416,7 @@ func (this *Myriad) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var requestedTradingModel *string = this.SafeStringLower2(params, "tradingModel", "trading_model")
-	params = ccxt.MapTyped(this.Omit(params, []any{"tradingModel", "trading_model"}))
+	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"tradingModel", "trading_model"}))
 	var outcomeObj any = nil
 	var outcomeSymbol any = nil
 	if outcome != nil {
@@ -2431,12 +2431,12 @@ func (this *Myriad) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if requestedTradingModel != nil && *requestedTradingModel == "amm" {
 
-		var retRes179919 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchAmmOrdersAsync(outcome, since, limit, params))))
-		ch <- ccxt.BoxAbsent(retRes179919)
+		var retRes179519 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchAmmOrdersAsync(outcome, since, limit, paramsOmitted))))
+		ch <- ccxt.BoxAbsent(retRes179519)
 		return nil
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetOrders(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     {
 	//         "data": [
@@ -2513,8 +2513,8 @@ func (this *Myriad) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "open",
 	}
 
-	var retRes186015 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
-	ch <- ccxt.BoxAbsent(retRes186015)
+	var retRes185615 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
+	ch <- ccxt.BoxAbsent(retRes185615)
 	return nil
 }
 
@@ -2549,8 +2549,8 @@ func (this *Myriad) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		"status": "filled",
 	}
 
-	var retRes187815 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
-	ch <- ccxt.BoxAbsent(retRes187815)
+	var retRes187415 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
+	ch <- ccxt.BoxAbsent(retRes187415)
 	return nil
 }
 
@@ -2585,8 +2585,8 @@ func (this *Myriad) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
 		"status": "cancelled",
 	}
 
-	var retRes189615 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
-	ch <- ccxt.BoxAbsent(retRes189615)
+	var retRes189215 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
+	ch <- ccxt.BoxAbsent(retRes189215)
 	return nil
 }
 
@@ -4903,20 +4903,21 @@ func (this *Myriad) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var trader any = this.WalletAddressFromKeys()
 	var networkId *string = this.SafeString(this.Options, "defaultNetworkId", "56")
-	if outcome != nil {
+	var outcomeResolved any = outcome
+	if outcomeResolved != nil {
 
-		outcomeObj := (<-this.LoadOutcomeAsync(outcome))
+		outcomeObj := (<-this.LoadOutcomeAsync(outcomeResolved))
 		ccxt.PanicOnError(outcomeObj)
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		networkId = this.SafeString(info, "networkId", networkId)
-		outcome = this.SafeOutcomeSymbol(outcome, outcomeObj)
+		outcomeResolved = this.SafeOutcomeSymbol(outcomeResolved, outcomeObj)
 	}
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("orders:"+*networkId+":", trader))
 	var messageHash string = "orders"
 
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeMyriadChannelAsync(messageHash, channel, params))))
 
-	ch <- this.FilterByValueSinceLimit(orders, "outcome", outcome, since, limit, "timestamp", true)
+	ch <- this.FilterByValueSinceLimit(orders, "outcome", outcomeResolved, since, limit, "timestamp", true)
 	return nil
 }
 func (this *Myriad) HandleOrder(client any, data any) {
@@ -5201,17 +5202,18 @@ func (this *Myriad) Sign(path any, optionalArgs ...any) any {
 		}
 		return map[string]any{}
 	}()
-	headers = this.Extend(map[string]any{
+	var headersValue map[string]any = this.Extend(map[string]any{
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
 	}, existingHeaders)
 	// non-GET requests carry the params as a JSON body (public POSTs like markets/quote
 	// included — the previous logic only sent a body for authenticated requests)
+	var bodyValue any = body
 	if method != "GET" {
 		var queryKeys []string = ccxt.ObjectKeys(query)
 		var queryKeysLength int = len(queryKeys)
 		if queryKeysLength > 0 {
-			body = this.Json(query)
+			bodyValue = this.Json(query)
 		}
 	}
 	if (!ccxt.IsEqual(this.ApiKey, nil)) && (this.ApiKey != "") {
@@ -5225,13 +5227,13 @@ func (this *Myriad) Sign(path any, optionalArgs ...any) any {
 		var headerKey string = "x-api" + "-key"
 		var headersKey map[string]any = map[string]any{}
 		headersKey[headerKey] = this.ApiKey
-		headers = this.Extend(headers, headersKey)
+		headersValue = this.Extend(headersValue, headersKey)
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyValue,
+		"headers": headersValue,
 	}
 }
 

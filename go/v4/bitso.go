@@ -501,7 +501,7 @@ func (this *Bitso) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//             "oid": "JO5TZmMZjzjlZDyT"
 	//         }
 	//     }
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var operation *string = this.SafeString(item, "operation")
 	var typeVar *string = this.ParseLedgerEntryType(operation)
@@ -512,7 +512,7 @@ func (this *Bitso) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(firstBalance, "amount")
 	var currencyId *string = this.SafeString(firstBalance, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	currency = this.SafeCurrency(currencyId, currency)
+	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
 	var details map[string]any = SafeMapTyped(item, "details")
 	var referenceId *string = this.SafeString2(details, "fid", "wid")
 	if referenceId == nil {
@@ -529,7 +529,7 @@ func (this *Bitso) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		var cost *string = Precise.StringAbs(amount)
 		fee = map[string]any{
 			"cost":     cost,
-			"currency": currency,
+			"currency": currencyResolved,
 		}
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "created_at"))
@@ -549,7 +549,7 @@ func (this *Bitso) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"after":            nil,
 		"status":           "ok",
 		"fee":              fee,
-	}, currency)
+	}, currencyResolved)
 }
 
 /**
@@ -1386,10 +1386,10 @@ func (this *Bitso) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id"))
 	}
 	// convert it to an integer unconditionally
+	var paramsMarker any = params
 	if markerInParams {
-		var marker int64 = ParseInt(params["marker"])
-		params = this.Extend(params, map[string]any{
-			"marker": marker,
+		paramsMarker = this.Extend(params, map[string]any{
+			"marker": ParseInt(params["marker"]),
 		})
 	}
 	var request map[string]any = map[string]any{
@@ -1397,7 +1397,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"limit": limit,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserTrades(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserTrades(this.Extend(request, paramsMarker))).Raw))
 	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 
 	ch <- this.ParseTrades(payload, market, since, limit)
@@ -1708,10 +1708,10 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id"))
 	}
 	// convert it to an integer unconditionally
+	var paramsMarker any = params
 	if markerInParams {
-		var marker int64 = ParseInt(params["marker"])
-		params = this.Extend(params, map[string]any{
-			"marker": marker,
+		paramsMarker = this.Extend(params, map[string]any{
+			"marker": ParseInt(params["marker"]),
 		})
 	}
 	var request map[string]any = map[string]any{
@@ -1719,7 +1719,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"limit": limit,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenOrders(this.Extend(request, paramsMarker))).Raw))
 	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 	var orders any = this.ParseOrders(payload, market, since, limit)
 
@@ -2299,9 +2299,9 @@ func (this *Bitso) withdrawBody(ch chan any, code any, amount any, address any, 
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -2327,11 +2327,11 @@ func (this *Bitso) withdrawBody(ch chan any, code any, amount any, address any, 
 	var request map[string]any = map[string]any{
 		"amount":          amount,
 		"address":         address,
-		"destination_tag": tag,
+		"destination_tag": tagWithdrawTag,
 	}
 	var classMethod any = Add(Add("privatePost", method), "Withdrawal")
 
-	response := (<-this.CallDynamically(classMethod, this.Extend(request, params)))
+	response := (<-this.CallDynamically(classMethod, this.Extend(request, paramsWithdrawTag)))
 	PanicOnError(response)
 	//
 	//     {
@@ -2398,7 +2398,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString2(transaction, "currency", "asset")
-	currency = this.SafeCurrency(currencyId, currency)
+	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
 	var details map[string]any = SafeMapTyped(transaction, "details")
 	var datetime *string = this.SafeString(transaction, "created_at")
 	var withdrawalAddress *string = this.SafeString(details, "withdrawal_address")
@@ -2406,7 +2406,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var networkId *string = this.SafeString2(transaction, "network", "method")
 	var status *string = this.SafeString(transaction, "status")
 	var withdrawId *string = this.SafeString(transaction, "wid")
-	var networkCode *string = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
+	var networkCode *string = this.NetworkIdToCode(networkId, currencyResolved["code"])
 	var networkCodeUpper *string = func() *string {
 		if networkCode != nil {
 			return SafeStringPtr(strings.ToUpper(*networkCode))
@@ -2434,7 +2434,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
 			}
 			return "withdrawal"
 		}(),
-		"currency": this.SafeCurrencyCode(currencyId, currency),
+		"currency": this.SafeCurrencyCode(currencyId, currencyResolved),
 		"status":   this.ParseTransactionStatus(status),
 		"updated":  nil,
 		"tagFrom":  nil,
@@ -2469,6 +2469,8 @@ func (this *Bitso) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
+	var requestHeaders any = headers
+	var requestBody any = body
 	var endpoint any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if (method == "GET") || (method == "DELETE") {
@@ -2490,21 +2492,21 @@ func (this *Bitso) Sign(path any, optionalArgs ...any) any {
 		var request any = Join(content, "")
 		if (method != "GET") && (method != "DELETE") {
 			if len(ObjectKeys(query)) > 0 {
-				body = this.Json(query)
-				request = Add(request, body)
+				requestBody = this.Json(query)
+				request = Add(request, requestBody)
 			}
 		}
 		var signature string = this.Hmac(this.Encode(request), this.Encode(this.Secret), sha256)
 		var auth any = Add(Add(Add(Add(this.ApiKey, ":"), nonce), ":"), signature)
-		headers = map[string]any{
+		requestHeaders = map[string]any{
 			"Authorization": Add("Bitso ", auth),
 		}
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Bitso) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

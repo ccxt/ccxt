@@ -828,14 +828,13 @@ class sxbet extends Exchange {
         if ($tokenAddress === null) {
             throw new BadRequest($this->id . ' approve() could not resolve the base token address from /metadata/obv3');
         }
-        $spender = null;
-        list($spender, $params) = $this->handle_option_string_and_params_2($params, 'approve', 'spender', 'transferToProxySpender', $executorAddress);
+        list($spender, $paramsSpender) = $this->handle_option_string_and_params_2($params, 'approve', 'spender', 'transferToProxySpender', $executorAddress);
         if ($spender === null) {
             throw new BadRequest($this->id . ' approve() could not resolve the transfer-to-$proxy executor from /metadata/obv3 - pass $params->spender');
         }
         $chains = $this->safe_dict($this->options, 'chains', array());
         $chainConfig = $this->safe_dict($chains, $this->number_to_string($chainId), array());
-        $rpcUrl = $this->safe_string($params, 'rpcUrl', $this->safe_string($chainConfig, 'rpcUrl'));
+        $rpcUrl = $this->safe_string($paramsSpender, 'rpcUrl', $this->safe_string($chainConfig, 'rpcUrl'));
         if ($rpcUrl === null) {
             throw new ArgumentsRequired($this->id . ' approve() has no RPC endpoint configured for $chainId ' . $this->number_to_string($chainId) . ' - pass $params->rpcUrl');
         }
@@ -846,7 +845,7 @@ class sxbet extends Exchange {
         $nonce = ($nonceHex === '') ? '0' : $this->number_to_string($this->hex_to_int($nonceHex));
         $tokenName = Async\await($this->fetch_erc20_name($rpcUrl, $tokenAddress));
         $defaultDeadlineSeconds = $this->safe_integer($this->options, 'approveDeadlineSeconds', 7200);
-        $deadline = $this->safe_integer($params, 'deadline', $this->sum($this->seconds(), $defaultDeadlineSeconds));
+        $deadline = $this->safe_integer($paramsSpender, 'deadline', $this->sum($this->seconds(), $defaultDeadlineSeconds));
         $value = $this->decimal_to_precision(Precise::string_mul($this->number_to_string($amount), '1000000'), ROUND, 0, DECIMAL_PLACES);
         $domain = array( 'name' => $tokenName, 'version' => '1', 'chainId' => $chainId, 'verifyingContract' => $tokenAddress );
         $messageTypes = array(
@@ -870,7 +869,7 @@ class sxbet extends Exchange {
             'deadline' => $this->number_to_string($deadline),
             'signature' => $signature,
         );
-        $rest = $this->omit($params, array( 'amount', 'tokenAddress', 'deadline', 'rpcUrl' ));
+        $rest = $this->omit($paramsSpender, array( 'amount', 'tokenAddress', 'deadline', 'rpcUrl' ));
         $response = Async\await($this->sxbetPrivatePostUserTransferToProxy($this->extend($request, $rest)));
         $data = $this->safe_dict($response, 'data', array());
         return array(
@@ -954,8 +953,7 @@ class sxbet extends Exchange {
         if ($type === 'limit') {
             $defaultTif = 'GTC';
         }
-        $timeInForce = null;
-        list($timeInForce, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'timeInForce', $defaultTif);
+        list($timeInForce, $paramsTimeInForce) = $this->handle_option_string_and_params($params, 'createOrder', 'timeInForce', $defaultTif);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
@@ -1000,22 +998,22 @@ class sxbet extends Exchange {
             'timeInForce' => $timeInForce,
             'orderSignature' => $orderSignature,
         );
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $clientOrderId = $this->safe_string($paramsTimeInForce, 'clientOrderId');
         if ($clientOrderId !== null) {
             $orderItem['clientOrderId'] = $clientOrderId;
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        $useBetCredits = $this->safe_bool($params, 'useBetCredits');
+        $useBetCredits = $this->safe_bool($paramsTimeInForce, 'useBetCredits');
         if ($useBetCredits !== null) {
             $orderItem['useBetCredits'] = $useBetCredits;
         }
-        $externalUserId = $this->safe_string($params, 'externalUserId');
+        $externalUserId = $this->safe_string($paramsTimeInForce, 'externalUserId');
         if ($externalUserId !== null) {
             $orderItem['externalUserId'] = $externalUserId;
         }
-        $waitForOutcome = $this->safe_bool($params, 'waitForOutcome', true);
-        $rest = $this->omit($params, array( 'salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId' ));
+        $waitForOutcome = $this->safe_bool($paramsTimeInForce, 'waitForOutcome', true);
+        $rest = $this->omit($paramsTimeInForce, array( 'salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId' ));
         $request = array( 'orders' => array( $orderItem ), 'waitForOutcome' => $waitForOutcome );
         $response = Async\await($this->sxbetPrivatePostOrdersV3($this->extend($request, $rest)));
         $data = $this->safe_dict($response, 'data', array());
@@ -2859,12 +2857,12 @@ class sxbet extends Exchange {
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $existingHeaders = ($headers !== null) ? $headers : array();
-        $headers = $this->extend(array(
+        $headersExtended = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ), $existingHeaders);
         if ($this->apiKey !== null) {
-            $headers['x-sx-$api-key'] = $this->apiKey;
+            $headersExtended['x-sx-$api-key'] = $this->apiKey;
         }
         // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
@@ -2873,6 +2871,7 @@ class sxbet extends Exchange {
             $hasOrdersList = (is_array($query) && array_key_exists('orders' ?? '', $query));
             $sendAsQuery = !$hasOrdersList;
         }
+        $bodyValue = $body;
         if ($sendAsQuery) {
             $querystring = $this->urlencode($query);
             if ($querystring !== '') {
@@ -2882,9 +2881,9 @@ class sxbet extends Exchange {
             $queryKeys = is_array($query) ? array_keys($query) : array();
             $queryKeysLength = count($queryKeys);
             if ($queryKeysLength > 0) {
-                $body = $this->json($query);
+                $bodyValue = $this->json($query);
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersExtended );
     }
 }

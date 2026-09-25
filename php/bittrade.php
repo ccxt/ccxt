@@ -436,15 +436,13 @@ class bittrade extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        if ($symbols === null) {
-            $symbols = $this->symbols;
-        }
-        if ($symbols === null) {
+        $symbolsResolved = ($symbols === null) ? $this->symbols : $symbols;
+        if ($symbolsResolved === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
         $result = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsResolved); $i++) {
+            $symbol = $symbolsResolved[$i];
             $result[$symbol] = $this->fetch_trading_limits_by_id($this->market_id($symbol), $params);
         }
         return $result;
@@ -823,7 +821,7 @@ class bittrade extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = $this->marketGetTickers($params);
         $tickers = $this->safe_list($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
@@ -837,7 +835,7 @@ class bittrade extends Exchange {
             $ticker['datetime'] = $this->iso8601($timestamp);
             $result[$symbol] = $ticker;
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1471,7 +1469,7 @@ class bittrade extends Exchange {
             $status = $this->parse_order_status($this->safe_string($order, 'state'));
         }
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($order, 'created-at');
         $clientOrderId = $this->safe_string($order, 'client-$order-id');
         $amount = $this->safe_string($order, 'amount');
@@ -1483,9 +1481,9 @@ class bittrade extends Exchange {
         if ($feeCost !== null) {
             $feeCurrency = null;
             if ($side === 'sell') {
-                $feeCurrency = $market['quote'];
+                $feeCurrency = $marketResolved['quote'];
             } else {
-                $feeCurrency = $market['base'];
+                $feeCurrency = $marketResolved['base'];
             }
             $fee = array(
                 'cost' => $feeCost,
@@ -1499,7 +1497,7 @@ class bittrade extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
@@ -1514,7 +1512,7 @@ class bittrade extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): array {
@@ -1565,13 +1563,13 @@ class bittrade extends Exchange {
         } else {
             $request['client-order-id'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'clientOrderId', 'client-order-id' ));
+        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client-order-id' ));
+        $paramsOrder = $paramsOmitted;
         if (($type === 'market') && ($side === 'buy')) {
             $quoteAmount = null;
-            $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            $cost = $this->safe_number($params, 'cost');
-            $params = $this->omit($params, 'cost');
+            list($createMarketBuyOrderRequiresPrice, $paramsRequiresPrice) = $this->handle_option_bool_and_params($paramsOmitted, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_number($paramsRequiresPrice, 'cost');
+            $paramsOrder = $this->omit($paramsRequiresPrice, 'cost');
             if ($cost !== null) {
                 $quoteAmount = $this->amount_to_precision($symbol, $cost);
             } elseif ($createMarketBuyOrderRequiresPrice) {
@@ -1601,7 +1599,7 @@ class bittrade extends Exchange {
         $method = $this->handle_option('createOrder', 'method', 'privatePostOrderOrdersPlace');
         $response = null;
         if ($method === 'privatePostOrderOrdersPlace') {
-            $response = $this->privatePostOrderOrdersPlace($this->extend($request, $params));
+            $response = $this->privatePostOrderOrdersPlace($this->extend($request, $paramsOrder));
         } else {
             throw new NotSupported($this->id . ' createOrder() does not support the ' . $method . ' method');
         }
@@ -1661,14 +1659,14 @@ class bittrade extends Exchange {
             $this->load_markets();
         }
         $clientOrderIds = $this->safe_value_2($params, 'clientOrderIds', 'client-order-ids');
-        $params = $this->omit($params, array( 'clientOrderIds', 'client-order-ids' ));
+        $paramsOmitted = $this->omit($params, array( 'clientOrderIds', 'client-order-ids' ));
         $request = array();
         if ($clientOrderIds === null) {
             $request['order-ids'] = $ids;
         } else {
             $request['client-order-ids'] = $clientOrderIds;
         }
-        $response = $this->privatePostOrderOrdersBatchcancel($this->extend($request, $params));
+        $response = $this->privatePostOrderOrdersBatchcancel($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "status": "ok",
@@ -1815,10 +1813,10 @@ class bittrade extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'addressTag');
         $currencyId = $this->safe_string($depositAddress, 'currency');
-        $currency = $this->safe_currency($currencyId, $currency);
-        $code = $this->safe_currency_code($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currencyResolved);
         $networkId = $this->safe_string($depositAddress, 'chain');
-        $networks = $this->safe_dict($currency, 'networks', array());
+        $networks = $this->safe_dict($currencyResolved, 'networks', array());
         $networksById = $this->index_by($networks, 'id');
         $networkValue = $this->safe_value($networksById, $networkId, $networkId);
         $network = $this->safe_string($networkValue, 'network');
@@ -1841,8 +1839,9 @@ class bittrade extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
+        $limitResolved = $limit;
         if ($limit === null || $limit > 100) {
-            $limit = 100;
+            $limitResolved = 100;
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1858,13 +1857,13 @@ class bittrade extends Exchange {
         if ($currency !== null) {
             $request['currency'] = $currency['id'];
         }
-        if ($limit !== null) {
-            $request['size'] = $limit; // max 100
+        if ($limitResolved !== null) {
+            $request['size'] = $limitResolved; // max 100
         }
         $response = $this->privateGetQueryDepositWithdraw($this->extend($request, $params));
         // return response
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_transactions($data, $currency, $since, $limit);
+        return $this->parse_transactions($data, $currency, $since, $limitResolved);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1876,8 +1875,9 @@ class bittrade extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
+        $limitResolved = $limit;
         if ($limit === null || $limit > 100) {
-            $limit = 100;
+            $limitResolved = 100;
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1893,13 +1893,13 @@ class bittrade extends Exchange {
         if ($currency !== null) {
             $request['currency'] = $currency['id'];
         }
-        if ($limit !== null) {
-            $request['size'] = $limit; // max 100
+        if ($limitResolved !== null) {
+            $request['size'] = $limitResolved; // max 100
         }
         $response = $this->privateGetQueryDepositWithdraw($this->extend($request, $params));
         // return response
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_transactions($data, $currency, $since, $limit);
+        return $this->parse_transactions($data, $currency, $since, $limitResolved);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2017,7 +2017,7 @@ class bittrade extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2028,11 +2028,11 @@ class bittrade extends Exchange {
             'amount' => $amount,
             'currency' => strtolower($currency['id']),
         );
-        if ($tag !== null) {
-            $request['addr-tag'] = $tag; // only for XRP?
+        if ($tagWithdrawTag !== null) {
+            $request['addr-tag'] = $tagWithdrawTag; // only for XRP?
         }
         $networks = $this->safe_dict($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper($paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string_lower($networks, $network, $network); // handle ETH>ERC20 alias
         if ($network !== null) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
@@ -2041,9 +2041,9 @@ class bittrade extends Exchange {
             } else {
                 $request['chain'] = $network . $currency['id'];
             }
-            $params = $this->omit($params, 'network');
         }
-        $response = $this->privatePostDwWithdrawApiCreate($this->extend($request, $params));
+        $paramsNetwork = ($network !== null) ? $this->omit($paramsWithdrawTag, 'network') : $paramsWithdrawTag;
+        $response = $this->privatePostDwWithdrawApiCreate($this->extend($request, $paramsNetwork));
         //
         //     {
         //         "status": "ok",
@@ -2054,6 +2054,8 @@ class bittrade extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $url = '/';
         if ($api === 'market') {
             $url .= $api;
@@ -2086,12 +2088,12 @@ class bittrade extends Exchange {
             $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
             $url .= '?' . $auth;
             if ($method === 'POST') {
-                $body = $this->json($query);
-                $headers = array(
+                $requestBody = $this->json($query);
+                $requestHeaders = array(
                     'Content-Type' => 'application/json',
                 );
             } else {
-                $headers = array(
+                $requestHeaders = array(
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 );
             }
@@ -2103,7 +2105,9 @@ class bittrade extends Exchange {
         $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
         )) . $url;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
+        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

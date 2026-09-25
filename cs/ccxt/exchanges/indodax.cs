@@ -780,7 +780,6 @@ public partial class indodax : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -791,25 +790,22 @@ public partial class indodax : Exchange
         string? selectedTimeframe = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Int64 now = this.seconds();
         Int64? until = this.safeInteger(parameters, "until", now);
-        parameters = this.omit(parameters, new List<object>() {"until"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"until"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "to", until },
             { "tf", selectedTimeframe },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((limitVar == null))
-        {
-            limitVar = ((Int64?)1000);
-        }
+        object limitResolved = ((limit == null)) ? 1000 : limit;
         if ((since != null))
         {
             request["from"] = (Math.Floor(Double.Parse(((since / 1000)).ToString())));
         } else
         {
             int duration = this.parseTimeframe(timeframeVar);
-            request["from"] = subtract(subtract(now, multiply(limitVar, duration)), 1);
+            request["from"] = subtract(subtract(now, multiply(limitResolved, duration)), 1);
         }
-        List<object> response = await this.publicGetTradingviewHistoryV2(this.extend(request, parameters));
+        List<object> response = await this.publicGetTradingviewHistoryV2(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -822,7 +818,7 @@ public partial class indodax : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitVar));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitResolved));
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -891,17 +887,17 @@ public partial class indodax : Exchange
         string? remaining = null;
         string? filled = null;
         string? marketId = this.safeString(order, "pair");
-        market = this.safeMarket(marketId, market);
-        if ((market != null))
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        if ((marketResolved != null))
         {
-            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
-            string? quoteId = ((string)(market != null && market.ContainsKey("quoteId") ? market["quoteId"] : null));
-            string? baseId = ((string)(market != null && market.ContainsKey("baseId") ? market["baseId"] : null));
-            if ((isEqual((market != null && market.ContainsKey("quoteId") ? market["quoteId"] : null), "idr")) && ((order != null && ((IDictionary<string, object>)order).ContainsKey("order_rp"))))
+            symbol = ((string)GetValue(marketResolved, "symbol"));
+            string? quoteId = ((string)GetValue(marketResolved, "quoteId"));
+            string? baseId = ((string)GetValue(marketResolved, "baseId"));
+            if ((((GetValue(marketResolved, "quoteId") as string) == "idr")) && ((order != null && ((IDictionary<string, object>)order).ContainsKey("order_rp"))))
             {
                 quoteId = "rp";
             }
-            if ((isEqual((market != null && market.ContainsKey("baseId") ? market["baseId"] : null), "idr")) && ((order != null && ((IDictionary<string, object>)order).ContainsKey("remain_rp"))))
+            if ((((GetValue(marketResolved, "baseId") as string) == "idr")) && ((order != null && ((IDictionary<string, object>)order).ContainsKey("remain_rp"))))
             {
                 baseId = "rp";
             }
@@ -1088,13 +1084,18 @@ public partial class indodax : Exchange
         };
         bool priceIsRequired = false;
         bool quantityIsRequired = false;
+        bool isMarketBuy = ((type == "market")) && ((side == "buy"));
+        object paramsOmitted = parameters;
+        if (isMarketBuy)
+        {
+            paramsOmitted = this.omit(parameters, "cost");
+        }
         if ((type == "market"))
         {
             if ((side == "buy"))
             {
                 string? quoteAmount = null;
                 double? cost = this.safeNumber(parameters, "cost");
-                parameters = this.omit(parameters, "cost");
                 if ((cost != null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
@@ -1135,7 +1136,7 @@ public partial class indodax : Exchange
         {
             request[(string)((string)(market.ContainsKey("baseId") ? market["baseId"] : null))] = this.amountToPrecision(symbol, amount);
         }
-        Dictionary<string, object> result = await this.privatePostTrade(this.extend(request, parameters));
+        Dictionary<string, object> result = await this.privatePostTrade(this.extend(request, paramsOmitted));
         IDictionary<string, object> data = this.safeDict(result, "return", new Dictionary<string, object>() {});
         string? id = this.safeString(data, "order_id");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", result },             { "id", id },         }, market));
@@ -1396,11 +1397,10 @@ public partial class indodax : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
-        parameters = tagparametersVariable[1];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
+        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         this.checkAddress(address);
         if ((this.markets == null))
         {
@@ -1420,11 +1420,11 @@ public partial class indodax : Exchange
             { "withdraw_address", address },
             { "request_id", requestId.ToString() },
         };
-        if (((tagVar != null)) && (!(tagVar == "")))
+        if (((tagWithdrawTag != null)) && (!isEqual(tagWithdrawTag, "")))
         {
-            request["withdraw_memo"] = tagVar;
+            request["withdraw_memo"] = tagWithdrawTag;
         }
-        Dictionary<string, object> response = await this.privatePostWithdrawCoin(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostWithdrawCoin(this.extend(request, paramsWithdrawTag));
         //
         //     {
         //         "success": 1,
@@ -1658,7 +1658,10 @@ public partial class indodax : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         object url = apiUrl;
-        if (isEqual(api, "public"))
+        string? privateBody = null;
+        Dictionary<string, object> privateHeaders = null;
+        bool isPublic = (isEqual(api, "public"));
+        if (isPublic)
         {
             object query = this.omit(parameters, this.extractParams(path));
             string requestPath = ("/" + this.implodeParams(path, parameters));
@@ -1670,22 +1673,32 @@ public partial class indodax : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            body = this.urlencode(this.extend(new Dictionary<string, object>() {
+            privateBody = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "method", path },
                 { "timestamp", this.nonce() },
                 { "recvWindow", (this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null) },
             }, parameters));
-            headers = new Dictionary<string, object>() {
+            privateHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "Key", this.apiKey },
-                { "Sign", this.hmac(this.encode(body), this.encode(this.secret), sha512) },
+                { "Sign", this.hmac(this.encode(privateBody), this.encode(this.secret), sha512) },
             };
+        }
+        object requestBody = privateBody;
+        if (isPublic)
+        {
+            requestBody = body;
+        }
+        object requestHeaders = privateHeaders;
+        if (isPublic)
+        {
+            requestHeaders = headers;
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", requestBody },
+            { "headers", requestHeaders },
         };
     }
 

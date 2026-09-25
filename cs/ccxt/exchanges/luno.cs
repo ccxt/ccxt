@@ -868,7 +868,7 @@ public partial class luno : Exchange
             side = "buy";
         }
         string? marketId = this.safeString(order, "pair");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? price = this.safeString(order, "limit_price");
         string? amount = this.safeString(order, "limit_volume");
         double? quoteFee = this.safeNumber(order, "fee_counter");
@@ -880,13 +880,13 @@ public partial class luno : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", quoteFee },
-                { "currency", (market != null && market.ContainsKey("quote") ? market["quote"] : null) },
+                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
             };
         } else if ((baseFee != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", baseFee },
-                { "currency", (market != null && market.ContainsKey("base") ? market["base"] : null) },
+                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null) },
             };
         }
         string? id = this.safeString(order, "order_id");
@@ -897,7 +897,7 @@ public partial class luno : Exchange
             { "timestamp", timestamp },
             { "lastTradeTimestamp", null },
             { "status", status },
-            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "type", null },
             { "timeInForce", null },
             { "postOnly", null },
@@ -912,7 +912,7 @@ public partial class luno : Exchange
             { "fee", fee },
             { "info", order },
             { "average", null },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1068,7 +1068,7 @@ public partial class luno : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetTickers(parameters);
         List<object> rawTickers = this.safeList(response, "tickers", new List<object>() {});
         Dictionary<string, object> tickers = this.indexBy(rawTickers, "pair");
@@ -1082,7 +1082,7 @@ public partial class luno : Exchange
             object ticker = getValue(tickers, id);
             result[(string)symbol] = this.parseTicker(ticker, market);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
     /**
@@ -1507,23 +1507,16 @@ public partial class luno : Exchange
 
     public async virtual Task<List<ccxt.LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
-        // by default without entry number or limitVar number, return most recent entry
+        // by default without entry number or limit number, return most recent entry
         parameters ??= new Dictionary<string, object>();
-        if ((entry == null))
-        {
-            entry = -1;
-        }
-        if ((limitVar == null))
-        {
-            limitVar = ((Int64?)1);
-        }
+        object entryValue = ((entry == null)) ? -1 : entry;
+        object limitValue = ((limit == null)) ? 1 : limit;
         object since = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "min_row", entry },
-            { "max_row", this.sum(entry, limitVar) },
+            { "min_row", entryValue },
+            { "max_row", this.sum(entryValue, limitValue) },
         };
-        return await this.FetchLedger(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitVar), this.extend(request, parameters));
+        return await this.FetchLedger(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitValue), this.extend(request, parameters));
     }
 
     /**
@@ -1639,7 +1632,7 @@ public partial class luno : Exchange
         Int64? timestamp = this.safeInteger(entry, "timestamp");
         string? currencyId = this.safeString(entry, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
+        Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
         string? available_delta = this.safeString(entry, "available_delta");
         string? balance_delta = this.safeString(entry, "balance_delta");
         string? after = this.safeString(entry, "balance");
@@ -1688,7 +1681,7 @@ public partial class luno : Exchange
             { "after", this.parseToNumeric(after) },
             { "status", status },
             { "fee", null },
-        }, currency);
+        }, currencyResolved);
     }
 
     /**
@@ -1865,6 +1858,7 @@ public partial class luno : Exchange
         }
         string url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
+        Dictionary<string, object> requestHeaders = null;
         if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
         {
             url = url + ("?" + this.urlencode(query));
@@ -1873,15 +1867,16 @@ public partial class luno : Exchange
         {
             this.checkRequiredCredentials();
             string auth = this.stringToBase64(((this.apiKey + ":") + this.secret));
-            headers = new Dictionary<string, object>() {
+            requestHeaders = new Dictionary<string, object>() {
                 { "Authorization", ("Basic " + auth) },
             };
         }
+        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
             { "body", body },
-            { "headers", headers },
+            { "headers", headersResolved },
         };
     }
 

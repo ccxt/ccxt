@@ -465,13 +465,13 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             return $outcomeObj;
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
-        $outcomeObj = array( 'outcome' => $outcomeIdOrSymbol, 'outcomeId' => $outcomeIdOrSymbol, 'market' => null, 'label' => null, 'event' => null, 'info' => array());
-        return $outcomeObj;
+        $outcomeObjValue = array( 'outcome' => $outcomeIdOrSymbol, 'outcomeId' => $outcomeIdOrSymbol, 'market' => null, 'label' => null, 'event' => null, 'info' => array());
+        return $outcomeObjValue;
     }
 
     public function safe_outcome_symbol(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {
-        $outcomeObj = $this->safe_outcome($outcomeIdOrSymbol, $outcomeObj);
-        return $outcomeObj['outcome'];
+        $outcomeObjValue = $this->safe_outcome($outcomeIdOrSymbol, $outcomeObj);
+        return $outcomeObjValue['outcome'];
     }
 
     public function shorten_slug(?string $slug) {
@@ -567,10 +567,8 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        if ($outcome === null) {
-            $outcome = '';
-        }
-        $upper = strtoupper($outcome);
+        $outcomeValue = ($outcome === null) ? '' : $outcome;
+        $upper = strtoupper($outcomeValue);
         $allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         $chars = $this->string_to_chars_array($upper);
         $label = '';

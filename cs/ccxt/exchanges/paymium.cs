@@ -369,10 +369,10 @@ public partial class paymium : Exchange
     {
         Int64? timestamp = this.safeTimestamp(trade, "created_at_int");
         string? id = this.safeString(trade, "uuid");
-        market = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
         string? side = this.safeString(trade, "side");
         string? price = this.safeString(trade, "price");
-        string amountField = ("traded_" + ((string)getValue(market, "base")).ToLower());
+        string amountField = ("traded_" + ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null)).ToLower());
         string? amount = this.safeString(trade, amountField);
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -380,7 +380,7 @@ public partial class paymium : Exchange
             { "order", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "type", null },
             { "side", side },
             { "takerOrMaker", null },
@@ -388,7 +388,7 @@ public partial class paymium : Exchange
             { "amount", amount },
             { "cost", null },
             { "fee", null },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -738,28 +738,39 @@ public partial class paymium : Exchange
             // paymium requires an increasing nonce
             string nonce = ((object)this.incrementingNonce()).ToString();
             object auth = (nonce + (url));
-            headers = new Dictionary<string, object>() {
+            Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "Api-Key", this.apiKey },
                 { "Api-Nonce", nonce },
             };
+            bool hasQuery = (new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0;
+            object signedBody = body;
+            if ((method == "POST") && hasQuery)
+            {
+                signedBody = this.json(query);
+            }
             if ((method == "POST"))
             {
-                if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+                if (hasQuery)
                 {
-                    body = this.json(query);
-                    auth = add(auth, body);
-                    ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                    auth = add(auth, signedBody);
+                    signedHeaders["Content-Type"] = "application/json";
                 }
             } else
             {
-                if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+                if (hasQuery)
                 {
                     string queryString = this.urlencode(query);
                     auth = add(auth, queryString);
                     url = add(url, ("?" + queryString));
                 }
             }
-            ((IDictionary<string,object>)headers)["Api-Signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            signedHeaders["Api-Signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            return new Dictionary<string, object>() {
+                { "url", url },
+                { "method", method },
+                { "body", signedBody },
+                { "headers", signedHeaders },
+            };
         }
         return new Dictionary<string, object>() {
             { "url", url },

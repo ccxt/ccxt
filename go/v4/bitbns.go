@@ -859,7 +859,7 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "t_rate"})
 	var targetRate *string = this.SafeString(params, "target_rate")
 	var trailRate *string = this.SafeString(params, "trail_rate")
-	params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"}))
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"side":     strings.ToUpper(side),
@@ -883,10 +883,10 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	var response map[string]any = nil
 	if typeVar == "limit" {
 
-		response = MapTyped(PanicOnError((<-this.V2PostOrders(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.V2PostOrders(this.Extend(request, paramsOmitted))).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V1PostPlaceMarketOrderQntySymbol(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.V1PostPlaceMarketOrderQntySymbol(this.Extend(request, paramsOmitted))).Raw))
 	}
 	//
 	//     {
@@ -941,7 +941,7 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var market map[string]any = this.Market(symbol)
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
-	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
 	var request map[string]any = map[string]any{
 		"entry_id": id,
 		"symbol":   market["uppercaseId"],
@@ -962,7 +962,7 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	quoteSide += tail
 	request["side"] = quoteSide
 
-	response = MapTyped(PanicOnError((<-this.V2PostCancel(this.Extend(request, params))).Raw))
+	response = MapTyped(PanicOnError((<-this.V2PostCancel(this.Extend(request, paramsOmitted))).Raw))
 	var parsed any = func() any {
 		if response == nil {
 			return map[string]any{}
@@ -1084,7 +1084,7 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = this.Market(symbol)
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
-	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
 	var quoteSide string = "listOpen"
 	if IsEqual(market["quoteId"], "USDT") {
 		quoteSide = "usdtListOpen"
@@ -1100,7 +1100,7 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		}(),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PostGetordersnew(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PostGetordersnew(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     {
 	//         "data":[
@@ -1160,7 +1160,7 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	market = this.SafeMarket(nil, market)
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var orderId *string = this.SafeString2(trade, "id", "tradeId")
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "date"))
 	timestamp = this.SafeInteger(trade, "timestamp", timestamp)
@@ -1192,11 +1192,11 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) any {
 		amountString = this.SafeString(trade, "base_volume")
 		costString = this.SafeString(trade, "quote_volume")
 	}
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
-		var feeCurrencyCode *string = SafeStringPtr(market["quote"])
+		var feeCurrencyCode *string = SafeStringPtr(marketResolved["quote"])
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrencyCode,
@@ -1216,7 +1216,7 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         costString,
 		"fee":          fee,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1650,7 +1650,7 @@ func (this *Bitbns) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var urls any = this.Urls
 	if !(InOp(GetValue(urls, "api"), api)) {
@@ -1658,45 +1658,57 @@ func (this *Bitbns) Sign(path any, optionalArgs ...any) any {
 	}
 	if !IsEqual(api, "www") {
 		this.CheckRequiredCredentials()
-		headers = map[string]any{
-			"X-BITBNS-APIKEY": this.ApiKey,
-		}
 	}
+	var apiKeyHeaders map[string]any = map[string]any{
+		"X-BITBNS-APIKEY": this.ApiKey,
+	}
+	var requestHeaders any = func() any {
+		if !IsEqual(api, "www") {
+			return apiKeyHeaders
+		}
+		return headers
+	}()
 	var baseUrl any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api))
 	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var nonce string = ToString(this.Nonce())
+	var queryLength int = len(ObjectKeys(query))
+	var postBody any = "{}"
+	if queryLength > 0 {
+		postBody = this.Json(query)
+	}
+	var requestBody any = func() any {
+		if method == "POST" {
+			return postBody
+		}
+		return body
+	}()
 	if method == "GET" {
-		if len(ObjectKeys(query)) > 0 {
+		if queryLength > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else if method == "POST" {
-		if len(ObjectKeys(query)) > 0 {
-			body = this.Json(query)
-		} else {
-			body = "{}"
-		}
 		var auth map[string]any = map[string]any{
 			"timeStamp_nonce": nonce,
-			"body":            body,
+			"body":            requestBody,
 		}
 		var payload string = this.StringToBase64(this.Json(auth))
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512)
-		headers = func() any {
-			if headers == nil {
+		requestHeaders = func() any {
+			if IsEqual(requestHeaders, nil) {
 				return map[string]any{}
 			}
-			return headers
+			return requestHeaders
 		}()
-		AddElementToObject(headers, "X-BITBNS-PAYLOAD", payload)
-		AddElementToObject(headers, "X-BITBNS-SIGNATURE", signature)
-		AddElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded")
+		AddElementToObject(requestHeaders, "X-BITBNS-PAYLOAD", payload)
+		AddElementToObject(requestHeaders, "X-BITBNS-SIGNATURE", signature)
+		AddElementToObject(requestHeaders, "Content-Type", "application/x-www-form-urlencoded")
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Bitbns) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

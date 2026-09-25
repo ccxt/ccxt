@@ -560,7 +560,7 @@ func (this *Bitbank) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "executed_at")
-	market = this.SafeMarket(nil, market)
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
 	var id *string = this.SafeString2(trade, "transaction_id", "trade_id")
@@ -569,7 +569,7 @@ func (this *Bitbank) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeCostString *string = this.SafeString(trade, "fee_amount_quote")
 	if feeCostString != nil {
 		fee = map[string]any{
-			"currency": GetValue(market, "quote"),
+			"currency": marketResolved["quote"],
 			"cost":     feeCostString,
 		}
 	}
@@ -579,7 +579,7 @@ func (this *Bitbank) ParseTrade(trade any, optionalArgs ...any) any {
 	return this.SafeTrade(map[string]any{
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"id":           id,
 		"order":        orderId,
 		"type":         typeVar,
@@ -590,7 +590,7 @@ func (this *Bitbank) ParseTrade(trade any, optionalArgs ...any) any {
 		"cost":         nil,
 		"fee":          fee,
 		"info":         trade,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -749,6 +749,7 @@ func (this *Bitbank) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
+	// it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
@@ -757,13 +758,25 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if since == nil {
+	var windowLimit any = func() any {
 		if limit == nil {
-			limit = Int64PtrTyped(1000) // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
+			return 1000
 		}
-		var duration int64 = this.ParseTimeframe(timeframe)
-		since = Subtract(this.Milliseconds(), Multiply(duration*1000, limit))
-	}
+		return limit
+	}()
+	var limitResolved any = func() any {
+		if since == nil {
+			return windowLimit
+		}
+		return limit
+	}()
+	var duration int64 = this.ParseTimeframe(timeframe)
+	var sinceResolved any = func() any {
+		if since == nil {
+			return Subtract(this.Milliseconds(), Multiply(duration*1000, windowLimit))
+		}
+		return since
+	}()
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -772,7 +785,7 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"pair":       market["id"],
 		"candletype": this.SafeString(this.Timeframes, timeframe, timeframe),
-		"yyyymmdd":   this.Yyyymmdd(since, ""),
+		"yyyymmdd":   this.Yyyymmdd(sinceResolved, ""),
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPairCandlestickCandletypeYyyymmdd(this.Extend(request, params))).Raw))
@@ -799,7 +812,7 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var first map[string]any = SafeMapTyped(candlestick, 0)
 	var ohlcv []any = SafeListTypedDefault(first, "ohlcv", []any{})
 
-	ch <- this.ParseOHLCVs(ohlcv, market, timeframe, since, limit)
+	ch <- this.ParseOHLCVs(ohlcv, market, timeframe, sinceResolved, limitResolved)
 	return nil
 }
 func (this *Bitbank) ParseBalance(response any) any {
@@ -901,7 +914,7 @@ func (this *Bitbank) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(order, "order_id")
 	var marketId *string = this.SafeString(order, "pair")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(order, "ordered_at")
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "start_amount")
@@ -918,7 +931,7 @@ func (this *Bitbank) ParseOrder(order any, optionalArgs ...any) any {
 		"timestamp":          timestamp,
 		"lastTradeTimestamp": nil,
 		"status":             status,
-		"symbol":             GetValue(market, "symbol"),
+		"symbol":             marketResolved["symbol"],
 		"type":               typeVar,
 		"timeInForce":        nil,
 		"postOnly":           nil,
@@ -933,7 +946,7 @@ func (this *Bitbank) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 		"fee":                nil,
 		"info":               order,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1280,10 +1293,9 @@ func (this *Bitbank) withdrawBody(ch chan any, code any, amount any, address any
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
-	if !(InOp(params, "uuid")) {
+	var tagAndParams any = this.HandleWithdrawTagAndParams(tag, params)
+	var paramsWithdrawTag any = GetValue(tagAndParams, 1)
+	if !(InOp(paramsWithdrawTag, "uuid")) {
 		panic(ExchangeError(this.Id + " uuid is required for withdrawal"))
 	}
 	if this.Markets == nil {
@@ -1296,7 +1308,7 @@ func (this *Bitbank) withdrawBody(ch chan any, code any, amount any, address any
 		"amount": amount,
 	}
 
-	response := (<-this.PrivatePostUserRequestWithdrawal(this.Extend(request, params)))
+	response := (<-this.PrivatePostUserRequestWithdrawal(this.Extend(request, paramsWithdrawTag)))
 	PanicOnError(response)
 	//
 	//     {
@@ -1340,7 +1352,7 @@ func (this *Bitbank) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var txid *string = this.SafeString(transaction, "txid")
-	currency = this.SafeCurrency(nil, currency)
+	var currencyResolved map[string]any = this.SafeCurrency(nil, currency)
 	return map[string]any{
 		"id":          txid,
 		"txid":        txid,
@@ -1352,7 +1364,7 @@ func (this *Bitbank) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"addressTo":   nil,
 		"amount":      nil,
 		"type":        nil,
-		"currency":    GetValue(currency, "code"),
+		"currency":    currencyResolved["code"],
 		"status":      nil,
 		"updated":     nil,
 		"tagFrom":     nil,
@@ -1376,7 +1388,7 @@ func (this *Bitbank) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
@@ -1384,6 +1396,8 @@ func (this *Bitbank) Sign(path any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = Add(this.ImplodeHostname(apiUrl), "/")
+	var requestBody any = nil
+	var requestHeaders any = nil
 	if (IsEqual(api, "public")) || (IsEqual(api, "markets")) {
 		url = Add(url, this.ImplodeParams(path, params))
 		if len(ObjectKeys(query)) > 0 {
@@ -1408,8 +1422,8 @@ func (this *Bitbank) Sign(path any, optionalArgs ...any) any {
 		}
 		url = Add(url, Add(this.Version+"/", this.ImplodeParams(path, params)))
 		if method == "POST" {
-			body = this.Json(query)
-			auth = Add(auth, body)
+			requestBody = this.Json(query)
+			auth = Add(auth, requestBody)
 		} else {
 			auth = Add(auth, Add("/"+this.Version+"/", path))
 			if len(ObjectKeys(query)) > 0 {
@@ -1418,23 +1432,35 @@ func (this *Bitbank) Sign(path any, optionalArgs ...any) any {
 				auth = Add(auth, Add("?", query))
 			}
 		}
-		headers = map[string]any{
+		requestHeaders = map[string]any{
 			"Content-Type":     "application/json",
 			"ACCESS-KEY":       this.ApiKey,
 			"ACCESS-SIGNATURE": this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256),
 		}
 		if isTimeWindow {
-			AddElementToObject(headers, "ACCESS-REQUEST-TIME", requestTime)
-			AddElementToObject(headers, "ACCESS-TIME-WINDOW", timeWindow)
+			AddElementToObject(requestHeaders, "ACCESS-REQUEST-TIME", requestTime)
+			AddElementToObject(requestHeaders, "ACCESS-TIME-WINDOW", timeWindow)
 		} else {
-			AddElementToObject(headers, "ACCESS-NONCE", nonce)
+			AddElementToObject(requestHeaders, "ACCESS-NONCE", nonce)
 		}
 	}
+	var bodyResolved any = func() any {
+		if requestBody == nil {
+			return body
+		}
+		return requestBody
+	}()
+	var headersResolved any = func() any {
+		if requestHeaders == nil {
+			return headers
+		}
+		return requestHeaders
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyResolved,
+		"headers": headersResolved,
 	}
 }
 func (this *Bitbank) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

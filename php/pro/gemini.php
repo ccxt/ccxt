@@ -87,10 +87,11 @@ class gemini extends \ccxt\async\gemini {
         }
         $url = $wsUrl . '/v2/marketdata';
         $trades = Async\await($this->watch($url, $messageHash, $request, $subscribeHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($market['symbol'], $limit);
+            $limitResolved = $trades->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -110,12 +111,13 @@ class gemini extends \ccxt\async\gemini {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $trades = Async\await($this->helper_for_watch_multiple_construct('trades', $symbols, $params));
+        $first = $this->safe_list($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_list($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
@@ -329,10 +331,11 @@ class gemini extends \ccxt\async\gemini {
         }
         $url = $wsUrl . '/v2/marketdata';
         $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message): array {
@@ -578,15 +581,15 @@ class gemini extends \ccxt\async\gemini {
         if ($symbols === null) {
             throw new NotSupported($this->id . ' watchMultiple requires at least one symbol');
         }
-        $symbols = $this->market_symbols($symbols, null, false, true, true);
-        $firstMarket = $this->market($symbols[0]);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
+        $firstMarket = $this->market($symbolsNormalized[0]);
         if (($firstMarket['spot'] !== true) && ($firstMarket['linear'] !== true)) {
             throw new NotSupported($this->id . ' watchMultiple supports only spot or linear-swap symbols');
         }
         $messageHashes = array();
         $marketIds = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $messageHash = $itemHashName . ':' . $symbol;
             $messageHashes[] = $messageHash;
             $market = $this->market($symbol);
@@ -726,16 +729,18 @@ class gemini extends \ccxt\async\gemini {
             'url' => $url,
         );
         Async\await($this->authenticate($authParams));
+        $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
         }
+        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
         $messageHash = 'orders';
         $orders = Async\await($this->watch($url, $messageHash, null, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function handle_heartbeat(Client $client, array $message): array {

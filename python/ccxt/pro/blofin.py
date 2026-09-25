@@ -110,11 +110,12 @@ class blofin(ccxt.async_support.blofin):
         if self.markets is None:
             await self.load_markets()
         trades = await self.watch_multiple_wrapper(True, 'trades', 'watchTradesForSymbols', symbols, params)
+        firstMarket = self.safe_dict(trades, 0)
+        firstSymbol = self.safe_string(firstMarket, 'symbol')
+        limitResolved = limit
         if self.newUpdates:
-            firstMarket = self.safe_dict(trades, 0)
-            firstSymbol = self.safe_string(firstMarket, 'symbol')
-            limit = trades.getLimit(firstSymbol, limit)
-        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(firstSymbol, limit)
+        result = self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
         return self.sort_by(result, 'timestamp')  # needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
 
     def handle_trades(self, client: Client, message: dict):
@@ -179,14 +180,12 @@ class blofin(ccxt.async_support.blofin):
         """
         if self.markets is None:
             await self.load_markets()
-        callerMethodName = None
-        callerMethodName, params = self.handle_param_string(params, 'callerMethodName', 'watchOrderBookForSymbols')
-        channelName = None
-        channelName, params = self.handle_option_string_and_params(params, callerMethodName, 'channel', 'books')
+        callerMethodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'watchOrderBookForSymbols')
+        channelName, paramsChannel = self.handle_option_string_and_params(paramsCallerMethodName, callerMethodName, 'channel', 'books')
         # due to some problem, temporarily disable other channels
         if channelName != 'books':
             raise NotSupported(self.id + ' ' + callerMethodName + '() at self moment ' + channelName + ' is not supported, coming soon')
-        orderbook = await self.watch_multiple_wrapper(True, channelName, callerMethodName, symbols, params)
+        orderbook = await self.watch_multiple_wrapper(True, channelName, callerMethodName, symbols, paramsChannel)
         return orderbook.limit()
 
     def handle_order_book(self, client: Client, message: dict):
@@ -244,9 +243,9 @@ class blofin(ccxt.async_support.blofin):
         """
         params['callerMethodName'] = 'watchTicker'
         market = self.market(symbol)
-        symbol = market['symbol']
-        result = await self.watch_tickers([symbol], params)
-        return result[symbol]
+        symbolValue = market['symbol']
+        result = await self.watch_tickers([symbolValue], params)
+        return result[symbolValue]
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -307,12 +306,11 @@ class blofin(ccxt.async_support.blofin):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
-        symbolsList = symbols
+        symbolsNormalized = self.market_symbols(symbols, None, False)
+        symbolsList = symbolsNormalized
         firstMarket = self.market(symbolsList[0])
         channel = 'tickers'
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
+        marketType, paramsMarketType = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
         url = (self.urls['api'])['ws'][marketType]['public']
         messageHashes = []
         args = []
@@ -324,12 +322,12 @@ class blofin(ccxt.async_support.blofin):
                 'instId': market['id'],
             })
         request = self.get_subscription_request(args)
-        ticker = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
+        ticker = await self.watch_multiple(url, messageHashes, self.deep_extend(request, paramsMarketType), messageHashes)
         if self.newUpdates:
             tickers = {}
             tickers[ticker['symbol']] = ticker
             return tickers
-        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+        return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
 
     def handle_bid_ask(self, client: Client, message: dict):
         data = self.safe_list(message, 'data')
@@ -342,8 +340,8 @@ class blofin(ccxt.async_support.blofin):
 
     def parse_ws_bid_ask(self, ticker: dict, market: Market = None) -> Ticker:
         marketId = self.safe_string(ticker, 'instId')
-        market = self.safe_market(marketId, market, '-')
-        symbol = self.safe_string(market, 'symbol')
+        marketResolved = self.safe_market(marketId, market, '-')
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(ticker, 'ts')
         return self.safe_ticker({
             'symbol': symbol,
@@ -354,7 +352,7 @@ class blofin(ccxt.async_support.blofin):
             'bid': self.safe_string(ticker, 'bidPrice'),
             'bidVolume': self.safe_string(ticker, 'bidSize'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -388,9 +386,10 @@ class blofin(ccxt.async_support.blofin):
         if self.markets is None:
             await self.load_markets()
         symbol, timeframe, candles = await self.watch_multiple_wrapper(True, 'candle', 'watchOHLCVForSymbols', symbolsAndTimeframes, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = candles.getLimit(symbol, limit)
-        filtered = self.filter_by_since_limit(candles, since, limit, 0, True)
+            limitResolved = candles.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(candles, since, limitResolved, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
     def handle_ohlcv(self, client: Client, message: dict):
@@ -441,8 +440,7 @@ class blofin(ccxt.async_support.blofin):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('watchBalance', None, params)
+        marketType, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' watchBalance() is not supported for spot markets yet')
         messageHash = marketType + ':balance'
@@ -451,7 +449,7 @@ class blofin(ccxt.async_support.blofin):
         }
         request = self.get_subscription_request([sub])
         url = (self.urls['api'])['ws'][marketType]['private']
-        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        return await self.watch(url, messageHash, self.deep_extend(request, paramsMarketType), messageHash)
 
     def handle_balance(self, client: Client, message: dict):
         #
@@ -508,16 +506,17 @@ class blofin(ccxt.async_support.blofin):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        params = self.omit(params, ['stop', 'trigger'])
+        paramsOmitted = self.omit(params, ['stop', 'trigger'])
         channel = 'orders'
         if trigger is True:
             channel = 'orders-algo'
-        orders = await self.watch_multiple_wrapper(False, channel, 'watchOrdersForSymbols', symbols, params)
+        orders = await self.watch_multiple_wrapper(False, channel, 'watchOrdersForSymbols', symbols, paramsOmitted)
+        first = self.safe_dict(orders, 0)
+        tradeSymbol = self.safe_string(first, 'symbol')
+        limitResolved = limit
         if self.newUpdates:
-            first = self.safe_dict(orders, 0)
-            tradeSymbol = self.safe_string(first, 'symbol')
-            limit = orders.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
+            limitResolved = orders.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(orders, since, limitResolved, 'timestamp', True)
 
     def handle_orders(self, client: Client, message: dict):
         #
@@ -593,7 +592,7 @@ class blofin(ccxt.async_support.blofin):
     def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         return self.parse_position(position, market)
 
-    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         watch the current funding rate
 
@@ -606,8 +605,7 @@ class blofin(ccxt.async_support.blofin):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('watchFundingRate', market, params)
+        marketType, paramsMarketType = self.handle_market_type_and_params('watchFundingRate', market, params)
         messageHash = 'fundingRate:' + market['symbol']
         requestParams = {
             'channel': 'funding-rate',
@@ -615,7 +613,7 @@ class blofin(ccxt.async_support.blofin):
         }
         request = self.get_subscription_request([requestParams])
         url = (self.urls['api'])['ws'][marketType]['public']
-        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        return await self.watch(url, messageHash, self.deep_extend(request, paramsMarketType), messageHash)
 
     def handle_funding_rate(self, client: Client, message: dict):
         #
@@ -645,7 +643,7 @@ class blofin(ccxt.async_support.blofin):
         # underlier method for all watch-multiple symbols
         if self.markets is None:
             await self.load_markets()
-        callerMethodName, params = self.handle_param_string(params, 'callerMethodName', callerMethodName)
+        callerMethodNameOption, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', callerMethodName)
         # if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         isOHLCV = (channelName == 'candle')
         symbols = self.get_list_from_object_values(symbolsArray, 0) if isOHLCV else symbolsArray
@@ -654,10 +652,9 @@ class blofin(ccxt.async_support.blofin):
         firstSymbol = self.safe_string(symbols, 0)
         if firstSymbol is not None:
             firstMarket = self.market(firstSymbol)
-        marketType = None
-        marketType, params = self.handle_market_type_and_params(callerMethodName, firstMarket, params)
+        marketType, paramsMarketType = self.handle_market_type_and_params(callerMethodNameOption, firstMarket, paramsCallerMethodName)
         if marketType != 'swap':
-            raise NotSupported(self.id + ' ' + callerMethodName + '() does not support ' + marketType + ' markets yet')
+            raise NotSupported(self.id + ' ' + callerMethodNameOption + '() does not support ' + marketType + ' markets yet')
         rawSubscriptions = []
         messageHashes = []
         if symbols is None:
@@ -693,7 +690,7 @@ class blofin(ccxt.async_support.blofin):
         if isPublic:
             privateOrPublic = 'public'
         url = (self.urls['api'])['ws'][marketType][privateOrPublic]
-        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
+        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, paramsMarketType), messageHashes)
 
     def get_subscription_request(self, args: object):
         return {

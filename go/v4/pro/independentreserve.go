@@ -79,13 +79,13 @@ func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optiona
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	symbol = market["symbol"]
+	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(*wsUrl+"?subscribe=ticker-", market["base"]), "-"), market["quote"]))
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
+	var messageHash string = "trades:" + *symbolValue
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash))))
 
@@ -186,17 +186,20 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, opti
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	symbol = market["symbol"]
-	if limit == nil {
-		limit = ccxt.Int64PtrTyped(100)
-	}
-	var limitString *string = this.NumberToString(limit)
+	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var limitResolved int64 = func() int64 {
+		if limit == nil {
+			return 100
+		}
+		return *limit
+	}()
+	var limitString *string = this.NumberToString(limitResolved)
 	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook() has no websocket url"))
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(*wsUrl+"/orderbook/"+*limitString+"?subscribe=", market["base"]), "-"), market["quote"]))
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), limitString))
+	var messageHash string = "orderbook:" + *symbolValue + ":" + *limitString
 	var subscription map[string]any = map[string]any{
 		"receivedSnapshot": false,
 	}

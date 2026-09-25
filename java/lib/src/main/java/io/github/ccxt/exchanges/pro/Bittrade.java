@@ -452,7 +452,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             {
                 String symbol = this.safeString(subscription, "symbol");
                 Long limit = this.safeInteger(subscription, "limit");
-                Map<String, Object> parameters = (Map<String, Object>) this.safeDict(subscription, "params");
+                Map<String, Object> parameters = (Map<String, Object>) this.safeDict(subscription, "params", (Object) null);
                 String api = this.safeString(this.options, "api", "api");
                 Map<String, Object> hostname = new HashMap<String, Object>() {{
                     put( "hostname", Bittrade.this.hostname );

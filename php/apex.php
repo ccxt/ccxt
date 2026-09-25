@@ -737,8 +737,8 @@ class apex extends Exchange {
         // }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         $last = $this->safe_string($ticker, 'lastPrice');
         $percentage = $this->safe_string($ticker, 'price24hPcnt');
         $quoteVolume = $this->safe_string($ticker, 'turnover24h');
@@ -768,7 +768,7 @@ class apex extends Exchange {
             'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {
@@ -834,19 +834,17 @@ class apex extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'symbol' => $this->safe_string($market, 'id2'),
         );
-        if ($limit === null) {
-            $limit = 200; // default is 200 when requested with `since`
-        }
-        $limit = min($limit, 200); // fix maxcap
-        $request['limit'] = $limit; // max 200, default 200
-        list($request, $params) = $this->handle_until_option('end', $request, $params, 0.001);
+        // default is 200 when requested with `since`, max 200
+        $limitResolved = ($limit === null) ? 200 : min($limit, 200);
+        $request['limit'] = $limitResolved;
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $params, 0.001);
         if ($since !== null) {
-            $request['start'] = (int) floor($since / 1000);
+            $requestUntil['start'] = (int) floor($since / 1000);
         }
-        $response = $this->publicGetV3Klines($this->extend($request, $params));
+        $response = $this->publicGetV3Klines($this->extend($requestUntil, $paramsUntil));
         $data = $this->safe_dict($response, 'data', array());
         $OHLCVs = $this->safe_list($data, $this->safe_string($market, 'id2'), array());
-        return $this->parse_ohlcvs($OHLCVs, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($OHLCVs, $market, $timeframe, $since, $limitResolved);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -891,10 +889,7 @@ class apex extends Exchange {
         $request = array(
             'symbol' => $this->safe_string($market, 'id2'),
         );
-        if ($limit === null) {
-            $limit = 100; // default is 200 when requested with `since`
-        }
-        $request['limit'] = $limit; // max 100, default 100
+        $request['limit'] = ($limit === null) ? 100 : $limit; // max 100, default 100
         $response = $this->publicGetV3Depth($this->extend($request, $params));
         //
         // {
@@ -950,10 +945,8 @@ class apex extends Exchange {
         $request = array(
             'symbol' => $this->safe_string($market, 'id2'),
         );
-        if ($limit === null) {
-            $limit = 500; // default is 50
-        }
-        $request['limit'] = $limit;
+        $limitResolved = ($limit === null) ? 500 : $limit; // default is 50
+        $request['limit'] = $limitResolved;
         $response = $this->publicGetV3Trades($this->extend($request, $params));
         //
         // [
@@ -976,7 +969,7 @@ class apex extends Exchange {
         //  ]
         //
         $trades = $this->safe_list($response, 'data', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_trades($trades, $market, $since, $limitResolved);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -993,7 +986,7 @@ class apex extends Exchange {
         //  ]
         //
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $id = $this->safe_string_2($trade, 'i', 'id');
         $timestamp = $this->safe_integer_n($trade, array( 't', 'T', 'createdAt' ));
         $priceString = $this->safe_string_2($trade, 'p', 'price');
@@ -1007,7 +1000,7 @@ class apex extends Exchange {
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'takerOrMaker' => null,
             'side' => $side,
@@ -1015,7 +1008,7 @@ class apex extends Exchange {
             'amount' => $amountString,
             'cost' => null,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_open_interest(string $symbol, $params = array()): array {
@@ -1061,8 +1054,8 @@ class apex extends Exchange {
         // }
         //
         $marketId = $this->safe_string($interest, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         return $this->safe_open_interest(array(
             'symbol' => $symbol,
             'openInterestAmount' => $this->safe_string($interest, 'openInterest'),
@@ -1070,7 +1063,7 @@ class apex extends Exchange {
             'timestamp' => null,
             'datetime' => null,
             'info' => $interest,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1203,8 +1196,8 @@ class apex extends Exchange {
         $orderId = $this->safe_string($order, 'id');
         $clientOrderId = $this->safe_string($order, 'clientId');
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'size');
         $orderType = $this->safe_string($order, 'type');
@@ -1239,10 +1232,10 @@ class apex extends Exchange {
             'trades' => null,
             'fee' => array(
                 'cost' => $this->safe_string($order, 'fee'),
-                'currency' => $market['settleId'],
+                'currency' => $marketResolved['settleId'],
             ),
             'info' => $order,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_time_in_force(?string $timeInForce) {
@@ -1283,13 +1276,14 @@ class apex extends Exchange {
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
+        $marketResolved = null;
         if ($market === null && $marketId !== null) {
             $marketsMap = $this->markets;
             $marketsById = $this->markets_by_id;
             if (($marketsMap !== null) && (is_array($marketsMap) && array_key_exists($marketId ?? '', $marketsMap))) {
-                $market = $marketsMap[$marketId];
+                $marketResolved = $marketsMap[$marketId];
             } elseif (($marketsById !== null) && (is_array($marketsById) && array_key_exists($marketId ?? '', $marketsById))) {
-                $market = $marketsById[$marketId];
+                $marketResolved = $marketsById[$marketId];
             } else {
                 $newMarketId = $this->add_hyphen_before_usdt($marketId);
                 if (($marketsById !== null) && (is_array($marketsById) && array_key_exists($newMarketId ?? '', $marketsById))) {
@@ -1297,13 +1291,14 @@ class apex extends Exchange {
                     $numMarkets = count($markets);
                     if ($numMarkets > 0) {
                         if ($marketsById[$newMarketId][0]['id2'] === $marketId) {
-                            $market = $marketsById[$newMarketId][0];
+                            $marketResolved = $marketsById[$newMarketId][0];
                         }
                     }
                 }
             }
         }
-        return parent::safe_market($marketId, $market, $delimiter, $marketType);
+        $marketValue = ($marketResolved === null) ? $market : $marketResolved;
+        return parent::safe_market($marketId, $marketValue, $delimiter, $marketType);
     }
 
     public function generate_random_client_id_omni(?string $_accountId) {
@@ -1408,15 +1403,15 @@ class apex extends Exchange {
                 $timeInForce = 'IMMEDIATE_OR_CANCEL';
             }
         }
-        $params = $this->omit($params, 'timeInForce');
-        $params = $this->omit($params, 'postOnly');
-        $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+        $paramsOmitted = $this->omit($params, 'timeInForce');
+        $paramsOmitted2 = $this->omit($paramsOmitted, 'postOnly');
+        $clientOrderId = $this->safe_string_n($paramsOmitted2, array( 'clientId', 'clientOrderId', 'client_order_id' ));
         $accountId = $this->get_account_id();
         if ($clientOrderId === null) {
             $clientOrderId = $this->generate_random_client_id_omni($accountId);
         }
         $finalClientOrderId = $clientOrderId; // java req
-        $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
+        $paramsOmitted3 = $this->omit($paramsOmitted2, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
         $finalOrderPrice = $orderPrice; // java req
         $orderToSign = array(
             'accountId' => $accountId,
@@ -1449,7 +1444,7 @@ class apex extends Exchange {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         $request['signature'] = $signature;
-        $response = $this->privatePostV3Order($this->extend($request, $params));
+        $response = $this->privatePostV3Order($this->extend($request, $paramsOmitted3));
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
@@ -1515,7 +1510,7 @@ class apex extends Exchange {
             $clientOrderId = $this->generate_random_client_id_omni($this->safe_string($this->options, 'accountId'));
         }
         $finalClientOrderId = $clientOrderId; // java req
-        $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+        $paramsOmitted = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
         if ($fromAccount !== null && strtolower($fromAccount) === 'contract') {
             $formattedUint32 = '4294967295';
             $zkSignAccountId = Precise::string_mod($accountId, $formattedUint32);
@@ -1541,7 +1536,7 @@ class apex extends Exchange {
                 'token' => $code,
                 'ethAddress' => $ethAddress,
             );
-            $response = $this->privatePostV3ContractTransferOut($this->extend($request, $params));
+            $response = $this->privatePostV3ContractTransferOut($this->extend($request, $paramsOmitted));
             $data = $this->safe_dict($response, 'data', array());
             $currentTime = $this->milliseconds();
             $parsedAmount = $this->parse_number($amount);
@@ -1583,7 +1578,7 @@ class apex extends Exchange {
                 'receiverAddress' => $receiverAddress,
                 'nonce' => $finalNonce,
             );
-            $response = $this->privatePostV3TransferOut($this->extend($request, $params));
+            $response = $this->privatePostV3TransferOut($this->extend($request, $paramsOmitted));
             $data = $this->safe_dict($response, 'data', array());
             $currentTime = $this->milliseconds();
             return $this->extend($this->parse_transfer($data, $this->currency($code)), array(
@@ -1654,8 +1649,7 @@ class apex extends Exchange {
         $response = null;
         if ($clientOrderId !== null) {
             $request['id'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-            $response = $this->privatePostV3DeleteClientOrderId($this->extend($request, $params));
+            $response = $this->privatePostV3DeleteClientOrderId($this->extend($request, $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ))));
         } else {
             $request['id'] = $id;
             $response = $this->privatePostV3DeleteOrder($this->extend($request, $params));
@@ -1685,8 +1679,7 @@ class apex extends Exchange {
         $response = null;
         if ($clientOrderId !== null) {
             $request['id'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-            $response = $this->privateGetV3OrderByClientOrderId($this->extend($request, $params));
+            $response = $this->privateGetV3OrderByClientOrderId($this->extend($request, $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ))));
         } else {
             $request['id'] = $id;
             $response = $this->privateGetV3Order($this->extend($request, $params));
@@ -1751,9 +1744,9 @@ class apex extends Exchange {
         $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
         if ($endTimeExclusive !== null) {
             $request['endTimeExclusive'] = $endTimeExclusive;
-            $params = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
         }
-        $response = $this->privateGetV3HistoryOrders($this->extend($request, $params));
+        $paramsOmitted = ($endTimeExclusive !== null) ? $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' )) : $params;
+        $response = $this->privateGetV3HistoryOrders($this->extend($request, $paramsOmitted));
         $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
@@ -1782,8 +1775,8 @@ class apex extends Exchange {
         } else {
             $request['orderId'] = $id;
         }
-        $params = $this->omit($params, array( 'clientOrderId', 'clientId' ));
-        $response = $this->privateGetV3OrderFills($this->extend($request, $params));
+        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'clientId' ));
+        $response = $this->privateGetV3OrderFills($this->extend($request, $paramsOmitted));
         $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_trades($orders, null, $since, $limit);
@@ -1823,9 +1816,9 @@ class apex extends Exchange {
         $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
         if ($endTimeExclusive !== null) {
             $request['endTimeExclusive'] = $endTimeExclusive;
-            $params = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
         }
-        $response = $this->privateGetV3Fills($this->extend($request, $params));
+        $paramsOmitted = ($endTimeExclusive !== null) ? $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' )) : $params;
+        $response = $this->privateGetV3Fills($this->extend($request, $paramsOmitted));
         $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_trades($orders, $market, $since, $limit);
@@ -1863,10 +1856,10 @@ class apex extends Exchange {
         }
         $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
         if ($endTimeExclusive !== null) {
-            $params = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
             $request['endTimeExclusive'] = $endTimeExclusive;
         }
-        $response = $this->privateGetV3Funding($this->extend($request, $params));
+        $paramsOmitted = ($endTimeExclusive !== null) ? $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' )) : $params;
+        $response = $this->privateGetV3Funding($this->extend($request, $paramsOmitted));
         $data = $this->safe_dict($response, 'data', array());
         $fundingValues = $this->safe_list($data, 'fundingValues', array());
         return $this->parse_incomes($fundingValues, $market, $since, $limit);
@@ -1888,12 +1881,12 @@ class apex extends Exchange {
         // }
         //
         $marketId = $this->safe_string($income, 'symbol');
-        $market = $this->safe_market($marketId, $market, null, 'contract');
+        $marketResolved = $this->safe_market($marketId, $market, null, 'contract');
         $code = 'USDT';
         $timestamp = $this->safe_integer($income, 'fundingTime');
         return array(
             'info' => $income,
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $this->safe_symbol($marketId, $marketResolved),
             'code' => $code,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1968,8 +1961,8 @@ class apex extends Exchange {
         //     "customInitialMarginRate": "0"
         // }
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $side = $this->safe_string_lower($position, 'side');
         $quantity = $this->safe_string($position, 'size');
         $timestamp = $this->safe_integer($position, 'updatedTime');
@@ -2007,7 +2000,7 @@ class apex extends Exchange {
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
-        $headers = array(
+        $headersValue = array(
             'User-Agent' => 'apex-CCXT',
             'Accept' => 'application/json',
             'Content-Type' => 'application/x-www-form-urlencoded',
@@ -2031,12 +2024,12 @@ class apex extends Exchange {
                 $messageString = $messageString . $signBody;
             }
             $signature = $this->hmac($this->encode($messageString), $this->encode(base64_encode($this->secret)), 'sha256', 'base64');
-            $headers['APEX-SIGNATURE'] = $signature;
-            $headers['APEX-API-KEY'] = $this->apiKey;
-            $headers['APEX-TIMESTAMP'] = $timestamp;
-            $headers['APEX-PASSPHRASE'] = $this->password;
+            $headersValue['APEX-SIGNATURE'] = $signature;
+            $headersValue['APEX-API-KEY'] = $this->apiKey;
+            $headersValue['APEX-TIMESTAMP'] = $timestamp;
+            $headersValue['APEX-PASSPHRASE'] = $this->password;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $signBody, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $signBody, 'headers' => $headersValue );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

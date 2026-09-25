@@ -1719,8 +1719,8 @@ public partial class myriad : PredictionExchange
         {
             request["limit"] = limit;
         }
-        parameters = this.omit(parameters, new List<object>() {"trader", "address", "status"});
-        Dictionary<string, object> response = await this.myriadPublicGetUsersAddressEvents(this.extend(request, parameters));
+        object paramsOmitted = this.omit(parameters, new List<object>() {"trader", "address", "status"});
+        Dictionary<string, object> response = await this.myriadPublicGetUsersAddressEvents(this.extend(request, paramsOmitted));
         //
         //     {
         //         "data": [
@@ -1796,12 +1796,12 @@ public partial class myriad : PredictionExchange
         }
         object fetched = this.getOrderResponseFromParams(id, parameters);
         string? networkIdParam = this.safeString2(parameters, "networkId", "network_id");
-        parameters = this.omit(parameters, new List<object>() {"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"});
         if ((fetched == null))
         {
             fetched = await this.myriadPublicGetOrdersHash(this.extend(new Dictionary<string, object>() {
                 { "hash", id },
-            }, parameters));
+            }, paramsOmitted));
         }
         IDictionary<string, object> fetchedInfo = this.safeDict(fetched, "info", new Dictionary<string, object>() {});
         IDictionary<string, object> rawOrder = this.safeDict(fetched, "order", new Dictionary<string, object>() {});
@@ -1832,7 +1832,7 @@ public partial class myriad : PredictionExchange
             { "signature", signature },
             { "network_id", this.parseToInt(networkId) },
         };
-        Dictionary<string, object> response = await this.myriadPublicDeleteOrdersHash(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.myriadPublicDeleteOrdersHash(this.extend(request, paramsOmitted));
         //
         //     {
         //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -1926,7 +1926,7 @@ public partial class myriad : PredictionExchange
         }
         object paramsForLookup = parameters;
         string? networkIdParam = this.safeString2(parameters, "networkId", "network_id");
-        parameters = this.omit(parameters, new List<object>() {"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"});
         int idsLength = ids?.Count ?? 0;
         List<object> signedOrders = new List<object>() {};
         List<object> wrappers = new List<object>() {};
@@ -1977,7 +1977,7 @@ public partial class myriad : PredictionExchange
             { "orders", signedOrders },
             { "network_id", this.parseToInt(networkId) },
         };
-        await this.myriadPublicPostOrdersCancelBatch(this.extend(request, parameters));
+        await this.myriadPublicPostOrdersCancelBatch(this.extend(request, paramsOmitted));
         //
         //     {
         //         "cancelled": [
@@ -2069,7 +2069,7 @@ public partial class myriad : PredictionExchange
             }
         }
         string? requestedTradingModel = this.safeStringLower2(parameters, "tradingModel", "trading_model");
-        parameters = this.omit(parameters, new List<object>() {"tradingModel", "trading_model"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"tradingModel", "trading_model"});
         IDictionary<string, object> outcomeObj = null;
         string? outcomeSymbol = null;
         if ((outcome != null))
@@ -2084,9 +2084,9 @@ public partial class myriad : PredictionExchange
         }
         if (requestedTradingModel == "amm")
         {
-            return await this.FetchAmmOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+            return await this.FetchAmmOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsOmitted);
         }
-        Dictionary<string, object> response = await this.myriadPublicGetOrders(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.myriadPublicGetOrders(this.extend(request, paramsOmitted));
         //
         //     {
         //         "data": [
@@ -4179,21 +4179,21 @@ public partial class myriad : PredictionExchange
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string outcomeVar = outcome;
         parameters ??= new Dictionary<string, object>();
         string trader = this.walletAddressFromKeys();
         string? networkId = this.safeString(this.options, "defaultNetworkId", "56");
-        if ((outcomeVar != null))
+        string outcomeResolved = outcome;
+        if ((outcomeResolved != null))
         {
-            IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeVar);
+            IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeResolved);
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             networkId = this.safeString(info, "networkId", networkId);
-            outcomeVar = this.safeOutcomeSymbol(outcomeVar, outcomeObj);
+            outcomeResolved = this.safeOutcomeSymbol(outcomeResolved, outcomeObj);
         }
         string channel = ((("orders:" + networkId) + ":") + trader);
         string messageHash = "orders";
         object orders = await this.subscribeMyriadChannel(messageHash, channel, parameters);
-        return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(orders, "outcome", outcomeVar, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(orders, "outcome", outcomeResolved, since, limit, "timestamp", true));
     }
 
     public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> data)
@@ -4438,19 +4438,20 @@ public partial class myriad : PredictionExchange
             }
         }
         object existingHeaders = ((headers != null)) ? headers : new Dictionary<string, object>() {};
-        headers = this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> headersValue = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
         }, existingHeaders);
         // non-GET requests carry the params as a JSON body (public POSTs like markets/quote
         // included — the previous logic only sent a body for authenticated requests)
+        object bodyValue = body;
         if ((method != "GET"))
         {
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             int queryKeysLength = queryKeys.Count;
             if (queryKeysLength > 0)
             {
-                body = this.json(query);
+                bodyValue = this.json(query);
             }
         }
         if (((this.apiKey != null)) && (!isEqual(this.apiKey, "")))
@@ -4465,13 +4466,13 @@ public partial class myriad : PredictionExchange
             string headerKey = ("x-api" + "-key");
             Dictionary<string, object> headersKey = new Dictionary<string, object>() {};
             headersKey[(string)headerKey] = this.apiKey;
-            headers = this.extend(headers, headersKey);
+            headersValue = this.extend(headersValue, headersKey);
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyValue },
+            { "headers", headersValue },
         };
     }
 }

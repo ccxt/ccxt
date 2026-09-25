@@ -88,8 +88,8 @@ class bitopro extends \ccxt\async\bitopro {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'ORDER_BOOK' . ':' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'ORDER_BOOK' . ':' . $symbolValue;
         $endPart = null;
         if ($limit === null) {
             $endPart = $market['id'];
@@ -157,13 +157,14 @@ class bitopro extends \ccxt\async\bitopro {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'TRADE' . ':' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'TRADE' . ':' . $symbolValue;
         $trades = Async\await($this->watch_public('trades', $messageHash, $market['id']));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trade(Client $client, array $message) {
@@ -237,10 +238,11 @@ class bitopro extends \ccxt\async\bitopro {
         $url = $wsUrl . '/' . 'user-trades';
         $this->authenticate($url);
         $trades = Async\await($this->watch($url, $messageHash, null, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_my_trade(Client $client, array $message) {
@@ -315,7 +317,7 @@ class bitopro extends \ccxt\async\bitopro {
         if (($base !== null) && ($quote !== null)) {
             $symbol = $this->symbol($base . '/' . $quote);
         }
-        $market = $this->safe_market($symbol, $market);
+        $marketResolved = $this->safe_market($symbol, $market);
         $price = $this->safe_string($trade, 'price');
         $type = $this->safe_string_lower($trade, 'orderType');
         $side = $this->safe_string($trade, 'side');
@@ -360,7 +362,7 @@ class bitopro extends \ccxt\async\bitopro {
             'amount' => $amount,
             'cost' => null,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -381,8 +383,8 @@ class bitopro extends \ccxt\async\bitopro {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'TICKER' . ':' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'TICKER' . ':' . $symbolValue;
         return Async\await($this->watch_public('tickers', $messageHash, $market['id']));
     }
 

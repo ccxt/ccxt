@@ -142,10 +142,10 @@ class cex(ccxt.async_support.cex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         url = self.urls['api']['ws']
         messageHash = 'trades'
-        subscriptionHash = 'old:' + symbol
+        subscriptionHash = 'old:' + symbolValue
         client = self.safe_value(self.clients, url)
         if client is not None:
             subscriptionKeys = list(client.subscriptions.keys())
@@ -186,15 +186,16 @@ class cex(ccxt.async_support.cex):
         #  update trade
         #    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         #
+        tradeParts = trade
         if not isinstance(trade, list):
-            trade = trade.split(':')
-        side = self.safe_string(trade, 0)
-        timestamp = self.safe_integer(trade, 1)
-        amount = self.safe_string(trade, 2)
-        price = self.safe_string(trade, 3)
-        id = self.safe_string(trade, 4)
+            tradeParts = trade.split(':')
+        side = self.safe_string(tradeParts, 0)
+        timestamp = self.safe_integer(tradeParts, 1)
+        amount = self.safe_string(tradeParts, 2)
+        price = self.safe_string(tradeParts, 3)
+        id = self.safe_string(tradeParts, 4)
         return self.safe_trade({
-            'info': trade,
+            'info': tradeParts,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -254,9 +255,9 @@ class cex(ccxt.async_support.cex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         url = self.urls['api']['ws']
-        messageHash = 'ticker:' + symbol
+        messageHash = 'ticker:' + symbolValue
         method = self.safe_string(params, 'method', 'private')  # default to private because the specified ticker is received quicker
         message = {
             'e': 'subscribe',
@@ -274,7 +275,7 @@ class cex(ccxt.async_support.cex):
                 ],
                 'oid': self.request_id(),
             }
-            subscriptionHash = 'ticker:' + symbol
+            subscriptionHash = 'ticker:' + symbolValue
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, subscriptionHash)
 
@@ -290,7 +291,7 @@ class cex(ccxt.async_support.cex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         url = self.urls['api']['ws']
         messageHash = 'tickers'
         message = {
@@ -302,13 +303,13 @@ class cex(ccxt.async_support.cex):
         request = self.deep_extend(message, params)
         ticker = await self.watch(url, messageHash, request, messageHash)
         tickerSymbol = ticker['symbol']
-        if symbols is not None and not self.in_array(tickerSymbol, symbols):
-            return await self.watch_tickers(symbols, params)
+        if symbolsNormalized is not None and not self.in_array(tickerSymbol, symbolsNormalized):
+            return await self.watch_tickers(symbolsNormalized, params)
         if self.newUpdates:
             result = {}
             result[tickerSymbol] = ticker
             return result
-        return self.filter_by_array(self.tickers, 'symbol', symbols)
+        return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
     async def fetch_ticker_ws(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -457,8 +458,8 @@ class cex(ccxt.async_support.cex):
         await self.authenticate(params)
         url = self.urls['api']['ws']
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'orders:' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'orders:' + symbolValue
         message = {
             'e': 'open-orders',
             'data': {
@@ -467,13 +468,14 @@ class cex(ccxt.async_support.cex):
                     market['quoteId'],
                 ],
             },
-            'oid': symbol,
+            'oid': symbolValue,
         }
         request = self.deep_extend(message, params)
         orders = await self.watch(url, messageHash, request, messageHash, request)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolValue, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolValue, since, limitResolved, True)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -805,7 +807,7 @@ class cex(ccxt.async_support.cex):
         symbol = None
         if base is not None and quote is not None:
             symbol = base + '/' + quote
-        market = self.safe_market(symbol, market)
+        marketResolved = self.safe_market(symbol, market)
         time = self.safe_integer(order, 'time')
         timestamp = time
         if isTransaction:
@@ -845,8 +847,8 @@ class cex(ccxt.async_support.cex):
             'trades': None,
         }
         if isTransaction:
-            parsedOrder['trades'] = self.parse_ws_trade(order, market)
-        return self.safe_order(parsedOrder, market)
+            parsedOrder['trades'] = self.parse_ws_trade(order, marketResolved)
+        return self.safe_order(parsedOrder, marketResolved)
 
     def from_precision(self, amount: object, scale: object):
         if amount is None:
@@ -909,9 +911,9 @@ class cex(ccxt.async_support.cex):
             await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         url = self.urls['api']['ws']
-        messageHash = 'orderbook:' + symbol
+        messageHash = 'orderbook:' + symbolValue
         depth = 0 if (limit is None) else limit
         subscribe = {
             'e': 'order-book-subscribe',
@@ -1037,8 +1039,8 @@ class cex(ccxt.async_support.cex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'ohlcv:' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'ohlcv:' + symbolValue
         url = self.urls['api']['ws']
         request = {
             'e': 'init-ohlcv',
@@ -1048,9 +1050,10 @@ class cex(ccxt.async_support.cex):
             ],
         }
         ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
     def handle_init_ohlcv(self, client: Client, message: dict):
         #

@@ -4714,7 +4714,7 @@ public Object describe()
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         Object uniqChars = (this.unique(this.stringToCharsArray(address)));
         Integer length = ((List<?>)uniqChars).size(); // py transpiler trick
-        if (java.util.Objects.equals(length, 1) || Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength) || Helpers.isGreaterThan(((String)address).indexOf(" "), -1))
+        if (java.util.Objects.equals(length, 1) || Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength) || ((String)address).indexOf(" ") > -1)
         {
             throw new InvalidAddress((((((this.id + " address is invalid or has less than ") + String.valueOf(this.minFundingAddressLength)) + " characters: \"") + String.valueOf(address)) + "\"")) ;
         }
@@ -4740,8 +4740,8 @@ public Object describe()
     {
         if (this.valueIsDefined(limit))
         {
-            Integer arrayLength = ((List<?>)array).size();
-            if ((arrayLength != null && arrayLength > 0))
+            Object arrayLength = ((List<?>)array).size();
+            if (Helpers.isGreaterThan(arrayLength, 0))
             {
                 Boolean ascending = true;
                 if ((Helpers.inOp((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"))))
@@ -6311,8 +6311,8 @@ public Object describe()
                 for (var j = 1; j < (groupedCurrenciesCode == null ? 0 : ((List<?>)groupedCurrenciesCode).size()); j++)
                 {
                     Object currentCurrency = (groupedCurrenciesCode == null || j < 0 || j >= groupedCurrenciesCode.size() ? null : groupedCurrenciesCode.get(j));
-                    Double currentPrecision = this.safeNumber(currentCurrency, "precision");
-                    Double highestPrecision = this.safeNumber(highestPrecisionCurrency, "precision");
+                    Double currentPrecision = this.safeNumber(currentCurrency, "precision", (Object) null);
+                    Double highestPrecision = this.safeNumber(highestPrecisionCurrency, "precision", (Object) null);
                     if ((java.util.Objects.equals(currentPrecision, null)) || (java.util.Objects.equals(highestPrecision, null)))
                     {
                         continue;
@@ -7394,10 +7394,6 @@ public Object describe()
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
@@ -7408,10 +7404,6 @@ public Object describe()
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
-    public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, Object... optionalArgs)
-    {
-        return this.fetchSpotOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     public CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
@@ -7421,10 +7413,6 @@ public Object describe()
             throw new NotSupported((this.id + " fetchContractOHLCV() is not supported yet")) ;
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
-    }
-    public CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, Object... optionalArgs)
-    {
-        return this.fetchContractOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<List<OHLCV>> fetchOHLCVWs(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
@@ -7667,7 +7655,7 @@ public Object describe()
             }
             return (List<String>) symbols;
         }
-        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        List<String> result = new ArrayList<String>(Arrays.asList());
         String marketType = null;
         Object isLinearSubType = null;
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -7694,7 +7682,7 @@ public Object describe()
             marketType = this.safeString(market, "type");
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                isLinearSubType = this.safeBool(market, "linear");
+                isLinearSubType = this.safeBool(market, "linear", (Object) null);
             }
             String symbol = this.safeString(market, "symbol", (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
             result.add(symbol);
@@ -7991,7 +7979,7 @@ public Object describe()
             } else
             {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-                Object networkIdOrCode = ((Helpers.isTrue(isIndexedByUnifiedNetworkCode))) ? networkCode : this.networkCodeToId((String) (networkCode), currencyCode);
+                Object networkIdOrCode = ((Helpers.isTrue(java.util.Objects.requireNonNullElse(isIndexedByUnifiedNetworkCode, false)))) ? networkCode : this.networkCodeToId((String) (networkCode), Helpers.toStringArg(currencyCode));
                 if (java.util.Objects.equals(networkIdOrCode, null))
                 {
                     throw new NotSupported(((((this.id + " - ") + networkCode) + " network was not found for ") + currencyCode)) ;
@@ -8026,10 +8014,6 @@ public Object describe()
             }
         }
         return chosenNetworkId;
-    }
-    public Object selectNetworkKeyFromNetworks(Object currencyCode, String networkCode, Object indexedNetworkEntries, Object... optionalArgs)
-    {
-        return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
     }
 
     public Double safeNumber2(Object dictionary, Object key1, Object key2, Object d)
@@ -9089,10 +9073,6 @@ public Object describe()
             throw new NotSupported((((((this.id + " ") + key) + " does not have a value in mapping") + ", must be one of ") + String.join(", ", (List<String>)keys))) ;
         }
     }
-    public Object getSupportedMapping(String key, Object... optionalArgs)
-    {
-        return this.getSupportedMapping(key, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object parameters)
     {
@@ -9657,10 +9637,6 @@ public Object describe()
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> cancelSpotOrder(String id, Object... optionalArgs)
-    {
-        return this.cancelSpotOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     public CompletableFuture<Order> cancelContractOrder(String id, String symbol, Map<String, Object> parameters)
     {
@@ -9670,10 +9646,6 @@ public Object describe()
             throw new NotSupported((this.id + " cancelContractOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
-    }
-    public CompletableFuture<Order> cancelContractOrder(String id, Object... optionalArgs)
-    {
-        return this.cancelContractOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<List<Order>> cancelAllSpotOrders(String symbol, Map<String, Object> parameters)
@@ -10587,7 +10559,7 @@ public Object describe()
             takeProfitPriceStr = this.priceToPrecision(symbol, Helpers.parseFloat(takeProfitPrice));
         }
         Integer keysToOmitLength = ((List<?>)keysToOmit).size();
-        Object paramsOmitted = (((Helpers.isGreaterThan(keysToOmitLength, 0)))) ? this.omit(parameters, keysToOmit) : parameters;
+        Object paramsOmitted = ((((keysToOmitLength != null && keysToOmitLength > 0)))) ? this.omit(parameters, keysToOmit) : parameters;
         return new ArrayList<Object>(Arrays.asList(triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted));
     }
 
@@ -11476,7 +11448,7 @@ public Object describe()
                 {
                     throw new ArgumentsRequired((this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
                 }
-                Double requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(until, since)), step))));
+                Double requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(((until - since)), step))));
                 if (Helpers.isGreaterThan(requiredCalls, maxCallsPaginationCalls))
                 {
                     throw new BadRequest(((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + String.valueOf(maxCallsPaginationCalls)) + " required calls is ") + String.valueOf(requiredCalls))) ;
@@ -11492,7 +11464,7 @@ public Object describe()
                 {
                     break;
                 }
-                ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequest, timeframe, parameters));
+                ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, Helpers.toLongOrNull(currentSince), Helpers.toLongOrNull(maxEntriesPerRequestValue), timeframe, Helpers.toMapArg(paramsOmitted)));
                 currentSince = Helpers.subtract(Helpers.add(currentSince, step), 1);
             }
             Object results = (Helpers.promiseAll(tasks)).join();
@@ -11592,7 +11564,7 @@ public Object describe()
                     cursorValue = null; // search for the cursor
                     for (var j = 0; (responseLength != null && j < responseLength); j++)
                     {
-                        Object index = Helpers.subtract(Helpers.subtract(responseLength, j), 1);
+                        Long index = ((((long) responseLength) - ((long) j)) - 1L);
                         Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, index, (Object) null);
                         Map<String, Object> info = (Map<String, Object>) this.safeDict(entry, "info", (Object) null);
                         Object cursor = (((java.util.Objects.equals(cursorReceived, null)))) ? null : this.safeValue(info, cursorReceived);
@@ -11611,7 +11583,7 @@ public Object describe()
                     {
                         throw new ArgumentsRequired((this.id + " fetchPaginatedCallCursor() requires a since argument")) ;
                     }
-                    if (!java.util.Objects.equals(lastTimestamp, null) && Helpers.isLessThan(lastTimestamp, since))
+                    if (!java.util.Objects.equals(lastTimestamp, null) && ((lastTimestamp == null || lastTimestamp < since)))
                     {
                         break;
                     }
@@ -12093,7 +12065,7 @@ public Object describe()
         String year = (datePadded == null ? null : ((String)datePadded).substring(0, Math.min(2, ((String)datePadded).length())));
         String monthName = (datePadded == null ? null : ((String)datePadded).substring(Math.min(2, ((String)datePadded).length()), Math.min(5, ((String)datePadded).length())));
         String month = this.safeString(monthMappping, monthName);
-        Object day = (date == null ? null : ((String)date).substring(Math.min(5, ((String)date).length()), Math.min(7, ((String)date).length())));
+        Object day = (datePadded == null ? null : ((String)datePadded).substring(Math.min(5, ((String)datePadded).length()), Math.min(7, ((String)datePadded).length())));
         if (java.util.Objects.equals(month, null))
         {
             throw new BadSymbol(((this.id + " invalid expiry date ") + date)) ;

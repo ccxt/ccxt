@@ -510,7 +510,7 @@ func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs 
 		return MapTyped(outcomeObj)
 	}
 	// stub for an unknown handle; it only carries the identity keys, not the market fields
-	outcomeObj = map[string]any{
+	var outcomeObjValue map[string]any = map[string]any{
 		"outcome":   outcomeIdOrSymbol,
 		"outcomeId": outcomeIdOrSymbol,
 		"market":    nil,
@@ -518,13 +518,13 @@ func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs 
 		"event":     nil,
 		"info":      map[string]any{},
 	}
-	return MapTyped(outcomeObj)
+	return MapTyped(outcomeObjValue)
 }
 func (this *PredictionExchange) SafeOutcomeSymbol(outcomeIdOrSymbol any, optionalArgs ...any) any {
 	outcomeObj := GetArg(optionalArgs, 0, nil)
 	_ = outcomeObj
-	outcomeObj = this.SafeOutcome(outcomeIdOrSymbol, outcomeObj)
-	return GetValue(outcomeObj, "outcome")
+	var outcomeObjValue map[string]any = this.SafeOutcome(outcomeIdOrSymbol, outcomeObj)
+	return outcomeObjValue["outcome"]
 }
 func (this *PredictionExchange) ShortenSlug(slug any) any {
 	var replacements map[string]any = map[string]any{
@@ -618,10 +618,13 @@ func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug an
 	// removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
 	// currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
 	// instead of leaking raw text into the outcome handle
-	if IsEqual(outcome, nil) {
-		outcome = ""
-	}
-	var upper string = ToUpper(outcome)
+	var outcomeValue any = func() any {
+		if IsEqual(outcome, nil) {
+			return ""
+		}
+		return outcome
+	}()
+	var upper string = ToUpper(outcomeValue)
 	var allowed string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	var chars []string = this.StringToCharsArray(upper)
 	var label string = ""

@@ -213,9 +213,7 @@ class binance extends Exchange {
          * @param {array} [$rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
          * @return {array[]} raw market topic objects
          */
-        if ($maxTopics === null) {
-            $maxTopics = $this->safe_integer($this->options, 'maxFetchMarketsLimit', 200);
-        }
+        $maxTopicsResolved = ($maxTopics === null) ? $this->safe_integer($this->options, 'maxFetchMarketsLimit', 200) : $maxTopics;
         $pageLimit = $this->safe_integer($this->options, 'marketsPageLimit', 100);
         if ($pageLimit > 100) {
             $pageLimit = 100;
@@ -225,7 +223,7 @@ class binance extends Exchange {
         while (true) {
             $reqLimit = $pageLimit;
             $collectedLength = count($collected);
-            $remaining = $maxTopics - $collectedLength;
+            $remaining = $maxTopicsResolved - $collectedLength;
             if ($remaining < $reqLimit) {
                 $reqLimit = $remaining;
             }
@@ -378,16 +376,18 @@ class binance extends Exchange {
             $allQueries[] = $tags[$i];
         }
         $allQueriesLength = count($allQueries);
-        $params = $this->omit($params, array( 'query', 'queries' ));
-        $userLimit = $this->safe_integer($params, 'limit');
+        $paramsOmitted = $this->omit($params, array( 'query', 'queries' ));
+        // keys dropped before the client-side pass; a server-side sort also drops its own keys
+        $postOmitKeys = array( 'tags', 'l1Category', 'l2Category' );
+        $userLimit = $this->safe_integer($paramsOmitted, 'limit');
         $fetchCap = $this->safe_integer($this->options, 'maxFetchEventsResults', 100);
         if ($userLimit !== null) {
             $fetchCap = $userLimit;
         }
-        $rest = $this->omit($params, array( 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'l1Category', 'l2Category' ));
-        $eventId = $this->safe_string($params, 'eventId');
-        $l1Category = $this->safe_string($params, 'l1Category');
-        $l2Category = $this->safe_string($params, 'l2Category');
+        $rest = $this->omit($paramsOmitted, array( 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'l1Category', 'l2Category' ));
+        $eventId = $this->safe_string($paramsOmitted, 'eventId');
+        $l1Category = $this->safe_string($paramsOmitted, 'l1Category');
+        $l2Category = $this->safe_string($paramsOmitted, 'l2Category');
         if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
@@ -405,7 +405,7 @@ class binance extends Exchange {
             if ($l2Category !== null) {
                 $listingRequest['l2Category'] = $l2Category;
             }
-            $sortBy = $this->safe_string_upper_2($params, 'sortBy', 'sort');
+            $sortBy = $this->safe_string_upper_2($paramsOmitted, 'sortBy', 'sort');
             if ($sortBy !== null) {
                 // map the unified sort values onto the server enum, one of RECOMMENDED,
                 // VOLUME, PARTICIPANTS, CREATED_TIME or END_DATE — 'liquidity' has no
@@ -418,7 +418,8 @@ class binance extends Exchange {
                 }
                 if ($sortBy !== null) {
                     $listingRequest['sortBy'] = $sortBy;
-                    $params = $this->omit($params, array( 'sort', 'sortBy' ));
+                    $postOmitKeys[] = 'sort';
+                    $postOmitKeys[] = 'sortBy';
                 }
             }
             $listed = Async\await($this->fetch_raw_topics($fetchCap, $this->extend($listingRequest, $rest)));
@@ -444,7 +445,7 @@ class binance extends Exchange {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        $postParams = $this->omit($params, array( 'tags', 'l1Category', 'l2Category' ));
+        $postParams = $this->omit($paramsOmitted, $postOmitKeys);
         return $this->apply_event_fetch_params($result, $postParams, array());
     }
 
@@ -467,16 +468,17 @@ class binance extends Exchange {
         $seen = array();
         $collected = array();
         $queriesLength = count($queries);
+        $limitResolved = $limit;
         if ($limit === null) {
-            $limit = 20;
+            $limitResolved = 20;
         } elseif ($limit > 50) {
-            $limit = 50;
+            $limitResolved = 50;
         }
         for ($qi = 0; $qi < $queriesLength; $qi++) {
             $request = array(
                 'query' => $queries[$qi],
             );
-            $request['topK'] = $limit;
+            $request['topK'] = $limitResolved;
             $response = Async\await($this->sapiPrivateGetMarketSearch($this->extend($request, $rest)));
             //
             //     [
@@ -505,8 +507,8 @@ class binance extends Exchange {
         }
         $capped = $collected;
         $collectedLength = count($collected);
-        if (($limit !== null) && ($collectedLength > $limit)) {
-            $capped = $this->array_slice($collected, 0, $limit);
+        if (($limitResolved !== null) && ($collectedLength > $limitResolved)) {
+            $capped = $this->array_slice($collected, 0, $limitResolved);
         }
         return Async\await($this->complete_raw_topics($capped));
     }
@@ -951,9 +953,8 @@ class binance extends Exchange {
          * @param {string} [$params->type] 'CeDefi', 'FUNDING', or 'SPOT'
          * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
-        $type = null;
-        list($type, $params) = $this->handle_option_string_and_params($params, 'fetchBalance', 'type', 'SPOT');
-        $response = Async\await($this->sapiPrivateGetBalancePaymentOptions($params));
+        list($type, $paramsType) = $this->handle_option_string_and_params($params, 'fetchBalance', 'type', 'SPOT');
+        $response = Async\await($this->sapiPrivateGetBalancePaymentOptions($paramsType));
         //
         // {
         //     "items": [
@@ -1018,7 +1019,8 @@ class binance extends Exchange {
         // }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        if ($outcomeObj === null) {
+        $outcomeObjResolved = $outcomeObj;
+        if ($outcomeObjResolved === null) {
             $marketId = $this->safe_string($order, 'marketId');
             $outcome = $this->safe_string_upper($order, 'outcome');
             $market = $this->safe_market($marketId);
@@ -1027,7 +1029,7 @@ class binance extends Exchange {
                 $outcomeName = $marketId;
             }
             $outcomeName .= ':' . $outcome;
-            $outcomeObj = $this->safe_outcome($outcomeName);
+            $outcomeObjResolved = $this->safe_outcome($outcomeName);
         }
         $side = $this->safe_string_lower($order, 'side');
         $timestamp = $this->safe_integer($order, 'createTime');
@@ -1039,10 +1041,10 @@ class binance extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'outcome' => $this->safe_string($outcomeObj, 'outcome'),
-            'outcomeId' => $this->safe_string($outcomeObj, 'id'),
-            'label' => $this->safe_string($outcomeObj, 'label'),
-            'market' => $this->safe_string($outcomeObj, 'market'),
+            'outcome' => $this->safe_string($outcomeObjResolved, 'outcome'),
+            'outcomeId' => $this->safe_string($outcomeObjResolved, 'id'),
+            'label' => $this->safe_string($outcomeObjResolved, 'label'),
+            'market' => $this->safe_string($outcomeObjResolved, 'market'),
             'type' => $this->safe_string_lower($order, 'orderType'),
             'timeInForce' => null,
             'postOnly' => null,
@@ -1057,7 +1059,7 @@ class binance extends Exchange {
             'remaining' => null,
             'fee' => null,
             'trades' => array(),
-        ), $outcomeObj);
+        ), $outcomeObjResolved);
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -1100,16 +1102,16 @@ class binance extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
-        $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_integer_and_params($params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
+        list($maxEntriesPerRequest, $paramsMaxEntriesPerRequest) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchOpenOrders', $outcome, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
+            return Async\await($this->fetch_paginated_call_incremental('fetchOpenOrders', $outcome, $since, $limit, $paramsMaxEntriesPerRequest, $pageKey, $maxEntriesPerRequest));
         }
-        $page = $this->safe_integer($params, $pageKey, 1) - 1;
+        $page = $this->safe_integer($paramsMaxEntriesPerRequest, $pageKey, 1) - 1;
         $request = array();
-        $offSet = $this->safe_integer($params, 'offset', $page * $maxEntriesPerRequest);
+        $offSet = $this->safe_integer($paramsMaxEntriesPerRequest, 'offset', $page * $maxEntriesPerRequest);
         if ($offSet > 0) {
             $request['offset'] = $offSet;
         }
@@ -1123,9 +1125,9 @@ class binance extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $wallet = Async\await($this->fetch_wallet('fetchOpenOrders', $params));
+        $wallet = Async\await($this->fetch_wallet('fetchOpenOrders', $paramsMaxEntriesPerRequest));
         $request['walletAddress'] = $wallet['walletAddress'];
-        $response = Async\await($this->sapiPrivateGetOrderList($this->extend($request, $params)));
+        $response = Async\await($this->sapiPrivateGetOrderList($this->extend($request, $paramsMaxEntriesPerRequest)));
         //
         // {
         //     "total": 2,
@@ -1187,16 +1189,16 @@ class binance extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
-        $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_integer_and_params($params, 'fetchOrders', 'maxEntriesPerRequest', 100);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
+        list($maxEntriesPerRequest, $paramsMaxEntriesPerRequest) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchOrders', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $outcome, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
+            return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $outcome, $since, $limit, $paramsMaxEntriesPerRequest, $pageKey, $maxEntriesPerRequest));
         }
-        $page = $this->safe_integer($params, $pageKey, 1) - 1;
+        $page = $this->safe_integer($paramsMaxEntriesPerRequest, $pageKey, 1) - 1;
         $request = array();
-        $offSet = $this->safe_integer($params, 'offset', $page * $maxEntriesPerRequest);
+        $offSet = $this->safe_integer($paramsMaxEntriesPerRequest, 'offset', $page * $maxEntriesPerRequest);
         if ($offSet > 0) {
             $request['offset'] = $offSet;
         }
@@ -1211,14 +1213,14 @@ class binance extends Exchange {
         if ($since !== null) {
             $request['startDate'] = $this->yyyymmdd($since);
         }
-        $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, 'until');
+        $until = $this->safe_integer($paramsMaxEntriesPerRequest, 'until');
+        $paramsOmitted = $this->omit($paramsMaxEntriesPerRequest, 'until');
         if ($until !== null) {
             $request['endDate'] = $this->yyyymmdd($until);
         }
-        $wallet = Async\await($this->fetch_wallet('fetchOrders', $params));
+        $wallet = Async\await($this->fetch_wallet('fetchOrders', $paramsOmitted));
         $request['walletAddress'] = $wallet['walletAddress'];
-        $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $params)));
+        $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $paramsOmitted)));
         //
         // {
         //     "total": 15,
@@ -1396,7 +1398,8 @@ class binance extends Exchange {
          * @param {array} [$outcomeObj] the ourtome the $position belongs to
          * @return {array} a [prediction $position structure](https://docs.ccxt.com/#/?id=prediction-$position-structure)
          */
-        if ($outcomeObj === null) {
+        $outcomeObjResolved = $outcomeObj;
+        if ($outcomeObjResolved === null) {
             $marketId = $this->safe_string($position, 'marketId');
             $outcome = $this->safe_string_upper($position, 'outcomeName');
             $market = $this->safe_market($marketId);
@@ -1405,15 +1408,15 @@ class binance extends Exchange {
                 $outcomeName = $marketId;
             }
             $outcomeName .= ':' . $outcome;
-            $outcomeObj = $this->safe_outcome($outcomeName);
+            $outcomeObjResolved = $this->safe_outcome($outcomeName);
         }
         $timestamp = $this->safe_integer($position, 'createdTime');
         $totalCost = $this->parse_number($this->safe_string($position, 'totalCost'));
         return $this->safe_prediction_position(array(
             'id' => $this->safe_integer($position, 'positionId'),
-            'outcome' => $this->safe_string($outcomeObj, 'outcome'),
-            'outcomeId' => $this->safe_string_2($outcomeObj, 'outcomeId', 'id'),
-            'market' => $this->safe_string($outcomeObj, 'market'),
+            'outcome' => $this->safe_string($outcomeObjResolved, 'outcome'),
+            'outcomeId' => $this->safe_string_2($outcomeObjResolved, 'outcomeId', 'id'),
+            'market' => $this->safe_string($outcomeObjResolved, 'market'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'isolated' => false,
@@ -1462,18 +1465,18 @@ class binance extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
-        $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_integer_and_params($params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
+        list($maxEntriesPerRequest, $paramsMaxEntriesPerRequest) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $outcome, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
+            return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $outcome, $since, $limit, $paramsMaxEntriesPerRequest, $pageKey, $maxEntriesPerRequest));
         }
-        $page = $this->safe_integer($params, $pageKey, 1) - 1;
+        $page = $this->safe_integer($paramsMaxEntriesPerRequest, $pageKey, 1) - 1;
         $request = array(
             'status' => 'FILLED',
         );
-        $offSet = $this->safe_integer($params, 'offset', $page * $maxEntriesPerRequest);
+        $offSet = $this->safe_integer($paramsMaxEntriesPerRequest, 'offset', $page * $maxEntriesPerRequest);
         if ($offSet > 0) {
             $request['offset'] = $offSet;
         }
@@ -1488,14 +1491,14 @@ class binance extends Exchange {
         if ($since !== null) {
             $request['startDate'] = $this->yyyymmdd($since);
         }
-        $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, 'until');
+        $until = $this->safe_integer($paramsMaxEntriesPerRequest, 'until');
+        $paramsOmitted = $this->omit($paramsMaxEntriesPerRequest, 'until');
         if ($until !== null) {
             $request['endDate'] = $this->yyyymmdd($until);
         }
-        $wallet = Async\await($this->fetch_wallet('fetchMyTrades', $params));
+        $wallet = Async\await($this->fetch_wallet('fetchMyTrades', $paramsOmitted));
         $request['walletAddress'] = $wallet['walletAddress'];
-        $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $params)));
+        $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $paramsOmitted)));
         //
         // {
         //     "total": 15,
@@ -1571,7 +1574,8 @@ class binance extends Exchange {
         //     "networkFee": "0.000001"
         // }
         //
-        if ($outcomeObj === null) {
+        $outcomeObjResolved = $outcomeObj;
+        if ($outcomeObjResolved === null) {
             $marketId = $this->safe_string($trade, 'marketId');
             $outcome = $this->safe_string_upper($trade, 'outcome');
             $market = $this->safe_market($marketId);
@@ -1580,7 +1584,7 @@ class binance extends Exchange {
                 $outcomeName = $marketId;
             }
             $outcomeName .= ':' . $outcome;
-            $outcomeObj = $this->safe_outcome($outcomeName);
+            $outcomeObjResolved = $this->safe_outcome($outcomeName);
         }
         $timestamp = $this->safe_integer($trade, 'createTime');
         $filled = $this->safe_string($trade, 'filledShareQty');
@@ -1603,10 +1607,10 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $this->safe_integer($trade, 'modifyTime'),
-            'outcome' => $this->safe_string($outcomeObj, 'outcome'),
-            'outcomeId' => $this->safe_string($outcomeObj, 'id'),
-            'label' => $this->safe_string($outcomeObj, 'label'),
-            'market' => $this->safe_string($outcomeObj, 'market'),
+            'outcome' => $this->safe_string($outcomeObjResolved, 'outcome'),
+            'outcomeId' => $this->safe_string($outcomeObjResolved, 'id'),
+            'label' => $this->safe_string($outcomeObjResolved, 'label'),
+            'market' => $this->safe_string($outcomeObjResolved, 'market'),
             'order' => $this->safe_string($trade, 'orderId'),
             'type' => $orderType,
             'side' => $this->safe_string_lower($trade, 'side'),
@@ -1616,7 +1620,7 @@ class binance extends Exchange {
             'filled' => $filled,
             'cost' => $cost,
             'fee' => $fee,
-        ), $outcomeObj);
+        ), $outcomeObjResolved);
     }
 
     public function fetch_wallet(string $methodName, $params = array()): PromiseInterface {
@@ -1637,8 +1641,7 @@ class binance extends Exchange {
         if ($cachedWallet !== null) {
             return $cachedWallet;
         }
-        $walletAddress = null;
-        list($walletAddress, $params) = $this->handle_option_string_and_params($params, $methodName, 'walletAddress', $this->walletAddress);
+        $walletAddress = $this->handle_option_string_and_params($params, $methodName, 'walletAddress', $this->walletAddress)[0];
         $response = Async\await($this->sapiPrivateGetWalletList());
         //
         // {
@@ -1821,13 +1824,13 @@ class binance extends Exchange {
         if ($accountType === null) {
             throw new ArgumentsRequired($this->id . ' createOrder requires $accountType (SPOT, FUNDING)');
         }
-        $params = $this->omit($params, array( 'timeInForce', 'accountType', 'cost' ));
+        $paramsOmitted = $this->omit($params, array( 'timeInForce', 'accountType', 'cost' ));
         $quoteRequest = $this->extend($commonRequest, array(
             'tokenId' => $outcomeObj['id'],
             'side' => $sideUpper,
             'amountIn' => Precise::string_mul($this->amount_to_precision($marketSymbol, $amountStr), '1000000000000000000'),
         ));
-        $quote = Async\await($this->fetch_quote($quoteRequest, $params));
+        $quote = Async\await($this->fetch_quote($quoteRequest, $paramsOmitted));
         $quoteId = $this->safe_string($quote, 'quoteId');
         $orderRequest = $this->extend($commonRequest, array(
             'walletId' => $wallet['walletId'],
@@ -1835,7 +1838,7 @@ class binance extends Exchange {
             'timeInForce' => $timeInForce,
             'accountType' => $accountType,
         ));
-        $response = Async\await($this->sapiPrivatePostTradePlaceOrderBundle($this->extend($orderRequest, $params)));
+        $response = Async\await($this->sapiPrivatePostTradePlaceOrderBundle($this->extend($orderRequest, $paramsOmitted)));
         return $this->safe_prediction_order(array(
             'id' => $this->safe_string($response, 'orderId'),
             'clientOrderId' => null,
@@ -2027,15 +2030,16 @@ class binance extends Exchange {
         $querystring = str_replace('%5D', ']', $querystring);
         $signature = $this->hmac($this->encode($querystring), $this->encode($this->secret), 'sha256');
         $querystring = $querystring . '&$signature=' . $signature;
-        $headers = array(
+        $headersValue = array(
             'X-MBX-APIKEY' => $this->apiKey,
         );
+        $bodyValue = $body;
         if (($method === 'GET') || ($method === 'DELETE')) {
             $url = $url . '?' . $querystring;
         } else {
-            $body = $querystring;
-            $headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            $bodyValue = $querystring;
+            $headersValue['Content-Type'] = 'application/x-www-form-urlencoded';
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
     }
 }

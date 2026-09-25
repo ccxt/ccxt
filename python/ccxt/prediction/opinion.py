@@ -2000,7 +2000,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         existingHeaders = headers if (headers is not None) else {}
-        headers = self.extend({
+        headersExtended = self.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders)
@@ -2012,9 +2012,9 @@ class opinion(PredictionExchange, ImplicitAPI):
                 actionByMethod = {'POST': 'create', 'GET': 'get', 'DELETE': 'delete'}
                 action = self.safe_string(actionByMethod, method, 'get')
                 timestamp = self.number_to_string(self.seconds())
-                headers['OPINION_ADDRESS'] = self.walletAddress
-                headers['OPINION_SIGNATURE'] = self.sign_api_key_auth(self.walletAddress, action, timestamp)
-                headers['OPINION_TIMESTAMP'] = timestamp
+                headersExtended['OPINION_ADDRESS'] = self.walletAddress
+                headersExtended['OPINION_SIGNATURE'] = self.sign_api_key_auth(self.walletAddress, action, timestamp)
+                headersExtended['OPINION_TIMESTAMP'] = timestamp
             else:
                 # an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
                 # strict base types the credential as string, undefined can not be assigned)
@@ -2022,10 +2022,11 @@ class opinion(PredictionExchange, ImplicitAPI):
                 apiKey = self.apiKey if (hasDirectApiKey) else self.safe_string(self.options, 'apiKey')
                 if apiKey is None:
                     raise AuthenticationError(self.id + ' ' + path + ' requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first')
-                headers['apikey'] = apiKey
+                headersExtended['apikey'] = apiKey
+        bodyValue = body
         if method == 'GET':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
-            body = self.json(query)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+            bodyValue = self.json(query)
+        return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended}

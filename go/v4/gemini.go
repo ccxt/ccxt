@@ -1486,12 +1486,12 @@ func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(volume, "timestamp")
 	var symbol any = nil
 	var marketId *string = this.SafeStringLower(ticker, "pair")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var baseId any = nil
 	var quoteId any = nil
 	var base *string = nil
 	var quote *string = nil
-	if (marketId != nil) && (market == nil) {
+	if (marketId != nil) && ((marketResolved == nil)) {
 		var idLength int64 = Subtract(GetLength(marketId), 0).(int64)
 		if idLength == 7 {
 			baseId = func() string {
@@ -1530,10 +1530,10 @@ func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
 			symbol = *base + "/" + *quote
 		}
 	}
-	if (symbol == nil) && (market != nil) {
-		symbol = GetValue(market, "symbol")
-		baseId = this.SafeStringUpper(market, "baseId")
-		quoteId = this.SafeStringUpper(market, "quoteId")
+	if (symbol == nil) && ((marketResolved != nil)) {
+		symbol = marketResolved["symbol"]
+		baseId = this.SafeStringUpper(marketResolved, "baseId")
+		quoteId = this.SafeStringUpper(marketResolved, "quoteId")
 	}
 	var price *string = this.SafeString(ticker, "price")
 	var last *string = this.SafeString2(ticker, "last", "close", price)
@@ -1562,7 +1562,7 @@ func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    baseVolume,
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -2185,7 +2185,6 @@ func (this *Gemini) createOrderBody(ch chan any, symbol any, typeVar string, sid
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id")
-	params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_order_id"}))
 	if clientOrderId == nil {
 		clientOrderId = SafeStringPtr(strconv.FormatInt(this.Milliseconds(), 10))
 	}
@@ -2200,12 +2199,19 @@ func (this *Gemini) createOrderBody(ch chan any, symbol any, typeVar string, sid
 		"side":            side,
 		"type":            "exchange limit",
 	}
-	var orderType *string = this.SafeString(params, "type", typeVar)
-	params = MapTyped(this.Omit(params, "type"))
+	var typeValue *string = this.SafeString(params, "type", typeVar)
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stop_price", "stopPrice"})
-	params = MapTyped(this.Omit(params, []any{"triggerPrice", "stop_price", "stopPrice", "type"}))
-	if orderType != nil && *orderType == "stopLimit" {
-		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for " + *orderType + " orders"))
+	// timeInForce and postOnly are consumed only by non-trigger orders
+	var omitKeys []any = []any{"clientOrderId", "client_order_id", "type", "triggerPrice", "stop_price", "stopPrice"}
+	var optionKeys any = func() any {
+		if triggerPrice == nil {
+			return []any{"timeInForce", "postOnly"}
+		}
+		return []any{}
+	}()
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, this.ArrayConcat(omitKeys, optionKeys)))
+	if typeValue != nil && *typeValue == "stopLimit" {
+		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for " + *typeValue + " orders"))
 	}
 	if triggerPrice != nil {
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -2213,7 +2219,6 @@ func (this *Gemini) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	} else {
 		// No options can be applied to stop-limit orders at this time.
 		var timeInForce *string = this.SafeString(params, "timeInForce")
-		params = MapTyped(this.Omit(params, "timeInForce"))
 		if timeInForce != nil {
 			if (timeInForce != nil && *timeInForce == "IOC") || (timeInForce != nil && *timeInForce == "immediate-or-cancel") {
 				request["options"] = []any{"immediate-or-cancel"}
@@ -2224,7 +2229,6 @@ func (this *Gemini) createOrderBody(ch chan any, symbol any, typeVar string, sid
 			}
 		}
 		var postOnly *bool = this.SafeBool(params, "postOnly", false)
-		params = MapTyped(this.Omit(params, "postOnly"))
 		if postOnly != nil && *postOnly == true {
 			request["options"] = []any{"maker-or-cancel"}
 		}
@@ -2235,7 +2239,7 @@ func (this *Gemini) createOrderBody(ch chan any, symbol any, typeVar string, sid
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1OrderNew(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1OrderNew(this.Extend(request, paramsOmitted))).Raw))
 
 	//
 	//      {
@@ -2399,9 +2403,8 @@ func (this *Gemini) withdrawBody(ch chan any, code any, amount any, address any,
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagAndParams any = this.HandleWithdrawTagAndParams(tag, params)
+	var paramsWithdrawTag any = GetValue(tagAndParams, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -2414,7 +2417,7 @@ func (this *Gemini) withdrawBody(ch chan any, code any, amount any, address any,
 		"address":  address,
 	}
 
-	response := (<-this.PrivatePostV1WithdrawCurrency(this.Extend(request, params))).Raw
+	response := (<-this.PrivatePostV1WithdrawCurrency(this.Extend(request, paramsWithdrawTag))).Raw
 	PanicOnError(response)
 	//
 	//   for BTC
@@ -2612,10 +2615,7 @@ func (this *Gemini) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 
 	var indexedByNetwork map[string]any = MapTyped(PanicOnError((<-this.FetchDepositAddressesByNetworkAsync(code, params))))
-	var networkCode *string = nil
-	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
-	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
+	var networkCode *string = SafeStringPtr(GetValue(this.HandleNetworkCodeAndParams(params), 0))
 
 	ch <- this.SafeValue(indexedByNetwork, networkCode)
 	return nil
@@ -2646,11 +2646,10 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	code = currency["code"]
-	var networkCode *string = nil
-	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
-	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
+	var codeValue *string = SafeStringPtr(currency["code"])
+	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
+	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
+	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddresses() requires a network parameter"))
 	}
@@ -2659,10 +2658,10 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
 		"network": networkId,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostV1AddressesNetwork(this.Extend(request, params))).Raw))
-	var results any = this.ParseDepositAddresses(response, []any{code}, false, map[string]any{
+	var response []any = ListTyped(PanicOnError((<-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode))).Raw))
+	var results any = this.ParseDepositAddresses(response, []any{codeValue}, false, map[string]any{
 		"network":  networkCode,
-		"currency": code,
+		"currency": codeValue,
 	})
 
 	// one address structure per network, like every other venue (the endpoint is scoped to a
@@ -2679,10 +2678,11 @@ func (this *Gemini) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var url any = Add("/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
+	var headersSigned any = nil
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var apiKey any = this.ApiKey
@@ -2699,7 +2699,7 @@ func (this *Gemini) Sign(path any, optionalArgs ...any) any {
 		var payload any = this.Json(request)
 		payload = this.StringToBase64(payload)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
-		headers = map[string]any{
+		headersSigned = map[string]any{
 			"Content-Type":       "text/plain",
 			"X-GEMINI-APIKEY":    this.ApiKey,
 			"X-GEMINI-PAYLOAD":   payload,
@@ -2715,14 +2715,21 @@ func (this *Gemini) Sign(path any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	url = Add(apiUrl, url)
+	var headersResolved any = func() any {
+		if IsEqual(api, "private") {
+			return headersSigned
+		}
+		return headers
+	}()
+	var bodyResolved any = body
 	if (method == "POST") || (method == "DELETE") {
-		body = this.Json(query)
+		bodyResolved = this.Json(query)
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyResolved,
+		"headers": headersResolved,
 	}
 }
 func (this *Gemini) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

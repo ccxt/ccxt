@@ -179,15 +179,21 @@ class poloniex extends \ccxt\async\poloniex {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' $subscribe() $symbols is required');
             }
-            $messageHash = $messageHash . '::' . implode(',', $symbols);
             $ids = $this->market_ids($symbols);
             $marketIds = ($ids === null) ? array() : $ids;
+        }
+        $symbolsSuffix = ($symbols === null) ? '' : implode(',', $symbols);
+        $symbolsHash = null;
+        if ($this->is_empty($symbols)) {
+            $symbolsHash = $messageHash;
+        } else {
+            $symbolsHash = $messageHash . '::' . $symbolsSuffix;
         }
         if ($name !== 'balances') {
             $subscribe['symbols'] = $marketIds;
         }
         $request = $this->extend($subscribe, $params);
-        return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        return Async\await($this->watch($url, $symbolsHash, $request, $symbolsHash));
     }
 
     public function trade_request(string $name, $params = array()) {
@@ -258,12 +264,13 @@ class poloniex extends \ccxt\async\poloniex {
             'side' => strtoupper($side),
             'type' => strtoupper($type),
         );
-        if (($uppercaseType === 'MARKET') && ($uppercaseSide === 'BUY')) {
+        $isMarketBuy = ($uppercaseType === 'MARKET') && ($uppercaseSide === 'BUY');
+        $paramsOmitted = $params;
+        if ($isMarketBuy) {
             $quoteAmount = null;
-            $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            $cost = $this->safe_number($params, 'cost');
-            $params = $this->omit($params, 'cost');
+            list($createMarketBuyOrderRequiresPrice, $paramsRequiresPrice) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_number($paramsRequiresPrice, 'cost');
+            $paramsOmitted = $this->omit($paramsRequiresPrice, 'cost');
             if ($cost !== null) {
                 $quoteAmount = $this->cost_to_precision($symbol, $cost);
             } elseif ($createMarketBuyOrderRequiresPrice) {
@@ -285,7 +292,7 @@ class poloniex extends \ccxt\async\poloniex {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
         }
-        $orders = Async\await($this->trade_request('createOrder', $this->extend($request, $params)));
+        $orders = Async\await($this->trade_request('createOrder', $this->extend($request, $paramsOmitted)));
         $order = $this->safe_dict($orders, 0);
         return $order;
     }
@@ -412,10 +419,11 @@ class poloniex extends \ccxt\async\poloniex {
             throw new BadRequest($this->id . ' watchOHLCV cannot take a $timeframe of ' . $timeframe);
         }
         $ohlcv = Async\await($this->subscribe($channel, $channel, false, array( $symbol ), $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -435,9 +443,9 @@ class poloniex extends \ccxt\async\poloniex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbol = $this->symbol($symbol);
-        $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
-        return $this->safe_value($tickers, $symbol);
+        $symbolValue = $this->symbol($symbol);
+        $tickers = Async\await($this->watch_tickers(array( $symbolValue ), $params));
+        return $this->safe_value($tickers, $symbolValue);
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -458,12 +466,12 @@ class poloniex extends \ccxt\async\poloniex {
             Async\await($this->load_markets());
         }
         $name = 'ticker';
-        $symbols = $this->market_symbols($symbols);
-        $newTickers = Async\await($this->subscribe($name, $name, false, $symbols, $params));
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $newTickers = Async\await($this->subscribe($name, $name, false, $symbolsNormalized, $params));
         if ($this->newUpdates) {
             return $newTickers;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -500,10 +508,10 @@ class poloniex extends \ccxt\async\poloniex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $name = 'trades';
         $url = $this->urls['api']['ws']['public'];
-        $marketIds = $this->market_ids($symbols);
+        $marketIds = $this->market_ids($symbolsNormalized);
         $subscribe = array(
             'event' => 'subscribe',
             'channel' => array(
@@ -513,18 +521,19 @@ class poloniex extends \ccxt\async\poloniex {
         );
         $request = $this->extend($subscribe, $params);
         $messageHashes = array();
-        if ($symbols !== null) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $messageHashes[] = $name . '::' . $symbols[$i];
+        if ($symbolsNormalized !== null) {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $messageHashes[] = $name . '::' . $symbolsNormalized[$i];
             }
         }
         $trades = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
+        $first = $this->safe_dict($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_dict($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -547,8 +556,8 @@ class poloniex extends \ccxt\async\poloniex {
         }
         $watchOrderBookOptions = $this->safe_dict($this->options, 'watchOrderBook');
         $name = $this->safe_string($watchOrderBookOptions, 'name', 'book_lv2');
-        list($name, $params) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'name', $name);
-        $orderbook = Async\await($this->subscribe($name, $name, false, array( $symbol ), $params));
+        list($nameOption, $paramsName) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'name', $name);
+        $orderbook = Async\await($this->subscribe($nameOption, $nameOption, false, array( $symbol ), $paramsName));
         return $orderbook->limit();
     }
 
@@ -573,15 +582,14 @@ class poloniex extends \ccxt\async\poloniex {
         }
         $name = 'orders';
         Async\await($this->authenticate());
-        if ($symbol !== null) {
-            $symbol = $this->symbol($symbol);
-        }
-        $symbols = ($symbol === null) ? null : array( $symbol );
+        $symbolResolved = ($symbol === null) ? null : $this->symbol($symbol);
+        $symbols = ($symbolResolved === null) ? null : array( $symbolResolved );
         $orders = Async\await($this->subscribe($name, $name, true, $symbols, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($orders, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -606,15 +614,14 @@ class poloniex extends \ccxt\async\poloniex {
         $name = 'orders';
         $messageHash = 'myTrades';
         Async\await($this->authenticate());
-        if ($symbol !== null) {
-            $symbol = $this->symbol($symbol);
-        }
-        $symbols = ($symbol === null) ? null : array( $symbol );
+        $symbolResolved = ($symbol === null) ? null : $this->symbol($symbol);
+        $symbols = ($symbolResolved === null) ? null : array( $symbolResolved );
         $trades = Async\await($this->subscribe($name, $messageHash, true, $symbols, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_balance($params = array()): PromiseInterface {
@@ -797,13 +804,13 @@ class poloniex extends \ccxt\async\poloniex {
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'createTime');
         $takerMaker = $this->safe_string_lower_2($trade, 'matchRole', 'taker');
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string_2($trade, 'id', 'tradeId'),
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'order' => $this->safe_string($trade, 'orderId'),
@@ -818,7 +825,7 @@ class poloniex extends \ccxt\async\poloniex {
                 'cost' => $this->safe_string($trade, 'tradeFee'),
                 'currency' => $this->safe_string($trade, 'feeCurrency'),
             ),
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_status(?string $status): ?string {

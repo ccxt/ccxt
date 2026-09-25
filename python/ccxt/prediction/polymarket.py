@@ -1900,12 +1900,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 orderTypeStr = 'GTD'
         if orderTypeStr is None:
             orderTypeStr = 'FOK' if isMarket else 'GTC'
-        if price is None:
+        priceResolved = price
+        if priceResolved is None:
             if not isMarket:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price for limit orders')
             # market order without an explicit price: use the outcome's current price as the marketable reference
-            price = self.safe_number(outcomeObj, 'price')
-            if price is None:
+            priceResolved = self.safe_number(outcomeObj, 'price')
+            if priceResolved is None:
                 raise ArgumentsRequired(self.id + ' createOrder() could not determine a price from the outcome, pass an explicit price')
         # tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
         # outcome object (set in parseMarket) and can be overridden via params to keep requests deterministic
@@ -1928,7 +1929,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         cost = self.safe_number(params, 'cost')
         rest = self.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost', 'builder', 'builderCode'])
-        amounts = self.polymarket_order_raw_amounts(sideStr, amount, price, tickSize, cost)
+        amounts = self.polymarket_order_raw_amounts(sideStr, amount, priceResolved, tickSize, cost)
         makerAmount = self.safe_string(amounts, 'makerAmount')
         takerAmount = self.safe_string(amounts, 'takerAmount')
         sideInt = 0 if (sideStr == 'BUY') else 1
@@ -2009,7 +2010,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # them and return a fully-populated order instead of undefined side/price/amount
         requestEcho = {
             'side': sideStr,
-            'price': price,
+            'price': priceResolved,
             'asset_id': tokenId,
             'time_in_force': orderTypeStr,
             'postOnly': postOnly,
@@ -2509,6 +2510,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         query = {}
         if not isArrayBody:
             query = self.omit(params, self.extract_params(path))
+        bodyValue = body
         if method == 'GET':
             # array-valued params must repeat the key (gamma's clob_token_ids rejects
             # comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -2526,14 +2528,14 @@ class polymarket(PredictionExchange, ImplicitAPI):
             if querystring != '':
                 url += '?' + querystring
         elif isArrayBody:
-            body = self.json(params)
+            bodyValue = self.json(params)
         else:
             queryKeys = list(query.keys())
             queryKeysLength = len(queryKeys)
             if queryKeysLength > 0:
-                body = self.json(query)
+                bodyValue = self.json(query)
         headerDefaults = headers if (headers is not None) else {}
-        headers = self.extend({
+        headersValue = self.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, headerDefaults)
@@ -2553,7 +2555,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 timestamp = str(self.seconds())
                 nonce = self.safe_integer(params, 'nonce', 0)
                 l1signature = self.sign_clob_auth(address, timestamp, nonce)
-                headers = self.extend(headers, {
+                headersValue = self.extend(headersValue, {
                     'POLY_ADDRESS': address,
                     'POLY_SIGNATURE': l1signature,
                     'POLY_TIMESTAMP': timestamp,
@@ -2577,8 +2579,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 # @polymarket/clob-client — query params are sent separately, not signed
                 requestPath = '/' + self.implode_params(path, params)
                 auth = timestamp + method + requestPath
-                if body is not None:
-                    auth = auth + body
+                if bodyValue is not None:
+                    auth = auth + bodyValue
                 # the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 # unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 # in a chain, leaving the inner call as an (invalid) method call
@@ -2590,14 +2592,14 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 # url-safe base64, preserving '=' padding (matches the reference client)
                 signature = signature.replace('+', '-')
                 signature = signature.replace('/', '_')
-                headers = self.extend(headers, {
+                headersValue = self.extend(headersValue, {
                     'POLY_ADDRESS': address,
                     'POLY_API_KEY': apiKey,
                     'POLY_PASSPHRASE': passphrase,
                     'POLY_SIGNATURE': signature,
                     'POLY_TIMESTAMP': timestamp,
                 })
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}
 
     def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
@@ -2883,8 +2885,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         """
         outcomeObj = await self.load_outcome(outcome)
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
-        outcome = self.safe_string(outcomeObj, 'outcome')
-        messageHash = 'orderbook::' + outcome
+        outcomeValue = self.safe_string(outcomeObj, 'outcome')
+        messageHash = 'orderbook::' + outcomeValue
         subscribeHash = 'subscribe::' + tokenId
         subscribeMsg = {'assets_ids': [tokenId], 'type': 'market'}
         url = self.urls['api']['ws']
@@ -2902,8 +2904,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         """
         outcomeObj = await self.load_outcome(outcome)
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
-        outcome = self.safe_string(outcomeObj, 'outcome')
-        messageHash = 'trades::' + outcome
+        outcomeValue = self.safe_string(outcomeObj, 'outcome')
+        messageHash = 'trades::' + outcomeValue
         subscribeHash = 'subscribe::' + tokenId
         subscribeMsg = {'assets_ids': [tokenId], 'type': 'market'}
         url = self.urls['api']['ws']
@@ -2919,16 +2921,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
         """
         outcomeObj = await self.load_outcome(outcome)
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
-        outcome = self.safe_string(outcomeObj, 'outcome')
-        messageHash = 'ticker::' + outcome
+        outcomeValue = self.safe_string(outcomeObj, 'outcome')
+        messageHash = 'ticker::' + outcomeValue
         subscribeHash = 'subscribe::' + tokenId
         subscribeMsg = {'assets_ids': [tokenId], 'type': 'market'}
-        if outcome is None:
+        if outcomeValue is None:
             raise ExchangeError(self.id + ' watchTicker() missing outcome')
-        if not (outcome in self.orderbooks):
+        if not (outcomeValue in self.orderbooks):
             seededBook = self.order_book({})
-            if outcome is not None:
-                self.orderbooks[outcome] = seededBook
+            if outcomeValue is not None:
+                self.orderbooks[outcomeValue] = seededBook
         url = self.urls['api']['ws']
         orderbook = await self.watch(url, messageHash, subscribeMsg, subscribeHash)
         bids = orderbook['bids']
@@ -2957,9 +2959,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
             mid = bestBid
         else:
             mid = bestAsk
-        market = self.safe_outcome(outcome)
+        market = self.safe_outcome(outcomeValue)
         return self.safe_prediction_ticker({
-            'outcome': outcome,
+            'outcome': outcomeValue,
             'outcomeId': self.safe_string(market, 'outcomeId'),
             'label': self.safe_string(market, 'label'),
             'market': self.safe_string(market, 'market'),
@@ -2998,14 +3000,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
         """
         await self.load_api_credentials()
         messageHash = 'orders'
-        if outcome is not None:
-            outcomeObj = await self.load_outcome(outcome)
-            outcome = self.safe_string(outcomeObj, 'outcome')
-            messageHash = 'orders::' + outcome
+        outcomeResolved = outcome
+        if outcomeResolved is not None:
+            outcomeObj = await self.load_outcome(outcomeResolved)
+            outcomeResolved = self.safe_string(outcomeObj, 'outcome')
+            messageHash = 'orders::' + outcomeResolved
         orders = await self.subscribe_user_channel(messageHash, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(outcome, limit)
-        return self.filter_by_outcome_since_limit(orders, outcome, since, limit, True)
+            limitResolved = orders.getLimit(outcomeResolved, limitResolved)
+        return self.filter_by_outcome_since_limit(orders, outcomeResolved, since, limitResolved, True)
 
     async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
@@ -3021,14 +3025,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
         """
         await self.load_api_credentials()
         messageHash = 'myTrades'
-        if outcome is not None:
-            outcomeObj = await self.load_outcome(outcome)
-            outcome = self.safe_string(outcomeObj, 'outcome')
-            messageHash = 'myTrades::' + outcome
+        outcomeResolved = outcome
+        if outcomeResolved is not None:
+            outcomeObj = await self.load_outcome(outcomeResolved)
+            outcomeResolved = self.safe_string(outcomeObj, 'outcome')
+            messageHash = 'myTrades::' + outcomeResolved
         trades = await self.subscribe_user_channel(messageHash, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(outcome, limit)
-        return self.filter_by_outcome_since_limit(trades, outcome, since, limit, True)
+            limitResolved = trades.getLimit(outcomeResolved, limitResolved)
+        return self.filter_by_outcome_since_limit(trades, outcomeResolved, since, limitResolved, True)
 
     async def subscribe_user_channel(self, messageHash: str, params: dict = {}):
         # the user channel authenticates inside the subscribe frame, not via HMAC headers

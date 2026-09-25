@@ -135,37 +135,34 @@ class cryptocom extends \ccxt\async\cryptocom {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $topics = array();
         $messageHashes = array();
-        if (($limit === null) || ($limit === 0)) {
-            $limit = 50;
+        $limitResolved = 50;
+        if (($limit !== null) && ($limit !== 0)) {
+            $limitResolved = $limit;
         }
         $topicParams = $this->safe_value($params, 'params');
         if ($topicParams === null) {
             $params['params'] = array();
         }
-        $bookSubscriptionType = null;
-        $bookSubscriptionType2 = null;
-        list($bookSubscriptionType, $params) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-        list($bookSubscriptionType2, $params) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'bookSubscriptionType', $bookSubscriptionType);
-        $params['params']['bookSubscriptionType'] = $bookSubscriptionType2;
-        $bookUpdateFrequency = null;
-        $bookUpdateFrequency2 = null;
-        list($bookUpdateFrequency, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'bookUpdateFrequency');
-        list($bookUpdateFrequency2, $params) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', $bookUpdateFrequency);
+        list($bookSubscriptionType, $paramsBookSubscriptionType) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        list($bookSubscriptionType2, $paramsBookSubscriptionType2) = $this->handle_option_string_and_params($paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', $bookSubscriptionType);
+        $paramsBookSubscriptionType2['params']['bookSubscriptionType'] = $bookSubscriptionType2;
+        list($bookUpdateFrequency, $paramsBookUpdateFrequency) = $this->handle_option_string_and_params($paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
+        list($bookUpdateFrequency2, $paramsBookUpdateFrequency2) = $this->handle_option_string_and_params($paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', $bookUpdateFrequency);
         if ($bookUpdateFrequency2 !== null) {
-            $params['params']['bookSubscriptionType'] = $bookUpdateFrequency2;
+            $paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = $bookUpdateFrequency2;
         }
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $currentTopic = 'book' . '.' . $market['id'] . '.' . (string) $limit;
+            $currentTopic = 'book' . '.' . $market['id'] . '.' . (string) $limitResolved;
             $messageHash = 'orderbook:' . $market['symbol'];
             $messageHashes[] = $messageHash;
             $topics[] = $currentTopic;
         }
-        $orderbook = Async\await($this->watch_public_multiple($messageHashes, $topics, $params));
+        $orderbook = Async\await($this->watch_public_multiple($messageHashes, $topics, $paramsBookUpdateFrequency2));
         return $orderbook->limit();
     }
 
@@ -189,7 +186,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $topics = array();
         $subMessageHashes = array();
         $messageHashes = array();
@@ -198,20 +195,16 @@ class cryptocom extends \ccxt\async\cryptocom {
         if ($topicParams === null) {
             $params['params'] = array();
         }
-        $bookSubscriptionType = null;
-        $bookSubscriptionType2 = null;
-        list($bookSubscriptionType, $params) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-        list($bookSubscriptionType2, $params) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'bookSubscriptionType', $bookSubscriptionType);
-        $params['params']['bookSubscriptionType'] = $bookSubscriptionType2;
-        $bookUpdateFrequency = null;
-        $bookUpdateFrequency2 = null;
-        list($bookUpdateFrequency, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'bookUpdateFrequency');
-        list($bookUpdateFrequency2, $params) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', $bookUpdateFrequency);
+        list($bookSubscriptionType, $paramsBookSubscriptionType) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        list($bookSubscriptionType2, $paramsBookSubscriptionType2) = $this->handle_option_string_and_params($paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', $bookSubscriptionType);
+        $paramsBookSubscriptionType2['params']['bookSubscriptionType'] = $bookSubscriptionType2;
+        list($bookUpdateFrequency, $paramsBookUpdateFrequency) = $this->handle_option_string_and_params($paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
+        list($bookUpdateFrequency2, $paramsBookUpdateFrequency2) = $this->handle_option_string_and_params($paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', $bookUpdateFrequency);
         if ($bookUpdateFrequency2 !== null) {
-            $params['params']['bookSubscriptionType'] = $bookUpdateFrequency2;
+            $paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = $bookUpdateFrequency2;
         }
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
             $currentTopic = 'book' . '.' . $market['id'] . '.' . (string) $limit;
             $messageHash = 'orderbook:' . $market['symbol'];
@@ -219,7 +212,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $messageHashes[] = 'unsubscribe:' . $messageHash;
             $topics[] = $currentTopic;
         }
-        return Async\await($this->un_watch_public_multiple('orderbook', $symbols, $messageHashes, $subMessageHashes, $topics, $params));
+        return Async\await($this->un_watch_public_multiple('orderbook', $symbolsNormalized, $messageHashes, $subMessageHashes, $topics, $paramsBookUpdateFrequency2));
     }
 
     public function handle_delta(mixed $bookside, mixed $delta) {
@@ -377,21 +370,22 @@ class cryptocom extends \ccxt\async\cryptocom {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $topics = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
             $currentTopic = 'trade' . '.' . $market['id'];
             $topics[] = $currentTopic;
         }
         $trades = Async\await($this->watch_public_multiple($topics, $topics, $params));
+        $first = $this->safe_dict($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_dict($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
@@ -411,17 +405,17 @@ class cryptocom extends \ccxt\async\cryptocom {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $topics = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
             $currentTopic = 'trade' . '.' . $market['id'];
             $messageHashes[] = 'unsubscribe:trades:' . $market['symbol'];
             $topics[] = $currentTopic;
         }
-        return Async\await($this->un_watch_public_multiple('trades', $symbols, $messageHashes, $topics, $topics, $params));
+        return Async\await($this->un_watch_public_multiple('trades', $symbolsNormalized, $messageHashes, $topics, $topics, $params));
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -495,17 +489,19 @@ class cryptocom extends \ccxt\async\cryptocom {
             Async\await($this->load_markets());
         }
         $market = null;
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
+            $symbolResolved = $market['symbol'];
         }
         $messageHash = 'user.trade';
         $messageHash = ($market !== null) ? ($messageHash . '.' . $market['id']) : $messageHash;
         $trades = Async\await($this->watch_private_subscribe($messageHash, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -570,9 +566,9 @@ class cryptocom extends \ccxt\async\cryptocom {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
-        $marketIds = $this->market_ids($symbols);
+        $marketIds = $this->market_ids($symbolsNormalized);
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $messageHashes[] = 'ticker.' . $marketId;
@@ -592,7 +588,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $result[$ticker['symbol']] = $ticker;
             return $result;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -612,17 +608,17 @@ class cryptocom extends \ccxt\async\cryptocom {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
         $subMessageHashes = array();
-        $marketIds = $this->market_ids($symbols);
+        $marketIds = $this->market_ids($symbolsNormalized);
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $symbol = $symbols[$i];
+            $symbol = $symbolsNormalized[$i];
             $subMessageHashes[] = 'ticker.' . $marketId;
             $messageHashes[] = 'unsubscribe:ticker:' . $symbol;
         }
-        return Async\await($this->un_watch_public_multiple('ticker', $symbols, $messageHashes, $subMessageHashes, $subMessageHashes, $params));
+        return Async\await($this->un_watch_public_multiple('ticker', $symbolsNormalized, $messageHashes, $subMessageHashes, $subMessageHashes, $params));
     }
 
     public function handle_ticker(Client $client, array $message) {
@@ -686,11 +682,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         //
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 'i');
-        $market = $this->safe_market($marketId, $market, '_');
-        $quote = $this->safe_string($market, 'quote');
+        $marketResolved = $this->safe_market($marketId, $market, '_');
+        $quote = $this->safe_string($marketResolved, 'quote');
         $last = $this->safe_string($ticker, 'a');
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'h'),
@@ -710,7 +706,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => ($quote === 'USD') ? $this->safe_string($ticker, 'vv') : null,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -730,13 +726,13 @@ class cryptocom extends \ccxt\async\cryptocom {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
         $topics = array();
-        $marketIds = $this->market_ids($symbols);
+        $marketIds = $this->market_ids($symbolsNormalized);
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $messageHashes[] = 'bidask.' . $symbols[$i];
+            $messageHashes[] = 'bidask.' . $symbolsNormalized[$i];
             $topics[] = 'ticker.' . $marketId;
         }
         $url = $this->urls['api']['ws']['public'];
@@ -754,7 +750,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $tickers[$newTickers['symbol']] = $newTickers;
             return $tickers;
         }
-        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
     }
 
     public function handle_bid_ask(Client $client, array $message) {
@@ -771,8 +767,8 @@ class cryptocom extends \ccxt\async\cryptocom {
 
     public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'i');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_string($market, 'symbol');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($ticker, 't');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -783,7 +779,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             'bid' => $this->safe_string($ticker, 'b'),
             'bidVolume' => $this->safe_string($ticker, 'bs'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -807,14 +803,15 @@ class cryptocom extends \ccxt\async\cryptocom {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageHash = 'candlestick' . '.' . $interval . '.' . $market['id'];
         $ohlcv = Async\await($this->watch_public($messageHash, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
@@ -836,7 +833,6 @@ class cryptocom extends \ccxt\async\cryptocom {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $subMessageHash = 'candlestick' . '.' . $interval . '.' . $market['id'];
         $messageHash = 'unsubscribe:ohlcv:' . $market['symbol'] . ':' . $timeframe;
@@ -901,17 +897,19 @@ class cryptocom extends \ccxt\async\cryptocom {
             Async\await($this->load_markets());
         }
         $market = null;
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
+            $symbolResolved = $market['symbol'];
         }
         $messageHash = 'user.order';
         $messageHash = ($market !== null) ? ($messageHash . '.' . $market['id']) : $messageHash;
         $orders = Async\await($this->watch_private_subscribe($messageHash, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function handle_orders(Client $client, array $message, ?array $subscription = null) {
@@ -996,26 +994,26 @@ class cryptocom extends \ccxt\async\cryptocom {
             'nonce' => $id,
         );
         $messageHash = 'positions';
-        $symbols = $this->market_symbols($symbols);
-        if (!$this->is_empty($symbols)) {
-            if ($symbols === null) {
+        $symbolsNormalized = $this->market_symbols($symbols);
+        if (!$this->is_empty($symbolsNormalized)) {
+            if ($symbolsNormalized === null) {
                 throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
             }
-            $messageHash = 'positions::' . implode(',', $symbols);
+            $messageHash = 'positions::' . implode(',', $symbolsNormalized);
         }
         $client = $this->client($url);
-        $this->set_positions_cache($client, $symbols);
+        $this->set_positions_cache($client, $symbolsNormalized);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($this->positions === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
-            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+            return $this->filter_by_symbols_since_limit($snapshot, $symbolsNormalized, $since, $limit, true);
         }
         $newPositions = Async\await($this->watch($url, $messageHash, $this->extend($request, $params)));
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
     public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
@@ -1216,10 +1214,10 @@ class cryptocom extends \ccxt\async\cryptocom {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $params = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $paramsValue = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request = array(
             'method' => 'private/create-order',
-            'params' => $params,
+            'params' => $paramsValue,
         );
         $messageHash = $this->incrementing_nonce();
         return Async\await($this->watch_private_request($messageHash, $request));
@@ -1248,10 +1246,10 @@ class cryptocom extends \ccxt\async\cryptocom {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $params = $this->edit_order_request($id, $symbol, $amount, $price, $params);
+        $paramsValue = $this->edit_order_request($id, $symbol, $amount, $price, $params);
         $request = array(
             'method' => 'private/amend-order',
-            'params' => $params,
+            'params' => $paramsValue,
         );
         $messageHash = $this->incrementing_nonce();
         return Async\await($this->watch_private_request($messageHash, $request));
@@ -1293,12 +1291,12 @@ class cryptocom extends \ccxt\async\cryptocom {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $params = $this->extend(array(
+        $paramsExtended = $this->extend(array(
             'order_id' => $id,
         ), $params);
         $request = array(
             'method' => 'private/cancel-order',
-            'params' => $params,
+            'params' => $paramsExtended,
         );
         $messageHash = $this->incrementing_nonce();
         return Async\await($this->watch_private_request($messageHash, $request));

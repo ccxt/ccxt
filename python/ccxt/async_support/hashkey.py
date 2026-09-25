@@ -1358,25 +1358,22 @@ class hashkey(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, market, params)
+        marketType, paramsMarketType = self.handle_market_type_and_params(methodName, market, params)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_and_params(paramsMarketType, methodName, 'until')
         if until is not None:
             request['endTime'] = until
-        accountId = None
-        accountId, params = self.handle_option_string_and_params(params, methodName, 'accountId')
+        accountId, paramsAccountId = self.handle_option_string_and_params(paramsUntil, methodName, 'accountId')
         response = None
         if marketType == 'spot':
             if market is not None:
                 request['symbol'] = market['id']
             if accountId is not None:
                 request['accountId'] = accountId
-            response = await self.privateGetApiV1AccountTrades(self.extend(request, params))
+            response = await self.privateGetApiV1AccountTrades(self.extend(request, paramsAccountId))
             #
             #     [
             #         {
@@ -1412,9 +1409,9 @@ class hashkey(Exchange, ImplicitAPI):
             request['symbol'] = self.safe_string(market, 'id')
             if accountId is not None:
                 request['subAccountId'] = accountId
-                response = await self.privateGetApiV1FuturesSubAccountUserTrades(self.extend(request, params))
+                response = await self.privateGetApiV1FuturesSubAccountUserTrades(self.extend(request, paramsAccountId))
             else:
-                response = await self.privateGetApiV1FuturesUserTrades(self.extend(request, params))
+                response = await self.privateGetApiV1FuturesUserTrades(self.extend(request, paramsAccountId))
                 #
                 #     [
                 #         {
@@ -1494,7 +1491,7 @@ class hashkey(Exchange, ImplicitAPI):
         #     }
         timestamp = self.safe_integer_2(trade, 't', 'time')
         marketId = self.safe_string(trade, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         side = self.safe_string_lower(trade, 'side')  # swap trades have side param
         if side is not None:
             side = self.safe_string(side.split('_'), 0)
@@ -1526,7 +1523,7 @@ class hashkey(Exchange, ImplicitAPI):
             'id': self.safe_string_2(trade, 'id', 'tradeId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'side': side,
             'price': self.safe_string_2(trade, 'p', 'price'),
             'amount': self.safe_string_n(trade, ['q', 'qty', 'quantity']),
@@ -1536,7 +1533,7 @@ class hashkey(Exchange, ImplicitAPI):
             'order': self.safe_string(trade, 'orderId'),
             'fee': fee,
             'info': trade,
-        }, market)
+        }, marketResolved)
 
     async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -1557,24 +1554,24 @@ class hashkey(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, methodName, 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, methodName, 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1000)
         market = self.market(symbol)
-        timeframe = self.safe_string(self.timeframes, timeframe, timeframe)
+        timeframeValue = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
             'symbol': market['id'],
-            'interval': timeframe,
+            'interval': timeframeValue,
         }
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_and_params(paramsPaginate, methodName, 'until')
         if until is not None:
             request['endTime'] = until
-        response = await self.publicGetQuoteV1Klines(self.extend(request, params))
+        response = await self.publicGetQuoteV1Klines(self.extend(request, paramsUntil))
         #
         #     [
         #         [
@@ -1592,7 +1589,7 @@ class hashkey(Exchange, ImplicitAPI):
         #     ]
         #
         ohlcvs = self.to_array(response)
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        return self.parse_ohlcvs(ohlcvs, market, timeframeValue, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -1665,9 +1662,9 @@ class hashkey(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         response = await self.publicGetQuoteV1Ticker24hr(params)
-        return self.parse_tickers(response, symbols)
+        return self.parse_tickers(response, symbolsNormalized)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -1686,13 +1683,13 @@ class hashkey(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(ticker, 't')
         marketId = self.safe_string(ticker, 's')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         last = self.safe_string(ticker, 'c')
         baseVolume = self.safe_string(ticker, 'v')
-        if (market['contract'] is True) and (market['contractSize'] is not None):
+        if (marketResolved['contract'] is True) and (marketResolved['contractSize'] is not None):
             # 'v' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(market['contractSize']))
+            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(marketResolved['contractSize']))
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1714,7 +1711,7 @@ class hashkey(Exchange, ImplicitAPI):
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_string(ticker, 'qv'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     async def fetch_last_prices(self, symbols: Strings = None, params: dict = {}) -> LastPrices:
         """
@@ -1729,7 +1726,7 @@ class hashkey(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         request = {}
         response = await self.publicGetQuoteV1TickerPrice(self.extend(request, params))
         #
@@ -1741,13 +1738,13 @@ class hashkey(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        return self.parse_last_prices(response, symbols)
+        return self.parse_last_prices(response, symbolsNormalized)
 
     def parse_last_price(self, entry: dict, market: Market = None) -> LastPrice:
         marketId = self.safe_string(entry, 's')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         return {
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': None,
             'datetime': None,
             # dormant listings carry a literal zero price meaning never traded,
@@ -1773,9 +1770,9 @@ class hashkey(Exchange, ImplicitAPI):
         request = {}
         methodName = 'fetchBalance'
         marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, None, params, marketType)
-        if marketType == 'swap':
-            response = await self.privateGetApiV1FuturesBalance(params)
+        marketTypeOption, paramsMarketType = self.handle_market_type_and_params(methodName, None, params, marketType)
+        if marketTypeOption == 'swap':
+            response = await self.privateGetApiV1FuturesBalance(paramsMarketType)
             #
             #     [
             #         {
@@ -1790,8 +1787,8 @@ class hashkey(Exchange, ImplicitAPI):
             #
             balance = self.safe_dict(response, 0, {})
             return self.parse_swap_balance(balance)
-        elif marketType == 'spot':
-            response = await self.privateGetApiV1Account(self.extend(request, params))
+        elif marketTypeOption == 'spot':
+            response = await self.privateGetApiV1Account(self.extend(request, paramsMarketType))
             #
             #     {
             #         "balances": [
@@ -1810,7 +1807,7 @@ class hashkey(Exchange, ImplicitAPI):
             #
             return self.parse_balance(response)
         else:
-            raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
+            raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketTypeOption + ' type of markets')
 
     def parse_balance(self, balance: object) -> Balances:
         #
@@ -1887,12 +1884,10 @@ class hashkey(Exchange, ImplicitAPI):
         request = {
             'coin': currency['id'],
         }
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
-        if networkCode is None:
-            networkCode = self.default_network_code(code)
+        networkCodeInParams, paramsNetworkCode = self.handle_network_code_and_params(params)
+        networkCode = self.default_network_code(code) if (networkCodeInParams is None) else networkCodeInParams
         request['chainType'] = self.network_code_to_id(networkCode, code)
-        response = await self.privateGetApiV1AccountDepositAddress(self.extend(request, params))
+        response = await self.privateGetApiV1AccountDepositAddress(self.extend(request, paramsNetworkCode))
         #
         #     {
         #         "canDeposit": true,
@@ -1961,11 +1956,10 @@ class hashkey(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_and_params(params, methodName, 'until')
         if until is not None:
             request['endTime'] = until
-        response = await self.privateGetApiV1AccountDepositOrders(self.extend(request, params))
+        response = await self.privateGetApiV1AccountDepositOrders(self.extend(request, paramsUntil))
         #
         #     [
         #         {
@@ -2007,11 +2001,10 @@ class hashkey(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_and_params(params, methodName, 'until')
         if until is not None:
             request['endTime'] = until
-        response = await self.privateGetApiV1AccountWithdrawOrders(self.extend(request, params))
+        response = await self.privateGetApiV1AccountWithdrawOrders(self.extend(request, paramsUntil))
         #
         #     [
         #         {
@@ -2051,7 +2044,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param str [params.platform]: the platform to withdraw to(hashkey, HashKey HK)
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -2060,13 +2053,12 @@ class hashkey(Exchange, ImplicitAPI):
             'address': address,
             'quantity': amount,
         }
-        if tag is not None:
-            request['addressExt'] = tag
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        if tagWithdrawTag is not None:
+            request['addressExt'] = tagWithdrawTag
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is not None:
             request['chainType'] = self.network_code_to_id(networkCode, currency['code'])
-        response = await self.privatePostApiV1AccountWithdraw(self.extend(request, params))
+        response = await self.privatePostApiV1AccountWithdraw(self.extend(request, paramsNetworkCode))
         #
         #     {
         #         "success": true,
@@ -2321,8 +2313,7 @@ class hashkey(Exchange, ImplicitAPI):
         methodName = 'fetchLedger'
         if since is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a since argument')
-        until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_and_params(params, methodName, 'until')
         if until is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires an until argument')
         if self.markets is None:
@@ -2333,15 +2324,13 @@ class hashkey(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         request['endTime'] = until
-        flowType = None
-        flowType, params = self.handle_option_string_and_params(params, methodName, 'flowType')
+        flowType, paramsFlowType = self.handle_option_string_and_params(paramsUntil, methodName, 'flowType')
         if flowType is not None:
             request['flowType'] = self.encode_flow_type(flowType)
-        accountType = None
-        accountType, params = self.handle_option_string_and_params(params, methodName, 'accountType')
+        accountType, paramsAccountType = self.handle_option_string_and_params(paramsFlowType, methodName, 'accountType')
         if accountType is not None:
             request['accountType'] = self.encode_account_type(accountType)
-        response = await self.privateGetApiV1AccountBalanceFlow(self.extend(request, params))
+        response = await self.privateGetApiV1AccountBalanceFlow(self.extend(request, paramsAccountType))
         #
         #     [
         #         {
@@ -2394,7 +2383,7 @@ class hashkey(Exchange, ImplicitAPI):
         type = self.parse_ledger_entry_type(self.safe_string(item, 'flowTypeValue'))
         currencyId = self.safe_string(item, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        currency = self.safe_currency(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
         amountString = self.safe_string(item, 'change')
         amount = self.parse_number(amountString)
         direction = 'in'
@@ -2420,7 +2409,7 @@ class hashkey(Exchange, ImplicitAPI):
             'after': after,
             'status': status,
             'fee': None,
-        }, currency)
+        }, currencyResolved)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -2506,7 +2495,6 @@ class hashkey(Exchange, ImplicitAPI):
         response = {}
         test = self.safe_bool(params, 'test')
         if test is True:
-            params = self.omit(params, 'test')
             response = await self.privatePostApiV1SpotOrderTest(request)
         elif isMarketBuy and (cost is None):
             response = await self.privatePostApiV11SpotOrder(request)  # the endpoint for market buy orders by amount
@@ -2625,30 +2613,29 @@ class hashkey(Exchange, ImplicitAPI):
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
-        type = type.upper()
+        typeValue = type.upper()
         request = {
             'symbol': market['id'],
             'side': side.upper(),
-            'type': type,
+            'type': typeValue,
         }
         if amount is not None:
             request['quantity'] = self.amount_to_precision(symbol, amount)
-        cost = None
-        cost, params = self.handle_param_string(params, 'cost')
+        cost, paramsCost = self.handle_param_string(params, 'cost')
         if cost is not None:
             request['quantity'] = self.cost_to_precision(symbol, cost)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        isMarketOrder = type == 'MARKET'
-        postOnly = False
-        postOnly, params = self.handle_post_only(isMarketOrder, type == 'LIMIT_MAKER', params)
-        if postOnly and (type == 'LIMIT'):
+        isMarketOrder = typeValue == 'MARKET'
+        postOnly, paramsPostOnly = self.handle_post_only(isMarketOrder, typeValue == 'LIMIT_MAKER', paramsCost)
+        if postOnly and (typeValue == 'LIMIT'):
             request['type'] = 'LIMIT_MAKER'
         clientOrderId = None
-        clientOrderId, params = self.handle_param_string(params, 'clientOrderId')
+        paramsClientOrderId = {}
+        clientOrderId, paramsClientOrderId = self.handle_param_string(paramsPostOnly, 'clientOrderId')
         if clientOrderId is not None:
-            params['newClientOrderId'] = clientOrderId
-        return self.extend(request, params)
+            paramsClientOrderId['newClientOrderId'] = clientOrderId
+        return self.extend(request, paramsClientOrderId)
 
     def create_swap_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         """
@@ -2679,29 +2666,27 @@ class hashkey(Exchange, ImplicitAPI):
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
             request['priceType'] = 'INPUT'
-        reduceOnly = False
-        reduceOnly, params = self.handle_param_bool(params, 'reduceOnly', reduceOnly)
+        reduceOnly, paramsReduceOnly = self.handle_param_bool(params, 'reduceOnly', False)
         suffix = '_OPEN'
         if reduceOnly is True:
             suffix = '_CLOSE'
         request['side'] = side.upper() + suffix
-        timeInForce = None
-        timeInForce, params = self.handle_param_string(params, 'timeInForce')
-        postOnly = False
-        postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'LIMIT_MAKER', params)
+        timeInForceParam, paramsTimeInForce = self.handle_param_string(paramsReduceOnly, 'timeInForce')
+        postOnly, paramsPostOnly = self.handle_post_only(isMarketOrder, timeInForceParam == 'LIMIT_MAKER', paramsTimeInForce)
+        timeInForce = timeInForceParam
         if postOnly:
             timeInForce = 'LIMIT_MAKER'
         if timeInForce is not None:
             request['timeInForce'] = timeInForce
-        clientOrderId = self.safe_string(params, 'clientOrderId')
+        clientOrderId = self.safe_string(paramsPostOnly, 'clientOrderId')
         if clientOrderId is None:
             request['clientOrderId'] = self.uuid()
-        triggerPrice = self.safe_string(params, 'triggerPrice')
+        triggerPrice = self.safe_string(paramsPostOnly, 'triggerPrice')
+        paramsOmitted = self.omit(paramsPostOnly, 'triggerPrice') if (triggerPrice is not None) else paramsPostOnly
         if triggerPrice is not None:
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['type'] = 'STOP'
-            params = self.omit(params, 'triggerPrice')
-        return self.extend(request, params)
+        return self.extend(request, paramsOmitted)
 
     async def create_swap_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -2887,11 +2872,10 @@ class hashkey(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
+        marketType, paramsMarketType = self.handle_market_type_and_params(methodName, market, params, 'spot')
         response = None
         if marketType == 'spot':
-            response = await self.privateDeleteApiV1SpotOrder(self.extend(request, params))
+            response = await self.privateDeleteApiV1SpotOrder(self.extend(request, paramsMarketType))
             #
             #     {
             #         "accountId": "1732885739589466112",
@@ -2909,15 +2893,14 @@ class hashkey(Exchange, ImplicitAPI):
             #     }
             #
         elif marketType == 'swap':
-            isTrigger = False
-            isTrigger, params = self.handle_trigger_option_and_params(params, methodName, isTrigger)
+            isTrigger, paramsTrigger = self.handle_trigger_option_and_params(paramsMarketType, methodName, False)
             if isTrigger is True:
                 request['type'] = 'STOP'
             else:
                 request['type'] = 'LIMIT'
             if market is not None:
                 request['symbol'] = market['id']
-            response = await self.privateDeleteApiV1FuturesOrder(self.extend(request, params))
+            response = await self.privateDeleteApiV1FuturesOrder(self.extend(request, paramsTrigger))
             #
             #     {
             #         "time": "1722432302919",
@@ -3010,9 +2993,9 @@ class hashkey(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
+        marketTypeOption = self.handle_market_type_and_params(methodName, market, params, marketType)[0]
         response: dict
-        if marketType == 'spot':
+        if marketTypeOption == 'spot':
             response = await self.privateDeleteApiV1SpotCancelOrderByIds(request)
             #
             #     {
@@ -3020,10 +3003,10 @@ class hashkey(Exchange, ImplicitAPI):
             #         "result": []
             #     }
             #
-        elif marketType == 'swap':
+        elif marketTypeOption == 'swap':
             response = await self.privateDeleteApiV1FuturesCancelOrderByIds(request)
         else:
-            raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
+            raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketTypeOption + ' type of markets')
         order = self.safe_order(response)
         order['info'] = response
         return [order]
@@ -3050,20 +3033,18 @@ class hashkey(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         request = {}
-        clientOrderId = None
-        clientOrderId, params = self.handle_param_string(params, 'clientOrderId')
+        clientOrderId, paramsClientOrderId = self.handle_param_string(params, 'clientOrderId')
         if clientOrderId is None:
             request['orderId'] = id
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
+        marketType, paramsMarketType = self.handle_market_type_and_params(methodName, market, paramsClientOrderId, 'spot')
         response = None
         if marketType == 'spot':
             if clientOrderId is not None:
                 request['origClientOrderId'] = clientOrderId
-            response = await self.privateGetApiV1SpotOrder(self.extend(request, params))
+            response = await self.privateGetApiV1SpotOrder(self.extend(request, paramsMarketType))
             #
             #     {
             #         "accountId": "1732885739589466112",
@@ -3094,11 +3075,10 @@ class hashkey(Exchange, ImplicitAPI):
             #     }
             #
         elif marketType == 'swap':
-            isTrigger = False
-            isTrigger, params = self.handle_trigger_option_and_params(params, methodName, isTrigger)
+            isTrigger, paramsTrigger = self.handle_trigger_option_and_params(paramsMarketType, methodName, False)
             if isTrigger is True:
                 request['type'] = 'STOP'
-            response = await self.privateGetApiV1FuturesOrder(self.extend(request, params))
+            response = await self.privateGetApiV1FuturesOrder(self.extend(request, paramsTrigger))
             #
             #     {
             #         "time": "1722429951611",
@@ -3156,14 +3136,14 @@ class hashkey(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
-        params = self.extend({'methodName': methodName}, params)
-        if marketType == 'spot':
-            return await self.fetch_open_spot_orders(symbol, since, limit, params)
-        elif marketType == 'swap':
-            return await self.fetch_open_swap_orders(symbol, since, limit, params)
+        marketTypeOption, paramsMarketType = self.handle_market_type_and_params(methodName, market, params, marketType)
+        paramsExtended = self.extend({'methodName': methodName}, paramsMarketType)
+        if marketTypeOption == 'spot':
+            return await self.fetch_open_spot_orders(symbol, since, limit, paramsExtended)
+        elif marketTypeOption == 'swap':
+            return await self.fetch_open_swap_orders(symbol, since, limit, paramsExtended)
         else:
-            raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
+            raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketTypeOption + ' type of markets')
 
     async def fetch_open_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -3185,22 +3165,21 @@ class hashkey(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         methodName = 'fetchOpenSpotOrders'
-        methodName, params = self.handle_param_string(params, 'methodName', methodName)
+        methodNameOption, paramsMethodName = self.handle_param_string(params, 'methodName', methodName)
         market = None
         request = {}
         response = None
-        accountId = None
-        accountId, params = self.handle_option_string_and_params(params, methodName, 'accountId')
+        accountId, paramsAccountId = self.handle_option_string_and_params(paramsMethodName, methodNameOption, 'accountId')
         if accountId is not None:
             request['subAccountId'] = accountId
-            response = await self.privateGetApiV1SpotSubAccountOpenOrders(self.extend(request, params))
+            response = await self.privateGetApiV1SpotSubAccountOpenOrders(self.extend(request, paramsAccountId))
         else:
             if symbol is not None:
                 market = self.market(symbol)
                 request['symbol'] = market['id']
             if limit is not None:
                 request['limit'] = limit
-            response = await self.privateGetApiV1SpotOpenOrders(self.extend(request, params))
+            response = await self.privateGetApiV1SpotOpenOrders(self.extend(request, paramsAccountId))
             #
             #     [
             #         {
@@ -3250,29 +3229,28 @@ class hashkey(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         methodName = 'fetchOpenSwapOrders'
-        methodName, params = self.handle_param_string(params, 'methodName', methodName)
+        methodNameOption, paramsMethodName = self.handle_param_string(params, 'methodName', methodName)
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument for swap market orders')
+            raise ArgumentsRequired(self.id + ' ' + methodNameOption + '() requires a symbol argument for swap market orders')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
         isTrigger = False
-        isTrigger, params = self.handle_trigger_option_and_params(params, methodName, isTrigger)
-        if isTrigger is True:
+        isTriggerTrigger, paramsTrigger = self.handle_trigger_option_and_params(paramsMethodName, methodNameOption, isTrigger)
+        if isTriggerTrigger is True:
             request['type'] = 'STOP'
         else:
             request['type'] = 'LIMIT'
         if limit is not None:
             request['limit'] = limit
         response = None
-        accountId = None
-        accountId, params = self.handle_option_string_and_params(params, methodName, 'accountId')
+        accountId, paramsAccountId = self.handle_option_string_and_params(paramsTrigger, methodNameOption, 'accountId')
         if accountId is not None:
             request['subAccountId'] = accountId
-            response = await self.privateGetApiV1FuturesSubAccountOpenOrders(self.extend(request, params))
+            response = await self.privateGetApiV1FuturesSubAccountOpenOrders(self.extend(request, paramsAccountId))
         else:
-            response = await self.privateGetApiV1FuturesOpenOrders(self.extend(request, params))
+            response = await self.privateGetApiV1FuturesOpenOrders(self.extend(request, paramsAccountId))
             # 'LIMIT'
             #     [
             #         {
@@ -3349,24 +3327,21 @@ class hashkey(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_and_params(params, methodName, 'until')
         if until is not None:
             request['endTime'] = until
-        accountId = None
-        accountId, params = self.handle_option_string_and_params(params, methodName, 'accountId')
+        accountId, paramsAccountId = self.handle_option_string_and_params(paramsUntil, methodName, 'accountId')
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
+        marketType, paramsMarketType = self.handle_market_type_and_params(methodName, market, paramsAccountId, 'spot')
         response = None
         if marketType == 'spot':
             if market is not None:
                 request['symbol'] = market['id']
             if accountId is not None:
                 request['accountId'] = accountId
-            response = await self.privateGetApiV1SpotTradeOrders(self.extend(request, params))
+            response = await self.privateGetApiV1SpotTradeOrders(self.extend(request, paramsMarketType))
             #
             #     [
             #         {
@@ -3400,17 +3375,16 @@ class hashkey(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument for swap markets')
             request['symbol'] = self.safe_string(market, 'id')
-            isTrigger = False
-            isTrigger, params = self.handle_trigger_option_and_params(params, methodName, isTrigger)
+            isTrigger, paramsTrigger = self.handle_trigger_option_and_params(paramsMarketType, methodName, False)
             if isTrigger is True:
                 request['type'] = 'STOP'
             else:
                 request['type'] = 'LIMIT'
             if accountId is not None:
                 request['subAccountId'] = accountId
-                response = await self.privateGetApiV1FuturesSubAccountHistoryOrders(self.extend(request, params))
+                response = await self.privateGetApiV1FuturesSubAccountHistoryOrders(self.extend(request, paramsTrigger))
             else:
-                response = await self.privateGetApiV1FuturesHistoryOrders(self.extend(request, params))
+                response = await self.privateGetApiV1FuturesHistoryOrders(self.extend(request, paramsTrigger))
                 #
                 #     [
                 #         {
@@ -3450,8 +3424,8 @@ class hashkey(Exchange, ImplicitAPI):
 
     def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue: Bool = None) -> list:
         isTrigger = defaultValue
-        isTrigger, params = self.handle_option_bool_and_params_2(params, methodName, 'stop', 'trigger', isTrigger)
-        return [isTrigger, params]
+        isTriggerStop, paramsStop = self.handle_option_bool_and_params_2(params, methodName, 'stop', 'trigger', isTrigger)
+        return [isTriggerStop, paramsStop]
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -3564,7 +3538,7 @@ class hashkey(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'transactTime', 'time')
         status = self.safe_string(order, 'status')
         type = self.safe_string(order, 'type')
@@ -3597,7 +3571,7 @@ class hashkey(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
             'status': self.parse_order_status(status),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'side': side,
@@ -3618,7 +3592,7 @@ class hashkey(Exchange, ImplicitAPI):
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
             'info': order,
-        }, market)
+        }, marketResolved)
 
     def parse_order_side_and_reduce_only(self, unparsed: object):
         parts = unparsed.split('_')
@@ -3648,13 +3622,14 @@ class hashkey(Exchange, ImplicitAPI):
 
     def parse_order_type_time_in_force_and_post_only(self, type: Str, timeInForce: Str) -> list:
         postOnly = None
-        if type == 'LIMIT_MAKER':
+        isMakerTimeInForce = (timeInForce == 'LIMIT_MAKER') or (timeInForce == 'MAKER')
+        if (type == 'LIMIT_MAKER') or isMakerTimeInForce:
             postOnly = True
-        elif (timeInForce == 'LIMIT_MAKER') or (timeInForce == 'MAKER'):
-            postOnly = True
-            timeInForce = 'PO'
-        type = self.parse_order_type(type)
-        return [type, timeInForce, postOnly]
+        timeInForceParsed = timeInForce
+        if (type != 'LIMIT_MAKER') and isMakerTimeInForce:
+            timeInForceParsed = 'PO'
+        typeValue = self.parse_order_type(type)
+        return [typeValue, timeInForceParsed, postOnly]
 
     def parse_order_type(self, type: Str) -> Str:
         types = {
@@ -3665,7 +3640,7 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -3703,7 +3678,7 @@ class hashkey(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         request = {
             'timestamp': self.milliseconds(),
         }
@@ -3714,7 +3689,7 @@ class hashkey(Exchange, ImplicitAPI):
         #         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
         #     ]
         #
-        return self.parse_funding_rates(response, symbols)
+        return self.parse_funding_rates(response, symbolsNormalized)
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
@@ -3725,12 +3700,12 @@ class hashkey(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(contract, 'symbol')
-        market = self.safe_market(marketId, market, None, 'swap')
+        marketResolved = self.safe_market(marketId, market, None, 'swap')
         fundingRate = self.safe_number(contract, 'rate')
         fundingTimestamp = self.safe_integer(contract, 'nextSettleTime')
         return {
             'info': contract,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'markPrice': None,
             'indexPrice': None,
             'interestRate': None,
@@ -3839,13 +3814,13 @@ class hashkey(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         methodName = 'fetchPosition'
-        methodName, params = self.handle_param_string(params, 'methodName', methodName)
+        methodNameOption, paramsMethodName = self.handle_param_string(params, 'methodName', methodName)
         if market['swap'] is not True:
-            raise NotSupported(self.id + ' ' + methodName + '() supports swap markets only')
+            raise NotSupported(self.id + ' ' + methodNameOption + '() supports swap markets only')
         request = {
             'symbol': market['id'],
         }
-        response = await self.privateGetApiV1FuturesPositions(self.extend(request, params))
+        response = await self.privateGetApiV1FuturesPositions(self.extend(request, paramsMethodName))
         #
         #     [
         #         {
@@ -3871,8 +3846,8 @@ class hashkey(Exchange, ImplicitAPI):
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         marketId = self.safe_string(position, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         return self.safe_position({
             'symbol': symbol,
             'id': None,
@@ -3989,17 +3964,16 @@ class hashkey(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
-        marginMode = marginMode.upper()
-        if marginMode == 'CROSSED':
-            marginMode = 'CROSS'
-        if (marginMode != 'CROSS') and (marginMode != 'ISOLATED'):
+        marginModeUpper = marginMode.upper()
+        marginModeValue = 'CROSS' if (marginModeUpper == 'CROSSED') else marginModeUpper
+        if (marginModeValue != 'CROSS') and (marginModeValue != 'ISOLATED'):
             raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be either cross or isolated')
         market = self.market(symbol)
         if market['swap'] is not True:
             raise BadSymbol(self.id + ' setMarginMode() supports swap markets only')
         request = {
             'symbol': market['id'],
-            'marginType': marginMode,
+            'marginType': marginModeValue,
         }
         return await self.privatePostApiV1FuturesMarginType(self.extend(request, params))
 
@@ -4037,11 +4011,10 @@ class hashkey(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['swap'] is not True:
             raise BadSymbol(self.id + ' modifyMarginHelper() supports swap markets only')
-        side = None
-        side, params = self.handle_param_string(params, 'side')
-        if side is None:
+        sideParam, paramsSide = self.handle_param_string(params, 'side')
+        if sideParam is None:
             raise ArgumentsRequired(self.id + ' ' + type + 'Margin() requires a params["side"] argument, either "long" or "short"')
-        side = side.upper()
+        side = sideParam.upper()
         if (side != 'LONG') and (side != 'SHORT'):
             raise ArgumentsRequired(self.id + ' ' + type + 'Margin() params["side"] must be either long or short')
         amountString = self.number_to_string(amount)
@@ -4052,7 +4025,7 @@ class hashkey(Exchange, ImplicitAPI):
             'side': side,
             'amount': amountString,
         }
-        response = await self.privatePostApiV1FuturesPositionMargin(self.extend(request, params))
+        response = await self.privatePostApiV1FuturesPositionMargin(self.extend(request, paramsSide))
         #
         #     {
         #         "code": "0000",
@@ -4068,18 +4041,18 @@ class hashkey(Exchange, ImplicitAPI):
 
     def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         marketId = self.safe_string(data, 'symbol')
-        market = self.safe_market(marketId, market, None, 'swap')
+        marketResolved = self.safe_market(marketId, market, None, 'swap')
         timestamp = self.safe_integer(data, 'timestamp')
         errorCode = self.safe_string(data, 'code')
         success = errorCode == '0000'
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': None,
             'marginMode': 'isolated',
             'amount': None,
             'total': self.safe_number(data, 'margin'),
-            'code': market['settle'],
+            'code': marketResolved['settle'],
             'status': 'ok' if (success) else 'failed',
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -4100,8 +4073,8 @@ class hashkey(Exchange, ImplicitAPI):
         response = await self.publicGetApiV1ExchangeInfo(params)
         # response is the same as in fetchMarkets()
         data = self.safe_list(response, 'contracts', [])
-        symbols = self.market_symbols(symbols)
-        return self.parse_leverage_tiers(data, symbols, 'symbol')
+        symbolsNormalized = self.market_symbols(symbols)
+        return self.parse_leverage_tiers(data, symbolsNormalized, 'symbol')
 
     def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         #
@@ -4183,15 +4156,15 @@ class hashkey(Exchange, ImplicitAPI):
         #
         riskLimits = self.safe_list(info, 'riskLimits', [])
         marketId = self.safe_string(info, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         tiers = []
         for i in range(0, len(riskLimits)):
             tier = riskLimits[i]
             initialMarginRate = self.safe_string(tier, 'initialMargin')
             tiers.append({
                 'tier': self.sum(i, 1),
-                'symbol': self.safe_symbol(marketId, market),
-                'currency': market['settle'],
+                'symbol': self.safe_symbol(marketId, marketResolved),
+                'currency': marketResolved['settle'],
                 'minNotional': None,
                 'maxNotional': self.safe_number(tier, 'quantity'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintMargin'),
@@ -4298,10 +4271,10 @@ class hashkey(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(fee, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         return {
             'info': fee,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'maker': self.safe_number_2(fee, 'openMakerFee', 'actualMakerRate'),
             'taker': self.safe_number_2(fee, 'openTakerFee', 'actualTakerRate'),
             'percentage': True,
@@ -4323,14 +4296,15 @@ class hashkey(Exchange, ImplicitAPI):
             recvWindow = self.safe_integer(self.options, 'recvWindow')
             if recvWindow is not None:
                 additionalParams['recvWindow'] = recvWindow
-            headers = {
+            headersSigned = {
                 'X-HK-APIKEY': self.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
             signature = None
+            bodySigned = None
             if (method == 'POST') and ((path == 'api/v1/spot/batchOrders') or (path == 'api/v1/futures/batchOrders')):
-                headers['Content-Type'] = 'application/json'
-                body = self.json(self.safe_list(params, 'orders'))
+                headersSigned['Content-Type'] = 'application/json'
+                bodySigned = self.json(self.safe_list(params, 'orders'))
                 signature = self.hmac(self.encode(self.custom_urlencode(additionalParams)), self.encode(self.secret), hashlib.sha256)
                 query = self.custom_urlencode(self.extend(additionalParams, {'signature': signature}))
                 url += '?' + query
@@ -4342,9 +4316,11 @@ class hashkey(Exchange, ImplicitAPI):
                 if method == 'GET':
                     url += '?' + query
                 else:
-                    body = query
-            headers['INPUT-SOURCE'] = self.safe_string(self.options, 'broker', '10000700011')
-            headers['broker_sign'] = signature
+                    bodySigned = query
+            headersSigned['INPUT-SOURCE'] = self.safe_string(self.options, 'broker', '10000700011')
+            headersSigned['broker_sign'] = signature
+            bodyResolved = body if (method == 'GET') else bodySigned
+            return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersSigned}
         else:
             query = self.urlencode(params)
             if len(query) != 0:

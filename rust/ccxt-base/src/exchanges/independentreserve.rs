@@ -889,8 +889,8 @@ impl IndependentreserveCore {
         if (baseId != Value::Null) && (quoteId != Value::Null) {
             defaultMarketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("/".into())).into()), quoteId).into());
         }
-        market = self.safe_market(&[defaultMarketId, market.clone(), Value::Str("/".into())]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: Value = self.safe_market(&[defaultMarketId, market, Value::Str("/".into())]);
+        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut last: Value = self.safe_string_k(ticker.clone(), "LastPrice", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -915,7 +915,7 @@ impl IndependentreserveCore {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -1169,15 +1169,16 @@ impl IndependentreserveCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("primaryCurrencyCode".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("secondaryCurrencyCode".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
         }
-        if (limit == Value::Null) {
-            limit = Value::Int(50);
+        let mut limitResolved: Value = limit;
+        if (limitResolved == Value::Null) {
+            limitResolved = Value::Int(50);
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageIndex".into(), Value::Int(1)); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".into(), limit.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".into(), limitResolved.clone()); }
         let __ws_arg_3 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_get_open_orders(&[__ws_arg_3]).await;
         let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[market, since, limit]);
+        return self.parse_orders(data, &[market, since, limitResolved]);
 
     Value::Null
 }
@@ -1213,15 +1214,16 @@ impl IndependentreserveCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("primaryCurrencyCode".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("secondaryCurrencyCode".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
         }
-        if (limit == Value::Null) {
-            limit = Value::Int(50);
+        let mut limitResolved: Value = limit;
+        if (limitResolved == Value::Null) {
+            limitResolved = Value::Int(50);
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageIndex".into(), Value::Int(1)); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".into(), limit.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".into(), limitResolved.clone()); }
         let __ws_arg_4 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_get_closed_orders(&[__ws_arg_4]).await;
         let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[market, since, limit]);
+        return self.parse_orders(data, &[market, since, limitResolved]);
 
     Value::Null
 }
@@ -1248,13 +1250,14 @@ impl IndependentreserveCore {
             self.load_markets(&[]).await;
         }
         let mut pageIndex: Value = self.safe_integer_k(params.clone(), "pageIndex", &[Value::Int(1)]);
-        if (limit == Value::Null) {
-            limit = Value::Int(50);
+        let mut limitResolved: Value = limit;
+        if (limitResolved == Value::Null) {
+            limitResolved = Value::Int(50);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pageIndex".to_string(), pageIndex);
-                m.insert("pageSize".to_string(), limit.clone());
+                m.insert("pageSize".to_string(), limitResolved.clone());
             m
         });
         let __ws_arg_5 = self.extend(request, &[params]);
@@ -1264,7 +1267,7 @@ impl IndependentreserveCore {
             market = self.market(symbol);
         }
         let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[market, since, limit]);
+        return self.parse_trades(data, &[market, since, limitResolved]);
 
     Value::Null
 }
@@ -1591,7 +1594,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_withdraw_tag_and_params(tag, params);
+        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -1603,15 +1608,16 @@ impl IndependentreserveCore {
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
-        if (tag != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("destinationTag".into(), tag); }
+        if (tagWithdrawTag != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("destinationTag".into(), tagWithdrawTag); }
         }
-        let mut networkCode: Value = Value::Null;
-        { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut networkCodeparamsNetworkCodeVariable = self.handle_network_code_and_params(paramsWithdrawTag);
+        let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw () does not accept params[\"networkCode\"]".into()))));
         }
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let __ws_arg_11 = self.extend(request, &[paramsNetworkCode]);
         let mut response: Value = self.private_post_withdraw_digital_currency(&[__ws_arg_11]).await;
         return self.parse_transaction(response, &[currency]);
 
@@ -1734,12 +1740,20 @@ impl IndependentreserveCore {
                 if let Value::Dict(__d) = &mut query { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), params.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); }
             }
             }
-            body = json_stringify(&query);
-            headers = Value::Map({
+            let mut signedBody: Value = json_stringify(&query);
+            let mut signedHeaders: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
             });
+            return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("url".to_string(), url.clone());
+        m.insert("method".to_string(), method.clone());
+        m.insert("body".to_string(), signedBody);
+        m.insert("headers".to_string(), signedHeaders);
+    m
+});
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

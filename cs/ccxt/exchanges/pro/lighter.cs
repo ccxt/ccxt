@@ -218,18 +218,17 @@ public partial class lighter : ccxt.lighter
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", ("order_book/" + ((market.ContainsKey("id") ? market["id"] : null))) },
         };
-        string? messageHash = this.getMessageHash("orderbook", symbolVar);
+        string? messageHash = this.getMessageHash("orderbook", symbolValue);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribePublic(messageHash, this.extend(request, parameters)));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -251,11 +250,11 @@ public partial class lighter : ccxt.lighter
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", ("order_book/" + ((market.ContainsKey("id") ? market["id"] : null))) },
         };
-        string? subMessageHash = this.getMessageHash("orderbook", symbol);
+        string? subMessageHash = this.getMessageHash("orderbook", symbolValue);
         string messageHash = ("unsubscribe:" + subMessageHash);
         return await this.unsubscribe(messageHash, this.extend(request, parameters));
     }
@@ -350,14 +349,13 @@ public partial class lighter : ccxt.lighter
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
             throw new NotSupported ((this.id + " watchTicker() is only supported for swap markets")) ;
@@ -365,7 +363,7 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", ("market_stats/" + ((market.ContainsKey("id") ? market["id"] : null))) },
         };
-        string? messageHash = this.getMessageHash("ticker", symbolVar);
+        string? messageHash = this.getMessageHash("ticker", symbolValue);
         return ccxt.BaseExchange.ToTicker(await this.subscribePublic(messageHash, this.extend(request, parameters)));
     }
 
@@ -386,7 +384,7 @@ public partial class lighter : ccxt.lighter
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
             throw new NotSupported ((this.id + " unWatchTicker() is only supported for swap markets")) ;
@@ -394,7 +392,7 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", ("market_stats/" + ((market.ContainsKey("id") ? market["id"] : null))) },
         };
-        string? subMessageHash = this.getMessageHash("ticker", symbol);
+        string? subMessageHash = this.getMessageHash("ticker", symbolValue);
         string messageHash = ("unsubscribe:" + subMessageHash);
         return await this.unsubscribe(messageHash, this.extend(request, parameters));
     }
@@ -415,8 +413,8 @@ public partial class lighter : ccxt.lighter
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, null, true, true);
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         if (((firstMarket != null)) && (((GetValue(firstMarket, "swap") as bool?) != true)))
         {
             throw new NotSupported ((this.id + " watchTickers() is only supported for swap markets")) ;
@@ -426,18 +424,18 @@ public partial class lighter : ccxt.lighter
         };
         List<object> messageHashes = new List<object>() {};
         int symbolsLength = 0;
-        if ((symbols != null))
+        if ((symbolsNormalized != null))
         {
-            symbolsLength = getArrayLength(symbols);
+            symbolsLength = (symbolsNormalized?.Count ?? 0);
         }
-        if (((symbols == null)) || ((symbolsLength == 0)))
+        if (((symbolsNormalized == null)) || ((symbolsLength == 0)))
         {
             messageHashes.Add(this.getMessageHash("ticker"));
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)symbolsNormalized[i]);
                 messageHashes.Add(this.getMessageHash("ticker", symbol));
             }
         }
@@ -448,7 +446,7 @@ public partial class lighter : ccxt.lighter
             result[(string)getValue(newTicker, "symbol")] = newTicker;
             return ccxt.BaseExchange.ToTickers(result);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
     }
 
     /**
@@ -467,8 +465,8 @@ public partial class lighter : ccxt.lighter
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, null, true, true);
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         if (((firstMarket != null)) && (((GetValue(firstMarket, "swap") as bool?) != true)))
         {
             throw new NotSupported ((this.id + " unWatchTickers() is only supported for swap markets")) ;
@@ -907,33 +905,32 @@ public partial class lighter : ccxt.lighter
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Int64? accountIndex = null;
-        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "watchMyTrades", "accountIndex", "account_index");
-        accountIndex = (Int64?)((IList<object>)accountIndexparametersVariable)[0];
-        parameters = ((IList<object>)accountIndexparametersVariable)[1];
+        var accountIndexparamsAccountIndexVariable = await this.handleAccountIndex(parameters, "watchMyTrades", "accountIndex", "account_index");
+        var accountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[0];
+        var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string? messageHash = this.getMessageHash("myTrades");
-        if ((symbolVar != null))
+        object symbolResolved = null;
+        if ((symbol != null))
         {
-            Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            messageHash = this.getMessageHash("myTrades", symbolVar);
+            Dictionary<string, object> market = this.market(symbol);
+            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            messageHash = this.getMessageHash("myTrades", symbolResolved);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", ("account_all_trades/" + this.numberToString(accountIndex)) },
         };
-        object trades = await this.subscribePublic(messageHash, this.extend(request, parameters));
+        object trades = await this.subscribePublic(messageHash, this.extend(request, paramsAccountIndex));
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolResolved, limit}));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -953,16 +950,15 @@ public partial class lighter : ccxt.lighter
         {
             throw new NotSupported ((this.id + " unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only")) ;
         }
-        Int64? accountIndex = null;
-        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "unWatchMyTrades", "accountIndex", "account_index");
-        accountIndex = (Int64?)((IList<object>)accountIndexparametersVariable)[0];
-        parameters = ((IList<object>)accountIndexparametersVariable)[1];
+        var accountIndexparamsAccountIndexVariable = await this.handleAccountIndex(parameters, "unWatchMyTrades", "accountIndex", "account_index");
+        var accountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[0];
+        var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string? subMessageHash = this.getMessageHash("myTrades");
         string messageHash = ("unsubscribe:" + subMessageHash);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", ("account_all_trades/" + this.numberToString(accountIndex)) },
         };
-        return await this.unsubscribe(messageHash, this.extend(request, parameters));
+        return await this.unsubscribe(messageHash, this.extend(request, paramsAccountIndex));
     }
 
     public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object> market = null)
@@ -1130,24 +1126,22 @@ public partial class lighter : ccxt.lighter
             await this.loadMarkets();
         }
         string? defaultType = this.safeString2(this.options, "watchBalance", "defaultType", "spot");
-        string? type = null;
-        IList<object> typeparametersVariable = (IList<object>)this.handleParamString(parameters, "type", defaultType);
-        type = (string)typeparametersVariable[0];
-        parameters = typeparametersVariable[1];
-        Int64? accountIndex = null;
-        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "watchBalance", "accountIndex", "account_index");
-        accountIndex = (Int64?)((IList<object>)accountIndexparametersVariable)[0];
-        parameters = ((IList<object>)accountIndexparametersVariable)[1];
+        IList<object> typeparamsTypeVariable = (IList<object>)this.handleParamString(parameters, "type", defaultType);
+        string? type = (string)typeparamsTypeVariable[0];
+        IDictionary<string, object> paramsType = ((IDictionary<string, object>)typeparamsTypeVariable[1]);
+        var accountIndexparamsAccountIndexVariable = await this.handleAccountIndex(paramsType, "watchBalance", "accountIndex", "account_index");
+        var accountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[0];
+        var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string? messageHash = this.getMessageHash("balances", null, type);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (type == "spot")
+        if ((type == "spot"))
         {
             request["channel"] = ("account_all_assets/" + this.numberToString(accountIndex));
-            return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(messageHash, this.extend(request, parameters)));
+            return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(messageHash, this.extend(request, paramsAccountIndex)));
         } else
         {
             request["channel"] = ("user_stats/" + this.numberToString(accountIndex));
-            return ccxt.BaseExchange.ToBalances(await this.subscribePublic(messageHash, this.extend(request, parameters)));
+            return ccxt.BaseExchange.ToBalances(await this.subscribePublic(messageHash, this.extend(request, paramsAccountIndex)));
         }
     }
 
@@ -1262,16 +1256,14 @@ public partial class lighter : ccxt.lighter
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Int64? accountIndex = null;
-        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index");
-        accountIndex = (Int64?)((IList<object>)accountIndexparametersVariable)[0];
-        parameters = ((IList<object>)accountIndexparametersVariable)[1];
+        var accountIndexparamsAccountIndexVariable = await this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index");
+        var accountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[0];
+        var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string? messageHash = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbol != null))
@@ -1284,12 +1276,13 @@ public partial class lighter : ccxt.lighter
             messageHash = this.getMessageHash("orders");
             request["channel"] = ("account_all_orders/" + this.numberToString(accountIndex));
         }
-        object orders = await this.subscribePrivate(messageHash, this.extend(request, parameters));
+        object orders = await this.subscribePrivate(messageHash, this.extend(request, paramsAccountIndex));
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbol, limitVar}));
+            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbol, limit}));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
     }
 
     /**
@@ -1308,10 +1301,9 @@ public partial class lighter : ccxt.lighter
         {
             await this.loadMarkets();
         }
-        Int64? accountIndex = null;
-        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "unWatchOrders", "accountIndex", "account_index");
-        accountIndex = (Int64?)((IList<object>)accountIndexparametersVariable)[0];
-        parameters = ((IList<object>)accountIndexparametersVariable)[1];
+        var accountIndexparamsAccountIndexVariable = await this.handleAccountIndex(parameters, "unWatchOrders", "accountIndex", "account_index");
+        var accountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[0];
+        var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string? subMessageHash = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbol != null))
@@ -1325,7 +1317,7 @@ public partial class lighter : ccxt.lighter
             request["channel"] = ("account_all_orders/" + this.numberToString(accountIndex));
         }
         string messageHash = ("unsubscribe:" + subMessageHash);
-        return await this.unsubscribe(messageHash, this.extend(request, parameters));
+        return await this.unsubscribe(messageHash, this.extend(request, paramsAccountIndex));
     }
 
     public virtual object requestId(object url)

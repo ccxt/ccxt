@@ -117,7 +117,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -125,16 +125,21 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
-	var symbolsLength int = ccxt.GetArrayLength(symbols)
+	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols))
+	var symbolsLength int = len(symbolsNormalized)
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
 	}
 	var url any = this.GetWsPublicUrl()
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var symbol *string = ccxt.SafeStringPtr(func() any {
+			if i >= 0 && i < len(symbolsNormalized) {
+				return ccxt.DerefScalar(symbolsNormalized[i])
+			}
+			return nil
+		}())
 		var market map[string]any = this.Market(symbol)
 		var topic *string = ccxt.SafeStringPtr(ccxt.Add("recentlyTrade.H.", this.SafeString(market, "id2")))
 		topics = append(topics, topic)
@@ -143,13 +148,14 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	}
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchTopicsAsync(url, messageHashes, topics, params))))
+	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var tradeSymbol *string = this.SafeString(first, "symbol")
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
-		var tradeSymbol *string = this.SafeString(first, "symbol")
-		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
+		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
 
-	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	ch <- this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
 	return nil
 }
 func (this *Apex) HandleTrades(client any, message map[string]any) {
@@ -213,8 +219,8 @@ func (this *Apex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeStringN(trade, []any{"i", "id", "v"})
 	var marketId *string = this.SafeString2(trade, "s", "symbol")
-	market = this.SafeMarket(marketId, market, nil)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil)
+	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"t", "T", "createdAt"})
 	var side *string = this.SafeStringLower2(trade, "S", "side")
 	var price *string = this.SafeString2(trade, "p", "price")
@@ -233,7 +239,7 @@ func (this *Apex) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          nil,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -293,17 +299,25 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols))
 	var url any = this.GetWsPublicUrl()
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
-		var market map[string]any = this.Market(symbol)
+	var limitValue any = func() any {
 		if limit == nil {
-			limit = 25
+			return 25
 		}
-		var topic *string = ccxt.SafeStringPtr(ccxt.Add("orderBook"+ccxt.ToString(limit)+".H.", this.SafeString(market, "id2")))
+		return limit
+	}()
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var symbol *string = ccxt.SafeStringPtr(func() any {
+			if i >= 0 && i < len(symbolsNormalized) {
+				return ccxt.DerefScalar(symbolsNormalized[i])
+			}
+			return nil
+		}())
+		var market map[string]any = this.Market(symbol)
+		var topic *string = ccxt.SafeStringPtr(ccxt.Add("orderBook"+ccxt.ToString(limitValue)+".H.", this.SafeString(market, "id2")))
 		topics = append(topics, topic)
 		var messageHash string = "orderbook:" + *symbol
 		messageHashes = append(messageHashes, messageHash)
@@ -466,9 +480,9 @@ func (this *Apex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	symbol = market["symbol"]
+	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var url any = this.GetWsPublicUrl()
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
+	var messageHash string = "ticker:" + *symbolValue
 	var topic *string = ccxt.SafeStringPtr(ccxt.Add("instrumentInfo"+".H.", this.SafeString(market, "id2")))
 	var topics []any = []any{topic}
 
@@ -501,12 +515,12 @@ func (this *Apex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
 	var url any = this.GetWsPublicUrl()
 	var topics []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
 		var market map[string]any = this.Market(symbol)
 		var topic *string = ccxt.SafeStringPtr(ccxt.Add("instrumentInfo"+".H.", this.SafeString(market, "id2")))
 		topics = append(topics, topic)
@@ -523,7 +537,7 @@ func (this *Apex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
+	ch <- this.FilterByArray(this.Tickers, "symbol", symbolsNormalized)
 	return nil
 }
 func (this *Apex) HandleTicker(client any, message map[string]any) {
@@ -632,7 +646,7 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -657,10 +671,11 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	symbol := ccxt.GetValue(symboltimeframestoredVariable, 0)
 	timeframe := ccxt.GetValue(symboltimeframestoredVariable, 1)
 	stored := ccxt.GetValue(symboltimeframestoredVariable, 2)
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(stored).GetLimit(symbol, limit)
+		limitResolved = ccxt.ToGetsLimit(stored).GetLimit(symbol, limit)
 	}
-	var filtered any = this.FilterBySinceLimit(stored, since, limit, 0, true)
+	var filtered any = this.FilterBySinceLimit(stored, since, limitResolved, 0, true)
 
 	ch <- this.CreateOHLCVObject(symbol, timeframe, filtered)
 	return nil
@@ -764,11 +779,11 @@ func (this *Apex) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Apex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -777,20 +792,22 @@ func (this *Apex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
+	var symbolResolved any = nil
 	if symbol != nil {
-		symbol = this.Symbol(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+		symbolResolved = this.Symbol(symbol)
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	}
 	var url any = this.GetWsPrivateUrl()
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchTopicsAsync(url, []any{messageHash}, []any{"myTrades"}, params))))
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
+	ch <- this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true)
 	return nil
 }
 
@@ -826,22 +843,27 @@ func (this *Apex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash string = ""
+	var symbolsNormalized2 any = nil
+	if this.IsEmpty(symbols) {
+		symbolsNormalized2 = symbols
+	} else {
+		symbolsNormalized2 = this.MarketSymbols(symbols)
+	}
 	if !this.IsEmpty(symbols) {
-		symbols = this.MarketSymbols(symbols)
-		messageHash = "::" + ccxt.Join(symbols, ",")
+		messageHash = "::" + ccxt.Join(symbolsNormalized2, ",")
 	}
 	var url any = this.GetWsPrivateUrl()
 	messageHash = "positions" + messageHash
 	var client ccxt.ClientInterface = this.Client(url)
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
-	this.SetPositionsCache(client, symbols)
+	this.SetPositionsCache(client, symbolsNormalized2)
 	var cache any = this.Positions
 	if ccxt.IsEqual(cache, nil) {
 
 		var snapshot ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))))
 
-		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
+		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbolsNormalized2, since, limit, true)
 		return nil
 	}
 	var topics []any = []any{"positions"}
@@ -854,7 +876,7 @@ func (this *Apex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	ch <- this.FilterBySymbolsSinceLimit(cache, symbols, since, limit, true)
+	ch <- this.FilterBySymbolsSinceLimit(cache, symbolsNormalized2, since, limit, true)
 	return nil
 }
 
@@ -877,11 +899,11 @@ func (this *Apex) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Apex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -890,9 +912,10 @@ func (this *Apex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash any = "orders"
+	var symbolResolved any = nil
 	if symbol != nil {
-		symbol = this.Symbol(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+		symbolResolved = this.Symbol(symbol)
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	}
 	var url any = this.GetWsPrivateUrl()
 
@@ -900,11 +923,12 @@ func (this *Apex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var topics []any = []any{"orders"}
 
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params))))
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
+		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
+	ch <- this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)
 	return nil
 }
 func (this *Apex) HandleMyTrades(client any, lists []any) {

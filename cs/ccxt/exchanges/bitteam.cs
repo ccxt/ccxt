@@ -1420,7 +1420,7 @@ public partial class bitteam : Exchange
         //
         string? id = this.safeString(order, "id");
         string? marketId = this.safeString(order, "pair");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? clientOrderId = this.safeString(order, "orderCid");
         Int64? timestamp = null;
         string? createdAt = this.safeString(order, "createdAt");
@@ -1459,7 +1459,7 @@ public partial class bitteam : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "status", status },
-            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "type", type },
             { "timeInForce", "GTC" },
             { "side", side },
@@ -1474,7 +1474,7 @@ public partial class bitteam : Exchange
             { "trades", null },
             { "info", order },
             { "postOnly", false },
-        }, market);
+        }, marketResolved);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1867,7 +1867,7 @@ public partial class bitteam : Exchange
         //         "lowest_price_24h": 37574.894999
         //     }
         string? marketId = this.safeStringLower(ticker, "trading_pairs");
-        market = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? bestBidPrice = null;
         string? bestAskPrice = null;
         string? bestBidVolume = null;
@@ -1894,7 +1894,7 @@ public partial class bitteam : Exchange
         string? close = this.safeString2(ticker, "lastPrice", "last_price");
         string? changePcnt = this.safeString2(ticker, "change24", "price_change_percent_24h");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "timestamp", null },
             { "datetime", null },
             { "open", null },
@@ -1913,7 +1913,7 @@ public partial class bitteam : Exchange
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
             { "info", ticker },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -2188,8 +2188,8 @@ public partial class bitteam : Exchange
         //     }
         //
         string? marketId = this.safeString(trade, "pair");
-        market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         string? id = this.safeString2(trade, "id", "trade_id");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString2(trade, "quantity", "base_volume");
@@ -2241,7 +2241,7 @@ public partial class bitteam : Exchange
             { "cost", cost },
             { "fee", fee },
             { "info", trade },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -2582,12 +2582,14 @@ public partial class bitteam : Exchange
         }
         string url = (apiUrl + endpoint);
         string query = this.urlencode(request);
+        string? requestBody = null;
+        Dictionary<string, object> requestHeaders = null;
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
             if ((method == "POST"))
             {
-                body = this.json(request);
+                requestBody = this.json(request);
             } else if ((query.Length != 0))
             {
                 url = url + ("?" + query);
@@ -2595,7 +2597,7 @@ public partial class bitteam : Exchange
             string auth = ((this.apiKey + ":") + this.secret);
             string auth64 = this.stringToBase64(auth);
             string signature = ("Basic " + auth64);
-            headers = new Dictionary<string, object>() {
+            requestHeaders = new Dictionary<string, object>() {
                 { "Authorization", signature },
                 { "Content-Type", "application/json" },
             };
@@ -2603,11 +2605,13 @@ public partial class bitteam : Exchange
         {
             url = url + ("?" + query);
         }
+        object bodyResolved = ((requestBody == null)) ? body : requestBody;
+        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResolved },
+            { "headers", headersResolved },
         };
     }
 

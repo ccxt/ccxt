@@ -49,21 +49,20 @@ public partial class independentreserve : ccxt.independentreserve
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchTrades() has no websocket url")) ;
         }
         string url = ((((wsUrl + "?subscribe=ticker-") + ((market.ContainsKey("base") ? market["base"] : null))) + "-") + ((market.ContainsKey("quote") ? market["quote"] : null)));
-        string messageHash = ("trades:" + (symbolVar));
+        string messageHash = ("trades:" + symbolValue);
         object trades = await this.watch(url, messageHash, null, messageHash);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
@@ -149,27 +148,22 @@ public partial class independentreserve : ccxt.independentreserve
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if ((limitVar == null))
-        {
-            limitVar = ((Int64?)100);
-        }
-        string? limitString = this.numberToString(limitVar);
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        object limitResolved = ((limit == null)) ? 100 : limit;
+        string? limitString = this.numberToString(limitResolved);
         string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchOrderBook() has no websocket url")) ;
         }
         string url = ((((((wsUrl + "/orderbook/") + limitString) + "?subscribe=") + ((market.ContainsKey("base") ? market["base"] : null))) + "-") + ((market.ContainsKey("quote") ? market["quote"] : null)));
-        string messageHash = ((("orderbook:" + (symbolVar)) + ":") + limitString);
+        string messageHash = ((("orderbook:" + symbolValue) + ":") + limitString);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },
         };

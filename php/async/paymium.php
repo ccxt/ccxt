@@ -319,10 +319,10 @@ class paymium extends Exchange {
     public function parse_trade(array $trade, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($trade, 'created_at_int');
         $id = $this->safe_string($trade, 'uuid');
-        $market = $this->safe_market(null, $market);
+        $marketResolved = $this->safe_market(null, $market);
         $side = $this->safe_string($trade, 'side');
         $price = $this->safe_string($trade, 'price');
-        $amountField = 'traded_' . strtolower($market['base']);
+        $amountField = 'traded_' . strtolower($marketResolved['base']);
         $amount = $this->safe_string($trade, $amountField);
         return $this->safe_trade(array(
             'info' => $trade,
@@ -330,7 +330,7 @@ class paymium extends Exchange {
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
@@ -338,7 +338,7 @@ class paymium extends Exchange {
             'amount' => $amount,
             'cost' => null,
             'fee' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -689,24 +689,29 @@ class paymium extends Exchange {
             // paymium requires an increasing nonce
             $nonce = (string) $this->incrementing_nonce();
             $auth = $nonce . $url;
-            $headers = array(
+            $signedHeaders = array(
                 'Api-Key' => $this->apiKey,
                 'Api-Nonce' => $nonce,
             );
+            $hasQuery = count($query) > 0;
+            $signedBody = $body;
+            if ($method === 'POST' && $hasQuery) {
+                $signedBody = $this->json($query);
+            }
             if ($method === 'POST') {
-                if (count($query) > 0) {
-                    $body = $this->json($query);
-                    $auth .= $body;
-                    $headers['Content-Type'] = 'application/json';
+                if ($hasQuery) {
+                    $auth .= $signedBody;
+                    $signedHeaders['Content-Type'] = 'application/json';
                 }
             } else {
-                if (count($query) > 0) {
+                if ($hasQuery) {
                     $queryString = $this->urlencode($query);
                     $auth .= $queryString;
                     $url .= '?' . $queryString;
                 }
             }
-            $headers['Api-Signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+            $signedHeaders['Api-Signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+            return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

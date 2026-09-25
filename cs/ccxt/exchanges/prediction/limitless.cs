@@ -1800,10 +1800,10 @@ public partial class limitless : PredictionExchange
             throw new ArgumentsRequired ((this.id + " fetchOpenOrders requires an outcome argument")) ;
         }
         await this.loadOutcome(outcome);
-        parameters = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "statuses", new List<object>() {"LIVE"} },
         });
-        return await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended);
     }
 
     /**
@@ -1825,10 +1825,10 @@ public partial class limitless : PredictionExchange
             throw new ArgumentsRequired ((this.id + " fetchClosedOrders requires an outcome argument")) ;
         }
         await this.loadOutcome(outcome);
-        parameters = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "statuses", new List<object>() {"MATCHED"} },
         });
-        return await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended);
     }
 
     /**
@@ -2344,9 +2344,10 @@ public partial class limitless : PredictionExchange
         {
             maker = this.walletAddress;
         }
-        IList<object> makerparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "maker", maker);
-        maker = makerparametersVariable[0];
-        parameters = makerparametersVariable[1];
+        object paramsValue = parameters;
+        IList<object> makerparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "createOrder", "maker", maker);
+        maker = makerparamsValueVariable[0];
+        paramsValue = makerparamsValueVariable[1];
         try
         {
             this.checkAddress(maker);
@@ -2364,9 +2365,9 @@ public partial class limitless : PredictionExchange
         {
             signer = embeddedAddress;
         }
-        IList<object> signerparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "signer", signer);
-        signer = signerparametersVariable[0];
-        parameters = signerparametersVariable[1];
+        IList<object> signerparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "createOrder", "signer", signer);
+        signer = signerparamsValueVariable[0];
+        paramsValue = signerparamsValueVariable[1];
         try
         {
             this.checkAddress(signer);
@@ -2375,9 +2376,9 @@ public partial class limitless : PredictionExchange
             throw new InvalidAddress ((this.id + " createOrder requires a valid signer address. Set the \"signer\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")) ;
         }
         object taker = this.safeString(this.options, "nullAddress", "0x0000000000000000000000000000000000000000");
-        IList<object> takerparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "taker", taker);
-        taker = takerparametersVariable[0];
-        parameters = takerparametersVariable[1];
+        IList<object> takerparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "createOrder", "taker", taker);
+        taker = takerparamsValueVariable[0];
+        paramsValue = takerparamsValueVariable[1];
         try
         {
             this.checkAddress(taker);
@@ -2395,9 +2396,9 @@ public partial class limitless : PredictionExchange
         IDictionary<string, object> rank = this.safeDict(accountInfo, "rank");
         // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
         object signatureType = isSmartWallet ? 2 : 0;
-        IList<object> signatureTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "signatureType", signatureType);
-        signatureType = signatureTypeparametersVariable[0];
-        parameters = signatureTypeparametersVariable[1];
+        IList<object> signatureTypeparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "createOrder", "signatureType", signatureType);
+        signatureType = signatureTypeparamsValueVariable[0];
+        paramsValue = signatureTypeparamsValueVariable[1];
         Dictionary<string, object> signRequest = new Dictionary<string, object>() {
             { "salt", nonce },
             { "maker", maker },
@@ -2410,10 +2411,10 @@ public partial class limitless : PredictionExchange
             { "signatureType", signatureType },
         };
         // the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
-        Int64? expirationInt = this.safeInteger(parameters, "expiration");
+        Int64? expirationInt = this.safeInteger(paramsValue, "expiration");
         if ((expirationInt != null))
         {
-            parameters = this.omit(parameters, "expiration");
+            paramsValue = this.omit(paramsValue, "expiration");
             signRequest["expiration"] = this.numberToString(expirationInt);
         } else
         {
@@ -2425,11 +2426,11 @@ public partial class limitless : PredictionExchange
         string? takerAmount = null;
         bool isMarket = (type == "market");
         bool? postOnly = false;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
-        postOnly = (bool?)postOnlyparametersVariable[0];
-        parameters = postOnlyparametersVariable[1];
-        string? timeInForce = this.safeString(parameters, "timeInForce");
-        parameters = this.omit(parameters, "timeInForce");
+        IList<object> postOnlyparamsValueVariable = (IList<object>)this.handlePostOnly(isMarket, false, paramsValue);
+        postOnly = (bool?)postOnlyparamsValueVariable[0];
+        paramsValue = postOnlyparamsValueVariable[1];
+        string? timeInForce = this.safeString(paramsValue, "timeInForce");
+        paramsValue = this.omit(paramsValue, "timeInForce");
         if ((timeInForce == null))
         {
             timeInForce = isMarket ? "FOK" : "GTC";
@@ -2438,11 +2439,11 @@ public partial class limitless : PredictionExchange
         if (isMarket && ((side == "buy")))
         {
             bool? createMarketBuyOrderRequiresPrice = true;
-            IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
-            parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
-            double? cost = this.safeNumber(parameters, "cost");
-            parameters = this.omit(parameters, "cost");
+            IList<object> createMarketBuyOrderRequiresPriceparamsValueVariable = (IList<object>)this.handleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsValueVariable[0];
+            paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable[1];
+            double? cost = this.safeNumber(paramsValue, "cost");
+            paramsValue = this.omit(paramsValue, "cost");
             if ((createMarketBuyOrderRequiresPrice == true))
             {
                 if (((price == null)) && ((cost == null)))
@@ -2495,7 +2496,7 @@ public partial class limitless : PredictionExchange
         {
             request["postOnly"] = postOnly;
         }
-        Dictionary<string, object> response = await this.limitlessPrivatePostOrders(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.limitlessPrivatePostOrders(this.extend(request, paramsValue));
         Dictionary<string, object> parsedOrder = this.parsePredictionOrder(response, outcomeObj);
         // the create-order response omits a status field; a freshly accepted order is open
         if (isEqual((parsedOrder != null && ((IDictionary<string, object>)parsedOrder).ContainsKey("status") ? ((IDictionary<string, object>)parsedOrder)["status"] : null), null))
@@ -2780,19 +2781,20 @@ public partial class limitless : PredictionExchange
     public async virtual Task<List<ccxt.PredictionOrder>> CancelAllOrders(string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object paramsValue = parameters;
         if ((outcome != null))
         {
             object warn = true;
-            IList<object> warnparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn);
-            warn = warnparametersVariable[0];
-            parameters = warnparametersVariable[1];
+            IList<object> warnparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn);
+            warn = warnparamsValueVariable[0];
+            paramsValue = warnparamsValueVariable[1];
             if (isTrue(warn))
             {
                 throw new BadRequest ((this.id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.")) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        string? slug = this.safeString(parameters, "slug");
+        string? slug = this.safeString(paramsValue, "slug");
         if ((outcome != null))
         {
             IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
@@ -2801,7 +2803,7 @@ public partial class limitless : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " cancelAllOrders requires either an outcome argument or a slug parameter")) ;
         }
-        Dictionary<string, object> response = await this.limitlessPrivateDeleteOrdersAllSlug(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.limitlessPrivateDeleteOrdersAllSlug(this.extend(request, paramsValue));
         //
         //     {
         //         "message": "Orders canceled successfully"
@@ -2833,20 +2835,21 @@ public partial class limitless : PredictionExchange
         }
         object paginate = false;
         int maxLimit = 100;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", paginate);
-        paginate = paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
+        object paramsValue = parameters;
+        IList<object> paginateparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "fetchMyTrades", "paginate", paginate);
+        paginate = paginateparamsValueVariable[0];
+        paramsValue = paginateparamsValueVariable[1];
         if (isTrue(paginate))
         {
-            parameters = this.omit(parameters, "paginate");
-            return ccxt.BaseExchange.ToPredictionTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, parameters, "nextCursor", "cursor", null, maxLimit));
+            paramsValue = this.omit(paramsValue, "paginate");
+            return ccxt.BaseExchange.ToPredictionTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, paramsValue, "nextCursor", "cursor", null, maxLimit));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((limit != null))
         {
             request["limit"] = mathMin(limit, maxLimit);
         }
-        Dictionary<string, object> response = await this.limitlessPrivateGetPortfolioHistory(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.limitlessPrivateGetPortfolioHistory(this.extend(request, paramsValue));
         //
         //     {
         //         "data": [
@@ -3621,19 +3624,21 @@ public partial class limitless : PredictionExchange
         {
             url = add(url, ("?" + querystring));
         }
+        object headersValue = headers;
+        object bodyValue = body;
         if (isEqual(access, "private"))
         {
             string bodyString = "";
-            if ((headers == null))
+            if ((headersValue == null))
             {
-                headers = new Dictionary<string, object>() {};
+                headersValue = new Dictionary<string, object>() {};
             }
             if ((method == "POST") && (querystring != ""))
             {
                 bodyString = this.json(query);
-                body = bodyString;
-                object headerDefaults = ((headers != null)) ? headers : new Dictionary<string, object>() {};
-                headers = this.extend(new Dictionary<string, object>() {
+                bodyValue = bodyString;
+                object headerDefaults = ((headersValue != null)) ? headersValue : new Dictionary<string, object>() {};
+                headersValue = this.extend(new Dictionary<string, object>() {
                     { "Accept", "application/json" },
                     { "Content-Type", "application/json" },
                 }, headerDefaults);
@@ -3643,21 +3648,21 @@ public partial class limitless : PredictionExchange
             string newline = "\n"; // eslint-disable-line quotes
             string? payload = ((string)add(add(add(add(add(add(timestamp, newline), method), newline), url), newline), bodyString));
             string signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
-            headers = this.extend(headers, new Dictionary<string, object>() {
+            headersValue = this.extend(headersValue, new Dictionary<string, object>() {
                 { "lmts-timestamp", timestamp },
                 { "lmts-signature", signature },
             });
             string headerKey = ("lmts-api" + "-key"); // concatenating because of the php version
             Dictionary<string, object> headersKey = new Dictionary<string, object>() {};
             headersKey[(string)headerKey] = this.apiKey;
-            headers = this.extend(headers, headersKey);
+            headersValue = this.extend(headersValue, headersKey);
         }
         url = add(baseUrl, url);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyValue },
+            { "headers", headersValue },
         };
     }
 

@@ -192,8 +192,7 @@ class xt(ccxt.async_support.xt):
         :returns dict: data from the websocket stream
         """
         privateAccess = access == 'private'
-        type = None
-        type, params = self.handle_market_type_and_params(methodName, market, params)
+        type, paramsMarketType = self.handle_market_type_and_params(methodName, market, params)
         isContract = (type != 'spot')
         id = self.number_to_string(self.milliseconds()) + name  # call back ID
         subscribe = {
@@ -216,7 +215,7 @@ class xt(ccxt.async_support.xt):
         messageHash = name + '::' + tradeType
         if symbols is not None:
             messageHash = messageHash + '::' + ','.join(symbols)
-        request = self.extend(subscribe, params)
+        request = self.extend(subscribe, paramsMarketType)
         tail = access
         if isContract:
             tail = 'user' if privateAccess else 'market'
@@ -246,8 +245,7 @@ class xt(ccxt.async_support.xt):
         :returns dict: data from the websocket stream
         """
         privateAccess = access == 'private'
-        type = None
-        type, params = self.handle_market_type_and_params(methodName, market, params)
+        type, paramsMarketType = self.handle_market_type_and_params(methodName, market, params)
         isContract = (type != 'spot')
         id = self.number_to_string(self.milliseconds()) + name  # call back ID
         unsubscribe = {
@@ -268,7 +266,7 @@ class xt(ccxt.async_support.xt):
         if isContract:
             tradeType = 'contract'
         subMessageHash = name + '::' + tradeType
-        request = self.extend(unsubscribe, params)
+        request = self.extend(unsubscribe, paramsMarketType)
         tail = access
         if isContract:
             tail = 'user' if privateAccess else 'market'
@@ -284,8 +282,8 @@ class xt(ccxt.async_support.xt):
         symbolsAndTimeframes = self.safe_list(subscriptionParams, 'symbolsAndTimeframes')
         if symbolsAndTimeframes is not None:
             subscription['symbolsAndTimeframes'] = symbolsAndTimeframes
-            subscriptionParams = self.omit(subscriptionParams, 'symbolsAndTimeframes')
-        return await self.watch(url, messageHash, self.extend(request, params), messageHash, self.extend(subscription, subscriptionParams))
+        subscriptionParamsOmitted = self.omit(subscriptionParams, 'symbolsAndTimeframes')
+        return await self.watch(url, messageHash, self.extend(request, paramsMarketType), messageHash, self.extend(subscription, subscriptionParamsOmitted))
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -399,9 +397,10 @@ class xt(ccxt.async_support.xt):
         market = self.market(symbol)
         name = 'kline@' + market['id'] + ',' + timeframe
         ohlcv = await self.subscribe(name, 'public', 'watchOHLCV', market, None, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
     async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}):
         """
@@ -441,9 +440,10 @@ class xt(ccxt.async_support.xt):
         market = self.market(symbol)
         name = 'trade@' + market['id']
         trades = await self.subscribe(name, 'public', 'watchTrades', market, None, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+            limitResolved = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp')
 
     async def un_watch_trades(self, symbol: str, params: dict = {}):
         """
@@ -482,11 +482,11 @@ class xt(ccxt.async_support.xt):
             await self.load_markets()
         market = self.market(symbol)
         levels = self.safe_string(params, 'levels')
-        params = self.omit(params, 'levels')
+        paramsOmitted = self.omit(params, 'levels')
         name = 'depth_update@' + market['id']
         if levels is not None:
             name = 'depth@' + market['id'] + ',' + levels
-        orderbook = await self.subscribe(name, 'public', 'watchOrderBook', market, None, params)
+        orderbook = await self.subscribe(name, 'public', 'watchOrderBook', market, None, paramsOmitted)
         return orderbook.limit()
 
     async def un_watch_order_book(self, symbol: str, params: dict = {}):
@@ -507,12 +507,12 @@ class xt(ccxt.async_support.xt):
             await self.load_markets()
         market = self.market(symbol)
         levels = self.safe_string(params, 'levels')
-        params = self.omit(params, 'levels')
+        paramsOmitted = self.omit(params, 'levels')
         name = 'depth_update@' + market['id']
         if levels is not None:
             name = 'depth@' + market['id'] + ',' + levels
         messageHash = 'unsubscribe::' + name
-        return await self.un_subscribe(messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [symbol], params)
+        return await self.un_subscribe(messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [symbol], paramsOmitted)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -534,9 +534,10 @@ class xt(ccxt.async_support.xt):
         if symbol is not None:
             market = self.market(symbol)
         orders = await self.subscribe(name, 'private', 'watchOrders', market, None, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit, 'timestamp')
+            limitResolved = orders.getLimit(symbol, limit)
+        return self.filter_by_since_limit(orders, since, limitResolved, 'timestamp')
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -558,9 +559,10 @@ class xt(ccxt.async_support.xt):
         if symbol is not None:
             market = self.market(symbol)
         trades = await self.subscribe(name, 'private', 'watchMyTrades', market, None, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+            limitResolved = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp')
 
     async def watch_balance(self, params: dict = {}) -> Balances:
         """
@@ -624,7 +626,7 @@ class xt(ccxt.async_support.xt):
         name = 'fund_rate@' + market['id']
         return await self.subscribe(name, 'public', 'watchFundingRate', market, None, params)
 
-    async def un_watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def un_watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         stops watching the funding rate
 
@@ -1178,14 +1180,14 @@ class xt(ccxt.async_support.xt):
         tradeType = 'spot'
         if 'symbol' in trade:
             tradeType = 'contract'
-        market = self.safe_market(marketId, market, None, tradeType)
+        marketResolved = self.safe_market(marketId, market, None, tradeType)
         timestamp = self.safe_string(trade, 't')
         return self.safe_trade({
             'info': trade,
             'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': self.safe_string(trade, 'i', 'orderId'),
             'type': self.parse_order_status(self.safe_string(trade, 'st', 'state')),
             'side': self.safe_string_lower(trade, 'sd', 'orderSide'),
@@ -1198,7 +1200,7 @@ class xt(ccxt.async_support.xt):
                 'cost': self.safe_number(trade, 'f'),
                 'rate': None,
             },
-        }, market)
+        }, marketResolved)
 
     def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -1247,7 +1249,7 @@ class xt(ccxt.async_support.xt):
         tradeType = 'spot'
         if 'symbol' in order:
             tradeType = 'contract'
-        market = self.safe_market(marketId, market, None, tradeType)
+        marketResolved = self.safe_market(marketId, market, None, tradeType)
         timestamp = self.safe_integer_2(order, 'ct', 'createTime')
         return self.safe_order({
             'info': order,
@@ -1256,8 +1258,8 @@ class xt(ccxt.async_support.xt):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': market['symbol'],
-            'type': market['type'],
+            'symbol': marketResolved['symbol'],
+            'type': marketResolved['type'],
             'timeInForce': None,
             'postOnly': None,
             'side': self.safe_string_lower_2(order, 'sd', 'orderSide'),
@@ -1276,7 +1278,7 @@ class xt(ccxt.async_support.xt):
                 'cost': self.safe_number(order, 'f'),
             },
             'trades': None,
-        }, market)
+        }, marketResolved)
 
     def handle_order(self, client: Client, message: dict) -> dict:
         #

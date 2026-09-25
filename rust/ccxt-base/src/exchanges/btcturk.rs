@@ -799,8 +799,8 @@ impl BtcturkCore {
         //   }
         //
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "pair", &[]);
-        market = self.safe_market(&[marketId, market.clone()]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
@@ -826,7 +826,7 @@ impl BtcturkCore {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -1051,16 +1051,18 @@ impl BtcturkCore {
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), self.parse_to_int(((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); }
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
-        }  else if (limit == Value::Null) {
-            limit = Value::Int(100); // default value
         }
-        if (limit != Value::Null) {
-            limit = crate::runtime::Math::min(&limit, &Value::Int(11000)); // max 11000 candles diapason can be covered
+        let mut limitDefaulted: Value = limit.clone();
+        if (since == Value::Null) && (limit == Value::Null) {
+            limitDefaulted = Value::Int(100); // default value
+        }
+        let mut limitResolved: Value = (if (limitDefaulted != Value::Null) { crate::runtime::Math::min(&limitDefaulted, &Value::Int(11000)) } else { Value::Null }); // max 11000 candles diapason can be covered
+        if (limitResolved != Value::Null) {
             if (timeframe.as_str() == Some("1y")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"".into()))));
             }
             let mut seconds: Value = self.parse_timeframe(timeframe.clone());
-            let mut limitSeconds: Value = (match (&(seconds), &(((match (&(limit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut limitSeconds: Value = (match (&(seconds), &(((match (&(limitResolved), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             if (since != Value::Null) {
                 let mut to: Value = (match (&(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(limitSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
                 { let __be_tmp = crate::runtime::Math::min(&crate::value::get_value_k(&request, "to"), &to); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), __be_tmp); } }
@@ -1070,7 +1072,7 @@ impl BtcturkCore {
         }
         let __ws_arg_2 = self.extend(request, &[params]);
         let mut response: Value = self.graph_get_klines_history(&[__ws_arg_2]).await;
-        return self.parse_ohlc_vs(response, &[market, timeframe, since, limit]);
+        return self.parse_ohlc_vs(response, &[market, timeframe, since, limitResolved]);
 
     Value::Null
 }
@@ -1467,19 +1469,25 @@ impl BtcturkCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = add(&Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), &path);
-        if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
+        let mut isQueryMethod: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"));
+        if isQueryMethod {
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params.clone(), &[])).into())).into());
             }
-        }  else {
-            body = json_stringify(&params);
         }
+        let mut requestBody: Value = Value::Null;
+        if isQueryMethod {
+            requestBody = body;
+        }  else {
+            requestBody = json_stringify(&params);
+        }
+        let mut privateHeaders: Value = Value::Null;
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = to_string_val(&self.nonce());
             let mut secret: Value = self.base64_to_binary(self.secret.clone(), &[]);
             let mut auth: Value = Value::Str(format!("{}{}", self.apiKey.clone(), nonce).into());
-            headers = Value::Map({
+            privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-PCK".to_string(), self.apiKey.clone());
                     m.insert("X-Stamp".to_string(), nonce);
@@ -1488,12 +1496,13 @@ impl BtcturkCore {
                 m
             });
         }
+        let mut requestHeaders: Value = (if (privateHeaders != Value::Null) { privateHeaders } else { headers });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), requestBody);
+        m.insert("headers".to_string(), requestHeaders);
     m
 });
 

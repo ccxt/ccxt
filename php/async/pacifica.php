@@ -833,12 +833,11 @@ class pacifica extends Exchange {
          * @param {string} [$params->account] will default to walletAddress if not provided
          * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
-        $userAccount = null;
-        list($userAccount, $params) = $this->handle_origin_and_single_address('fetchBalance', $params);
+        list($userAccount, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchBalance', $params);
         $request = array(
             'account' => $userAccount,
         );
-        $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
+        $response = Async\await($this->publicGetAccount($this->extend($request, $paramsOriginAndSingleAddress)));
         // {
         //   "success": true,
         //   "data": {
@@ -922,8 +921,7 @@ class pacifica extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $userAccount = null;
-        list($userAccount, $params) = $this->handle_origin_and_single_address('fetchLeverage', $params);
+        list($userAccount, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchLeverage', $params);
         $cacheAddress = $this->walletAddress;
         $settings = null;
         if ($userAccount === $cacheAddress) {
@@ -932,7 +930,7 @@ class pacifica extends Exchange {
             $request = array(
                 'account' => $userAccount,
             );
-            $settings = Async\await($this->fetch_account_settings($this->extend($request, $params)));
+            $settings = Async\await($this->fetch_account_settings($this->extend($request, $paramsOriginAndSingleAddress)));
         }
         $setting = $this->safe_dict($settings, $symbol);
         if ($setting === null) {
@@ -995,12 +993,11 @@ class pacifica extends Exchange {
          * @param {string} [$params->account] will default to walletAddress if not provided
          * @return {array} Dict repacked from list by symbol key
          */
-        $userAccount = null;
-        list($userAccount, $params) = $this->handle_origin_and_single_address('fetchAccountSettings', $params);
+        list($userAccount, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchAccountSettings', $params);
         $request = array(
             'account' => $userAccount,
         );
-        $response = Async\await($this->publicGetAccountSettings($this->extend($request, $params)));
+        $response = Async\await($this->publicGetAccountSettings($this->extend($request, $paramsOriginAndSingleAddress)));
         // {
         //   "success": true,
         //   "data": [
@@ -1062,8 +1059,7 @@ class pacifica extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
          */
         Async\await($this->load_account_settings());
-        $userAccount = null;
-        list($userAccount, $params) = $this->handle_origin_and_single_address('fetchMarginMode', $params);
+        list($userAccount, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchMarginMode', $params);
         $cacheAddress = $this->walletAddress;
         $settings = null;
         if ($userAccount === $cacheAddress) {
@@ -1072,7 +1068,7 @@ class pacifica extends Exchange {
             $request = array(
                 'account' => $userAccount,
             );
-            $settings = Async\await($this->fetch_account_settings($this->extend($request, $params)));
+            $settings = Async\await($this->fetch_account_settings($this->extend($request, $paramsOriginAndSingleAddress)));
         }
         // {
         //   "WLFI/USDC:USDC": {
@@ -1137,13 +1133,12 @@ class pacifica extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $aggLevel = null;
-        list($aggLevel, $params) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'aggLevel', 1);
+        list($aggLevel, $paramsAggLevel) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'aggLevel', 1);
         $request = array(
             'symbol' => $market['id'],
             'agg_level' => $aggLevel,
         );
-        $response = Async\await($this->publicGetBook($this->extend($request, $params)));
+        $response = Async\await($this->publicGetBook($this->extend($request, $paramsAggLevel)));
         // {
         //   "success": true,
         //   "data": {
@@ -1245,8 +1240,8 @@ class pacifica extends Exchange {
         //       }
         //
         $marketId = $this->safe_string($info, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $funding = $this->safe_number($info, 'funding');
         $markPx = $this->safe_number($info, 'mark');
         $oraclePx = $this->safe_number($info, 'oracle');
@@ -1305,10 +1300,9 @@ class pacifica extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $defaultMaxLimit));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $defaultMaxLimit));
         }
         $tf = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
@@ -1316,9 +1310,9 @@ class pacifica extends Exchange {
             'interval' => $tf,
             'start_time' => $since,
         );
-        list($request, $params) = $this->handle_until_option('end_time', $request, $params);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_time', $request, $paramsPaginate);
         $nowMillis = $this->milliseconds();
-        $until = $this->safe_integer($request, 'end_time');
+        $until = $this->safe_integer($requestUntil, 'end_time');
         if ($until === null) {
             if ($limit !== null) {
                 $until = $since . ($limit * ($this->parse_timeframe($tf) * 1000)) - 1;
@@ -1329,9 +1323,9 @@ class pacifica extends Exchange {
             if ($until > $nowMillis) {
                 $until = $nowMillis;
             }
-            $request['end_time'] = $until;
+            $requestUntil['end_time'] = $until;
         }
-        $response = Async\await($this->publicGetKline($this->extend($request, $params)));
+        $response = Async\await($this->publicGetKline($this->extend($requestUntil, $paramsUntil)));
         //
         // {
         //   "success": true,
@@ -1455,27 +1449,25 @@ class pacifica extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
-        $userAddress = null;
-        list($userAddress, $params) = $this->handle_origin_and_single_address('fetchMyTrades', $params);
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchMyTrades', $paramsPaginate);
         $defaultLimit = 100;  // Default max limit
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit));
+            return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $paramsOriginAndSingleAddress, 'next_cursor', 'cursor', null, $defaultLimit));
         }
         $request = array();
-        list($request, $params) = $this->handle_until_option('end_time', $request, $params);
-        $request['account'] = $userAddress;
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_time', $request, $paramsOriginAndSingleAddress);
+        $requestUntil['account'] = $userAddress;
         if ($symbol !== null) {
-            $request['symbol'] = $this->safe_string($market, 'id');
+            $requestUntil['symbol'] = $this->safe_string($market, 'id');
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $requestUntil['limit'] = $limit;
         }
         if ($since !== null) {
-            $request['start_time'] = $since;
+            $requestUntil['start_time'] = $since;
         }
-        $response = Async\await($this->publicGetTradesHistory($this->extend($request, $params)));
+        $response = Async\await($this->publicGetTradesHistory($this->extend($requestUntil, $paramsUntil)));
         //
         // {
         //   "success": true,
@@ -1538,8 +1530,8 @@ class pacifica extends Exchange {
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $id = $this->safe_string($trade, 'history_id');
         $side = $this->safe_string($trade, 'side');
         if ($side === 'open_long') {
@@ -1579,7 +1571,7 @@ class pacifica extends Exchange {
                 'currency' => 'USDC',
                 'rate' => null,
             ),
-        ), $market);
+        ), $marketResolved);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -1616,20 +1608,20 @@ class pacifica extends Exchange {
         }
         Async\await($this->initialize_client());
         list($request, $operationType) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        $params = $this->omit($params, array(
+        $paramsOmitted = $this->omit($params, array(
             'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
             'slippage', 'slippage_percent',
         ));
         $response = null;
         if ($operationType === 'create_market_order') {
-            $response = Async\await($this->privatePostOrdersCreateMarket($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrdersCreateMarket($this->extend($request, $paramsOmitted)));
         } elseif ($operationType === 'create_stop_order') {
-            $response = Async\await($this->privatePostOrdersStopCreate($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrdersStopCreate($this->extend($request, $paramsOmitted)));
         } elseif ($operationType === 'set_position_tpsl') {
-            $response = Async\await($this->privatePostPositionsTpsl($this->extend($request, $params)));
+            $response = Async\await($this->privatePostPositionsTpsl($this->extend($request, $paramsOmitted)));
         } else { // create_order
-            $response = Async\await($this->privatePostOrdersCreate($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrdersCreate($this->extend($request, $paramsOmitted)));
         }
         //
         // {
@@ -1710,7 +1702,6 @@ class pacifica extends Exchange {
             $operationType = 'create_stop_order';
             $sigPayload['reduce_only'] = $reduceOnly;
             $stopClientOrderId = $this->safe_string($params, 'clientOrderId');
-            $params = $this->omit($params, array( 'clientOrderId' ));
             $stopPayload = array(
                 'amount' => $this->amount_to_precision($symbol, $amount),
                 'stop_price' => $this->price_to_precision($symbol, $triggerPrice),
@@ -1751,11 +1742,12 @@ class pacifica extends Exchange {
         if ($amount !== null && ($operationType !== 'create_stop_order' && $operationType !== 'set_position_tpsl')) {
             $sigPayload['amount'] = $this->amount_to_precision($symbol, $amount);
         }
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $paramsClientOrderId = ($operationType === 'create_stop_order') ? $this->omit($params, array( 'clientOrderId' )) : $params;
+        $clientOrderId = $this->safe_string($paramsClientOrderId, 'clientOrderId');
         if ($clientOrderId !== null) {
             $sigPayload['client_order_id'] = $clientOrderId;
         }
-        $request = $this->post_action_request($operationType, $sigPayload, $params);
+        $request = $this->post_action_request($operationType, $sigPayload, $paramsClientOrderId);
         return array( $request, $operationType );
     }
 
@@ -1915,8 +1907,8 @@ class pacifica extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a "symbol" argument!');
         }
         $request = $this->cancel_orders_request($ids, $symbol, $params);
-        $params = $this->omit($params, array( 'expiryWindow', 'clientOrderIds' ));
-        $response = Async\await($this->privatePostOrdersBatch($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, array( 'expiryWindow', 'clientOrderIds' ));
+        $response = Async\await($this->privatePostOrdersBatch($this->extend($request, $paramsOmitted)));
         //
         // {
         //   "success": true,
@@ -1966,13 +1958,13 @@ class pacifica extends Exchange {
             $actions[] = $action;
         }
         $clientOrderIds = $this->safe_list($params, 'clientOrderIds', array());
-        $params = $this->omit($params, 'clientOrderIds');
+        $paramsOmitted = $this->omit($params, 'clientOrderIds');
         for ($i = 0; $i < count($clientOrderIds); $i++) {
             $cloid = $clientOrderIds[$i];
             $cloidParams = array(
                 'clientOrderId' => $cloid,
             );
-            $request = $this->cancel_order_request($cloid, $symbol, $this->extend($cloidParams, $params));
+            $request = $this->cancel_order_request($cloid, $symbol, $this->extend($cloidParams, $paramsOmitted));
             $action = array(
                 'type' => 'Cancel',
                 'data' => $request,
@@ -2003,8 +1995,8 @@ class pacifica extends Exchange {
         }
         Async\await($this->initialize_client());
         $request = $this->cancel_all_orders_request($symbol, $params);
-        $params = $this->omit($params, array( 'excludeReduceOnly', 'expiryWindow' ));
-        $response = Async\await($this->privatePostOrdersCancelAll($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, array( 'excludeReduceOnly', 'expiryWindow' ));
+        $response = Async\await($this->privatePostOrdersCancelAll($this->extend($request, $paramsOmitted)));
         //
         // {
         //   success: true,
@@ -2066,12 +2058,12 @@ class pacifica extends Exchange {
         }
         $request = $this->cancel_order_request($id, $symbol, $params);
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
-        $params = $this->omit($params, array( 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ));
+        $paramsOmitted = $this->omit($params, array( 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ));
         $response = null;
         if ($isStopOrder === true) {
-            $response = Async\await($this->privatePostOrdersStopCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrdersStopCancel($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privatePostOrdersCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrdersCancel($this->extend($request, $paramsOmitted)));
         }
         //
         // response:
@@ -2137,8 +2129,8 @@ class pacifica extends Exchange {
         Async\await($this->initialize_client());
         $market = $this->market($symbol);
         $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $market, $params);
-        $params = $this->omit($params, array( 'expiryWindow', 'clientOrderId' ));
-        $response = Async\await($this->privatePostOrdersEdit($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, array( 'expiryWindow', 'clientOrderId' ));
+        $response = Async\await($this->privatePostOrdersEdit($this->extend($request, $paramsOmitted)));
         //
         // {
         //     'data': {
@@ -2207,11 +2199,10 @@ class pacifica extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
         $market = $this->market($symbol);
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         $defaultLimit = 100;  // Default max limit
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit));
+            return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'next_cursor', 'cursor', null, $defaultLimit));
         }
         $request = array(
             'symbol' => $market['id'],
@@ -2219,7 +2210,7 @@ class pacifica extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = Async\await($this->publicGetFundingRateHistory($this->extend($request, $params)));
+        $response = Async\await($this->publicGetFundingRateHistory($this->extend($request, $paramsPaginate)));
         //
         // {
         //   "success": true,
@@ -2272,7 +2263,7 @@ class pacifica extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->publicGetInfoPrices($params));
         //
         //  {
@@ -2305,7 +2296,7 @@ class pacifica extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -2324,8 +2315,8 @@ class pacifica extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -2337,7 +2328,7 @@ class pacifica extends Exchange {
             'ask' => null,
             'quoteVolume' => $this->safe_number($ticker, 'volume_24h'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2435,8 +2426,7 @@ class pacifica extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $userAddress = null;
-        list($userAddress, $params) = $this->handle_origin_and_single_address('fetchOpenOrders', $params);
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchOpenOrders', $params);
         $request = array(
             'account' => $userAddress,
         );
@@ -2444,7 +2434,7 @@ class pacifica extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = Async\await($this->publicGetOrders($this->extend($request, $params)));
+        $response = Async\await($this->publicGetOrders($this->extend($request, $paramsOriginAndSingleAddress)));
         //
         // {
         //   "success": true,
@@ -2497,14 +2487,12 @@ class pacifica extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         $defaultLimit = 100; // max default 100
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit));
+            return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'next_cursor', 'cursor', null, $defaultLimit));
         }
-        $userAddress = null;
-        list($userAddress, $params) = $this->handle_origin_and_single_address('fetchOrders', $params);
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchOrders', $paramsPaginate);
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2515,7 +2503,7 @@ class pacifica extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = Async\await($this->publicGetOrdersHistory($this->extend($request, $params)));
+        $response = Async\await($this->publicGetOrdersHistory($this->extend($request, $paramsOriginAndSingleAddress)));
         //
         // {
         //   "success": true,
@@ -2783,8 +2771,8 @@ class pacifica extends Exchange {
         //     }
         //
         $marketId = $this->safe_string_2($order, 'symbol', 's');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer_2($order, 'created_at', 'ct');
         $status = $this->safe_string_2($order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         $side = $this->safe_string($order, 'side', 'd');
@@ -2824,7 +2812,7 @@ class pacifica extends Exchange {
             'status' => $this->parse_order_status($status),
             'fee' => null,
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_position(string $symbol, $params = array()): PromiseInterface {
@@ -2864,13 +2852,12 @@ class pacifica extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $userAddress = null;
-        list($userAddress, $params) = $this->handle_origin_and_single_address('fetchPositions', $params);
-        $symbols = $this->market_symbols($symbols);
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchPositions', $params);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
             'account' => $userAddress,
         );
-        $response = Async\await($this->publicGetPositions($this->extend($request, $params)));
+        $response = Async\await($this->publicGetPositions($this->extend($request, $paramsOriginAndSingleAddress)));
         // {
         //   "success": true,
         //   "data": [
@@ -2895,7 +2882,7 @@ class pacifica extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $result[] = $this->parse_position($data[$i], null);
         }
-        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized, false);
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -2913,8 +2900,8 @@ class pacifica extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $margin = $this->safe_string($position, 'margin');
         $marginMode = ($margin !== null && $margin !== '0') ? 'isolated' : 'cross';
         $isIsolated = ($marginMode === 'isolated');
@@ -2980,7 +2967,6 @@ class pacifica extends Exchange {
             'is_isolated' => $isIsolated,
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
-        $params = $this->omit($params, array( 'expiryWindow' ));
         $response = Async\await($this->privatePostAccountMargin($request));
         // {
         //     "success": true
@@ -3017,7 +3003,6 @@ class pacifica extends Exchange {
             'leverage' => $leverage,
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
-        $params = $this->omit($params, array( 'expiryWindow' ));
         $response = Async\await($this->privatePostAccountLeverage($request));
         // {
         //     "success": true
@@ -3052,8 +3037,8 @@ class pacifica extends Exchange {
             'amount' => (string) $amount,
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
-        $params = $this->omit($params, array( 'expiryWindow' ));
-        $response = Async\await($this->privatePostAccountWithdraw($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, array( 'expiryWindow' ));
+        $response = Async\await($this->privatePostAccountWithdraw($this->extend($request, $paramsOmitted)));
         return array( 'info' => $response );
     }
 
@@ -3075,13 +3060,12 @@ class pacifica extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $userAddress = null;
-        list($userAddress, $params) = $this->handle_origin_and_single_address('fetchTradingFee', $params);
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchTradingFee', $params);
         $market = $this->market($symbol);
         $request = array(
             'account' => $userAddress,
         );
-        $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
+        $response = Async\await($this->publicGetAccount($this->extend($request, $paramsOriginAndSingleAddress)));
         // {
         //   "success": true,
         //   "data": {
@@ -3157,10 +3141,10 @@ class pacifica extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->publicGetInfoPrices($params));
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_open_interests($data, $symbols);
+        return $this->parse_open_interests($data, $symbolsNormalized);
     }
 
     public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
@@ -3180,11 +3164,11 @@ class pacifica extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbol = $this->symbol($symbol);
-        $ois = Async\await($this->fetch_open_interests(array( $symbol ), $params));
-        $oi = $this->safe_dict($ois, $symbol);
+        $symbolValue = $this->symbol($symbol);
+        $ois = Async\await($this->fetch_open_interests(array( $symbolValue ), $params));
+        $oi = $this->safe_dict($ois, $symbolValue);
         if ($oi === null) {
-            throw new BadSymbol($this->id . ' fetchOpenInterest() could not find open interest for ' . $symbol);
+            throw new BadSymbol($this->id . ' fetchOpenInterest() could not find open interest for ' . $symbolValue);
         }
         return $oi;
     }
@@ -3205,10 +3189,10 @@ class pacifica extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($interest, 'symbol');
+        $marketResolved = ($marketId !== null) ? $this->safe_market($marketId, $market) : $market;
         $symbol = null;
         if ($marketId !== null) {
-            $market = $this->safe_market($marketId, $market);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($marketResolved, 'symbol');
         }
         $interestValue = null;
         $markPrice = $this->safe_string($interest, 'mark');
@@ -3224,7 +3208,7 @@ class pacifica extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3249,13 +3233,11 @@ class pacifica extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
-        $userAddress = null;
-        list($userAddress, $params) = $this->handle_origin_and_single_address('fetchLedger', $params);
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchLedger', $paramsPaginate);
         $defaultLimit = 100; // Default max limit
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit));
+            return Async\await($this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $paramsOriginAndSingleAddress, 'next_cursor', 'cursor', null, $defaultLimit));
         }
         $request = array(
             'account' => $userAddress,
@@ -3263,7 +3245,7 @@ class pacifica extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = Async\await($this->publicGetAccountBalanceHistory($this->extend($request, $params)));
+        $response = Async\await($this->publicGetAccountBalanceHistory($this->extend($request, $paramsOriginAndSingleAddress)));
         // {
         //   "success": true,
         //   "data": [
@@ -3363,10 +3345,8 @@ class pacifica extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
-        $userAddress = null;
-        list($userAddress, $params) = $this->handle_origin_and_single_address('fetchFundingHistory', $params);
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchFundingHistory', $paramsPaginate);
         $request = array(
             'account' => $userAddress,
         );
@@ -3375,9 +3355,9 @@ class pacifica extends Exchange {
         }
         $defaultLimit = 100;
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit));
+            return Async\await($this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $paramsOriginAndSingleAddress, 'next_cursor', 'cursor', null, $defaultLimit));
         }
-        $response = Async\await($this->publicGetFundingHistory($this->extend($request, $params)));
+        $response = Async\await($this->publicGetFundingHistory($this->extend($request, $paramsOriginAndSingleAddress)));
         // {
         //   "success": true,
         //   "data": [
@@ -3414,8 +3394,8 @@ class pacifica extends Exchange {
         $id = $this->safe_string($income, 'history_id');
         $timestamp = $this->safe_integer($income, 'created_at');
         $marketId = $this->safe_string($income, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $amount = $this->safe_string($income, 'amount');
         $code = $this->safe_currency_code('USDC');
         $rate = $this->safe_number($income, 'rate');
@@ -3459,8 +3439,8 @@ class pacifica extends Exchange {
             'amount' => $this->number_to_string($amount),
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
-        $params = $this->omit($params, array( 'expiryWindow' ));
-        $response = Async\await($this->privatePostAccountSubaccountTransfer($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, array( 'expiryWindow' ));
+        $response = Async\await($this->privatePostAccountSubaccountTransfer($this->extend($request, $paramsOmitted)));
         //
         // {
         //   "success": true,
@@ -3528,30 +3508,24 @@ class pacifica extends Exchange {
          * @return {array} a $response object
          */
         $finalHeaders = array( );
-        $agentAddress = null;
-        list($agentAddress, $params) = $this->handle_option_string_and_params($params, 'createSubAccount', 'agentAddress');
-        $originAddress = null;
-        list($originAddress, $params) = $this->handle_origin_and_single_address('createSubAccount', $params);
+        list($agentAddress, $paramsAgentAddress) = $this->handle_option_string_and_params($params, 'createSubAccount', 'agentAddress');
+        list($originAddress, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('createSubAccount', $paramsAgentAddress);
         if ($originAddress === null) {
             throw new ArgumentsRequired($this->id . ' createSubAccount() requires "originAddress" in $params or "walletAddress" in requiredCredentials');
         }
         if ($agentAddress !== null) {
             $finalHeaders['agent_wallet'] = $agentAddress;
         }
-        $subAccountAddress = null;
-        list($subAccountAddress, $params) = $this->handle_option_string_and_params($params, 'createSubAccount', 'subAccountAddress');
-        $subAccountPrivateKey = null;
-        list($subAccountPrivateKey, $params) = $this->handle_option_string_and_params($params, 'createSubAccount', 'subAccountPrivateKey');
+        list($subAccountAddress, $paramsSubAccountAddress) = $this->handle_option_string_and_params($paramsOriginAndSingleAddress, 'createSubAccount', 'subAccountAddress');
+        list($subAccountPrivateKey, $paramsSubAccountPrivateKey) = $this->handle_option_string_and_params($paramsSubAccountAddress, 'createSubAccount', 'subAccountPrivateKey');
         if ($subAccountAddress === null) {
             throw new ArgumentsRequired($this->id . ' createSubAccount() requires a "subAccountAddress"!');
         }
         if ($subAccountPrivateKey === null) {
             throw new ArgumentsRequired($this->id . ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        $timestamp = null;
-        list($timestamp, $params) = $this->handle_param_integer($params, 'timestamp', $this->milliseconds());
-        $expiryWindow = null;
-        list($expiryWindow, $params) = $this->handle_option_integer_and_params_2($params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
+        list($timestamp, $paramsTimestamp) = $this->handle_param_integer($paramsSubAccountPrivateKey, 'timestamp', $this->milliseconds());
+        list($expiryWindow, $paramsExpiryWindow) = $this->handle_option_integer_and_params_2($paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         $subaccountSignatureHeader = array(
             'timestamp' => $timestamp,
             'expiry_window' => $expiryWindow,
@@ -3577,7 +3551,7 @@ class pacifica extends Exchange {
         $finalHeaders['timestamp'] = $timestamp;
         $finalHeaders['expiry_window'] = $expiryWindow;
         $request = $finalHeaders;
-        $response = Async\await($this->privatePostAccountSubaccountCreate($this->extend($request, $params)));
+        $response = Async\await($this->privatePostAccountSubaccountCreate($this->extend($request, $paramsExpiryWindow)));
         //
         // {
         //   "success": true,
@@ -3676,14 +3650,13 @@ class pacifica extends Exchange {
     }
 
     public function handle_origin_and_single_address(string $methodName, array $params): array {
-        $address = null;
-        list($address, $params) = $this->handle_param_string_2($params, 'account', 'address', null); // this is for get endpoints that accept account or address
+        list($address, $paramsAccount) = $this->handle_param_string_2($params, 'account', 'address', null); // this is for get endpoints that accept account or address
         if ($address !== null) {
-            return array( $address, $params );
+            return array( $address, $paramsAccount );
         }
         $address1 = $this->walletAddress;
         if ($address1 !== null) {
-            return array( $address1, $params );
+            return array( $address1, $paramsAccount );
         }
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
     }
@@ -3726,6 +3699,7 @@ class pacifica extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestBody = $body;
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';
         if ($isTestnet) {
@@ -3733,22 +3707,22 @@ class pacifica extends Exchange {
         }
         $host = $this->implode_hostname($this->urls[$urlKey][$api]);
         $url = $host . '/api/' . $this->version . '/' . $this->implode_params($path, $params);
-        $params = $this->omit($params, $this->extract_params($path));
-        $paramsLen = count($params);
-        $headers = array(
+        $paramsOmitted = $this->omit($params, $this->extract_params($path));
+        $paramsLen = count($paramsOmitted);
+        $headersValue = array(
             'Content-Type' => 'application/json',
         );
         if (($method === 'GET') && ($paramsLen > 0)) {
-            $url .= '?' . $this->urlencode($params);
-            $headers['Accept'] = '*/*';
+            $url .= '?' . $this->urlencode($paramsOmitted);
+            $headersValue['Accept'] = '*/*';
         }
         if ($method === 'POST') {
-            $body = $this->json($params);
+            $requestBody = $this->json($paramsOmitted);
         }
         if ($this->handle_option('sign', 'apiKey') !== null) {
-            $headers['PF-API-KEY'] = $this->options['apiKey'];
+            $headersValue['PF-API-KEY'] = $this->options['apiKey'];
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $headersValue );
     }
 
     public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
@@ -3827,9 +3801,8 @@ class pacifica extends Exchange {
                 }
             }
         }
-        $expiryWindow = null;
-        list($expiryWindow, $params) = $this->handle_option_integer_and_params_2($params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
-        $timestamp = $this->safe_integer($params, 'timestamp', $this->milliseconds());
+        list($expiryWindow, $paramsExpiryWindow) = $this->handle_option_integer_and_params_2($params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
+        $timestamp = $this->safe_integer($paramsExpiryWindow, 'timestamp', $this->milliseconds());
         $signatureHeader = array(
             'timestamp' => $timestamp,
             'expiry_window' => $expiryWindow,
@@ -3837,10 +3810,8 @@ class pacifica extends Exchange {
         );
         $signature = $this->sign_message($signatureHeader, $sigPayload, $this->privateKey);
         $finalHeaders = array( );
-        $agentAddress = null;
-        list($agentAddress, $params) = $this->handle_option_string_and_params($params, 'postActionRequest', 'agentAddress');
-        $originAddress = null;
-        list($originAddress, $params) = $this->handle_origin_and_single_address('postActionRequest', $params);
+        list($agentAddress, $paramsAgentAddress) = $this->handle_option_string_and_params($paramsExpiryWindow, 'postActionRequest', 'agentAddress');
+        $originAddress = $this->handle_origin_and_single_address('postActionRequest', $paramsAgentAddress)[0];
         if ($originAddress === null) {
             throw new ArgumentsRequired($this->id . ' action => ' . $operationType . ' postActionRequest() requires "originAddress" in $params or "walletAddress" in requiredCredentials');
         }

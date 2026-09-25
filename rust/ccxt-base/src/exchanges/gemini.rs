@@ -1920,12 +1920,12 @@ impl GeminiCore {
         let mut timestamp: Value = self.safe_integer_k(volume.clone(), "timestamp", &[]);
         let mut symbol: Value = Value::Null;
         let mut marketId: Value = self.safe_string_lower_k(ticker.clone(), "pair", &[]);
-        market = self.safe_market(&[marketId.clone(), market.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market]);
         let mut baseId: Value = Value::Null;
         let mut quoteId: Value = Value::Null;
         let mut base: Value = Value::Null;
         let mut quote: Value = Value::Null;
-        if (marketId != Value::Null) && (market == Value::Null) {
+        if (marketId != Value::Null) && (marketResolved == Value::Null) {
             let mut idLength: Value = (match (&(Value::Int(marketId.len() as i64)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if (idLength.as_f64() == Some(7.0)) {
                 baseId = marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
@@ -1940,10 +1940,10 @@ impl GeminiCore {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
             }
         }
-        if (symbol == Value::Null) && (market != Value::Null) {
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            baseId = self.safe_string_upper_k(market.clone(), "baseId", &[]);
-            quoteId = self.safe_string_upper_k(market.clone(), "quoteId", &[]);
+        if (symbol == Value::Null) && (marketResolved != Value::Null) {
+            symbol = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            baseId = self.safe_string_upper_k(marketResolved.clone(), "baseId", &[]);
+            quoteId = self.safe_string_upper_k(marketResolved.clone(), "quoteId", &[]);
         }
         let mut price: Value = self.safe_string_k(ticker.clone(), "price", &[]);
         let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("last".into()), Value::Str("close".into()), &[price]);
@@ -1974,7 +1974,7 @@ impl GeminiCore {
         m.insert("quoteVolume".to_string(), quoteVolume);
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -2540,7 +2540,6 @@ impl GeminiCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
         }
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         if (clientOrderId == Value::Null) {
             clientOrderId = to_string_val(&self.milliseconds());
         }
@@ -2557,12 +2556,14 @@ impl GeminiCore {
                 m.insert("type".to_string(), Value::Str("exchange limit".into()));
             m
         });
-        let mut orderType: Value = self.safe_string_k(params.clone(), "type", &[type_var]);
-        params = self.omit(params.clone(), Value::Str("type".into()), &[]);
+        let mut typeValue: Value = self.safe_string_k(params.clone(), "type", &[type_var]);
         let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), Value::Str("stopPrice".into())]), &[]);
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), Value::Str("stopPrice".into()), Value::Str("type".into())]), &[]);
-        if (orderType.as_str() == Some("stopLimit")) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter or a stop_price parameter for ".into())).into()), orderType).into()), Value::Str(" orders".into()))));
+        // timeInForce and postOnly are consumed only by non-trigger orders
+        let mut omitKeys: Value = Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("type".into()), Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), Value::Str("stopPrice".into())]);
+        let mut optionKeys: Value = (if (triggerPrice == Value::Null) { Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]) } else { Value::from(vec![]) });
+        let mut paramsOmitted: Value = self.omit(params.clone(), self.array_concat(omitKeys, optionKeys), &[]);
+        if (typeValue.as_str() == Some("stopLimit")) {
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter or a stop_price parameter for ".into())).into()), typeValue).into()), Value::Str(" orders".into()))));
         }
         if (triggerPrice != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stop_price".into(), self.price_to_precision(symbol, triggerPrice)); }
@@ -2570,7 +2571,6 @@ impl GeminiCore {
         }  else {
             // No options can be applied to stop-limit orders at this time.
             let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-            params = self.omit(params.clone(), Value::Str("timeInForce".into()), &[]);
             if (timeInForce.is_some()) {
                 if (timeInForce.as_deref() == Some("IOC")) || (timeInForce.as_deref() == Some("immediate-or-cancel")) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".into(), Value::from(vec![Value::Str("immediate-or-cancel".into())])); }
@@ -2581,17 +2581,16 @@ impl GeminiCore {
                 }
             }
             let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-            params = self.omit(params.clone(), Value::Str("postOnly".into()), &[]);
             if (postOnly.as_bool() == Some(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".into(), Value::from(vec![Value::Str("maker-or-cancel".into())])); }
             }
             // allowing override for auction-only and indication-of-interest order options
-            let mut options: Value = self.safe_string_k(params.clone(), "options", &[]);
+            let mut options: Value = self.safe_string_k(params, "options", &[]);
             if (options != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".into(), Value::from(vec![options])); }
             }
         }
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let __ws_arg_7 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.private_post_v1_order_new(&[__ws_arg_7]).await;
         return self.parse_order(response, &[]);
 
@@ -2691,7 +2690,8 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut tagAndParams: Value = self.handle_withdraw_tag_and_params(tag, params);
+        let mut paramsWithdrawTag: Value = get_value(&tagAndParams, &Value::Int(1));
         self.check_address(&[address.clone()]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2704,7 +2704,7 @@ impl GeminiCore {
                 m.insert("address".to_string(), address);
             m
         });
-        let __ws_arg_10 = self.extend(request, &[params]);
+        let __ws_arg_10 = self.extend(request, &[paramsWithdrawTag]);
         let mut response: Value = self.private_post_v1_withdraw_currency(&[__ws_arg_10]).await;
         //
         //   for BTC
@@ -2907,8 +2907,7 @@ impl GeminiCore {
             self.load_markets(&[]).await;
         }
         let mut indexedByNetwork: Value = self.fetch_deposit_addresses_by_network(code, &[params.clone()]).await;
-        let mut networkCode: Value = Value::Null;
-        { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut networkCode: Value = self.handle_network_code_and_params(params).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         return self.safe_value(indexedByNetwork, networkCode, &[]);
 
     Value::Null
@@ -2932,10 +2931,11 @@ impl GeminiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut currency: Value = self.currency(code.clone());
-        code = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
-        let mut networkCode: Value = Value::Null;
-        { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut currency: Value = self.currency(code);
+        let mut codeValue: Value = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
+        let mut networkCodeparamsNetworkCodeVariable = self.handle_network_code_and_params(params);
+        let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (networkCode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() requires a network parameter".into()))));
         }
@@ -2945,12 +2945,12 @@ impl GeminiCore {
                 m.insert("network".to_string(), networkId);
             m
         });
-        let __ws_arg_12 = self.extend(request, &[params]);
+        let __ws_arg_12 = self.extend(request, &[paramsNetworkCode]);
         let mut response: Value = self.private_post_v1_addresses_network(&[__ws_arg_12]).await;
-        let mut results: Value = self.parse_deposit_addresses(response, &[Value::from(vec![code.clone()]), Value::Bool(false), Value::Map({
+        let mut results: Value = self.parse_deposit_addresses(response, &[Value::from(vec![codeValue.clone()]), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("network".to_string(), networkCode);
-        m.insert("currency".to_string(), code);
+        m.insert("currency".to_string(), codeValue);
     m
 })]);
         return self.index_by(results, Value::Str("network".into()));
@@ -2969,6 +2969,7 @@ impl GeminiCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut headersSigned: Value = Value::Null;
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut apiKey: Value = self.apiKey.clone();
@@ -2987,7 +2988,7 @@ impl GeminiCore {
             let mut payload: Value = json_stringify(&request);
             payload = self.string_to_base64(payload.clone(), &[]);
             let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
-            headers = Value::Map({
+            headersSigned = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("text/plain".into()));
                     m.insert("X-GEMINI-APIKEY".to_string(), self.apiKey.clone());
@@ -3000,20 +3001,22 @@ impl GeminiCore {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
         }
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api, &[]);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         url = Value::Str(format!("{}{}", apiUrl, url).into());
+        let mut headersResolved: Value = (if (api.as_str() == Some("private")) { headersSigned } else { headers });
+        let mut bodyResolved: Value = body;
         if (method.as_str() == Some("POST")) || (method.as_str() == Some("DELETE")) {
-            body = json_stringify(&query);
+            bodyResolved = json_stringify(&query);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), bodyResolved);
+        m.insert("headers".to_string(), headersResolved);
     m
 });
 

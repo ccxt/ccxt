@@ -78,9 +78,10 @@ class gemini(ccxt.async_support.gemini):
             raise ExchangeError(self.id + ' watchTrades() has no websocket url')
         url = wsUrl + '/v2/marketdata'
         trades = await self.watch(url, messageHash, request, subscribeHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(market['symbol'], limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(market['symbol'], limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -95,11 +96,12 @@ class gemini(ccxt.async_support.gemini):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         trades = await self.helper_for_watch_multiple_construct('trades', symbols, params)
+        first = self.safe_list(trades, 0)
+        tradeSymbol = self.safe_string(first, 'symbol')
+        limitResolved = limit
         if self.newUpdates:
-            first = self.safe_list(trades, 0)
-            tradeSymbol = self.safe_string(first, 'symbol')
-            limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -291,9 +293,10 @@ class gemini(ccxt.async_support.gemini):
             raise ExchangeError(self.id + ' watchOHLCV() has no websocket url')
         url = wsUrl + '/v2/marketdata'
         ohlcv = await self.watch(url, messageHash, request, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
     def handle_ohlcv(self, client: Client, message: dict) -> dict:
         #
@@ -504,14 +507,14 @@ class gemini(ccxt.async_support.gemini):
             await self.load_markets()
         if symbols is None:
             raise NotSupported(self.id + ' watchMultiple requires at least one symbol')
-        symbols = self.market_symbols(symbols, None, False, True, True)
-        firstMarket = self.market(symbols[0])
+        symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
+        firstMarket = self.market(symbolsNormalized[0])
         if (firstMarket['spot'] is not True) and (firstMarket['linear'] is not True):
             raise NotSupported(self.id + ' watchMultiple supports only spot or linear-swap symbols')
         messageHashes = []
         marketIds = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             messageHash = itemHashName + ':' + symbol
             messageHashes.append(messageHash)
             market = self.market(symbol)
@@ -636,14 +639,16 @@ class gemini(ccxt.async_support.gemini):
             'url': url,
         }
         await self.authenticate(authParams)
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
+        symbolResolved = market['symbol'] if (market is not None) else None
         messageHash = 'orders'
         orders = await self.watch(url, messageHash, None, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
     def handle_heartbeat(self, client: Client, message: dict) -> dict:
         #

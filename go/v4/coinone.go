@@ -773,14 +773,14 @@ func (this *Coinone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"quote_currency": "KRW",
 	}
 	var market map[string]any = nil
 	var response map[string]any = nil
-	if symbols != nil {
-		var first *string = this.SafeString(symbols, 0)
+	if !IsEqual(symbolsNormalized, nil) {
+		var first *string = this.SafeString(symbolsNormalized, 0)
 		market = this.Market(first)
 		request["quote_currency"] = GetValue(market, "quote")
 		request["target_currency"] = GetValue(market, "base")
@@ -825,7 +825,7 @@ func (this *Coinone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data []any = SafeListTypedDefault(response, "tickers", []any{})
 
-	ch <- this.ParseTickers(data, symbols)
+	ch <- this.ParseTickers(data, symbolsNormalized)
 	return nil
 }
 
@@ -985,7 +985,7 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	market = this.SafeMarket(nil, market)
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side *string = nil
 	if isSellerMaker != nil {
@@ -1007,9 +1007,9 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 		feeRateString = Precise.StringAbs(feeRateString)
 		var feeCurrencyCode any = nil
 		if side != nil && *side == "sell" {
-			feeCurrencyCode = GetValue(market, "quote")
+			feeCurrencyCode = marketResolved["quote"]
 		} else {
-			feeCurrencyCode = GetValue(market, "base")
+			feeCurrencyCode = marketResolved["base"]
 		}
 		fee = map[string]any{
 			"cost":     feeCostString,
@@ -1023,7 +1023,7 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"order":        orderId,
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"type":         nil,
 		"side":         side,
 		"takerOrMaker": nil,
@@ -1031,7 +1031,7 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         nil,
 		"fee":          fee,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1290,8 +1290,13 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol any = nil
 	if (base != nil) && (quote != nil) {
 		symbol = Add(Add(base, "/"), quote)
-		market = this.SafeMarket(symbol, market, "/")
 	}
+	var marketResolved any = func() any {
+		if symbol != nil {
+			return this.SafeMarket(symbol, market, "/")
+		}
+		return market
+	}()
 	var timestamp *int64 = this.SafeTimestamp2(order, "timestamp", "updatedAt")
 	if timestamp == nil {
 		timestamp = this.SafeInteger2(order, "ordered_at", "updated_at") // v2.1 sends milliseconds
@@ -1353,7 +1358,7 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 		"status":             status,
 		"fee":                fee,
 		"trades":             nil,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1628,7 +1633,7 @@ func (this *Coinone) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var request any = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -1637,13 +1642,13 @@ func (this *Coinone) Sign(path any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *apiUrl + "/"
+	var isPublic bool = (IsEqual(api, "public")) || (IsEqual(api, "v2Public"))
 	if IsEqual(api, "v2Public") {
 		var apiUrl2 *string = this.SafeString(GetValue(this.Urls, "api"), "v2Public")
 		if apiUrl2 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = *apiUrl2 + "/"
-		api = "public"
 	} else if IsEqual(api, "v2Private") {
 		var apiUrl3 *string = this.SafeString(GetValue(this.Urls, "api"), "v2Private")
 		if apiUrl3 == nil {
@@ -1657,7 +1662,9 @@ func (this *Coinone) Sign(path any, optionalArgs ...any) any {
 		}
 		url = *apiUrl4 + "/"
 	}
-	if IsEqual(api, "public") {
+	var requestBody any = nil
+	var requestHeaders any = nil
+	if isPublic {
 		url = Add(url, request)
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
@@ -1677,20 +1684,32 @@ func (this *Coinone) Sign(path any, optionalArgs ...any) any {
 			"nonce":        nonce,
 		}, params))
 		var payload string = this.StringToBase64(json)
-		body = payload
+		requestBody = payload
 		var secret string = ToUpper(this.Secret)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(secret), sha512)
-		headers = map[string]any{
+		requestHeaders = map[string]any{
 			"Content-Type":        "application/json",
 			"X-COINONE-PAYLOAD":   payload,
 			"X-COINONE-SIGNATURE": signature,
 		}
 	}
+	var bodyResolved any = func() any {
+		if requestBody == nil {
+			return body
+		}
+		return requestBody
+	}()
+	var headersResolved any = func() any {
+		if requestHeaders == nil {
+			return headers
+		}
+		return requestHeaders
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyResolved,
+		"headers": headersResolved,
 	}
 }
 func (this *Coinone) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

@@ -162,7 +162,7 @@ func (this *Lbank) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = timeframe
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -186,11 +186,12 @@ func (this *Lbank) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
 	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))))
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
+		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
-	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
+	ch <- this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)
 	return nil
 }
 func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
@@ -477,14 +478,17 @@ func (this *Lbank) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...an
 	this.CheckContractMarket(market, "fetchTradesWs")
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fetchTrades:", market["symbol"]))
-	if limit == nil {
-		limit = ccxt.Int64PtrTyped(10)
-	}
+	var limitResolved int64 = func() int64 {
+		if limit == nil {
+			return 10
+		}
+		return *limit
+	}()
 	var message map[string]any = map[string]any{
 		"action":  "request",
 		"request": "trade",
 		"pair":    market["id"],
-		"size":    limit,
+		"size":    limitResolved,
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 	var requestId int64 = this.RequestId()
@@ -668,7 +672,7 @@ func (this *Lbank) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Lbank) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -685,11 +689,16 @@ func (this *Lbank) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash any = nil
 	var pair any = "all"
+	var symbolResolved any = func() any {
+		if symbol == nil {
+			return nil
+		}
+		return this.Symbol(symbol)
+	}()
 	if symbol == nil {
 		messageHash = "orders:all"
 	} else {
 		var market map[string]any = this.Market(symbol)
-		symbol = this.Symbol(symbol)
 		messageHash = ccxt.Add("orders:", market["symbol"])
 		pair = market["id"]
 	}
@@ -703,7 +712,7 @@ func (this *Lbank) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request))))
 
-	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
+	ch <- this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limit, true)
 	return nil
 }
 func (this *Lbank) HandleOrders(client any, message map[string]any) {
@@ -944,13 +953,16 @@ func (this *Lbank) fetchOrderBookWsBody(ch chan any, symbol any, optionalArgs ..
 	this.CheckContractMarket(market, "fetchOrderBookWs")
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fetchOrderbook:", market["symbol"]))
-	if limit == nil {
-		limit = ccxt.Int64PtrTyped(100)
-	}
+	var limitResolved int64 = func() int64 {
+		if limit == nil {
+			return 100
+		}
+		return *limit
+	}()
 	var subscribe map[string]any = map[string]any{
 		"action":  "request",
 		"request": "depth",
-		"depth":   limit,
+		"depth":   limitResolved,
 		"pair":    market["id"],
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
@@ -981,7 +993,7 @@ func (this *Lbank) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -991,17 +1003,20 @@ func (this *Lbank) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	this.CheckContractMarket(market, "watchOrderBook")
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", market["symbol"]))
-	params = this.Omit(params, "aggregation")
-	if limit == nil {
-		limit = ccxt.Int64PtrTyped(100)
-	}
+	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "aggregation"))
+	var limitResolved int64 = func() int64 {
+		if limit == nil {
+			return 100
+		}
+		return *limit
+	}()
 	var subscribe map[string]any = map[string]any{
 		"action":    "subscribe",
 		"subscribe": "depth",
-		"depth":     limit,
+		"depth":     limitResolved,
 		"pair":      market["id"],
 	}
-	var request map[string]any = this.DeepExtend(subscribe, params)
+	var request map[string]any = this.DeepExtend(subscribe, paramsOmitted)
 
 	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))).(ccxt.OrderBookInterface)
 

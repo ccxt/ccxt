@@ -397,12 +397,11 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTime', null, $params);
         if ($type === 'swap') {
-            $response = Async\await($this->contractPublicGetCfdOpenApiV1PubGetTime($params));
+            $response = Async\await($this->contractPublicGetCfdOpenApiV1PubGetTime($paramsMarketType));
         } else {
-            $response = Async\await($this->spotPublicGetTimestamp($params));
+            $response = Async\await($this->spotPublicGetTimestamp($paramsMarketType));
         }
         //
         // spot
@@ -795,8 +794,8 @@ class lbank extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $tickerData = $this->safe_dict($ticker, 'ticker', array());
-        $market = $this->safe_market($marketId, $market);
-        $data = ($market['contract'] === true) ? $ticker : $tickerData;
+        $marketResolved = $this->safe_market($marketId, $market);
+        $data = ($marketResolved['contract'] === true) ? $ticker : $tickerData;
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -818,7 +817,7 @@ class lbank extends Exchange {
             'baseVolume' => $this->safe_string_2($data, 'vol', 'volume'),
             'quoteVolume' => $this->safe_string($data, 'turnover'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -892,22 +891,21 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $market = null;
-        if ($symbols !== null) {
-            $symbols = $this->market_symbols($symbols);
-            $symbolsLength = count($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength > 0) {
-                $market = $this->market($symbols[0]);
+                $market = $this->market($symbolsNormalized[0]);
             }
         }
         $request = array();
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         if ($type === 'swap') {
             $request['productGroup'] = 'SwapU';
-            $response = Async\await($this->contractPublicGetCfdOpenApiV1PubMarketData($this->extend($request, $params)));
+            $response = Async\await($this->contractPublicGetCfdOpenApiV1PubMarketData($this->extend($request, $paramsMarketType)));
         } else {
             $request['symbol'] = 'all';
-            $response = Async\await($this->spotPublicGetTicker24hr($this->extend($request, $params)));
+            $response = Async\await($this->spotPublicGetTicker24hr($this->extend($request, $paramsMarketType)));
         }
         //
         // spot
@@ -955,7 +953,7 @@ class lbank extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_tickers($data, $symbols);
+        return $this->parse_tickers($data, $symbolsNormalized);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -978,20 +976,17 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 60;
-        }
+        $limitResolved = ($limit === null) ? 60 : $limit;
         $request = array(
             'symbol' => $market['id'],
         );
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
         if ($type === 'swap') {
-            $request['depth'] = $limit;
-            $response = Async\await($this->contractPublicGetCfdOpenApiV1PubMarketOrder($this->extend($request, $params)));
+            $request['depth'] = $limitResolved;
+            $response = Async\await($this->contractPublicGetCfdOpenApiV1PubMarketOrder($this->extend($request, $paramsMarketType)));
         } else {
-            $request['size'] = $limit;
-            $response = Async\await($this->spotPublicGetDepth($this->extend($request, $params)));
+            $request['size'] = $limitResolved;
+            $response = Async\await($this->spotPublicGetDepth($this->extend($request, $paramsMarketType)));
         }
         //
         // spot
@@ -1188,11 +1183,11 @@ class lbank extends Exchange {
         $options = $this->safe_dict($this->options, 'fetchTrades', array());
         $defaultMethod = $this->safe_string($options, 'method', 'spotPublicGetTrades');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $params = $this->omit($params, 'method');
+        $paramsOmitted = $this->omit($params, 'method');
         if ($method === 'spotPublicGetSupplementTrades') {
-            $response = Async\await($this->spotPublicGetSupplementTrades($this->extend($request, $params)));
+            $response = Async\await($this->spotPublicGetSupplementTrades($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->spotPublicGetTrades($this->extend($request, $params)));
+            $response = Async\await($this->spotPublicGetTrades($this->extend($request, $paramsOmitted)));
         }
         //
         //      {
@@ -1257,17 +1252,11 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100;
-        } else {
-            $limit = min($limit, 2000);
-        }
-        if ($since === null) {
-            $duration = $this->parse_timeframe($timeframe);
-            $since = $this->milliseconds() - ($duration * 1000 * $limit);
-        }
-        $parsedSince = $this->parse_to_int($since / 1000);
-        $parsedLimit = min($limit + 1, 2000); // max 2000;
+        $limitResolved = ($limit === null) ? 100 : min($limit, 2000);
+        $duration = $this->parse_timeframe($timeframe);
+        $sinceResolved = ($since === null) ? ($this->milliseconds() - ($duration * 1000 * $limitResolved)) : $since;
+        $parsedSince = $this->parse_to_int($sinceResolved / 1000);
+        $parsedLimit = min($limitResolved + 1, 2000); // max 2000;
         $request = array(
             'symbol' => $market['id'],
             'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
@@ -1297,7 +1286,7 @@ class lbank extends Exchange {
         //   ]
         // ]
         //
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $sinceResolved, $limitResolved);
     }
 
     public function parse_balance(mixed $response): array {
@@ -1525,7 +1514,7 @@ class lbank extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
             'productGroup' => 'SwapU',
         );
@@ -1554,7 +1543,7 @@ class lbank extends Exchange {
         //     "success": True,
         // }
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_funding_rates($data, $symbols);
+        return $this->parse_funding_rates($data, $symbolsNormalized);
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
@@ -1743,7 +1732,7 @@ class lbank extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'custom_id', 'clientOrderId');
         $postOnly = $this->safe_bool($params, 'postOnly', false);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        $params = $this->omit($params, array( 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ));
+        $paramsRequest = $this->omit($params, array( 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ));
         $request = array(
             'symbol' => $market['id'],
         );
@@ -1772,9 +1761,9 @@ class lbank extends Exchange {
                 $request['type'] = $side . '_' . 'market';
                 $quoteAmount = null;
                 $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                $cost = $this->safe_number($params, 'cost');
-                $params = $this->omit($params, 'cost');
+                list($createMarketBuyOrderRequiresPrice, $paramsRequest) = $this->handle_option_bool_and_params($paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number($paramsRequest, 'cost');
+                $paramsRequest = $this->omit($paramsRequest, 'cost');
                 if ($cost !== null) {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
                 } elseif ($createMarketBuyOrderRequiresPrice) {
@@ -1798,12 +1787,12 @@ class lbank extends Exchange {
         }
         $options = $this->safe_dict($this->options, 'createOrder', array());
         $defaultMethod = $this->safe_string($options, 'method', 'spotPrivatePostSupplementCreateOrder');
-        $method = $this->safe_string($params, 'method', $defaultMethod);
-        $params = $this->omit($params, 'method');
+        $method = $this->safe_string($paramsRequest, 'method', $defaultMethod);
+        $paramsOmitted = $this->omit($paramsRequest, 'method');
         if ($method === 'spotPrivatePostCreateOrder') {
-            $response = Async\await($this->spotPrivatePostCreateOrder($this->extend($request, $params)));
+            $response = Async\await($this->spotPrivatePostCreateOrder($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->spotPrivatePostSupplementCreateOrder($this->extend($request, $params)));
+            $response = Async\await($this->spotPrivatePostSupplementCreateOrder($this->extend($request, $paramsOmitted)));
         }
         //
         //      {
@@ -1928,7 +1917,7 @@ class lbank extends Exchange {
         $timestamp = $this->safe_integer_2($order, 'time', 'create_time');
         $rawStatus = $this->safe_string($order, 'status');
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timeInForce = null;
         $postOnly = false;
         $type = 'limit';
@@ -1963,7 +1952,7 @@ class lbank extends Exchange {
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $this->parse_order_status($rawStatus),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
@@ -1978,7 +1967,7 @@ class lbank extends Exchange {
             'fee' => null,
             'info' => $order,
             'average' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -2129,8 +2118,8 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $since = $this->safe_value($params, 'start_date', $since);
-        $params = $this->omit($params, 'start_date');
+        $sinceValue = $this->safe_value($params, 'start_date', $since);
+        $paramsOmitted = $this->omit($params, 'start_date');
         $request = array(
             'symbol' => $market['id'],
             // 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
@@ -2143,11 +2132,11 @@ class lbank extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        if ($since !== null) {
-            $request['start_date'] = $this->ymd($since, '-'); // max query 2 days ago
-            $request['end_date'] = $this->ymd($since + 86400000, '-'); // will cover 2 days
+        if ($sinceValue !== null) {
+            $request['start_date'] = $this->ymd($sinceValue, '-'); // max query 2 days ago
+            $request['end_date'] = $this->ymd($sinceValue + 86400000, '-'); // will cover 2 days
         }
-        $response = Async\await($this->spotPrivatePostTransactionHistory($this->extend($request, $params)));
+        $response = Async\await($this->spotPrivatePostTransactionHistory($this->extend($request, $paramsOmitted)));
         //
         //      {
         //          "result":true,
@@ -2169,7 +2158,7 @@ class lbank extends Exchange {
         //      }
         //
         $trades = $this->safe_list($response, 'data', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_trades($trades, $market, $sinceValue, $limit);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2197,13 +2186,11 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100;
-        }
+        $limitResolved = ($limit === null) ? 100 : $limit;
         $request = array(
             'symbol' => $market['id'],
             'current_page' => 1,
-            'page_length' => $limit,
+            'page_length' => $limitResolved,
             // 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
         );
         $response = Async\await($this->spotPrivatePostSupplementOrdersInfoHistory($this->extend($request, $params)));
@@ -2236,7 +2223,7 @@ class lbank extends Exchange {
         //
         $result = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($result, 'orders', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return $this->parse_orders($orders, $market, $since, $limitResolved);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2262,13 +2249,11 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100;
-        }
+        $limitResolved = ($limit === null) ? 100 : $limit;
         $request = array(
             'symbol' => $market['id'],
             'current_page' => 1,
-            'page_length' => $limit,
+            'page_length' => $limitResolved,
         );
         $response = Async\await($this->spotPrivatePostSupplementOrdersInfoNoDeal($this->extend($request, $params)));
         //
@@ -2300,7 +2285,7 @@ class lbank extends Exchange {
         //
         $result = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($result, 'orders', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return $this->parse_orders($orders, $market, $since, $limitResolved);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -2325,7 +2310,7 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $clientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
-        $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
+        $paramsOmitted = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2334,7 +2319,7 @@ class lbank extends Exchange {
         if ($clientOrderId !== null) {
             $request['origClientOrderId'] = $clientOrderId;
         }
-        $response = Async\await($this->spotPrivatePostSupplementCancelOrder($this->extend($request, $params)));
+        $response = Async\await($this->spotPrivatePostSupplementCancelOrder($this->extend($request, $paramsOmitted)));
         //
         //   {
         //      "result":true,
@@ -2428,11 +2413,11 @@ class lbank extends Exchange {
         $options = $this->safe_dict($this->options, 'fetchDepositAddress', array());
         $defaultMethod = $this->safe_string($options, 'method', 'fetchDepositAddressDefault');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $params = $this->omit($params, 'method');
+        $paramsOmitted = $this->omit($params, 'method');
         if ($method === 'fetchDepositAddressSupplement') {
-            $response = Async\await($this->fetch_deposit_address_supplement($code, $params));
+            $response = Async\await($this->fetch_deposit_address_supplement($code, $paramsOmitted));
         } else {
-            $response = Async\await($this->fetch_deposit_address_default($code, $params));
+            $response = Async\await($this->fetch_deposit_address_default($code, $paramsOmitted));
         }
         return $response;
     }
@@ -2450,11 +2435,11 @@ class lbank extends Exchange {
             'assetCode' => $currency['id'],
         );
         $network = $this->get_network_code_for_currency($code, $params);
+        $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         if ($network !== null) {
             $request['netWork'] = $network; // ... yes, really lol
-            $params = $this->omit($params, 'network');
         }
-        $response = Async\await($this->spotPrivatePostGetDepositAddress($this->extend($request, $params)));
+        $response = Async\await($this->spotPrivatePostGetDepositAddress($this->extend($request, $paramsOmitted)));
         //
         //      {
         //          "result":true,
@@ -2496,11 +2481,11 @@ class lbank extends Exchange {
         $networks = $this->safe_dict($this->options, 'networks');
         $network = $this->safe_string_upper($params, 'network');
         $network = $this->safe_string($networks, $network, $network);
+        $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         if ($network !== null) {
             $request['networkName'] = $network;
-            $params = $this->omit($params, 'network');
         }
-        $response = Async\await($this->spotPrivatePostSupplementGetDepositAddress($this->extend($request, $params)));
+        $response = Async\await($this->spotPrivatePostSupplementGetDepositAddress($this->extend($request, $paramsOmitted)));
         //
         //      {
         //          "result":true,
@@ -2542,13 +2527,13 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $fee = $this->safe_string($params, 'fee');
-        $params = $this->omit($params, 'fee');
+        $fee = $this->safe_string($paramsWithdrawTag, 'fee');
+        $paramsOmitted = $this->omit($paramsWithdrawTag, 'fee');
         // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
         $this->check_required_argument('withdraw', $fee, 'fee');
         $currency = $this->currency($code);
@@ -2564,17 +2549,17 @@ class lbank extends Exchange {
             // 'withdrawOrderId': withdrawOrderId
             // 'type': type=1 is for intra-site transfer
         );
-        if ($tag !== null) {
-            $request['memo'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['memo'] = $tagWithdrawTag;
         }
-        $network = $this->safe_string_upper_2($params, 'network', 'networkName');
-        $params = $this->omit($params, array( 'network', 'networkName' ));
+        $network = $this->safe_string_upper_2($paramsOmitted, 'network', 'networkName');
+        $paramsOmitted2 = $this->omit($paramsOmitted, array( 'network', 'networkName' ));
         $networks = $this->safe_dict($this->options, 'networks');
         $networkId = $this->safe_string($networks, $network, $network);
         if ($networkId !== null) {
             $request['networkName'] = $networkId;
         }
-        $response = Async\await($this->spotPrivatePostSupplementWithdraw($this->extend($request, $params)));
+        $response = Async\await($this->spotPrivatePostSupplementWithdraw($this->extend($request, $paramsOmitted2)));
         //
         //      {
         //          "result":true,
@@ -2840,11 +2825,11 @@ class lbank extends Exchange {
             $options = $this->safe_dict($this->options, 'fetchTransactionFees', array());
             $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
             $method = $this->safe_string($params, 'method', $defaultMethod);
-            $params = $this->omit($params, 'method');
+            $paramsOmitted = $this->omit($params, 'method');
             if ($method === 'fetchPublicTransactionFees') {
-                $result = Async\await($this->fetch_public_transaction_fees($params));
+                $result = Async\await($this->fetch_public_transaction_fees($paramsOmitted));
             } else {
-                $result = Async\await($this->fetch_private_transaction_fees($params));
+                $result = Async\await($this->fetch_private_transaction_fees($paramsOmitted));
             }
         } else {
             $result = Async\await($this->fetch_public_transaction_fees($params));
@@ -2934,13 +2919,13 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $code = $this->safe_string_2($params, 'coin', 'assetCode');
-        $params = $this->omit($params, array( 'coin', 'assetCode' ));
+        $paramsOmitted = $this->omit($params, array( 'coin', 'assetCode' ));
         $request = array();
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['assetCode'] = $currency['id'];
         }
-        $response = Async\await($this->spotPublicGetWithdrawConfigs($this->extend($request, $params)));
+        $response = Async\await($this->spotPublicGetWithdrawConfigs($this->extend($request, $paramsOmitted)));
         //
         //    {
         //        "result": "true",
@@ -3015,11 +3000,11 @@ class lbank extends Exchange {
             $options = $this->safe_dict($this->options, 'fetchDepositWithdrawFees', array());
             $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
             $method = $this->safe_string($params, 'method', $defaultMethod);
-            $params = $this->omit($params, 'method');
+            $paramsOmitted = $this->omit($params, 'method');
             if ($method === 'fetchPublicDepositWithdrawFees') {
-                $response = Async\await($this->fetch_public_deposit_withdraw_fees($codes, $params));
+                $response = Async\await($this->fetch_public_deposit_withdraw_fees($codes, $paramsOmitted));
             } else {
-                $response = Async\await($this->fetch_private_deposit_withdraw_fees($codes, $params));
+                $response = Async\await($this->fetch_private_deposit_withdraw_fees($codes, $paramsOmitted));
             }
         } else {
             $response = Async\await($this->fetch_public_deposit_withdraw_fees($codes, $params));
@@ -3288,13 +3273,14 @@ class lbank extends Exchange {
                 $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret), 'sha256');
             }
             $query['sign'] = $sign;
-            $body = $this->urlencode($this->keysort($query));
-            $headers = array(
+            $bodySigned = $this->urlencode($this->keysort($query));
+            $headersSigned = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'timestamp' => $timestamp,
                 'signature_method' => $signatureMethod,
                 'echostr' => $echostr,
             );
+            return array( 'url' => $url, 'method' => $method, 'body' => $bodySigned, 'headers' => $headersSigned );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

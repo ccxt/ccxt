@@ -721,7 +721,7 @@ func (this *Foxbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetMarketsTicker24hr(params)).Raw))
 	//  {
@@ -747,7 +747,7 @@ func (this *Foxbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//  }
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- this.ParseTickers(data, symbols)
+	ch <- this.ParseTickers(data, symbolsNormalized)
 	return nil
 }
 
@@ -1220,9 +1220,9 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar string, sid
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	typeVar = strings.ToUpper(typeVar)
-	if (typeVar != "LIMIT") && (typeVar != "MARKET") && (typeVar != "STOP_MARKET") && (typeVar != "STOP_LIMIT") && (typeVar != "INSTANT") {
-		panic(InvalidOrder("Invalid order type: " + typeVar + ". Must be one of: limit, market, stop_market, stop_limit, instant."))
+	var typeValue string = strings.ToUpper(typeVar)
+	if (typeValue != "LIMIT") && (typeValue != "MARKET") && (typeValue != "STOP_MARKET") && (typeValue != "STOP_LIMIT") && (typeValue != "INSTANT") {
+		panic(InvalidOrder("Invalid order type: " + typeValue + ". Must be one of: limit, market, stop_market, stop_limit, instant."))
 	}
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
@@ -1231,11 +1231,11 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	var request map[string]any = map[string]any{
 		"market_symbol": market["id"],
 		"side":          strings.ToUpper(side),
-		"type":          typeVar,
+		"type":          typeValue,
 	}
-	if (typeVar == "STOP_MARKET") || (typeVar == "STOP_LIMIT") {
+	if (typeValue == "STOP_MARKET") || (typeValue == "STOP_LIMIT") {
 		if triggerPrice == nil {
-			panic(InvalidOrder("Invalid order type: " + typeVar + ". Must have triggerPrice."))
+			panic(InvalidOrder("Invalid order type: " + typeValue + ". Must have triggerPrice."))
 		}
 	}
 	if timeInForce != nil {
@@ -1251,21 +1251,21 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	if triggerPrice != nil {
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
-	if typeVar == "INSTANT" {
+	if typeValue == "INSTANT" {
 		request["amount"] = this.PriceToPrecision(symbol, amount)
 	} else {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
-	if (typeVar == "LIMIT") || (typeVar == "STOP_LIMIT") {
+	if (typeValue == "LIMIT") || (typeValue == "STOP_LIMIT") {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}
-	params = MapTyped(this.Omit(params, []any{"timeInForce", "postOnly", "triggerPrice", "clientOrderId"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"timeInForce", "postOnly", "triggerPrice", "clientOrderId"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostOrders(this.Extend(request, paramsOmitted))).Raw))
 
 	// {
 	//     "id": 1234567890,
@@ -2002,9 +2002,9 @@ func (this *Foxbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	this.CheckRequiredArgument("editOrder", symbol, "symbol")
-	typeVar = ToUpper(typeVar)
-	if (!IsEqual(typeVar, "LIMIT")) && (!IsEqual(typeVar, "MARKET")) && (!IsEqual(typeVar, "STOP_MARKET")) && (!IsEqual(typeVar, "INSTANT")) {
-		panic(InvalidOrder(Add(Add("Invalid order type: ", typeVar), ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")))
+	var typeValue string = ToUpper(typeVar)
+	if (typeValue != "LIMIT") && (typeValue != "MARKET") && (typeValue != "STOP_MARKET") && (typeValue != "INSTANT") {
+		panic(InvalidOrder("Invalid order type: " + typeValue + ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT."))
 	}
 	if this.Markets == nil {
 
@@ -2019,22 +2019,22 @@ func (this *Foxbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 			"id":   this.ParseNumber(id),
 		},
 		"create": map[string]any{
-			"type":          typeVar,
+			"type":          typeValue,
 			"side":          ToUpper(side),
 			"market_symbol": market["id"],
 		},
 	}
-	if (IsEqual(typeVar, "LIMIT")) || (IsEqual(typeVar, "MARKET")) {
+	if (typeValue == "LIMIT") || (typeValue == "MARKET") {
 		AddElementToObject(request["create"], "quantity", this.AmountToPrecision(symbol, amount))
-		if IsEqual(typeVar, "LIMIT") {
+		if typeValue == "LIMIT" {
 			AddElementToObject(request["create"], "price", this.PriceToPrecision(symbol, price))
 		}
 	}
-	if IsEqual(typeVar, "STOP_MARKET") {
+	if typeValue == "STOP_MARKET" {
 		AddElementToObject(request["create"], "stop_price", this.PriceToPrecision(symbol, price))
 		AddElementToObject(request["create"], "quantity", this.AmountToPrecision(symbol, amount))
 	}
-	if IsEqual(typeVar, "INSTANT") {
+	if typeValue == "INSTANT" {
 		AddElementToObject(request["create"], "amount", this.PriceToPrecision(symbol, amount))
 	}
 
@@ -2078,9 +2078,9 @@ func (this *Foxbit) withdrawBody(ch chan any, code any, amount any, address any,
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2091,18 +2091,17 @@ func (this *Foxbit) withdrawBody(ch chan any, code any, amount any, address any,
 		"amount":              this.NumberToString(amount),
 		"destination_address": address,
 	}
-	if tag != nil {
-		request["destination_tag"] = tag
+	if !IsEqual(tagWithdrawTag, nil) {
+		request["destination_tag"] = tagWithdrawTag
 	}
-	var networkCode *string = nil
-	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
-	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
+	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
+	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
+	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if networkCode != nil {
 		request["network_code"] = this.NetworkCodeToId(networkCode, code)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostWithdrawals(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostWithdrawals(this.Extend(request, paramsNetworkCode))).Raw))
 
 	// {
 	//     "amount": "2",
@@ -2331,11 +2330,12 @@ func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeString(order, "market_symbol")
+	var marketResolved any = market
 	if (market == nil) && (symbol != nil) {
-		market = this.Market(symbol)
+		marketResolved = this.Market(symbol)
 	}
-	if market != nil {
-		symbol = this.SafeString(market, "symbol")
+	if !IsEqual(marketResolved, nil) {
+		symbol = this.SafeString(marketResolved, "symbol")
 	}
 	var timestamp any = this.ParseDate(this.SafeString(order, "created_at"))
 	var price *string = this.SafeString(order, "price")
@@ -2353,9 +2353,9 @@ func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) any {
 		cost = Precise.StringMul(priceToCalculate, amount)
 	}
 	var side *string = this.SafeStringLower(order, "side")
-	var feeCurrency *string = this.SafeStringUpper(market, "quoteId")
+	var feeCurrency *string = this.SafeStringUpper(marketResolved, "quoteId")
 	if side != nil && *side == "buy" {
-		feeCurrency = this.SafeStringUpper(market, "baseId")
+		feeCurrency = this.SafeStringUpper(marketResolved, "baseId")
 	}
 	return this.SafeOrder(map[string]any{
 		"id":                 this.SafeString(order, "id"),
@@ -2365,7 +2365,7 @@ func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) any {
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
 		"status":             this.ParseOrderStatus(this.SafeString(order, "state")),
-		"symbol":             this.SafeString(market, "symbol"),
+		"symbol":             this.SafeString(marketResolved, "symbol"),
 		"type":               this.SafeString(order, "type"),
 		"timeInForce":        this.SafeString(order, "time_in_force"),
 		"postOnly":           this.SafeBool(order, "post_only"),
@@ -2555,9 +2555,9 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
+	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var version any = GetValue(api, 0)
 	var urlPath any = GetValue(api, 1)
@@ -2571,20 +2571,20 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = Add(apiUrl, fullPath)
-	params = this.Omit(params, this.ExtractParams(path))
+	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
 	var timestamp int64 = this.Milliseconds()
 	var query string = ""
 	var signatureQuery string = ""
 	if method == "GET" {
-		var paramKeys []string = ObjectKeys(params)
+		var paramKeys []string = ObjectKeys(paramsOmitted)
 		var paramKeysLength int = len(paramKeys)
 		if paramKeysLength > 0 {
-			query = this.Urlencode(params)
+			query = this.Urlencode(paramsOmitted)
 			url = Add(url, "?"+query)
 		}
 		for i := 0; i < len(paramKeys); i++ {
 			var key string = GetValue(paramKeys, i).(string)
-			var value *string = this.SafeString(params, key)
+			var value *string = this.SafeString(paramsOmitted, key)
 			if value != nil {
 				signatureQuery += key + "=" + *value
 			}
@@ -2593,14 +2593,15 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 	}
+	var requestBody any = body
 	if (method == "POST") || (method == "PUT") {
-		body = this.Json(params)
+		requestBody = this.Json(paramsOmitted)
 	}
 	var bodyToSignature any = ""
-	if body != nil {
-		bodyToSignature = body
+	if !IsEqual(requestBody, nil) {
+		bodyToSignature = requestBody
 	}
-	headers = map[string]any{
+	var headersValue map[string]any = map[string]any{
 		"Content-Type":        "application/json",
 		"X-FB-CLIENT":         "ccxt",
 		"X-FB-CLIENT-VERSION": this.GetCcxtVersion(),
@@ -2609,15 +2610,15 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var preHash *string = SafeStringPtr(Add(Add(Add(Add(this.NumberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature))
 		var signature string = this.Hmac(this.Encode(preHash), this.Encode(this.Secret), sha256, "hex")
-		AddElementToObject(headers, "X-FB-ACCESS-KEY", this.ApiKey)
-		AddElementToObject(headers, "X-FB-ACCESS-TIMESTAMP", this.NumberToString(timestamp))
-		AddElementToObject(headers, "X-FB-ACCESS-SIGNATURE", signature)
+		headersValue["X-FB-ACCESS-KEY"] = this.ApiKey
+		headersValue["X-FB-ACCESS-TIMESTAMP"] = this.NumberToString(timestamp)
+		headersValue["X-FB-ACCESS-SIGNATURE"] = signature
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": headersValue,
 	}
 }
 func (this *Foxbit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

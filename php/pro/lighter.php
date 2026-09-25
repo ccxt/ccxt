@@ -228,11 +228,11 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $request = array(
             'channel' => 'order_book/' . $market['id'],
         );
-        $messageHash = $this->get_message_hash('orderbook', $symbol);
+        $messageHash = $this->get_message_hash('orderbook', $symbolValue);
         $orderbook = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
         return $orderbook->limit();
     }
@@ -255,11 +255,11 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $request = array(
             'channel' => 'order_book/' . $market['id'],
         );
-        $subMessageHash = $this->get_message_hash('orderbook', $symbol);
+        $subMessageHash = $this->get_message_hash('orderbook', $symbolValue);
         $messageHash = 'unsubscribe:' . $subMessageHash;
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
@@ -357,14 +357,14 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchTicker() is only supported for swap markets');
         }
         $request = array(
             'channel' => 'market_stats/' . $market['id'],
         );
-        $messageHash = $this->get_message_hash('ticker', $symbol);
+        $messageHash = $this->get_message_hash('ticker', $symbolValue);
         return Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
     }
 
@@ -386,14 +386,14 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' unWatchTicker() is only supported for swap markets');
         }
         $request = array(
             'channel' => 'market_stats/' . $market['id'],
         );
-        $subMessageHash = $this->get_message_hash('ticker', $symbol);
+        $subMessageHash = $this->get_message_hash('ticker', $symbolValue);
         $messageHash = 'unsubscribe:' . $subMessageHash;
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
@@ -415,8 +415,8 @@ class lighter extends \ccxt\async\lighter {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, true, true);
-        $firstMarket = $this->get_market_from_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true, true);
+        $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
         if (($firstMarket !== null) && ($firstMarket['swap'] !== true)) {
             throw new NotSupported($this->id . ' watchTickers() is only supported for swap markets');
         }
@@ -425,14 +425,14 @@ class lighter extends \ccxt\async\lighter {
         );
         $messageHashes = array();
         $symbolsLength = 0;
-        if ($symbols !== null) {
-            $symbolsLength = count($symbols);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
         }
-        if (($symbols === null) || ($symbolsLength === 0)) {
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             $messageHashes[] = $this->get_message_hash('ticker');
         } else {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = $this->get_message_hash('ticker', $symbol);
             }
         }
@@ -442,7 +442,7 @@ class lighter extends \ccxt\async\lighter {
             $result[$newTicker['symbol']] = $newTicker;
             return $result;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -462,8 +462,8 @@ class lighter extends \ccxt\async\lighter {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, true, true);
-        $firstMarket = $this->get_market_from_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true, true);
+        $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
         if (($firstMarket !== null) && ($firstMarket['swap'] !== true)) {
             throw new NotSupported($this->id . ' unWatchTickers() is only supported for swap markets');
         }
@@ -881,22 +881,23 @@ class lighter extends \ccxt\async\lighter {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $accountIndex = null;
-        list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'watchMyTrades', 'accountIndex', 'account_index'));
+        list($accountIndex, $paramsAccountIndex) = Async\await($this->handleAccountIndex($params, 'watchMyTrades', 'accountIndex', 'account_index'));
         $messageHash = $this->get_message_hash('myTrades');
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = $this->get_message_hash('myTrades', $symbol);
+            $symbolResolved = $market['symbol'];
+            $messageHash = $this->get_message_hash('myTrades', $symbolResolved);
         }
         $request = array(
             'channel' => 'account_all_trades/' . $this->number_to_string($accountIndex),
         );
-        $trades = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
+        $trades = Async\await($this->subscribe_public($messageHash, $this->extend($request, $paramsAccountIndex)));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
@@ -917,14 +918,13 @@ class lighter extends \ccxt\async\lighter {
         if ($symbol !== null) {
             throw new NotSupported($this->id . ' unWatchMyTrades() does not support a $symbol argument, the account trades channel covers every market, unWatch from all markets only');
         }
-        $accountIndex = null;
-        list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'unWatchMyTrades', 'accountIndex', 'account_index'));
+        list($accountIndex, $paramsAccountIndex) = Async\await($this->handleAccountIndex($params, 'unWatchMyTrades', 'accountIndex', 'account_index'));
         $subMessageHash = $this->get_message_hash('myTrades');
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $request = array(
             'channel' => 'account_all_trades/' . $this->number_to_string($accountIndex),
         );
-        return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
+        return Async\await($this->unsubscribe($messageHash, $this->extend($request, $paramsAccountIndex)));
     }
 
     public function parse_ws_liquidation(array $liquidation, ?array $market = null) {
@@ -1088,18 +1088,16 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
-        $type = null;
-        list($type, $params) = $this->handle_param_string($params, 'type', $defaultType);
-        $accountIndex = null;
-        list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'watchBalance', 'accountIndex', 'account_index'));
+        list($type, $paramsType) = $this->handle_param_string($params, 'type', $defaultType);
+        list($accountIndex, $paramsAccountIndex) = Async\await($this->handleAccountIndex($paramsType, 'watchBalance', 'accountIndex', 'account_index'));
         $messageHash = $this->get_message_hash('balances', null, $type);
         $request = array();
         if ($type === 'spot') {
             $request['channel'] = 'account_all_assets/' . $this->number_to_string($accountIndex);
-            return Async\await($this->subscribe_private($messageHash, $this->extend($request, $params)));
+            return Async\await($this->subscribe_private($messageHash, $this->extend($request, $paramsAccountIndex)));
         } else {
             $request['channel'] = 'user_stats/' . $this->number_to_string($accountIndex);
-            return Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
+            return Async\await($this->subscribe_public($messageHash, $this->extend($request, $paramsAccountIndex)));
         }
     }
 
@@ -1215,8 +1213,7 @@ class lighter extends \ccxt\async\lighter {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $accountIndex = null;
-        list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'watchOrders', 'accountIndex', 'account_index'));
+        list($accountIndex, $paramsAccountIndex) = Async\await($this->handleAccountIndex($params, 'watchOrders', 'accountIndex', 'account_index'));
         $messageHash = null;
         $request = array();
         if ($symbol !== null) {
@@ -1227,11 +1224,12 @@ class lighter extends \ccxt\async\lighter {
             $messageHash = $this->get_message_hash('orders');
             $request['channel'] = 'account_all_orders/' . $this->number_to_string($accountIndex);
         }
-        $orders = Async\await($this->subscribe_private($messageHash, $this->extend($request, $params)));
+        $orders = Async\await($this->subscribe_private($messageHash, $this->extend($request, $paramsAccountIndex)));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbol, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limitResolved, true);
     }
 
     public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -1251,8 +1249,7 @@ class lighter extends \ccxt\async\lighter {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $accountIndex = null;
-        list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'unWatchOrders', 'accountIndex', 'account_index'));
+        list($accountIndex, $paramsAccountIndex) = Async\await($this->handleAccountIndex($params, 'unWatchOrders', 'accountIndex', 'account_index'));
         $subMessageHash = null;
         $request = array();
         if ($symbol !== null) {
@@ -1264,7 +1261,7 @@ class lighter extends \ccxt\async\lighter {
             $request['channel'] = 'account_all_orders/' . $this->number_to_string($accountIndex);
         }
         $messageHash = 'unsubscribe:' . $subMessageHash;
-        return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
+        return Async\await($this->unsubscribe($messageHash, $this->extend($request, $paramsAccountIndex)));
     }
 
     public function request_id(string $url): string {

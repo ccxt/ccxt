@@ -1998,8 +1998,8 @@ class gate extends Exchange {
                     $defaultSettle = 'usdt';
                 }
                 $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
-                $params = $this->omit($params, 'settle');
                 $request['settle'] = $settle;
+                return array( $request, $this->omit($params, 'settle') );
             }
         }
         return array( $request, $params );
@@ -2060,7 +2060,7 @@ class gate extends Exchange {
          */
         $defaultMarginMode = $this->safe_string_lower_2($this->options, 'defaultMarginMode', 'marginMode', 'spot'); // 'margin' is isolated margin on gate's api
         $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'account', $defaultMarginMode);
-        $params = $this->omit($params, array( 'marginMode', 'account' ));
+        $paramsOmitted = $this->omit($params, array( 'marginMode', 'account' ));
         if ($marginMode === 'cross') {
             $marginMode = 'cross_margin';
         } elseif ($marginMode === 'isolated') {
@@ -2078,11 +2078,12 @@ class gate extends Exchange {
             }
         }
         $isUnifiedAccount = false;
-        list($isUnifiedAccount, $params) = $this->handle_option_bool_and_params($params, 'getMarginMode', 'unifiedAccount', false);
+        $paramsUnifiedAccount = array();
+        list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($paramsOmitted, 'getMarginMode', 'unifiedAccount', false);
         if ($isUnifiedAccount) {
             $marginMode = 'unified';
         }
-        return array( $marginMode, $params );
+        return array( $marginMode, $paramsUnifiedAccount );
     }
 
     public function get_settlement_currencies(?string $type, ?string $method): array {
@@ -2291,10 +2292,10 @@ class gate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $market = null;
-        if ($symbols !== null) {
-            $firstSymbol = $this->safe_string($symbols, 0);
+        if ($symbolsNormalized !== null) {
+            $firstSymbol = $this->safe_string($symbolsNormalized, 0);
             $market = $this->market($firstSymbol);
         }
         list($request, $query) = $this->prepare_request($market, 'swap', $params);
@@ -2343,7 +2344,7 @@ class gate extends Exchange {
         //        }
         //    ]
         //
-        return $this->parse_funding_rates($response, $symbols);
+        return $this->parse_funding_rates($response, $symbolsNormalized);
     }
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
@@ -2446,7 +2447,7 @@ class gate extends Exchange {
         $response = Async\await($this->privateWalletGetDepositAddress($this->extend($request, $params)));
         $addresses = $this->safe_value($response, 'multichain_addresses');
         $currencyId = $this->safe_string($response, 'currency');
-        $code = $this->safe_currency_code($currencyId);
+        $codeValue = $this->safe_currency_code($currencyId);
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
             $entry = $addresses[$i];
@@ -2468,8 +2469,8 @@ class gate extends Exchange {
             $tag = $this->safe_string($entry, 'payment_id');
             $result[$network] = array(
                 'info' => $entry,
-                'code' => $code, // kept here for backward-compatibility, but will be removed soon
-                'currency' => $code,
+                'code' => $codeValue, // kept here for backward-compatibility, but will be removed soon
+                'currency' => $codeValue,
                 'address' => $address,
                 'tag' => $tag,
             );
@@ -2524,9 +2525,8 @@ class gate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
-        $chainsIndexedByIdRaw = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
+        $chainsIndexedByIdRaw = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsNetworkCode));
         $chainsIndexedById = $chainsIndexedByIdRaw;
         $selectedNetworkIdOrCode = $this->select_network_code_from_unified_networks($code, $networkCode, $chainsIndexedById);
         return $chainsIndexedById[$selectedNetworkIdOrCode];
@@ -2868,8 +2868,8 @@ class gate extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
         }
+        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
         list($type, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
         list($request, $requestParams) = $this->prepare_request($market, $type, $query);
         $request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
@@ -2899,7 +2899,7 @@ class gate extends Exchange {
         //        ...
         //    ]
         //
-        return $this->parse_funding_histories($response, $symbol, $since, $limit);
+        return $this->parse_funding_histories($response, $symbolResolved, $since, $limit);
     }
 
     public function parse_funding_histories(mixed $response, ?string $symbol, ?int $since, ?int $limit): array {
@@ -2925,11 +2925,11 @@ class gate extends Exchange {
         //
         $timestamp = $this->safe_timestamp($info, 'time');
         $marketId = $this->safe_string($info, 'text');
-        $market = $this->safe_market($marketId, $market, '_', 'swap');
+        $marketResolved = $this->safe_market($marketId, $market, '_', 'swap');
         return array(
             'info' => $info,
-            'symbol' => $this->safe_string($market, 'symbol'),
-            'code' => $this->safe_string($market, 'settle'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
+            'code' => $this->safe_string($marketResolved, 'settle'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'id' => null,
@@ -2969,14 +2969,9 @@ class gate extends Exchange {
         //
         list($request, $query) = $this->prepare_request($market, $market['type'], $params);
         if ($limit !== null) {
-            if ($market['spot'] === true) {
-                // gateeu returns an empty book for a spot limit above 100
-                $maxSpotLimit = $this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000);
-                $limit = min($limit, $maxSpotLimit);
-            } else {
-                $limit = min($limit, 300);
-            }
-            $request['limit'] = $limit;
+            // gateeu returns an empty book for a spot limit above 100
+            $maxLimit = ($market['spot'] === true) ? $this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000) : 300;
+            $request['limit'] = min($limit, $maxLimit);
         }
         $request['with_id'] = true;
         if (($market['spot'] === true) || ($market['margin'] === true)) {
@@ -3261,8 +3256,8 @@ class gate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
-        $first = $this->safe_string($symbols, 0);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $first = $this->safe_string($symbolsNormalized, 0);
         $market = null;
         if ($first !== null) {
             $market = $this->market($first);
@@ -3277,7 +3272,7 @@ class gate extends Exchange {
         } elseif ($type === 'future') {
             $response = Async\await($this->publicDeliveryGetSettleTickers($this->extend($request, $requestParams)));
         } elseif ($type === 'option') {
-            $this->check_required_argument('fetchTickers', $symbols, 'symbols');
+            $this->check_required_argument('fetchTickers', $symbolsNormalized, 'symbols');
             $marketId = $this->safe_string($market, 'id');
             $optionParts = explode('-', $marketId);
             $request['underlying'] = $this->safe_string($optionParts, 0);
@@ -3285,7 +3280,7 @@ class gate extends Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchTickers() not support this $market $type, provide $symbols or set $params["defaultType"] to one from spot/margin/swap/future/option');
         }
-        return $this->parse_tickers($response, $symbols);
+        return $this->parse_tickers($response, $symbolsNormalized);
     }
 
     public function parse_balance_helper(array $entry) {
@@ -3327,10 +3322,11 @@ class gate extends Exchange {
         }
         Async\await($this->load_unified_status());
         $symbol = $this->safe_string($params, 'symbol');
-        $params = $this->omit($params, 'symbol');
+        $paramsOmitted = $this->omit($params, 'symbol');
         $isUnifiedAccount = false;
-        list($isUnifiedAccount, $params) = $this->handle_option_bool_and_params($params, 'fetchBalance', 'unifiedAccount', false);
-        list($type, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $paramsUnifiedAccount = array();
+        list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($paramsOmitted, 'fetchBalance', 'unifiedAccount', false);
+        list($type, $query) = $this->handle_market_type_and_params('fetchBalance', null, $paramsUnifiedAccount);
         list($request, $requestParams) = $this->prepare_request(null, $type, $query);
         list($marginMode, $requestQuery) = $this->get_margin_mode(false, $requestParams);
         if ($symbol !== null) {
@@ -3338,7 +3334,7 @@ class gate extends Exchange {
             $request['currency_pair'] = $market['id'];
         }
         if ($isUnifiedAccount) {
-            $response = Async\await($this->privateUnifiedGetAccounts($this->extend($request, $params)));
+            $response = Async\await($this->privateUnifiedGetAccounts($this->extend($request, $paramsUnifiedAccount)));
         } elseif ($type === 'spot') {
             if ($marginMode === 'spot') {
                 $response = Async\await($this->privateSpotGetAccounts($this->extend($request, $requestQuery)));
@@ -3620,28 +3616,28 @@ class gate extends Exchange {
         }
         $market = $this->market($symbol);
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 1000));
         }
         if ($market['option'] === true) {
-            return Async\await($this->fetch_option_ohlcv($symbol, $timeframe, $since, $limit, $params));
+            return Async\await($this->fetch_option_ohlcv($symbol, $timeframe, $since, $limit, $paramsPaginate));
         }
-        $price = $this->safe_string($params, 'price');
-        $request = array();
-        list($request, $params) = $this->prepare_request($market, null, $params);
+        $price = $this->safe_string($paramsPaginate, 'price');
+        list($request, $paramsRequest) = $this->prepare_request($market, null, $paramsPaginate);
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $maxLimit = ($market['contract'] === true) ? 1999 : 1000;
-        $limit = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
-        $until = $this->safe_integer($params, 'until');
+        $limitValue = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
+        $until = $this->safe_integer($paramsRequest, 'until');
         if ($until !== null) {
             $until = $this->parse_to_int($until / 1000);
-            $params = $this->omit($params, 'until');
         }
+        $paramsOmitted = $this->omit($paramsRequest, 'until');
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
             $request['from'] = $this->parse_to_int($since / 1000);
-            $distance = ($limit - 1) * $duration;
+            $distance = ($limitValue - 1) * $duration;
             $toTimestamp = $this->sum($request['from'], $distance);
             $currentTimestamp = $this->seconds();
             $to = min($toTimestamp, $currentTimestamp);
@@ -3654,7 +3650,7 @@ class gate extends Exchange {
             if ($until !== null) {
                 $request['to'] = $until;
             }
-            $request['limit'] = $limit;
+            $request['limit'] = $limitValue;
         }
         $response = array();
         if ($market['contract'] === true) {
@@ -3662,17 +3658,20 @@ class gate extends Exchange {
             $isIndex = ($price === 'index');
             if ($isMark || $isIndex) {
                 $request['contract'] = $price . '_' . $market['id'];
-                $params = $this->omit($params, 'price');
+            }
+            $paramsContract = $paramsOmitted;
+            if ($isMark || $isIndex) {
+                $paramsContract = $this->omit($paramsOmitted, 'price');
             }
             if ($market['future'] === true) {
-                $response = Async\await($this->publicDeliveryGetSettleCandlesticks($this->extend($request, $params)));
+                $response = Async\await($this->publicDeliveryGetSettleCandlesticks($this->extend($request, $paramsContract)));
             } elseif ($market['swap'] === true) {
-                $response = Async\await($this->publicFuturesGetSettleCandlesticks($this->extend($request, $params)));
+                $response = Async\await($this->publicFuturesGetSettleCandlesticks($this->extend($request, $paramsContract)));
             }
         } else {
-            $response = Async\await($this->publicSpotGetCandlesticks($this->extend($request, $params)));
+            $response = Async\await($this->publicSpotGetCandlesticks($this->extend($request, $paramsOmitted)));
         }
-        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limitValue);
     }
 
     public function fetch_option_ohlcv(string $symbol, ?string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3685,10 +3684,9 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $request = array();
-        list($request, $params) = $this->prepare_request($market, null, $params);
+        list($request, $paramsValue) = $this->prepare_request($market, null, $params);
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $response = Async\await($this->publicOptionsGetCandlesticks($this->extend($request, $params)));
+        $response = Async\await($this->publicOptionsGetCandlesticks($this->extend($request, $paramsValue)));
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
@@ -3717,28 +3715,27 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate));
         }
         $market = $this->market($symbol);
         if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
-        $request = array();
-        list($request, $params) = $this->prepare_request($market, null, $params);
+        list($request, $paramsRequest) = $this->prepare_request($market, null, $paramsPaginate);
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
             $request['from'] = $this->parse_to_int($since / 1000);
         }
-        $until = $this->safe_integer($params, 'until');
+        $until = $this->safe_integer($paramsRequest, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, 'until');
             $request['to'] = $this->parse_to_int($until / 1000);
         }
-        $response = Async\await($this->publicFuturesGetSettleFundingRate($this->extend($request, $params)));
+        $response = Async\await($this->publicFuturesGetSettleFundingRate($this->extend($request, $this->omit($paramsRequest, 'until'))));
         //
         //     {
         //         "r": "0.00063521",
@@ -3833,9 +3830,10 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $paramsPaginate));
         }
         $market = $this->market($symbol);
         //
@@ -3859,10 +3857,9 @@ class gate extends Exchange {
         //         'to': this.seconds (), // end time in seconds, default to current time
         //     };
         //
-        list($request, $query) = $this->prepare_request($market, null, $params);
-        $until = $this->safe_integer_2($params, 'to', 'until');
+        list($request, $query) = $this->prepare_request($market, null, $paramsPaginate);
+        $until = $this->safe_integer_2($paramsPaginate, 'to', 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until' ));
             $request['to'] = $this->parse_to_int($until / 1000);
         }
         if ($limit !== null) {
@@ -3982,10 +3979,10 @@ class gate extends Exchange {
         /**
          * Fetch personal trading history
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records
-         * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
-         * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-3
-         * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-4
+         * @see https://www.gate.com/docs/developers/apiv4/en/#$query-personal-trading-records
+         * @see https://www.gate.com/docs/developers/apiv4/en/#$query-personal-trading-records-by-time-range
+         * @see https://www.gate.com/docs/developers/apiv4/en/#$query-personal-trading-records-3
+         * @see https://www.gate.com/docs/developers/apiv4/en/#$query-personal-trading-records-4
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -3998,7 +3995,7 @@ class gate extends Exchange {
          * @param {string} [$params->order_id] *spot only* Filter trades with specified order ID. $symbol is also required if this field is present
          * @param {string} [$params->order] *$contract only* Futures order ID, return related data only if specified
          * @param {int} [$params->offset] *$contract only* list offset, starting from 0
-         * @param {string} [$params->last_id] *$contract only* specify list staring point using the id of last record in previous list-query results
+         * @param {string} [$params->last_id] *$contract only* specify list staring point using the id of last record in previous list-$query results
          * @param {int} [$params->count_total] *$contract only* whether to return total number matched, default to 0(no return)
          * @param {bool} [$params->unifiedAccount] set to true for fetching trades in a unified account
          * @param {bool} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -4009,28 +4006,28 @@ class gate extends Exchange {
         }
         Async\await($this->load_unified_status());
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate));
         }
-        $type = null;
         $marginMode = null;
         $request = array();
+        $query = null;
         $market = ($symbol !== null) ? $this->market($symbol) : null;
-        $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, array( 'until' ));
-        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        $until = $this->safe_integer($paramsPaginate, 'until');
+        $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchMyTrades', $market, $paramsOmitted);
         $contract = ($type === 'swap') || ($type === 'future') || ($type === 'option');
         if ($contract) {
-            list($request, $params) = $this->prepare_request($market, $type, $params);
-            if ($type === 'option') {
-                $params = $this->omit($params, 'order_id');
-            }
+            $contractQuery = null;
+            list($request, $contractQuery) = $this->prepare_request($market, $type, $paramsMarketType);
+            $query = ($type === 'option') ? $this->omit($contractQuery, 'order_id') : $contractQuery;
         } else {
             if ($market !== null) {
                 $request['currency_pair'] = $market['id']; // Should always be set for non-trigger
             }
-            list($marginMode, $params) = $this->get_margin_mode(false, $params);
+            list($marginMode, $query) = $this->get_margin_mode(false, $paramsMarketType);
             $request['account'] = $marginMode;
         }
         if ($limit !== null) {
@@ -4043,13 +4040,13 @@ class gate extends Exchange {
             $request['to'] = $this->parse_to_int($until / 1000);
         }
         if ($type === 'spot' || $type === 'margin') {
-            $response = Async\await($this->privateSpotGetMyTrades($this->extend($request, $params)));
+            $response = Async\await($this->privateSpotGetMyTrades($this->extend($request, $query)));
         } elseif ($type === 'swap') {
-            $response = Async\await($this->privateFuturesGetSettleMyTradesTimerange($this->extend($request, $params)));
+            $response = Async\await($this->privateFuturesGetSettleMyTradesTimerange($this->extend($request, $query)));
         } elseif ($type === 'future') {
-            $response = Async\await($this->privateDeliveryGetSettleMyTrades($this->extend($request, $params)));
+            $response = Async\await($this->privateDeliveryGetSettleMyTrades($this->extend($request, $query)));
         } elseif ($type === 'option') {
-            $response = Async\await($this->privateOptionsGetMyTrades($this->extend($request, $params)));
+            $response = Async\await($this->privateOptionsGetMyTrades($this->extend($request, $query)));
         } else {
             throw new NotSupported($this->id . ' fetchMyTrades() not support this $market $type->');
         }
@@ -4237,7 +4234,7 @@ class gate extends Exchange {
         if (is_array($trade) && array_key_exists('contract' ?? '', $trade)) {
             $marketType = 'contract';
         }
-        $market = $this->safe_market($marketId, $market, '_', $marketType);
+        $marketResolved = $this->safe_market($marketId, $market, '_', $marketType);
         $amountString = $this->safe_string_2($trade, 'amount', 'size');
         $priceString = $this->safe_string($trade, 'price');
         $contractSide = 'buy';
@@ -4255,7 +4252,7 @@ class gate extends Exchange {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             if ($feeCurrencyCode === null) {
-                $feeCurrencyCode = $this->safe_string($market, 'settle');
+                $feeCurrencyCode = $this->safe_string($marketResolved, 'settle');
             }
             $fees[] = array(
                 'cost' => $feeAmount,
@@ -4280,7 +4277,7 @@ class gate extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'order' => $orderId,
             'type' => null,
             'side' => $side,
@@ -4290,7 +4287,7 @@ class gate extends Exchange {
             'cost' => null,
             'fee' => null,
             'fees' => $fees,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -4315,9 +4312,10 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $params));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $paramsPaginate));
         }
         $request = array();
         $currency = null;
@@ -4333,8 +4331,8 @@ class gate extends Exchange {
             $request['from'] = $start;
             $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
         }
-        list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
-        $response = Async\await($this->privateWalletGetDeposits($this->extend($request, $params)));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('to', $request, $paramsPaginate, 0.001);
+        $response = Async\await($this->privateWalletGetDeposits($this->extend($requestUntil, $paramsUntil)));
         return $this->parse_transactions($response, $currency);
     }
 
@@ -4360,9 +4358,10 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $params));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $paramsPaginate));
         }
         $request = array();
         $currency = null;
@@ -4378,8 +4377,8 @@ class gate extends Exchange {
             $request['from'] = $start;
             $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
         }
-        list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
-        $response = Async\await($this->privateWalletGetWithdrawals($this->extend($request, $params)));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('to', $request, $paramsPaginate, 0.001);
+        $response = Async\await($this->privateWalletGetWithdrawals($this->extend($requestUntil, $paramsUntil)));
         return $this->parse_transactions($response, $currency);
     }
 
@@ -4400,7 +4399,7 @@ class gate extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4411,15 +4410,14 @@ class gate extends Exchange {
             'address' => $address,
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        if ($tag !== null) {
-            $request['memo'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['memo'] = $tagWithdrawTag;
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
             $request['chain'] = $this->network_code_to_id($networkCode, $code);
         }
-        $response = Async\await($this->privateWithdrawalsPostWithdrawals($this->extend($request, $params)));
+        $response = Async\await($this->privateWithdrawalsPostWithdrawals($this->extend($request, $paramsNetworkCode)));
         //
         //    {
         //        "id": "w13389675",
@@ -4803,16 +4801,15 @@ class gate extends Exchange {
         }
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $exchangeSpecificTimeInForce = $this->safe_string_lower_n($params, array( 'timeInForce', 'tif', 'time_in_force' ));
-        $postOnly = null;
-        list($postOnly, $params) = $this->handle_post_only($type === 'market', $exchangeSpecificTimeInForce === 'poc', $params);
-        $timeInForce = $this->handle_time_in_force($params);
+        list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $exchangeSpecificTimeInForce === 'poc', $params);
+        $timeInForce = $this->handle_time_in_force($paramsPostOnly);
         if ($postOnly === true) {
             $timeInForce = 'poc';
         }
         // we only omit the unified params here
         // this is because the other params will get extended into the request
-        $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly', 'clientOrderId' ));
+        $clientOrderId = $this->safe_string_2($paramsPostOnly, 'text', 'clientOrderId');
+        $query = $this->omit($paramsPostOnly, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly', 'clientOrderId' ));
         $isLimitOrder = ($type === 'limit');
         $isMarketOrder = ($type === 'market');
         if ($isLimitOrder && $price === null) {
@@ -4828,23 +4825,24 @@ class gate extends Exchange {
                     $timeInForce = $exchangeSpecificTif;
                 }
             }
-            if ($contract === true) {
-                $price = 0;
-            }
         }
+        $priceResolved = $price;
+        if ($isMarketOrder && ($contract === true)) {
+            $priceResolved = 0;
+        }
+        $contractAmount = 0;
         if ($contract === true) {
-            $isClose = $this->safe_bool($params, 'close');
-            if ($isClose === true) {
-                $amount = 0;
-            } else {
+            $isClose = $this->safe_bool($query, 'close');
+            if ($isClose !== true) {
                 $amountToPrecision = $this->amount_to_precision($symbol, $amount);
                 $signedAmount = $amountToPrecision;
                 if ($side === 'sell') {
                     $signedAmount = Precise::string_neg($amountToPrecision);
                 }
-                $amount = intval($signedAmount);
+                $contractAmount = intval($signedAmount);
             }
         }
+        $amountResolved = ($contract === true) ? $contractAmount : $amount;
         $request = null;
         $nonTriggerOrder = !$isTpsl && ($trigger === null);
         if ($nonTriggerOrder) {
@@ -4852,7 +4850,7 @@ class gate extends Exchange {
                 // contract order
                 $request = array(
                     'contract' => $market['id'], // filled in prepareRequest above
-                    'size' => $amount, // int64, positive = bid, negative = ask
+                    'size' => $amountResolved, // int64, positive = bid, negative = ask
                     // 'iceberg': 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     // 'close': false, // true to close the position, with size set to 0
                     // 'reduce_only': false, // St as true to be reduce-only order
@@ -4866,7 +4864,7 @@ class gate extends Exchange {
                 if ($isMarketOrder) {
                     $request['price'] = '0'; // set to 0 for market orders
                 } else {
-                    $request['price'] = ($price === 0) ? '0' : $this->price_to_precision($symbol, $price);
+                    $request['price'] = ($priceResolved === 0) ? '0' : $this->price_to_precision($symbol, $priceResolved);
                 }
                 if ($reduceOnly !== null) {
                     $request['reduce_only'] = $reduceOnly;
@@ -4876,7 +4874,7 @@ class gate extends Exchange {
                 }
             } else {
                 $marginMode = null;
-                list($marginMode, $params) = $this->get_margin_mode(false, $params);
+                list($marginMode, $query) = $this->get_margin_mode(false, $query);
                 // spot order
                 $request = array(
                     // 'text': clientOrderId, // 't-abcdef1234567890',
@@ -4892,35 +4890,35 @@ class gate extends Exchange {
                 if ($isMarketOrder && ($side === 'buy')) {
                     $quoteAmount = null;
                     $createMarketBuyOrderRequiresPrice = true;
-                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                    $cost = $this->safe_number($params, 'cost');
-                    $params = $this->omit($params, 'cost');
+                    list($createMarketBuyOrderRequiresPrice, $query) = $this->handle_option_bool_and_params($query, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    $cost = $this->safe_number($query, 'cost');
+                    $query = $this->omit($query, 'cost');
                     if ($cost !== null) {
                         $quoteAmount = $this->cost_to_precision($symbol, $cost);
                     } elseif ($createMarketBuyOrderRequiresPrice) {
-                        if ($price === null) {
+                        if ($priceResolved === null) {
                             throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
                         } else {
-                            $amountString = $this->number_to_string($amount);
-                            $priceString = $this->number_to_string($price);
+                            $amountString = $this->number_to_string($amountResolved);
+                            $priceString = $this->number_to_string($priceResolved);
                             $costRequest = Precise::string_mul($amountString, $priceString);
                             $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                         }
                     } else {
-                        $quoteAmount = $this->cost_to_precision($symbol, $amount);
+                        $quoteAmount = $this->cost_to_precision($symbol, $amountResolved);
                     }
                     $request['amount'] = $quoteAmount;
                 } else {
-                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                    $request['amount'] = $this->amount_to_precision($symbol, $amountResolved);
                 }
                 if ($isLimitOrder) {
-                    $request['price'] = $this->price_to_precision($symbol, $price);
+                    $request['price'] = $this->price_to_precision($symbol, $priceResolved);
                 }
                 if ($timeInForce !== null) {
                     $request['time_in_force'] = $timeInForce;
                 }
             }
-            $textIsRequired = $this->safe_bool($params, 'textIsRequired', false);
+            $textIsRequired = $this->safe_bool($query, 'textIsRequired', false);
             if ($clientOrderId !== null) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
@@ -4929,7 +4927,7 @@ class gate extends Exchange {
                 if (strlen($clientOrderId) > 28) {
                     throw new BadRequest($this->id . ' createOrder () $clientOrderId or text param must be up to 28 characters');
                 }
-                $params = $this->omit($params, 'textIsRequired');
+                $query = $this->omit($query, 'textIsRequired');
                 if ($clientOrderId[0] !== 't') {
                     $clientOrderId = 't-' . $clientOrderId;
                 }
@@ -4949,7 +4947,7 @@ class gate extends Exchange {
                 $request = array(
                     'initial' => array(
                         'contract' => $market['id'],
-                        'size' => $amount, // positive = buy, negative = sell, set to 0 to close the position
+                        'size' => $amountResolved, // positive = buy, negative = sell, set to 0 to close the position
                         // 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
                         // 'close': false, // set to true if trying to close the position
                         // 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
@@ -4961,7 +4959,7 @@ class gate extends Exchange {
                 if ($type === 'market') {
                     $request['initial']['price'] = '0';
                 } else {
-                    $request['initial']['price'] = ($price === 0) ? '0' : $this->price_to_precision($symbol, $price);
+                    $request['initial']['price'] = ($priceResolved === 0) ? '0' : $this->price_to_precision($symbol, $priceResolved);
                 }
                 if ($trigger === null) {
                     $rule = null;
@@ -4975,11 +4973,11 @@ class gate extends Exchange {
                         $rule = ($side === 'buy') ? 2 : 1;
                         $triggerOrderPrice = $this->price_to_precision($symbol, $takeProfitPrice);
                     }
-                    $priceType = $this->safe_integer($params, 'price_type', 0);
+                    $priceType = $this->safe_integer($query, 'price_type', 0);
                     if ($priceType < 0 || $priceType > 2) {
                         throw new BadRequest($this->id . ' createOrder () price_type should be 0 latest deal $price, 1 mark $price, 2 index price');
                     }
-                    $params = $this->omit($params, array( 'price_type' ));
+                    $query = $this->omit($query, array( 'price_type' ));
                     $request['trigger'] = array(
                         // 'strategy_type': 0, // 0 = by price, 1 = by price gap, only 0 is supported currently
                         'price_type' => $priceType, // 0 latest deal price, 1 mark price, 2 index price
@@ -5001,7 +4999,7 @@ class gate extends Exchange {
                 // spot conditional order
                 $options = $this->safe_dict($this->options, 'createOrder', array());
                 $marginMode = null;
-                list($marginMode, $params) = $this->get_margin_mode(true, $params);
+                list($marginMode, $query) = $this->get_margin_mode(true, $query);
                 if ($timeInForce === null) {
                     $timeInForce = 'gtc';
                 }
@@ -5009,8 +5007,8 @@ class gate extends Exchange {
                     'put' => array(
                         'type' => $type,
                         'side' => $side,
-                        'price' => $this->price_to_precision($symbol, $price),
-                        'amount' => $this->amount_to_precision($symbol, $amount),
+                        'price' => $this->price_to_precision($symbol, $priceResolved),
+                        'amount' => $this->amount_to_precision($symbol, $amountResolved),
                         'account' => $marginMode,
                         'time_in_force' => $timeInForce, // gtc, ioc (ioc is for taker only, so shouldn't be in conditional order)
                     ),
@@ -5018,7 +5016,7 @@ class gate extends Exchange {
                 );
                 if ($trigger === null) {
                     $defaultExpiration = $this->safe_integer($options, 'expiration');
-                    $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
+                    $expiration = $this->safe_integer($query, 'expiration', $defaultExpiration);
                     $rule = null;
                     $triggerOrderPrice = null;
                     if ($isStopLossOrder) {
@@ -5041,7 +5039,7 @@ class gate extends Exchange {
                 }
             }
         }
-        return $this->extend($request, $params);
+        return $this->extend($request, $query);
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
@@ -5068,17 +5066,17 @@ class gate extends Exchange {
         if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        $params = $this->extend($params, array( 'createMarketBuyOrderRequiresPrice' => false ));
-        return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        $paramsExtended = $this->extend($params, array( 'createMarketBuyOrderRequiresPrice' => false ));
+        return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $paramsExtended));
     }
 
     public function edit_order_request(string $id, ?string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('editOrder', $market, $params);
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('editOrder', $market, $params);
         $account = $this->convert_type_to_account($marketType);
         $isUnifiedAccount = false;
-        list($isUnifiedAccount, $params) = $this->handle_option_bool_and_params($params, 'editOrder', 'unifiedAccount', false);
+        $paramsUnifiedAccount = array();
+        list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($paramsMarketType, 'editOrder', 'unifiedAccount', false);
         if ($isUnifiedAccount) {
             $account = 'unified';
         }
@@ -5111,7 +5109,7 @@ class gate extends Exchange {
         if ($market['spot'] !== true) {
             $request['settle'] = $market['settleId'];
         }
-        return $this->extend($request, $params);
+        return $this->extend($request, $paramsUnifiedAccount);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
@@ -5556,17 +5554,17 @@ class gate extends Exchange {
     public function fetch_order_request(string $id, ?string $symbol = null, $params = array()): array {
         $market = ($symbol === null) ? null : $this->market($symbol);
         $trigger = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
-        $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
-        $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
+        $paramsOmitted = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
+        $clientOrderId = $this->safe_string_2($paramsOmitted, 'text', 'clientOrderId');
         $orderId = $id;
         if ($clientOrderId !== null) {
-            $params = $this->omit($params, array( 'text', 'clientOrderId' ));
             if ($clientOrderId[0] !== 't') {
                 $clientOrderId = 't-' . $clientOrderId;
             }
             $orderId = $clientOrderId;
         }
-        list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+        $paramsOrder = ($clientOrderId !== null) ? $this->omit($paramsOmitted, array( 'text', 'clientOrderId' )) : $paramsOmitted;
+        list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $paramsOrder);
         $contract = ($type === 'swap') || ($type === 'future') || ($type === 'option');
         list($request, $requestParams) = $contract ? $this->prepare_request($market, $type, $query) : $this->spot_order_prepare_request($market, $trigger, $query);
         $request['order_id'] = (string) $orderId;
@@ -5691,38 +5689,35 @@ class gate extends Exchange {
         }
         Async\await($this->load_unified_status());
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
         if ($paginate) {
             // see https://github.com/ccxt/ccxt/issues/22825
-            return Async\await($this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $paramsPaginate));
         }
-        $until = $this->safe_integer($params, 'until');
+        $until = $this->safe_integer($paramsPaginate, 'until');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
         }
-        $res = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
+        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $res = $this->handle_market_type_and_params('fetchClosedOrders', $market, $paramsPaginate);
         $type = $this->safe_string($res, 0);
-        $useHistorical = false;
-        list($useHistorical, $params) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'historical', false);
+        list($useHistorical, $paramsHistorical) = $this->handle_option_bool_and_params($paramsPaginate, 'fetchClosedOrders', 'historical', false);
         if (!$useHistorical && (($since === null && $until === null) || ($type !== 'swap'))) {
-            return Async\await($this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params));
+            return Async\await($this->fetch_orders_by_status('finished', $symbolResolved, $since, $limit, $paramsHistorical));
         }
-        $params = $this->omit($params, 'type');
-        $request = array();
-        list($request, $params) = $this->prepare_request($market, $type, $params);
+        list($request, $paramsRequest) = $this->prepare_request($market, $type, $this->omit($paramsHistorical, 'type'));
         if ($since !== null) {
             $request['from'] = $this->parse_to_int($since / 1000);
         }
         if ($until !== null) {
-            $params = $this->omit($params, 'until');
             $request['to'] = $this->parse_to_int($until / 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = Async\await($this->privateFuturesGetSettleOrdersTimerange($this->extend($request, $params)));
+        $response = Async\await($this->privateFuturesGetSettleOrdersTimerange($this->extend($request, $this->omit($paramsRequest, 'until'))));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -5730,22 +5725,17 @@ class gate extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
         }
-        $trigger = null;
-        list($trigger, $params) = $this->handle_param_bool_2($params, 'trigger', 'stop');
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
+        list($trigger, $paramsTrigger) = $this->handle_param_bool_2($params, 'trigger', 'stop');
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $paramsTrigger);
         $spot = ($type === 'spot') || ($type === 'margin');
         $request = array();
-        list($request, $params) = $spot ? $this->multi_order_spot_prepare_request($market, $trigger, $params) : $this->prepare_request($market, $type, $params);
+        $query = array();
+        list($request, $query) = $spot ? $this->multi_order_spot_prepare_request($market, $trigger, $paramsMarketType) : $this->prepare_request($market, $type, $paramsMarketType);
         if ($spot && ($trigger === true)) {
             $request = $this->omit($request, 'account');
         }
-        if ($status === 'closed') {
-            $status = 'finished';
-        }
-        $request['status'] = $status;
+        $request['status'] = ($status === 'closed') ? 'finished' : $status;
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
@@ -5753,13 +5743,13 @@ class gate extends Exchange {
             if ($since !== null) {
                 $request['from'] = $this->parse_to_int($since / 1000);
             }
-            $until = $this->safe_integer($params, 'until');
+            $until = $this->safe_integer($query, 'until');
             if ($until !== null) {
-                $params = $this->omit($params, 'until');
+                $query = $this->omit($query, 'until');
                 $request['to'] = $this->parse_to_int($until / 1000);
             }
         }
-        list($lastId, $finalParams) = $this->handle_param_string_2($params, 'lastId', 'last_id');
+        list($lastId, $finalParams) = $this->handle_param_string_2($query, 'lastId', 'last_id');
         if ($lastId !== null) {
             $request['last_id'] = $lastId;
         }
@@ -5778,13 +5768,13 @@ class gate extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
         }
-        // don't omit here, omits done in prepareOrdersByStatusRequest
+        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
         $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $res = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         $type = $this->safe_string($res, 0);
-        list($request, $requestParams) = $this->prepare_orders_by_status_request($status, $symbol, $since, $limit, $params);
+        // don't omit here, omits done in prepareOrdersByStatusRequest
+        list($request, $requestParams) = $this->prepare_orders_by_status_request($status, $symbolResolved, $since, $limit, $params);
         $spot = ($type === 'spot') || ($type === 'margin');
         $openStatus = ($status === 'open');
         $openSpotOrders = $spot && $openStatus && ($trigger !== true);
@@ -5972,7 +5962,7 @@ class gate extends Exchange {
             $result = $spotResult;
         }
         $orders = $this->parse_orders($result, $market, $since, $limit);
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limit);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -6004,8 +5994,8 @@ class gate extends Exchange {
         Async\await($this->load_unified_status());
         $market = ($symbol === null) ? null : $this->market($symbol);
         $trigger = $this->safe_bool_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
-        $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
-        list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        $paramsOmitted = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
+        list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $paramsOmitted);
         list($request, $requestParams) = ($type === 'spot' || $type === 'margin') ? $this->spot_order_prepare_request($market, $trigger, $query) : $this->prepare_request($market, $type, $query);
         $request['order_id'] = $id;
         if ($type === 'spot' || $type === 'margin') {
@@ -6140,7 +6130,6 @@ class gate extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $type = null;
         $defaultSettle = null;
         if ($market === null) {
             $defaultSettle = 'usdt';
@@ -6148,7 +6137,7 @@ class gate extends Exchange {
             $defaultSettle = $market['settle'];
         }
         $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
-        list($type, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
         $isSpot = ($type === 'spot');
         if ($isSpot && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrders requires a $symbol argument for spot markets');
@@ -6163,7 +6152,7 @@ class gate extends Exchange {
                 );
                 $ordersRequests[] = $orderItem;
             }
-            return Async\await($this->cancel_orders_for_symbols($ordersRequests, $params));
+            return Async\await($this->cancel_orders_for_symbols($ordersRequests, $paramsMarketType));
         }
         $request = array(
             'settle' => $settle,
@@ -6250,8 +6239,8 @@ class gate extends Exchange {
         Async\await($this->load_unified_status());
         $market = ($symbol === null) ? null : $this->market($symbol);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
-        list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
+        list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $paramsOmitted);
         list($request, $requestParams) = ($type === 'spot') ? $this->multi_order_spot_prepare_request($market, $trigger, $query) : $this->prepare_request($market, $type, $query);
         if ($type === 'spot' || $type === 'margin') {
             if ($trigger === true) {
@@ -6355,12 +6344,16 @@ class gate extends Exchange {
             }
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
-            $params = $this->omit($params, 'symbol');
         }
         if (($toId === 'futures') || ($toId === 'delivery') || ($fromId === 'futures') || ($fromId === 'delivery')) {
             $request['settle'] = $currency['id']; // todo: currencies have network-junctions
         }
-        $response = Async\await($this->privateWalletPostTransfers($this->extend($request, $params)));
+        $isMarginTransfer = ($fromId === 'margin') || ($toId === 'margin');
+        $query = $params;
+        if ($isMarginTransfer) {
+            $query = $this->omit($params, 'symbol');
+        }
+        $response = Async\await($this->privateWalletPostTransfers($this->extend($request, $query)));
         //
         // according to the docs (however actual response seems to be an empty string '')
         //
@@ -6554,7 +6547,7 @@ class gate extends Exchange {
         //    }
         //
         $contract = $this->safe_string($position, 'contract');
-        $market = $this->safe_market($contract, $market, '_', 'contract');
+        $marketResolved = $this->safe_market($contract, $market, '_', 'contract');
         $size = $this->safe_string_2($position, 'size', 'accum_size');
         $side = $this->safe_string($position, 'side');
         if ($side === null) {
@@ -6595,7 +6588,7 @@ class gate extends Exchange {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => $this->safe_timestamp_2($position, 'update_time', 'time'),
@@ -6609,7 +6602,7 @@ class gate extends Exchange {
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'realizedPnl' => $this->safe_number_2($position, 'realised_pnl', 'pnl'),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
-            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
@@ -6646,9 +6639,8 @@ class gate extends Exchange {
         if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchPosition() supports contract markets only');
         }
-        $request = array();
-        list($request, $params) = $this->prepare_request($market, $market['type'], $params);
-        $extendedRequest = $this->extend($request, $params);
+        list($request, $paramsValue) = $this->prepare_request($market, $market['type'], $params);
+        $extendedRequest = $this->extend($request, $paramsValue);
         $response = null;
         if ($market['swap'] === true) {
             $response = Async\await($this->privateFuturesGetSettlePositionsContract($extendedRequest));
@@ -6741,35 +6733,34 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $market = null;
-        $symbols = $this->market_symbols($symbols, null, true, true, true);
-        if ($symbols !== null) {
-            $symbolsLength = count($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength > 0) {
-                $market = $this->market($symbols[0]);
+                $market = $this->market($symbolsNormalized[0]);
             }
         }
-        $type = null;
-        $request = array();
-        list($type, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
-        if (($type === null) || ($type === 'spot')) {
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
+        $type = $marketType;
+        if (($marketType === null) || ($marketType === 'spot')) {
             $type = 'swap'; // default to swap
         }
+        // prepareRequest leaves request empty and params untouched for options
+        list($request, $query) = $this->prepare_request(null, $type, $paramsMarketType);
         if ($type === 'option') {
-            if ($symbols !== null) {
+            if ($symbolsNormalized !== null) {
                 $marketId = $this->safe_string($market, 'id');
                 $optionParts = explode('-', $marketId);
                 $request['underlying'] = $this->safe_string($optionParts, 0);
             }
-        } else {
-            list($request, $params) = $this->prepare_request(null, $type, $params);
         }
         $response = null;
         if ($type === 'swap') {
-            $response = Async\await($this->privateFuturesGetSettlePositions($this->extend($request, $params)));
+            $response = Async\await($this->privateFuturesGetSettlePositions($this->extend($request, $query)));
         } elseif ($type === 'future') {
-            $response = Async\await($this->privateDeliveryGetSettlePositions($this->extend($request, $params)));
+            $response = Async\await($this->privateDeliveryGetSettlePositions($this->extend($request, $query)));
         } elseif ($type === 'option') {
-            $response = Async\await($this->privateOptionsGetPositions($this->extend($request, $params)));
+            $response = Async\await($this->privateOptionsGetPositions($this->extend($request, $query)));
         }
         //
         // swap and future
@@ -6835,7 +6826,7 @@ class gate extends Exchange {
         if ($response !== null) {
             $responseList = $this->to_array($response);
         }
-        return $this->parse_positions($responseList, $symbols);
+        return $this->parse_positions($responseList, $symbolsNormalized);
     }
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -7135,13 +7126,14 @@ class gate extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $isUnifiedAccount = false;
-        list($isUnifiedAccount, $params) = $this->handle_option_bool_and_params($params, 'repayCrossMargin', 'unifiedAccount', false);
+        $paramsUnifiedAccount = array();
+        list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($params, 'repayCrossMargin', 'unifiedAccount', false);
         if ($isUnifiedAccount) {
             $request['type'] = 'repay';
-            $response = Async\await($this->privateUnifiedPostLoans($this->extend($request, $params)));
+            $response = Async\await($this->privateUnifiedPostLoans($this->extend($request, $paramsUnifiedAccount)));
         } else {
             // deprecated and not present in the exchange's docs but still works
-            $response = Async\await($this->privateMarginPostCrossRepayments($this->extend($request, $params)));
+            $response = Async\await($this->privateMarginPostCrossRepayments($this->extend($request, $paramsUnifiedAccount)));
             $response = $this->safe_dict($response, 0);
             //
             //     [
@@ -7241,14 +7233,15 @@ class gate extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $isUnifiedAccount = false;
-        list($isUnifiedAccount, $params) = $this->handle_option_bool_and_params($params, 'borrowCrossMargin', 'unifiedAccount', false);
+        $paramsUnifiedAccount = array();
+        list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($params, 'borrowCrossMargin', 'unifiedAccount', false);
         if ($isUnifiedAccount) {
             $request['type'] = 'borrow';
-            $response = Async\await($this->privateUnifiedPostLoans($this->extend($request, $params)));
+            $response = Async\await($this->privateUnifiedPostLoans($this->extend($request, $paramsUnifiedAccount)));
         } else {
             // deprecated and not present in the exchange's docs
             // returns {"label":"REQUEST_FORBIDDEN","message":"Request is forbidden"}
-            $response = Async\await($this->privateMarginPostCrossLoans($this->extend($request, $params)));
+            $response = Async\await($this->privateMarginPostCrossLoans($this->extend($request, $paramsUnifiedAccount)));
             //
             //     {
             //         "id": "17",
@@ -7346,37 +7339,37 @@ class gate extends Exchange {
         }
         Async\await($this->load_unified_status());
         $isUnifiedAccount = false;
-        list($isUnifiedAccount, $params) = $this->handle_option_bool_and_params($params, 'fetchBorrowInterest', 'unifiedAccount', false);
+        $paramsUnifiedAccount = array();
+        list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($params, 'fetchBorrowInterest', 'unifiedAccount', false);
         $request = array();
-        list($request, $params) = $this->handle_until_option('to', $request, $params);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('to', $request, $paramsUnifiedAccount);
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
+            $requestUntil['currency'] = $currency['id'];
         }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
         if ($since !== null) {
-            $request['from'] = $since;
+            $requestUntil['from'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $requestUntil['limit'] = $limit;
         }
         $response = null;
-        $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params, 'cross');
+        list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $paramsUntil, 'cross');
         if ($isUnifiedAccount) {
-            $response = Async\await($this->privateUnifiedGetInterestRecords($this->extend($request, $params)));
+            $response = Async\await($this->privateUnifiedGetInterestRecords($this->extend($requestUntil, $paramsMarginMode)));
         } elseif ($marginMode === 'isolated') {
             if ($market !== null) {
-                $request['currency_pair'] = $market['id'];
+                $requestUntil['currency_pair'] = $market['id'];
             }
-            $response = Async\await($this->privateMarginGetUniInterestRecords($this->extend($request, $params)));
+            $response = Async\await($this->privateMarginGetUniInterestRecords($this->extend($requestUntil, $paramsMarginMode)));
         } elseif ($marginMode === 'cross') {
             // deprecated and not present in the exchange's docs but still works
-            $response = Async\await($this->privateMarginGetCrossInterestRecords($this->extend($request, $params)));
+            $response = Async\await($this->privateMarginGetCrossInterestRecords($this->extend($requestUntil, $paramsMarginMode)));
         }
         $interest = $this->parse_borrow_interests($response, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
@@ -7384,7 +7377,7 @@ class gate extends Exchange {
 
     public function parse_borrow_interest(array $info, ?array $market = null): array {
         $marketId = $this->safe_string($info, 'currency_pair');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $marginMode = 'cross';
         if ($marketId !== null) {
             $marginMode = 'isolated';
@@ -7392,7 +7385,7 @@ class gate extends Exchange {
         $timestamp = $this->safe_integer($info, 'create_time');
         return array(
             'info' => $info,
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'actual_rate'),
@@ -7415,34 +7408,36 @@ class gate extends Exchange {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
         $query = $this->omit($params, $this->extract_params($path));
+        $pathImploded = null;
+        $bodyJson = null;
+        $signedHeaders = null;
         $containsSettle = mb_strpos($path, 'settle') > -1;
         if ($containsSettle && (str_ends_with($path, 'batch_cancel_orders') === true)) { // weird check to prevent $settle in php and converting {settle} to array(settle)
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
             $settle = $this->safe_dict($params, 0);
-            $path = $this->implode_params($path, $settle);
+            $pathImploded = $this->implode_params($path, $settle);
             // remove the first element from params
             $newParams = array();
             $anyParams = $this->to_array($params);
             for ($i = 1; $i < count($anyParams); $i++) {
                 $newParams[] = $params[$i];
             }
-            $params = $newParams;
             $query = $newParams;
         } elseif ((gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)))) {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
             $first = $this->safe_dict($params, 0, array());
-            $path = $this->implode_params($path, $first);
+            $pathImploded = $this->implode_params($path, $first);
         } else {
-            $path = $this->implode_params($path, $params);
+            $pathImploded = $this->implode_params($path, $params);
         }
         $endPart = null;
-        if ($path === '') {
+        if ($pathImploded === '') {
             $endPart = '';
         } else {
-            $endPart = ('/' . $path);
+            $endPart = ('/' . $pathImploded);
         }
         $entirePath = '/' . $type . $endPart;
         if (($type === 'subAccounts') || ($type === 'withdrawals')) {
@@ -7463,7 +7458,7 @@ class gate extends Exchange {
             $rawQueryString = '';
             $requiresURLEncoding = false;
             if ((($type === 'futures') || ($type === 'delivery')) && $method === 'POST') {
-                $pathParts = explode('/', $path);
+                $pathParts = explode('/', $pathImploded);
                 $secondPart = $this->safe_string($pathParts, 1, '');
                 $requiresURLEncoding = (mb_strpos($secondPart, 'dual') !== false) || (mb_strpos($secondPart, 'positions') !== false);
             }
@@ -7481,7 +7476,7 @@ class gate extends Exchange {
                     $url .= '?' . $queryString;
                 }
                 if ($method === 'PATCH') {
-                    $body = $this->json($query);
+                    $bodyJson = $this->json($query);
                 }
             } else {
                 $urlQueryParams = $this->safe_dict($query, 'query', array());
@@ -7490,9 +7485,10 @@ class gate extends Exchange {
                     $url .= '?' . $queryString;
                 }
                 $query = $this->omit($query, 'query');
-                $body = $this->json($query);
+                $bodyJson = $this->json($query);
             }
-            $bodyPayload = ($body === null) ? '' : $body;
+            $bodySigned = ($bodyJson === null) ? $body : $bodyJson;
+            $bodyPayload = ($bodySigned === null) ? '' : $bodySigned;
             $bodySignature = $this->hash($this->encode($bodyPayload), 'sha512');
             $nonce = $this->nonce();
             $timestamp = $this->parse_to_int($nonce / 1000);
@@ -7502,14 +7498,16 @@ class gate extends Exchange {
             // eslint-disable-next-line quotes
             $payload = implode("\n", $payloadArray);
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
-            $headers = array(
+            $signedHeaders = array(
                 'KEY' => $this->apiKey,
                 'Timestamp' => $timestampString,
                 'SIGN' => $signature,
                 'Content-Type' => 'application/json',
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $bodyResolved = ($bodyJson === null) ? $body : $bodyJson;
+        $headersResolved = ($signedHeaders === null) ? $headers : $signedHeaders;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function modify_margin_helper(string $symbol, ?float $amount, $params = array()): PromiseInterface {
@@ -7562,16 +7560,16 @@ class gate extends Exchange {
         //     }
         //
         $contract = $this->safe_string($data, 'contract');
-        $market = $this->safe_market($contract, $market, '_', 'contract');
+        $marketResolved = $this->safe_market($contract, $market, '_', 'contract');
         $total = $this->safe_number($data, 'margin');
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
             'total' => $total,
-            'code' => $this->safe_string($market, 'quote'),
+            'code' => $this->safe_string($marketResolved, 'quote'),
             'status' => 'ok',
             'timestamp' => null,
             'datetime' => null,
@@ -7637,10 +7635,9 @@ class gate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenInterestHistory', 'paginate', false);
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOpenInterestHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, $timeframe, $params, 100));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, $timeframe, $paramsPaginate, 100));
         }
         $market = $this->market($symbol);
         if ($market['swap'] !== true) {
@@ -7657,7 +7654,7 @@ class gate extends Exchange {
         if ($since !== null) {
             $request['from'] = $this->parse_to_int($since / 1000);
         }
-        $response = Async\await($this->publicFuturesGetSettleContractStats($this->extend($request, $params)));
+        $response = Async\await($this->publicFuturesGetSettleContractStats($this->extend($request, $paramsPaginate)));
         //
         //    [
         //        {
@@ -7735,8 +7732,7 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
         if ($type !== 'option') {
             throw new NotSupported($this->id . ' fetchSettlementHistory() supports option markets only');
         }
@@ -7751,7 +7747,7 @@ class gate extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = Async\await($this->publicOptionsGetSettlements($this->extend($request, $params)));
+        $response = Async\await($this->publicOptionsGetSettlements($this->extend($request, $paramsMarketType)));
         //
         //     [
         //         {
@@ -7792,16 +7788,15 @@ class gate extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
         }
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchMySettlementHistory', $market, $params);
+        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchMySettlementHistory', $market, $params);
         $isOption = $type === 'option';
         $isFuture = $type === 'future';
         if (!$isOption && !$isFuture) {
             throw new NotSupported($this->id . ' fetchMySettlementHistory() supports option and future markets only');
         }
-        list($request, $query) = $this->prepare_request($market, $type, $params);
+        list($request, $query) = $this->prepare_request($market, $type, $paramsMarketType);
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
@@ -7827,7 +7822,7 @@ class gate extends Exchange {
                 $request['from'] = $since;
             }
             if ($market === null) {
-                $underlying = $this->safe_string($params, 'underlying');
+                $underlying = $this->safe_string($paramsMarketType, 'underlying');
                 if ($underlying === null) {
                     throw new ArgumentsRequired($this->id . ' fetchMySettlementHistory() requires a $symbol argument or an $underlying parameter in params');
                 }
@@ -7851,13 +7846,13 @@ class gate extends Exchange {
             //         }
             //     ]
             //
-            $response = Async\await($this->privateOptionsGetMySettlements($this->extend($request, $params)));
+            $response = Async\await($this->privateOptionsGetMySettlements($this->extend($request, $paramsMarketType)));
         }
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'list', array());
         $settlements = $this->parse_settlements($data, $market);
         $sorted = $this->sort_by($settlements, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $symbolResolved, $since, $limit);
     }
 
     public function parse_settlement(array $settlement, ?array $market = null): array {
@@ -7975,15 +7970,15 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
+        $paramsPaginate = array();
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $paramsPaginate));
         }
-        $type = null;
         $currency = null;
         $response = null;
         $request = array();
-        list($type, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchLedger', null, $paramsPaginate);
         if (($type === 'spot') || ($type === 'margin')) {
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -7995,9 +7990,13 @@ class gate extends Exchange {
             if ($type === 'swap') {
                 $defaultSettle = 'usdt';
             }
-            $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
-            $params = $this->omit($params, 'settle');
+            $settle = $this->safe_string_lower($paramsMarketType, 'settle', $defaultSettle);
             $request['settle'] = $settle;
+        }
+        $isContract = ($type === 'swap') || ($type === 'future');
+        $paramsSettle = $paramsMarketType;
+        if ($isContract) {
+            $paramsSettle = $this->omit($paramsMarketType, 'settle');
         }
         if ($since !== null) {
             $request['from'] = $since;
@@ -8005,17 +8004,17 @@ class gate extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($request, $params) = $this->handle_until_option('to', $request, $params);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('to', $request, $paramsSettle);
         if ($type === 'spot') {
-            $response = Async\await($this->privateSpotGetAccountBook($this->extend($request, $params)));
+            $response = Async\await($this->privateSpotGetAccountBook($this->extend($requestUntil, $paramsUntil)));
         } elseif ($type === 'margin') {
-            $response = Async\await($this->privateMarginGetAccountBook($this->extend($request, $params)));
+            $response = Async\await($this->privateMarginGetAccountBook($this->extend($requestUntil, $paramsUntil)));
         } elseif ($type === 'swap') {
-            $response = Async\await($this->privateFuturesGetSettleAccountBook($this->extend($request, $params)));
+            $response = Async\await($this->privateFuturesGetSettleAccountBook($this->extend($requestUntil, $paramsUntil)));
         } elseif ($type === 'future') {
-            $response = Async\await($this->privateDeliveryGetSettleAccountBook($this->extend($request, $params)));
+            $response = Async\await($this->privateDeliveryGetSettleAccountBook($this->extend($requestUntil, $paramsUntil)));
         } elseif ($type === 'option') {
-            $response = Async\await($this->privateOptionsGetAccountBook($this->extend($request, $params)));
+            $response = Async\await($this->privateOptionsGetAccountBook($this->extend($requestUntil, $paramsUntil)));
         }
         //
         // spot
@@ -8126,7 +8125,7 @@ class gate extends Exchange {
             $direction = 'in';
         }
         $currencyId = $this->safe_string($item, 'currency');
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         $type = $this->safe_string($item, 'type');
         $rawTimestamp = $this->safe_string($item, 'time');
         $timestamp = null;
@@ -8146,7 +8145,7 @@ class gate extends Exchange {
             'referenceAccount' => null,
             'referenceId' => null,
             'type' => $this->parse_ledger_entry_type($type),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $this->safe_currency_code($currencyId, $currencyResolved),
             'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -8154,7 +8153,7 @@ class gate extends Exchange {
             'after' => $this->safe_number($item, 'balance'),
             'status' => null,
             'fee' => null,
-        ), $currency);
+        ), $currencyResolved);
     }
 
     public function parse_ledger_entry_type(?string $type): ?string {
@@ -8240,15 +8239,15 @@ class gate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchUnderlyingAssets', null, $params);
-        if (($marketType === null) || ($marketType === 'spot')) {
+        list($marketTypeRaw, $paramsMarketType) = $this->handle_market_type_and_params('fetchUnderlyingAssets', null, $params);
+        $marketType = $marketTypeRaw;
+        if (($marketTypeRaw === null) || ($marketTypeRaw === 'spot')) {
             $marketType = 'option';
         }
         if ($marketType !== 'option') {
             throw new NotSupported($this->id . ' fetchUnderlyingAssets() supports option markets only');
         }
-        $response = Async\await($this->publicOptionsGetUnderlyings($params));
+        $response = Async\await($this->publicOptionsGetUnderlyings($paramsMarketType));
         //
         //    [
         //        {
@@ -8303,8 +8302,8 @@ class gate extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($request, $params) = $this->handle_until_option('to', $request, $params);
-        $response = Async\await($this->publicFuturesGetSettleLiqOrders($this->extend($request, $params)));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('to', $request, $params);
+        $response = Async\await($this->publicFuturesGetSettleLiqOrders($this->extend($requestUntil, $paramsUntil)));
         //
         //     [
         //         {
@@ -8611,11 +8610,10 @@ class gate extends Exchange {
         $request = array(
             'close' => true,
         );
-        $params = $this->extend($request, $params);
-        if ($side === null) {
-            $side = ''; // side is not used but needs to be present, otherwise crashes in php
-        }
-        return Async\await($this->create_order($symbol, 'market', $side, 0, null, $params));
+        $paramsExtended = $this->extend($request, $params);
+        // side is not used but needs to be present, otherwise crashes in php
+        $sideResolved = ($side === null) ? '' : $side;
+        return Async\await($this->create_order($symbol, 'market', $sideResolved, 0, null, $paramsExtended));
     }
 
     public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
@@ -8644,11 +8642,11 @@ class gate extends Exchange {
         }
         $request = array();
         $isUnified = $this->safe_bool($params, 'unified');
-        $params = $this->omit($params, 'unified');
+        $paramsOmitted = $this->omit($params, 'unified');
         if ($this->safe_bool($market, 'spot') === true) {
             $request['currency_pair'] = $this->safe_string($market, 'id');
             if ($isUnified === true) {
-                $response = Async\await($this->publicMarginGetUniCurrencyPairsCurrencyPair($this->extend($request, $params)));
+                $response = Async\await($this->publicMarginGetUniCurrencyPairsCurrencyPair($this->extend($request, $paramsOmitted)));
                 //
                 //     {
                 //         "currency_pair": "BTC_USDT",
@@ -8658,7 +8656,7 @@ class gate extends Exchange {
                 //     }
                 //
             } else {
-                $response = Async\await($this->publicMarginGetCurrencyPairsCurrencyPair($this->extend($request, $params))); // deprecated
+                $response = Async\await($this->publicMarginGetCurrencyPairsCurrencyPair($this->extend($request, $paramsOmitted))); // deprecated
                 //
                 //     {
                 //         "id": "BTC_USDT",
@@ -8673,7 +8671,7 @@ class gate extends Exchange {
                 //
             }
         } elseif ($isUnified === true) {
-            $response = Async\await($this->privateUnifiedGetAccounts($this->extend($request, $params)));
+            $response = Async\await($this->privateUnifiedGetAccounts($this->extend($request, $paramsOmitted)));
             //
             //     {
             //         "user_id": 10001,
@@ -8748,13 +8746,13 @@ class gate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $isUnified = $this->safe_bool($params, 'unified');
-        $params = $this->omit($params, 'unified');
+        $paramsOmitted = $this->omit($params, 'unified');
         $marketIdRequest = 'id';
         if ($isUnified === true) {
             $marketIdRequest = 'currency_pair';
-            $response = Async\await($this->publicMarginGetUniCurrencyPairs($params));
+            $response = Async\await($this->publicMarginGetUniCurrencyPairs($paramsOmitted));
             //
             //     [
             //         {
@@ -8766,7 +8764,7 @@ class gate extends Exchange {
             //     ]
             //
         } else {
-            $response = Async\await($this->publicMarginGetCurrencyPairs($params)); // deprecated
+            $response = Async\await($this->publicMarginGetCurrencyPairs($paramsOmitted)); // deprecated
             //
             //     [
             //         {
@@ -8782,7 +8780,7 @@ class gate extends Exchange {
             //     ]
             //
         }
-        return $this->parse_leverages($this->to_array($response), $symbols, $marketIdRequest, 'spot');
+        return $this->parse_leverages($this->to_array($response), $symbolsNormalized, $marketIdRequest, 'spot');
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -8973,12 +8971,12 @@ class gate extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($chain, 'name');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_timestamp($chain, 'create_time');
         return array(
             'info' => $chain,
             'currency' => null,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'impliedVolatility' => null,
@@ -9029,12 +9027,10 @@ class gate extends Exchange {
                 $market = $this->market($symbols[0]);
             }
         }
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchPositionsHistory', $market, $params, 'swap');
-        $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, 'until');
-        $request = array();
-        list($request, $params) = $this->prepare_request($market, $marketType, $params);
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchPositionsHistory', $market, $params, 'swap');
+        $until = $this->safe_integer($paramsMarketType, 'until');
+        $paramsOmitted = $this->omit($paramsMarketType, 'until');
+        list($request, $paramsValue) = $this->prepare_request($market, $marketType, $paramsOmitted);
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
@@ -9045,9 +9041,9 @@ class gate extends Exchange {
             $request['to'] = $this->parse_to_int($until / 1000);
         }
         if ($marketType === 'swap') {
-            $response = Async\await($this->privateFuturesGetSettlePositionClose($this->extend($request, $params)));
+            $response = Async\await($this->privateFuturesGetSettlePositionClose($this->extend($request, $paramsValue)));
         } elseif ($marketType === 'future') {
-            $response = Async\await($this->privateDeliveryGetSettlePositionClose($this->extend($request, $params)));
+            $response = Async\await($this->privateDeliveryGetSettlePositionClose($this->extend($request, $paramsValue)));
         } else {
             throw new NotSupported($this->id . ' fetchPositionsHistory() does not support markets of type ' . $marketType);
         }
@@ -9075,7 +9071,7 @@ class gate extends Exchange {
         if ($response !== null) {
             $responseList = $this->to_array($response);
         }
-        return $this->parse_positions($responseList, $symbols, $params);
+        return $this->parse_positions($responseList, $symbols, $paramsValue);
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

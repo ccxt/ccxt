@@ -109,9 +109,10 @@ class p2b(ccxt.async_support.p2b):
         ]
         messageHash = 'kline::' + market['symbol']
         ohlcv = await self.subscribe('kline.subscribe', messageHash, request, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -129,14 +130,13 @@ class p2b(ccxt.async_support.p2b):
             await self.load_markets()
         watchTickerOptions = self.safe_dict(self.options, 'watchTicker')
         name = self.safe_string(watchTickerOptions, 'name', 'state')  # or price
-        name, params = self.handle_option_string_and_params(params, 'watchTicker', 'name', name)
+        nameOption, paramsName = self.handle_option_string_and_params(params, 'watchTicker', 'name', name)
         market = self.market(symbol)
-        symbol = market['symbol']
         self.options['tickerSubs'][market['id']] = True  # we need to re-subscribe to all tickers upon watching a new ticker
         tickerSubs = self.options['tickerSubs']
         request = list(tickerSubs.keys())
-        messageHash = name + '::' + market['symbol']
-        return await self.subscribe(name + '.subscribe', messageHash, request, params)
+        messageHash = nameOption + '::' + market['symbol']
+        return await self.subscribe(nameOption + '.subscribe', messageHash, request, paramsName)
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -152,24 +152,24 @@ class p2b(ccxt.async_support.p2b):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
+        symbolsNormalized = self.market_symbols(symbols, None, False)
         watchTickerOptions = self.safe_dict(self.options, 'watchTicker')
         name = self.safe_string(watchTickerOptions, 'name', 'state')  # or price
-        name, params = self.handle_option_string_and_params(params, 'watchTickers', 'name', name)
+        nameOption, paramsName = self.handle_option_string_and_params(params, 'watchTickers', 'name', name)
         messageHashes = []
         args = []
-        for i in range(0, len((symbols))):
-            market = self.market((symbols)[i])
-            messageHashes.append(name + '::' + market['symbol'])
+        for i in range(0, len((symbolsNormalized))):
+            market = self.market((symbolsNormalized)[i])
+            messageHashes.append(nameOption + '::' + market['symbol'])
             args.append(market['id'])
         url = self.urls['api']['ws']
         request = {
-            'method': name + '.subscribe',
+            'method': nameOption + '.subscribe',
             'params': args,
             'id': self.milliseconds(),
         }
-        await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
-        return self.filter_by_array(self.tickers, 'symbol', symbols)
+        await self.watch_multiple(url, messageHashes, self.extend(request, paramsName), messageHashes)
+        return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
     def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -199,12 +199,12 @@ class p2b(ccxt.async_support.p2b):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False, True, True)
+        symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
         messageHashes = []
-        if symbols is not None:
-            for i in range(0, len(symbols)):
-                messageHashes.append('deals::' + symbols[i])
-        marketIds = self.market_ids(symbols)
+        if symbolsNormalized is not None:
+            for i in range(0, len(symbolsNormalized)):
+                messageHashes.append('deals::' + symbolsNormalized[i])
+        marketIds = self.market_ids(symbolsNormalized)
         url = self.urls['api']['ws']
         subscribe = {
             'method': 'deals.subscribe',
@@ -213,13 +213,14 @@ class p2b(ccxt.async_support.p2b):
         }
         query = self.extend(subscribe, params)
         trades = await self.watch_multiple(url, messageHashes, query, messageHashes)
+        first = self.safe_dict(trades, 0)
+        tradeSymbol = self.safe_string(first, 'symbol')
+        limitResolved = limit
         if self.newUpdates:
-            first = self.safe_dict(trades, 0)
-            tradeSymbol = self.safe_string(first, 'symbol')
-            limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -237,11 +238,10 @@ class p2b(ccxt.async_support.p2b):
         name = 'depth.subscribe'
         messageHash = 'orderbook::' + market['symbol']
         interval = self.safe_string(params, 'interval', '0.001')
-        if limit is None:
-            limit = 100
+        limitResolved = 100 if (limit is None) else limit
         request = [
             market['id'],
-            limit,
+            limitResolved,
             interval,
         ]
         orderbook = await self.subscribe(name, messageHash, request, params)

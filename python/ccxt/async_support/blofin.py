@@ -728,9 +728,9 @@ class blofin(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
-        limit = 50 if (limit is None) else limit
-        if limit is not None:
-            request['size'] = limit  # max 100
+        limitValue = 50 if (limit is None) else limit
+        if limitValue is not None:
+            request['size'] = limitValue  # max 100
         response = await self.publicGetMarketBooks(self.extend(request, params))
         #
         #     {
@@ -780,11 +780,11 @@ class blofin(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
-        market = self.safe_market(marketId, market, '-')
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market, '-')
+        symbol = marketResolved['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
-        spot = self.safe_bool(market, 'spot', False)
+        spot = self.safe_bool(marketResolved, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCurrency24h') if (spot is True) else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')
@@ -812,7 +812,7 @@ class blofin(Exchange, ImplicitAPI):
             'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'markPrice': self.safe_string(ticker, 'markPrice'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -869,10 +869,10 @@ class blofin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         response = await self.publicGetMarketTickers(params)
         tickers = self.safe_list(response, 'data', [])
-        return self.parse_tickers(tickers, symbols)
+        return self.parse_tickers(tickers, symbolsNormalized)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -919,8 +919,8 @@ class blofin(Exchange, ImplicitAPI):
         #
         id = self.safe_string(trade, 'tradeId')
         marketId = self.safe_string(trade, 'instId')
-        market = self.safe_market(marketId, market, '-')
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market, '-')
+        symbol = marketResolved['symbol']
         timestamp = self.safe_integer(trade, 'ts')
         price = self.safe_string_2(trade, 'price', 'fillPrice')
         amount = self.safe_string_2(trade, 'size', 'fillSize')
@@ -931,18 +931,18 @@ class blofin(Exchange, ImplicitAPI):
         feeCurrency = self.safe_string(trade, 'feeCurrency')
         isSpot = feeCurrency is not None
         if feeCurrency is None:
-            feeCurrency = self.safe_string(market, 'settle')
+            feeCurrency = self.safe_string(marketResolved, 'settle')
         elif feeCurrency == 'base_currency':
-            feeCurrency = self.safe_string(market, 'base')
+            feeCurrency = self.safe_string(marketResolved, 'base')
         elif feeCurrency == 'quote_currency':
-            feeCurrency = self.safe_string(market, 'quote')
+            feeCurrency = self.safe_string(marketResolved, 'quote')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
         if isSpot:
-            spotSymbol = market['base'] + '/' + market['quote']
+            spotSymbol = marketResolved['base'] + '/' + marketResolved['quote']
             cost = self.parse_number(Precise.string_mul(price, amount))
             result = {
                 'info': trade,
@@ -978,7 +978,7 @@ class blofin(Exchange, ImplicitAPI):
                 'amount': amount,
                 'cost': None,
                 'fee': fee,
-            }, market)
+            }, marketResolved)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -996,9 +996,10 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, params, 'tradeId', 'after', None, 100)
+            return await self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, paramsPaginate, 'tradeId', 'after', None, 100)
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -1006,10 +1007,9 @@ class blofin(Exchange, ImplicitAPI):
         response = None
         if limit is not None:
             request['limit'] = limit  # default 100
-        method = None
-        method, params = self.handle_option_string_and_params(params, 'fetchTrades', 'method', 'publicGetMarketTrades')
+        method, paramsMethod = self.handle_option_string_and_params(paramsPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades')
         if method == 'publicGetMarketTrades':
-            response = await self.publicGetMarketTrades(self.extend(request, params))
+            response = await self.publicGetMarketTrades(self.extend(request, paramsMethod))
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
@@ -1055,23 +1055,23 @@ class blofin(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        query = None
+        paginate, query = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 100)
-        if limit is None:
-            limit = 100  # default 100, max 100
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, query, 100)
+        limitResolved = 100 if (limit is None) else limit  # default 100, max 100
         request = {
             'instId': market['id'],
             'bar': self.safe_string(self.timeframes, timeframe, timeframe),
-            'limit': limit,
+            'limit': limitResolved,
         }
-        until = self.safe_integer(params, 'until')
+        until = self.safe_integer(query, 'until')
         if until is not None:
             request['after'] = until
-            params = self.omit(params, 'until')
-        response = await self.publicGetMarketCandles(self.extend(request, params))
+            query = self.omit(query, 'until')
+        response = await self.publicGetMarketCandles(self.extend(request, query))
         data = self.safe_list(response, 'data', [])
-        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+        return self.parse_ohlcvs(data, market, timeframe, since, limitResolved)
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
@@ -1092,9 +1092,10 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
+        query = None
+        paginate, query = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100)
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', query, 100)
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -1103,11 +1104,11 @@ class blofin(Exchange, ImplicitAPI):
             request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
-        until = self.safe_integer(params, 'until')
+        until = self.safe_integer(query, 'until')
         if until is not None:
             request['after'] = until
-            params = self.omit(params, 'until')
-        response = await self.publicGetMarketFundingRateHistory(self.extend(request, params))
+            query = self.omit(query, 'until')
+        response = await self.publicGetMarketFundingRateHistory(self.extend(request, query))
         rates = []
         data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
@@ -1156,7 +1157,7 @@ class blofin(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -1307,8 +1308,7 @@ class blofin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        accountType = None
-        accountType, params = self.handle_option_string_and_params_2(params, 'fetchBalance', 'accountType', 'type')
+        accountType, paramsAccountType = self.handle_option_string_and_params_2(params, 'fetchBalance', 'accountType', 'type')
         request = {
         }
         response: dict
@@ -1316,9 +1316,9 @@ class blofin(Exchange, ImplicitAPI):
             options = self.safe_dict(self.options, 'accountsByType', {})
             parsedAccountType = self.safe_string(options, accountType, accountType)
             request['accountType'] = parsedAccountType
-            response = await self.privateGetAssetBalances(self.extend(request, params))
+            response = await self.privateGetAssetBalances(self.extend(request, paramsAccountType))
         else:
-            response = await self.privateGetAccountBalance(self.extend(request, params))
+            response = await self.privateGetAccountBalance(self.extend(request, paramsAccountType))
         return self.parse_balance_by_type(response)
 
     def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
@@ -1335,16 +1335,17 @@ class blofin(Exchange, ImplicitAPI):
             'brokerId': self.safe_string(self.options, 'brokerId', 'ec6dd3a7dd982d0b'),
         }
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('createOrder', params, 'cross')
+        query = None
+        marginMode, query = self.handle_margin_mode_and_params('createOrder', params, 'cross')
         request['marginMode'] = marginMode
-        triggerPriceAny = self.safe_string_n(params, ['triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
-        triggerPriceSlTp = self.safe_string_2(params, 'stopLossPrice', 'takeProfitPrice')
-        timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
-        isHedged = self.safe_bool(params, 'hedged', False)
+        triggerPriceAny = self.safe_string_n(query, ['triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        triggerPriceSlTp = self.safe_string_2(query, 'stopLossPrice', 'takeProfitPrice')
+        timeInForce = self.safe_string(query, 'timeInForce', 'GTC')
+        isHedged = self.safe_bool(query, 'hedged', False)
         if isHedged is True:
             request['positionSide'] = 'long' if (side == 'buy') else 'short'
         isMarketOrder = type == 'market'
-        params = self.omit(params, ['timeInForce'])
+        query = self.omit(query, ['timeInForce'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         marketIOC = (isMarketOrder and ioc)
         if isMarketOrder or marketIOC:
@@ -1355,12 +1356,12 @@ class blofin(Exchange, ImplicitAPI):
                 key = 'orderPrice'
             request[key] = self.price_to_precision(symbol, price)
         postOnly = False
-        postOnly, params = self.handle_post_only(isMarketOrder, type == 'post_only', params)
+        postOnly, query = self.handle_post_only(isMarketOrder, type == 'post_only', query)
         if postOnly:
             request['type'] = 'post_only'
-        stopLoss = self.safe_dict(params, 'stopLoss')
-        takeProfit = self.safe_dict(params, 'takeProfit')
-        params = self.omit(params, ['stopLoss', 'takeProfit', 'hedged'])
+        stopLoss = self.safe_dict(query, 'stopLoss')
+        takeProfit = self.safe_dict(query, 'takeProfit')
+        query = self.omit(query, ['stopLoss', 'takeProfit', 'hedged'])
         hasStopLoss = stopLoss is not None
         hasTakeProfit = takeProfit is not None
         if hasStopLoss or hasTakeProfit:
@@ -1381,8 +1382,8 @@ class blofin(Exchange, ImplicitAPI):
                 request['orderPrice'] = '-1'
             if triggerPriceSlTp is not None:
                 request['reduceOnly'] = True
-            params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
-        return self.extend(request, params)
+            query = self.omit(query, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
+        return self.extend(request, query)
 
     def parse_order_status(self, status: Str):
         statuses = {
@@ -1451,15 +1452,15 @@ class blofin(Exchange, ImplicitAPI):
         elif type == 'conditional':
             type = 'trigger'
         marketId = self.safe_string(order, 'instId')
-        market = self.safe_market(marketId, market)
-        symbol = self.safe_symbol(marketId, market, '-')
+        marketResolved = self.safe_market(marketId, market)
+        symbol = self.safe_symbol(marketId, marketResolved, '-')
         filled = self.safe_string(order, 'filledSize')
         price = self.safe_string_n(order, ['px', 'price', 'orderPrice'])
         average = self.safe_string(order, 'averagePrice')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         feeCostString = self.safe_string(order, 'fee')
         amount = self.safe_string(order, 'size')
-        contractSize = self.safe_string(market, 'contractSize')
+        contractSize = self.safe_string(marketResolved, 'contractSize')
         baseAmount = Precise.string_mul(contractSize, filled)
         cost = None
         if average is not None:
@@ -1510,7 +1511,7 @@ class blofin(Exchange, ImplicitAPI):
             'fee': fee,
             'trades': None,
             'reduceOnly': reduceOnly,
-        }, market)
+        }, marketResolved)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1549,22 +1550,21 @@ class blofin(Exchange, ImplicitAPI):
         isStopLossPriceDefined = self.safe_string(params, 'stopLossPrice') is not None
         isTakeProfitPriceDefined = self.safe_string(params, 'takeProfitPrice') is not None
         isTriggerOrder = self.safe_string(params, 'triggerPrice') is not None
-        isTpslEndpoint = False
-        isTpslEndpoint, params = self.handle_option_bool_and_params(params, 'createOrder', 'tpsl', False)
+        isTpslEndpoint, paramsTpsl = self.handle_option_bool_and_params(params, 'createOrder', 'tpsl', False)
         isCombinedSlTp = (isStopLossPriceDefined and isTakeProfitPriceDefined) or isTpslEndpoint
         isSlOrTp = isStopLossPriceDefined or isTakeProfitPriceDefined
         response: dict
-        reduceOnly = self.safe_bool(params, 'reduceOnly')
+        reduceOnly = self.safe_bool(paramsTpsl, 'reduceOnly')
         if reduceOnly is not None:
-            params['reduceOnly'] = 'true' if reduceOnly else 'false'
+            paramsTpsl['reduceOnly'] = 'true' if reduceOnly else 'false'
         if isCombinedSlTp:
-            tpslRequest = self.create_tpsl_order_request(symbol, type, side, amount, price, params)
+            tpslRequest = self.create_tpsl_order_request(symbol, type, side, amount, price, paramsTpsl)
             response = await self.privatePostTradeOrderTpsl(tpslRequest)
         elif isTriggerOrder or isSlOrTp:
-            triggerRequest = self.create_order_request(symbol, type, side, amount, price, params)
+            triggerRequest = self.create_order_request(symbol, type, side, amount, price, paramsTpsl)
             response = await self.privatePostTradeOrderAlgo(triggerRequest)
         else:
-            request = self.create_order_request(symbol, type, side, amount, price, params)
+            request = self.create_order_request(symbol, type, side, amount, price, paramsTpsl)
             response = await self.privatePostTradeOrder(request)
         if isCombinedSlTp or isSlOrTp or isTriggerOrder:
             dataDict = self.safe_dict(response, 'data', {})
@@ -1605,7 +1605,6 @@ class blofin(Exchange, ImplicitAPI):
                 if slLimitPrice is None:
                     raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order type is not market')
                 request['slOrderPrice'] = self.price_to_precision(symbol, slLimitPrice)
-                params = self.omit(params, 'stopLossLimitPrice')
         if takeProfitPrice is not None:
             request['tpTriggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
             if type == 'market':
@@ -1615,10 +1614,14 @@ class blofin(Exchange, ImplicitAPI):
                 if tpLimitPrice is None:
                     raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order type is not market')
                 request['tpOrderPrice'] = self.price_to_precision(symbol, tpLimitPrice)
-                params = self.omit(params, 'takeProfitLimitPrice')
         request['marginMode'] = marginMode
-        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged'])
-        return self.extend(request, params)
+        # the limit prices are consumed only when the order type is not market
+        consumedKeys = ['stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged']
+        if (stopLossPrice is not None) and (type != 'market'):
+            consumedKeys.append('stopLossLimitPrice')
+        if (takeProfitPrice is not None) and (type != 'market'):
+            consumedKeys.append('takeProfitLimitPrice')
+        return self.extend(request, self.omit(params, consumedKeys))
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1715,9 +1718,10 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params)
+            return await self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, paramsPaginate)
         request = {
         }
         market = None
@@ -1726,11 +1730,10 @@ class blofin(Exchange, ImplicitAPI):
             request['instId'] = market['id']
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        isTrigger = self.safe_bool_n(params, ['stop', 'trigger'], False)
-        isTpSl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
-        method = None
-        method, params = self.handle_option_string_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending')
-        query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
+        isTrigger = self.safe_bool_n(paramsPaginate, ['stop', 'trigger'], False)
+        isTpSl = self.safe_bool_2(paramsPaginate, 'tpsl', 'TPSL', False)
+        method, paramsMethod = self.handle_option_string_and_params(paramsPaginate, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending')
+        query = self.omit(paramsMethod, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response: dict
         if (isTpSl is True) or (method == 'privateGetTradeOrdersTpslPending'):
             response = await self.privateGetTradeOrdersTpslPending(self.extend(request, query))
@@ -1761,23 +1764,24 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
+            return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate)
         request = {
         }
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
-        request, params = self.handle_until_option('end', request, params)
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
         if limit is not None:
-            request['limit'] = limit  # default 100, max 100
+            requestUntil['limit'] = limit  # default 100, max 100
         type = 'swap'
-        type, params = self.handle_market_type_and_params('fetchMyTrades', market, params, type)
+        typeMarketType, paramsMarketType = self.handle_market_type_and_params('fetchMyTrades', market, paramsUntil, type)
         response: dict
-        if type == 'spot':
-            request['instType'] = 'SPOT'
+        if typeMarketType == 'spot':
+            requestUntil['instType'] = 'SPOT'
             #
             #     {
             #         "code": "0",
@@ -1799,9 +1803,9 @@ class blofin(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            response = await self.privateGetSpotTradeFillsHistory(self.extend(request, params))
+            response = await self.privateGetSpotTradeFillsHistory(self.extend(requestUntil, paramsMarketType))
         else:
-            response = await self.privateGetTradeFillsHistory(self.extend(request, params))
+            response = await self.privateGetTradeFillsHistory(self.extend(requestUntil, paramsMarketType))
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
@@ -1822,9 +1826,10 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchDeposits', code, since, limit, params)
+            return await self.fetch_paginated_call_dynamic('fetchDeposits', code, since, limit, paramsPaginate)
         request = {
         }
         currency = None
@@ -1835,10 +1840,10 @@ class blofin(Exchange, ImplicitAPI):
             request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        request, params = self.handle_until_option('after', request, params)
-        response = await self.privateGetAssetDepositHistory(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('after', request, paramsPaginate)
+        response = await self.privateGetAssetDepositHistory(self.extend(requestUntil, paramsUntil))
         data = self.safe_list(response, 'data', [])
-        return self.parse_transactions(data, currency, since, limit, params)
+        return self.parse_transactions(data, currency, since, limit, paramsUntil)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -1857,9 +1862,10 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, params)
+            return await self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, paramsPaginate)
         request = {
         }
         currency = None
@@ -1870,10 +1876,10 @@ class blofin(Exchange, ImplicitAPI):
             request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        request, params = self.handle_until_option('after', request, params)
-        response = await self.privateGetAssetWithdrawalHistory(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('after', request, paramsPaginate)
+        response = await self.privateGetAssetWithdrawalHistory(self.extend(requestUntil, paramsUntil))
         data = self.safe_list(response, 'data', [])
-        return self.parse_transactions(data, currency, since, limit, params)
+        return self.parse_transactions(data, currency, since, limit, paramsUntil)
 
     def network_code_to_chain_id(self, networkCode: str) -> Str:
         # the live venue identifies chains by display names; the suffix
@@ -1941,7 +1947,9 @@ class blofin(Exchange, ImplicitAPI):
         #   with 152002 "Invalid parameter" - see options["networks"]
         # - 152002 responses omit the offending field name even though the
         #   error table documents the message as "Parameter {} error"
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagValue = None
+        query = None
+        tagValue, query = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1949,31 +1957,31 @@ class blofin(Exchange, ImplicitAPI):
             'address': address,
             'amount': self.number_to_string(amount),
         }
-        dest = self.safe_string(params, 'dest', 'onchain')
+        dest = self.safe_string(query, 'dest', 'onchain')
         request['dest'] = dest
-        params = self.omit(params, 'dest')
+        query = self.omit(query, 'dest')
         if dest == 'onchain':
             self.check_address(address)
             # the doc's Request Parameters table marks addrType "Required:
             # No", but the live venue rejects on-chain withdrawals without
             # it (152001 "Parameter addrType cannot be empty") - default to
             # 1 = wallet address, callers can override for other kinds
-            request['addrType'] = self.safe_string(params, 'addrType', '1')
-            params = self.omit(params, 'addrType')
-        if tag is not None:
-            request['tag'] = tag
+            request['addrType'] = self.safe_string(query, 'addrType', '1')
+            query = self.omit(query, 'addrType')
+        if tagValue is not None:
+            request['tag'] = tagValue
         # consume the unified network key unconditionally so it never leaks
         # onto the wire; an explicit raw params['chain'] takes precedence
         networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
-        chain = self.safe_string(params, 'chain')
+        networkCode, query = self.handle_network_code_and_params(query)
+        chain = self.safe_string(query, 'chain')
         if chain is None:
             if networkCode is not None:
                 request['chain'] = self.network_code_to_chain_id(networkCode)
             elif dest == 'onchain':
                 # required for on-chain withdrawals, optional for internal transfers
                 raise ArgumentsRequired(self.id + ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals')
-        response = await self.privatePostAssetWithdrawalApply(self.extend(request, params))
+        response = await self.privatePostAssetWithdrawalApply(self.extend(request, query))
         #
         #     {
         #         "code": "0",
@@ -2009,9 +2017,10 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params)
+            return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, paramsPaginate)
         request = {
         }
         if limit is not None:
@@ -2020,8 +2029,8 @@ class blofin(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
-        request, params = self.handle_until_option('end', request, params)
-        response = await self.privateGetAssetBills(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
+        response = await self.privateGetAssetBills(self.extend(requestUntil, paramsUntil))
         data = self.safe_list(response, 'data', [])
         return self.parse_ledger(data, currency, since, limit)
 
@@ -2160,7 +2169,7 @@ class blofin(Exchange, ImplicitAPI):
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         currencyId = self.safe_string(item, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        currency = self.safe_currency(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'ts')
         return self.safe_ledger_entry({
             'info': item,
@@ -2178,7 +2187,7 @@ class blofin(Exchange, ImplicitAPI):
             'after': None,
             'status': 'ok',
             'fee': None,
-        }, currency)
+        }, currencyResolved)
 
     def parse_ids(self, ids: object):
         """
@@ -2217,22 +2226,22 @@ class blofin(Exchange, ImplicitAPI):
         if trigger is True:
             method = 'privatePostTradeCancelTpsl'
         if clientOrderIds is None:
-            ids = self.parse_ids(ids)
+            orderIds = self.parse_ids(ids)
             if tpslIds is not None:
                 for i in range(0, len(tpslIds)):
                     request.append({
                         'tpslId': tpslIds[i],
                         'instId': market['id'],
                     })
-            for i in range(0, len(ids)):
+            for i in range(0, len(orderIds)):
                 if trigger is True:
                     request.append({
-                        'tpslId': ids[i],
+                        'tpslId': orderIds[i],
                         'instId': market['id'],
                     })
                 else:
                     request.append({
-                        'orderId': ids[i],
+                        'orderId': orderIds[i],
                         'instId': market['id'],
                     })
         else:
@@ -2329,11 +2338,11 @@ class blofin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         response = await self.privateGetAccountPositions(params)
         data = self.safe_list(response, 'data', [])
         result = self.parse_positions(data)
-        return self.filter_by_array_positions(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbolsNormalized, False)
 
     async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
@@ -2363,8 +2372,8 @@ class blofin(Exchange, ImplicitAPI):
             request['limit'] = min(limit, 100)
         if since is not None:
             request['begin'] = since
-        request, params = self.handle_until_option('end', request, params)
-        response = await self.privateGetAccountPositionsHistory(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, params)
+        response = await self.privateGetAccountPositionsHistory(self.extend(requestUntil, paramsUntil))
         #
         #    {
         #        "code": "0",
@@ -2393,7 +2402,7 @@ class blofin(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        positions = self.parse_positions(data, symbols, params)
+        positions = self.parse_positions(data, symbols, paramsUntil)
         return self.filter_by_since_limit(positions, since, limit)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
@@ -2447,8 +2456,8 @@ class blofin(Exchange, ImplicitAPI):
         #            },
         #
         marketId = self.safe_string(position, 'instId')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         pos = self.safe_string(position, 'positions')
         contractsAbs = Precise.string_abs(pos)
         side = self.safe_string(position, 'positionSide')
@@ -2462,11 +2471,11 @@ class blofin(Exchange, ImplicitAPI):
                     side = 'short'
                 else:
                     side = None
-        contractSize = self.safe_number(market, 'contractSize')
+        contractSize = self.safe_number(marketResolved, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPrice')
         notionalString = self.safe_string(position, 'notionalUsd')
-        if market['inverse'] is True:
+        if marketResolved['inverse'] is True:
             notionalString = Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), markPriceString)
         notional = self.parse_number(notionalString)
         marginMode = self.safe_string(position, 'marginMode')
@@ -2545,13 +2554,14 @@ class blofin(Exchange, ImplicitAPI):
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchLeverages() requires a symbols argument')
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchLeverages', params)
+        query = None
+        marginMode, query = self.handle_margin_mode_and_params('fetchLeverages', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross as default marginMode
+            marginMode = self.safe_string(query, 'marginMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated')
-        symbols = self.market_symbols(symbols)
-        symbolsList = symbols
+        symbolsNormalized = self.market_symbols(symbols)
+        symbolsList = symbolsNormalized
         instIds = ''
         for i in range(0, len(symbolsList)):
             entry = symbolsList[i]
@@ -2564,7 +2574,7 @@ class blofin(Exchange, ImplicitAPI):
             'instId': instIds,
             'marginMode': marginMode,
         }
-        response = await self.privateGetAccountBatchLeverageInfo(self.extend(request, params))
+        response = await self.privateGetAccountBatchLeverageInfo(self.extend(request, query))
         #
         #     {
         #         "code": "0",
@@ -2579,7 +2589,7 @@ class blofin(Exchange, ImplicitAPI):
         #     }
         #
         leverages = self.safe_list(response, 'data', [])
-        return self.parse_leverages(leverages, symbols, 'instId')
+        return self.parse_leverages(leverages, symbolsNormalized, 'instId')
 
     async def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
@@ -2595,9 +2605,10 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
+        query = None
+        marginMode, query = self.handle_margin_mode_and_params('fetchLeverage', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross as default marginMode
+            marginMode = self.safe_string(query, 'marginMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated')
         market = self.market(symbol)
@@ -2605,7 +2616,7 @@ class blofin(Exchange, ImplicitAPI):
             'instId': market['id'],
             'marginMode': marginMode,
         }
-        response = await self.privateGetAccountLeverageInfo(self.extend(request, params))
+        response = await self.privateGetAccountLeverageInfo(self.extend(request, query))
         #
         #     {
         #         "code": "0",
@@ -2653,8 +2664,7 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated')
         request = {
@@ -2662,7 +2672,7 @@ class blofin(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'instId': market['id'],
         }
-        response = await self.privatePostAccountSetLeverage(self.extend(request, params))
+        response = await self.privatePostAccountSetLeverage(self.extend(request, paramsMarginMode))
         return response
 
     async def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
@@ -2687,15 +2697,14 @@ class blofin(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('closePosition', params, 'cross')
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('closePosition', params, 'cross')
         request = {
             'instId': market['id'],
             'marginMode': marginMode,
         }
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
-        response = await self.privatePostTradeClosePosition(self.extend(request, params))
+        response = await self.privatePostTradeClosePosition(self.extend(request, paramsMarginMode))
         return self.safe_dict(response, 'data')
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -2716,9 +2725,10 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
+        paramsPaginate = {}
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
+            return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, paramsPaginate)
         request = {
         }
         market = None
@@ -2729,10 +2739,9 @@ class blofin(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 100, max 100
         if since is not None:
             request['begin'] = since
-        isTrigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
-        method = None
-        method, params = self.handle_option_string_and_params(params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory')
-        query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
+        isTrigger = self.safe_bool_n(paramsPaginate, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
+        method, paramsMethod = self.handle_option_string_and_params(paramsPaginate, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory')
+        query = self.omit(paramsMethod, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response: dict
         if (isTrigger is True) or (method == 'privateGetTradeOrdersTpslHistory'):
             response = await self.privateGetTradeOrdersTpslHistory(self.extend(request, query))
@@ -2871,7 +2880,7 @@ class blofin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, True, True, True)
+        symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
         response = await self.privateGetAccountPositions(params)
         #
         #     {
@@ -2903,7 +2912,7 @@ class blofin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_adl_ranks(data, symbols)
+        return self.parse_adl_ranks(data, symbolsNormalized)
 
     def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
         #
@@ -2989,13 +2998,14 @@ class blofin(Exchange, ImplicitAPI):
         elif api == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
-            headers = {
+            signedHeaders = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-PASSPHRASE': self.password,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-NONCE': timestamp,
             }
             sign_body = ''
+            signedBody = None
             if method == 'GET':
                 if not self.is_empty(query):
                     urlencodedQuery = '?' + self.urlencode(query)
@@ -3003,10 +3013,12 @@ class blofin(Exchange, ImplicitAPI):
                     request += urlencodedQuery
             else:
                 if not self.is_empty(query):
-                    body = self.json(query)
-                    sign_body = body
-                headers['Content-Type'] = 'application/json'
+                    signedBody = self.json(query)
+                    sign_body = signedBody
+                signedHeaders['Content-Type'] = 'application/json'
             auth = request + method + timestamp + timestamp + sign_body
             signature = self.string_to_base64(self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256))
-            headers['ACCESS-SIGN'] = signature
+            signedHeaders['ACCESS-SIGN'] = signature
+            bodyResolved = body if (signedBody is None) else signedBody
+            return {'url': url, 'method': method, 'body': bodyResolved, 'headers': signedHeaders}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

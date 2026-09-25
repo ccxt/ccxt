@@ -1092,12 +1092,12 @@ class gemini extends Exchange {
         $timestamp = $this->safe_integer($volume, 'timestamp');
         $symbol = null;
         $marketId = $this->safe_string_lower($ticker, 'pair');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $baseId = null;
         $quoteId = null;
         $base = null;
         $quote = null;
-        if (($marketId !== null) && ($market === null)) {
+        if (($marketId !== null) && ($marketResolved === null)) {
             $idLength = strlen($marketId) - 0;
             if ($idLength === 7) {
                 $baseId = mb_substr($marketId, 0, 4 - 0);
@@ -1112,10 +1112,10 @@ class gemini extends Exchange {
                 $symbol = $base . '/' . $quote;
             }
         }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-            $baseId = $this->safe_string_upper($market, 'baseId');
-            $quoteId = $this->safe_string_upper($market, 'quoteId');
+        if (($symbol === null) && ($marketResolved !== null)) {
+            $symbol = $marketResolved['symbol'];
+            $baseId = $this->safe_string_upper($marketResolved, 'baseId');
+            $quoteId = $this->safe_string_upper($marketResolved, 'quoteId');
         }
         $price = $this->safe_string($ticker, 'price');
         $last = $this->safe_string_2($ticker, 'last', 'close', $price);
@@ -1144,7 +1144,7 @@ class gemini extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): array {
@@ -1659,7 +1659,6 @@ class gemini extends Exchange {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
-        $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
         if ($clientOrderId === null) {
             $clientOrderId = (string) $this->milliseconds();
         }
@@ -1675,12 +1674,14 @@ class gemini extends Exchange {
             'type' => 'exchange limit', // gemini allows limit orders only
             // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         );
-        $orderType = $this->safe_string($params, 'type', $type);
-        $params = $this->omit($params, 'type');
+        $typeValue = $this->safe_string($params, 'type', $type);
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price', 'stopPrice' ));
-        $params = $this->omit($params, array( 'triggerPrice', 'stop_price', 'stopPrice', 'type' ));
-        if ($orderType === 'stopLimit') {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter or a stop_price parameter for ' . $orderType . ' orders');
+        // timeInForce and postOnly are consumed only by non-trigger orders
+        $omitKeys = array( 'clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice' );
+        $optionKeys = ($triggerPrice === null) ? array( 'timeInForce', 'postOnly' ) : array();
+        $paramsOmitted = $this->omit($params, $this->array_concat($omitKeys, $optionKeys));
+        if ($typeValue === 'stopLimit') {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter or a stop_price parameter for ' . $typeValue . ' orders');
         }
         if ($triggerPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -1688,7 +1689,6 @@ class gemini extends Exchange {
         } else {
             // No options can be applied to stop-limit orders at this time.
             $timeInForce = $this->safe_string($params, 'timeInForce');
-            $params = $this->omit($params, 'timeInForce');
             if ($timeInForce !== null) {
                 if (($timeInForce === 'IOC') || ($timeInForce === 'immediate-or-cancel')) {
                     $request['options'] = array( 'immediate-or-cancel' );
@@ -1699,7 +1699,6 @@ class gemini extends Exchange {
                 }
             }
             $postOnly = $this->safe_bool($params, 'postOnly', false);
-            $params = $this->omit($params, 'postOnly');
             if ($postOnly === true) {
                 $request['options'] = array( 'maker-or-cancel' );
             }
@@ -1709,7 +1708,7 @@ class gemini extends Exchange {
                 $request['options'] = array( $options );
             }
         }
-        $response = $this->privatePostV1OrderNew($this->extend($request, $params));
+        $response = $this->privatePostV1OrderNew($this->extend($request, $paramsOmitted));
         //
         //      {
         //          "order_id":"106027397702",
@@ -1826,7 +1825,8 @@ class gemini extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $tagAndParams = $this->handle_withdraw_tag_and_params($tag, $params);
+        $paramsWithdrawTag = $tagAndParams[1];
         $this->check_address($address);
         if ($this->markets === null) {
             $this->load_markets();
@@ -1837,7 +1837,7 @@ class gemini extends Exchange {
             'amount' => $amount,
             'address' => $address,
         );
-        $response = $this->privatePostV1WithdrawCurrency($this->extend($request, $params));
+        $response = $this->privatePostV1WithdrawCurrency($this->extend($request, $paramsWithdrawTag));
         //
         //   for BTC
         //     {
@@ -2002,8 +2002,7 @@ class gemini extends Exchange {
             $this->load_markets();
         }
         $indexedByNetwork = $this->fetch_deposit_addresses_by_network($code, $params);
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        $networkCode = $this->handle_network_code_and_params($params)[0];
         return $this->safe_value($indexedByNetwork, $networkCode);
     }
 
@@ -2022,9 +2021,8 @@ class gemini extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        $code = $currency['code'];
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        $codeValue = $currency['code'];
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddresses() requires a network parameter');
         }
@@ -2032,8 +2030,8 @@ class gemini extends Exchange {
         $request = array(
             'network' => $networkId,
         );
-        $response = $this->privatePostV1AddressesNetwork($this->extend($request, $params));
-        $results = $this->parse_deposit_addresses($response, array( $code ), false, array( 'network' => $networkCode, 'currency' => $code ));
+        $response = $this->privatePostV1AddressesNetwork($this->extend($request, $paramsNetworkCode));
+        $results = $this->parse_deposit_addresses($response, array( $codeValue ), false, array( 'network' => $networkCode, 'currency' => $codeValue ));
         // one address structure per network, like every other venue (the endpoint is scoped to a
         // single network, so the last address the venue lists for it wins — same as before)
         return $this->index_by($results, 'network');
@@ -2042,6 +2040,7 @@ class gemini extends Exchange {
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
+        $headersSigned = null;
         if ($api === 'private') {
             $this->check_required_credentials();
             $apiKey = $this->apiKey;
@@ -2058,7 +2057,7 @@ class gemini extends Exchange {
             $payload = $this->json($request);
             $payload = base64_encode($payload);
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384');
-            $headers = array(
+            $headersSigned = array(
                 'Content-Type' => 'text/plain',
                 'X-GEMINI-APIKEY' => $this->apiKey,
                 'X-GEMINI-PAYLOAD' => $payload,
@@ -2074,10 +2073,12 @@ class gemini extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $url;
+        $headersResolved = ($api === 'private') ? $headersSigned : $headers;
+        $bodyResolved = $body;
         if (($method === 'POST') || ($method === 'DELETE')) {
-            $body = $this->json($query);
+            $bodyResolved = $this->json($query);
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

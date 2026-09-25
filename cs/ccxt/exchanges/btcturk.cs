@@ -553,8 +553,8 @@ public partial class btcturk : Exchange
         //   }
         //
         string? marketId = this.safeString(ticker, "pair");
-        market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -578,7 +578,7 @@ public partial class btcturk : Exchange
             { "baseVolume", this.safeString(ticker, "volume") },
             { "quoteVolume", null },
             { "info", ticker },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -772,7 +772,6 @@ public partial class btcturk : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
         timeframeVar ??= "1h";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -789,19 +788,21 @@ public partial class btcturk : Exchange
         if ((since != null))
         {
             request["from"] = this.parseToInt((since / 1000));
-        } else if ((limitVar == null))
-        {
-            limitVar = 100; // default value
         }
-        if ((limitVar != null))
+        Int64? limitDefaulted = limit;
+        if (((since == null)) && ((limit == null)))
         {
-            limitVar = mathMin(limitVar, 11000); // max 11000 candles diapason can be covered
+            limitDefaulted = ((Int64?)100); // default value
+        }
+        object limitResolved = (!(limitDefaulted == null)) ? mathMin(limitDefaulted, 11000) : null; // max 11000 candles diapason can be covered
+        if (!isEqual(limitResolved, null))
+        {
             if ((timeframeVar == "1y"))
             {
                 throw new BadRequest ((this.id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
             }
             int seconds = this.parseTimeframe(timeframeVar);
-            object limitSeconds = multiply(seconds, (subtract(limitVar, 1)));
+            object limitSeconds = multiply(seconds, (subtract(limitResolved, 1)));
             if ((since != null))
             {
                 object to = add(this.parseToInt((since / 1000)), limitSeconds);
@@ -847,7 +848,7 @@ public partial class btcturk : Exchange
         //        ]
         //    }
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limitVar));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limitResolved));
     }
 
     public override IList<object> parseOHLCVs(object ohlcvs, object market = null, string timeframe = null, object since = null, object limit = null, object tail = null)
@@ -1189,34 +1190,42 @@ public partial class btcturk : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + (path));
-        if (((method == "GET")) || ((method == "DELETE")))
+        bool isQueryMethod = ((method == "GET")) || ((method == "DELETE"));
+        if (isQueryMethod)
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(parameters));
             }
+        }
+        object requestBody = null;
+        if (isQueryMethod)
+        {
+            requestBody = body;
         } else
         {
-            body = this.json(parameters);
+            requestBody = this.json(parameters);
         }
+        Dictionary<string, object> privateHeaders = null;
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
             byte[] secret = this.base64ToBinary(this.secret);
             string auth = (this.apiKey + nonce);
-            headers = new Dictionary<string, object>() {
+            privateHeaders = new Dictionary<string, object>() {
                 { "X-PCK", this.apiKey },
                 { "X-Stamp", nonce },
                 { "X-Signature", this.hmac(this.encode(auth), secret, sha256, "base64") },
                 { "Content-Type", "application/json" },
             };
         }
+        object requestHeaders = ((privateHeaders != null)) ? privateHeaders : headers;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", requestBody },
+            { "headers", requestHeaders },
         };
     }
 

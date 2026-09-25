@@ -539,10 +539,10 @@ class coincheck(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'id')
         priceString = self.safe_string(trade, 'rate')
         marketId = self.safe_string(trade, 'pair')
-        market = self.safe_market(marketId, market, '_')
-        baseId = market['baseId']
-        quoteId = market['quoteId']
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market, '_')
+        baseId = marketResolved['baseId']
+        quoteId = marketResolved['quoteId']
+        symbol = marketResolved['symbol']
         takerOrMaker = None
         amountString = None
         costString = None
@@ -580,7 +580,7 @@ class coincheck(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -736,7 +736,6 @@ class coincheck(Exchange, ImplicitAPI):
                 request['amount'] = amount
             else:
                 cost = self.safe_number(params, 'cost')
-                params = self.omit(params, 'cost')
                 if cost is not None:
                     raise ArgumentsRequired(self.id + ' createOrder() : you should use "cost" parameter instead of "amount" argument to create market buy orders')
                 request['market_buy_amount'] = cost
@@ -744,7 +743,7 @@ class coincheck(Exchange, ImplicitAPI):
             request['order_type'] = side
             request['rate'] = price
             request['amount'] = amount
-        response = await self.privatePostExchangeOrders(self.extend(request, params))
+        response = await self.privatePostExchangeOrders(self.extend(request, self.omit(params, 'cost')))
         id = self.safe_string(response, 'id')
         return self.safe_order({
             'id': id,
@@ -949,6 +948,8 @@ class coincheck(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        bodySigned = None
+        headersSigned = None
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
@@ -966,16 +967,18 @@ class coincheck(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(self.keysort(query))
             else:
                 if len(query) > 0:
-                    body = self.urlencode(self.keysort(query))
-                    queryString = body
+                    bodySigned = self.urlencode(self.keysort(query))
+                    queryString = bodySigned
             auth = nonce + url + queryString
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        headersResolved = headers if (headersSigned is None) else headersSigned
+        bodyResolved = body if (bodySigned is None) else bodySigned
+        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

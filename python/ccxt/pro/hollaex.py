@@ -136,12 +136,13 @@ class hollaex(ccxt.async_support.hollaex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         messageHash = 'trade' + ':' + market['id']
         trades = await self.watch_public(messageHash, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def handle_trades(self, client: Client, message: dict):
         #
@@ -192,14 +193,16 @@ class hollaex(ccxt.async_support.hollaex):
             await self.load_markets()
         messageHash = 'usertrade'
         market = None
+        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
+            symbolResolved = market['symbol']
             messageHash += ':' + market['id']
         trades = await self.watch_private(messageHash, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+            limitResolved = trades.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
 
     def handle_my_trades(self, client: Client, message: dict, subscription: dict | None = None):
         #
@@ -269,14 +272,16 @@ class hollaex(ccxt.async_support.hollaex):
             await self.load_markets()
         messageHash = 'order'
         market = None
+        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
+            symbolResolved = market['symbol']
             messageHash += ':' + market['id']
         orders = await self.watch_private(messageHash, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
     def handle_order(self, client: Client, message: dict, subscription: dict | None = None):
         #

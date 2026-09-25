@@ -983,13 +983,14 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market map[string]any = this.Market(symbol)
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes83119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes83119)
+		var retRes83219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes83219)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -1001,11 +1002,11 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	if since != nil {
 		request["start"] = since
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketTrades(this.Extend(request, params))).Raw))
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketTrades(this.Extend(requestUntil, paramsUntil))).Raw))
 
 	//
 	//     [
@@ -1336,20 +1337,25 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) any {
 		// https://github.com/ccxt/ccxt/issues/9227
 		var duration int64 = this.ParseTimeframe(timeframe)
 		request["start"] = since
-		if limit == nil {
-			limit = Int64PtrTyped(1440)
-		} else {
-			limit = Int64PtrTyped(mathMin(limit, 1440))
-		}
-		request["end"] = this.Sum(since, Multiply(Multiply(limit, duration), 1000))
+		var sinceLimit any = func() any {
+			if limit == nil {
+				return 1440
+			}
+			return mathMin(limit, 1440)
+		}()
+		request["end"] = this.Sum(since, Multiply(Multiply(sinceLimit, duration), 1000))
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
-	if limit != nil {
-		request["limit"] = mathMin(limit, 1440) // default 1440, max 1440
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, params)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	var limitResolved any = limit
+	if (since != nil) && (limit == nil) {
+		limitResolved = 1440
 	}
-	return this.Extend(request, params)
+	if !IsEqual(limitResolved, nil) {
+		AddElementToObject(requestUntil, "limit", mathMin(limitResolved, 1440)) // default 1440, max 1440
+	}
+	return this.Extend(requestUntil, paramsUntil)
 }
 
 /**
@@ -1388,16 +1394,17 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market map[string]any = this.Market(symbol)
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes116619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))))
-		ch <- BoxAbsent(retRes116619)
+		var retRes116819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 1440))))
+		ch <- BoxAbsent(retRes116819)
 		return nil
 	}
-	var request any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, params)
+	var request any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, paramsPaginate)
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketCandles(request)).Raw))
 
@@ -1552,7 +1559,7 @@ func (this *Bitvavo) transferBody(ch chan any, code any, amount any, fromAccount
 	}
 	var currency map[string]any = this.Currency(code)
 	var subaccountId any = DerefScalar(this.SafeString(params, "subaccountId"))
-	params = MapTyped(this.Omit(params, "subaccountId"))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "subaccountId"))
 	var direction string
 	if (IsEqual(fromAccount, "master")) && (IsEqual(toAccount, "master")) {
 		panic(ArgumentsRequired(this.Id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)"))
@@ -1579,7 +1586,7 @@ func (this *Bitvavo) transferBody(ch chan any, code any, amount any, fromAccount
 		"amount":       this.CurrencyToPrecision(code, amount),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostSubaccountsTransfers(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostSubaccountsTransfers(this.Extend(request, paramsOmitted))).Raw))
 
 	//
 	//     {
@@ -1646,11 +1653,11 @@ func (this *Bitvavo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, params)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetSubaccountsTransfers(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetSubaccountsTransfers(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	//     {
 	//         "items": [
@@ -1841,7 +1848,11 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var postOnly bool = this.IsPostOnly(isMarketOrder, false, params)
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")     // trigger when price crosses from above to below this value
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice") // trigger when price crosses from below to above this value
-	params = MapTyped(this.Omit(params, []any{"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"}))
+	var paramsCost any = paramsOmitted
+	if isMarketOrder {
+		paramsCost = this.Omit(paramsOmitted, []any{"cost"})
+	}
 	if isMarketOrder {
 		var cost any = nil
 		if price != nil {
@@ -1850,7 +1861,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			var quoteAmount *string = Precise.StringMul(amountString, priceString)
 			cost = this.ParseNumber(quoteAmount)
 		} else {
-			cost = DerefScalar(this.SafeNumber(params, "cost"))
+			cost = DerefScalar(this.SafeNumber(paramsOmitted, "cost"))
 		}
 		if !IsEqual(cost, nil) {
 			var precision any = this.Currency(market["quote"])["precision"]
@@ -1858,7 +1869,6 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		} else {
 			request["amount"] = this.AmountToPrecision(symbol, amount)
 		}
-		params = MapTyped(this.Omit(params, []any{"cost"}))
 	} else if isLimitOrder {
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["amount"] = this.AmountToPrecision(symbol, amount)
@@ -1897,19 +1907,17 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	if postOnly {
 		request["postOnly"] = true
 	}
-	var operatorId any = nil
-	var operatorIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "operatorId")
-	operatorId = GetValue(operatorIdparamsVariable, 0)
-	params = MapTyped(GetValue(operatorIdparamsVariable, 1))
-	if operatorId != nil {
+	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(paramsCost, "createOrder", "operatorId")
+	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
+	paramsOperatorId := GetValue(operatorIdparamsOperatorIdVariable, 1)
+	if !IsEqual(operatorId, nil) {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
-	var selfTradePrevention *string = nil
-	var selfTradePreventionparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "selfTradePrevention")
-	selfTradePrevention = SafeStringPtr(GetValue(selfTradePreventionparamsVariable, 0))
-	params = MapTyped(GetValue(selfTradePreventionparamsVariable, 1))
+	var selfTradePreventionparamsSelfTradePreventionVariable []any = this.HandleOptionStringAndParams(paramsOperatorId, "createOrder", "selfTradePrevention")
+	var selfTradePrevention *string = SafeStringPtr(GetValue(selfTradePreventionparamsSelfTradePreventionVariable, 0))
+	paramsSelfTradePrevention := GetValue(selfTradePreventionparamsSelfTradePreventionVariable, 1)
 	if selfTradePrevention != nil {
 		if selfTradePrevention != nil && *selfTradePrevention == "EXPIRE_BOTH" {
 			request["selfTradePrevention"] = "cancelBoth"
@@ -1917,7 +1925,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			request["selfTradePrevention"] = selfTradePrevention
 		}
 	}
-	return this.Extend(request, params)
+	return this.Extend(request, paramsSelfTradePrevention)
 }
 
 /**
@@ -2019,7 +2027,7 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
 	var market map[string]any = this.Market(symbol)
 	var amountRemaining *float64 = this.SafeNumber(params, "amountRemaining")
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
-	params = MapTyped(this.Omit(params, []any{"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"}))
 	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
@@ -2032,19 +2040,16 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
 	if triggerPrice != nil {
 		request["triggerAmount"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
-	request = this.Extend(request, params)
+	request = this.Extend(request, paramsOmitted)
 	if this.IsEmpty(request) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument, or a price argument, or non-empty params"))
 	}
-	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	var clientOrderId *string = this.SafeString(paramsOmitted, "clientOrderId")
 	if clientOrderId == nil {
 		request["orderId"] = id
 	}
-	var operatorId any = nil
-	var operatorIdparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "operatorId")
-	operatorId = GetValue(operatorIdparamsVariable, 0)
-	params = MapTyped(GetValue(operatorIdparamsVariable, 1))
-	if operatorId != nil {
+	var operatorId any = GetValue(this.HandleOptionAndParams(paramsOmitted, "editOrder", "operatorId"), 0)
+	if !IsEqual(operatorId, nil) {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
@@ -2109,16 +2114,15 @@ func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) any {
 	if clientOrderId == nil {
 		request["orderId"] = id
 	}
-	var operatorId any = nil
-	var operatorIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "operatorId")
-	operatorId = GetValue(operatorIdparamsVariable, 0)
-	params = MapTyped(GetValue(operatorIdparamsVariable, 1))
-	if operatorId != nil {
+	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "operatorId")
+	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
+	var paramsOperatorId map[string]any = MapTyped(GetValue(operatorIdparamsOperatorIdVariable, 1))
+	if !IsEqual(operatorId, nil) {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
-	return this.Extend(request, params)
+	return this.Extend(request, paramsOperatorId)
 }
 
 /**
@@ -2192,17 +2196,16 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
 	}
-	var operatorId any = nil
-	var operatorIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "operatorId")
-	operatorId = GetValue(operatorIdparamsVariable, 0)
-	params = MapTyped(GetValue(operatorIdparamsVariable, 1))
-	if operatorId != nil {
+	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "operatorId")
+	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
+	var paramsOperatorId map[string]any = MapTyped(GetValue(operatorIdparamsOperatorIdVariable, 1))
+	if !IsEqual(operatorId, nil) {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
 		panic(ArgumentsRequired(this.Id + " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateDeleteOrders(this.Extend(request, params))).Raw))
+	var response []any = ListTyped(PanicOnError((<-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId))).Raw))
 
 	//
 	//     [
@@ -2245,10 +2248,9 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var codGroupId any = nil
-	var codGroupIdparamsVariable []any = this.HandleOptionIntegerAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
-	codGroupId = GetValue(codGroupIdparamsVariable, 0)
-	params = MapTyped(GetValue(codGroupIdparamsVariable, 1))
+	var codGroupIdparamsCodGroupIdVariable []any = this.HandleOptionIntegerAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
+	codGroupId := GetValue(codGroupIdparamsCodGroupIdVariable, 0)
+	paramsCodGroupId := GetValue(codGroupIdparamsCodGroupIdVariable, 1)
 	var request map[string]any = map[string]any{
 		"codGroupId": codGroupId,
 		"expiryAfterSeconds": func() any {
@@ -2259,7 +2261,7 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
 		}(),
 	}
 
-	response := (<-this.PrivatePostCancelOrdersAfter(this.Extend(request, params))).Raw
+	response := (<-this.PrivatePostCancelOrdersAfter(this.Extend(request, paramsCodGroupId))).Raw
 	PanicOnError(response)
 
 	//
@@ -2368,10 +2370,10 @@ func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit // default 500, max 1000
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
-	return this.Extend(request, params)
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, params)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	return this.Extend(requestUntil, paramsUntil)
 }
 
 /**
@@ -2411,17 +2413,18 @@ func (this *Bitvavo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes194519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params))))
+		var retRes194519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, paramsPaginate))))
 		ch <- BoxAbsent(retRes194519)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.FetchOrdersRequest(symbol, since, limit, params)
+	var request any = this.FetchOrdersRequest(symbol, since, limit, paramsPaginate)
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOrders(request)).Raw))
 
@@ -2613,8 +2616,8 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString(order, "orderId")
 	var timestamp *int64 = this.SafeInteger(order, "created")
 	var marketId *string = this.SafeString(order, "market")
-	market = this.SafeMarket(marketId, market, "-")
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "orderType")
@@ -2664,7 +2667,7 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) any {
 		"status":             status,
 		"fee":                fee,
 		"trades":             rawTrades,
-	}, market)
+	}, marketResolved)
 }
 func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2685,10 +2688,10 @@ func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit // default 500, max 1000
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
-	return this.Extend(request, params)
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, params)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	return this.Extend(requestUntil, paramsUntil)
 }
 
 /**
@@ -2728,17 +2731,18 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes221719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes221719)
+		var retRes221819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes221819)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.FetchMyTradesRequest(symbol, since, limit, params)
+	var request any = this.FetchMyTradesRequest(symbol, since, limit, paramsPaginate)
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetTrades(request)).Raw))
 
@@ -2807,11 +2811,11 @@ func (this *Bitvavo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["maxItems"] = mathMin(limit, 100)
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("toDate", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("toDate", request, params)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	//     {
 	//         "items": [
@@ -2866,7 +2870,7 @@ func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		direction = "out"
 	}
 	var code *string = this.SafeCurrencyCode(currencyId)
-	currency = this.SafeCurrency(currencyId, currency)
+	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "executedAt"))
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(item, "feesAmount")
@@ -2894,7 +2898,7 @@ func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"after":            nil,
 		"status":           "ok",
 		"fee":              fee,
-	}, currency)
+	}, currencyResolved)
 }
 func (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optionalArgs ...any) any {
 	tag := GetArg(optionalArgs, 0, nil)
@@ -2937,16 +2941,16 @@ func (this *Bitvavo) withdrawBody(ch chan any, code any, amount any, address any
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	var request any = this.WithdrawRequest(code, amount, address, tag, params)
+	var request any = this.WithdrawRequest(code, amount, address, tagWithdrawTag, paramsWithdrawTag)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawal(request)).Raw))
 
@@ -3325,8 +3329,10 @@ func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var requestHeaders any = headers
+	var requestBody any = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var url any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
 	var getOrDelete bool = (method == "GET") || (method == "DELETE")
@@ -3340,22 +3346,22 @@ func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
 		var payload any = ""
 		if !getOrDelete {
 			if len(ObjectKeys(query)) > 0 {
-				body = this.Json(query)
-				payload = body
+				requestBody = this.Json(query)
+				payload = requestBody
 			}
 		}
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var auth *string = SafeStringPtr(Add(Add(timestamp+method, url), payload))
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		var accessWindow *string = this.SafeString2(this.Options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000")
-		headers = map[string]any{
+		requestHeaders = map[string]any{
 			"BITVAVO-ACCESS-KEY":       this.ApiKey,
 			"BITVAVO-ACCESS-SIGNATURE": signature,
 			"BITVAVO-ACCESS-TIMESTAMP": timestamp,
 			"BITVAVO-ACCESS-WINDOW":    accessWindow,
 		}
 		if !getOrDelete {
-			AddElementToObject(headers, "Content-Type", "application/json")
+			AddElementToObject(requestHeaders, "Content-Type", "application/json")
 		}
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
@@ -3366,8 +3372,8 @@ func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Bitvavo) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

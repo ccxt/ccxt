@@ -584,8 +584,8 @@ func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "pair")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
@@ -609,7 +609,7 @@ func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    this.SafeString(ticker, "volume"),
 		"quoteVolume":   nil,
 		"info":          ticker,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -863,16 +863,23 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	request["to"] = this.ParseToInt((Divide(until, 1000)))
 	if since != nil {
 		request["from"] = this.ParseToInt(Divide(since, 1000))
-	} else if limit == nil {
-		limit = Int64PtrTyped(100) // default value
 	}
-	if limit != nil {
-		limit = Int64PtrTyped(mathMin(limit, 11000)) // max 11000 candles diapason can be covered
+	var limitDefaulted any = limit
+	if (since == nil) && (limit == nil) {
+		limitDefaulted = 100 // default value
+	}
+	var limitResolved any = func() any {
+		if !IsEqual(limitDefaulted, nil) {
+			return mathMin(limitDefaulted, 11000)
+		}
+		return nil
+	}() // max 11000 candles diapason can be covered
+	if !IsEqual(limitResolved, nil) {
 		if timeframe == "1y" {
 			panic(BadRequest(this.Id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\""))
 		}
 		var seconds int64 = this.ParseTimeframe(timeframe)
-		var limitSeconds any = Multiply(seconds, (Subtract(limit, 1)))
+		var limitSeconds any = Multiply(seconds, (Subtract(limitResolved, 1)))
 		if since != nil {
 			var to any = Add(this.ParseToInt(Divide(since, 1000)), limitSeconds)
 			request["to"] = mathMin(request["to"], to)
@@ -918,7 +925,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	//        ]
 	//    }
 	//
-	ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+	ch <- this.ParseOHLCVs(response, market, timeframe, since, limitResolved)
 	return nil
 }
 func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
@@ -1321,7 +1328,7 @@ func (this *Btcturk) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	if this.Id == "btctrader" {
 		panic(ExchangeError(this.Id + " is an abstract base API for BTCExchange, BTCTurk"))
@@ -1331,30 +1338,42 @@ func (this *Btcturk) Sign(path any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = Add(*apiUrl+"/", path)
-	if (method == "GET") || (method == "DELETE") {
+	var isQueryMethod bool = (method == "GET") || (method == "DELETE")
+	if isQueryMethod {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Urlencode(params))
 		}
-	} else {
-		body = this.Json(params)
 	}
+	var requestBody any = nil
+	if isQueryMethod {
+		requestBody = body
+	} else {
+		requestBody = this.Json(params)
+	}
+	var privateHeaders any = nil
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var secret []byte = this.Base64ToBinary(this.Secret)
 		var auth any = Add(this.ApiKey, nonce)
-		headers = map[string]any{
+		privateHeaders = map[string]any{
 			"X-PCK":        this.ApiKey,
 			"X-Stamp":      nonce,
 			"X-Signature":  this.Hmac(this.Encode(auth), secret, sha256, "base64"),
 			"Content-Type": "application/json",
 		}
 	}
+	var requestHeaders any = func() any {
+		if privateHeaders != nil {
+			return privateHeaders
+		}
+		return headers
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Btcturk) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

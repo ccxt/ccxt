@@ -786,7 +786,7 @@ impl BitsoCore {
         let mut amount: Value = self.safe_string_k(firstBalance.clone(), "amount", &[]);
         let mut currencyId: Value = self.safe_string_k(firstBalance, "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
-        currency = self.safe_currency(currencyId, &[currency.clone()]);
+        let mut currencyResolved: Value = self.safe_currency(currencyId, &[currency]);
         let mut details: Value = self.safe_dict_k(item.clone(), "details", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -807,7 +807,7 @@ impl BitsoCore {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), cost);
-                    m.insert("currency".to_string(), currency.clone());
+                    m.insert("currency".to_string(), currencyResolved.clone());
                 m
             });
         }
@@ -830,7 +830,7 @@ impl BitsoCore {
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("fee".to_string(), fee);
     m
-}), &[currency]);
+}), &[currencyResolved]);
 
     Value::Null
 }
@@ -1628,11 +1628,11 @@ impl BitsoCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id".into()))));
         }
         // convert it to an integer unconditionally
+        let mut paramsMarker: Value = params.clone();
         if markerInParams {
-            let mut marker: Value = crate::runtime::parse_int(&params.as_map().and_then(|__m| __m.get("marker")).cloned().unwrap_or(Value::Null));
-            params = self.extend(params.clone(), &[Value::Map({
+            paramsMarker = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("marker".to_string(), marker);
+                    m.insert("marker".to_string(), crate::runtime::parse_int(&params.as_map().and_then(|__m| __m.get("marker")).cloned().unwrap_or(Value::Null)));
                 m
             })]);
         }
@@ -1642,7 +1642,7 @@ impl BitsoCore {
                 m.insert("limit".to_string(), limit.clone());
             m
         });
-        let __ws_arg_6 = self.extend(request, &[params]);
+        let __ws_arg_6 = self.extend(request, &[paramsMarker]);
         let mut response: Value = self.private_get_user_trades(&[__ws_arg_6]).await;
         let mut payload: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
         return self.parse_trades(payload, &[market, since, limit]);
@@ -1936,11 +1936,11 @@ impl BitsoCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id".into()))));
         }
         // convert it to an integer unconditionally
+        let mut paramsMarker: Value = params.clone();
         if markerInParams {
-            let mut marker: Value = crate::runtime::parse_int(&params.as_map().and_then(|__m| __m.get("marker")).cloned().unwrap_or(Value::Null));
-            params = self.extend(params.clone(), &[Value::Map({
+            paramsMarker = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("marker".to_string(), marker);
+                    m.insert("marker".to_string(), crate::runtime::parse_int(&params.as_map().and_then(|__m| __m.get("marker")).cloned().unwrap_or(Value::Null)));
                 m
             })]);
         }
@@ -1950,7 +1950,7 @@ impl BitsoCore {
                 m.insert("limit".to_string(), limit.clone());
             m
         });
-        let __ws_arg_10 = self.extend(request, &[params]);
+        let __ws_arg_10 = self.extend(request, &[paramsMarker]);
         let mut response: Value = self.private_get_open_orders(&[__ws_arg_10]).await;
         let mut payload: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
         let mut orders: Value = self.parse_orders(payload, &[market, since, limit]);
@@ -2520,7 +2520,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_withdraw_tag_and_params(tag, params);
+        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         self.check_address(&[address.clone()]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2543,11 +2545,11 @@ impl BitsoCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), amount);
                 m.insert("address".to_string(), address);
-                m.insert("destination_tag".to_string(), tag);
+                m.insert("destination_tag".to_string(), tagWithdrawTag);
             m
         });
         let mut classMethod: Value = Value::Str(format!("{}{}", add(&Value::Str("privatePost".into()), &method), Value::Str("Withdrawal".into())).into());
-        let __ws_arg_14 = self.extend(request, &[params]);
+        let __ws_arg_14 = self.extend(request, &[paramsWithdrawTag]);
         let mut response: Value = self.call_dynamic_checked(classMethod, vec![(__ws_arg_14).clone()]).await;
         //
         //     {
@@ -2614,7 +2616,7 @@ impl BitsoCore {
         //     }
         //
         let mut currencyId: Value = self.safe_string2(transaction.clone(), Value::Str("currency".into()), Value::Str("asset".into()), &[]);
-        currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
+        let mut currencyResolved: Value = self.safe_currency(currencyId.clone(), &[currency]);
         let mut details: Value = self.safe_dict_k(transaction.clone(), "details", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2625,7 +2627,7 @@ impl BitsoCore {
         let mut networkId: Value = self.safe_string2(transaction.clone(), Value::Str("network".into()), Value::Str("method".into()), &[]);
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut withdrawId: Option<String> = self.safe_string_k(transaction.clone(), "wid", &[]).as_str().map(str::to_owned);
-        let mut networkCode: Value = self.network_id_to_code(&[networkId, currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
+        let mut networkCode: Value = self.network_id_to_code(&[networkId, currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
         let mut networkCodeUpper: Value = (if (networkCode != Value::Null) { to_upper(&networkCode) } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2639,7 +2641,7 @@ impl BitsoCore {
         m.insert("addressTo".to_string(), withdrawalAddress);
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("type".to_string(), (if (withdrawId.is_none()) { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) }));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId, &[currency]));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId, &[currencyResolved]));
         m.insert("status".to_string(), self.parse_transaction_status(status));
         m.insert("updated".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
@@ -2684,6 +2686,8 @@ impl BitsoCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
+        let mut requestHeaders: Value = headers;
+        let mut requestBody: Value = body;
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
@@ -2705,13 +2709,13 @@ impl BitsoCore {
             let mut request: Value = join(&content, &Value::Str("".into()));
             if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                    body = json_stringify(&query);
-                    request = Value::Str(format!("{}{}", request, body).into());
+                    requestBody = json_stringify(&query);
+                    request = Value::Str(format!("{}{}", request, requestBody).into());
                 }
             }
             let mut signature: Value = self.hmac(self.encode(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), nonce).into()), Value::Str(":".into())).into()), signature).into());
-            headers = Value::Map({
+            requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Bitso ".into()), auth).into()));
                 m
@@ -2721,8 +2725,8 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), requestBody);
+        m.insert("headers".to_string(), requestHeaders);
     m
 });
 

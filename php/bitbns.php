@@ -684,7 +684,7 @@ class bitbns extends Exchange {
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 't_rate' ));
         $targetRate = $this->safe_string($params, 'target_rate');
         $trailRate = $this->safe_string($params, 'trail_rate');
-        $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ));
+        $paramsOmitted = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ));
         $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'side' => strtoupper($side),
@@ -710,9 +710,9 @@ class bitbns extends Exchange {
         }
         $response = null;
         if ($type === 'limit') {
-            $response = $this->v2PostOrders($this->extend($request, $params));
+            $response = $this->v2PostOrders($this->extend($request, $paramsOmitted));
         } else {
-            $response = $this->v1PostPlaceMarketOrderQntySymbol($this->extend($request, $params));
+            $response = $this->v1PostPlaceMarketOrderQntySymbol($this->extend($request, $paramsOmitted));
         }
         //
         //     {
@@ -748,7 +748,7 @@ class bitbns extends Exchange {
         }
         $market = $this->market($symbol);
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'trigger', 'stop' ));
+        $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
         $request = array(
             'entry_id' => $id,
             'symbol' => $market['uppercaseId'],
@@ -758,7 +758,7 @@ class bitbns extends Exchange {
         $quoteSide = ($market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
         $quoteSide .= $tail;
         $request['side'] = $quoteSide;
-        $response = $this->v2PostCancel($this->extend($request, $params));
+        $response = $this->v2PostCancel($this->extend($request, $paramsOmitted));
         $parsed = ($response === null) ? array() : $response;
         return $this->parse_order($parsed, $market);
     }
@@ -842,7 +842,7 @@ class bitbns extends Exchange {
         }
         $market = $this->market($symbol);
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'trigger', 'stop' ));
+        $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
         $quoteSide = 'listOpen';
         if ($market['quoteId'] === 'USDT') {
             $quoteSide = 'usdtListOpen';
@@ -852,7 +852,7 @@ class bitbns extends Exchange {
             'page' => 0,
             'side' => ($isTrigger === true) ? ($quoteSide . 'StopOrders') : ($quoteSide . 'Orders'),
         );
-        $response = $this->v2PostGetordersnew($this->extend($request, $params));
+        $response = $this->v2PostGetordersnew($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "data":[
@@ -909,7 +909,7 @@ class bitbns extends Exchange {
         //         "type":"buy"
         //     }
         //
-        $market = $this->safe_market(null, $market);
+        $marketResolved = $this->safe_market(null, $market);
         $orderId = $this->safe_string_2($trade, 'id', 'tradeId');
         $timestamp = $this->parse8601($this->safe_string($trade, 'date'));
         $timestamp = $this->safe_integer($trade, 'timestamp', $timestamp);
@@ -931,11 +931,11 @@ class bitbns extends Exchange {
             $amountString = $this->safe_string($trade, 'base_volume');
             $costString = $this->safe_string($trade, 'quote_volume');
         }
-        $symbol = $market['symbol'];
+        $symbol = $marketResolved['symbol'];
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
         if ($feeCostString !== null) {
-            $feeCurrencyCode = $market['quote'];
+            $feeCurrencyCode = $marketResolved['quote'];
             $fee = array(
                 'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
@@ -955,7 +955,7 @@ class bitbns extends Exchange {
             'amount' => $amountString,
             'cost' => $costString,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1271,36 +1271,38 @@ class bitbns extends Exchange {
         }
         if ($api !== 'www') {
             $this->check_required_credentials();
-            $headers = array(
-                'X-BITBNS-APIKEY' => $this->apiKey,
-            );
         }
+        $apiKeyHeaders = array(
+            'X-BITBNS-APIKEY' => $this->apiKey,
+        );
+        $requestHeaders = ($api !== 'www') ? $apiKeyHeaders : $headers;
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();
+        $queryLength = count($query);
+        $postBody = '{}';
+        if ($queryLength > 0) {
+            $postBody = $this->json($query);
+        }
+        $requestBody = ($method === 'POST') ? $postBody : $body;
         if ($method === 'GET') {
-            if (count($query) > 0) {
+            if ($queryLength > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($method === 'POST') {
-            if (count($query) > 0) {
-                $body = $this->json($query);
-            } else {
-                $body = '{}';
-            }
             $auth = array(
                 'timeStamp_nonce' => $nonce,
-                'body' => $body,
+                'body' => $requestBody,
             );
             $payload = base64_encode($this->json($auth));
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
-            $headers = ($headers === null) ? array() : $headers;
-            $headers['X-BITBNS-PAYLOAD'] = $payload;
-            $headers['X-BITBNS-SIGNATURE'] = $signature;
-            $headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            $requestHeaders = ($requestHeaders === null) ? array() : $requestHeaders;
+            $requestHeaders['X-BITBNS-PAYLOAD'] = $payload;
+            $requestHeaders['X-BITBNS-SIGNATURE'] = $signature;
+            $requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

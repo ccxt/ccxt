@@ -55,23 +55,24 @@ class luno(ccxt.async_support.luno):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         subscriptionHash = '/stream/' + market['id']
-        subscription = {'symbol': symbol}
+        subscription = {'symbol': symbolValue}
         wsUrl = self.safe_string(self.urls['api'], 'ws')
         if wsUrl is None:
             raise ExchangeError(self.id + ' watchTrades() has no websocket url')
         url = wsUrl + subscriptionHash
-        messageHash = 'trades:' + symbol
+        messageHash = 'trades:' + symbolValue
         subscribe = {
             'api_key_id': self.apiKey,
             'api_key_secret': self.secret,
         }
         request = self.deep_extend(subscribe, params)
         trades = await self.watch(url, messageHash, request, subscriptionHash, subscription)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def handle_trades(self, client: Client, message: dict, subscription: dict):
         #
@@ -158,14 +159,14 @@ class luno(ccxt.async_support.luno):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         subscriptionHash = '/stream/' + market['id']
-        subscription = {'symbol': symbol}
+        subscription = {'symbol': symbolValue}
         wsUrl = self.safe_string(self.urls['api'], 'ws')
         if wsUrl is None:
             raise ExchangeError(self.id + ' watchOrderBook() has no websocket url')
         url = wsUrl + subscriptionHash
-        messageHash = 'orderbook:' + symbol
+        messageHash = 'orderbook:' + symbolValue
         subscribe = {
             'api_key_id': self.apiKey,
             'api_key_secret': self.secret,
@@ -239,10 +240,10 @@ class luno(ccxt.async_support.luno):
         }
 
     def parse_order_book_bids_asks(self, bidasks: object, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
-        bidasks = self.to_array(bidasks)
+        bidasksValue = self.to_array(bidasks)
         result = []
-        for i in range(0, len(bidasks)):
-            result.append(self.custom_parse_bid_ask(bidasks[i], priceKey, amountKey, thirdKey))
+        for i in range(0, len(bidasksValue)):
+            result.append(self.custom_parse_bid_ask(bidasksValue[i], priceKey, amountKey, thirdKey))
         return result
 
     def custom_parse_bid_ask(self, bidask: object, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):

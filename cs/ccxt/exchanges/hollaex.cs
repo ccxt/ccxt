@@ -748,7 +748,7 @@ public partial class hollaex : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetTickers(parameters);
         //
         //     {
@@ -765,7 +765,7 @@ public partial class hollaex : Exchange
         //         // ...
         //     }
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbolsNormalized));
     }
 
     public override Dictionary<string, object> parseTickers(object tickers, IList<object> symbols = null, object parameters = null)
@@ -814,8 +814,8 @@ public partial class hollaex : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "symbol");
-        market = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)getValue(market, "symbol"));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         Int64? timestamp = this.parse8601(this.safeString2(ticker, "time", "timestamp"));
         string? close = this.safeString(ticker, "close");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -839,7 +839,7 @@ public partial class hollaex : Exchange
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volume") },
             { "quoteVolume", null },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -907,8 +907,8 @@ public partial class hollaex : Exchange
         //  }
         //
         string? marketId = this.safeString(trade, "symbol");
-        market = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)getValue(market, "symbol"));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         string? datetime = this.safeString(trade, "timestamp");
         Int64? timestamp = this.parse8601(datetime);
         string? side = this.safeString(trade, "side");
@@ -939,7 +939,7 @@ public partial class hollaex : Exchange
             { "amount", amountString },
             { "cost", null },
             { "fee", fee },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1036,16 +1036,16 @@ public partial class hollaex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        bool? paginate = false;
+        bool paginate = false;
         int maxLimit = 500;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", paginate);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
-        if ((paginate == true))
+        IList<object> paginateOptionparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", paginate);
+        bool? paginateOption = (bool?)paginateOptionparamsPaginateVariable[0];
+        var paramsPaginate = paginateOptionparamsPaginateVariable[1];
+        if (isTrue(paginateOption))
         {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, parameters, maxLimit));
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
         }
-        Int64? until = this.safeInteger(parameters, "until");
+        Int64? until = this.safeInteger(paramsPaginate, "until");
         Int64 timeDelta = multiply(multiply(this.parseTimeframe(timeframeVar), maxLimit), 1000);
         object start = since;
         Int64 now = this.milliseconds();
@@ -1059,8 +1059,8 @@ public partial class hollaex : Exchange
         }
         request["from"] = this.parseToInt(divide(start, 1000)); // convert to seconds
         request["to"] = this.parseToInt((until / 1000)); // convert to seconds
-        parameters = this.omit(parameters, "until");
-        List<object> response = await this.publicGetChart(this.extend(request, parameters));
+        object paramsOmitted = this.omit(paramsPaginate, "until");
+        List<object> response = await this.publicGetChart(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -1485,8 +1485,8 @@ public partial class hollaex : Exchange
                 { "post_only", true },
             };
         }
-        parameters = this.omit(parameters, new List<object>() {"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"});
-        Dictionary<string, object> response = await this.privatePostOrder(this.extend(request, parameters));
+        object paramsOmitted = this.omit(parameters, new List<object>() {"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"});
+        Dictionary<string, object> response = await this.privatePostOrder(this.extend(request, paramsOmitted));
         //
         //     {
         //         "fee": 0,
@@ -1648,7 +1648,6 @@ public partial class hollaex : Exchange
 
     public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
     {
-        object currencyVar = currency;
         //
         //     {
         //         "currency":"usdt",
@@ -1669,11 +1668,11 @@ public partial class hollaex : Exchange
         }
         this.checkAddress(address);
         string? currencyId = this.safeString(depositAddress, "currency");
-        currencyVar = this.safeCurrency(currencyId, currencyVar);
+        Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
         string? network = this.safeString(depositAddress, "network");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", getValue(currencyVar, "code") },
+            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
             { "network", network },
             { "address", address },
             { "tag", tag },
@@ -1697,8 +1696,8 @@ public partial class hollaex : Exchange
             await this.loadMarkets();
         }
         string? network = this.safeString(parameters, "network");
-        parameters = this.omit(parameters, "network");
-        Dictionary<string, object> response = await this.privateGetUser(parameters);
+        object paramsOmitted = this.omit(parameters, "network");
+        Dictionary<string, object> response = await this.privateGetUser(paramsOmitted);
         //
         //     {
         //         "id":620,
@@ -1987,7 +1986,7 @@ public partial class hollaex : Exchange
             tagTo = tag;
         }
         string? currencyId = this.safeString(transaction, "currency");
-        currency = this.safeCurrency(currencyId, currency);
+        Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
         object status = this.safeValue(transaction, "status");
         bool? dismissed = this.safeBool(transaction, "dismissed");
         bool? rejected = this.safeBool(transaction, "rejected");
@@ -2005,7 +2004,7 @@ public partial class hollaex : Exchange
             status = "pending";
         }
         string? feeCurrencyId = this.safeString(transaction, "fee_coin");
-        string? feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, currency);
+        string? feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, currencyResolved);
         double? feeCost = this.safeNumber(transaction, "fee");
         Dictionary<string, object> fee = null;
         if ((feeCost != null))
@@ -2030,7 +2029,7 @@ public partial class hollaex : Exchange
             { "tagTo", tagTo },
             { "type", type },
             { "amount", amount },
-            { "currency", getValue(currency, "code") },
+            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
             { "status", status },
             { "updated", updated },
             { "comment", this.safeString(transaction, "message") },
@@ -2053,35 +2052,34 @@ public partial class hollaex : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        object addressVar = address;
-        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
-        parameters = tagparametersVariable[1];
-        this.checkAddress(addressVar);
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
+        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
+        this.checkAddress(address);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        if ((tagVar != null))
+        object addressWithTag = address;
+        if ((tagWithdrawTag != null))
         {
-            addressVar = add(addressVar, (":" + (tagVar)));
+            addressWithTag = ((address + ":") + (tagWithdrawTag));
         }
-        string? network = this.safeString(parameters, "network");
+        string? network = this.safeString(paramsWithdrawTag, "network");
         if ((network == null))
         {
             throw new ArgumentsRequired ((this.id + " withdraw() requires a network parameter")) ;
         }
-        parameters = this.omit(parameters, "network");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
-            { "address", addressVar },
+            { "address", addressWithTag },
             { "network", this.networkCodeToId(network, code) },
         };
-        Dictionary<string, object> response = await this.privatePostUserWithdrawal(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostUserWithdrawal(this.extend(request, paramsOmitted));
         //
         //     {
         //         "message": "Withdrawal request is in the queue and will be processed.",
@@ -2232,48 +2230,52 @@ public partial class hollaex : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        path = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
+        string requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         if (((method == "GET")) || ((method == "DELETE")))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                path = add(path, ("?" + this.urlencode(query)));
+                requestPath = requestPath + ("?" + this.urlencode(query));
             }
         }
-        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string? url = ((string)add(apiUrl, path));
+        string url = (apiUrl + requestPath);
+        string? requestBody = null;
+        Dictionary<string, object> requestHeaders = null;
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
             Int64? defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));
             Int64 expires = this.sum(this.seconds(), defaultExpires);
             string expiresString = expires.ToString();
-            object auth = ((method + (path)) + expiresString);
-            headers = new Dictionary<string, object>() {
+            string auth = ((method + requestPath) + expiresString);
+            requestHeaders = new Dictionary<string, object>() {
                 { "api-key", this.apiKey },
                 { "api-expires", expiresString },
             };
             if ((method == "POST"))
             {
-                ((IDictionary<string,object>)headers)["Content-type"] = "application/json";
+                requestHeaders["Content-type"] = "application/json";
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    body = this.json(query);
-                    auth = add(auth, body);
+                    requestBody = this.json(query);
+                    auth = auth + requestBody;
                 }
             }
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-            ((IDictionary<string,object>)headers)["api-signature"] = signature;
+            requestHeaders["api-signature"] = signature;
         }
+        object bodyResult = ((requestBody == null)) ? body : requestBody;
+        object headersResult = ((requestHeaders == null)) ? headers : requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResult },
+            { "headers", headersResult },
         };
     }
 

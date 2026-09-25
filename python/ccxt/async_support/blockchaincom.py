@@ -629,7 +629,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         orderType = self.safe_string(params, 'ordType', type)
         uppercaseOrderType = orderType.upper()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId', self.uuid16())
-        params = self.omit(params, ['ordType', 'clientOrderId', 'clOrdId'])
+        paramsOmitted = self.omit(params, ['ordType', 'clientOrderId', 'clOrdId'])
         self.check_required_argument('createOrder', side, 'side')
         request = {
             # 'stopPx' : limit price
@@ -642,8 +642,8 @@ class blockchaincom(Exchange, ImplicitAPI):
             'orderQty': self.amount_to_precision(symbol, amount),
             'clOrdId': clientOrderId,
         }
-        triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
-        params = self.omit(params, ['triggerPrice', 'stopPx', 'stopPrice'])
+        triggerPrice = self.safe_value_n(paramsOmitted, ['triggerPrice', 'stopPx', 'stopPrice'])
+        paramsOmitted2 = self.omit(paramsOmitted, ['triggerPrice', 'stopPx', 'stopPrice'])
         if uppercaseOrderType == 'STOP' or uppercaseOrderType == 'STOPLIMIT':
             if triggerPrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPx or triggerPrice param for a ' + uppercaseOrderType + ' order')
@@ -663,7 +663,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         if stopPriceRequired:
             request['stopPx'] = self.price_to_precision(symbol, triggerPrice)
-        response = await self.privatePostOrders(self.extend(request, params))
+        response = await self.privatePostOrders(self.extend(request, paramsOmitted2))
         return self.parse_order(response, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -832,12 +832,12 @@ class blockchaincom(Exchange, ImplicitAPI):
         amountString = self.safe_string(trade, 'qty')
         timestamp = self.safe_integer(trade, 'timestamp')
         datetime = self.iso8601(timestamp)
-        market = self.safe_market(marketId, market, '-')
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market, '-')
+        symbol = marketResolved['symbol']
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
-            feeCurrency = market['quote']
+            feeCurrency = marketResolved['quote']
             fee = {'cost': feeCostString, 'currency': feeCurrency}
         return self.safe_trade({
             'id': tradeId,
@@ -853,7 +853,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'cost': None,
             'fee': fee,
             'info': trade,
-        }, market)
+        }, marketResolved)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1129,11 +1129,11 @@ class blockchaincom(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         accountName = self.safe_string(params, 'account', 'primary')
-        params = self.omit(params, 'account')
+        paramsOmitted = self.omit(params, 'account')
         request = {
             'account': accountName,
         }
-        response = await self.privateGetAccounts(self.extend(request, params))
+        response = await self.privateGetAccounts(self.extend(request, paramsOmitted))
         #
         #     {
         #         "primary": [
@@ -1209,21 +1209,28 @@ class blockchaincom(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + requestPath
         query = self.omit(params, self.extract_params(path))
+        isPrivate = (api == 'private')
+        privateHeaders = {
+            'X-API-Token': self.secret,
+        }
+        requestHeaders = headers
+        if isPrivate:
+            requestHeaders = privateHeaders
+        isPrivatePost = isPrivate and (method != 'GET')
+        requestBody = body
+        if isPrivatePost:
+            requestBody = self.json(query)
         if api == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
+        elif isPrivate:
             self.check_required_credentials()
-            headers = {
-                'X-API-Token': self.secret,
-            }
             if (method == 'GET'):
                 if len(query) > 0:
                     url += '?' + self.urlencode(query)
             else:
-                body = self.json(query)
-                headers['Content-Type'] = 'application/json'
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+                privateHeaders['Content-Type'] = 'application/json'
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         # {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"

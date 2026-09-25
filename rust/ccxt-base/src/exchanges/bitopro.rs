@@ -831,8 +831,8 @@ impl BitoproCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "pair", &[]);
-        market = self.safe_market(&[marketId, market.clone()]);
-        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut symbol: Value = self.safe_string_k(marketResolved.clone(), "symbol", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -856,7 +856,7 @@ impl BitoproCore {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -990,8 +990,8 @@ impl BitoproCore {
             timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[]);
         }
         let mut marketId: Value = self.safe_string_k(trade.clone(), "pair", &[]);
-        market = self.safe_market(&[marketId, market.clone()]);
-        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut symbol: Value = self.safe_string_k(marketResolved.clone(), "symbol", &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut type_var: Value = self.safe_string_lower_k(trade.clone(), "type", &[]);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "action", &[]);
@@ -1044,7 +1044,7 @@ impl BitoproCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -1235,21 +1235,18 @@ impl BitoproCore {
             m
         });
         // we need to have a limit argument because "to" and "from" are required
-        if (limit == Value::Null) {
-            limit = Value::Int(500);
-        }  else {
-            limit = crate::runtime::Math::min(&limit, &Value::Int(75000)); // supports slightly more than 75k candles atm, but limit here to avoid errors
-        }
+        // supports slightly more than 75k candles atm, but limit here to avoid errors
+        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(500) } else { crate::runtime::Math::min(&limit, &Value::Int(75000)) });
         let mut timeframeInSeconds: Value = self.parse_timeframe(timeframe.clone());
         let mut alignedSince: Value = Value::Null;
         if (since == Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), self.seconds()); }
-            { let __be_tmp = subtract(&crate::value::get_value_k(&request, "to"), &((match (&(limit), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), __be_tmp); } }
+            { let __be_tmp = subtract(&crate::value::get_value_k(&request, "to"), &((match (&(limitResolved), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), __be_tmp); } }
         }  else {
             let mut timeframeInMilliseconds: Value = (match (&(timeframeInSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             alignedSince = (match (&(math_floor(&(match ((since).as_f64(), (timeframeInMilliseconds).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(timeframeInMilliseconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), math_floor(&(match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
-            { let __be_tmp = self.sum(&[crate::value::get_value_k(&request, "from"), (match (&(limit), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), __be_tmp); } }
+            { let __be_tmp = self.sum(&[crate::value::get_value_k(&request, "from"), (match (&(limitResolved), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), __be_tmp); } }
         }
         let __ws_arg_3 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_trading_history_pair(&[__ws_arg_3]).await;
@@ -1268,8 +1265,8 @@ impl BitoproCore {
         //         ]
         //     }
         //
-        let mut sparse: Value = self.parse_ohlc_vs(data, &[market, timeframe, since, limit.clone()]);
-        return self.insert_missing_candles(sparse, timeframeInSeconds, alignedSince, limit);
+        let mut sparse: Value = self.parse_ohlc_vs(data, &[market, timeframe, since, limitResolved.clone()]);
+        return self.insert_missing_candles(sparse, timeframeInSeconds, alignedSince, limitResolved);
 
     Value::Null
 }
@@ -1443,8 +1440,8 @@ impl BitoproCore {
         let mut amount: Value = self.safe_string2(order.clone(), Value::Str("amount".into()), Value::Str("originalAmount".into()), &[]);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "pair", &[]);
-        market = self.safe_market(&[marketId, market.clone(), Value::Str("_".into())]);
-        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Str("_".into())]);
+        let mut symbol: Value = self.safe_string_k(marketResolved.clone(), "symbol", &[]);
         let mut orderStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut status: Value = self.parse_order_status(orderStatus);
         let mut type_var: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
@@ -1491,7 +1488,7 @@ impl BitoproCore {
         m.insert("trades".to_string(), Value::Null);
         m.insert("info".to_string(), order);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -1536,7 +1533,6 @@ impl BitoproCore {
         if (orderType.as_str() == Some("STOP_LIMIT")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), price)); }
             let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-            params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
             if (triggerPrice == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter for ".into())).into()), orderType).into()), Value::Str(" orders".into()))));
             }  else {
@@ -1549,11 +1545,12 @@ impl BitoproCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("condition".into(), condition); }
             }
         }
-        let mut postOnly: Value = self.is_post_only(Value::Bool(orderType.as_str() == Some("MARKET")), Value::Null, &[params.clone()]);
+        let mut paramsOmitted: Value = (if (orderType.as_str() == Some("STOP_LIMIT")) { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params });
+        let mut postOnly: Value = self.is_post_only(Value::Bool(orderType.as_str() == Some("MARKET")), Value::Null, &[paramsOmitted.clone()]);
         if is_true(&postOnly) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".into(), Value::Str("POST_ONLY".into())); }
         }
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.private_post_orders_pair(&[__ws_arg_4]).await;
         return self.parse_order(response, &[market]);
 
@@ -2173,7 +2170,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_withdraw_tag_and_params(tag, params);
+        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -2186,23 +2185,27 @@ impl BitoproCore {
                 m.insert("address".to_string(), address);
             m
         });
-        if (matches!(&params, Value::Dict(__d) if __d.contains_key("network"))) {
+        let mut hasNetwork: bool = in_op(&paramsWithdrawTag, &Value::Str("network".into()));
+        let mut paramsOmitted: Value = paramsWithdrawTag.clone();
+        if hasNetwork {
+            paramsOmitted = self.omit(paramsWithdrawTag.clone(), Value::from(vec![Value::Str("network".into())]), &[]);
+        }
+        if hasNetwork {
             let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut requestedNetwork: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
-            params = self.omit(params.clone(), Value::from(vec![Value::Str("network".into())]), &[]);
+            let mut requestedNetwork: Value = self.safe_string_upper_k(paramsWithdrawTag, "network", &[]);
             let mut networkId: Value = (if (requestedNetwork == Value::Null) { Value::Null } else { self.safe_string(networks, requestedNetwork.clone(), &[]) });
             if (networkId == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".into())).into()), requestedNetwork)));
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("protocol".into(), networkId); }
         }
-        if (tag != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("message".into(), tag); }
+        if (tagWithdrawTag != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("message".into(), tagWithdrawTag); }
         }
-        let __ws_arg_17 = self.extend(request, &[params]);
+        let __ws_arg_17 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.private_post_wallet_withdraw_currency(&[__ws_arg_17]).await;
         let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2292,22 +2295,25 @@ impl BitoproCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
-        if (headers == Value::Null) {
-            headers = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
+        let mut requestHeaders: Value = (if (headers == Value::Null) { Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) } else { headers });
+        let mut isSignedBody: bool = (api.as_str() == Some("private")) && ((method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")));
+        let mut signedBody: Value = json_stringify(&params);
+        let mut requestBody: Value = body;
+        if isSignedBody {
+            requestBody = signedBody.clone();
         }
-        if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-API".into(), Value::Str("ccxt".into())); }
+        add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-API".into()), Value::Str("ccxt".into()));
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
-                body = json_stringify(&params);
-                let mut payload: Value = self.string_to_base64(body.clone(), &[]);
+                let mut payload: Value = self.string_to_base64(signedBody, &[]);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
-                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone()); }
-                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-PAYLOAD".into(), payload.clone()); }
-                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-SIGNATURE".into(), signature.clone()); }
+                add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-APIKEY".into()), self.apiKey.clone());
+                add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-PAYLOAD".into()), payload.clone());
+                add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-SIGNATURE".into()), signature.clone());
             }  else if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
@@ -2321,9 +2327,9 @@ impl BitoproCore {
                 let mut data: Value = json_stringify(&rawData);
                 let mut payload: Value = self.string_to_base64(data, &[]);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
-                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone()); }
-                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-PAYLOAD".into(), payload); }
-                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-SIGNATURE".into(), signature); }
+                add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-APIKEY".into()), self.apiKey.clone());
+                add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-PAYLOAD".into()), payload);
+                add_element_to_object(&mut requestHeaders, &Value::Str("X-BITOPRO-SIGNATURE".into()), signature);
             }
         }  else if (api.as_str() == Some("public")) && (method.as_str() == Some("GET")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
@@ -2339,8 +2345,8 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), requestBody);
+        m.insert("headers".to_string(), requestHeaders);
     m
 });
 

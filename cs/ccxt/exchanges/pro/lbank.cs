@@ -134,7 +134,6 @@ public partial class lbank : ccxt.lbank
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -156,11 +155,12 @@ public partial class lbank : ccxt.lbank
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash));
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)ohlcv.getLimit(symbol, limitVar));
+            limitResolved = ((Int64?)ohlcv.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -425,15 +425,12 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "fetchTradesWs");
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("fetchTrades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        if ((limit == null))
-        {
-            limit = 10;
-        }
+        object limitResolved = ((limit == null)) ? 10 : limit;
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "trade" },
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
-            { "size", limit },
+            { "size", limitResolved },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         Int64 requestId = this.requestId();
@@ -593,7 +590,6 @@ public partial class lbank : ccxt.lbank
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -603,13 +599,13 @@ public partial class lbank : ccxt.lbank
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string? messageHash = null;
         string pair = "all";
-        if ((symbolVar == null))
+        string? symbolResolved = ((symbol == null)) ? null : this.symbol(symbol);
+        if ((symbol == null))
         {
             messageHash = "orders:all";
         } else
         {
-            Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = this.symbol(symbolVar);
+            Dictionary<string, object> market = this.market(symbol);
             messageHash = ("orders:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
             pair = ((string)(market.ContainsKey("id") ? market["id"] : null));
         }
@@ -621,7 +617,7 @@ public partial class lbank : ccxt.lbank
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, messageHash, request, messageHash, request);
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limit, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
@@ -848,14 +844,11 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "fetchOrderBookWs");
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("fetchOrderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        if ((limit == null))
-        {
-            limit = 100;
-        }
+        object limitResolved = ((limit == null)) ? 100 : limit;
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "depth" },
-            { "depth", limit },
+            { "depth", limitResolved },
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
@@ -875,7 +868,6 @@ public partial class lbank : ccxt.lbank
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -885,18 +877,15 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "watchOrderBook");
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        parameters = this.omit(parameters, "aggregation");
-        if ((limitVar == null))
-        {
-            limitVar = ((Int64?)100);
-        }
+        object paramsOmitted = this.omit(parameters, "aggregation");
+        object limitResolved = ((limit == null)) ? 100 : limit;
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "depth" },
-            { "depth", limitVar },
+            { "depth", limitResolved },
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, paramsOmitted);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, messageHash));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }

@@ -684,7 +684,7 @@ public partial class blockchaincom : Exchange
         string? orderType = this.safeString(parameters, "ordType", type);
         string uppercaseOrderType = orderType.ToUpper();
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
-        parameters = this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"});
         this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ordType", uppercaseOrderType },
@@ -693,8 +693,8 @@ public partial class blockchaincom : Exchange
             { "orderQty", this.amountToPrecision(symbol, amount) },
             { "clOrdId", clientOrderId },
         };
-        object triggerPrice = this.safeValueN(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
-        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
+        object triggerPrice = this.safeValueN(paramsOmitted, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
+        object paramsOmitted2 = this.omit(paramsOmitted, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         if (uppercaseOrderType == "STOP" || uppercaseOrderType == "STOPLIMIT")
         {
             if ((triggerPrice == null))
@@ -731,7 +731,7 @@ public partial class blockchaincom : Exchange
         {
             request["stopPx"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        Dictionary<string, object> response = await this.privatePostOrders(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostOrders(this.extend(request, paramsOmitted2));
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
@@ -924,13 +924,13 @@ public partial class blockchaincom : Exchange
         string? amountString = this.safeString(trade, "qty");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? datetime = this.iso8601(timestamp);
-        market = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)getValue(market, "symbol"));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
+        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if ((feeCostString != null))
         {
-            string? feeCurrency = ((string)getValue(market, "quote"));
+            string? feeCurrency = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null));
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrency },
@@ -950,7 +950,7 @@ public partial class blockchaincom : Exchange
             { "cost", null },
             { "fee", fee },
             { "info", trade },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1280,11 +1280,11 @@ public partial class blockchaincom : Exchange
             await this.loadMarkets();
         }
         string? accountName = this.safeString(parameters, "account", "primary");
-        parameters = this.omit(parameters, "account");
+        object paramsOmitted = this.omit(parameters, "account");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", accountName },
         };
-        Dictionary<string, object> response = await this.privateGetAccounts(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGetAccounts(this.extend(request, paramsOmitted));
         //
         //     {
         //         "primary": [
@@ -1378,18 +1378,30 @@ public partial class blockchaincom : Exchange
         }
         string url = (apiUrl + requestPath);
         object query = this.omit(parameters, this.extractParams(path));
+        bool isPrivate = (isEqual(api, "private"));
+        Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
+            { "X-API-Token", this.secret },
+        };
+        object requestHeaders = headers;
+        if (isPrivate)
+        {
+            requestHeaders = privateHeaders;
+        }
+        bool isPrivatePost = isPrivate && ((method != "GET"));
+        object requestBody = body;
+        if (isPrivatePost)
+        {
+            requestBody = this.json(query);
+        }
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
-        } else if (isEqual(api, "private"))
+        } else if (isPrivate)
         {
             this.checkRequiredCredentials();
-            headers = new Dictionary<string, object>() {
-                { "X-API-Token", this.secret },
-            };
             if (((method == "GET")))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -1398,15 +1410,14 @@ public partial class blockchaincom : Exchange
                 }
             } else
             {
-                body = this.json(query);
-                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                privateHeaders["Content-Type"] = "application/json";
             }
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", requestBody },
+            { "headers", requestHeaders },
         };
     }
 

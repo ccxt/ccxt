@@ -1325,7 +1325,7 @@ class bitteam extends Exchange {
         //
         $id = $this->safe_string($order, 'id');
         $marketId = $this->safe_string($order, 'pair');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $clientOrderId = $this->safe_string($order, 'orderCid');
         $timestamp = null;
         $createdAt = $this->safe_string($order, 'createdAt');
@@ -1361,7 +1361,7 @@ class bitteam extends Exchange {
             'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'status' => $status,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'timeInForce' => 'GTC',
             'side' => $side,
@@ -1376,7 +1376,7 @@ class bitteam extends Exchange {
             'trades' => null,
             'info' => $order,
             'postOnly' => false,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_order_status(?string $status) {
@@ -1756,7 +1756,7 @@ class bitteam extends Exchange {
         //         "lowest_price_24h": 37574.894999
         //     }
         $marketId = $this->safe_string_lower($ticker, 'trading_pairs');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $bestBidPrice = null;
         $bestAskPrice = null;
         $bestBidVolume = null;
@@ -1781,7 +1781,7 @@ class bitteam extends Exchange {
         $close = $this->safe_string_2($ticker, 'lastPrice', 'last_price');
         $changePcnt = $this->safe_string_2($ticker, 'change24', 'price_change_percent_24h');
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => null,
             'datetime' => null,
             'open' => null,
@@ -1800,7 +1800,7 @@ class bitteam extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2066,8 +2066,8 @@ class bitteam extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($trade, 'pair');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $id = $this->safe_string_2($trade, 'id', 'trade_id');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string_2($trade, 'quantity', 'base_volume');
@@ -2114,7 +2114,7 @@ class bitteam extends Exchange {
             'cost' => $cost,
             'fee' => $fee,
             'info' => $trade,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_balance($params = array()): array {
@@ -2435,24 +2435,28 @@ class bitteam extends Exchange {
         }
         $url = $apiUrl . $endpoint;
         $query = $this->urlencode($request);
+        $requestBody = null;
+        $requestHeaders = null;
         if ($api === 'private') {
             $this->check_required_credentials();
             if ($method === 'POST') {
-                $body = $this->json($request);
+                $requestBody = $this->json($request);
             } elseif (strlen($query) !== 0) {
                 $url .= '?' . $query;
             }
             $auth = $this->apiKey . ':' . $this->secret;
             $auth64 = base64_encode($auth);
             $signature = 'Basic ' . $auth64;
-            $headers = array(
+            $requestHeaders = array(
                 'Authorization' => $signature,
                 'Content-Type' => 'application/json',
             );
         } elseif (strlen($query) !== 0) {
             $url .= '?' . $query;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
+        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

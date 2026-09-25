@@ -3227,13 +3227,14 @@ impl PolymarketCore {
         if (orderTypeStr == Value::Null) {
             orderTypeStr = (if isMarket { Value::Str("FOK".into()) } else { Value::Str("GTC".into()) });
         }
-        if (price == Value::Null) {
+        let mut priceResolved: Value = price;
+        if (priceResolved == Value::Null) {
             if !isMarket {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price for limit orders".into()))));
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
-            price = self.safe_number_k(outcomeObj.clone(), "price", &[]);
-            if (price == Value::Null) {
+            priceResolved = self.safe_number_k(outcomeObj.clone(), "price", &[]);
+            if (priceResolved == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() could not determine a price from the outcome, pass an explicit price".into()))));
             }
         }
@@ -3261,7 +3262,7 @@ impl PolymarketCore {
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         let mut cost: Value = self.safe_number_k(params.clone(), "cost", &[]);
         let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("signatureType".into()), Value::Str("signature_type".into()), Value::Str("funder".into()), Value::Str("maker".into()), Value::Str("orderType".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("tickSize".into()), Value::Str("negRisk".into()), Value::Str("salt".into()), Value::Str("timestamp".into()), Value::Str("expiration".into()), Value::Str("cost".into()), Value::Str("builder".into()), Value::Str("builderCode".into())]), &[]);
-        let mut amounts: Value = self.polymarket_order_raw_amounts(sideStr.clone(), amount.clone(), price.clone(), tickSize, &[cost.clone()]);
+        let mut amounts: Value = self.polymarket_order_raw_amounts(sideStr.clone(), amount.clone(), priceResolved.clone(), tickSize, &[cost.clone()]);
         let mut makerAmount: Value = self.safe_string_k(amounts.clone(), "makerAmount", &[]);
         let mut takerAmount: Value = self.safe_string_k(amounts, "takerAmount", &[]);
         let mut sideInt: Value = (if (sideStr.as_str() == Some("BUY")) { Value::Int(0) } else { Value::Int(1) });
@@ -3354,7 +3355,7 @@ impl PolymarketCore {
         let mut requestEcho: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("side".to_string(), sideStr);
-                m.insert("price".to_string(), price);
+                m.insert("price".to_string(), priceResolved);
                 m.insert("asset_id".to_string(), tokenId);
                 m.insert("time_in_force".to_string(), orderTypeStr);
                 m.insert("postOnly".to_string(), postOnly);
@@ -4167,6 +4168,7 @@ impl PolymarketCore {
         if !isArrayBody {
             query = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         }
+        let mut bodyValue: Value = body;
         if (method.as_str() == Some("GET")) {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -4192,19 +4194,19 @@ impl PolymarketCore {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), querystring).into())).into());
             }
         }  else if isArrayBody {
-            body = json_stringify(&params);
+            bodyValue = json_stringify(&params);
         }  else {
             let mut queryKeys: Value = object_keys(&query);
             let mut queryKeysLength: f64 = ((queryKeys.len() as i64) as f64);
             if queryKeysLength > ((0i64) as f64) {
-                body = json_stringify(&query);
+                bodyValue = json_stringify(&query);
             }
         }
-        let mut headerDefaults: Value = (if (headers != Value::Null) { headers.clone() } else { Value::Map({
+        let mut headerDefaults: Value = (if (headers != Value::Null) { headers } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        headers = self.extend(Value::Map({
+        let mut headersValue: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Accept".to_string(), Value::Str("application/json".into()));
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -4228,7 +4230,7 @@ impl PolymarketCore {
                 let mut nonce: Value = self.safe_integer_k(params.clone(), "nonce", &[Value::Int(0)]);
                 let mut l1signature: Value = self.sign_clob_auth(address.clone(), timestamp.clone(), nonce.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                 let __ws_arg_29 = self.number_to_string(nonce);
-                headers = self.extend(headers.clone(), &[Value::Map({
+                headersValue = self.extend(headersValue.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("POLY_ADDRESS".to_string(), address.clone());
                         m.insert("POLY_SIGNATURE".to_string(), l1signature);
@@ -4255,8 +4257,8 @@ impl PolymarketCore {
                 // @polymarket/clob-client — query params are sent separately, not signed
                 let mut requestPath: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path, params)).into());
                 let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), requestPath).into());
-                if (body != Value::Null) {
-                    auth = add(&auth, &body);
+                if (bodyValue != Value::Null) {
+                    auth = add(&auth, &bodyValue);
                 }
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
@@ -4269,7 +4271,7 @@ impl PolymarketCore {
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 signature = replace_all_str(&signature, &Value::Str("+".into()), &Value::Str("-".into()));
                 signature = replace_all_str(&signature, &Value::Str("/".into()), &Value::Str("_".into()));
-                headers = self.extend(headers.clone(), &[Value::Map({
+                headersValue = self.extend(headersValue.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("POLY_ADDRESS".to_string(), address);
                         m.insert("POLY_API_KEY".to_string(), apiKey);
@@ -4284,8 +4286,8 @@ impl PolymarketCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), bodyValue);
+        m.insert("headers".to_string(), headersValue);
     m
 });
 
@@ -4708,10 +4710,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
+        let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
         let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
-        outcome = self.safe_string_k(outcomeObj, "outcome", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcome).into());
+        let mut outcomeValue: Value = self.safe_string_k(outcomeObj, "outcome", &[]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcomeValue).into());
         let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe::".into()), tokenId).into());
         let mut subscribeMsg: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4743,10 +4745,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
+        let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
         let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
-        outcome = self.safe_string_k(outcomeObj, "outcome", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades::".into()), outcome).into());
+        let mut outcomeValue: Value = self.safe_string_k(outcomeObj, "outcome", &[]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades::".into()), outcomeValue).into());
         let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe::".into()), tokenId).into());
         let mut subscribeMsg: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4774,10 +4776,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
+        let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
         let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
-        outcome = self.safe_string_k(outcomeObj, "outcome", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".into()), outcome).into());
+        let mut outcomeValue: Value = self.safe_string_k(outcomeObj, "outcome", &[]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".into()), outcomeValue).into());
         let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe::".into()), tokenId).into());
         let mut subscribeMsg: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4785,16 +4787,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("type".to_string(), Value::Str("market".into()));
             m
         });
-        if (outcome == Value::Null) {
+        if (outcomeValue == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() missing outcome".into()))));
         }
-        if !(in_op(&self.orderbooks, &outcome)) {
+        if !(in_op(&self.orderbooks, &outcomeValue)) {
             let mut seededBook: Value = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (outcome != Value::Null) {
-                if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), seededBook); }
+            if (outcomeValue != Value::Null) {
+                if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcomeValue), seededBook); }
             }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
@@ -4830,10 +4832,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             mid = bestAsk.clone();
         }
-        let mut market: Value = self.safe_outcome(outcome.clone(), &[]);
+        let mut market: Value = self.safe_outcome(outcomeValue.clone(), &[]);
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("outcome".to_string(), outcome);
+        m.insert("outcome".to_string(), outcomeValue);
         m.insert("outcomeId".to_string(), self.safe_string_k(market.clone(), "outcomeId", &[]));
         m.insert("label".to_string(), self.safe_string_k(market.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(market.clone(), "market", &[]));
@@ -4883,16 +4885,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         self.load_api_credentials().await;
         let mut messageHash: Value = Value::Str("orders".into());
-        if (outcome != Value::Null) {
-            let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
-            outcome = self.safe_string_k(outcomeObj, "outcome", &[]);
-            messageHash = Value::Str(format!("{}{}", Value::Str("orders::".into()), outcome).into());
+        let mut outcomeResolved: Value = outcome;
+        if (outcomeResolved != Value::Null) {
+            let mut outcomeObj: Value = self.load_outcome(outcomeResolved.clone(), &[]).await;
+            outcomeResolved = self.safe_string_k(outcomeObj, "outcome", &[]);
+            messageHash = Value::Str(format!("{}{}", Value::Str("orders::".into()), outcomeResolved).into());
         }
         let mut orders: Value = self.subscribe_user_channel(messageHash, &[params]).await;
+        let mut limitResolved: Value = limit;
         if is_true(&self.newUpdates) {
-            limit = orders.get_limit(outcome.clone(), limit.clone());
+            limitResolved = orders.get_limit(outcomeResolved.clone(), limitResolved.clone());
         }
-        return self.filter_by_outcome_since_limit(orders, &[outcome, since, limit, Value::Bool(true)]);
+        return self.filter_by_outcome_since_limit(orders, &[outcomeResolved, since, limitResolved, Value::Bool(true)]);
 
     Value::Null
 }
@@ -4918,16 +4922,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         self.load_api_credentials().await;
         let mut messageHash: Value = Value::Str("myTrades".into());
-        if (outcome != Value::Null) {
-            let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
-            outcome = self.safe_string_k(outcomeObj, "outcome", &[]);
-            messageHash = Value::Str(format!("{}{}", Value::Str("myTrades::".into()), outcome).into());
+        let mut outcomeResolved: Value = outcome;
+        if (outcomeResolved != Value::Null) {
+            let mut outcomeObj: Value = self.load_outcome(outcomeResolved.clone(), &[]).await;
+            outcomeResolved = self.safe_string_k(outcomeObj, "outcome", &[]);
+            messageHash = Value::Str(format!("{}{}", Value::Str("myTrades::".into()), outcomeResolved).into());
         }
         let mut trades: Value = self.subscribe_user_channel(messageHash, &[params]).await;
+        let mut limitResolved: Value = limit;
         if is_true(&self.newUpdates) {
-            limit = trades.get_limit(outcome.clone(), limit.clone());
+            limitResolved = trades.get_limit(outcomeResolved.clone(), limitResolved.clone());
         }
-        return self.filter_by_outcome_since_limit(trades, &[outcome, since, limit, Value::Bool(true)]);
+        return self.filter_by_outcome_since_limit(trades, &[outcomeResolved, since, limitResolved, Value::Bool(true)]);
 
     Value::Null
 }

@@ -92,19 +92,18 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         market = None
         messageHash = name
         productIds = None
-        if symbols is None:
-            symbols = self.get_active_symbols()
-        symbolsLength = len(symbols)
+        symbolsResolved = self.get_active_symbols() if (symbols is None) else symbols
+        symbolsLength = len(symbolsResolved)
         messageHashes = []
         if symbolsLength > 1:
-            parsedSymbols = self.market_symbols(symbols)
+            parsedSymbols = self.market_symbols(symbolsResolved)
             marketIds = self.market_ids(parsedSymbols)
             productIds = marketIds
             for i in range(0, len(parsedSymbols)):
                 messageHashes.append(name + '::' + parsedSymbols[i])
             # messageHash = messageHash + '::' + parsedSymbols.join (',');
         elif symbolsLength == 1:
-            market = self.market(symbols[0])
+            market = self.market(symbolsResolved[0])
             messageHash = name + '::' + market['symbol']
             productIds = [(market['id'])]
         url = self.safe_string(self.urls['api'], 'ws')
@@ -143,14 +142,15 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if self.markets is None:
             await self.load_markets()
         self.check_required_credentials()
+        symbolsResolved = None
         if self.is_empty(symbols):
-            symbols = self.symbols
+            symbolsResolved = self.symbols
         else:
-            symbols = self.market_symbols(symbols)
+            symbolsResolved = self.market_symbols(symbols)
         messageHashes = []
         productIds = []
-        for i in range(0, len((symbols))):
-            marketId = self.market_id((symbols)[i])
+        for i in range(0, len((symbolsResolved))):
+            marketId = self.market_id((symbolsResolved)[i])
             symbol = self.symbol(marketId)
             productIds.append(marketId)
             messageHashes.append(name + '::' + symbol)
@@ -218,9 +218,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         """
         if self.markets is None:
             await self.load_markets()
-        channel = None
-        channel, params = self.handle_option_string_and_params(params, 'watchTicker', 'channel', 'LEVEL1')
-        return await self.subscribe(channel, [symbol], params)
+        channel, paramsChannel = self.handle_option_string_and_params(params, 'watchTicker', 'channel', 'LEVEL1')
+        return await self.subscribe(channel, [symbol], paramsChannel)
 
     def get_active_symbols(self) -> list[object]:
         symbols = self.symbols
@@ -245,9 +244,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         """
         if self.markets is None:
             await self.load_markets()
-        channel = None
-        channel, params = self.handle_option_string_and_params(params, 'watchTickers', 'channel', 'LEVEL1')
-        ticker = await self.subscribe(channel, symbols, params)
+        channel, paramsChannel = self.handle_option_string_and_params(params, 'watchTickers', 'channel', 'LEVEL1')
+        ticker = await self.subscribe(channel, symbols, paramsChannel)
         if self.newUpdates:
             result = {}
             result[ticker['symbol']] = ticker
@@ -449,13 +447,14 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         options = self.safe_dict(self.options, 'timeframes', {})
         interval = self.safe_string(options, timeframe, timeframe)
-        ohlcv = await self.subscribe(interval, [symbol], params)
+        ohlcv = await self.subscribe(interval, [symbolValue], params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -518,13 +517,14 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False, True, True)
-        trades = await self.subscribe_multiple('MATCH', symbols, params)
+        symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
+        trades = await self.subscribe_multiple('MATCH', symbolsNormalized, params)
+        limitResolved = limit
         if self.newUpdates:
             first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
-            limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def handle_trade(self, client: Client, message: dict) -> dict:
         #

@@ -157,10 +157,11 @@ class lbank extends \ccxt\async\lbank {
         );
         $request = $this->deep_extend($subscribe, $params);
         $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -435,14 +436,12 @@ class lbank extends \ccxt\async\lbank {
         $this->check_contract_market($market, 'fetchTradesWs');
         $url = $this->urls['api']['ws'];
         $messageHash = 'fetchTrades:' . $market['symbol'];
-        if ($limit === null) {
-            $limit = 10;
-        }
+        $limitResolved = ($limit === null) ? 10 : $limit;
         $message = array(
             'action' => 'request',
             'request' => 'trade',
             'pair' => $market['id'],
-            'size' => $limit,
+            'size' => $limitResolved,
         );
         $request = $this->deep_extend($message, $params);
         $requestId = $this->request_id();
@@ -605,11 +604,11 @@ class lbank extends \ccxt\async\lbank {
         $url = $this->urls['api']['ws'];
         $messageHash = null;
         $pair = 'all';
+        $symbolResolved = ($symbol === null) ? null : $this->symbol($symbol);
         if ($symbol === null) {
             $messageHash = 'orders:all';
         } else {
             $market = $this->market($symbol);
-            $symbol = $this->symbol($symbol);
             $messageHash = 'orders:' . $market['symbol'];
             $pair = $market['id'];
         }
@@ -621,7 +620,7 @@ class lbank extends \ccxt\async\lbank {
         );
         $request = $this->deep_extend($message, $params);
         $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limit, true);
     }
 
     public function handle_orders(Client $client, array $message) {
@@ -841,13 +840,11 @@ class lbank extends \ccxt\async\lbank {
         $this->check_contract_market($market, 'fetchOrderBookWs');
         $url = $this->urls['api']['ws'];
         $messageHash = 'fetchOrderbook:' . $market['symbol'];
-        if ($limit === null) {
-            $limit = 100;
-        }
+        $limitResolved = ($limit === null) ? 100 : $limit;
         $subscribe = array(
             'action' => 'request',
             'request' => 'depth',
-            'depth' => $limit,
+            'depth' => $limitResolved,
             'pair' => $market['id'],
         );
         $request = $this->deep_extend($subscribe, $params);
@@ -877,17 +874,15 @@ class lbank extends \ccxt\async\lbank {
         $this->check_contract_market($market, 'watchOrderBook');
         $url = $this->urls['api']['ws'];
         $messageHash = 'orderbook:' . $market['symbol'];
-        $params = $this->omit($params, 'aggregation');
-        if ($limit === null) {
-            $limit = 100;
-        }
+        $paramsOmitted = $this->omit($params, 'aggregation');
+        $limitResolved = ($limit === null) ? 100 : $limit;
         $subscribe = array(
             'action' => 'subscribe',
             'subscribe' => 'depth',
-            'depth' => $limit,
+            'depth' => $limitResolved,
             'pair' => $market['id'],
         );
-        $request = $this->deep_extend($subscribe, $params);
+        $request = $this->deep_extend($subscribe, $paramsOmitted);
         $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
         return $orderbook->limit();
     }

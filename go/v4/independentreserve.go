@@ -633,8 +633,8 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) any
 	if (baseId != nil) && (quoteId != nil) {
 		defaultMarketId = *baseId + "/" + *quoteId
 	}
-	market = this.SafeMarket(defaultMarketId, market, "/")
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(defaultMarketId, market, "/")
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var last *string = this.SafeString(ticker, "LastPrice")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -657,7 +657,7 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) any
 		"baseVolume":    this.SafeString(ticker, "DayVolumeXbtInSecondaryCurrrency"),
 		"quoteVolume":   nil,
 		"info":          ticker,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -941,16 +941,17 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan any, optionalArgs ..
 		request["primaryCurrencyCode"] = GetValue(market, "baseId")
 		request["secondaryCurrencyCode"] = GetValue(market, "quoteId")
 	}
-	if limit == nil {
-		limit = Int64PtrTyped(50)
+	var limitResolved any = limit
+	if IsEqual(limitResolved, nil) {
+		limitResolved = 50
 	}
 	request["pageIndex"] = 1
-	request["pageSize"] = limit
+	request["pageSize"] = limitResolved
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetOpenOrders(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "Data", []any{})
 
-	ch <- this.ParseOrders(data, market, since, limit)
+	ch <- this.ParseOrders(data, market, since, limitResolved)
 	return nil
 }
 
@@ -991,16 +992,17 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan any, optionalArgs 
 		request["primaryCurrencyCode"] = GetValue(market, "baseId")
 		request["secondaryCurrencyCode"] = GetValue(market, "quoteId")
 	}
-	if limit == nil {
-		limit = Int64PtrTyped(50)
+	var limitResolved any = limit
+	if IsEqual(limitResolved, nil) {
+		limitResolved = 50
 	}
 	request["pageIndex"] = 1
-	request["pageSize"] = limit
+	request["pageSize"] = limitResolved
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetClosedOrders(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "Data", []any{})
 
-	ch <- this.ParseOrders(data, market, since, limit)
+	ch <- this.ParseOrders(data, market, since, limitResolved)
 	return nil
 }
 
@@ -1026,7 +1028,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, 50)
+	var limit int64 = GetArgInt64(optionalArgs, 2, 50)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1035,12 +1037,13 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var pageIndex *int64 = this.SafeInteger(params, "pageIndex", 1)
-	if limit == nil {
-		limit = 50
+	var limitResolved any = limit
+	if IsEqual(limitResolved, nil) {
+		limitResolved = 50
 	}
 	var request map[string]any = map[string]any{
 		"pageIndex": pageIndex,
-		"pageSize":  limit,
+		"pageSize":  limitResolved,
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetTrades(this.Extend(request, params))).Raw))
@@ -1050,7 +1053,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 	}
 	var data []any = SafeListTypedDefault(response, "Data", []any{})
 
-	ch <- this.ParseTrades(data, market, since, limit)
+	ch <- this.ParseTrades(data, market, since, limitResolved)
 	return nil
 }
 func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1419,9 +1422,9 @@ func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, 
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -1432,18 +1435,17 @@ func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, 
 		"withdrawalAddress":   address,
 		"amount":              this.CurrencyToPrecision(code, amount),
 	}
-	if tag != nil {
-		request["destinationTag"] = tag
+	if !IsEqual(tagWithdrawTag, nil) {
+		request["destinationTag"] = tagWithdrawTag
 	}
-	var networkCode *string = nil
-	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
-	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
+	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
+	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
+	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if networkCode != nil {
 		panic(BadRequest(this.Id + " withdraw () does not accept params[\"networkCode\"]"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawDigitalCurrency(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawDigitalCurrency(this.Extend(request, paramsNetworkCode))).Raw))
 
 	//
 	//    {
@@ -1532,7 +1534,7 @@ func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
@@ -1564,9 +1566,15 @@ func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
 			var key string = GetValue(keys, i).(string)
 			query[key] = GetValue(params, key)
 		}
-		body = this.Json(query)
-		headers = map[string]any{
+		var signedBody any = this.Json(query)
+		var signedHeaders map[string]any = map[string]any{
 			"Content-Type": "application/json",
+		}
+		return map[string]any{
+			"url":     url,
+			"method":  method,
+			"body":    signedBody,
+			"headers": signedHeaders,
 		}
 	}
 	return map[string]any{

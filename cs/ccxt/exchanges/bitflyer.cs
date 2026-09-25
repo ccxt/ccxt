@@ -691,13 +691,13 @@ public partial class bitflyer : Exchange
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "size");
         string? id = this.safeString(trade, "id");
-        market = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "order", order },
             { "type", null },
             { "side", side },
@@ -706,7 +706,7 @@ public partial class bitflyer : Exchange
             { "amount", amountString },
             { "cost", null },
             { "fee", null },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1412,6 +1412,8 @@ public partial class bitflyer : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        string? bodySigned = null;
+        Dictionary<string, object> headersSigned = null;
         object request = (("/" + this.version) + "/");
         if (isEqual(api, "private"))
         {
@@ -1437,27 +1439,29 @@ public partial class bitflyer : Exchange
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
             List<object> content = new List<object>() {nonce, method, request};
-            object auth = String.Join("", content.ToArray());
+            string auth = String.Join("", content.ToArray());
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 if ((method != "GET"))
                 {
-                    body = this.json(parameters);
-                    auth = add(auth, body);
+                    bodySigned = this.json(parameters);
+                    auth = auth + bodySigned;
                 }
             }
-            headers = new Dictionary<string, object>() {
+            headersSigned = new Dictionary<string, object>() {
                 { "ACCESS-KEY", this.apiKey },
                 { "ACCESS-TIMESTAMP", nonce },
                 { "ACCESS-SIGN", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
                 { "Content-Type", "application/json" },
             };
         }
+        object headersResolved = ((headersSigned == null)) ? headers : headersSigned;
+        object bodyResolved = ((bodySigned == null)) ? body : bodySigned;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResolved },
+            { "headers", headersResolved },
         };
     }
 

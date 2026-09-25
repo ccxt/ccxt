@@ -1066,15 +1066,14 @@ func (this *Pacifica) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var userAccount *string = nil
-	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchBalance", params)
-	userAccount = SafeStringPtr(GetValue(userAccountparamsVariable, 0))
-	params = MapTyped(GetValue(userAccountparamsVariable, 1))
+	userAccountparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchBalance", params)
+	var userAccount *string = SafeStringPtr(GetValue(userAccountparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAccountparamsOriginAndSingleAddressVariable, 1))
 	var request map[string]any = map[string]any{
 		"account": userAccount,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccount(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccount(this.Extend(request, paramsOriginAndSingleAddress))).Raw))
 	// {
 	//   "success": true,
 	//   "data": {
@@ -1173,10 +1172,9 @@ func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var userAccount any = nil
-	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchLeverage", params)
-	userAccount = GetValue(userAccountparamsVariable, 0)
-	params = MapTyped(GetValue(userAccountparamsVariable, 1))
+	userAccountparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchLeverage", params)
+	userAccount := GetValue(userAccountparamsOriginAndSingleAddressVariable, 0)
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAccountparamsOriginAndSingleAddressVariable, 1))
 	var cacheAddress any = this.WalletAddress
 	var settings any = nil
 	if IsEqual(userAccount, cacheAddress) {
@@ -1186,7 +1184,7 @@ func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 			"account": userAccount,
 		}
 
-		settings = (<-this.FetchAccountSettingsAsync(this.Extend(request, params)))
+		settings = (<-this.FetchAccountSettingsAsync(this.Extend(request, paramsOriginAndSingleAddress)))
 		PanicOnError(settings)
 	}
 	var setting map[string]any = SafeMapTyped(settings, symbol)
@@ -1257,15 +1255,14 @@ func (this *Pacifica) fetchAccountSettingsBody(ch chan any, optionalArgs ...any)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var userAccount *string = nil
-	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchAccountSettings", params)
-	userAccount = SafeStringPtr(GetValue(userAccountparamsVariable, 0))
-	params = MapTyped(GetValue(userAccountparamsVariable, 1))
+	userAccountparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchAccountSettings", params)
+	var userAccount *string = SafeStringPtr(GetValue(userAccountparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAccountparamsOriginAndSingleAddressVariable, 1))
 	var request map[string]any = map[string]any{
 		"account": userAccount,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccountSettings(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccountSettings(this.Extend(request, paramsOriginAndSingleAddress))).Raw))
 
 	// {
 	//   "success": true,
@@ -1343,10 +1340,9 @@ func (this *Pacifica) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 
 	PanicOnError((<-this.LoadAccountSettingsAsync()))
-	var userAccount any = nil
-	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchMarginMode", params)
-	userAccount = GetValue(userAccountparamsVariable, 0)
-	params = MapTyped(GetValue(userAccountparamsVariable, 1))
+	userAccountparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchMarginMode", params)
+	userAccount := GetValue(userAccountparamsOriginAndSingleAddressVariable, 0)
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAccountparamsOriginAndSingleAddressVariable, 1))
 	var cacheAddress any = this.WalletAddress
 	var settings any = nil
 	if IsEqual(userAccount, cacheAddress) {
@@ -1356,7 +1352,7 @@ func (this *Pacifica) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
 			"account": userAccount,
 		}
 
-		settings = (<-this.FetchAccountSettingsAsync(this.Extend(request, params)))
+		settings = (<-this.FetchAccountSettingsAsync(this.Extend(request, paramsOriginAndSingleAddress)))
 		PanicOnError(settings)
 	}
 	// {
@@ -1433,16 +1429,15 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var aggLevel any = nil
-	var aggLevelparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "aggLevel", 1)
-	aggLevel = GetValue(aggLevelparamsVariable, 0)
-	params = MapTyped(GetValue(aggLevelparamsVariable, 1))
+	var aggLevelparamsAggLevelVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "aggLevel", 1)
+	aggLevel := GetValue(aggLevelparamsAggLevelVariable, 0)
+	paramsAggLevel := GetValue(aggLevelparamsAggLevelVariable, 1)
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
 		"agg_level": aggLevel,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetBook(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetBook(this.Extend(request, paramsAggLevel))).Raw))
 	// {
 	//   "success": true,
 	//   "data": {
@@ -1557,8 +1552,8 @@ func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var funding *float64 = this.SafeNumber(info, "funding")
 	var markPx *float64 = this.SafeNumber(info, "mark")
 	var oraclePx *float64 = this.SafeNumber(info, "oracle")
@@ -1629,14 +1624,13 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes125919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))))
-		ch <- BoxAbsent(retRes125919)
+		var retRes125319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, defaultMaxLimit))))
+		ch <- BoxAbsent(retRes125319)
 		return nil
 	}
 	var tf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1645,11 +1639,11 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"interval":   tf,
 		"start_time": since,
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_time", request, paramsPaginate)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 	var nowMillis int64 = this.Milliseconds()
-	var until any = DerefScalar(this.SafeInteger(request, "end_time"))
+	var until any = DerefScalar(this.SafeInteger(requestUntil, "end_time"))
 	if IsEqual(until, nil) {
 		if limit != nil {
 			until = Subtract(Add(since, (Multiply(limit, (this.ParseTimeframe(tf)*1000)))), 1)
@@ -1660,10 +1654,10 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		if IsGreaterThan(until, nowMillis) {
 			until = nowMillis
 		}
-		request["end_time"] = until
+		AddElementToObject(requestUntil, "end_time", until)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetKline(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetKline(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -1808,37 +1802,35 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchMyTrades", params)
-	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
-	params = MapTyped(GetValue(userAddressparamsVariable, 1))
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchMyTrades", paramsPaginate)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
 	var defaultLimit int = 100 // Default max limit
 	if paginate {
 
-		var retRes140419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes140419)
+		var retRes139619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes139619)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
-	request["account"] = userAddress
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_time", request, paramsOriginAndSingleAddress)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	AddElementToObject(requestUntil, "account", userAddress)
 	if symbol != nil {
-		request["symbol"] = this.SafeString(market, "id")
+		AddElementToObject(requestUntil, "symbol", this.SafeString(market, "id"))
 	}
 	if limit != nil {
-		request["limit"] = limit
+		AddElementToObject(requestUntil, "limit", limit)
 	}
 	if since != nil {
-		request["start_time"] = since
+		AddElementToObject(requestUntil, "start_time", since)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradesHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradesHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -1904,8 +1896,8 @@ func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "amount")
 	var marketId *string = this.SafeString(trade, "symbol")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var id *string = this.SafeString(trade, "history_id")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil && *side == "open_long" {
@@ -1950,7 +1942,7 @@ func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": "USDC",
 			"rate":     nil,
 		},
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1998,20 +1990,20 @@ func (this *Pacifica) createOrderBody(ch chan any, symbol any, typeVar string, s
 	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var request map[string]any = MapTyped(GetValue(requestoperationTypeVariable, 0))
 	var operationType *string = SafeStringPtr(GetValue(requestoperationTypeVariable, 1))
-	params = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"}))
 	var response map[string]any = nil
 	if operationType != nil && *operationType == "create_market_order" {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostOrdersCreateMarket(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostOrdersCreateMarket(this.Extend(request, paramsOmitted))).Raw))
 	} else if operationType != nil && *operationType == "create_stop_order" {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostOrdersStopCreate(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostOrdersStopCreate(this.Extend(request, paramsOmitted))).Raw))
 	} else if operationType != nil && *operationType == "set_position_tpsl" {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostPositionsTpsl(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostPositionsTpsl(this.Extend(request, paramsOmitted))).Raw))
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostOrdersCreate(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostOrdersCreate(this.Extend(request, paramsOmitted))).Raw))
 	}
 	//
 	// {
@@ -2104,7 +2096,6 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		operationType = "create_stop_order"
 		sigPayload["reduce_only"] = reduceOnly
 		var stopClientOrderId *string = this.SafeString(params, "clientOrderId")
-		params = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 		var stopPayload map[string]any = map[string]any{
 			"amount":     this.AmountToPrecision(symbol, amount),
 			"stop_price": this.PriceToPrecision(symbol, triggerPrice),
@@ -2145,11 +2136,17 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	if !IsEqual(amount, nil) && ((operationType != "create_stop_order") && (operationType != "set_position_tpsl")) {
 		sigPayload["amount"] = this.AmountToPrecision(symbol, amount)
 	}
-	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	var paramsClientOrderId any = func() any {
+		if operationType == "create_stop_order" {
+			return this.Omit(params, []any{"clientOrderId"})
+		}
+		return params
+	}()
+	var clientOrderId *string = this.SafeString(paramsClientOrderId, "clientOrderId")
 	if clientOrderId != nil {
 		sigPayload["client_order_id"] = clientOrderId
 	}
-	var request any = this.PostActionRequest(operationType, sigPayload, params)
+	var request any = this.PostActionRequest(operationType, sigPayload, paramsClientOrderId)
 	return []any{request, operationType}
 }
 func (this *Pacifica) BatchOrdersRequest(actions any) any {
@@ -2342,9 +2339,9 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a \"symbol\" argument!"))
 	}
 	var request any = this.CancelOrdersRequest(ids, symbol, params)
-	params = MapTyped(this.Omit(params, []any{"expiryWindow", "clientOrderIds"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"expiryWindow", "clientOrderIds"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrdersBatch(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrdersBatch(this.Extend(request, paramsOmitted))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -2408,7 +2405,7 @@ func (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 		actions = append(actions, action)
 	}
 	var clientOrderIds []any = SafeListTyped(params, "clientOrderIds")
-	params = MapTyped(this.Omit(params, "clientOrderIds"))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "clientOrderIds"))
 	for i := 0; i < len(clientOrderIds); i++ {
 		var cloid any = func() any {
 			if i >= 0 && i < len(clientOrderIds) {
@@ -2419,7 +2416,7 @@ func (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 		var cloidParams map[string]any = map[string]any{
 			"clientOrderId": cloid,
 		}
-		var request any = this.CancelOrderRequest(cloid, symbol, this.Extend(cloidParams, params))
+		var request any = this.CancelOrderRequest(cloid, symbol, this.Extend(cloidParams, paramsOmitted))
 		var action map[string]any = map[string]any{
 			"type": "Cancel",
 			"data": request,
@@ -2459,9 +2456,9 @@ func (this *Pacifica) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 
 	PanicOnError((<-this.InitializeClientAsync()))
 	var request any = this.CancelAllOrdersRequest(symbol, params)
-	params = MapTyped(this.Omit(params, []any{"excludeReduceOnly", "expiryWindow"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"excludeReduceOnly", "expiryWindow"}))
 
-	response := (<-this.PrivatePostOrdersCancelAll(this.Extend(request, params)))
+	response := (<-this.PrivatePostOrdersCancelAll(this.Extend(request, paramsOmitted)))
 	PanicOnError(response)
 
 	//
@@ -2534,15 +2531,15 @@ func (this *Pacifica) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	}
 	var request any = this.CancelOrderRequest(id, symbol, params)
 	var isStopOrder *bool = this.SafeBool2(params, "trigger", "stop", false)
-	params = MapTyped(this.Omit(params, []any{"expiryWindow", "trigger", "stop", "clientOrderId"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"expiryWindow", "trigger", "stop", "clientOrderId"}))
 	var response any = nil
 	if isStopOrder != nil && *isStopOrder == true {
 
-		response = (<-this.PrivatePostOrdersStopCancel(this.Extend(request, params)))
+		response = (<-this.PrivatePostOrdersStopCancel(this.Extend(request, paramsOmitted)))
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivatePostOrdersCancel(this.Extend(request, params)))
+		response = (<-this.PrivatePostOrdersCancel(this.Extend(request, paramsOmitted)))
 		PanicOnError(response)
 	}
 	//
@@ -2630,9 +2627,9 @@ func (this *Pacifica) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	PanicOnError((<-this.InitializeClientAsync()))
 	var market map[string]any = this.Market(symbol)
 	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
-	params = MapTyped(this.Omit(params, []any{"expiryWindow", "clientOrderId"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"expiryWindow", "clientOrderId"}))
 
-	response := (<-this.PrivatePostOrdersEdit(this.Extend(request, params))).Raw
+	response := (<-this.PrivatePostOrdersEdit(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
 	//
 	// {
@@ -2721,15 +2718,14 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	var defaultLimit int = 100 // Default max limit
 	if paginate {
 
-		var retRes212819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes212819)
+		var retRes211919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes211919)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -2739,7 +2735,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingRateHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingRateHistory(this.Extend(request, paramsPaginate))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -2802,7 +2798,7 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetInfoPrices(params)).Raw))
 	//
@@ -2842,7 +2838,7 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+	ch <- this.FilterByArrayTickers(result, "symbol", symbolsNormalized)
 	return nil
 }
 func (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -2863,8 +2859,8 @@ func (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -2876,7 +2872,7 @@ func (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) any {
 		"ask":           nil,
 		"quoteVolume":   this.SafeNumber(ticker, "volume_24h"),
 		"info":          ticker,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -3031,10 +3027,9 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOpenOrders", params)
-	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
-	params = MapTyped(GetValue(userAddressparamsVariable, 1))
+	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchOpenOrders", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
@@ -3043,7 +3038,7 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrders(this.Extend(request, paramsOriginAndSingleAddress))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -3110,21 +3105,19 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	var defaultLimit int = 100 // max default 100
 	if paginate {
 
-		var retRes239419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes239419)
+		var retRes238319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes238319)
 		return nil
 	}
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOrders", params)
-	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
-	params = MapTyped(GetValue(userAddressparamsVariable, 1))
+	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchOrders", paramsPaginate)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3136,7 +3129,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrdersHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrdersHistory(this.Extend(request, paramsOriginAndSingleAddress))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -3418,8 +3411,8 @@ func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString2(order, "symbol", "s")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.SafeInteger2(order, "created_at", "ct")
 	var status *string = this.SafeString2(order, "order_status", "os", "open") // open if method is fetchOpenOrders
 	var side *string = this.SafeString(order, "side", "d")
@@ -3464,7 +3457,7 @@ func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) any {
 		"status":              this.ParseOrderStatus(status),
 		"fee":                 nil,
 		"trades":              nil,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -3520,16 +3513,15 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchPositions", params)
-	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
-	params = MapTyped(GetValue(userAddressparamsVariable, 1))
-	symbols = this.MarketSymbols(symbols)
+	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchPositions", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPositions(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPositions(this.Extend(request, paramsOriginAndSingleAddress))).Raw))
 	// {
 	//   "success": true,
 	//   "data": [
@@ -3560,7 +3552,7 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}(), nil))
 	}
 
-	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
+	ch <- this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)
 	return nil
 }
 func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
@@ -3580,8 +3572,8 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var margin *string = this.SafeString(position, "margin")
 	var marginMode string = func() string {
 		if (margin != nil) && (margin == nil || *margin != "0") {
@@ -3665,7 +3657,6 @@ func (this *Pacifica) setMarginModeBody(ch chan any, marginMode any, optionalArg
 		"is_isolated": isIsolated,
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
-	params = MapTyped(this.Omit(params, []any{"expiryWindow"}))
 
 	response := (<-this.PrivatePostAccountMargin(request)).Raw
 	PanicOnError(response)
@@ -3714,7 +3705,6 @@ func (this *Pacifica) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 		"leverage": leverage,
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
-	params = MapTyped(this.Omit(params, []any{"expiryWindow"}))
 
 	response := (<-this.PrivatePostAccountLeverage(request)).Raw
 	PanicOnError(response)
@@ -3761,9 +3751,9 @@ func (this *Pacifica) withdrawBody(ch chan any, code any, amount any, address an
 		"amount": ToString(amount),
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
-	params = MapTyped(this.Omit(params, []any{"expiryWindow"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"expiryWindow"}))
 
-	response := (<-this.PrivatePostAccountWithdraw(this.Extend(request, params))).Raw
+	response := (<-this.PrivatePostAccountWithdraw(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
 
 	ch <- map[string]any{
@@ -3796,16 +3786,15 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchTradingFee", params)
-	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
-	params = MapTyped(GetValue(userAddressparamsVariable, 1))
+	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchTradingFee", params)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccount(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccount(this.Extend(request, paramsOriginAndSingleAddress))).Raw))
 	// {
 	//   "success": true,
 	//   "data": {
@@ -3892,12 +3881,12 @@ func (this *Pacifica) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetInfoPrices(params)).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- this.ParseOpenInterests(data, symbols)
+	ch <- this.ParseOpenInterests(data, symbolsNormalized)
 	return nil
 }
 
@@ -3924,13 +3913,13 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbol = this.Symbol(symbol)
+	var symbolValue any = this.Symbol(symbol)
 
-	ois := (<-this.FetchOpenInterestsAsync([]any{symbol}, params))
+	ois := (<-this.FetchOpenInterestsAsync([]any{symbolValue}, params))
 	PanicOnError(ois)
-	var oi any = this.SafeDict(ois, symbol)
+	var oi any = this.SafeDict(ois, symbolValue)
 	if IsEqual(oi, nil) {
-		panic(BadSymbol(Add(this.Id+" fetchOpenInterest() could not find open interest for ", symbol)))
+		panic(BadSymbol(Add(this.Id+" fetchOpenInterest() could not find open interest for ", symbolValue)))
 	}
 
 	ch <- oi
@@ -3954,10 +3943,15 @@ func (this *Pacifica) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(interest, "symbol")
+	var marketResolved any = func() any {
+		if marketId != nil {
+			return this.SafeMarket(marketId, market)
+		}
+		return market
+	}()
 	var symbol any = nil
 	if marketId != nil {
-		market = this.SafeMarket(marketId, market)
-		symbol = GetValue(market, "symbol")
+		symbol = DerefScalar(this.SafeString(marketResolved, "symbol"))
 	}
 	var interestValue *string = nil
 	var markPrice *string = this.SafeString(interest, "mark")
@@ -3973,7 +3967,7 @@ func (this *Pacifica) ParseOpenInterest(interest any, optionalArgs ...any) any {
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"info":               interest,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -4010,19 +4004,17 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchLedger", params)
-	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
-	params = MapTyped(GetValue(userAddressparamsVariable, 1))
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchLedger", paramsPaginate)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
 	var defaultLimit int = 100 // Default max limit
 	if paginate {
 
-		var retRes310819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes310819)
+		var retRes309019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes309019)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -4032,7 +4024,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccountBalanceHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccountBalanceHistory(this.Extend(request, paramsOriginAndSingleAddress))).Raw))
 	// {
 	//   "success": true,
 	//   "data": [
@@ -4146,14 +4138,12 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
-	var userAddress *string = nil
-	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchFundingHistory", params)
-	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
-	params = MapTyped(GetValue(userAddressparamsVariable, 1))
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchFundingHistory", paramsPaginate)
+	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
@@ -4163,12 +4153,12 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	var defaultLimit int = 100
 	if paginate {
 
-		var retRes322419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes322419)
+		var retRes320419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes320419)
 		return nil
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingHistory(this.Extend(request, paramsOriginAndSingleAddress))).Raw))
 	// {
 	//   "success": true,
 	//   "data": [
@@ -4208,8 +4198,8 @@ func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
 	var id *string = this.SafeString(income, "history_id")
 	var timestamp *int64 = this.SafeInteger(income, "created_at")
 	var marketId *string = this.SafeString(income, "symbol")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var amount *string = this.SafeString(income, "amount")
 	var code *string = this.SafeCurrencyCode("USDC")
 	var rate *float64 = this.SafeNumber(income, "rate")
@@ -4259,9 +4249,9 @@ func (this *Pacifica) transferBody(ch chan any, code any, amount any, fromAccoun
 		"amount":     this.NumberToString(amount),
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
-	params = MapTyped(this.Omit(params, []any{"expiryWindow"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"expiryWindow"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountSubaccountTransfer(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountSubaccountTransfer(this.Extend(request, paramsOmitted))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -4339,45 +4329,39 @@ func (this *Pacifica) CreateSubAccountAsync(name any, optionalArgs ...any) <-cha
 func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var finalHeaders map[string]any = map[string]any{}
-	var agentAddress *string = nil
-	var agentAddressparamsVariable []any = this.HandleOptionStringAndParams(params, "createSubAccount", "agentAddress")
-	agentAddress = SafeStringPtr(GetValue(agentAddressparamsVariable, 0))
-	params = GetValue(agentAddressparamsVariable, 1)
-	var originAddress *string = nil
-	originAddressparamsVariable := this.HandleOriginAndSingleAddress("createSubAccount", params)
-	originAddress = SafeStringPtr(GetValue(originAddressparamsVariable, 0))
-	params = GetValue(originAddressparamsVariable, 1)
+	var agentAddressparamsAgentAddressVariable []any = this.HandleOptionStringAndParams(params, "createSubAccount", "agentAddress")
+	var agentAddress *string = SafeStringPtr(GetValue(agentAddressparamsAgentAddressVariable, 0))
+	var paramsAgentAddress map[string]any = MapTyped(GetValue(agentAddressparamsAgentAddressVariable, 1))
+	originAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("createSubAccount", paramsAgentAddress)
+	var originAddress *string = SafeStringPtr(GetValue(originAddressparamsOriginAndSingleAddressVariable, 0))
+	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(originAddressparamsOriginAndSingleAddressVariable, 1))
 	if originAddress == nil {
 		panic(ArgumentsRequired(this.Id + " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials"))
 	}
 	if agentAddress != nil {
 		finalHeaders["agent_wallet"] = agentAddress
 	}
-	var subAccountAddress *string = nil
-	var subAccountAddressparamsVariable []any = this.HandleOptionStringAndParams(params, "createSubAccount", "subAccountAddress")
-	subAccountAddress = SafeStringPtr(GetValue(subAccountAddressparamsVariable, 0))
-	params = GetValue(subAccountAddressparamsVariable, 1)
-	var subAccountPrivateKey any = nil
-	var subAccountPrivateKeyparamsVariable []any = this.HandleOptionStringAndParams(params, "createSubAccount", "subAccountPrivateKey")
-	subAccountPrivateKey = GetValue(subAccountPrivateKeyparamsVariable, 0)
-	params = GetValue(subAccountPrivateKeyparamsVariable, 1)
+	var subAccountAddressparamsSubAccountAddressVariable []any = this.HandleOptionStringAndParams(paramsOriginAndSingleAddress, "createSubAccount", "subAccountAddress")
+	var subAccountAddress *string = SafeStringPtr(GetValue(subAccountAddressparamsSubAccountAddressVariable, 0))
+	var paramsSubAccountAddress map[string]any = MapTyped(GetValue(subAccountAddressparamsSubAccountAddressVariable, 1))
+	var subAccountPrivateKeyparamsSubAccountPrivateKeyVariable []any = this.HandleOptionStringAndParams(paramsSubAccountAddress, "createSubAccount", "subAccountPrivateKey")
+	subAccountPrivateKey := GetValue(subAccountPrivateKeyparamsSubAccountPrivateKeyVariable, 0)
+	var paramsSubAccountPrivateKey map[string]any = MapTyped(GetValue(subAccountPrivateKeyparamsSubAccountPrivateKeyVariable, 1))
 	if subAccountAddress == nil {
 		panic(ArgumentsRequired(this.Id + " createSubAccount() requires a \"subAccountAddress\"!"))
 	}
-	if subAccountPrivateKey == nil {
+	if IsEqual(subAccountPrivateKey, nil) {
 		panic(ArgumentsRequired(this.Id + " createSubAccount() requires a \"subAccountPrivateKey\"!"))
 	}
-	var timestamp any = nil
-	var timestampparamsVariable []any = this.HandleParamInteger(params, "timestamp", this.Milliseconds())
-	timestamp = GetValue(timestampparamsVariable, 0)
-	params = GetValue(timestampparamsVariable, 1)
-	var expiryWindow any = nil
-	var expiryWindowparamsVariable []any = this.HandleOptionIntegerAndParams2(params, "createSubAccount", "expiryWindow", "expiry_window", 5000)
-	expiryWindow = GetValue(expiryWindowparamsVariable, 0)
-	params = GetValue(expiryWindowparamsVariable, 1)
+	var timestampparamsTimestampVariable []any = this.HandleParamInteger(paramsSubAccountPrivateKey, "timestamp", this.Milliseconds())
+	timestamp := GetValue(timestampparamsTimestampVariable, 0)
+	paramsTimestamp := GetValue(timestampparamsTimestampVariable, 1)
+	var expiryWindowparamsExpiryWindowVariable []any = this.HandleOptionIntegerAndParams2(paramsTimestamp, "createSubAccount", "expiryWindow", "expiry_window", 5000)
+	expiryWindow := GetValue(expiryWindowparamsExpiryWindowVariable, 0)
+	paramsExpiryWindow := GetValue(expiryWindowparamsExpiryWindowVariable, 1)
 	var subaccountSignatureHeader map[string]any = map[string]any{
 		"timestamp":     timestamp,
 		"expiry_window": expiryWindow,
@@ -4404,7 +4388,7 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
 	finalHeaders["expiry_window"] = expiryWindow
 	var request map[string]any = finalHeaders
 
-	response := (<-this.PrivatePostAccountSubaccountCreate(this.Extend(request, params))).Raw
+	response := (<-this.PrivatePostAccountSubaccountCreate(this.Extend(request, paramsExpiryWindow))).Raw
 	PanicOnError(response)
 
 	//
@@ -4545,16 +4529,15 @@ func (this *Pacifica) revokeBuilderCodeBody(ch chan any, builderCode any, option
 	return nil
 }
 func (this *Pacifica) HandleOriginAndSingleAddress(methodName string, params any) any {
-	var address *string = nil
-	var addressparamsVariable []any = this.HandleParamString2(params, "account", "address", nil)
-	address = SafeStringPtr(GetValue(addressparamsVariable, 0))
-	params = GetValue(addressparamsVariable, 1) // this is for get endpoints that accept account or address
+	var addressparamsAccountVariable []any = this.HandleParamString2(params, "account", "address", nil)
+	var address *string = SafeStringPtr(GetValue(addressparamsAccountVariable, 0))
+	paramsAccount := GetValue(addressparamsAccountVariable, 1) // this is for get endpoints that accept account or address
 	if address != nil {
-		return []any{address, params}
+		return []any{address, paramsAccount}
 	}
 	var address1 any = this.WalletAddress
 	if address1 != nil {
-		return []any{address1, params}
+		return []any{address1, paramsAccount}
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params"))
 }
@@ -4601,10 +4584,11 @@ func (this *Pacifica) Sign(path any, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
+	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var requestBody any = body
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -4612,26 +4596,26 @@ func (this *Pacifica) Sign(path any, optionalArgs ...any) any {
 	}
 	var host any = this.ImplodeHostname(GetValue(GetValue(this.Urls, urlKey), api))
 	var url any = Add(Add(Add(Add(host, "/api/"), this.Version), "/"), this.ImplodeParams(path, params))
-	params = this.Omit(params, this.ExtractParams(path))
-	var paramsLen int = len(ObjectKeys(params))
-	headers = map[string]any{
+	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
+	var paramsLen int = len(ObjectKeys(paramsOmitted))
+	var headersValue map[string]any = map[string]any{
 		"Content-Type": "application/json",
 	}
 	if (method == "GET") && (paramsLen > 0) {
-		url = Add(url, "?"+this.Urlencode(params))
-		AddElementToObject(headers, "Accept", "*/*")
+		url = Add(url, "?"+this.Urlencode(paramsOmitted))
+		headersValue["Accept"] = "*/*"
 	}
 	if method == "POST" {
-		body = this.Json(params)
+		requestBody = this.Json(paramsOmitted)
 	}
 	if !IsEqual(this.HandleOption("sign", "apiKey"), nil) {
-		AddElementToObject(headers, "PF-API-KEY", GetValue(this.Options, "apiKey"))
+		headersValue["PF-API-KEY"] = GetValue(this.Options, "apiKey")
 	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": headersValue,
 	}
 }
 func (this *Pacifica) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
@@ -4711,11 +4695,10 @@ func (this *Pacifica) PostActionRequest(operationType any, sigPayload any, param
 			}
 		}
 	}
-	var expiryWindow any = nil
-	var expiryWindowparamsVariable []any = this.HandleOptionIntegerAndParams2(params, "postActionRequest", "expiryWindow", "expiry_window", 5000)
-	expiryWindow = GetValue(expiryWindowparamsVariable, 0)
-	params = GetValue(expiryWindowparamsVariable, 1)
-	var timestamp *int64 = this.SafeInteger(params, "timestamp", this.Milliseconds())
+	var expiryWindowparamsExpiryWindowVariable []any = this.HandleOptionIntegerAndParams2(params, "postActionRequest", "expiryWindow", "expiry_window", 5000)
+	expiryWindow := GetValue(expiryWindowparamsExpiryWindowVariable, 0)
+	paramsExpiryWindow := GetValue(expiryWindowparamsExpiryWindowVariable, 1)
+	var timestamp *int64 = this.SafeInteger(paramsExpiryWindow, "timestamp", this.Milliseconds())
 	var signatureHeader map[string]any = map[string]any{
 		"timestamp":     timestamp,
 		"expiry_window": expiryWindow,
@@ -4723,14 +4706,10 @@ func (this *Pacifica) PostActionRequest(operationType any, sigPayload any, param
 	}
 	var signature any = this.SignMessage(signatureHeader, sigPayload, this.PrivateKey)
 	var finalHeaders map[string]any = map[string]any{}
-	var agentAddress *string = nil
-	var agentAddressparamsVariable []any = this.HandleOptionStringAndParams(params, "postActionRequest", "agentAddress")
-	agentAddress = SafeStringPtr(GetValue(agentAddressparamsVariable, 0))
-	params = GetValue(agentAddressparamsVariable, 1)
-	var originAddress *string = nil
-	originAddressparamsVariable := this.HandleOriginAndSingleAddress("postActionRequest", params)
-	originAddress = SafeStringPtr(GetValue(originAddressparamsVariable, 0))
-	params = GetValue(originAddressparamsVariable, 1)
+	var agentAddressparamsAgentAddressVariable []any = this.HandleOptionStringAndParams(paramsExpiryWindow, "postActionRequest", "agentAddress")
+	var agentAddress *string = SafeStringPtr(GetValue(agentAddressparamsAgentAddressVariable, 0))
+	paramsAgentAddress := GetValue(agentAddressparamsAgentAddressVariable, 1)
+	var originAddress *string = SafeStringPtr(GetValue(this.HandleOriginAndSingleAddress("postActionRequest", paramsAgentAddress), 0))
 	if originAddress == nil {
 		panic(ArgumentsRequired(Add(Add(this.Id+" action: ", operationType), " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")))
 	}

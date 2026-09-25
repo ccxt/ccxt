@@ -216,9 +216,10 @@ class bitrue extends \ccxt\async\bitrue {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
+            $symbolResolved = $market['symbol'];
         }
         $url = Async\await($this->authenticate());
         $messageHash = 'orders';
@@ -230,10 +231,11 @@ class bitrue extends \ccxt\async\bitrue {
         );
         $request = $this->deep_extend($message, $params);
         $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function handle_order(Client $client, array $message) {
@@ -343,8 +345,8 @@ class bitrue extends \ccxt\async\bitrue {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'orderbook:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'orderbook:' . $symbolValue;
         $url = null;
         $channel = null;
         $cbId = null;
@@ -506,7 +508,7 @@ class bitrue extends \ccxt\async\bitrue {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchTrades is only supported for swap markets');
         }
@@ -514,7 +516,7 @@ class bitrue extends \ccxt\async\bitrue {
         $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
         $wsId = 'e_' . $baseIdLower . $quoteIdLower;
         $channel = 'market_' . $wsId . '_trade_ticker';
-        $messageHash = 'trades:' . $symbol;
+        $messageHash = 'trades:' . $symbolValue;
         $url = $this->urls['api']['ws']['futurePublic'];
         $message = array(
             'event' => 'sub',
@@ -525,10 +527,11 @@ class bitrue extends \ccxt\async\bitrue {
         );
         $request = $this->deep_extend($message, $params);
         $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -625,7 +628,7 @@ class bitrue extends \ccxt\async\bitrue {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchOHLCV is only supported for swap markets');
         }
@@ -638,7 +641,7 @@ class bitrue extends \ccxt\async\bitrue {
         $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
         $wsId = 'e_' . $baseIdLower . $quoteIdLower;
         $channel = 'market_' . $wsId . '_kline_' . $interval;
-        $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe;
+        $messageHash = 'ohlcv:' . $symbolValue . ':' . $timeframe;
         $url = $this->urls['api']['ws']['futurePublic'];
         $message = array(
             'event' => 'sub',
@@ -649,10 +652,11 @@ class bitrue extends \ccxt\async\bitrue {
         );
         $request = $this->deep_extend($message, $params);
         $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -734,7 +738,7 @@ class bitrue extends \ccxt\async\bitrue {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchTicker is only supported for swap markets');
         }
@@ -742,7 +746,7 @@ class bitrue extends \ccxt\async\bitrue {
         $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
         $wsId = 'e_' . $baseIdLower . $quoteIdLower;
         $channel = 'market_' . $wsId . '_ticker';
-        $messageHash = 'ticker:' . $symbol;
+        $messageHash = 'ticker:' . $symbolValue;
         $url = $this->urls['api']['ws']['futurePublic'];
         $message = array(
             'event' => 'sub',

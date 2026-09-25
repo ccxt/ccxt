@@ -384,20 +384,14 @@ public class Btcmarkets extends BtcmarketsApi
         }});
     }
 
-    public CompletableFuture<Object> fetchTransactionsWithMethod(String method2, String code2, Long since2, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchTransactionsWithMethod(String method, String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String method3 = method2;
-        final String code3 = code2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String method = method3;
-            String code = code3;
-            Long since = since3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -424,13 +418,9 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 response = (this.privateGetWithdrawals(this.extend(request, parameters))).join();
             }
-            return this.parseTransactions(response, currency, since, limit);
+            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         });
 
-    }
-    public CompletableFuture<Object> fetchTransactionsWithMethod(String method, Object... optionalArgs)
-    {
-        return this.fetchTransactionsWithMethod(method, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -453,21 +443,6 @@ public class Btcmarkets extends BtcmarketsApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name btcmarkets#fetchDepositsWithdrawals
-     * @description fetch history of deposits and withdrawals
-     * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1transfers/get
-     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
-    {
-        return this.fetchDepositsWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -489,21 +464,6 @@ public class Btcmarkets extends BtcmarketsApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name btcmarkets#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1deposits/get
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
-    {
-        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -524,21 +484,6 @@ public class Btcmarkets extends BtcmarketsApi
             return (this.fetchTransactionsWithMethod("privateGetWithdrawals", code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1withdrawals/get
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
-    {
-        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public String parseTransactionStatus(String status)
@@ -637,47 +582,38 @@ public class Btcmarkets extends BtcmarketsApi
         String fee = this.safeString(transaction, "fee");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         String currencyId = this.safeString(transaction, "assetName");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         String amount = this.safeString(transaction, "amount");
         if ((!java.util.Objects.equals(fee, null)) && (!java.util.Objects.equals(fee, "")))
         {
             amount = Precise.stringSub(amount, fee);
         }
-        final String finalAddress = address;
-        final Object finalTag = tag;
-        final String finalType = type;
-        final String finalAmount = amount;
-        final String finalFee = fee;
-        return new HashMap<String, Object>() {{
-            put( "id", Btcmarkets.this.safeString(transaction, "id") );
-            put( "txid", txid );
-            put( "timestamp", timestamp );
-            put( "datetime", Btcmarkets.this.iso8601(timestamp) );
-            put( "network", null );
-            put( "address", finalAddress );
-            put( "addressTo", addressTo );
-            put( "addressFrom", addressFrom );
-            put( "tag", finalTag );
-            put( "tagTo", tagTo );
-            put( "tagFrom", tagFrom );
-            put( "type", finalType );
-            put( "amount", Btcmarkets.this.parseNumber(finalAmount) );
-            put( "currency", code );
-            put( "status", status );
-            put( "updated", lastUpdate );
-            put( "comment", Btcmarkets.this.safeString(transaction, "description") );
-            put( "internal", null );
-            put( "fee", new HashMap<String, Object>() {{
-                put( "currency", code );
-                put( "cost", Btcmarkets.this.parseNumber(finalFee) );
-                put( "rate", null );
-            }} );
-            put( "info", transaction );
-        }};
-    }
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "id", this.safeString(transaction, "id"),
+            "txid", txid,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "network", null,
+            "address", address,
+            "addressTo", addressTo,
+            "addressFrom", addressFrom,
+            "tag", tag,
+            "tagTo", tagTo,
+            "tagFrom", tagFrom,
+            "type", type,
+            "amount", this.parseNumber(amount),
+            "currency", code,
+            "status", status,
+            "updated", lastUpdate,
+            "comment", this.safeString(transaction, "description"),
+            "internal", null,
+            "fee", Helpers.newMap(
+                "currency", code,
+                "cost", this.parseNumber(fee),
+                "rate", null
+            ),
+            "info", transaction
+        );
     }
 
     /**
@@ -712,26 +648,14 @@ public class Btcmarkets extends BtcmarketsApi
         });
 
     }
-    /**
-     * @method
-     * @name btcmarkets#fetchMarkets
-     * @description retrieves data on all markets for btcmarkets
-     * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets/get
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseMarket(Object market)
     {
         String baseId = this.safeString(market, "baseAssetName");
         String quoteId = this.safeString(market, "quoteAssetName");
         String id = this.safeString(market, "marketId");
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
@@ -739,69 +663,65 @@ public class Btcmarkets extends BtcmarketsApi
         String symbol = ((base + "/") + quote);
         Object fees = this.safeDict(this.safeDict(this.options, "fees", new HashMap<String, Object>() {{}}), quote, this.fees);
         Double pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
-        Double minAmount = this.safeNumber(market, "minOrderAmount");
-        Double maxAmount = this.safeNumber(market, "maxOrderAmount");
+        Double minAmount = this.safeNumber(market, "minOrderAmount", (Object) null);
+        Double maxAmount = this.safeNumber(market, "maxOrderAmount", (Object) null);
         String status = this.safeString(market, "status");
         Double minPrice = null;
         if (java.util.Objects.equals(quote, "AUD"))
         {
             minPrice = pricePrecision;
         }
-        final String finalBase = base;
-        final String finalQuote = quote;
-        final String finalStatus = status;
-        final Double finalMinPrice = minPrice;
-        return this.safeMarketStructure(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "symbol", symbol );
-            put( "base", finalBase );
-            put( "quote", finalQuote );
-            put( "settle", null );
-            put( "baseId", baseId );
-            put( "quoteId", quoteId );
-            put( "settleId", null );
-            put( "type", "spot" );
-            put( "spot", true );
-            put( "margin", false );
-            put( "swap", false );
-            put( "future", false );
-            put( "option", false );
-            put( "active", (java.util.Objects.equals(finalStatus, "Online")) );
-            put( "contract", false );
-            put( "linear", null );
-            put( "inverse", null );
-            put( "taker", ((Map<String, Object>)fees).get("taker") );
-            put( "maker", ((Map<String, Object>)fees).get("maker") );
-            put( "contractSize", null );
-            put( "expiry", null );
-            put( "expiryDatetime", null );
-            put( "strike", null );
-            put( "optionType", null );
-            put( "precision", new HashMap<String, Object>() {{
+        return this.safeMarketStructure(Helpers.newMap(
+            "id", id,
+            "symbol", symbol,
+            "base", base,
+            "quote", quote,
+            "settle", null,
+            "baseId", baseId,
+            "quoteId", quoteId,
+            "settleId", null,
+            "type", "spot",
+            "spot", true,
+            "margin", false,
+            "swap", false,
+            "future", false,
+            "option", false,
+            "active", (java.util.Objects.equals(status, "Online")),
+            "contract", false,
+            "linear", null,
+            "inverse", null,
+            "taker", ((Map<String, Object>)fees).get("taker"),
+            "maker", ((Map<String, Object>)fees).get("maker"),
+            "contractSize", null,
+            "expiry", null,
+            "expiryDatetime", null,
+            "strike", null,
+            "optionType", null,
+            "precision", new HashMap<String, Object>() {{
                 put( "amount", Btcmarkets.this.parseNumber(Btcmarkets.this.parsePrecision(Btcmarkets.this.safeString(market, "amountDecimals"))) );
                 put( "price", pricePrecision );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
-                put( "leverage", new HashMap<String, Object>() {{
+            }},
+            "limits", Helpers.newMap(
+                "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }} );
-                put( "amount", new HashMap<String, Object>() {{
+                }},
+                "amount", new HashMap<String, Object>() {{
                     put( "min", minAmount );
                     put( "max", maxAmount );
-                }} );
-                put( "price", new HashMap<String, Object>() {{
-                    put( "min", finalMinPrice );
-                    put( "max", null );
-                }} );
-                put( "cost", new HashMap<String, Object>() {{
+                }},
+                "price", Helpers.newMap(
+                    "min", minPrice,
+                    "max", null
+                ),
+                "cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }} );
-            }} );
-            put( "created", null );
-            put( "info", market );
-        }});
+                }}
+            ),
+            "created", null,
+            "info", market
+        ));
     }
 
     /**
@@ -827,18 +747,6 @@ public class Btcmarkets extends BtcmarketsApi
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
-    /**
-     * @method
-     * @name btcmarkets#fetchTime
-     * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.btcmarkets.net/v3/#tag/Misc-APIs/paths/~1v3~1time/get
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int} the current integer timestamp in milliseconds from the exchange server
-     */
-    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
-    {
-        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseBalance(Object response)
     {
@@ -847,9 +755,9 @@ public class Btcmarkets extends BtcmarketsApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "assetName");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = (Map<String, Object>) this.account();
             account.put("used", this.safeString(balance, "locked"));
             account.put("total", this.safeString(balance, "balance"));
@@ -876,24 +784,12 @@ public class Btcmarkets extends BtcmarketsApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetAccountsMeBalances(parameters)).join();
             return this.parseBalance(response);
         }).thenApply(Balances::new);
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.btcmarkets.net/v3/#tag/Account-APIs/paths/~1v3~1accounts~1me~1balances/get
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -908,11 +804,7 @@ public class Btcmarkets extends BtcmarketsApi
         //         "0.01571701" // volume
         //     ]
         //
-        return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, 0)), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
-    }
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
+        return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, 0)), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 5, (Object) null)));
     }
 
     /**
@@ -927,21 +819,19 @@ public class Btcmarkets extends BtcmarketsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", ((Map<String, Object>)market).get("id") );
-                put( "timeWindow", Btcmarkets.this.safeString(Btcmarkets.this.timeframes, timeframe, timeframe) );
+                put( "timeWindow", Btcmarkets.this.safeString(Btcmarkets.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             if (!java.util.Objects.equals(since, null))
             {
@@ -959,25 +849,9 @@ public class Btcmarkets extends BtcmarketsApi
             //         ["2020-09-12T18:03:00.000000Z","14361.37","14361.37","14361.37","14361.37","0.00345221"],
             //     ]
             //
-            return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1candles/get
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -997,7 +871,7 @@ public class Btcmarkets extends BtcmarketsApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1021,25 +895,11 @@ public class Btcmarkets extends BtcmarketsApi
             //     }
             //
             Long timestamp = this.safeIntegerProduct(response, "snapshotId", 0.001);
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
             orderbook.put("nonce", this.safeInteger(response, "snapshotId"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1orderbook/get
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -1062,8 +922,8 @@ public class Btcmarkets extends BtcmarketsApi
         //     }
         //
         String marketId = this.safeString(ticker, "marketId");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, "-"));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         String last = this.safeString(ticker, "lastPrice");
         String baseVolume = this.safeString(ticker, "volume24h");
@@ -1091,11 +951,7 @@ public class Btcmarkets extends BtcmarketsApi
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
-        }}, market);
-    }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+        }}, Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1114,7 +970,7 @@ public class Btcmarkets extends BtcmarketsApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1136,22 +992,9 @@ public class Btcmarkets extends BtcmarketsApi
             //         "timestamp":"2020-08-09T18:28:23.280000Z"
             //     }
             //
-            return this.parseTicker(response, market);
+            return this.parseTicker(response, Helpers.toMapArg(market));
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1ticker/get
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Object> fetchTicker2(String symbol, Map<String, Object> parameters)
@@ -1161,20 +1004,16 @@ public class Btcmarkets extends BtcmarketsApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketsMarketIdTicker(this.extend(request, parameters))).join();
-            return this.parseTicker(response, market);
+            return this.parseTicker(response, Helpers.toMapArg(market));
         });
 
-    }
-    public CompletableFuture<Object> fetchTicker2(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTicker2(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1207,14 +1046,14 @@ public class Btcmarkets extends BtcmarketsApi
         //
         Long timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         String marketId = this.safeString(trade, "marketId");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, "-"));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
         Object feeCurrencyCode = null;
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("quote"), "AUD"))
+        if (java.util.Objects.equals(((Map<String, Object>)marketResolved).get("quote"), "AUD"))
         {
-            feeCurrencyCode = ((Map<String, Object>)market).get("quote");
+            feeCurrencyCode = ((Map<String, Object>)marketResolved).get("quote");
         } else
         {
-            feeCurrencyCode = ((Map<String, Object>)market).get("base");
+            feeCurrencyCode = ((Map<String, Object>)marketResolved).get("base");
         }
         String side = this.safeString(trade, "side");
         if (java.util.Objects.equals(side, "Bid"))
@@ -1232,36 +1071,27 @@ public class Btcmarkets extends BtcmarketsApi
         String feeCostString = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            final String finalFeeCostString = feeCostString;
-            final Object finalFeeCurrencyCode = feeCurrencyCode;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", finalFeeCostString );
-                put( "currency", finalFeeCurrencyCode );
-            }};
+            fee = Helpers.newMap(
+                "cost", feeCostString,
+                "currency", feeCurrencyCode
+            );
         }
         String takerOrMaker = this.safeStringLower(trade, "liquidityType");
-        final Map<String, Object> finalMarket = market;
-        final String finalSide = side;
-        final Map<String, Object> finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
-            put( "info", trade );
-            put( "id", id );
-            put( "timestamp", timestamp );
-            put( "datetime", Btcmarkets.this.iso8601(timestamp) );
-            put( "order", orderId );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "type", null );
-            put( "side", finalSide );
-            put( "price", priceString );
-            put( "amount", amountString );
-            put( "cost", null );
-            put( "takerOrMaker", takerOrMaker );
-            put( "fee", finalFee );
-        }}, market);
-    }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeTrade(Helpers.newMap(
+            "info", trade,
+            "id", id,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "order", orderId,
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "type", null,
+            "side", side,
+            "price", priceString,
+            "amount", amountString,
+            "cost", null,
+            "takerOrMaker", takerOrMaker,
+            "fee", fee
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1282,7 +1112,7 @@ public class Btcmarkets extends BtcmarketsApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1296,24 +1126,9 @@ public class Btcmarkets extends BtcmarketsApi
             //         {"id":"6191646590","price":"540","amount":"0.00233785","timestamp":"2020-08-09T15:21:04.171000Z","side":"Bid"},
             //     ]
             //
-            return this.parseTrades(response, market, since, limit);
+            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1trades/get
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1330,24 +1145,21 @@ public class Btcmarkets extends BtcmarketsApi
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object price3 = price2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object price = price3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final String finalSide = side;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "marketId", ((Map<String, Object>)market).get("id") );
-                put( "amount", Btcmarkets.this.amountToPrecision(symbol, amount) );
-                put( "side", (((java.util.Objects.equals(finalSide, "buy")))) ? "Bid" : "Ask" );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "marketId", ((Map<String, Object>)market).get("id"),
+                "amount", this.amountToPrecision(symbol, amount),
+                "side", (((java.util.Objects.equals(side, "buy")))) ? "Bid" : "Ask"
+            );
             String lowercaseType = ((String)type).toLowerCase();
             Object orderTypes = this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{
                 put( "limit", "Limit" );
@@ -1385,8 +1197,7 @@ public class Btcmarkets extends BtcmarketsApi
             }
             if (Boolean.TRUE.equals(triggerPriceIsRequired))
             {
-                Double triggerPrice = this.safeNumber(parameters, "triggerPrice");
-                parameters = (Map<String, Object>) this.omit(parameters, "triggerPrice");
+                Double triggerPrice = this.safeNumber(parameters, "triggerPrice", (Object) null);
                 if (java.util.Objects.equals(triggerPrice, null))
                 {
                     throw new ArgumentsRequired((((this.id + " createOrder() requires a triggerPrice parameter for a ") + type) + "order")) ;
@@ -1400,8 +1211,13 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 request.put("clientOrderId", clientOrderId);
             }
-            parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
-            Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
+            Object paramsTriggerPrice = parameters;
+            if (Boolean.TRUE.equals(triggerPriceIsRequired))
+            {
+                paramsTriggerPrice = this.omit(parameters, "triggerPrice");
+            }
+            Object paramsOmitted = this.omit(paramsTriggerPrice, "clientOrderId");
+            Map<String, Object> response = (this.privatePostOrders(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "orderId": "7524",
@@ -1421,27 +1237,9 @@ public class Btcmarkets extends BtcmarketsApi
             //         "targetAmount": "1000"
             //     }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder(response, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#createOrder
-     * @description create a trade order
-     * @see https://docs.btcmarkets.net/v3/#tag/Order-Placement-APIs/paths/~1v3~1orders/post
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1461,7 +1259,7 @@ public class Btcmarkets extends BtcmarketsApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> numericIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
@@ -1494,23 +1292,9 @@ public class Btcmarkets extends BtcmarketsApi
             List<Object> cancelOrders = (List<Object>) this.safeList(response, "cancelOrders", new ArrayList<Object>(Arrays.asList()));
             List<Object> unprocessedRequests = (List<Object>) this.safeList(response, "unprocessedRequests", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = (List<Object>) this.arrayConcat(cancelOrders, unprocessedRequests);
-            return this.parseOrders(orders);
+            return this.parseOrders(orders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#cancelOrders
-     * @description cancel multiple orders
-     * @see https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/~1v3~1batchorders~1{ids}/delete
-     * @param {string[]} ids order ids
-     * @param {string} symbol not used by cancelOrders ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
-    {
-        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1530,7 +1314,7 @@ public class Btcmarkets extends BtcmarketsApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -1542,23 +1326,9 @@ public class Btcmarkets extends BtcmarketsApi
             //        "clientOrderId": "123-456"
             //    }
             //
-            return this.parseOrder(response);
+            return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#cancelOrder
-     * @description cancels an open order
-     * @see https://docs.btcmarkets.net/v3/#operation/cancelOrder
-     * @param {string} id order id
-     * @param {string} symbol not used by cancelOrder ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(String id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object calculateFee(String symbol, Object type, Object side, Object amount, Object price, Object takerOrMaker, Map<String, Object> parameters)
@@ -1590,25 +1360,19 @@ public class Btcmarkets extends BtcmarketsApi
             currency = this.safeString(market, "base");
             cost = this.amountToPrecision(symbol, amount);
         }
-        Object rate = this.safeValue(market, takerOrMaker);
+        Object rate = this.safeValue(market, java.util.Objects.requireNonNullElse(takerOrMaker, "taker"));
         String rateCost = Precise.stringMul(this.numberToString(rate), cost);
         String feeCost = this.feeToPrecision((String) (symbol), rateCost);
         if (java.util.Objects.equals(feeCost, null))
         {
             feeCost = "0";
         }
-        final String finalCurrency = currency;
-        final Object finalFeeCost = feeCost;
-        return new HashMap<String, Object>() {{
-            put( "type", takerOrMaker );
-            put( "currency", finalCurrency );
-            put( "rate", rate );
-            put( "cost", Helpers.parseFloat(finalFeeCost) );
-        }};
-    }
-    public Object calculateFee(String symbol, Object type, Object side, Object amount, Object price, Object... optionalArgs)
-    {
-        return this.calculateFee(symbol, type, side, amount, price, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "taker", Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return Helpers.newMap(
+            "type", java.util.Objects.requireNonNullElse(takerOrMaker, "taker"),
+            "currency", currency,
+            "rate", rate,
+            "cost", Helpers.parseFloat(feeCost)
+        );
     }
 
     public String parseOrderStatus(String status)
@@ -1650,7 +1414,7 @@ public class Btcmarkets extends BtcmarketsApi
         //
         Long timestamp = this.parse8601(this.safeString(order, "creationTime"));
         String marketId = this.safeString(order, "marketId");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, "-"));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
         String side = this.safeString(order, "side");
         if (java.util.Objects.equals(side, "Bid"))
         {
@@ -1667,36 +1431,30 @@ public class Btcmarkets extends BtcmarketsApi
         String id = this.safeString(order, "orderId");
         String clientOrderId = this.safeString(order, "clientOrderId");
         String timeInForce = this.safeString(order, "timeInForce");
-        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly");
-        final Map<String, Object> finalMarket = market;
-        final String finalSide = side;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "info", order );
-            put( "id", id );
-            put( "clientOrderId", clientOrderId );
-            put( "timestamp", timestamp );
-            put( "datetime", Btcmarkets.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", null );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "type", type );
-            put( "timeInForce", timeInForce );
-            put( "postOnly", postOnly );
-            put( "side", finalSide );
-            put( "price", price );
-            put( "triggerPrice", Btcmarkets.this.safeNumber(order, "triggerPrice") );
-            put( "cost", null );
-            put( "amount", amount );
-            put( "filled", null );
-            put( "remaining", remaining );
-            put( "average", null );
-            put( "status", status );
-            put( "trades", null );
-            put( "fee", null );
-        }}, market);
-    }
-    public Object parseOrder(Object order, Object... optionalArgs)
-    {
-        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", (Object) null);
+        return this.safeOrder(Helpers.newMap(
+            "info", order,
+            "id", id,
+            "clientOrderId", clientOrderId,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastTradeTimestamp", null,
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "type", type,
+            "timeInForce", timeInForce,
+            "postOnly", postOnly,
+            "side", side,
+            "price", price,
+            "triggerPrice", this.safeNumber(order, "triggerPrice", (Object) null),
+            "cost", null,
+            "amount", amount,
+            "filled", null,
+            "remaining", remaining,
+            "average", null,
+            "status", status,
+            "trades", null,
+            "fee", null
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1716,29 +1474,15 @@ public class Btcmarkets extends BtcmarketsApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Map<String, Object> response = (this.privateGetOrdersId(this.extend(request, parameters))).join();
-            return this.parseOrder(response);
+            return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#fetchOrder
-     * @description fetches information on an order made by the user
-     * @see https://docs.btcmarkets.net/v3/#operation/getOrderById
-     * @param {string} id the order id
-     * @param {string} symbol not used by btcmarkets fetchOrder
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
-    {
-        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1752,18 +1496,14 @@ public class Btcmarkets extends BtcmarketsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "all" );
@@ -1783,24 +1523,9 @@ public class Btcmarkets extends BtcmarketsApi
                 request.put("limit", limit);
             }
             List<Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
-            return this.parseOrders(response, market, since, limit);
+            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#fetchOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://docs.btcmarkets.net/v3/#operation/listOrders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
-    {
-        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1822,24 +1547,9 @@ public class Btcmarkets extends BtcmarketsApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "open" );
             }};
-            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
-     * @see https://docs.btcmarkets.net/v3/#operation/listOrders
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
-     * @param {int} [limit] the maximum number of  open orders structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1858,25 +1568,10 @@ public class Btcmarkets extends BtcmarketsApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Order> orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
             return this.filterBy(orders, "status", "closed");
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.btcmarkets.net/v3/#operation/listOrders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
-    {
-        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1890,18 +1585,14 @@ public class Btcmarkets extends BtcmarketsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -1946,24 +1637,9 @@ public class Btcmarkets extends BtcmarketsApi
             //         }
             //     ]
             //
-            return this.parseTrades(response, market, since, limit);
+            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://docs.btcmarkets.net/v3/#operation/getTrades
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1978,40 +1654,33 @@ public class Btcmarkets extends BtcmarketsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code2, Object amount, String address2, String tag2, Map<String, Object> parameters2)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final String address3 = address2;
-        final String tag3 = tag2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            String address = address3;
-            String tag = tag3;
-            Map<String, Object> parameters = parameters3;
-            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = (String) ((List<Object>) tagparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
+
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            final String finalCode = code;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "assetName", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Btcmarkets.this.currencyToPrecision((String) (finalCode), amount) );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "assetName", ((Map<String, Object>)currency).get("id"),
+                "amount", this.currencyToPrecision((String) (code), amount, (String) null)
+            );
             if (!java.util.Objects.equals(code, "AUD"))
             {
                 this.checkAddress(address);
                 request.put("toAddress", address);
             }
-            if (!java.util.Objects.equals(tag, null))
+            if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
-                request.put("toAddress", ((address + "?dt=") + tag));
+                request.put("toAddress", Helpers.add((address + "?dt="), tagWithdrawTag));
             }
-            Map<String, Object> response = (this.privatePostWithdrawals(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostWithdrawals(this.extend(request, paramsWithdrawTag))).join();
             //
             //      {
             //          "id": "4126657",
@@ -2028,25 +1697,9 @@ public class Btcmarkets extends BtcmarketsApi
             //          }
             //      }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
         }).thenApply(Transaction::new);
 
-    }
-    /**
-     * @method
-     * @name btcmarkets#withdraw
-     * @description make a withdrawal
-     * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1withdrawals/post
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} tag
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
-    {
-        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Long nonce()
@@ -2056,15 +1709,17 @@ public class Btcmarkets extends BtcmarketsApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
         String request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Map<String,Object> query = this.keysort(this.omit(parameters, this.extractParams(path)));
-        if (java.util.Objects.equals(api, "private"))
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
-            this.checkRequiredCredentials();
+            this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.nonce());
             Object secret = this.base64ToBinary(this.secret);
-            Object auth = ((method + request) + nonce);
-            if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")))
+            String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + request) + nonce);
+            if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
             {
                 if (((List<?>)new ArrayList<Object>(query.keySet())).size() > 0)
                 {
@@ -2072,11 +1727,11 @@ public class Btcmarkets extends BtcmarketsApi
                 }
             } else
             {
-                body = (String) (this.json(query));
-                auth = Helpers.add(auth, body);
+                requestBody = this.json(query);
+                auth = (auth + requestBody);
             }
             String signature = (String) this.hmac(this.encode(auth), secret, sha512(), "base64");
-            headers = new HashMap<String, Object>() {{
+            requestHeaders = new HashMap<String, Object>() {{
                 put( "Accept", "application/json" );
                 put( "Accept-Charset", "UTF-8" );
                 put( "Content-Type", "application/json" );
@@ -2084,32 +1739,27 @@ public class Btcmarkets extends BtcmarketsApi
                 put( "BM-AUTH-TIMESTAMP", nonce );
                 put( "BM-AUTH-SIGNATURE", signature );
             }};
-        } else if (java.util.Objects.equals(api, "public"))
+        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
             if (((List<?>)new ArrayList<Object>(query.keySet())).size() > 0)
             {
                 request = (request + ("?" + this.urlencode(query)));
             }
         }
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + request);
-        final Object finalMethod = method;
-        final String finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", url );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
+        Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
+        String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", bodyResult,
+            "headers", headersResult
+        );
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

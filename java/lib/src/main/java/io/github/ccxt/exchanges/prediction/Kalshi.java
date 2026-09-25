@@ -463,15 +463,13 @@ public class Kalshi extends KalshiApi
                         {
                             if (!(eventsDict.containsKey(eventKey)))
                             {
-                                final String finalEventKey = eventKey;
-                                final String finalEventTitle = eventTitle;
-                                eventsDict.put((String)eventKey, new HashMap<String, Object>() {{
-        put( "id", eventTicker );
-        put( "slug", eventTicker );
-        put( "event", finalEventKey );
-        put( "title", finalEventTitle );
-        put( "markets", new ArrayList<Object>(Arrays.asList()) );
-    }});
+                                eventsDict.put((String)eventKey, Helpers.newMap(
+        "id", eventTicker,
+        "slug", eventTicker,
+        "event", eventKey,
+        "title", eventTitle,
+        "markets", new ArrayList<Object>(Arrays.asList())
+    ));
                             }
                             Object eventEntry = (eventsDict == null || eventKey == null ? null : eventsDict.get(eventKey));
                             // push through a local and write the slice back — the go transpiler's
@@ -499,21 +497,6 @@ public class Kalshi extends KalshiApi
             return flatMarkets;
         });
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchMarkets
-     * @description fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
-     * @see https://trading-api.readme.io/reference/getmarkets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.query] a single search query; resolved against the events endpoint (event title/ticker), then the matched events' markets are returned
-     * @param {string[]} [params.queries] multiple search queries (alternative to query); markets from any matching event are returned
-     * @param {int} [params.limit] for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseBinaryMarketToOutcomes(Map<String, Object> raw)
@@ -558,10 +541,9 @@ public class Kalshi extends KalshiApi
                 Map<String, Object> response = null;
                 try
                 {
-                    final Object finalBaseTicker = baseTicker;
-                    response = (this.kalshiPublicGetMarketsTicker(new HashMap<String, Object>() {{
-                        put( "ticker", finalBaseTicker );
-                    }})).join();
+                    response = (this.kalshiPublicGetMarketsTicker(Helpers.newMap(
+                        "ticker", baseTicker
+                    ))).join();
                 } catch(Exception e)
                 {
                     // an unknown ticker returns 'not_found', which handleErrors maps to BadSymbol —
@@ -604,9 +586,9 @@ public class Kalshi extends KalshiApi
                 {
                     try
                     {
-                        (this.fetchEvents(new HashMap<String, Object>() {{
-                            put( "series_ticker", seriesTicker );
-                        }})).join();
+                        (this.fetchEvents(Helpers.newMap(
+                            "series_ticker", seriesTicker
+                        ))).join();
                     } catch(Exception e)
                     {
                         // an unknown series is a plain miss — the free-text fallback below still runs;
@@ -618,7 +600,7 @@ public class Kalshi extends KalshiApi
                     }
                     if (Boolean.TRUE.equals(this.hasOutcome((String) (outcomeSymbol))))
                     {
-                        return this.safeOutcome((String) (outcomeSymbol));
+                        return this.safeOutcome((String) (outcomeSymbol), (Object) null);
                     }
                 }
             }
@@ -726,7 +708,7 @@ public class Kalshi extends KalshiApi
         {
             return null;
         }
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
         if (!java.util.Objects.equals(error, null))
         {
             String errorCode = this.safeString(error, "code");
@@ -755,17 +737,12 @@ public class Kalshi extends KalshiApi
         String feeCost = Precise.stringMul("0.07", amountStr);
         feeCost = Precise.stringMul(feeCost, priceStr);
         feeCost = Precise.stringMul(feeCost, oneMinusP);
-        final String finalFeeCost = feeCost;
-        return new HashMap<String, Object>() {{
-            put( "type", takerOrMaker );
-            put( "currency", "USD" );
-            put( "rate", 0.07 );
-            put( "cost", Kalshi.this.parseNumber(finalFeeCost) );
-        }};
-    }
-    public Object calculateFee(String symbol, Object type, Object side, Object amount, Object price, Object... optionalArgs)
-    {
-        return this.calculateFee(symbol, type, side, amount, price, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "taker", Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return Helpers.newMap(
+            "type", java.util.Objects.requireNonNullElse(takerOrMaker, "taker"),
+            "currency", "USD",
+            "rate", 0.07,
+            "cost", this.parseNumber(feeCost)
+        );
     }
 
     public Object parseMarket(Object raw)
@@ -830,9 +807,9 @@ public class Kalshi extends KalshiApi
         String result = this.safeStringLower(raw, "result");
         Boolean resolved = (java.util.Objects.equals(status, "settled")) || ((!java.util.Objects.equals(result, null)) && (!java.util.Objects.equals(result, "")));
         String endDate = this.safeString(raw, "expiration_time");
-        Double volume = this.safeNumber2(raw, "volume_fp", "volume");
-        Double liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity");
-        Double openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest");
+        Double volume = this.safeNumber2(raw, "volume_fp", "volume", (Object) null);
+        Double liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity", (Object) null);
+        Double openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest", (Object) null);
         // Derive series ticker: drop last hyphen-segment from event_ticker
         Object eventParts = new ArrayList<Object>(Arrays.asList());
         if ((!java.util.Objects.equals(eventTicker, null)) && (!java.util.Objects.equals(eventTicker, "")))
@@ -864,11 +841,10 @@ public class Kalshi extends KalshiApi
         {
             pricePrecision = this.parseNumber(stepDollars);
         }
-        final Double finalPricePrecision = pricePrecision;
-        Map<String, Object> precision = new HashMap<String, Object>() {{
-            put( "amount", 1 );
-            put( "price", finalPricePrecision );
-        }};
+        Map<String, Object> precision = Helpers.newMap(
+            "amount", 1,
+            "price", pricePrecision
+        );
         // Build outcomes
         List<String> outcomeLabels = new ArrayList<String>(Arrays.asList("YES", "NO"));
         List<Object> outcomeIds = new ArrayList<Object>(Arrays.asList(ticker, (ticker + "-NO")));
@@ -893,77 +869,66 @@ public class Kalshi extends KalshiApi
             // reassigned local into the anonymous inner class it emits for a map literal)
             Boolean winner = winnerRaw;
             Object settleFraction = settleFractionRaw;
-final Object finalOi = oi;
-            final Object finalTicker = ticker;
-            final Object finalEventTicker = eventTicker;
-            final Object finalSeriesTicker = seriesTicker;
-            final Object finalSubtitle = subtitle;
-                        ((List<Object>)outcomes).add(new HashMap<String, Object>() {{
-                put( "id", Helpers.GetValue(outcomeIds, finalOi) );
-                put( "outcomeId", Helpers.GetValue(outcomeIds, finalOi) );
-                put( "outcome", outcomeHandle );
-                put( "market", marketSymbol );
-                put( "label", label );
-                put( "active", active );
-                put( "winner", winner );
-                put( "settleFraction", settleFraction );
-                put( "precision", precision );
-                put( "info", new HashMap<String, Object>() {{
-                    put( "ticker", finalTicker );
-                    put( "eventTicker", finalEventTicker );
-                    put( "seriesTicker", finalSeriesTicker );
-                    put( "subtitle", finalSubtitle );
-                    put( "outcomeLabel", label );
-                    put( "volume", volume );
-                    put( "liquidity", liquidity );
-                    put( "openInterest", openInt );
-                }} );
-            }});
+            ((List<Object>)outcomes).add(Helpers.newMap(
+                "id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)),
+                "outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)),
+                "outcome", outcomeHandle,
+                "market", marketSymbol,
+                "label", label,
+                "active", active,
+                "winner", winner,
+                "settleFraction", settleFraction,
+                "precision", precision,
+                "info", Helpers.newMap(
+                    "ticker", ticker,
+                    "eventTicker", eventTicker,
+                    "seriesTicker", seriesTicker,
+                    "subtitle", subtitle,
+                    "outcomeLabel", label,
+                    "volume", volume,
+                    "liquidity", liquidity,
+                    "openInterest", openInt
+                )
+            ));
         }
         // effectively-final copy for the market object literal below (reassigned in the loop)
         Object marketResolvedOutcome = resolvedOutcome;
-        final String finalTicker = ticker;
-        final Boolean finalResolved = resolved;
-        final String finalEndDate = endDate;
-        final String finalEventTicker = eventTicker;
-        final Object finalSeriesTicker = seriesTicker;
-        final String finalSubtitle = subtitle;
-        return new HashMap<String, Object>() {{
-            put( "id", finalTicker );
-            put( "market", marketSymbol );
-            put( "base", "USD" );
-            put( "quote", "USD" );
-            put( "settle", null );
-            put( "baseId", finalTicker );
-            put( "quoteId", "USD" );
-            put( "settleId", null );
-            put( "type", "prediction" );
-            put( "marketType", "binary" );
-            put( "executionModel", "clob" );
-            put( "spot", false );
-            put( "margin", false );
-            put( "swap", false );
-            put( "future", false );
-            put( "option", false );
-            put( "prediction", true );
-            put( "active", active );
-            put( "resolved", finalResolved );
-            put( "resolvedOutcome", marketResolvedOutcome );
-            put( "contract", false );
-            put( "linear", null );
-            put( "inverse", null );
-            put( "contractSize", null );
-            put( "expiry", (((!java.util.Objects.equals(finalEndDate, null) && !java.util.Objects.equals(finalEndDate, "")))) ? Kalshi.this.parse8601(finalEndDate) : null );
-            put( "expiryDatetime", finalEndDate );
-            put( "strike", null );
-            put( "optionType", null );
-            put( "taker", 0.07 );
-            put( "maker", 0 );
-            put( "percentage", true );
-            put( "tierBased", false );
-            put( "feeSide", "get" );
-            put( "precision", precision );
-            put( "limits", new HashMap<String, Object>() {{
+        return Helpers.newMap(
+            "id", ticker,
+            "market", marketSymbol,
+            "base", "USD",
+            "quote", "USD",
+            "settle", null,
+            "baseId", ticker,
+            "quoteId", "USD",
+            "settleId", null,
+            "type", "prediction",
+            "marketType", "binary",
+            "executionModel", "clob",
+            "spot", false,
+            "margin", false,
+            "swap", false,
+            "future", false,
+            "option", false,
+            "prediction", true,
+            "active", active,
+            "resolved", resolved,
+            "resolvedOutcome", marketResolvedOutcome,
+            "contract", false,
+            "linear", null,
+            "inverse", null,
+            "contractSize", null,
+            "expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null,
+            "expiryDatetime", endDate,
+            "strike", null,
+            "optionType", null,
+            "taker", 0.07,
+            "maker", 0,
+            "percentage", true,
+            "tierBased", false,
+            "feeSide", "get",
+            "precision", precision,
+            "limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -980,19 +945,19 @@ final Object finalOi = oi;
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }} );
-            put( "outcomes", outcomes );
-            put( "info", Kalshi.this.extend(raw, new HashMap<String, Object>() {{
-                put( "ticker", finalTicker );
-                put( "eventTicker", finalEventTicker );
-                put( "seriesTicker", finalSeriesTicker );
-                put( "subtitle", finalSubtitle );
-                put( "volume", volume );
-                put( "liquidity", liquidity );
-                put( "openInterest", openInt );
-            }}) );
-            put( "created", null );
-        }};
+            }},
+            "outcomes", outcomes,
+            "info", this.extend(raw, Helpers.newMap(
+                "ticker", ticker,
+                "eventTicker", eventTicker,
+                "seriesTicker", seriesTicker,
+                "subtitle", subtitle,
+                "volume", volume,
+                "liquidity", liquidity,
+                "openInterest", openInt
+            )),
+            "created", null
+        );
     }
 
     /**
@@ -1009,7 +974,7 @@ final Object finalOi = oi;
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadOutcome((String) (outcome))).join();
+            (this.loadOutcome((String) (outcome), false)).join();
             Object outcomeObj = this.outcome((String) (outcome));
             String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1072,22 +1037,9 @@ final Object finalOi = oi;
             //     }
             //
             Object raw = this.safeValue(response, "market", response);
-            return this.parsePredictionTicker((Map<String, Object>) (raw), ((Object)outcomeObj));
+            return this.parsePredictionTicker((Map<String, Object>) (raw), Helpers.toMapArg(((Object)outcomeObj)));
         }).thenApply(PredictionTicker::new);
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchTicker
-     * @description fetches the current market price and bid/ask for a single kalshi outcome
-     * @see https://docs.kalshi.com/api-reference/market/get-market
-     * @param {string} outcome the unified outcome like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
-     */
-    public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
-    {
-        return this.fetchTicker(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1108,28 +1060,15 @@ final Object finalOi = oi;
             //     { "exchange_active": true, "trading_active": true }
             //
             Boolean tradingActive = (Boolean) this.safeBool(response, "trading_active", false);
-            final Boolean finalTradingActive = tradingActive;
-            return new HashMap<String, Object>() {{
-                put( "status", (((java.util.Objects.equals(finalTradingActive, true)))) ? "ok" : "maintenance" );
-                put( "updated", null );
-                put( "eta", null );
-                put( "url", null );
-                put( "info", response );
-            }};
+            return Helpers.newMap(
+                "status", (((java.util.Objects.equals(tradingActive, true)))) ? "ok" : "maintenance",
+                "updated", null,
+                "eta", null,
+                "url", null,
+                "info", response
+            );
         }).thenApply(Status::new);
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchStatus
-     * @description fetches the kalshi exchange status
-     * @see https://docs.kalshi.com/api-reference/exchange/get-exchange-status
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
-     */
-    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
-    {
-        return this.fetchStatus(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1146,7 +1085,7 @@ final Object finalOi = oi;
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadOutcome((String) (outcome))).join();
+            (this.loadOutcome((String) (outcome), false)).join();
             Object outcomeObj = this.outcome((String) (outcome));
             String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1154,22 +1093,9 @@ final Object finalOi = oi;
             }};
             Map<String, Object> response = (this.kalshiPublicGetMarketsTicker(this.extend(request, parameters))).join();
             Object raw = this.safeDict(response, "market", response);
-            return this.parsePredictionOpenInterest((Map<String, Object>) (raw), ((Object)outcomeObj));
+            return this.parsePredictionOpenInterest((Map<String, Object>) (raw), Helpers.toMapArg(((Object)outcomeObj)));
         }).thenApply(PredictionOpenInterest::new);
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchOpenInterest
-     * @description fetches the open interest of a prediction market outcome
-     * @see https://docs.kalshi.com/api-reference/market/get-market
-     * @param {string} outcome unified outcome or outcome id
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
-     */
-    public CompletableFuture<PredictionOpenInterest> fetchOpenInterest(String outcome, Object... optionalArgs)
-    {
-        return this.fetchOpenInterest(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePredictionOpenInterest(Map<String, Object> interest, Map<String, Object> market)
@@ -1179,8 +1105,8 @@ final Object finalOi = oi;
         //
         Long timestamp = this.parse8601(this.safeString(interest, "updated_time"));
         Object openInterest = this.safeOpenInterest(new HashMap<String, Object>() {{
-            put( "symbol", Kalshi.this.safeSymbol(null, market) );
-            put( "openInterestAmount", Kalshi.this.safeNumber2(interest, "open_interest_fp", "open_interest") );
+            put( "symbol", Kalshi.this.safeSymbol(null, market, (String) null, (String) null) );
+            put( "openInterestAmount", Kalshi.this.safeNumber2(interest, "open_interest_fp", "open_interest", (Object) null) );
             put( "openInterestValue", null );
             put( "baseVolume", null );
             put( "quoteVolume", null );
@@ -1188,14 +1114,10 @@ final Object finalOi = oi;
             put( "datetime", Kalshi.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
-        ((Map<String, Object>)openInterest).put("outcome", this.safeOutcomeSymbol((String) (null), market));
-        ((Map<String, Object>)openInterest).put("outcomeId", this.safeString(market, "outcomeId"));
+        Helpers.addElementToObject(openInterest, "outcome", this.safeOutcomeSymbol((String) (null), market));
+        Helpers.addElementToObject(openInterest, "outcomeId", this.safeString(market, "outcomeId"));
         ((Map<String,Object>)openInterest).remove("symbol");
         return openInterest;
-    }
-    public Object parsePredictionOpenInterest(Map<String, Object> interest, Object... optionalArgs)
-    {
-        return this.parsePredictionOpenInterest(interest, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1270,11 +1192,11 @@ final Object finalOi = oi;
         Boolean isNo = java.util.Objects.equals(outcomeLabel.toUpperCase(), "NO");
         Long timestamp = this.parse8601(this.safeString(raw, "updated_time"));
         String outcome = this.safeString(outcomeObj, "outcome");
-        Double yesAsk = this.safeNumber(raw, "yes_ask_dollars");
-        Double yesBid = this.safeNumber(raw, "yes_bid_dollars");
-        Double noAsk = this.safeNumber(raw, "no_ask_dollars");
-        Double noBid = this.safeNumber(raw, "no_bid_dollars");
-        Double last = this.safeNumber(raw, "last_price_dollars");
+        Double yesAsk = this.safeNumber(raw, "yes_ask_dollars", (Object) null);
+        Double yesBid = this.safeNumber(raw, "yes_bid_dollars", (Object) null);
+        Double noAsk = this.safeNumber(raw, "no_ask_dollars", (Object) null);
+        Double noBid = this.safeNumber(raw, "no_bid_dollars", (Object) null);
+        Double last = this.safeNumber(raw, "last_price_dollars", (Object) null);
         Double bid = null;
         Double ask = null;
         Double close = null;
@@ -1323,50 +1245,31 @@ final Object finalOi = oi;
         {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(this.numberToString(bid), this.numberToString(ask)), "2"));
         }
-        final Double finalBid = bid;
-        final Double finalBidVolume = bidVolume;
-        final Double finalAsk = ask;
-        final Double finalAskVolume = askVolume;
-        final Double finalClose = close;
-        final Double finalAverage = average;
-        return (Map<String, Object>) (this.safePredictionTicker(new HashMap<String, Object>() {{
-            put( "outcome", outcome );
-            put( "outcomeId", Kalshi.this.safeString2(outcomeObj, "outcomeId", "id") );
-            put( "label", Kalshi.this.safeString(outcomeObj, "label") );
-            put( "market", Kalshi.this.safeString2(outcomeObj, "market", "outcome") );
-            put( "timestamp", timestamp );
-            put( "datetime", Kalshi.this.iso8601(timestamp) );
-            put( "high", null );
-            put( "low", null );
-            put( "bid", finalBid );
-            put( "bidVolume", finalBidVolume );
-            put( "ask", finalAsk );
-            put( "askVolume", finalAskVolume );
-            put( "vwap", null );
-            put( "open", null );
-            put( "close", finalClose );
-            put( "last", finalClose );
-            put( "previousClose", null );
-            put( "change", null );
-            put( "percentage", null );
-            put( "average", finalAverage );
-            put( "baseVolume", Kalshi.this.safeNumberN(raw, new ArrayList<Object>(Arrays.asList("volume_24h_fp", "volume_24h", "volume"))) );
-            put( "quoteVolume", null );
-            put( "info", raw );
-        }}, market));
-    }
-    /**
-     * @ignore
-     * @method
-     * @name kalshi#parsePredictionTicker
-     * @description parses a raw kalshi market object into a unified ticker object
-     * @param {object} raw the raw market object
-     * @param {object} [market] the outcome object the ticker belongs to
-     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
-     */
-    public Map<String, Object> parsePredictionTicker(Map<String, Object> raw, Object... optionalArgs)
-    {
-        return this.parsePredictionTicker(raw, Helpers.getArgMap(optionalArgs, 0, null));
+        return (Map<String, Object>) (this.safePredictionTicker(Helpers.newMap(
+            "outcome", outcome,
+            "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"),
+            "label", this.safeString(outcomeObj, "label"),
+            "market", this.safeString2(outcomeObj, "market", "outcome"),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "high", null,
+            "low", null,
+            "bid", bid,
+            "bidVolume", bidVolume,
+            "ask", ask,
+            "askVolume", askVolume,
+            "vwap", null,
+            "open", null,
+            "close", close,
+            "last", close,
+            "previousClose", null,
+            "change", null,
+            "percentage", null,
+            "average", average,
+            "baseVolume", this.safeNumberN(raw, new ArrayList<Object>(Arrays.asList("volume_24h_fp", "volume_24h", "volume")), (Object) null),
+            "quoteVolume", null,
+            "info", raw
+        ), market));
     }
 
     /**
@@ -1378,17 +1281,17 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes2, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
     {
-        final Object outcomes3 = outcomes2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object outcomes = outcomes3;
+
             if (java.util.Objects.equals(outcomes, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
             }
             // batch-resolve the uncached outcomes (one markets request per 100 tickers)
-            (this.loadOutcomes(outcomes)).join();
+            (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
             List<Object> targets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {
@@ -1396,7 +1299,7 @@ final Object finalOi = oi;
             }
             // group requested outcomes by their market ticker, yes and no outcomes share one market
             Map<String, Object> outcomesByTicker = new HashMap<String, Object>() {{}};
-            List<Object> tickers = new ArrayList<Object>(Arrays.asList());
+            List<String> tickers = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)targets).size(); i++)
             {
                 Map<String, Object> outcomeObj = this.outcome((String) ((targets == null || i < 0 || i >= targets.size() ? null : targets.get(i))));
@@ -1408,7 +1311,7 @@ final Object finalOi = oi;
                 if (!(outcomesByTicker.containsKey(ticker)))
                 {
                     outcomesByTicker.put((String)ticker, new ArrayList<Object>(Arrays.asList()));
-                    ((List<Object>)tickers).add(ticker);
+                    tickers.add(ticker);
                 }
                 // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
                 Object grouped = (outcomesByTicker == null || ticker == null ? null : outcomesByTicker.get(ticker));
@@ -1448,7 +1351,7 @@ final Object finalOi = oi;
                     Object grouped = (outcomesByTicker == null || marketTicker == null ? null : outcomesByTicker.get(marketTicker));
                     for (var j = 0; j < Helpers.getArrayLength(grouped); j++)
                     {
-                        Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (raw), Helpers.GetValue(grouped, j));
+                        Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (raw), Helpers.toMapArg(Helpers.GetValue(grouped, j)));
                         String symbolKey = this.safeString(ticker, "outcome");
                         if (!java.util.Objects.equals(symbolKey, null))
                         {
@@ -1461,19 +1364,6 @@ final Object finalOi = oi;
             return result;
         }).thenApply(PredictionTickers::new);
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchTickers
-     * @description fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint (100 per request)
-     * @see https://docs.kalshi.com/api-reference/market/get-markets
-     * @param {string[]} outcomes unified outcomes — required: kalshi has tens of thousands of markets and no endpoint returning all tickers at once, so an unscoped call is not supported
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
-     */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs)
-    {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1491,7 +1381,7 @@ final Object finalOi = oi;
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadOutcome((String) (outcome))).join();
+            (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
             Boolean isNo = java.util.Objects.equals(((Map<String, Object>)outcomeObj).get("label"), "NO");
@@ -1523,47 +1413,33 @@ final Object finalOi = oi;
                 // NO perspective: NO bids come from rawNo, NO asks invert rawYes (NO ask = 1 - YES bid)
                 for (var bi = 0; bi < ((List<?>)rawNo).size(); bi++)
                 {
-                    Double price = this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 0);
-                    ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 1))));
+                    Double price = this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 0, (Object) null);
+                    ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 1, (Object) null))));
                 }
                 for (var ai = 0; ai < ((List<?>)rawYes).size(); ai++)
                 {
-                    Double yesPrice = this.safeNumber((rawYes == null || ai < 0 || ai >= rawYes.size() ? null : rawYes.get(ai)), 0);
+                    Double yesPrice = this.safeNumber((rawYes == null || ai < 0 || ai >= rawYes.size() ? null : rawYes.get(ai)), 0, (Object) null);
                     Object price = (((!java.util.Objects.equals(yesPrice, null)))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(yesPrice))) : null;
-                    ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || ai < 0 || ai >= rawYes.size() ? null : rawYes.get(ai)), 1))));
+                    ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || ai < 0 || ai >= rawYes.size() ? null : rawYes.get(ai)), 1, (Object) null))));
                 }
             } else
             {
                 // YES perspective: YES bids from rawYes, YES asks invert rawNo (YES ask = 1 - NO bid)
                 for (var bi = 0; bi < ((List<?>)rawYes).size(); bi++)
                 {
-                    Double price = this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 0);
-                    ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 1))));
+                    Double price = this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 0, (Object) null);
+                    ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 1, (Object) null))));
                 }
                 for (var ai = 0; ai < ((List<?>)rawNo).size(); ai++)
                 {
-                    Double noPrice = this.safeNumber((rawNo == null || ai < 0 || ai >= rawNo.size() ? null : rawNo.get(ai)), 0);
+                    Double noPrice = this.safeNumber((rawNo == null || ai < 0 || ai >= rawNo.size() ? null : rawNo.get(ai)), 0, (Object) null);
                     Object price = (((!java.util.Objects.equals(noPrice, null)))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(noPrice))) : null;
-                    ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || ai < 0 || ai >= rawNo.size() ? null : rawNo.get(ai)), 1))));
+                    ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || ai < 0 || ai >= rawNo.size() ? null : rawNo.get(ai)), 1, (Object) null))));
                 }
             }
             return this.safePredictionOrderBook((Map<String, Object>) (this.sortedOrders(this.safeString(outcomeObj, "outcome", outcome), null, bids, asks)), outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchOrderBook
-     * @description fetches the order book for a single kalshi outcome
-     * @see https://docs.kalshi.com/api-reference/market/get-market-orderbook
-     * @param {string} outcome unified outcome or outcome id
-     * @param {int} [limit] the maximum number of bids/asks to return (not enforced by kalshis API, reserved for future client-side trimming)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
-     */
-    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1580,14 +1456,12 @@ final Object finalOi = oi;
     public Map<String, Object> sortedOrders(String outcome, Object timestamp, Object bids, Object asks)
     {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
-        bids = this.sortBy(bids, 0, true);
-        asks = this.sortBy(asks, 0);
-        final Object finalBids = bids;
-        final Object finalAsks = asks;
+        List<Object> bidsValue = this.sortBy(bids, 0, true);
+        List<Object> asksValue = this.sortBy(asks, 0);
         return new HashMap<String, Object>() {{
             put( "outcome", outcome );
-            put( "bids", finalBids );
-            put( "asks", finalAsks );
+            put( "bids", bidsValue );
+            put( "asks", asksValue );
             put( "timestamp", timestamp );
             put( "datetime", Kalshi.this.iso8601(timestamp) );
             put( "nonce", null );
@@ -1606,34 +1480,31 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String outcome, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String outcome, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Long limit = limit3;
-            (this.loadOutcome((String) (outcome))).join();
+
+            (this.loadOutcome((String) (outcome), false)).join();
             Object outcomeObj = this.outcome((String) (outcome));
             String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
             String seriesTicker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "seriesTicker", ticker);
-            Long periodMin = this.safeInteger(this.timeframes, timeframe);
+            Long periodMin = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             if (java.util.Objects.equals(periodMin, null))
             {
                 // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
                 // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
                 Object tfKeys = Helpers.objectKeys(this.timeframes);
                 String supported = String.join(", ", (List<String>)tfKeys);
-                throw new BadRequest((((((this.id + " fetchOHLCV() does not support the ") + timeframe) + " timeframe (supported: ") + supported) + ")")) ;
+                throw new BadRequest((((((this.id + " fetchOHLCV() does not support the ") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + " timeframe (supported: ") + supported) + ")")) ;
             }
-            final Long finalPeriodMin = periodMin;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "series_ticker", seriesTicker );
-                put( "ticker", ticker );
-                put( "period_interval", finalPeriodMin );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "series_ticker", seriesTicker,
+                "ticker", ticker,
+                "period_interval", periodMin
+            );
             Long now = this.seconds();
-            Object tf = this.parseTimeframe(timeframe);
+            Object tf = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             if (!java.util.Objects.equals(since, null))
             {
                 Long sinceS = this.parseToInt((((double) since) / ((double) 1000)));
@@ -1650,9 +1521,9 @@ final Object finalOi = oi;
             } else
             {
                 Long defaultLimit = this.safeInteger(this.options, "defaultFetchOHLCVLimit", 200);
-                Object candlesCount = (((!java.util.Objects.equals(limit, null)))) ? limit : defaultLimit;
+                Long candlesCount = (((!java.util.Objects.equals(limit, null)))) ? limit : defaultLimit;
                 request.put("end_ts", now);
-                request.put("start_ts", Helpers.subtract(now, (Helpers.multiply(candlesCount, tf))));
+                request.put("start_ts", (now - ((candlesCount * ((long) tf)))));
             }
             Map<String, Object> response = (this.kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(this.extend(request, parameters))).join();
             //
@@ -1695,8 +1566,8 @@ final Object finalOi = oi;
             {
                 Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
                 Map<String, Object> priceObj = (Map<String, Object>) this.safeDict(candle, "price", new HashMap<String, Object>() {{}});
-                Double openPrice = this.safeNumber(priceObj, "open_dollars");
-                Double previousPrice = this.safeNumber(priceObj, "previous_dollars");
+                Double openPrice = this.safeNumber(priceObj, "open_dollars", (Object) null);
+                Double previousPrice = this.safeNumber(priceObj, "previous_dollars", (Object) null);
                 if ((!java.util.Objects.equals(openPrice, null)) || (!java.util.Objects.equals(previousPrice, null)))
                 {
                     ((List<Object>)usableCandles).add(candle);
@@ -1705,25 +1576,9 @@ final Object finalOi = oi;
             // kalshi candles carry only the period-END timestamp; thread the candle duration through so
             // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
             Helpers.addElementToObject(this.options, "ohlcvCandleDurationSeconds", tf);
-            return this.parseOHLCVs(usableCandles, ((Object)outcomeObj), timeframe, since, limit);
+            return this.parseOHLCVs(usableCandles, ((Object)outcomeObj), java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchOHLCV
-     * @description fetches OHLCV candlesticks for a single kalshi outcome from the candlesticks endpoint
-     * @see https://docs.kalshi.com/api-reference/market/get-market-candlesticks
-     * @param {string} outcome unified outcome
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum number of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String outcome, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(outcome, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1768,7 +1623,7 @@ final Object finalOi = oi;
         //
         Map<String, Object> price = (Map<String, Object>) this.safeDict(ohlcv, "price", new HashMap<String, Object>() {{}});
         // no-trade periods carry only previous_dollars (last trade price) → flat candle
-        Double previous = this.safeNumber(price, "previous_dollars");
+        Double previous = this.safeNumber(price, "previous_dollars", (Object) null);
         // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
         Long endTimestamp = this.safeTimestamp(ohlcv, "end_period_ts");
@@ -1779,19 +1634,6 @@ final Object finalOi = oi;
             timestamp = (endTimestamp - (durationSeconds * 1000L));
         }
         return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber(price, "open_dollars", previous), this.safeNumber(price, "high_dollars", previous), this.safeNumber(price, "low_dollars", previous), this.safeNumber(price, "close_dollars", previous), this.safeNumber(ohlcv, "volume_fp", 0)));
-    }
-    /**
-     * @ignore
-     * @method
-     * @name kalshi#parseOHLCV
-     * @description parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
-     * @param {object} ohlcv the raw candlestick object
-     * @param {object} [market] the outcome object the candle belongs to
-     * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
-     */
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1805,12 +1647,12 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long limit = limit3;
-            (this.loadOutcome((String) (outcome))).join();
+
+            (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1832,24 +1674,9 @@ final Object finalOi = oi;
                     ((List<Object>)filteredTrades).add(trade);
                 }
             }
-            return this.parsePredictionTrades(filteredTrades, outcomeObj, since, limit);
+            return this.parsePredictionTrades(filteredTrades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchTrades
-     * @description fetches public trade history for a single kalshi market ticker
-     * @see https://docs.kalshi.com/api-reference/market/get-trades
-     * @param {string} outcome unified outcome
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum number of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
-     */
-    public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Object... optionalArgs)
-    {
-        return this.fetchTrades(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1865,8 +1692,8 @@ final Object finalOi = oi;
     {
         String id = this.safeString(trade, "trade_id");
         Long ts = this.parse8601(this.safeString(trade, "created_time"));
-        Double priceDollars = this.safeNumber2(trade, "yes_price_dollars", "price_dollars");
-        Double priceCents = this.safeNumber2(trade, "yes_price", "price");
+        Double priceDollars = this.safeNumber2(trade, "yes_price_dollars", "price_dollars", (Object) null);
+        Double priceCents = this.safeNumber2(trade, "yes_price", "price", (Object) null);
         Object price = null;
         if (!java.util.Objects.equals(priceDollars, null))
         {
@@ -1875,7 +1702,7 @@ final Object finalOi = oi;
         {
             price = (((double) priceCents) / ((double) 100));
         }
-        Double amountFp = this.safeNumber2(trade, "count_fp", "size_fp");
+        Double amountFp = this.safeNumber2(trade, "count_fp", "size_fp", (Object) null);
         Double amount = this.safeNumber(trade, "count", amountFp);
         String rawSide = this.safeStringLower(trade, "taker_side");
         Map<String, Object> marketAny = market;
@@ -1900,41 +1727,24 @@ final Object finalOi = oi;
         {
             cost = Helpers.multiply(price, amount);
         }
-        final String finalSide = side;
-        final Object finalPrice = price;
-        final Double finalAmount = amount;
-        final Object finalCost = cost;
-        return this.safePredictionTrade(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "info", trade );
-            put( "timestamp", ts );
-            put( "datetime", Kalshi.this.iso8601(ts) );
-            put( "outcome", outcomeSymbol );
-            put( "outcomeId", outcomeId );
-            put( "label", Kalshi.this.safeString(outcomeObj, "label") );
-            put( "market", Kalshi.this.safeString2(outcomeObj, "market", "outcome") );
-            put( "order", null );
-            put( "type", null );
-            put( "side", finalSide );
-            put( "takerOrMaker", "taker" );
-            put( "price", finalPrice );
-            put( "amount", finalAmount );
-            put( "cost", finalCost );
-            put( "fee", null );
-        }}, market);
-    }
-    /**
-     * @ignore
-     * @method
-     * @name kalshi#parsePredictionTrade
-     * @description parses a raw kalshi trade object into a unified trade object
-     * @param {object} trade the raw trade object
-     * @param {object} [market] the outcome object the trade belongs to
-     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
-     */
-    public Object parsePredictionTrade(Map<String, Object> trade, Object... optionalArgs)
-    {
-        return this.parsePredictionTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safePredictionTrade(Helpers.newMap(
+            "id", id,
+            "info", trade,
+            "timestamp", ts,
+            "datetime", this.iso8601(ts),
+            "outcome", outcomeSymbol,
+            "outcomeId", outcomeId,
+            "label", this.safeString(outcomeObj, "label"),
+            "market", this.safeString2(outcomeObj, "market", "outcome"),
+            "order", null,
+            "type", null,
+            "side", side,
+            "takerOrMaker", "taker",
+            "price", price,
+            "amount", amount,
+            "cost", cost,
+            "fee", null
+        ), market);
     }
 
     /**
@@ -1948,16 +1758,14 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String outcome3 = outcome2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String outcome = outcome3;
-            Long limit = limit3;
+
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome))).join();
+                (this.loadOutcome((String) (outcome), false)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object outcomeObj = null;
@@ -1982,7 +1790,7 @@ final Object finalOi = oi;
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; (fillsLength != null && i < fillsLength); i++)
             {
-                ((List<Object>)trades).add(this.parseMyTrade((Map<String, Object>) ((fills == null || i < 0 || i >= fills.size() ? null : fills.get(i))), outcomeObj));
+                ((List<Object>)trades).add(this.parseMyTrade((Map<String, Object>) ((fills == null || i < 0 || i >= fills.size() ? null : fills.get(i))), Helpers.toMapArg(outcomeObj)));
             }
             String wantedOutcome = null;
             if (!java.util.Objects.equals(outcome, null))
@@ -1998,24 +1806,9 @@ final Object finalOi = oi;
                     ((List<Object>)result).add(trade);
                 }
             }
-            return this.filterBySinceLimit(result, since, limit, "timestamp");
+            return this.filterBySinceLimit(result, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchMyTrades
-     * @description fetch the fills (executed trades) of the authenticated kalshi user
-     * @see https://trading-api.readme.io/reference/getfills
-     * @param {string} [outcome] filter to a single unified outcome
-     * @param {int} [since] the earliest fill timestamp (ms) to fetch
-     * @param {int} [limit] the maximum number of fills to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
-     */
-    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2052,10 +1845,10 @@ final Object finalOi = oi;
         Object price = null;
         if (java.util.Objects.equals(sideLeg, "no"))
         {
-            price = this.safeNumber(fill, "no_price_dollars");
+            price = this.safeNumber(fill, "no_price_dollars", (Object) null);
             if (java.util.Objects.equals(price, null))
             {
-                Double noCents = this.safeNumber(fill, "no_price");
+                Double noCents = this.safeNumber(fill, "no_price", (Object) null);
                 if (!java.util.Objects.equals(noCents, null))
                 {
                     price = (((double) noCents) / ((double) 100));
@@ -2063,17 +1856,17 @@ final Object finalOi = oi;
             }
         } else
         {
-            price = this.safeNumber(fill, "yes_price_dollars");
+            price = this.safeNumber(fill, "yes_price_dollars", (Object) null);
             if (java.util.Objects.equals(price, null))
             {
-                Double yesCents = this.safeNumber(fill, "yes_price");
+                Double yesCents = this.safeNumber(fill, "yes_price", (Object) null);
                 if (!java.util.Objects.equals(yesCents, null))
                 {
                     price = (((double) yesCents) / ((double) 100));
                 }
             }
         }
-        Double amount = this.safeNumber2(fill, "count_fp", "count");
+        Double amount = this.safeNumber2(fill, "count_fp", "count", (Object) null);
         Object cost = null;
         if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(amount, null)))
         {
@@ -2085,54 +1878,33 @@ final Object finalOi = oi;
         {
             takerOrMaker = "taker";
         }
-        Double feeCost = this.safeNumber(fill, "fee_cost");
+        Double feeCost = this.safeNumber(fill, "fee_cost", (Object) null);
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Double finalFeeCost = feeCost;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", finalFeeCost );
-                put( "currency", "USD" );
-            }};
+            fee = Helpers.newMap(
+                "cost", feeCost,
+                "currency", "USD"
+            );
         }
-        final String finalOutcomeKey = outcomeKey;
-        final String finalSide = side;
-        final String finalTakerOrMaker = takerOrMaker;
-        final Object finalPrice = price;
-        final Double finalAmount = amount;
-        final Object finalCost = cost;
-        final Map<String, Object> finalFee = fee;
-        return this.safePredictionTrade(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "info", fill );
-            put( "timestamp", ts );
-            put( "datetime", Kalshi.this.iso8601(ts) );
-            put( "outcome", Kalshi.this.safeString(mkt, "outcome", finalOutcomeKey) );
-            put( "outcomeId", Kalshi.this.safeString2(mkt, "outcomeId", "id") );
-            put( "label", Kalshi.this.safeString(mkt, "label") );
-            put( "market", Kalshi.this.safeString2(mkt, "market", "outcome") );
-            put( "order", orderId );
-            put( "type", null );
-            put( "side", finalSide );
-            put( "takerOrMaker", finalTakerOrMaker );
-            put( "price", finalPrice );
-            put( "amount", finalAmount );
-            put( "cost", finalCost );
-            put( "fee", finalFee );
-        }}, market);
-    }
-    /**
-     * @ignore
-     * @method
-     * @name kalshi#parseMyTrade
-     * @description parses one raw kalshi fill into the unified trade shape
-     * @param {object} fill the raw kalshi fill
-     * @param {object} [market] a resolved outcome/market hint
-     * @returns {object} a unified trade structure
-     */
-    public Object parseMyTrade(Map<String, Object> fill, Object... optionalArgs)
-    {
-        return this.parseMyTrade(fill, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safePredictionTrade(Helpers.newMap(
+            "id", id,
+            "info", fill,
+            "timestamp", ts,
+            "datetime", this.iso8601(ts),
+            "outcome", this.safeString(mkt, "outcome", outcomeKey),
+            "outcomeId", this.safeString2(mkt, "outcomeId", "id"),
+            "label", this.safeString(mkt, "label"),
+            "market", this.safeString2(mkt, "market", "outcome"),
+            "order", orderId,
+            "type", null,
+            "side", side,
+            "takerOrMaker", takerOrMaker,
+            "price", price,
+            "amount", amount,
+            "cost", cost,
+            "fee", fee
+        ), market);
     }
 
     /**
@@ -2153,18 +1925,6 @@ final Object finalOi = oi;
         }).thenApply(Balances::new);
 
     }
-    /**
-     * @method
-     * @name kalshi#fetchBalance
-     * @description fetches the authenticated user's USD portfolio balance from kalshi
-     * @see https://trading-api.readme.io/reference/getbalance
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @ignore
@@ -2180,18 +1940,17 @@ final Object finalOi = oi;
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Double balanceCents = this.safeNumber(response, "balance");
+        Double balanceCents = this.safeNumber(response, "balance", (Object) null);
         Object total = null;
         if (!java.util.Objects.equals(balanceCents, null))
         {
             total = (((double) balanceCents) / ((double) 100));
         }
-        final Object finalTotal = total;
-        result.put("USD", new HashMap<String, Object>() {{
-    put( "free", finalTotal );
-    put( "used", 0 );
-    put( "total", finalTotal );
-}});
+        result.put("USD", Helpers.newMap(
+    "free", total,
+    "used", 0,
+    "total", total
+));
         return this.safeBalance(result);
     }
 
@@ -2204,11 +1963,11 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes2, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
     {
-        final Object outcomes3 = outcomes2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object outcomes = outcomes3;
+
             Integer outcomesLength = 0;
             if (!java.util.Objects.equals(outcomes, null))
             {
@@ -2216,7 +1975,7 @@ final Object finalOi = oi;
             }
             if ((outcomesLength != null && outcomesLength > 0))
             {
-                (this.loadOutcomes(outcomes)).join();
+                (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
             }
             // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
             // labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)
@@ -2224,7 +1983,7 @@ final Object finalOi = oi;
             List<Object> positions = (List<Object>) this.safeList(response, "market_positions", new ArrayList<Object>(Arrays.asList()));
             // filter by the requested outcomes' market tickers — a kalshi position is per market
             // ticker and covers both the YES and the NO leg
-            Object parsed = this.parsePredictionPositions(positions);
+            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(outcomesLength, 0))
             {
                 return parsed;
@@ -2259,19 +2018,6 @@ final Object finalOi = oi;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name kalshi#fetchPositions
-     * @description fetches open market positions for the authenticated kalshi user
-     * @see https://trading-api.readme.io/reference/getportfoliopositions
-     * @param {string[]} [outcomes] filter by outcome ids or outcomes
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
-     */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
-    {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -2284,16 +2030,14 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of prediction settlement structures
      */
-    public CompletableFuture<List<PredictionSettlement>> fetchSettlements(String outcome2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionSettlement>> fetchSettlements(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String outcome3 = outcome2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String outcome = outcome3;
-            Long limit = limit3;
+
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome))).join();
+                (this.loadOutcome((String) (outcome), false)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -2306,7 +2050,7 @@ final Object finalOi = oi;
             List<Object> parsed = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; (rawSettlementsLength != null && i < rawSettlementsLength); i++)
             {
-                ((List<Object>)parsed).add(this.parseSettlement((Map<String, Object>) ((rawSettlements == null || i < 0 || i >= rawSettlements.size() ? null : rawSettlements.get(i)))));
+                ((List<Object>)parsed).add(this.parseSettlement((Map<String, Object>) ((rawSettlements == null || i < 0 || i >= rawSettlements.size() ? null : rawSettlements.get(i))), (Map<String, Object>) null));
             }
             String wantedOutcome = null;
             if (!java.util.Objects.equals(outcome, null))
@@ -2322,24 +2066,9 @@ final Object finalOi = oi;
                     ((List<Object>)result).add(settlement);
                 }
             }
-            return this.filterBySinceLimit(result, since, limit, "timestamp");
+            return this.filterBySinceLimit(result, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionSettlement::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchSettlements
-     * @description fetches the user's settled (resolved) positions, with the collateral paid out and realized pnl
-     * @see https://trading-api.readme.io/reference/getportfoliosettlements
-     * @param {string} [outcome] filter to a single unified outcome
-     * @param {int} [since] timestamp in ms of the earliest settlement to fetch
-     * @param {int} [limit] the maximum number of settlements to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of prediction settlement structures
-     */
-    public CompletableFuture<List<PredictionSettlement>> fetchSettlements(Object... optionalArgs)
-    {
-        return this.fetchSettlements(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2378,10 +2107,10 @@ final Object finalOi = oi;
         String marketResult = this.safeStringUpper(settlement, "market_result");
         Boolean won = (java.util.Objects.equals(marketResult, heldLabel));
         // kalshi reports money as dollar keys on V2, else cents
-        Object payout = this.safeNumber(settlement, "revenue_dollars");
+        Object payout = this.safeNumber(settlement, "revenue_dollars", (Object) null);
         if (java.util.Objects.equals(payout, null))
         {
-            Double revenueCents = this.safeNumber(settlement, "revenue");
+            Double revenueCents = this.safeNumber(settlement, "revenue", (Object) null);
             if (!java.util.Objects.equals(revenueCents, null))
             {
                 payout = (((double) revenueCents) / ((double) 100));
@@ -2397,10 +2126,10 @@ final Object finalOi = oi;
         {
             costDollarsKey = "yes_total_cost_dollars";
         }
-        Object cost = this.safeNumber(settlement, costDollarsKey);
+        Object cost = this.safeNumber(settlement, costDollarsKey, (Object) null);
         if (java.util.Objects.equals(cost, null))
         {
-            Double costCents = this.safeNumber(settlement, costKey);
+            Double costCents = this.safeNumber(settlement, costKey, (Object) null);
             if (!java.util.Objects.equals(costCents, null))
             {
                 cost = (((double) costCents) / ((double) 100));
@@ -2412,44 +2141,23 @@ final Object finalOi = oi;
             pnl = Helpers.subtract(payout, cost);
         }
         Long ts = this.parse8601(this.safeString(settlement, "settled_time"));
-        final String finalTicker = ticker;
-        final Object finalHeldTicker = heldTicker;
-        final String finalMarketResult = marketResult;
-        final Boolean finalHeldYes = heldYes;
-        final Object finalYesCount = yesCount;
-        final Object finalCost = cost;
-        final Object finalPayout = payout;
-        final Object finalPnl = pnl;
-        return new HashMap<String, Object>() {{
-            put( "info", settlement );
-            put( "id", finalTicker );
-            put( "timestamp", ts );
-            put( "datetime", Kalshi.this.iso8601(ts) );
-            put( "outcome", Kalshi.this.safeString(mkt, "outcome", finalHeldTicker) );
-            put( "outcomeId", Kalshi.this.safeString2(mkt, "outcomeId", "id", finalHeldTicker) );
-            put( "market", Kalshi.this.safeString2(mkt, "market", "outcome") );
-            put( "event", null );
-            put( "result", finalMarketResult );
-            put( "won", won );
-            put( "amount", ((Boolean.TRUE.equals(finalHeldYes))) ? finalYesCount : noCount );
-            put( "price", ((Boolean.TRUE.equals(won))) ? 1 : 0 );
-            put( "cost", finalCost );
-            put( "payout", finalPayout );
-            put( "pnl", finalPnl );
-        }};
-    }
-    /**
-     * @ignore
-     * @method
-     * @name kalshi#parseSettlement
-     * @description parses one raw kalshi settlement into the unified prediction settlement shape
-     * @param {object} settlement the raw kalshi settlement
-     * @param {object} [market] a resolved outcome/market hint
-     * @returns {object} a prediction settlement structure
-     */
-    public Object parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
-    {
-        return this.parseSettlement(settlement, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "info", settlement,
+            "id", ticker,
+            "timestamp", ts,
+            "datetime", this.iso8601(ts),
+            "outcome", this.safeString(mkt, "outcome", heldTicker),
+            "outcomeId", this.safeString2(mkt, "outcomeId", "id", heldTicker),
+            "market", this.safeString2(mkt, "market", "outcome"),
+            "event", null,
+            "result", marketResult,
+            "won", won,
+            "amount", ((Boolean.TRUE.equals(heldYes))) ? yesCount : noCount,
+            "price", ((Boolean.TRUE.equals(won))) ? 1 : 0,
+            "cost", cost,
+            "payout", payout,
+            "pnl", pnl
+        );
     }
 
     /**
@@ -2465,7 +2173,7 @@ final Object finalOi = oi;
     {
         String ticker = this.safeString(position, "ticker");
         Map<String, Object> outcomeObj = this.safeOutcome((String) (ticker), market);
-        Double yesContracts = this.safeNumber(position, "position"); // positive = long YES
+        Double yesContracts = this.safeNumber(position, "position", (Object) null); // positive = long YES
         String positionSide = null;
         Double contractsValue = null;
         if (!java.util.Objects.equals(yesContracts, null))
@@ -2473,51 +2181,36 @@ final Object finalOi = oi;
             positionSide = (((Helpers.isGreaterThanOrEqual(yesContracts, 0)))) ? "long" : "short";
             contractsValue = this.parseNumber(Precise.stringAbs(this.numberToString(yesContracts)));
         }
-        final Double finalContractsValue = contractsValue;
-        final String finalPositionSide = positionSide;
-        return this.safePredictionPosition(new HashMap<String, Object>() {{
-            put( "id", null );
-            put( "outcome", Kalshi.this.safeString(outcomeObj, "outcome", ticker) );
-            put( "outcomeId", Kalshi.this.safeString2(outcomeObj, "outcomeId", "id") );
-            put( "label", Kalshi.this.safeString(outcomeObj, "label") );
-            put( "market", Kalshi.this.safeString2(outcomeObj, "market", "outcome") );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "contracts", finalContractsValue );
-            put( "contractSize", 1 );
-            put( "side", finalPositionSide );
-            put( "notional", null );
-            put( "leverage", 1 );
-            put( "unrealizedPnl", null );
-            put( "realizedPnl", null );
-            put( "collateral", null );
-            put( "entryPrice", null );
-            put( "markPrice", null );
-            put( "liquidationPrice", null );
-            put( "hedged", false );
-            put( "maintenanceMargin", null );
-            put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", null );
-            put( "initialMarginPercentage", null );
-            put( "marginRatio", null );
-            put( "marginMode", "cross" );
-            put( "marginType", "cross" );
-            put( "percentage", null );
-            put( "info", position );
-        }});
-    }
-    /**
-     * @ignore
-     * @method
-     * @name kalshi#parsePredictionPosition
-     * @description parses a raw kalshi portfolio position into a unified position object
-     * @param {object} position the raw position object
-     * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
-     */
-    public Object parsePredictionPosition(Map<String, Object> position, Object... optionalArgs)
-    {
-        return this.parsePredictionPosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safePredictionPosition(Helpers.newMap(
+            "id", null,
+            "outcome", this.safeString(outcomeObj, "outcome", ticker),
+            "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"),
+            "label", this.safeString(outcomeObj, "label"),
+            "market", this.safeString2(outcomeObj, "market", "outcome"),
+            "timestamp", null,
+            "datetime", null,
+            "contracts", contractsValue,
+            "contractSize", 1,
+            "side", positionSide,
+            "notional", null,
+            "leverage", 1,
+            "unrealizedPnl", null,
+            "realizedPnl", null,
+            "collateral", null,
+            "entryPrice", null,
+            "markPrice", null,
+            "liquidationPrice", null,
+            "hedged", false,
+            "maintenanceMargin", null,
+            "maintenanceMarginPercentage", null,
+            "initialMargin", null,
+            "initialMarginPercentage", null,
+            "marginRatio", null,
+            "marginMode", "cross",
+            "marginType", "cross",
+            "percentage", null,
+            "info", position
+        ));
     }
 
     /**
@@ -2531,14 +2224,14 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(String outcome2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String outcome3 = outcome2;
+
         return BaseExchange.supplyAsync(() -> {
-            String outcome = outcome3;
+
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome))).join();
+                (this.loadOutcome((String) (outcome), false)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "resting" );
@@ -2555,24 +2248,9 @@ final Object finalOi = oi;
             }
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
             Object orders = (List<Object>)(this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList())));
-            return this.parsePredictionOrders(orders, outcomeObj, since, limit);
+            return this.parsePredictionOrders(orders, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchOpenOrders
-     * @description fetches resting (open) orders for the authenticated kalshi user, optionally filtered by ticker
-     * @see https://trading-api.readme.io/reference/getorders
-     * @param {string} [outcome] filter by unified outcome
-     * @param {int} [since] timestamp in ms of the earliest order to fetch
-     * @param {int} [limit] the maximum number of orders to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2586,14 +2264,14 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> fetchOrders(String outcome2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> fetchOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String outcome3 = outcome2;
+
         return BaseExchange.supplyAsync(() -> {
-            String outcome = outcome3;
+
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome))).join();
+                (this.loadOutcome((String) (outcome), false)).join();
             }
             // no status filter — the endpoint returns every order; pass params.status to narrow
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2609,24 +2287,9 @@ final Object finalOi = oi;
             }
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
             Object orders = (List<Object>)(this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList())));
-            return this.parsePredictionOrders(orders, outcomeObj, since, limit);
+            return this.parsePredictionOrders(orders, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchOrders
-     * @description fetches all orders (resting, executed and canceled) for the authenticated kalshi user
-     * @see https://trading-api.readme.io/reference/getorders
-     * @param {string} [outcome] filter by unified outcome
-     * @param {int} [since] timestamp in ms of the earliest order to fetch
-     * @param {int} [limit] the maximum number of orders to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<List<PredictionOrder>> fetchOrders(Object... optionalArgs)
-    {
-        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2647,7 +2310,7 @@ final Object finalOi = oi;
 
             // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
             // both executed and canceled, so fetch every order and keep the non-open ones client-side
-            List<PredictionOrder> orders = (this.fetchOrders((Object)(outcome), (Object)(null), (Object)(null), (Object)(parameters))).join();
+            List<PredictionOrder> orders = (this.fetchOrders(outcome, (Long) null, (Long) null, parameters)).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
@@ -2658,24 +2321,9 @@ final Object finalOi = oi;
                     ((List<Object>)result).add(order);
                 }
             }
-            return this.filterBySinceLimit(result, since, limit, "timestamp");
+            return this.filterBySinceLimit(result, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchClosedOrders
-     * @description fetches the closed (executed or canceled) orders for the authenticated kalshi user
-     * @see https://trading-api.readme.io/reference/getorders
-     * @param {string} [outcome] filter by unified outcome
-     * @param {int} [since] timestamp in ms of the earliest order to fetch
-     * @param {int} [limit] the maximum number of orders to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(Object... optionalArgs)
-    {
-        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2688,37 +2336,23 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome2, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome, Map<String, Object> parameters)
     {
-        final String outcome3 = outcome2;
+
         return BaseExchange.supplyAsync(() -> {
-            String outcome = outcome3;
+
             // outcome is only a labelling hint here — the request needs just the id, and
             // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome))).join();
+                (this.loadOutcome((String) (outcome), false)).join();
             }
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend(new HashMap<String, Object>() {{
                 put( "order_id", id );
             }}, parameters))).join();
-            return this.parsePredictionOrder((Map<String, Object>) (this.safeValue(response, "order", response)));
+            return this.parsePredictionOrder((Map<String, Object>) (this.safeValue(response, "order", response)), (Map<String, Object>) null);
         }).thenApply(PredictionOrder::new);
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchOrder
-     * @description fetches a single order by id from the kalshi portfolio endpoint
-     * @see https://trading-api.readme.io/reference/getorder
-     * @param {string} id order id
-     * @param {string} [outcome] unified outcome
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
-    {
-        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2768,69 +2402,51 @@ final Object finalOi = oi;
         {
             centsKey = "no_price";
         }
-        Object price = this.safeNumber(order, dollarsKey);
+        Object price = this.safeNumber(order, dollarsKey, (Object) null);
         if (java.util.Objects.equals(price, null))
         {
-            Double priceCents = this.safeNumber(order, centsKey);
+            Double priceCents = this.safeNumber(order, centsKey, (Object) null);
             if (!java.util.Objects.equals(priceCents, null))
             {
                 price = (((double) priceCents) / ((double) 100));
             }
         }
         // V2 counts are fixed-point (*_count_fp); legacy used count / filled_count
-        Double amount = this.safeNumber2(order, "initial_count_fp", "count");
+        Double amount = this.safeNumber2(order, "initial_count_fp", "count", (Object) null);
         Double filled = this.safeNumber2(order, "fill_count_fp", "filled_count", 0);
-        Object remaining = this.safeNumber(order, "remaining_count_fp");
+        Object remaining = this.safeNumber(order, "remaining_count_fp", (Object) null);
         if ((java.util.Objects.equals(remaining, null)) && (!java.util.Objects.equals(amount, null)) && (!java.util.Objects.equals(filled, null)))
         {
             remaining = (amount - filled);
         }
         Long ts = this.parse8601(this.safeString(order, "created_time"));
-        final String finalSide = side;
-        final Object finalPrice = price;
-        final Double finalAmount = amount;
-        final Double finalFilled = filled;
-        final Object finalRemaining = remaining;
-        return this.safePredictionOrder(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "clientOrderId", Kalshi.this.safeString(order, "client_order_id") );
-            put( "info", order );
-            put( "timestamp", ts );
-            put( "datetime", Kalshi.this.iso8601(ts) );
-            put( "lastTradeTimestamp", null );
-            put( "status", status );
-            put( "outcome", Kalshi.this.safeString(mkt, "outcome") );
-            put( "outcomeId", Kalshi.this.safeString2(mkt, "outcomeId", "id") );
-            put( "label", Kalshi.this.safeString(mkt, "label") );
-            put( "market", Kalshi.this.safeString2(mkt, "market", "outcome") );
-            put( "type", Kalshi.this.safeStringLower(order, "type", "limit") );
-            put( "timeInForce", "GTC" );
-            put( "postOnly", null );
-            put( "side", finalSide );
-            put( "price", finalPrice );
-            put( "stopPrice", null );
-            put( "triggerPrice", null );
-            put( "average", null );
-            put( "amount", finalAmount );
-            put( "cost", null );
-            put( "filled", finalFilled );
-            put( "remaining", finalRemaining );
-            put( "fee", null );
-            put( "trades", new ArrayList<Object>(Arrays.asList()) );
-        }}, mkt);
-    }
-    /**
-     * @ignore
-     * @method
-     * @name kalshi#parsePredictionOrder
-     * @description parses a raw kalshi order object into a unified order object
-     * @param {object} order the raw order object
-     * @param {object} [market] the outcome object the order belongs to
-     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public Object parsePredictionOrder(Map<String, Object> order, Object... optionalArgs)
-    {
-        return this.parsePredictionOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safePredictionOrder(Helpers.newMap(
+            "id", id,
+            "clientOrderId", this.safeString(order, "client_order_id"),
+            "info", order,
+            "timestamp", ts,
+            "datetime", this.iso8601(ts),
+            "lastTradeTimestamp", null,
+            "status", status,
+            "outcome", this.safeString(mkt, "outcome"),
+            "outcomeId", this.safeString2(mkt, "outcomeId", "id"),
+            "label", this.safeString(mkt, "label"),
+            "market", this.safeString2(mkt, "market", "outcome"),
+            "type", this.safeStringLower(order, "type", "limit"),
+            "timeInForce", "GTC",
+            "postOnly", null,
+            "side", side,
+            "price", price,
+            "stopPrice", null,
+            "triggerPrice", null,
+            "average", null,
+            "amount", amount,
+            "cost", null,
+            "filled", filled,
+            "remaining", remaining,
+            "fee", null,
+            "trades", new ArrayList<Object>(Arrays.asList())
+        ), mkt);
     }
 
     /**
@@ -2865,25 +2481,17 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type2, String side2, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final String type3 = type2;
-        final String side3 = side2;
-        final Object amount3 = amount2;
-        final Object price3 = price2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String type = type3;
-            String side = side3;
-            Object amount = amount3;
-            Object price = price3;
-            Map<String, Object> parameters = parameters3;
+
             // kalshi has no market orders — every order is a limit order and the price is required
             if (java.util.Objects.equals(price, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }")) ;
             }
-            (this.loadOutcome((String) (outcome))).join();
+            (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
             Boolean isNo = (java.util.Objects.equals(((Map<String, Object>)outcomeObj).get("label"), "NO"));
@@ -2909,7 +2517,7 @@ final Object finalOi = oi;
             // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
             // `time_in_force` param (handled below) still overrides
             String unifiedTif = this.safeStringUpper(parameters, "timeInForce");
-            parameters = (Map<String, Object>) this.omit(parameters, "timeInForce");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "timeInForce");
             String defaultTif = "good_till_canceled";
             if (Boolean.TRUE.equals(isMarket))
             {
@@ -2927,41 +2535,35 @@ final Object finalOi = oi;
             {
                 defaultTif = "good_till_canceled";
             }
-            String timeInForce = null;
-            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "time_in_force", defaultTif);
-            timeInForce = (String) ((List<Object>) timeInForceparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
-            String stp = null;
-            List<Object> stpparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "self_trade_prevention_type", "taker_at_cross");
-            stp = (String) ((List<Object>) stpparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) stpparametersVariable).get(1);
-            final String finalBookSide = bookSide;
-            final Object finalAmount = amount;
-            final String finalTimeInForce = timeInForce;
-            final String finalStp = stp;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "ticker", ticker );
-                put( "side", finalBookSide );
-                put( "count", Kalshi.this.numberToString(finalAmount) );
-                put( "time_in_force", finalTimeInForce );
-                put( "self_trade_prevention_type", finalStp );
-            }};
+            List<Object> timeInForceparamsTimeInForceVariable = (List<Object>) this.handleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif);
+            String timeInForce = (String) ((List<Object>) timeInForceparamsTimeInForceVariable).get(0);
+            Map<String, Object> paramsTimeInForce = (Map<String, Object>) ((List<Object>) timeInForceparamsTimeInForceVariable).get(1);
+            List<Object> stpparamsSelfTradePreventionTypeVariable = (List<Object>) this.handleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross");
+            String stp = (String) ((List<Object>) stpparamsSelfTradePreventionTypeVariable).get(0);
+            Map<String, Object> paramsSelfTradePreventionType = (Map<String, Object>) ((List<Object>) stpparamsSelfTradePreventionTypeVariable).get(1);
+            Map<String, Object> request = Helpers.newMap(
+                "ticker", ticker,
+                "side", bookSide,
+                "count", this.numberToString(amount),
+                "time_in_force", timeInForce,
+                "self_trade_prevention_type", stp
+            );
             if (!java.util.Objects.equals(yesPrice, null))
             {
                 request.put("price", this.numberToString(yesPrice));
             }
-            Map<String, Object> response = (this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, paramsSelfTradePreventionType))).join();
             // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
             // the known order details and resolve the status from the remaining count
-            Object order = this.parsePredictionOrder((Map<String, Object>) (response), outcomeObj);
+            Object order = this.parsePredictionOrder((Map<String, Object>) (response), Helpers.toMapArg(outcomeObj));
             Helpers.addElementToObject(order, "side", side);
             Helpers.addElementToObject(order, "amount", amount);
             Helpers.addElementToObject(order, "price", price);
             // the minimal create response reports fills as fill_count/remaining_count (not the *_fp keys
             // parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
             // otherwise a fully-filled order would return status 'closed' with filled 0
-            Double remainingCount = this.safeNumber(response, "remaining_count");
-            Double filledCount = this.safeNumber(response, "fill_count");
+            Double remainingCount = this.safeNumber(response, "remaining_count", (Object) null);
+            Double filledCount = this.safeNumber(response, "fill_count", (Object) null);
             if (!java.util.Objects.equals(filledCount, null))
             {
                 Helpers.addElementToObject(order, "filled", filledCount);
@@ -2986,23 +2588,6 @@ final Object finalOi = oi;
         }).thenApply(PredictionOrder::new);
 
     }
-    /**
-     * @method
-     * @name kalshi#createOrder
-     * @description places a limit or market order on kalshi for the given outcome token
-     * @see https://trading-api.readme.io/reference/createorder
-     * @param {string} outcome unified outcome
-     * @param {string} type 'limit' or 'market'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount number of contracts
-     * @param {float} [price] limit price in dollars (0–1 range)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3018,13 +2603,11 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> editOrder(String id, String outcome, Object type, Object side, Object amount2, Object price2, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> editOrder(String id, String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object amount3 = amount2;
-        final Object price3 = price2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object amount = amount3;
-            Object price = price3;
+
             // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
             // so edit = cancel the resting order then place a fresh one with the new terms. validate the
             // new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
@@ -3037,29 +2620,11 @@ final Object finalOi = oi;
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires an amount")) ;
             }
-            (this.loadOutcome((String) (outcome))).join();
-            (this.cancelOrder(id, (Object)(outcome))).join();
-            return (this.createOrder(outcome, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            (this.loadOutcome((String) (outcome), false)).join();
+            (this.cancelOrder(id, outcome, new HashMap<String, Object>() {{}})).join();
+            return (this.createOrder(outcome, (String) (type), (String) (side), amount, price, parameters)).join();
         }).thenApply(PredictionOrder::new);
 
-    }
-    /**
-     * @method
-     * @name kalshi#editOrder
-     * @description edits a resting order by cancelling it and placing a new one with the updated terms
-     * @see https://trading-api.readme.io/reference/createorder
-     * @param {string} id the id of the order to edit
-     * @param {string} outcome unified outcome
-     * @param {string} type 'limit' (kalshi has only limit orders)
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} [amount] the new number of contracts
-     * @param {float} [price] the new price (0..1)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<PredictionOrder> editOrder(String id, String outcome, Object type, Object side, Object... optionalArgs)
-    {
-        return this.editOrder(id, outcome, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3072,15 +2637,15 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> cancelOrder(String id, String outcome2, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> cancelOrder(String id, String outcome, Map<String, Object> parameters)
     {
-        final String outcome3 = outcome2;
+
         return BaseExchange.supplyAsync(() -> {
-            String outcome = outcome3;
+
             Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                outcomeObj = (this.loadOutcome((String) (outcome))).join();
+                outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             }
             // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
             // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
@@ -3089,7 +2654,7 @@ final Object finalOi = oi;
             }}, parameters))).join();
             // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
             // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-            Object order = this.parsePredictionOrder((Map<String, Object>) (this.safeDict(response, "order", response)), outcomeObj);
+            Object order = this.parsePredictionOrder((Map<String, Object>) (this.safeDict(response, "order", response)), Helpers.toMapArg(outcomeObj));
             if (java.util.Objects.equals(((Map<String, Object>)order).get("id"), null))
             {
                 Helpers.addElementToObject(order, "id", id);
@@ -3102,20 +2667,6 @@ final Object finalOi = oi;
         }).thenApply(PredictionOrder::new);
 
     }
-    /**
-     * @method
-     * @name kalshi#cancelOrder
-     * @description cancels a single open order by id on kalshi
-     * @see https://trading-api.readme.io/reference/cancelorder
-     * @param {string} id order id
-     * @param {string} [outcome] unified outcome
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<PredictionOrder> cancelOrder(String id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3126,14 +2677,14 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelAllOrders(String outcome2, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> cancelAllOrders(String outcome, Map<String, Object> parameters)
     {
-        final String outcome3 = outcome2;
+
         return BaseExchange.supplyAsync(() -> {
-            String outcome = outcome3;
+
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome((String) (outcome))).join();
+                (this.loadOutcome((String) (outcome), false)).join();
             }
             // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
             // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
@@ -3156,12 +2707,12 @@ final Object finalOi = oi;
                 String orderId = this.safeString(restingOrder, "order_id");
                 if (!java.util.Objects.equals(orderId, null))
                 {
-                    (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(new HashMap<String, Object>() {{
-                        put( "order_id", orderId );
-                    }}, parameters))).join();
+                    (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(Helpers.newMap(
+                        "order_id", orderId
+                    ), parameters))).join();
                     // the DELETE body is minimal — parse the already-fetched resting order instead, which
                     // carries the true side/outcome/price/count, then mark it canceled
-                    Object parsed = this.parsePredictionOrder((Map<String, Object>) (restingOrder));
+                    Object parsed = this.parsePredictionOrder((Map<String, Object>) (restingOrder), (Map<String, Object>) null);
                     Helpers.addElementToObject(parsed, "status", "canceled");
                     ((List<Object>)canceledOrders).add(parsed);
                 }
@@ -3169,19 +2720,6 @@ final Object finalOi = oi;
             return canceledOrders;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name kalshi#cancelAllOrders
-     * @description cancels all open orders on kalshi, optionally scoped to one outcome ticker
-     * @see https://trading-api.readme.io/reference/cancelorders
-     * @param {string} [outcome] unified outcome to scope the cancellation to
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<List<PredictionOrder>> cancelAllOrders(Object... optionalArgs)
-    {
-        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3199,19 +2737,19 @@ final Object finalOi = oi;
      * @param {int} [params.limit] max number of events to return
      * @returns {object[]} an array of event structures
      */
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters2)
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters)
     {
-        final Object parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
-            List<Object> queries = this.parseSearchQueries(parameters);
+
+            List<Object> queries = this.parseSearchQueries(Helpers.toMapArg(parameters));
             if (java.util.Objects.equals(queries, null))
             {
                 throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
             }
             Integer queriesLength = ((List<?>)queries).size();
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
-            Long userLimit = this.safeInteger(parameters, "limit");
+            Object paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
+            Long userLimit = this.safeInteger(paramsOmitted, "limit");
             // bound how many events are actually FETCHED (not just returned) so a broad scope like
             // category='Crypto' (hundreds of series) doesn't page every one of them
             Long fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
@@ -3222,7 +2760,7 @@ final Object finalOi = oi;
             // map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
             // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
             // silently rewritten to 'open'); 'all' sends no filter
-            String requestedStatus = this.safeString(parameters, "status", this.safeString(this.options, "defaultEventStatus", "open"));
+            String requestedStatus = this.safeString(paramsOmitted, "status", this.safeString(this.options, "defaultEventStatus", "open"));
             String status = null;
             if ((java.util.Objects.equals(requestedStatus, "active")) || (java.util.Objects.equals(requestedStatus, "open")))
             {
@@ -3235,32 +2773,32 @@ final Object finalOi = oi;
                 status = "settled";
             }
             // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker")));
+            Object rest = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker")));
             if (java.util.Objects.equals(this.markets, null))
             {
                 this.markets = this.createSafeDictionary();
             }
-            String eventId = this.safeString2(parameters, "eventId", "slug");
+            String eventId = this.safeString2(paramsOmitted, "eventId", "slug");
             Object rawEvents = new ArrayList<Object>(Arrays.asList());
             if ((queriesLength != null && queriesLength > 0))
             {
                 // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
-                rawEvents = (this.fetchEventsByQuery(queries, fetchCap, rest)).join();
+                rawEvents = (this.fetchEventsByQuery(queries, fetchCap, Helpers.toMapArg(rest))).join();
             } else if (!java.util.Objects.equals(eventId, null))
             {
                 // kalshi's event id (and slug) is the event_ticker — fetch it directly
-                Object fullEvent = (this.fetchRawEventByTicker(eventId, rest)).join();
+                Object fullEvent = (this.fetchRawEventByTicker(eventId, Helpers.toMapArg(rest))).join();
                 rawEvents = new ArrayList<Object>(Arrays.asList(fullEvent));
             } else
             {
                 // tags / category / series_ticker resolve to a set of series; fetch their events, capped
-                Object seriesTickers = (this.resolveEventSeriesTickers(parameters)).join();
+                Object seriesTickers = (this.resolveEventSeriesTickers(Helpers.toMapArg(paramsOmitted))).join();
                 Integer seriesTickersLength = ((List<?>)seriesTickers).size();
                 if (java.util.Objects.equals(seriesTickersLength, 0))
                 {
-                    this.requireEventQuery(parameters);
+                    this.requireEventQuery(Helpers.toMapArg(paramsOmitted));
                 }
-                rawEvents = (this.fetchSeriesEvents(seriesTickers, status, fetchCap, rest)).join();
+                rawEvents = (this.fetchSeriesEvents(seriesTickers, status, fetchCap, Helpers.toMapArg(rest))).join();
             }
             Integer rawEventsLength = ((List<?>)rawEvents).size();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -3282,29 +2820,10 @@ final Object finalOi = oi;
             // scoping already happened server-side, so strip the resolved scopes before the client-side
             // pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
             // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-            Object postParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tags", "category", "series_ticker")));
-            return this.applyEventFetchParams(result, postParams, new ArrayList<Object>(Arrays.asList()));
+            Object postParams = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("tags", "category", "series_ticker")));
+            return this.applyEventFetchParams(result, Helpers.toMapArg(postParams), new ArrayList<Object>(Arrays.asList()));
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchEvents
-     * @description fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache (it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
-     * @see https://docs.kalshi.com/api-reference/events/get-events
-     * @param {object} [params] extra parameters specific to the exchange API endpoint (unrecognised keys are forwarded to GET /events)
-     * @param {string} [params.query] free-text search resolved server-side via kalshi's series search endpoint
-     * @param {string[]} [params.queries] multiple free-text searches (alternative to query, unioned)
-     * @param {string} [params.series_ticker] one or more comma-separated kalshi series tickers (e.g. 'KXBTC') — used verbatim, no search
-     * @param {string[]} [params.tags] kalshi series tags (e.g. ['BTC']) — resolved to series via the /series listing
-     * @param {string} [params.category] a kalshi series category (e.g. 'Crypto') — resolved to series via the /series listing
-     * @param {string} [params.status] 'active' | 'inactive' | 'closed', defaults to options.defaultEventStatus
-     * @param {int} [params.limit] max number of events to return
-     * @returns {object[]} an array of event structures
-     */
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
-    {
-        return this.fetchEvents(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -3317,24 +2836,23 @@ final Object finalOi = oi;
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    public CompletableFuture<Object> fetchEventsByQuery(Object queries, Object limit2, Map<String, Object> rest)
+    public CompletableFuture<Object> fetchEventsByQuery(Object queries, Object limit, Map<String, Object> rest)
     {
-        final Object limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object limit = limit3;
+
             Object pageSize = (((!java.util.Objects.equals(limit, null)))) ? limit : this.safeInteger(this.options, "searchSeriesLimit", 25);
             // free-text query -> kalshi's series search endpoint (elections web host, ranked server-side)
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
-            List<Object> eventTickers = new ArrayList<Object>(Arrays.asList());
+            List<String> eventTickers = new ArrayList<String>(Arrays.asList());
             Integer queriesLength = ((List<?>)queries).size();
             for (var qi = 0; (queriesLength != null && qi < queriesLength); qi++)
             {
-                final Object finalQi = qi;
-                Map<String, Object> searchResponse = (this.electionsPublicGetSearchSeries(new HashMap<String, Object>() {{
-                    put( "query", Helpers.GetValue(queries, finalQi) );
-                    put( "order_by", "querymatch" );
-                    put( "page_size", pageSize );
-                }})).join();
+                Map<String, Object> searchResponse = (this.electionsPublicGetSearchSeries(Helpers.newMap(
+                    "query", (queries == null || qi < 0 || qi >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(qi)),
+                    "order_by", "querymatch",
+                    "page_size", pageSize
+                ))).join();
                 List<Object> page = (List<Object>) this.safeList(searchResponse, "current_page", new ArrayList<Object>(Arrays.asList()));
                 Integer pageLength = ((List<?>)page).size();
                 for (var pi = 0; (pageLength != null && pi < pageLength); pi++)
@@ -3346,7 +2864,7 @@ final Object finalOi = oi;
                         if (java.util.Objects.equals(already, null))
                         {
                             seen.put((String)et, et);
-                            ((List<Object>)eventTickers).add(et);
+                            eventTickers.add(et);
                         }
                     }
                 }
@@ -3376,20 +2894,6 @@ final Object finalOi = oi;
         });
 
     }
-    /**
-     * @ignore
-     * @method
-     * @name kalshi#fetchEventsByQuery
-     * @description resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically (with nested markets)
-     * @param {string[]} queries free-text search strings
-     * @param {int} [limit] max number of events to fetch
-     * @param {object} [rest] extra params forwarded verbatim to the events endpoint
-     * @returns {object[]} raw kalshi event objects with nested markets
-     */
-    public CompletableFuture<Object> fetchEventsByQuery(Object queries, Object limit, Object... optionalArgs)
-    {
-        return this.fetchEventsByQuery(queries, limit, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @ignore
@@ -3411,7 +2915,7 @@ final Object finalOi = oi;
             }};
             Map<String, Object> response = (this.kalshiPublicGetEventsEventTicker(this.extend(request, parameters))).join();
             Object fullEvent = this.safeDict(response, "event", response);
-            List<Object> nestedMarkets = (List<Object>) this.safeList(fullEvent, "markets");
+            List<Object> nestedMarkets = (List<Object>) this.safeList(fullEvent, "markets", (Object) null);
             if (java.util.Objects.equals(nestedMarkets, null))
             {
                 ((Map<String, Object>)fullEvent).put("markets", this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList())));
@@ -3419,19 +2923,6 @@ final Object finalOi = oi;
             return fullEvent;
         });
 
-    }
-    /**
-     * @ignore
-     * @method
-     * @name kalshi#fetchRawEventByTicker
-     * @description fetches a single raw kalshi event object (with nested markets) by its event ticker
-     * @param {string} ticker the kalshi event ticker
-     * @param {object} [params] extra params forwarded verbatim to the events endpoint
-     * @returns {object} the raw kalshi event object with nested markets
-     */
-    public CompletableFuture<Object> fetchRawEventByTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.fetchRawEventByTicker(ticker, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3453,10 +2944,9 @@ final Object finalOi = oi;
             Integer tagsLength = ((List<?>)tags).size();
             for (var ti = 0; (tagsLength != null && ti < tagsLength); ti++)
             {
-                final Object finalTi = ti;
-                Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(new HashMap<String, Object>() {{
-                    put( "tags", Helpers.GetValue(tags, finalTi) );
-                }})).join();
+                Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(Helpers.newMap(
+                    "tags", (tags == null || ti < 0 || ti >= tags.size() ? null : tags.get(ti))
+                ))).join();
                 List<Object> seriesList = (List<Object>) this.safeList(seriesResponse, "series", new ArrayList<Object>(Arrays.asList()));
                 Integer seriesListLength = ((List<?>)seriesList).size();
                 for (var si = 0; (seriesListLength != null && si < seriesListLength); si++)
@@ -3471,10 +2961,9 @@ final Object finalOi = oi;
             String category = this.safeString(parameters, "category");
             if (!java.util.Objects.equals(category, null))
             {
-                final String finalCategory = category;
-                Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(new HashMap<String, Object>() {{
-                    put( "category", finalCategory );
-                }})).join();
+                Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(Helpers.newMap(
+                    "category", category
+                ))).join();
                 List<Object> seriesList = (List<Object>) this.safeList(seriesResponse, "series", new ArrayList<Object>(Arrays.asList()));
                 Integer seriesListLength = ((List<?>)seriesList).size();
                 for (var si = 0; (seriesListLength != null && si < seriesListLength); si++)
@@ -3515,18 +3004,6 @@ final Object finalOi = oi;
         });
 
     }
-    /**
-     * @ignore
-     * @method
-     * @name kalshi#resolveEventSeriesTickers
-     * @description resolves a fetchEvents scope (tags, category or series_ticker) to a deduplicated list of kalshi series tickers, preserving discovery order
-     * @param {object} [params] the fetchEvents params carrying tags / category / series_ticker
-     * @returns {string[]} deduplicated series tickers
-     */
-    public CompletableFuture<Object> resolveEventSeriesTickers(Object... optionalArgs)
-    {
-        return this.resolveEventSeriesTickers(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @ignore
@@ -3539,11 +3016,11 @@ final Object finalOi = oi;
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    public CompletableFuture<Object> fetchSeriesEvents(Object seriesTickers, String status, Object limit2, Map<String, Object> rest)
+    public CompletableFuture<Object> fetchSeriesEvents(Object seriesTickers, String status, Object limit, Map<String, Object> rest)
     {
-        final Object limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object limit = limit3;
+
             List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
             Integer seriesTickersLength = ((List<?>)seriesTickers).size();
             Long pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 200);
@@ -3571,14 +3048,12 @@ final Object finalOi = oi;
                             break;
                         }
                     }
-                    final Object finalSi = si;
-                    final Object finalReqLimit = reqLimit;
-                    Map<String, Object> request = new HashMap<String, Object>() {{
-                        put( "series_ticker", Helpers.GetValue(seriesTickers, finalSi) );
-                        put( "status", status );
-                        put( "with_nested_markets", true );
-                        put( "limit", finalReqLimit );
-                    }};
+                    Map<String, Object> request = Helpers.newMap(
+                        "series_ticker", (seriesTickers == null || si < 0 || si >= ((List<?>)seriesTickers).size() ? null : ((List<?>)seriesTickers).get(si)),
+                        "status", status,
+                        "with_nested_markets", true,
+                        "limit", reqLimit
+                    );
                     if (!java.util.Objects.equals(cursor, null))
                     {
                         request.put("cursor", cursor);
@@ -3606,21 +3081,6 @@ final Object finalOi = oi;
         });
 
     }
-    /**
-     * @ignore
-     * @method
-     * @name kalshi#fetchSeriesEvents
-     * @description fetches the canonical events (with nested markets) of the given kalshi series, cursor-paginated per series and stopping once `limit` events are gathered
-     * @param {string[]} seriesTickers the series to fetch events for
-     * @param {string} status the kalshi event status ('open' | 'closed')
-     * @param {int} [limit] stop fetching once this many events are gathered
-     * @param {object} [rest] extra params forwarded verbatim to the events endpoint
-     * @returns {object[]} raw kalshi event objects with nested markets
-     */
-    public CompletableFuture<Object> fetchSeriesEvents(Object seriesTickers, String status, Object limit, Object... optionalArgs)
-    {
-        return this.fetchSeriesEvents(seriesTickers, status, limit, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3642,19 +3102,6 @@ final Object finalOi = oi;
             return eventVar;
         }).thenApply(PredictionEvent::new);
 
-    }
-    /**
-     * @method
-     * @name kalshi#fetchEvent
-     * @description fetches a single prediction-market event by its event ticker
-     * @see https://trading-api.readme.io/reference/getevent
-     * @param {string} id the event ticker
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
-     */
-    public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
-    {
-        return this.fetchEvent(id, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3778,7 +3225,7 @@ final Object finalOi = oi;
         {
             active = anyActive;
         }
-        Object resolved = this.safeBool(rawEvent, "resolved");
+        Object resolved = this.safeBool(rawEvent, "resolved", (Object) null);
         if ((java.util.Objects.equals(resolved, null)) && ((marketsCount != null && marketsCount > 0)))
         {
             resolved = allResolved;
@@ -3801,36 +3248,28 @@ final Object finalOi = oi;
         {
             created = earliestCreated;
         }
-        final String finalEventSlug = eventSlug;
-        final String finalTitle = title;
-        final Object finalTotalVolume = totalVolume;
-        final Object finalTotalLiquidity = totalLiquidity;
-        final Long finalCreated = created;
-        final Long finalEnd = end;
-        final Boolean finalActive = active;
-        final Object finalResolved = resolved;
-        return this.extend(new HashMap<String, Object>() {{
-            put( "id", ticker );
-            put( "slug", ticker );
-            put( "event", finalEventSlug );
-            put( "title", finalTitle );
-            put( "markets", marketsList );
-            put( "volume", finalTotalVolume );
-            put( "liquidity", finalTotalLiquidity );
-            put( "url", Kalshi.this.safeString(rawEvent, "url") );
-            put( "image", Kalshi.this.safeString(rawEvent, "image_url") );
-            put( "created", finalCreated );
-            put( "createdDatetime", Kalshi.this.safeString(rawEvent, "created_date_iso") );
-            put( "end", finalEnd );
-            put( "endDatetime", Kalshi.this.iso8601(finalEnd) );
-            put( "category", Kalshi.this.safeString(rawEvent, "category") );
-            put( "lastUpdatedAt", Kalshi.this.parse8601(Kalshi.this.safeString(rawEvent, "last_updated_date_iso")) );
-            put( "lastUpdatedAtDatetime", Kalshi.this.safeString(rawEvent, "last_updated_date_iso") );
-            put( "resolutionSource", Kalshi.this.safeString(rawEvent, "resolution_source") );
-            put( "active", finalActive );
-            put( "resolved", finalResolved );
-            put( "info", rawEvent );
-        }});
+        return this.extend(Helpers.newMap(
+            "id", ticker,
+            "slug", ticker,
+            "event", eventSlug,
+            "title", title,
+            "markets", marketsList,
+            "volume", totalVolume,
+            "liquidity", totalLiquidity,
+            "url", this.safeString(rawEvent, "url"),
+            "image", this.safeString(rawEvent, "image_url"),
+            "created", created,
+            "createdDatetime", this.safeString(rawEvent, "created_date_iso"),
+            "end", end,
+            "endDatetime", this.iso8601(end),
+            "category", this.safeString(rawEvent, "category"),
+            "lastUpdatedAt", this.parse8601(this.safeString(rawEvent, "last_updated_date_iso")),
+            "lastUpdatedAtDatetime", this.safeString(rawEvent, "last_updated_date_iso"),
+            "resolutionSource", this.safeString(rawEvent, "resolution_source"),
+            "active", active,
+            "resolved", resolved,
+            "info", rawEvent
+        ));
     }
 
     /**
@@ -3848,26 +3287,27 @@ final Object finalOi = oi;
      */
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
-        Object apiGroup = (((api instanceof String))) ? api : Helpers.GetValue(api, 0);
-        Object access = (((api instanceof String))) ? "public" : Helpers.GetValue(api, 1);
+        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "kalshi") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "kalshi") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "kalshi"), 0);
+        Object access = (((java.util.Objects.requireNonNullElse(api, "kalshi") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "kalshi"), 1);
         Object baseUrls = ((Map<String, Object>)this.urls).get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("kalshi"));
         String implodedPath = (String) this.implodeParams(path, parameters);
         String url = ((baseUrl + "/") + implodedPath);
         Object query = this.omit(parameters, this.extractParams(path));
         String querystring = this.urlencode(query);
-        if (java.util.Objects.equals(method, "GET") && (!java.util.Objects.equals(querystring, "")))
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") && (!java.util.Objects.equals(querystring, "")))
         {
             url = (url + ("?" + querystring));
         }
         Object existingHeaders = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
-        headers = this.extend(new HashMap<String, Object>() {{
+        Map<String, Object> headersValue = this.extend(new HashMap<String, Object>() {{
             put( "Accept", "application/json" );
             put( "Content-Type", "application/json" );
         }}, existingHeaders);
+        Object bodyValue = body;
         if (java.util.Objects.equals(access, "private"))
         {
-            this.checkRequiredCredentials();
+            this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.milliseconds());
             // Signing payload: {timestamp}{METHOD}{path}, where path is the full request path
             // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
@@ -3875,50 +3315,28 @@ final Object finalOi = oi;
             Object tradeApiIndex = ((String)baseUrl).indexOf("/trade-api");
             String versionPrefix = Helpers.slice(baseUrl, tradeApiIndex, null);
             String pathForSigning = ((versionPrefix + "/") + implodedPath);
-            String payload = ((timestamp + method) + pathForSigning);
+            String payload = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
             Object keyParts = new ArrayList<Object>(Arrays.asList(((String)this.privateKey).split(java.util.regex.Pattern.quote("\\n"))));
             String cleanPrivateKey = String.join("\n", (List<String>)keyParts);
             Object signature = rsa(payload, cleanPrivateKey, sha256(), "pss");
-            final String finalTimestamp = timestamp;
-            headers = this.extend(headers, new HashMap<String, Object>() {{
-                put( "KALSHI-ACCESS-KEY", Kalshi.this.apiKey );
-                put( "KALSHI-ACCESS-SIGNATURE", signature );
-                put( "KALSHI-ACCESS-TIMESTAMP", finalTimestamp );
-            }});
-            if (!java.util.Objects.equals(method, "GET") && (!java.util.Objects.equals(querystring, "")))
+            headersValue = this.extend(headersValue, Helpers.newMap(
+                "KALSHI-ACCESS-KEY", this.apiKey,
+                "KALSHI-ACCESS-SIGNATURE", signature,
+                "KALSHI-ACCESS-TIMESTAMP", timestamp
+            ));
+            if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") && (!java.util.Objects.equals(querystring, "")))
             {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
-                body = this.json(query);
+                bodyValue = this.json(query);
             }
         }
-        final String finalUrl = url;
-        final Object finalMethod = method;
-        final Object finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    /**
-     * @ignore
-     * @method
-     * @name kalshi#sign
-     * @description builds the request URL and attaches RSA-PSS SHA-256 authentication headers for private endpoints
-     * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the api group and access level
-     * @param {string} [method] HTTP method
-     * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
-     * @returns {object} a dictionary with url, method, body and headers
-     */
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "kalshi", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null);
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", bodyValue,
+            "headers", headersValue
+        );
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

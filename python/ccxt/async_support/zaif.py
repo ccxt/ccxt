@@ -724,7 +724,7 @@ class zaif(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         if self.markets is None:
             await self.load_markets()
@@ -738,9 +738,9 @@ class zaif(Exchange, ImplicitAPI):
             # 'message': 'Hi!', // XEM and others
             # 'opt_fee': 0.003, // BTC and MONA only
         }
-        if tag is not None:
-            request['message'] = tag
-        result = await self.privatePostWithdraw(self.extend(request, params))
+        if tagWithdrawTag is not None:
+            request['message'] = tagWithdrawTag
+        result = await self.privatePostWithdraw(self.extend(request, paramsWithdrawTag))
         #
         #     {
         #         "success": 1,
@@ -774,13 +774,13 @@ class zaif(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        currency = self.safe_currency(None, currency)
+        currencyResolved = self.safe_currency(None, currency)
         fee = None
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': currency['code'],
+                'currency': currencyResolved['code'],
             }
         return {
             'id': self.safe_string(transaction, 'id'),
@@ -793,7 +793,7 @@ class zaif(Exchange, ImplicitAPI):
             'addressTo': None,
             'amount': None,
             'type': None,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'status': None,
             'updated': None,
             'tagFrom': None,
@@ -826,15 +826,16 @@ class zaif(Exchange, ImplicitAPI):
             else:
                 url += 'tapi'
             nonce = self.custom_nonce()
-            body = self.urlencode(self.extend({
+            bodyEncoded = self.urlencode(self.extend({
                 'method': path,
                 'nonce': nonce,
             }, params))
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
-                'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
+                'Sign': self.hmac(self.encode(bodyEncoded), self.encode(self.secret), hashlib.sha512),
             }
+            return {'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

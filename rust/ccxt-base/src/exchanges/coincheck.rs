@@ -940,10 +940,10 @@ impl CoincheckCore {
         let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "rate", &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "pair", &[]);
-        market = self.safe_market(&[marketId, market.clone(), Value::Str("_".into())]);
-        let mut baseId: Value = market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null);
-        let mut quoteId: Value = market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Str("_".into())]);
+        let mut baseId: Value = marketResolved.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null);
+        let mut quoteId: Value = marketResolved.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null);
+        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut takerOrMaker: Value = Value::Null;
         let mut amountString: Value = Value::Null;
         let mut costString: Value = Value::Null;
@@ -990,7 +990,7 @@ impl CoincheckCore {
         m.insert("cost".to_string(), costString);
         m.insert("fee".to_string(), fee);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -1212,7 +1212,6 @@ impl CoincheckCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".into(), amount.clone()); }
             }  else {
                 let mut cost: Value = self.safe_number_k(params.clone(), "cost", &[]);
-                params = self.omit(params.clone(), Value::Str("cost".into()), &[]);
                 if (cost != Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders".into()))));
                 }
@@ -1223,7 +1222,7 @@ impl CoincheckCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("rate".into(), price); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
         }
-        let __ws_arg_4 = self.extend(request, &[params]);
+        let __ws_arg_4 = self.extend(request, &[self.omit(params, Value::Str("cost".into()), &[])]);
         let mut response: Value = self.private_post_exchange_orders(&[__ws_arg_4]).await;
         let mut id: Value = self.safe_string_k(response.clone(), "id", &[]);
         return self.safe_order(Value::Map({
@@ -1504,6 +1503,8 @@ impl CoincheckCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
+        let mut bodySigned: Value = Value::Null;
+        let mut headersSigned: Value = Value::Null;
         let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
@@ -1524,12 +1525,12 @@ impl CoincheckCore {
                 }
             }  else {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                    body = self.urlencode(self.keysort(query.clone(), &[]), &[]);
-                    queryString = body.clone();
+                    bodySigned = self.urlencode(self.keysort(query.clone(), &[]), &[]);
+                    queryString = bodySigned.clone();
                 }
             }
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString).into());
-            headers = Value::Map({
+            headersSigned = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
@@ -1538,12 +1539,14 @@ impl CoincheckCore {
                 m
             });
         }
+        let mut headersResolved: Value = (if (headersSigned == Value::Null) { headers } else { headersSigned });
+        let mut bodyResolved: Value = (if (bodySigned == Value::Null) { body } else { bodySigned });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), bodyResolved);
+        m.insert("headers".to_string(), headersResolved);
     m
 });
 

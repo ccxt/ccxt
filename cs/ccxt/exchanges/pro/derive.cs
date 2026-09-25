@@ -64,11 +64,11 @@ public partial class derive : ccxt.derive
         Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
         });
-        subscription = this.extend(subscription, new Dictionary<string, object>() {
+        Dictionary<string, object> subscriptionExtended = this.extend(subscription, new Dictionary<string, object>() {
             { "id", requestId },
             { "method", "subscribe" },
         });
-        return await this.watch(url, messageHash, request, messageHash, subscription);
+        return await this.watch(url, messageHash, request, messageHash, subscriptionExtended);
     }
 
     /**
@@ -83,18 +83,14 @@ public partial class derive : ccxt.derive
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if ((limitVar == null))
-        {
-            limitVar = ((Int64?)10);
-        }
+        object limitResolved = ((limit == null)) ? 10 : limit;
         Dictionary<string, object> market = this.market(symbol);
-        string topic = ((("orderbook." + ((market.ContainsKey("id") ? market["id"] : null))) + ".10.") + this.numberToString(limitVar));
+        string topic = ((("orderbook." + ((market.ContainsKey("id") ? market["id"] : null))) + ".10.") + this.numberToString(limitResolved));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -104,7 +100,7 @@ public partial class derive : ccxt.derive
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "name", topic },
             { "symbol", symbol },
-            { "limit", limitVar },
+            { "limit", limitResolved },
             { "params", parameters },
         };
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topic, request, subscription));
@@ -362,11 +358,11 @@ public partial class derive : ccxt.derive
         Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
         });
-        subscription = this.extend(subscription, new Dictionary<string, object>() {
+        Dictionary<string, object> subscriptionExtended = this.extend(subscription, new Dictionary<string, object>() {
             { "id", requestId },
             { "method", "unsubscribe" },
         });
-        return await this.watch(url, messageHash, request, messageHash, subscription);
+        return await this.watch(url, messageHash, request, messageHash, subscriptionExtended);
     }
 
     public virtual void handleOrderBookUnSubscription(WebSocketClient client, object topic)
@@ -451,7 +447,6 @@ public partial class derive : ccxt.derive
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -471,11 +466,12 @@ public partial class derive : ccxt.derive
             { "params", parameters },
         };
         object trades = await this.watchPublic(topic, request, subscription);
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limitVar}));
+            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limit}));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -547,11 +543,11 @@ public partial class derive : ccxt.derive
         Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
         });
-        subscription = this.extend(subscription, new Dictionary<string, object>() {
+        Dictionary<string, object> subscriptionExtended = this.extend(subscription, new Dictionary<string, object>() {
             { "id", requestId },
             { "method", "subscribe" },
         });
-        return await this.watch(url, messageHash, request, messageHash, subscription);
+        return await this.watch(url, messageHash, request, messageHash, subscriptionExtended);
     }
 
     /**
@@ -568,24 +564,20 @@ public partial class derive : ccxt.derive
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object subaccountId = null;
-        IList<object> subaccountIdparametersVariable = (IList<object>)this.handleDeriveSubaccountId("watchOrders", parameters);
-        subaccountId = subaccountIdparametersVariable[0];
-        parameters = subaccountIdparametersVariable[1];
+        IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("watchOrders", parameters);
+        var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
+        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
         string topic = (this.numberToString(subaccountId) + ".orders");
         string messageHash = topic;
-        if ((symbolVar != null))
+        object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
+        if ((symbolResolved != null))
         {
-            Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            messageHash = messageHash + (":" + (symbolVar));
+            messageHash = messageHash + (":" + (symbolResolved));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -595,15 +587,16 @@ public partial class derive : ccxt.derive
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "name", topic },
-            { "params", parameters },
+            { "params", paramsDeriveSubaccountId },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, paramsDeriveSubaccountId);
         object orders = await this.watchPrivate(messageHash, message, subscription);
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolResolved, limit}));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -706,24 +699,20 @@ public partial class derive : ccxt.derive
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object subaccountId = null;
-        IList<object> subaccountIdparametersVariable = (IList<object>)this.handleDeriveSubaccountId("watchMyTrades", parameters);
-        subaccountId = subaccountIdparametersVariable[0];
-        parameters = subaccountIdparametersVariable[1];
+        IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("watchMyTrades", parameters);
+        var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
+        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
         string topic = (this.numberToString(subaccountId) + ".trades");
         string messageHash = topic;
-        if ((symbolVar != null))
+        object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
+        if ((symbolResolved != null))
         {
-            Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            messageHash = messageHash + (":" + (symbolVar));
+            messageHash = messageHash + (":" + (symbolResolved));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -733,15 +722,16 @@ public partial class derive : ccxt.derive
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "name", topic },
-            { "params", parameters },
+            { "params", paramsDeriveSubaccountId },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, paramsDeriveSubaccountId);
         object trades = await this.watchPrivate(messageHash, message, subscription);
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolResolved, limit}));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)

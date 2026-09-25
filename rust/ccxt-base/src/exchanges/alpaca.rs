@@ -1265,7 +1265,7 @@ impl AlpacaCore {
                 m.insert("loc".to_string(), loc);
             m
         });
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("loc".into()), Value::Str("method".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("loc".into()), Value::Str("method".into())]), &[]);
         let mut symbolTrades: Value = Value::Null;
         if (method.as_str() == Some("marketPublicGetV1beta3CryptoLocTrades")) {
             if (since != Value::Null) {
@@ -1274,7 +1274,7 @@ impl AlpacaCore {
             if (limit != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
             }
-            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_1 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             let mut response: Value = self.market_public_get_v1beta3_crypto_loc_trades(&[__ws_arg_1]).await;
             //
             //    {
@@ -1298,7 +1298,7 @@ impl AlpacaCore {
 })]);
             symbolTrades = self.safe_list(trades.clone(), marketId.clone(), &[Value::from(vec![])]);
         }  else if (method.as_str() == Some("marketPublicGetV1beta3CryptoLocLatestTrades")) {
-            let __ws_arg_2 = self.extend(request, &[params]);
+            let __ws_arg_2 = self.extend(request, &[paramsOmitted]);
             let mut response: Value = self.market_public_get_v1beta3_crypto_loc_latest_trades(&[__ws_arg_2]).await;
             //
             //    {
@@ -1450,16 +1450,17 @@ impl AlpacaCore {
         let mut loc: Value = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".into())]);
         let mut method: Value = self.safe_string_k(params.clone(), "method", &[Value::Str("marketPublicGetV1beta3CryptoLocBars".into())]);
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut query: Value = Value::Null;
+        { let __destr_tmp = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut paginationCalls: Value = Value::Int(10);
-        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]); paginationCalls = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params(query.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]); paginationCalls = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbols".to_string(), marketId.clone());
                 m.insert("loc".to_string(), loc);
             m
         });
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("loc".into()), Value::Str("method".into())]), &[]);
+        query = self.omit(query.clone(), Value::from(vec![Value::Str("loc".into()), Value::Str("method".into())]), &[]);
         let mut ohlcvs: Value = Value::Null;
         if (method.as_str() == Some("marketPublicGetV1beta3CryptoLocBars")) {
             if (limit != Value::Null) {
@@ -1468,13 +1469,13 @@ impl AlpacaCore {
             if (since != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), self.iso8601(since.clone())); }
             }
-            let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+            let mut until: Value = self.safe_integer_k(query.clone(), "until", &[]);
             if (until != Value::Null) {
-                params = self.omit(params.clone(), Value::Str("until".into()), &[]);
+                query = self.omit(query.clone(), Value::Str("until".into()), &[]);
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), self.iso8601(until)); }
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeframe".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
-            let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_4 = self.extend(request.clone(), &[query.clone()]);
             let mut response: Value = self.market_public_get_v1beta3_crypto_loc_bars(&[__ws_arg_4]).await;
             //
             //    {
@@ -1522,7 +1523,7 @@ impl AlpacaCore {
                         break;
                     }
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_token".into(), pageToken.clone()); }
-                    let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+                    let __ws_arg_5 = self.extend(request.clone(), &[query.clone()]);
                     response = self.market_public_get_v1beta3_crypto_loc_bars(&[__ws_arg_5]).await;
                     bars = self.safe_dict_k(response.clone(), "bars", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1539,7 +1540,7 @@ impl AlpacaCore {
                 }
             }
         }  else if (method.as_str() == Some("marketPublicGetV1beta3CryptoLocLatestBars")) {
-            let __ws_arg_6 = self.extend(request, &[params]);
+            let __ws_arg_6 = self.extend(request, &[query]);
             let mut response: Value = self.market_public_get_v1beta3_crypto_loc_latest_bars(&[__ws_arg_6]).await;
             //
             //    {
@@ -1613,9 +1614,9 @@ impl AlpacaCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        symbol = self.symbol(symbol.clone());
-        let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![symbol.clone()]), params]).await;
-        return self.safe_dict(tickers, symbol, &[]);
+        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![symbolValue.clone()]), params]).await;
+        return self.safe_dict(tickers, symbolValue, &[]);
 
     Value::Null
 }
@@ -1639,22 +1640,20 @@ impl AlpacaCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        if (symbols == Value::Null) {
-            // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
-            let mut allSymbols: Value = self.sort(self.symbols.clone(), &[]); // symbol iteration order differs per language
-            symbols = allSymbols;
-        }
-        symbols = self.market_symbols(&[symbols.clone()]);
+        // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+        // symbol iteration order differs per language
+        let mut symbolsSorted: Value = (if (symbols == Value::Null) { self.sort(self.symbols.clone(), &[]) } else { symbols });
+        let mut symbolsNormalized: Value = self.market_symbols(&[symbolsSorted]);
         let mut loc: Value = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".into())]);
-        let mut ids: Value = self.market_ids(&[symbols.clone()]);
+        let mut ids: Value = self.market_ids(&[symbolsNormalized.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbols".to_string(), join(&ids, &Value::Str(",".into())));
                 m.insert("loc".to_string(), loc);
             m
         });
-        params = self.omit(params.clone(), Value::Str("loc".into()), &[]);
-        let __ws_arg_7 = self.extend(request, &[params]);
+        let mut paramsOmitted: Value = self.omit(params, Value::Str("loc".into()), &[]);
+        let __ws_arg_7 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.market_public_get_v1beta3_crypto_loc_snapshots(&[__ws_arg_7]).await;
         //
         //     {
@@ -1765,7 +1764,7 @@ impl AlpacaCore {
             append_to_array(&mut results, ticker);
         }
         }
-        return self.filter_by_array(results, Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array(results, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -1924,22 +1923,19 @@ impl AlpacaCore {
         }
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         if (cost != Value::Null) {
-            params = self.omit(params.clone(), Value::Str("cost".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("notional".into(), self.cost_to_precision(symbol.clone(), cost)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("notional".into(), self.cost_to_precision(symbol.clone(), cost.clone())); }
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("qty".into(), self.amount_to_precision(symbol, amount)); }
         }
-        let mut defaultTIF: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]); defaultTIF = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if (defaultTIF != Value::Null) {
-            // the venue only accepts lowercase values, normalize the unified uppercase spellings
-            defaultTIF = to_lower(&defaultTIF);
-        }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), defaultTIF); }
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), self.generate_client_order_id(params.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let mut paramsCost: Value = (if (cost != Value::Null) { self.omit(params.clone(), Value::Str("cost".into()), &[]) } else { params });
+        let mut defaultTIFparamsTimeInForceVariable = self.handle_option_string_and_params(paramsCost, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]);
+        let mut defaultTIF: Value = defaultTIFparamsTimeInForceVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsTimeInForce: Value = defaultTIFparamsTimeInForceVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        // the venue only accepts lowercase values, normalize the unified uppercase spellings
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), (if (defaultTIF != Value::Null) { to_lower(&defaultTIF) } else { defaultTIF.clone() })); }
+        let mut paramsOmitted: Value = self.omit(paramsTimeInForce, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]);
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), self.generate_client_order_id(paramsOmitted.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
+        let __ws_arg_11 = self.extend(request, &[self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
         let mut order: Value = self.trader_private_post_v2_orders(&[__ws_arg_11]).await;
         return self.parse_order(order, &[market]);
 
@@ -2075,12 +2071,12 @@ impl AlpacaCore {
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            params = self.omit(params.clone(), Value::Str("until".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("until".into(), self.iso8601(until)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("until".into(), self.iso8601(until.clone())); }
         }
+        let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("after".into(), self.iso8601(since.clone())); }
-            let mut direction: Option<String> = self.safe_string_k(params.clone(), "direction", &[]).as_str().map(str::to_owned);
+            let mut direction: Option<String> = self.safe_string_k(paramsOmitted.clone(), "direction", &[]).as_str().map(str::to_owned);
             if (direction.is_none()) {
                 // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("direction".into(), Value::Str("asc".into())); }
@@ -2089,7 +2085,7 @@ impl AlpacaCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_14 = self.extend(request, &[params]);
+        let __ws_arg_14 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.trader_private_get_v2_orders(&[__ws_arg_14]).await;
         return self.parse_orders(response, &[market, since, limit]);
 
@@ -2201,21 +2197,21 @@ impl AlpacaCore {
         }
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), &[]);
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stop_price".into(), self.price_to_precision(symbol.clone(), triggerPrice)); }
-            params = self.omit(params.clone(), Value::Str("triggerPrice".into()), &[]);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stop_price".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
         }
+        let mut paramsTrigger: Value = (if (triggerPrice != Value::Null) { self.omit(params.clone(), Value::Str("triggerPrice".into()), &[]) } else { params });
         if (price != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_price".into(), self.price_to_precision(symbol, price)); }
         }
-        let mut timeInForce: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("editOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("gtc".into())]); timeInForce = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut timeInForceparamsTimeInForceVariable = self.handle_option_string_and_params(paramsTrigger, Value::Str("editOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("gtc".into())]);
+        let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (timeInForce != Value::Null) {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), to_lower(&timeInForce)); }
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), self.generate_client_order_id(params.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
-        let __ws_arg_17 = self.extend(request, &[params]);
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), self.generate_client_order_id(paramsTimeInForce.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
+        let __ws_arg_17 = self.extend(request, &[self.omit(paramsTimeInForce, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
         let mut response: Value = self.trader_private_patch_v2_orders_order_id(&[__ws_arg_17]).await;
         return self.parse_order(response, &[market]);
 
@@ -2263,8 +2259,8 @@ impl AlpacaCore {
         //    }
         //
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-        market = self.safe_market(&[marketId, market.clone()]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut alpacaStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut status: Value = self.parse_order_status(alpacaStatus);
         let mut feeValue: Value = self.safe_string_k(order.clone(), "commission", &[]);
@@ -2310,7 +2306,7 @@ impl AlpacaCore {
         m.insert("fee".to_string(), fee);
         m.insert("info".to_string(), order);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -2392,17 +2388,19 @@ impl AlpacaCore {
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            params = self.omit(params.clone(), Value::Str("until".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("until".into(), self.iso8601(until)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("until".into(), self.iso8601(until.clone())); }
         }
+        let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("after".into(), self.iso8601(since.clone())); }
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
         }
-        { let __destr_tmp = self.handle_until_option(Value::Str("until".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_18 = self.extend(request, &[params]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("until".into()), request, paramsOmitted, &[]);
+        let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let __ws_arg_18 = self.extend(requestUntil, &[paramsUntil]);
         let mut response: Value = self.trader_private_get_v2_account_activities_activity_type(&[__ws_arg_18]).await;
         return self.parse_trades(response, &[market, since, limit]);
 
@@ -2549,23 +2547,26 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_withdraw_tag_and_params(tag, params);
+        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         self.check_address(&[address.clone()]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        if (tag != Value::Null) && (tag.as_str() != Some("")) {
-            address = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), tag).into());
+        let mut addressValue: Value = address.clone();
+        if (tagWithdrawTag != Value::Null) && (tagWithdrawTag.as_str() != Some("")) {
+            addressValue = add(&Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), &tagWithdrawTag);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("address".to_string(), address);
+                m.insert("address".to_string(), addressValue);
                 m.insert("amount".to_string(), self.number_to_string(amount));
             m
         });
-        let __ws_arg_20 = self.extend(request, &[params]);
+        let __ws_arg_20 = self.extend(request, &[paramsWithdrawTag]);
         let mut response: Value = self.trader_private_post_v2_wallets_transfers(&[__ws_arg_20]).await;
         return self.parse_transaction(response, &[currency]);
 
@@ -3062,31 +3063,36 @@ impl AlpacaCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
         let mut url: Value = self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &get_value(&api, &Value::Int(0))));
-        headers = (if (headers != Value::Null) { headers.clone() } else { Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut headersValue: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        if (headers != Value::Null) {
+            headersValue = headers;
+        }
         if (get_value(&api, &Value::Int(1)).as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("APCA-API-KEY-ID".into(), self.apiKey.clone()); }
-            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("APCA-API-SECRET-KEY".into(), self.secret.clone()); }
+            add_element_to_object(&mut headersValue, &Value::Str("APCA-API-KEY-ID".into()), self.apiKey.clone());
+            add_element_to_object(&mut headersValue, &Value::Str("APCA-API-SECRET-KEY".into()), self.secret.clone());
         }
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut bodyJson: Value = Value::Null;
         if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 endpoint = Value::Str(format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }  else {
-                body = json_stringify(&query);
-                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
+                bodyJson = json_stringify(&query);
+                add_element_to_object(&mut headersValue, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
             }
         }
         url = Value::Str(format!("{}{}", url, endpoint).into());
+        let mut bodyResolved: Value = (if (bodyJson == Value::Null) { body } else { bodyJson });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), bodyResolved);
+        m.insert("headers".to_string(), headersValue);
     m
 });
 

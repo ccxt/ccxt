@@ -1035,16 +1035,16 @@ func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var feeConfig map[string]any = SafeMapTyped(fee, "fee_config")
 	var apiFee map[string]any = SafeMapTyped(feeConfig, "api_fee")
 	var makerFee map[string]any = SafeMapTyped(apiFee, "maker_fee")
 	var takerFee map[string]any = SafeMapTyped(apiFee, "taker_fee")
 	return map[string]any{
 		"info":       fee,
-		"symbol":     GetValue(market, "symbol"),
-		"maker":      this.SafeNumber(makerFee, "fee", this.SafeNumber(market, "maker")),
-		"taker":      this.SafeNumber(takerFee, "fee", this.SafeNumber(market, "taker")),
+		"symbol":     marketResolved["symbol"],
+		"maker":      this.SafeNumber(makerFee, "fee", this.SafeNumber(marketResolved, "maker")),
+		"taker":      this.SafeNumber(takerFee, "fee", this.SafeNumber(marketResolved, "taker")),
 		"percentage": true,
 		"tierBased":  false,
 	}
@@ -1214,7 +1214,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	if price != nil {
 		request["price_kind"] = price
 	}
-	params = MapTyped(this.Omit(params, []any{"until", "till", "price"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until", "till", "price"}))
 	if since != nil {
 		request["start_at"] = since
 		if limit != nil {
@@ -1231,7 +1231,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsKlines(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsKlines(this.Extend(request, paramsOmitted))).Raw))
 	//
 	//     {
 	//         "results": [
@@ -1292,7 +1292,7 @@ func (this *Paradex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"market": "ALL",
 	}
@@ -1321,7 +1321,7 @@ func (this *Paradex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- this.ParseTickers(data, symbols)
+	ch <- this.ParseTickers(data, symbolsNormalized)
 	return nil
 }
 
@@ -1407,8 +1407,8 @@ func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) any {
 	}
 	var last *string = this.SafeString(ticker, "last_traded_price")
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.SafeInteger(ticker, "created_at")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1432,7 +1432,7 @@ func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) any {
 		"quoteVolume":   this.SafeString(ticker, "volume_24h"),
 		"markPrice":     this.SafeString(ticker, "mark_price"),
 		"info":          ticker,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1460,15 +1460,15 @@ func (this *Paradex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 	// the endpoint takes one market id, and ALL answers for every product on
 	// the venue: a single symbol is asked for by name, which is 544 bytes
 	// against 1.6 MB
 	var target any = "ALL"
-	if symbols != nil {
-		var symbolsLength int = GetArrayLength(symbols)
+	if !IsEqual(symbolsNormalized, nil) {
+		var symbolsLength int = GetArrayLength(symbolsNormalized)
 		if symbolsLength == 1 {
-			target = this.Market(GetValue(symbols, 0))["id"]
+			target = this.Market(GetValue(symbolsNormalized, 0))["id"]
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -1478,7 +1478,7 @@ func (this *Paradex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- this.ParseFundingRates(data, symbols)
+	ch <- this.ParseFundingRates(data, symbolsNormalized)
 	return nil
 }
 
@@ -1534,20 +1534,20 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//         "price_change_rate_24h": "0.009032"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(contract, "symbol")
-	market = this.SafeMarket(marketId, market, nil, "swap")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "swap")
 	var timestamp *int64 = this.SafeInteger(contract, "created_at")
 	// the summary answers for every product, and only a perpetual funds: an
 	// option row carries an empty funding_rate and a period of zero. left
 	// without a symbol, parseFundingRates drops the row
 	var rate *string = this.SafeString(contract, "funding_rate")
-	var funds bool = (GetValue(market, "swap") == true) && (rate != nil) && (rate == nil || *rate != "")
+	var funds bool = (GetValue(marketResolved, "swap") == true) && (rate != nil) && (rate == nil || *rate != "")
 	// the funding period belongs to the market and is not always eight hours:
 	// fetchMarkets documents one on twenty four. funding accrues each second
 	// against an index, and this rate is the amount for a whole period
-	var hours *string = this.SafeString(this.SafeDict(market, "info", map[string]any{}), "funding_period_hours")
+	var hours *string = this.SafeString(this.SafeDict(marketResolved, "info", map[string]any{}), "funding_period_hours")
 	// zero hours is not an interval, and a caller annualising a rate divides by it
 	var interval *string = nil
 	if (hours != nil) && Precise.StringGt(hours, "0") {
@@ -1557,7 +1557,7 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) any {
 		"info": contract,
 		"symbol": func() any {
 			if funds {
-				return GetValue(market, "symbol")
+				return marketResolved["symbol"]
 			}
 			return nil
 		}(),
@@ -1674,13 +1674,14 @@ func (this *Paradex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes123419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes123419)
+		var retRes123519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, paramsPaginate, "next", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes123519)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -1693,11 +1694,11 @@ func (this *Paradex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	if since != nil {
 		request["start_at"] = since
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTrades(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTrades(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	//     {
 	//         "next": "...",
@@ -1758,7 +1759,7 @@ func (this *Paradex) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "market")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var id *string = this.SafeString(trade, "id")
 	var timestamp *int64 = this.SafeInteger(trade, "created_at")
 	var priceString *string = this.SafeString(trade, "price")
@@ -1778,7 +1779,7 @@ func (this *Paradex) ParseTrade(trade any, optionalArgs ...any) any {
 		"order":        this.SafeString(trade, "order_id"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"type":         nil,
 		"takerOrMaker": takerOrMaker,
 		"side":         side,
@@ -1790,7 +1791,7 @@ func (this *Paradex) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": code,
 			"rate":     nil,
 		},
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1874,8 +1875,8 @@ func (this *Paradex) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(interest, "created_at")
 	var marketId *string = this.SafeString(interest, "symbol")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	return this.SafeOpenInterest(map[string]any{
 		"symbol":             symbol,
 		"openInterestAmount": this.SafeString(interest, "open_interest"),
@@ -1883,7 +1884,7 @@ func (this *Paradex) ParseOpenInterest(interest any, optionalArgs ...any) any {
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"info":               interest,
-	}, market)
+	}, marketResolved)
 }
 func (this *Paradex) HashMessage(message any) any {
 	var hashed any = this.Hash(message, keccak, "hex")
@@ -2167,8 +2168,8 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(order, "id")
 	var clientOrderId any = this.OmitZero(this.SafeString(order, "client_id"))
 	var marketId *string = this.SafeString(order, "market")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "size")
 	var orderType *string = this.SafeString(order, "type")
@@ -2220,7 +2221,7 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) any {
 			"currency": nil,
 		},
 		"info": order,
-	}, market)
+	}, marketResolved)
 }
 func (this *Paradex) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
@@ -2341,8 +2342,8 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	if IsEqual(reduceOnly, true) {
 		request["flags"] = []any{"REDUCE_ONLY"}
 	}
-	params = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"}))
-	return this.Extend(request, params)
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"}))
+	return this.Extend(request, paramsOmitted)
 }
 func (this *Paradex) SignOrderRequestAsync(request any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
@@ -2767,7 +2768,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-	params = MapTyped(this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"}))
 	var hasOrderIds bool = (!IsEqual(ids, nil)) && (IsArray(ids))
 	var hasClientOrderIds bool = (!IsEqual(clientOrderIds, nil)) && (IsArray(clientOrderIds))
 	if !hasOrderIds && !hasClientOrderIds {
@@ -2781,7 +2782,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		request["client_order_ids"] = clientOrderIds
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersBatch(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersBatch(this.Extend(request, paramsOmitted))).Raw))
 	//
 	// {
 	//     "results": [
@@ -2918,16 +2919,16 @@ func (this *Paradex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
-	params = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"}))
 	var response map[string]any = nil
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersByClientIdClientId(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersByClientIdClientId(this.Extend(request, paramsOmitted))).Raw))
 	} else {
 		request["order_id"] = id
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersOrderId(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersOrderId(this.Extend(request, paramsOmitted))).Raw))
 	}
 
 	//
@@ -2997,13 +2998,14 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes226419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes226419)
+		var retRes226619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, paramsPaginate, "next", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes226619)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3018,11 +3020,11 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["page_size"] = limit
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	// {
 	//     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3244,13 +3246,14 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes244919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes244919)
+		var retRes245219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, "next", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes245219)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3265,11 +3268,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["start_at"] = since
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	//     {
 	//         "next": null,
@@ -3362,7 +3365,7 @@ func (this *Paradex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPositions()).Raw))
 	//
@@ -3392,7 +3395,7 @@ func (this *Paradex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- this.ParsePositions(data, symbols)
+	ch <- this.ParsePositions(data, symbolsNormalized)
 	return nil
 }
 func (this *Paradex) ParsePosition(position any, optionalArgs ...any) any {
@@ -3420,8 +3423,8 @@ func (this *Paradex) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "market")
-	market = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "size")
 	if side == nil || *side != "long" {
@@ -3500,11 +3503,11 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("to", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("to", request, params)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetLiquidations(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetLiquidations(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	//     {
 	//         "results": [
@@ -3580,13 +3583,14 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes270419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes270419)
+		var retRes270819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, paramsPaginate, "next", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes270819)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3596,11 +3600,11 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["start_at"] = since
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	//     {
 	//         "next": null,
@@ -3676,13 +3680,14 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes276819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes276819)
+		var retRes277319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, paramsPaginate, "next", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes277319)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3692,11 +3697,11 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	if since != nil {
 		request["start_at"] = since
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	//     {
 	//         "next": null,
@@ -3772,13 +3777,14 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes283219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes283219)
+		var retRes283819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, paramsPaginate, "next", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes283819)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3792,11 +3798,11 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["start_at"] = since
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	//     {
 	//         "next": null,
@@ -3987,11 +3993,11 @@ func (this *Paradex) ParseMarginMode(rawMarginMode any, optionalArgs ...any) any
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(rawMarginMode, "market")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var marginMode *string = this.SafeStringLower(rawMarginMode, "margin_type")
 	return map[string]any{
 		"info":       rawMarginMode,
-		"symbol":     this.SafeString(market, "symbol"),
+		"symbol":     this.SafeString(marketResolved, "symbol"),
 		"marginMode": marginMode,
 	}
 }
@@ -4027,17 +4033,17 @@ func (this *Paradex) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var leverage any = 1
-	var leverageparamsVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "leverage", leverage)
-	leverage = GetValue(leverageparamsVariable, 0)
-	params = MapTyped(GetValue(leverageparamsVariable, 1))
+	var leverage int = 1
+	var leverageOptionparamsLeverageVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "leverage", leverage)
+	leverageOption := GetValue(leverageOptionparamsLeverageVariable, 0)
+	var paramsLeverage map[string]any = MapTyped(GetValue(leverageOptionparamsLeverageVariable, 1))
 	var request map[string]any = map[string]any{
 		"market":      market["id"],
-		"leverage":    leverage,
+		"leverage":    leverageOption,
 		"margin_type": this.EncodeMarginMode(marginMode),
 	}
 
-	ch <- PanicOnError((<-this.PrivatePostAccountMarginMarket(this.Extend(request, params))).Raw)
+	ch <- PanicOnError((<-this.PrivatePostAccountMarginMarket(this.Extend(request, paramsLeverage))).Raw)
 	return nil
 }
 
@@ -4093,11 +4099,11 @@ func (this *Paradex) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "market")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var marginMode *string = this.SafeStringLower(leverage, "margin_type")
 	return map[string]any{
 		"info":          leverage,
-		"symbol":        this.SafeSymbol(marketId, market),
+		"symbol":        this.SafeSymbol(marketId, marketResolved),
 		"marginMode":    marginMode,
 		"longLeverage":  this.SafeInteger(leverage, "leverage"),
 		"shortLeverage": this.SafeInteger(leverage, "leverage"),
@@ -4142,17 +4148,16 @@ func (this *Paradex) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var marginMode any = nil
-	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("setLeverage", params, "cross")
-	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = MapTyped(GetValue(marginModeparamsVariable, 1))
+	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("setLeverage", params, "cross")
+	marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
+	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
 	var request map[string]any = map[string]any{
 		"market":      market["id"],
 		"leverage":    leverage,
 		"margin_type": this.EncodeMarginMode(marginMode),
 	}
 
-	ch <- PanicOnError((<-this.PrivatePostAccountMarginMarket(this.Extend(request, params))).Raw)
+	ch <- PanicOnError((<-this.PrivatePostAccountMarginMarket(this.Extend(request, paramsMarginMode))).Raw)
 	return nil
 }
 
@@ -4251,7 +4256,7 @@ func (this *Paradex) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
 	var request map[string]any = map[string]any{
 		"market": "ALL",
 	}
@@ -4293,7 +4298,7 @@ func (this *Paradex) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	//
 	var results []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- this.ParseAllGreeks(results, symbols)
+	ch <- this.ParseAllGreeks(results, symbolsNormalized)
 	return nil
 }
 func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) any {
@@ -4330,8 +4335,8 @@ func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(greeks, "symbol")
-	market = this.SafeMarket(marketId, market, nil, "option")
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "option")
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.SafeInteger(greeks, "created_at")
 	var greeksData map[string]any = SafeMapTyped(greeks, "greeks")
 	return map[string]any{
@@ -4399,13 +4404,14 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes333419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes333419)
+		var retRes334019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, "next", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes334019)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -4420,11 +4426,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	if since != nil {
 		request["start_at"] = since
 	}
-	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = MapTyped(GetValue(requestparamsVariable, 0))
-	params = MapTyped(GetValue(requestparamsVariable, 1))
+	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_at", request, paramsPaginate)
+	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
+	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundingPayments(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundingPayments(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
 	// {
 	//     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -4462,12 +4468,12 @@ func (this *Paradex) ParseIncome(income any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(income, "market")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(income, "created_at")
 	return map[string]any{
 		"info":      income,
-		"symbol":    GetValue(market, "symbol"),
-		"code":      GetValue(market, "settle"),
+		"symbol":    marketResolved["symbol"],
+		"code":      marketResolved["settle"],
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 		"id":        this.SafeString(income, "id"),
@@ -4523,12 +4529,17 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		request["start_at"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
+	var paramsOmitted any = func() any {
+		if until != nil {
+			return this.Omit(params, "until")
+		}
+		return params
+	}()
 	if until != nil {
-		params = MapTyped(this.Omit(params, "until"))
 		request["end_at"] = until
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingData(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingData(this.Extend(request, paramsOmitted))).Raw))
 	//
 	// {
 	//     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -4582,37 +4593,41 @@ func (this *Paradex) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var version any = this.Version
+	var pathValue any = path
+	if GetIndexOf(path, "v2/") == 0 {
+		pathValue = Replace(path, "v2/", "")
+	}
 	if GetIndexOf(path, "v2/") == 0 {
 		version = "v2"
-		path = Replace(path, "v2/", "")
 	}
-	var url any = Add(Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), version)), "/"), this.ImplodeParams(path, params))
-	var query any = this.Omit(params, this.ExtractParams(path))
+	var url any = Add(Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), version)), "/"), this.ImplodeParams(pathValue, params))
+	var query any = this.Omit(params, this.ExtractParams(pathValue))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else if IsEqual(api, "private") {
-		headers = map[string]any{
+		var privateHeaders map[string]any = map[string]any{
 			"Accept":          "application/json",
 			"PARADEX-PARTNER": this.SafeString(this.Options, "broker", "CCXT"),
 		}
+		var privateBody any = nil
 		// TODO: optimize
-		if IsEqual(path, "auth") {
-			AddElementToObject(headers, "PARADEX-STARKNET-ACCOUNT", GetValue(query, "account"))
-			AddElementToObject(headers, "PARADEX-STARKNET-SIGNATURE", GetValue(query, "signature"))
-			AddElementToObject(headers, "PARADEX-TIMESTAMP", ToString(GetValue(query, "timestamp")))
-			AddElementToObject(headers, "PARADEX-SIGNATURE-EXPIRATION", ToString(GetValue(query, "expiration")))
-		} else if IsEqual(path, "onboarding") {
-			AddElementToObject(headers, "PARADEX-ETHEREUM-ACCOUNT", this.WalletAddress)
-			AddElementToObject(headers, "PARADEX-STARKNET-ACCOUNT", GetValue(query, "account"))
-			AddElementToObject(headers, "PARADEX-STARKNET-SIGNATURE", GetValue(query, "signature"))
-			AddElementToObject(headers, "PARADEX-TIMESTAMP", ToString(this.Nonce()))
-			AddElementToObject(headers, "Content-Type", "application/json")
-			body = this.Json(map[string]any{
+		if IsEqual(pathValue, "auth") {
+			privateHeaders["PARADEX-STARKNET-ACCOUNT"] = GetValue(query, "account")
+			privateHeaders["PARADEX-STARKNET-SIGNATURE"] = GetValue(query, "signature")
+			privateHeaders["PARADEX-TIMESTAMP"] = ToString(GetValue(query, "timestamp"))
+			privateHeaders["PARADEX-SIGNATURE-EXPIRATION"] = ToString(GetValue(query, "expiration"))
+		} else if IsEqual(pathValue, "onboarding") {
+			privateHeaders["PARADEX-ETHEREUM-ACCOUNT"] = this.WalletAddress
+			privateHeaders["PARADEX-STARKNET-ACCOUNT"] = GetValue(query, "account")
+			privateHeaders["PARADEX-STARKNET-SIGNATURE"] = GetValue(query, "signature")
+			privateHeaders["PARADEX-TIMESTAMP"] = ToString(this.Nonce())
+			privateHeaders["Content-Type"] = "application/json"
+			privateBody = this.Json(map[string]any{
 				"public_key": GetValue(query, "public_key"),
 			})
 		} else {
@@ -4620,13 +4635,37 @@ func (this *Paradex) Sign(path any, optionalArgs ...any) any {
 			if token == nil {
 				panic(AuthenticationError(this.Id + " sign() requires an authToken, call authenticateRest() first"))
 			}
-			AddElementToObject(headers, "Authorization", "Bearer "+*token)
-			if (method == "POST") || (method == "PUT") || ((method == "DELETE") && (IsEqual(path, "orders/batch"))) {
-				AddElementToObject(headers, "Content-Type", "application/json")
-				body = this.Json(query)
+			privateHeaders["Authorization"] = "Bearer " + *token
+			if (method == "POST") || (method == "PUT") || ((method == "DELETE") && (IsEqual(pathValue, "orders/batch"))) {
+				privateHeaders["Content-Type"] = "application/json"
+				privateBody = this.Json(query)
 			} else {
 				url = Add(Add(url, "?"), this.Urlencode(query))
 			}
+		}
+		// headers = {
+		//     'Accept': 'application/json',
+		//     'Authorization': 'Bearer ' + this.apiKey,
+		// };
+		// if (method === 'POST') {
+		//     body = this.json (query);
+		//     headers['Content-Type'] = 'application/json';
+		// } else {
+		//     if (Object.keys (query).length) {
+		//         url += '?' + this.urlencode (query);
+		//     }
+		// }
+		var bodyResolved any = func() any {
+			if privateBody != nil {
+				return privateBody
+			}
+			return body
+		}()
+		return map[string]any{
+			"url":     url,
+			"method":  method,
+			"body":    bodyResolved,
+			"headers": privateHeaders,
 		}
 	}
 	return map[string]any{

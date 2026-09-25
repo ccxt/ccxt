@@ -1383,12 +1383,12 @@ public partial class kalshi : PredictionExchange
     public virtual object sortedOrders(object outcome, object timestamp, object bids, object asks)
     {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
-        bids = this.sortBy(bids, 0, true);
-        asks = this.sortBy(asks, 0);
+        List<object> bidsValue = this.sortBy(bids, 0, true);
+        List<object> asksValue = this.sortBy(asks, 0);
         return new Dictionary<string, object>() {
             { "outcome", outcome },
-            { "bids", bids },
-            { "asks", asks },
+            { "bids", bidsValue },
+            { "asks", asksValue },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "nonce", null },
@@ -2404,7 +2404,7 @@ public partial class kalshi : PredictionExchange
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
         string? unifiedTif = this.safeStringUpper(parameters, "timeInForce");
-        parameters = this.omit(parameters, "timeInForce");
+        object paramsOmitted = this.omit(parameters, "timeInForce");
         string defaultTif = "good_till_canceled";
         if (isMarket)
         {
@@ -2422,14 +2422,12 @@ public partial class kalshi : PredictionExchange
         {
             defaultTif = "good_till_canceled";
         }
-        string? timeInForce = null;
-        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "time_in_force", defaultTif);
-        timeInForce = (string)timeInForceparametersVariable[0];
-        parameters = timeInForceparametersVariable[1];
-        string? stp = null;
-        IList<object> stpparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "self_trade_prevention_type", "taker_at_cross");
-        stp = (string)stpparametersVariable[0];
-        parameters = stpparametersVariable[1];
+        IList<object> timeInForceparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif);
+        string? timeInForce = (string)timeInForceparamsTimeInForceVariable[0];
+        var paramsTimeInForce = timeInForceparamsTimeInForceVariable[1];
+        IList<object> stpparamsSelfTradePreventionTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross");
+        string? stp = (string)stpparamsSelfTradePreventionTypeVariable[0];
+        var paramsSelfTradePreventionType = stpparamsSelfTradePreventionTypeVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", ticker },
             { "side", bookSide },
@@ -2441,7 +2439,7 @@ public partial class kalshi : PredictionExchange
         {
             request["price"] = this.numberToString(yesPrice);
         }
-        Dictionary<string, object> response = await this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, paramsSelfTradePreventionType));
         // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
         // the known order details and resolve the status from the remaining count
         Dictionary<string, object> order = this.parsePredictionOrder(response, outcomeObj);
@@ -2621,8 +2619,8 @@ public partial class kalshi : PredictionExchange
             throw new ExchangeError ((this.id + " fetchEvents() missing queries")) ;
         }
         int queriesLength = (queries?.Count ?? 0);
-        parameters = this.omit(parameters, new List<object>() {"query", "queries"});
-        Int64? userLimit = this.safeInteger(parameters, "limit");
+        object paramsOmitted = this.omit(parameters, new List<object>() {"query", "queries"});
+        Int64? userLimit = this.safeInteger(paramsOmitted, "limit");
         // bound how many events are actually FETCHED (not just returned) so a broad scope like
         // category='Crypto' (hundreds of series) doesn't page every one of them
         Int64? fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
@@ -2633,7 +2631,7 @@ public partial class kalshi : PredictionExchange
         // map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
         // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
         // silently rewritten to 'open'); 'all' sends no filter
-        string? requestedStatus = this.safeString(parameters, "status", this.safeString(this.options, "defaultEventStatus", "open"));
+        string? requestedStatus = this.safeString(paramsOmitted, "status", this.safeString(this.options, "defaultEventStatus", "open"));
         string? status = null;
         if ((requestedStatus == "active") || (requestedStatus == "open"))
         {
@@ -2646,12 +2644,12 @@ public partial class kalshi : PredictionExchange
             status = "settled";
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-        object rest = this.omit(parameters, new List<object>() {"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"});
+        object rest = this.omit(paramsOmitted, new List<object>() {"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"});
         if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
         }
-        string? eventId = this.safeString2(parameters, "eventId", "slug");
+        string? eventId = this.safeString2(paramsOmitted, "eventId", "slug");
         object rawEvents = new List<object>() {};
         if (queriesLength > 0)
         {
@@ -2665,11 +2663,11 @@ public partial class kalshi : PredictionExchange
         } else
         {
             // tags / category / series_ticker resolve to a set of series; fetch their events, capped
-            List<object> seriesTickers = await this.resolveEventSeriesTickers(parameters);
+            List<object> seriesTickers = await this.resolveEventSeriesTickers(paramsOmitted);
             int seriesTickersLength = (seriesTickers?.Count ?? 0);
             if ((seriesTickersLength == 0))
             {
-                this.requireEventQuery(parameters);
+                this.requireEventQuery(paramsOmitted);
             }
             rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchSeriesEvents(seriesTickers, status,ccxt.BaseExchange.ToInt64ArgRequired(fetchCap), rest));
         }
@@ -2693,7 +2691,7 @@ public partial class kalshi : PredictionExchange
         // scoping already happened server-side, so strip the resolved scopes before the client-side
         // pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
         // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-        object postParams = this.omit(parameters, new List<object>() {"tags", "category", "series_ticker"});
+        object postParams = this.omit(paramsOmitted, new List<object>() {"tags", "category", "series_ticker"});
         return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, postParams, new List<object>() {}));
     }
 
@@ -3154,10 +3152,11 @@ public partial class kalshi : PredictionExchange
             url = add(url, ("?" + querystring));
         }
         object existingHeaders = ((headers != null)) ? headers : new Dictionary<string, object>() {};
-        headers = this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> headersValue = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
         }, existingHeaders);
+        object bodyValue = body;
         if (isEqual(access, "private"))
         {
             this.checkRequiredCredentials();
@@ -3173,7 +3172,7 @@ public partial class kalshi : PredictionExchange
             List<object> keyParts = this.privateKey.Split(new [] {"\\n"}, StringSplitOptions.None).ToList<object>();
             string cleanPrivateKey = String.Join("\n", keyParts.ToArray());
             string signature = rsa(payload, cleanPrivateKey, sha256, "pss");
-            headers = this.extend(headers, new Dictionary<string, object>() {
+            headersValue = this.extend(headersValue, new Dictionary<string, object>() {
                 { "KALSHI-ACCESS-KEY", this.apiKey },
                 { "KALSHI-ACCESS-SIGNATURE", signature },
                 { "KALSHI-ACCESS-TIMESTAMP", timestamp },
@@ -3181,14 +3180,14 @@ public partial class kalshi : PredictionExchange
             if ((method != "GET") && (querystring != ""))
             {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
-                body = this.json(query);
+                bodyValue = this.json(query);
             }
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyValue },
+            { "headers", headersValue },
         };
     }
 }

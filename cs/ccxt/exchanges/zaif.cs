@@ -846,11 +846,10 @@ public partial class zaif : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
-        parameters = tagparametersVariable[1];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
+        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         this.checkAddress(address);
         if ((this.markets == null))
         {
@@ -866,11 +865,11 @@ public partial class zaif : Exchange
             { "amount", amount },
             { "address", address },
         };
-        if ((tagVar != null))
+        if ((tagWithdrawTag != null))
         {
-            request["message"] = tagVar;
+            request["message"] = tagWithdrawTag;
         }
-        Dictionary<string, object> result = await this.privatePostWithdraw(this.extend(request, parameters));
+        Dictionary<string, object> result = await this.privatePostWithdraw(this.extend(request, paramsWithdrawTag));
         //
         //     {
         //         "success": 1,
@@ -906,14 +905,14 @@ public partial class zaif : Exchange
         //         }
         //     }
         //
-        currency = this.safeCurrency(null, currency);
+        Dictionary<string, object> currencyResolved = this.safeCurrency(null, currency);
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(transaction, "fee");
         if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", getValue(currency, "code") },
+                { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
             };
         }
         return new Dictionary<string, object>() {
@@ -927,7 +926,7 @@ public partial class zaif : Exchange
             { "addressTo", null },
             { "amount", null },
             { "type", null },
-            { "currency", getValue(currency, "code") },
+            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
             { "status", null },
             { "updated", null },
             { "tagFrom", null },
@@ -974,14 +973,20 @@ public partial class zaif : Exchange
                 url = add(url, "tapi");
             }
             object nonce = this.customNonce();
-            body = this.urlencode(this.extend(new Dictionary<string, object>() {
+            string bodyEncoded = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "method", path },
                 { "nonce", nonce },
             }, parameters));
-            headers = new Dictionary<string, object>() {
+            Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "Key", this.apiKey },
-                { "Sign", this.hmac(this.encode(body), this.encode(this.secret), sha512) },
+                { "Sign", this.hmac(this.encode(bodyEncoded), this.encode(this.secret), sha512) },
+            };
+            return new Dictionary<string, object>() {
+                { "url", url },
+                { "method", method },
+                { "body", bodyEncoded },
+                { "headers", headersSigned },
             };
         }
         return new Dictionary<string, object>() {

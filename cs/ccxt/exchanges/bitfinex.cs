@@ -816,21 +816,21 @@ public partial class bitfinex : Exchange
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
-        symbol = this.safeSymbol(symbol);
-        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = this.safeSymbol(symbol);
+        Dictionary<string, object> market = this.market(symbolValue);
         return this.decimalToPrecision(amount, TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), DECIMAL_PLACES);
     }
 
     public override string? priceToPrecision(object symbol, object price)
     {
-        symbol = this.safeSymbol(symbol);
-        Dictionary<string, object> market = this.market(symbol);
-        price = this.decimalToPrecision(price, ROUND, getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), this.precisionMode);
+        string? symbolValue = this.safeSymbol(symbol);
+        Dictionary<string, object> market = this.market(symbolValue);
+        string priceValue = this.decimalToPrecision(price, ROUND, getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
         // Prices submit with a precision larger than 5 will be cut by the API.
-        return this.decimalToPrecision(price, TRUNCATE, 8, DECIMAL_PLACES);
+        return this.decimalToPrecision(priceValue, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     /**
@@ -1548,13 +1548,18 @@ public partial class bitfinex : Exchange
         if (isFetchTicker)
         {
             minusIndex = 1;
+        }
+        string? marketId = this.safeString(ticker, 0);
+        object marketResolved = null;
+        if (isFetchTicker)
+        {
+            marketResolved = market;
         } else
         {
-            string? marketId = this.safeString(ticker, 0);
-            market = this.safeMarket(marketId, market);
+            marketResolved = this.safeMarket(marketId, market);
         }
         bool isFundingCurrency = length >= 17;
-        symbol = this.safeSymbol(null, market);
+        symbol = this.safeSymbol(null, marketResolved);
         string? last = null;
         string? bid = null;
         string? ask = null;
@@ -1610,7 +1615,7 @@ public partial class bitfinex : Exchange
             { "baseVolume", volume },
             { "quoteVolume", null },
             { "info", ticker },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1629,11 +1634,11 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((symbols != null))
+        if ((symbolsNormalized != null))
         {
-            IList<object> ids = this.marketIds(symbols);
+            IList<object> ids = this.marketIds(symbolsNormalized);
             request["symbols"] = String.Join(",", ids.ToArray());
         } else
         {
@@ -1679,7 +1684,7 @@ public partial class bitfinex : Exchange
         //         ...
         //     ]
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
     /**
@@ -1815,12 +1820,13 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
+        object paramsPaginate = new Dictionary<string, object>() {};
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        paginate = (bool?)paginateparamsPaginateVariable[0];
+        paramsPaginate = paginateparamsPaginateVariable[1];
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters, 10000));
+            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate, 10000));
         }
         Dictionary<string, object> market = this.market(symbol);
         string sort = "-1";
@@ -1837,10 +1843,10 @@ public partial class bitfinex : Exchange
             request["limit"] = mathMin(limit, 10000); // default 120, max 10000
         }
         request["sort"] = sort;
-        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters);
-        request = (Dictionary<string, object>)requestparametersVariable[0];
-        parameters = requestparametersVariable[1];
-        List<object> response = await this.publicGetTradesSymbolHist(this.extend(request, parameters));
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsPaginate);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
+        List<object> response = await this.publicGetTradesSymbolHist(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         [
@@ -1880,44 +1886,39 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
-        limitVar ??= 100;
+        limitVar ??= ((Int64?)100);
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
+        object paramsPaginate = new Dictionary<string, object>() {};
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparamsPaginateVariable[0];
+        paramsPaginate = paginateparamsPaginateVariable[1];
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, parameters, 10000));
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, paramsPaginate, 10000));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(limitVar, null))
-        {
-            limitVar = 10000;
-        } else
-        {
-            limitVar = mathMin(limitVar, 10000);
-        }
+        object limitResolved = ((limitVar == null)) ? 10000 : mathMin(limitVar, 10000);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeframe", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
-            { "limit", limitVar },
+            { "limit", limitResolved },
         };
         if ((since != null))
         {
             request["start"] = since;
             request["sort"] = 1;
         }
-        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters);
-        request = (Dictionary<string, object>)requestparametersVariable[0];
-        parameters = requestparametersVariable[1];
-        List<object> response = await this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, parameters));
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsPaginate);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
+        List<object> response = await this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
@@ -1925,7 +1926,7 @@ public partial class bitfinex : Exchange
         //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitVar));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitResolved));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -2152,10 +2153,9 @@ public partial class bitfinex : Exchange
         {
             orderType = "FOK";
         }
-        string? marginMode = null;
-        IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
-        marginMode = (string)marginModeparametersVariable[0];
-        parameters = marginModeparametersVariable[1];
+        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
+        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && ((marginMode == null)))
         {
             // The EXCHANGE prefix is only required for non margin spot markets
@@ -2180,8 +2180,8 @@ public partial class bitfinex : Exchange
         {
             request["cid"] = clientOrderId;
         }
-        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId"});
-        return this.extend(request, parameters);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId"});
+        return this.extend(request, paramsOmitted);
     }
 
     /**
@@ -2415,14 +2415,14 @@ public partial class bitfinex : Exchange
                 { "cid", cid },
                 { "cid_date", cidDate },
             };
-            parameters = this.omit(parameters, new List<object>() {"cid", "clientOrderId"});
         } else
         {
             request = new Dictionary<string, object>() {
                 { "id", parseInt(id) },
             };
         }
-        List<object> response = await this.privatePostAuthWOrderCancel(this.extend(request, parameters));
+        object paramsOmitted = ((cid != null)) ? this.omit(parameters, new List<object>() {"cid", "clientOrderId"}) : parameters;
+        List<object> response = await this.privatePostAuthWOrderCancel(this.extend(request, paramsOmitted));
         object order = this.safeValue(response, 4);
         Dictionary<string, object> newOrder = new Dictionary<string, object>() {
             { "result", order },
@@ -2677,12 +2677,13 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
+        object paramsPaginate = new Dictionary<string, object>() {};
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
+        paginate = (bool?)paginateparamsPaginateVariable[0];
+        paramsPaginate = paginateparamsPaginateVariable[1];
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters));
+            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((since != null))
@@ -2693,19 +2694,19 @@ public partial class bitfinex : Exchange
         {
             request["limit"] = limit; // default 25, max 2500
         }
-        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters);
-        request = (Dictionary<string, object>)requestparametersVariable[0];
-        parameters = requestparametersVariable[1];
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsPaginate);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         IDictionary<string, object> market = null;
         List<object> response = null;
         if ((symbol == null))
         {
-            response = await this.privatePostAuthROrdersHist(this.extend(request, parameters));
+            response = await this.privatePostAuthROrdersHist(this.extend(requestUntil, paramsUntil));
         } else
         {
             market = this.market(symbol);
-            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
-            response = await this.privatePostAuthROrdersSymbolHist(this.extend(request, parameters));
+            ((IDictionary<string,object>)requestUntil)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            response = await this.privatePostAuthROrdersSymbolHist(this.extend(requestUntil, paramsUntil));
         }
         //
         //      [
@@ -2897,13 +2898,13 @@ public partial class bitfinex : Exchange
             throw new ArgumentsRequired ((((this.id + " fetchDepositAddress() could not find a network for '") + code) + "'. You can specify it by providing the 'network' value inside params")) ;
         }
         string? wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-        parameters = this.omit(parameters, "network", "wallet");
+        object paramsOmitted = this.omit(parameters, "network", "wallet");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", networkId },
             { "wallet", wallet },
             { "op_renew", 0 },
         };
-        List<object> response = await this.privatePostAuthWDepositAddress(this.extend(request, parameters));
+        List<object> response = await this.privatePostAuthWDepositAddress(this.extend(request, paramsOmitted));
         //
         //     [
         //         1582269616687, // MTS Millisecond Time Stamp of the update
@@ -3317,7 +3318,7 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
         string? network = this.safeString(parameters, "network", code);
-        parameters = this.omit(parameters, "network");
+        object paramsOmitted = this.omit(parameters, "network");
         IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, network);
         string? networkId = this.safeString(currencyNetwork, "id");
@@ -3325,8 +3326,8 @@ public partial class bitfinex : Exchange
         {
             throw new ArgumentsRequired ((((this.id + " withdraw() could not find a network for '") + code) + "'. You can specify it by providing the 'network' value inside params")) ;
         }
-        string? wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-        parameters = this.omit(parameters, "network", "wallet");
+        string? wallet = this.safeString(paramsOmitted, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
+        object paramsOmitted2 = this.omit(paramsOmitted, "network", "wallet");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", networkId },
             { "wallet", wallet },
@@ -3343,7 +3344,7 @@ public partial class bitfinex : Exchange
         {
             request["fee_deduct"] = 1;
         }
-        List<object> response = await this.privatePostAuthWWithdraw(this.extend(request, parameters));
+        List<object> response = await this.privatePostAuthWWithdraw(this.extend(request, paramsOmitted2));
         //
         //     [
         //         1582271520931, // MTS Millisecond Time Stamp of the update
@@ -3408,7 +3409,7 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.privatePostAuthRPositions(parameters);
         //
         //     [
@@ -3452,7 +3453,7 @@ public partial class bitfinex : Exchange
                 { "result", rawPositions[i] },
             });
         }
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positionsList, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positionsList, symbolsNormalized));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
@@ -3552,6 +3553,8 @@ public partial class bitfinex : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + (request));
+        string? requestBody = null;
+        Dictionary<string, object> requestHeaders = null;
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -3564,21 +3567,23 @@ public partial class bitfinex : Exchange
             this.checkRequiredCredentials();
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
             string nonce = ((object)this.incrementingNonce()).ToString();
-            body = this.json(query);
-            string auth = ((("/api/" + (request)) + nonce) + (body));
+            requestBody = this.json(query);
+            string auth = ((("/api/" + (request)) + nonce) + requestBody);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha384);
-            headers = new Dictionary<string, object>() {
+            requestHeaders = new Dictionary<string, object>() {
                 { "bfx-nonce", nonce },
                 { "bfx-apikey", this.apiKey },
                 { "bfx-signature", signature },
                 { "Content-Type", "application/json" },
             };
         }
+        object bodyResolved = ((requestBody == null)) ? body : requestBody;
+        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResolved },
+            { "headers", headersResolved },
         };
     }
 
@@ -3668,7 +3673,7 @@ public partial class bitfinex : Exchange
         string? id = this.safeString(itemList, 0);
         string? currencyId = this.safeString(itemList, 1);
         string? code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
+        Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
         Int64? timestamp = this.safeInteger(itemList, 3);
         double? amount = this.safeNumber(itemList, 5);
         double? after = this.safeNumber(itemList, 6);
@@ -3695,7 +3700,7 @@ public partial class bitfinex : Exchange
             { "after", after },
             { "status", null },
             { "fee", null },
-        }, currency);
+        }, currencyResolved);
     }
 
     /**
@@ -3719,12 +3724,13 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
+        object paramsPaginate = new Dictionary<string, object>() {};
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+        paginate = (bool?)paginateparamsPaginateVariable[0];
+        paramsPaginate = paginateparamsPaginateVariable[1];
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, 2500));
+            return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, 2500));
         }
         IDictionary<string, object> currency = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -3736,18 +3742,18 @@ public partial class bitfinex : Exchange
         {
             request["limit"] = limit;
         }
-        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters);
-        request = (Dictionary<string, object>)requestparametersVariable[0];
-        parameters = requestparametersVariable[1];
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsPaginate);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         List<object> response = null;
         if ((code != null))
         {
             currency = this.currency(code);
-            request["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
-            response = await this.privatePostAuthRLedgersCurrencyHist(this.extend(request, parameters));
+            ((IDictionary<string,object>)requestUntil)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+            response = await this.privatePostAuthRLedgersCurrencyHist(this.extend(requestUntil, paramsUntil));
         } else
         {
-            response = await this.privatePostAuthRLedgersHist(this.extend(request, parameters));
+            response = await this.privatePostAuthRLedgersHist(this.extend(requestUntil, paramsUntil));
         }
         //
         //     [
@@ -3858,12 +3864,13 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
+        object paramsPaginate = new Dictionary<string, object>() {};
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparamsPaginateVariable[0];
+        paramsPaginate = paginateparamsPaginateVariable[1];
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 5000));
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 5000));
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3873,10 +3880,10 @@ public partial class bitfinex : Exchange
         {
             request["start"] = since;
         }
-        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters);
-        request = (Dictionary<string, object>)requestparametersVariable[0];
-        parameters = requestparametersVariable[1];
-        List<object> response = await this.publicGetStatusDerivSymbolHist(this.extend(request, parameters));
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsPaginate);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
+        List<object> response = await this.publicGetStatusDerivSymbolHist(this.extend(requestUntil, paramsUntil));
         //
         //   [
         //       [
@@ -4050,11 +4057,11 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         IList<object> marketIds = new List<object>() {"ALL"};
-        if ((symbols != null))
+        if ((symbolsNormalized != null))
         {
-            marketIds = this.marketIds(symbols);
+            marketIds = this.marketIds(symbolsNormalized);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "keys", String.Join(",", marketIds.ToArray()) },
@@ -4090,7 +4097,7 @@ public partial class bitfinex : Exchange
         //         ]
         //     ]
         //
-        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(response, symbols));
+        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(response, symbolsNormalized));
     }
 
     /**
@@ -4172,12 +4179,13 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
+        object paramsPaginate = new Dictionary<string, object>() {};
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
+        paginate = (bool?)paginateparamsPaginateVariable[0];
+        paramsPaginate = paginateparamsPaginateVariable[1];
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToOpenInterestList(await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, "8h", parameters, 5000));
+            return ccxt.BaseExchange.ToOpenInterestList(await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, "8h", paramsPaginate, 5000));
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4191,10 +4199,10 @@ public partial class bitfinex : Exchange
         {
             request["limit"] = limit;
         }
-        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters);
-        request = (Dictionary<string, object>)requestparametersVariable[0];
-        parameters = requestparametersVariable[1];
-        List<object> response = await this.publicGetStatusDerivSymbolHist(this.extend(request, parameters));
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsPaginate);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
+        List<object> response = await this.publicGetStatusDerivSymbolHist(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         [
@@ -4322,12 +4330,13 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLiquidations", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
+        object paramsPaginate = new Dictionary<string, object>() {};
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLiquidations", "paginate", false);
+        paginate = (bool?)paginateparamsPaginateVariable[0];
+        paramsPaginate = paginateparamsPaginateVariable[1];
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallDeterministic("fetchLiquidations", symbol, since, limit, "8h", parameters, 500));
+            return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallDeterministic("fetchLiquidations", symbol, since, limit, "8h", paramsPaginate, 500));
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -4339,10 +4348,10 @@ public partial class bitfinex : Exchange
         {
             request["limit"] = limit;
         }
-        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters);
-        request = (Dictionary<string, object>)requestparametersVariable[0];
-        parameters = requestparametersVariable[1];
-        List<object> response = await this.publicGetLiquidationsHist(this.extend(request, parameters));
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsPaginate);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
+        List<object> response = await this.publicGetLiquidationsHist(this.extend(requestUntil, paramsUntil));
         //
         //     [
         //         [
@@ -4643,8 +4652,8 @@ public partial class bitfinex : Exchange
         {
             request["lev"] = leverage;
         }
-        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage"});
-        List<object> response = await this.privatePostAuthWOrderUpdate(this.extend(request, parameters));
+        object paramsOmitted = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage"});
+        List<object> response = await this.privatePostAuthWOrderUpdate(this.extend(request, paramsOmitted));
         //
         //     [
         //         1706845376402,

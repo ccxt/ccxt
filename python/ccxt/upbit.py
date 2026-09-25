@@ -747,10 +747,10 @@ class upbit(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(ticker, 'trade_timestamp')
         marketId = self.safe_string_2(ticker, 'market', 'code')
-        market = self.safe_market(marketId, market, '-')
+        marketResolved = self.safe_market(marketId, market, '-')
         last = self.safe_string(ticker, 'trade_price')
         return self.safe_ticker({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'high_price'),
@@ -771,7 +771,7 @@ class upbit(Exchange, ImplicitAPI):
             'baseVolume': self.safe_string(ticker, 'acc_trade_volume_24h'),
             'quoteVolume': self.safe_string(ticker, 'acc_trade_price_24h'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -789,9 +789,9 @@ class upbit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         tickers = []
-        if symbols is None:
+        if symbolsNormalized is None:
             # ticker/all returns every market of the requested quote currencies with a single request
             quoteIds = []
             marketSymbols = self.symbols
@@ -811,7 +811,7 @@ class upbit(Exchange, ImplicitAPI):
             }
             tickers = self.publicGetTickerAll(self.extend(request, params))
         else:
-            ids = self.market_ids(symbols)
+            ids = self.market_ids(symbolsNormalized)
             promises = []
             queries = self.ids_query_strings(ids, 4000)  # the url is limited to about 8000 characters once the commas are percent-encoded
             for i in range(0, len(queries)):
@@ -847,7 +847,7 @@ class upbit(Exchange, ImplicitAPI):
         #           "lowest_52_week_date": "2017-12-08",
         #                     "timestamp":  1542883543813  } ]
         #
-        return self.parse_tickers(tickers, symbols)
+        return self.parse_tickers(tickers, symbolsNormalized)
 
     def ids_query_strings(self, ids: Strings, maxQueryLength: float) -> list[str]:
         if ids is None:
@@ -924,12 +924,12 @@ class upbit(Exchange, ImplicitAPI):
         price = self.safe_string_2(trade, 'trade_price', 'price')
         amount = self.safe_string_2(trade, 'trade_volume', 'volume')
         marketId = self.safe_string_2(trade, 'market', 'code')
-        market = self.safe_market(marketId, market, '-')
+        marketResolved = self.safe_market(marketId, market, '-')
         fee = None
         feeCost = self.safe_string(trade, askOrBid + '_fee')
         if feeCost is not None:
             fee = {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': feeCost,
             }
         return self.safe_trade({
@@ -938,7 +938,7 @@ class upbit(Exchange, ImplicitAPI):
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': None,
             'side': side,
             'takerOrMaker': None,
@@ -946,7 +946,7 @@ class upbit(Exchange, ImplicitAPI):
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -964,11 +964,10 @@ class upbit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if limit is None:
-            limit = 200
+        limitResolved = 200 if (limit is None) else limit
         request = {
             'market': market['id'],
-            'count': limit,
+            'count': limitResolved,
         }
         response = self.publicGetTradesTicks(self.extend(request, params))
         #
@@ -993,7 +992,7 @@ class upbit(Exchange, ImplicitAPI):
         #                    "ask_bid": "ASK",
         #              "sequential_id":  15428917910540000 }  ]
         #
-        return self.parse_trades(response, market, since, limit)
+        return self.parse_trades(response, market, since, limitResolved)
 
     def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
@@ -1129,17 +1128,16 @@ class upbit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         timeframePeriod = self.parse_timeframe(timeframe)
         timeframeValue = self.safe_string(self.timeframes, timeframe, timeframe)
-        if limit is None:
-            limit = 200
+        limitResolved = 200 if (limit is None) else limit
         request = {
             'market': market['id'],
             'timeframe': timeframeValue,
-            'count': limit,
+            'count': limitResolved,
         }
         response: dict | List
         if since is not None:
             # convert `since` to `to` value
-            request['to'] = self.iso8601(self.sum(since, timeframePeriod * limit * 1000))
+            request['to'] = self.iso8601(self.sum(since, timeframePeriod * limitResolved * 1000))
         if timeframeValue == 'minutes':
             numMinutes = int(round(timeframePeriod / 60))
             request['unit'] = numMinutes
@@ -1177,7 +1175,7 @@ class upbit(Exchange, ImplicitAPI):
         #     ]
         #
         ohlcvs = self.to_array(response)
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limitResolved)
 
     def calc_order_price(self, symbol: str, amount: Num, price: Num = None, params={}) -> Str:
         quoteAmount = None
@@ -1263,11 +1261,11 @@ class upbit(Exchange, ImplicitAPI):
                 request['volume'] = self.amount_to_precision(symbol, amount)
         else:
             raise InvalidOrder(self.id + ' createOrder() supports only limit or market types in the type argument.')
+        paramsOrdType = self.omit(params, ['ordType', 'ord_type']) if (customType == 'best') else params
         if customType == 'best':
-            params = self.omit(params, ['ordType', 'ord_type'])
             request['ord_type'] = 'best'
             if side == 'buy':
-                orderPrice = self.calc_order_price(symbol, amount, price, params)
+                orderPrice = self.calc_order_price(symbol, amount, price, paramsOrdType)
                 request['price'] = orderPrice
             else:
                 if amount is None:
@@ -1285,11 +1283,11 @@ class upbit(Exchange, ImplicitAPI):
         if self.safe_string(request, 'ord_type') == 'best' and timeInForce is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a timeInForce parameter for best type orders')
         response: dict
-        params = self.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test'])
+        paramsRequest = self.omit(paramsOrdType, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test'])
         if test is True:
-            response = self.privatePostOrdersTest(self.extend(request, params))
+            response = self.privatePostOrdersTest(self.extend(request, paramsRequest))
         else:
-            response = self.privatePostOrders(self.extend(request, params))
+            response = self.privatePostOrders(self.extend(request, paramsRequest))
         #
         #     {
         #         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
@@ -1384,7 +1382,7 @@ class upbit(Exchange, ImplicitAPI):
         selfTradePrevention = self.safe_string_2(params, 'selfTradePrevention', 'new_smp_type')
         if postOnly and (selfTradePrevention is not None):
             raise ExchangeError(self.id + ' editOrder() does not support post_only and selfTradePrevention simultaneously.')
-        params = self.omit(params, 'clientOrderId')
+        paramsOmitted = self.omit(params, 'clientOrderId')
         if id is not None:
             request['prev_order_uuid'] = id
         elif prevClientOrderId is not None:
@@ -1400,7 +1398,7 @@ class upbit(Exchange, ImplicitAPI):
         elif type == 'market':
             if side == 'buy':
                 request['new_ord_type'] = 'price'
-                orderPrice = self.calc_order_price(symbol, amount, price, params)
+                orderPrice = self.calc_order_price(symbol, amount, price, paramsOmitted)
                 request['new_price'] = orderPrice
             else:
                 if amount is None:
@@ -1409,11 +1407,11 @@ class upbit(Exchange, ImplicitAPI):
                 request['new_volume'] = self.amount_to_precision(symbol, amount)
         else:
             raise InvalidOrder(self.id + ' editOrder() supports only limit or market types in the type argument.')
+        paramsOrdType = self.omit(paramsOmitted, ['newOrdType', 'new_ord_type']) if (customType == 'best') else paramsOmitted
         if customType == 'best':
-            params = self.omit(params, ['newOrdType', 'new_ord_type'])
             request['new_ord_type'] = 'best'
             if side == 'buy':
-                orderPrice = self.calc_order_price(symbol, amount, price, params)
+                orderPrice = self.calc_order_price(symbol, amount, price, paramsOrdType)
                 request['new_price'] = orderPrice
             else:
                 if amount is None:
@@ -1432,9 +1430,9 @@ class upbit(Exchange, ImplicitAPI):
                 request['new_time_in_force'] = timeInForce
         if self.safe_string(request, 'new_ord_type') == 'best' and timeInForce is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a timeInForce parameter for best type orders')
-        params = self.omit(params, ['newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type'])
-        # console.log ('check the each request params: ', request);
-        response = self.privatePostOrdersCancelAndNew(self.extend(request, params))
+        paramsRequest = self.omit(paramsOrdType, ['newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type'])
+        # console.log ('check the each request paramsOmitted: ', request);
+        response = self.privatePostOrdersCancelAndNew(self.extend(request, paramsRequest))
         #   {
         #     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
         #     side: 'bid',                                         //previous order data
@@ -1815,9 +1813,9 @@ class upbit(Exchange, ImplicitAPI):
         fee = None
         feeCost = self.safe_string(order, 'paid_fee')
         marketId = self.safe_string(order, 'market')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         trades = self.safe_list(order, 'trades', [])
-        trades = self.parse_trades(trades, market, None, None, {
+        trades = self.parse_trades(trades, marketResolved, None, None, {
             'order': id,
             'type': type,
         })
@@ -1841,7 +1839,7 @@ class upbit(Exchange, ImplicitAPI):
             average = Precise.string_div(cost, filled)
         if feeCost is not None:
             fee = {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': feeCost,
             }
         return self.safe_order({
@@ -1851,7 +1849,7 @@ class upbit(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': self.safe_string_upper(order, 'time_in_force'),
             'postOnly': None,
@@ -1943,8 +1941,8 @@ class upbit(Exchange, ImplicitAPI):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit
-        request, params = self.handle_until_option('end_time', request, params)
-        response = self.privateGetOrdersClosed(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end_time', request, params)
+        response = self.privateGetOrdersClosed(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         {
@@ -1997,8 +1995,8 @@ class upbit(Exchange, ImplicitAPI):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit
-        request, params = self.handle_until_option('end_time', request, params)
-        response = self.privateGetOrdersClosed(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end_time', request, params)
+        response = self.privateGetOrdersClosed(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         {
@@ -2160,14 +2158,13 @@ class upbit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress requires params["network"]')
         response = self.privateGetDepositsCoinAddress(self.extend({
             'currency': currency['id'],
             'net_type': self.network_code_to_id(networkCode, currency['code']),
-        }, params))
+        }, paramsNetworkCode))
         #
         #    {
         #        currency: 'XRP',
@@ -2231,7 +2228,7 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagResolved, paramsTag = self.handle_withdraw_tag_and_params(tag, params)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -2242,19 +2239,18 @@ class upbit(Exchange, ImplicitAPI):
         if code != 'KRW':
             self.check_address(address)
             # 2023-05-23 Change to required parameters for digital assets
-            network = self.safe_string_upper_2(params, 'network', 'net_type')
+            network = self.safe_string_upper_2(paramsTag, 'network', 'net_type')
             if network is None:
                 raise ArgumentsRequired(self.id + ' withdraw() requires a network argument')
-            params = self.omit(params, ['network'])
+            paramsOmitted = self.omit(paramsTag, ['network'])
             request['net_type'] = network
             request['currency'] = currency['id']
             request['address'] = address
-            if tag is not None:
-                request['secondary_address'] = tag
-            params = self.omit(params, 'network')
-            response = self.privatePostWithdrawsCoin(self.extend(request, params))
+            if tagResolved is not None:
+                request['secondary_address'] = tagResolved
+            response = self.privatePostWithdrawsCoin(self.extend(request, paramsOmitted))
         else:
-            response = self.privatePostWithdrawsKrw(self.extend(request, params))
+            response = self.privatePostWithdrawsKrw(self.extend(request, paramsTag))
         #
         #     {
         #         "type": "withdraw",
@@ -2283,9 +2279,14 @@ class upbit(Exchange, ImplicitAPI):
         if method != 'POST':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
+        hasBody = (api == 'private') and (method != 'GET') and (method != 'DELETE')
+        requestBody = body
+        if hasBody:
+            requestBody = self.json(params)
+        privateHeaders = None
         if api == 'private':
             self.check_required_credentials()
-            headers = {}
+            privateHeaders = {}
             nonce = self.uuid()
             request = {
                 'access_key': self.apiKey,
@@ -2293,9 +2294,8 @@ class upbit(Exchange, ImplicitAPI):
             }
             hasQuery = len(query)
             auth = None
-            if (method != 'GET') and (method != 'DELETE'):
-                body = self.json(params)
-                headers['Content-Type'] = 'application/json'
+            if hasBody:
+                privateHeaders['Content-Type'] = 'application/json'
             if hasQuery != 0:
                 auth = self.rawencode(query)
             if auth is not None:
@@ -2303,8 +2303,9 @@ class upbit(Exchange, ImplicitAPI):
                 request['query_hash'] = hash
                 request['query_hash_alg'] = 'SHA512'
             token = self.jwt(request, self.encode(self.secret), 'sha256')
-            headers['Authorization'] = 'Bearer ' + token
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+            privateHeaders['Authorization'] = 'Bearer ' + token
+        requestHeaders = privateHeaders if (api == 'private') else headers
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

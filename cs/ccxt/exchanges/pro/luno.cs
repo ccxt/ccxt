@@ -47,19 +47,17 @@ public partial class luno : ccxt.luno
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string subscriptionHash = ("/stream/" + ((market.ContainsKey("id") ? market["id"] : null)));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "symbol", symbolVar },
+            { "symbol", symbolValue },
         };
         string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         if ((wsUrl == null))
@@ -67,18 +65,19 @@ public partial class luno : ccxt.luno
             throw new ExchangeError ((this.id + " watchTrades() has no websocket url")) ;
         }
         string url = (wsUrl + subscriptionHash);
-        string messageHash = ("trades:" + (symbolVar));
+        string messageHash = ("trades:" + symbolValue);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, subscriptionHash, subscription));
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
+            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message, object subscription)
@@ -175,18 +174,17 @@ public partial class luno : ccxt.luno
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string subscriptionHash = ("/stream/" + ((market.ContainsKey("id") ? market["id"] : null)));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "symbol", symbolVar },
+            { "symbol", symbolValue },
         };
         string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         if ((wsUrl == null))
@@ -194,7 +192,7 @@ public partial class luno : ccxt.luno
             throw new ExchangeError ((this.id + " watchOrderBook() has no websocket url")) ;
         }
         string url = (wsUrl + subscriptionHash);
-        string messageHash = ("orderbook:" + (symbolVar));
+        string messageHash = ("orderbook:" + symbolValue);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
@@ -287,11 +285,11 @@ public partial class luno : ccxt.luno
         priceKey ??= "price";
         amountKey ??= "volume";
         thirdKey ??= 2;
-        bidasks = this.toArray(bidasks);
+        IList<object> bidasksValue = this.toArray(bidasks);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(bidasks); i++)
+        for (int i = 0; i < (bidasksValue?.Count ?? 0); i++)
         {
-            result.Add(this.customParseBidAsk(getValue(bidasks, i), priceKey, amountKey, thirdKey));
+            result.Add(this.customParseBidAsk(bidasksValue[i], priceKey, amountKey, thirdKey));
         }
         return result;
     }

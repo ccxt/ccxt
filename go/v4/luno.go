@@ -941,7 +941,7 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
 		side = SafeStringPtr("buy")
 	}
 	var marketId *string = this.SafeString(order, "pair")
-	market = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var price *string = this.SafeString(order, "limit_price")
 	var amount *string = this.SafeString(order, "limit_volume")
 	var quoteFee *float64 = this.SafeNumber(order, "fee_counter")
@@ -952,12 +952,12 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
 	if quoteFee != nil {
 		fee = map[string]any{
 			"cost":     quoteFee,
-			"currency": GetValue(market, "quote"),
+			"currency": marketResolved["quote"],
 		}
 	} else if baseFee != nil {
 		fee = map[string]any{
 			"cost":     baseFee,
-			"currency": GetValue(market, "base"),
+			"currency": marketResolved["base"],
 		}
 	}
 	var id *string = this.SafeString(order, "order_id")
@@ -968,7 +968,7 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
 		"timestamp":          timestamp,
 		"lastTradeTimestamp": nil,
 		"status":             status,
-		"symbol":             GetValue(market, "symbol"),
+		"symbol":             marketResolved["symbol"],
 		"type":               nil,
 		"timeInForce":        nil,
 		"postOnly":           nil,
@@ -983,7 +983,7 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
 		"fee":                fee,
 		"info":               order,
 		"average":            nil,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1221,7 +1221,7 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
 	var rawTickers []any = SafeListTyped(response, "tickers")
@@ -1236,7 +1236,7 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
 	}
 
-	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+	ch <- this.FilterByArrayTickers(result, "symbol", symbolsNormalized)
 	return nil
 }
 
@@ -1767,20 +1767,26 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(entry, nil) {
-		entry = OpNeg(1)
-	}
-	if limit == nil {
-		limit = Int64PtrTyped(1)
-	}
+	var entryValue any = func() any {
+		if IsEqual(entry, nil) {
+			return OpNeg(1)
+		}
+		return entry
+	}()
+	var limitValue int64 = func() int64 {
+		if limit == nil {
+			return 1
+		}
+		return *limit
+	}()
 	var since any = nil
 	var request map[string]any = map[string]any{
-		"min_row": entry,
-		"max_row": this.Sum(entry, limit),
+		"min_row": entryValue,
+		"max_row": this.Sum(entryValue, limitValue),
 	}
 
-	var retRes141315 []any = ListTyped(PanicOnError((<-this.FetchLedgerAsync(code, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes141315)
+	var retRes140915 []any = ListTyped(PanicOnError((<-this.FetchLedgerAsync(code, since, limitValue, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes140915)
 	return nil
 }
 
@@ -1901,7 +1907,7 @@ func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 	var currencyId *string = this.SafeString(entry, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	currency = this.SafeCurrency(currencyId, currency)
+	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
 	var available_delta *string = this.SafeString(entry, "available_delta")
 	var balance_delta *string = this.SafeString(entry, "balance_delta")
 	var after *string = this.SafeString(entry, "balance")
@@ -1945,7 +1951,7 @@ func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) any {
 		"after":            this.ParseToNumeric(after),
 		"status":           status,
 		"fee":              nil,
-	}, currency)
+	}, currencyResolved)
 }
 
 /**
@@ -2157,21 +2163,28 @@ func (this *Luno) Sign(path any, optionalArgs ...any) any {
 	}
 	var url any = Add(*apiUrl+"/"+this.Version+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
+	var requestHeaders any = nil
 	if len(ObjectKeys(query)) > 0 {
 		url = Add(url, "?"+this.Urlencode(query))
 	}
 	if (IsEqual(api, "private")) || (IsEqual(api, "exchangePrivate")) {
 		this.CheckRequiredCredentials()
 		var auth string = this.StringToBase64(Add(Add(this.ApiKey, ":"), this.Secret))
-		headers = map[string]any{
+		requestHeaders = map[string]any{
 			"Authorization": "Basic " + auth,
 		}
 	}
+	var headersResolved any = func() any {
+		if requestHeaders == nil {
+			return headers
+		}
+		return requestHeaders
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
-		"headers": headers,
+		"headers": headersResolved,
 	}
 }
 func (this *Luno) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

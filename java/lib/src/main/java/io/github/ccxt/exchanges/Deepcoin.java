@@ -547,19 +547,16 @@ public class Deepcoin extends DeepcoinApi
     public Object handleMarketTypeAndParams(Object methodName, Map<String, Object> market, Map<String, Object> parameters, Object defaultValue)
     {
         String instType = this.safeString(parameters, "instType");
-        parameters = (Map<String, Object>) (this.omit(parameters, "instType"));
-        String type = this.safeString(parameters, "type");
+        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "instType");
+        String type = this.safeString(paramsOmitted, "type");
+        Object paramsExtended = paramsOmitted;
         if ((java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(instType, null)))
         {
-            parameters = (Map<String, Object>) (this.extend(parameters, new HashMap<String, Object>() {{
-                put( "type", instType );
-            }}));
+            paramsExtended = this.extend(paramsOmitted, Helpers.newMap(
+                "type", instType
+            ));
         }
-        return super.handleMarketTypeAndParams(methodName, market, parameters, defaultValue);
-    }
-    public Object handleMarketTypeAndParams(Object methodName, Object... optionalArgs)
-    {
-        return this.handleMarketTypeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null);
+        return super.handleMarketTypeAndParams(methodName, market, Helpers.toMapArg(paramsExtended), defaultValue);
     }
 
     public String convertToInstrumentType(String type)
@@ -582,7 +579,7 @@ public class Deepcoin extends DeepcoinApi
         return BaseExchange.supplyAsync(() -> {
 
             Object types = new ArrayList<Object>(Arrays.asList("spot", "swap"));
-            Map<String, Object> fetchMarketsOption = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
+            Map<String, Object> fetchMarketsOption = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", (Object) null);
             if (!java.util.Objects.equals(fetchMarketsOption, null))
             {
                 types = this.safeList(fetchMarketsOption, "types", types);
@@ -604,18 +601,6 @@ public class Deepcoin extends DeepcoinApi
             return result;
         });
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchMarkets
-     * @see https://www.deepcoin.com/docs/DeepCoinMarket/getBaseInfo
-     * @description retrieves data on all markets for okcoin
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Object> fetchMarketsByType(String type, Map<String, Object> parameters)
@@ -660,10 +645,6 @@ public class Deepcoin extends DeepcoinApi
             return this.parseMarkets(dataResponse);
         });
 
-    }
-    public CompletableFuture<Object> fetchMarketsByType(String type, Object... optionalArgs)
-    {
-        return this.fetchMarketsByType(type, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarket(Object market)
@@ -721,8 +702,8 @@ public class Deepcoin extends DeepcoinApi
         String quoteId = this.safeString(market, "quoteCcy", "");
         String settleId = null;
         String settle = null;
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
@@ -733,7 +714,7 @@ public class Deepcoin extends DeepcoinApi
         {
             isLinear = (!java.util.Objects.equals(quoteId, "USD"));
             settleId = ((Boolean.TRUE.equals(isLinear))) ? quoteId : baseId;
-            settle = this.safeCurrencyCode(settleId);
+            settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
             symbol = ((symbol + ":") + settle);
         }
         Map<String, Object> fees = (Map<String, Object>) this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});
@@ -745,66 +726,55 @@ public class Deepcoin extends DeepcoinApi
         String state = this.safeString(market, "state");
         Boolean isMargin = Boolean.TRUE.equals(spot) && (Precise.stringGt(maxLeverage, "1"));
         Boolean isInverse = ((Boolean.TRUE.equals(swap))) ? (!java.util.Objects.equals(isLinear, true)) : null;
-        final String finalSymbol = symbol;
-        final String finalBase = base;
-        final String finalQuote = quote;
-        final String finalSettle = settle;
-        final String finalQuoteId = quoteId;
-        final String finalSettleId = settleId;
-        final String finalType = type;
-        final Boolean finalSpot = spot;
-        final String finalState = state;
-        final Boolean finalIsLinear = isLinear;
-        final String finalMaxLeverage = maxLeverage;
-        return this.extend(fees, new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "symbol", finalSymbol );
-            put( "base", finalBase );
-            put( "quote", finalQuote );
-            put( "settle", finalSettle );
-            put( "baseId", baseId );
-            put( "quoteId", finalQuoteId );
-            put( "settleId", finalSettleId );
-            put( "type", finalType );
-            put( "spot", finalSpot );
-            put( "margin", isMargin );
-            put( "swap", swap );
-            put( "future", false );
-            put( "option", false );
-            put( "active", java.util.Objects.equals(finalState, "live") );
-            put( "contract", swap );
-            put( "linear", finalIsLinear );
-            put( "inverse", isInverse );
-            put( "contractSize", ((Boolean.TRUE.equals(swap))) ? Deepcoin.this.safeNumber(market, "ctVal") : null );
-            put( "expiry", null );
-            put( "expiryDatetime", null );
-            put( "strike", null );
-            put( "optionType", null );
-            put( "created", null );
-            put( "precision", new HashMap<String, Object>() {{
-                put( "amount", Deepcoin.this.safeNumber(market, "lotSz") );
-                put( "price", Deepcoin.this.safeNumber(market, "tickSz") );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
-                put( "leverage", new HashMap<String, Object>() {{
-                    put( "min", Deepcoin.this.parseNumber("1") );
-                    put( "max", Deepcoin.this.parseNumber(finalMaxLeverage) );
-                }} );
-                put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Deepcoin.this.safeNumber(market, "minSz") );
+        return this.extend(fees, Helpers.newMap(
+            "id", id,
+            "symbol", symbol,
+            "base", base,
+            "quote", quote,
+            "settle", settle,
+            "baseId", baseId,
+            "quoteId", quoteId,
+            "settleId", settleId,
+            "type", type,
+            "spot", spot,
+            "margin", isMargin,
+            "swap", swap,
+            "future", false,
+            "option", false,
+            "active", java.util.Objects.equals(state, "live"),
+            "contract", swap,
+            "linear", isLinear,
+            "inverse", isInverse,
+            "contractSize", ((Boolean.TRUE.equals(swap))) ? this.safeNumber(market, "ctVal", (Object) null) : null,
+            "expiry", null,
+            "expiryDatetime", null,
+            "strike", null,
+            "optionType", null,
+            "created", null,
+            "precision", new HashMap<String, Object>() {{
+                put( "amount", Deepcoin.this.safeNumber(market, "lotSz", (Object) null) );
+                put( "price", Deepcoin.this.safeNumber(market, "tickSz", (Object) null) );
+            }},
+            "limits", Helpers.newMap(
+                "leverage", Helpers.newMap(
+                    "min", this.parseNumber("1"),
+                    "max", this.parseNumber(maxLeverage)
+                ),
+                "amount", new HashMap<String, Object>() {{
+                    put( "min", Deepcoin.this.safeNumber(market, "minSz", (Object) null) );
                     put( "max", maxAmount );
-                }} );
-                put( "price", new HashMap<String, Object>() {{
+                }},
+                "price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }} );
-                put( "cost", new HashMap<String, Object>() {{
+                }},
+                "cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }} );
-            }} );
-            put( "info", market );
-        }});
+                }}
+            ),
+            "info", market
+        ));
     }
 
     public Object setMarkets(Object markets, Object currencies)
@@ -826,10 +796,6 @@ public class Deepcoin extends DeepcoinApi
         }
         return result;
     }
-    public Object setMarkets(Object markets, Object... optionalArgs)
-    {
-        return this.setMarkets(markets, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
-    }
 
     /**
      * @method
@@ -841,24 +807,20 @@ public class Deepcoin extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (java.util.Objects.equals(limit, null))
-            {
-                limit = 400L;
-            }
-            final Long finalLimit = limit;
+            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 400 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
-                put( "sz", finalLimit );
+                put( "sz", limitResolved );
             }};
             Map<String, Object> response = (this.publicGetDeepcoinMarketBooks(this.extend(request, parameters))).join();
             //
@@ -878,23 +840,9 @@ public class Deepcoin extends DeepcoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrderBook(data, symbol, null, "bids", "asks", 0, 1);
+            return this.parseOrderBook(data, symbol, (Long) null, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://www.deepcoin.com/docs/DeepCoinMarket/marketBooks
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -914,35 +862,29 @@ public class Deepcoin extends DeepcoinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Long limit = limit3;
-            Object parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object maxLimit = 300;
-            Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Boolean.TRUE.equals(paginate))
+            Integer maxLimit = 300;
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            if (Helpers.isTrue(paginate))
             {
-                parameters = this.extend(parameters, new HashMap<String, Object>() {{
+                Map<String, Object> paramsExtended = this.extend(paramsPaginate, new HashMap<String, Object>() {{
                     put( "calculateUntil", true );
                 }});
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsExtended), Helpers.toLongOrNull(maxLimit))).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String price = this.safeString(parameters, "price");
-            parameters = this.omit(parameters, "price");
-            String bar = this.safeString(this.timeframes, timeframe, timeframe);
+            String price = this.safeString(paramsPaginate, "price");
+            String bar = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
                 put( "bar", bar );
@@ -951,21 +893,21 @@ public class Deepcoin extends DeepcoinApi
             {
                 request.put("limit", limit);
             }
-            Long until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(paramsPaginate, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("after", until);
-                parameters = this.omit(parameters, "until");
             }
-            Boolean calculateUntil = (Boolean) this.safeBool(parameters, "calculateUntil", false);
+            Boolean calculateUntil = (Boolean) this.safeBool(paramsPaginate, "calculateUntil", false);
+            List<Object> keysToOmit = (((java.util.Objects.equals(calculateUntil, true)))) ? new ArrayList<Object>(Arrays.asList("price", "until", "calculateUntil")) : new ArrayList<Object>(Arrays.asList("price", "until"));
+            Object paramsOmitted = this.omit(paramsPaginate, keysToOmit);
             if (java.util.Objects.equals(calculateUntil, true))
             {
-                parameters = this.omit(parameters, "calculateUntil");
                 if (!java.util.Objects.equals(since, null))
                 {
                     // the exchange do not have a since param for this endpoint
                     // we calculate until (after) for correct pagination
-                    int duration = this.parseTimeframe(timeframe);
+                    int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                     Object numberOfCandles = (((java.util.Objects.equals(limit, null)))) ? maxLimit : limit;
                     Object endTime = Helpers.add(since, Helpers.multiply((Helpers.multiply(duration, numberOfCandles)), 1000));
                     if (!java.util.Objects.equals(until, null))
@@ -979,13 +921,13 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(price, "mark"))
             {
-                response = (this.publicGetDeepcoinMarketMarkPriceCandles(this.extend(request, parameters))).join();
+                response = (this.publicGetDeepcoinMarketMarkPriceCandles(this.extend(request, paramsOmitted))).join();
             } else if (java.util.Objects.equals(price, "index"))
             {
-                response = (this.publicGetDeepcoinMarketIndexCandles(this.extend(request, parameters))).join();
+                response = (this.publicGetDeepcoinMarketIndexCandles(this.extend(request, paramsOmitted))).join();
             } else
             {
-                response = (this.publicGetDeepcoinMarketCandles(this.extend(request, parameters))).join();
+                response = (this.publicGetDeepcoinMarketCandles(this.extend(request, paramsOmitted))).join();
             }
             //
             //     {
@@ -1014,31 +956,10 @@ public class Deepcoin extends DeepcoinApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, timeframe, since, limit);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name deepcoin#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://www.deepcoin.com/docs/DeepCoinMarket/getKlineData
-     * @see https://www.deepcoin.com/docs/DeepCoinMarket/getIndexKlineData
-     * @see https://www.deepcoin.com/docs/DeepCoinMarket/getMarkKlineData
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -1049,45 +970,28 @@ public class Deepcoin extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            String marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            final String finalMarketType = marketType;
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", Helpers.toMapArg(market), parameters, (Object) null);
+            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
+            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (finalMarketType)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(marketType) );
             }};
-            Map<String, Object> response = (this.publicGetDeepcoinMarketTickers(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetDeepcoinMarketTickers(this.extend(request, paramsMarketType))).join();
             List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(tickers, symbols);
+            return this.parseTickers(tickers, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://www.deepcoin.com/docs/DeepCoinMarket/getMarketTickers
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
-    {
-        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -1112,15 +1016,15 @@ public class Deepcoin extends DeepcoinApi
         //         "ts": "1760367816000"
         //     }
         //
-        Object timestamp = this.safeIntegerOmitZero(ticker, "ts");
+        Object timestamp = this.safeIntegerOmitZero(ticker, "ts", (Long) null);
         String marketId = this.safeString(ticker, "instId");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, "-"));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
         Object quoteVolume = this.safeString(ticker, "volCcy24h");
         Object baseVolume = this.safeString(ticker, "vol24h");
-        if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)))
+        if ((java.util.Objects.equals(((Map<String, Object>)marketResolved).get("swap"), true)) && (java.util.Objects.equals(((Map<String, Object>)marketResolved).get("inverse"), true)))
         {
             Object temp = baseVolume;
             baseVolume = quoteVolume;
@@ -1128,36 +1032,30 @@ public class Deepcoin extends DeepcoinApi
         }
         String high = this.safeString(ticker, "high24h");
         String low = this.safeString(ticker, "low24h");
-        final Object finalBaseVolume = baseVolume;
-        final Object finalQuoteVolume = quoteVolume;
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", symbol );
-            put( "timestamp", timestamp );
-            put( "datetime", Deepcoin.this.iso8601(timestamp) );
-            put( "high", high );
-            put( "low", low );
-            put( "bid", Deepcoin.this.safeString(ticker, "bidPx") );
-            put( "bidVolume", Deepcoin.this.safeString(ticker, "bidSz") );
-            put( "ask", Deepcoin.this.safeString(ticker, "askPx") );
-            put( "askVolume", Deepcoin.this.safeString(ticker, "askSz") );
-            put( "vwap", null );
-            put( "open", open );
-            put( "close", last );
-            put( "last", last );
-            put( "previousClose", null );
-            put( "change", null );
-            put( "percentage", null );
-            put( "average", null );
-            put( "baseVolume", finalBaseVolume );
-            put( "quoteVolume", finalQuoteVolume );
-            put( "markPrice", null );
-            put( "indexPrice", null );
-            put( "info", ticker );
-        }}, market);
-    }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeTicker(Helpers.newMap(
+            "symbol", symbol,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "high", high,
+            "low", low,
+            "bid", this.safeString(ticker, "bidPx"),
+            "bidVolume", this.safeString(ticker, "bidSz"),
+            "ask", this.safeString(ticker, "askPx"),
+            "askVolume", this.safeString(ticker, "askSz"),
+            "vwap", null,
+            "open", open,
+            "close", last,
+            "last", last,
+            "previousClose", null,
+            "change", null,
+            "percentage", null,
+            "average", null,
+            "baseVolume", baseVolume,
+            "quoteVolume", quoteVolume,
+            "markPrice", null,
+            "indexPrice", null,
+            "info", ticker
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1171,14 +1069,14 @@ public class Deepcoin extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1192,32 +1090,17 @@ public class Deepcoin extends DeepcoinApi
             request.put("productGroup", productGroup);
             Map<String, Object> response = (this.publicGetDeepcoinMarketTrades(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limit);
+            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://www.deepcoin.com/docs/DeepCoinMarket/getTrades
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch (default 100, max 500)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public String getProductGroupFromMarket(Map<String, Object> market)
     {
         String productGroup = "Spot";
-        if (java.util.Objects.equals(this.safeBool(market, "swap"), true))
+        if (java.util.Objects.equals(this.safeBool(market, "swap", (Object) null), true))
         {
-            if (java.util.Objects.equals(this.safeBool(market, "linear"), true))
+            if (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true))
             {
                 productGroup = "SwapU";
             } else
@@ -1262,7 +1145,7 @@ public class Deepcoin extends DeepcoinApi
         //     }
         //
         String marketId = this.safeString(trade, "instId");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(trade, "ts");
         String side = this.safeString(trade, "side");
         String execType = this.safeString(trade, "execType");
@@ -1271,34 +1154,27 @@ public class Deepcoin extends DeepcoinApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(trade, "feeCcy");
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            final String finalFeeCost = feeCost;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", finalFeeCost );
-                put( "currency", feeCurrencyCode );
-            }};
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+            fee = Helpers.newMap(
+                "cost", feeCost,
+                "currency", feeCurrencyCode
+            );
         }
-        final Map<String, Object> finalMarket = market;
-        final Map<String, Object> finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
-            put( "info", trade );
-            put( "timestamp", timestamp );
-            put( "datetime", Deepcoin.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "id", Deepcoin.this.safeString(trade, "tradeId") );
-            put( "order", Deepcoin.this.safeString(trade, "ordId") );
-            put( "type", null );
-            put( "takerOrMaker", Deepcoin.this.parseTakerOrMaker(execType) );
-            put( "side", side );
-            put( "price", Deepcoin.this.safeString2(trade, "fillPx", "px") );
-            put( "amount", Deepcoin.this.safeString2(trade, "fillSz", "sz") );
-            put( "cost", null );
-            put( "fee", finalFee );
-        }}, market);
-    }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeTrade(Helpers.newMap(
+            "info", trade,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "id", this.safeString(trade, "tradeId"),
+            "order", this.safeString(trade, "ordId"),
+            "type", null,
+            "takerOrMaker", this.parseTakerOrMaker(execType),
+            "side", side,
+            "price", this.safeString2(trade, "fillPx", "px"),
+            "amount", this.safeString2(trade, "fillSz", "sz"),
+            "cost", null,
+            "fee", fee
+        ), Helpers.toMapArg(marketResolved));
     }
 
     public String parseTakerOrMaker(String execType)
@@ -1319,40 +1195,26 @@ public class Deepcoin extends DeepcoinApi
      * @param {string} [params.type] "spot" or "swap", the market type for the balance
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters2)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters, marketType);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            final String finalMarketType = marketType;
+            List<String> marketType = null;
+            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, marketType);
+            String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
+            var paramsMarketType = ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (finalMarketType)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(marketTypeOption) );
             }};
-            Map<String, Object> response = (this.privateGetDeepcoinAccountBalances(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetDeepcoinAccountBalances(this.extend(request, paramsMarketType))).join();
             return this.parseBalance(response);
         }).thenApply(Balances::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBalance
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] "spot" or "swap", the market type for the balance
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseBalance(Object response)
@@ -1379,9 +1241,9 @@ public class Deepcoin extends DeepcoinApi
         List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String symbol = this.safeString(balance, "ccy");
-            String code = this.safeCurrencyCode(symbol);
+            String code = this.safeCurrencyCode(symbol, (Map<String, Object>) null);
             Map<String, Object> account = (Map<String, Object>) this.account();
             account.put("total", this.safeString(balance, "bal"));
             account.put("used", this.safeString(balance, "frozenBal"));
@@ -1404,28 +1266,21 @@ public class Deepcoin extends DeepcoinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
-            if (Boolean.TRUE.equals(paginate))
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            if (Helpers.isTrue(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "code", null, 1, 50)).join();
+                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "code", (String) null, Helpers.toLongOrNull(1), Helpers.toLongOrNull(50))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -1442,38 +1297,21 @@ public class Deepcoin extends DeepcoinApi
             {
                 request.put("size", limit);
             }
-            Long until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(paramsPaginate, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
-                parameters = (Map<String, Object>) this.omit(parameters, "until");
             }
-            Map<String, Object> response = (this.privateGetDeepcoinAssetDepositList(this.extend(request, parameters))).join();
+            Object paramsOmitted = this.omit(paramsPaginate, "until");
+            Map<String, Object> response = (this.privateGetDeepcoinAssetDepositList(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transactionParams = new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }};
-            return this.parseTransactions(items, currency, since, limit, transactionParams);
+            return this.parseTransactions(items, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(transactionParams));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @see https://www.deepcoin.com/docs/assets/deposit
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
-    {
-        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1489,28 +1327,21 @@ public class Deepcoin extends DeepcoinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
-            if (Boolean.TRUE.equals(paginate))
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            if (Helpers.isTrue(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "code", null, 1, 50)).join();
+                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "code", (String) null, Helpers.toLongOrNull(1), Helpers.toLongOrNull(50))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -1527,38 +1358,21 @@ public class Deepcoin extends DeepcoinApi
             {
                 request.put("size", limit);
             }
-            Long until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(paramsPaginate, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
-                parameters = (Map<String, Object>) this.omit(parameters, "until");
             }
-            Map<String, Object> response = (this.privateGetDeepcoinAssetWithdrawList(this.extend(request, parameters))).join();
+            Object paramsOmitted = this.omit(paramsPaginate, "until");
+            Map<String, Object> response = (this.privateGetDeepcoinAssetWithdrawList(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transactionParams = new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }};
-            return this.parseTransactions(items, currency, since, limit, transactionParams);
+            return this.parseTransactions(items, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(transactionParams));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @see https://www.deepcoin.com/docs/assets/withdraw
-     * @param {string} code unified currency code of the currency transferred
-     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
-     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
-    {
-        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
@@ -1577,7 +1391,7 @@ public class Deepcoin extends DeepcoinApi
         String txid = this.safeString(transaction, "txHash");
         String currencyId = this.safeString(transaction, "coin");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Double amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount", (Object) null);
         Long timestamp = this.safeTimestamp(transaction, "createTime");
         String networkId = this.safeString(transaction, "chainName");
         String network = this.networkIdToCode(networkId, code);
@@ -1608,10 +1422,6 @@ public class Deepcoin extends DeepcoinApi
             }} );
         }};
     }
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     public String parseTransactionStatus(String status)
     {
@@ -1631,14 +1441,14 @@ public class Deepcoin extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object codes2, Map<String, Object> parameters)
+    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object codes, Map<String, Object> parameters)
     {
-        final Object codes3 = codes2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object codes = codes3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             if (java.util.Objects.equals(codes, null))
             {
@@ -1687,22 +1497,9 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> additionalParams = new HashMap<String, Object>() {{
                 put( "currency", code );
             }};
-            return this.parseDepositAddresses(list, codes, false, additionalParams);
+            return this.parseDepositAddresses(list, codes, false, Helpers.toMapArg(additionalParams));
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchDepositAddresses
-     * @description fetch deposit addresses for multiple currencies and chain types
-     * @see https://www.deepcoin.com/docs/assets/chainlist
-     * @param {string[]|undefined} codes list of unified currency codes, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object... optionalArgs)
-    {
-        return this.fetchDepositAddresses(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1715,14 +1512,14 @@ public class Deepcoin extends DeepcoinApi
      * @param {string} [params.network] unified network code for deposit chain
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters2)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String network = this.safeString(parameters, "network");
             Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
@@ -1731,11 +1528,8 @@ public class Deepcoin extends DeepcoinApi
             {
                 network = defaultNetwork;
             }
-            if (!java.util.Objects.equals(network, null))
-            {
-                parameters = (Map<String, Object>) this.omit(parameters, "network");
-            }
-            List<DepositAddress> addressess = (this.fetchDepositAddresses((Object)(new ArrayList<Object>(Arrays.asList(code))), (Object)(parameters))).join();
+            Object paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
+            List<DepositAddress> addressess = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), Helpers.toMapArg(paramsOmitted))).join();
             Integer length = ((List<?>)addressess).size();
             Object address = this.safeDict(addressess, 0, new HashMap<String, Object>() {{}});
             if ((!java.util.Objects.equals(network, null)) && ((length != null && length > 1)))
@@ -1752,20 +1546,6 @@ public class Deepcoin extends DeepcoinApi
             return address;
         }).thenApply(DepositAddress::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchDepositAddress
-     * @description fetch the deposit address for a currency associated with this account
-     * @see https://www.deepcoin.com/docs/assets/chainlist
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] unified network code for deposit chain
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
-    {
-        return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseDepositAddress(Map<String, Object> response, Map<String, Object> currency)
@@ -1800,10 +1580,6 @@ public class Deepcoin extends DeepcoinApi
             put( "tag", Deepcoin.this.safeString(response, "memo") );
         }};
     }
-    public Object parseDepositAddress(Map<String, Object> response, Object... optionalArgs)
-    {
-        return this.parseDepositAddress(response, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -1818,28 +1594,20 @@ public class Deepcoin extends DeepcoinApi
      * @param {string} [params.type] 'spot' or 'swap', the market type for the ledger (default 'spot')
      * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String marketType = "spot";
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters, marketType);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            final String finalMarketType = marketType;
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, parameters, "spot");
+            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
+            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (finalMarketType)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(marketType) );
             }};
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
@@ -1855,13 +1623,13 @@ public class Deepcoin extends DeepcoinApi
             {
                 request.put("limit", limit);
             }
-            Long until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(paramsMarketType, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("before", until);
-                parameters = (Map<String, Object>) this.omit(parameters, "until");
             }
-            Map<String, Object> response = (this.privateGetDeepcoinAccountBills(this.extend(request, parameters))).join();
+            Object paramsOmitted = this.omit(paramsMarketType, "until");
+            Map<String, Object> response = (this.privateGetDeepcoinAccountBills(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "code": "0",
@@ -1889,26 +1657,9 @@ public class Deepcoin extends DeepcoinApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(data, currency, since, limit);
+            return this.parseLedger(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchLedger
-     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBills
-     * @param {string} [code] unified currency code
-     * @param {int} [since] timestamp in ms of the earliest ledger entry
-     * @param {int} [limit] max number of ledger entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @param {string} [params.type] 'spot' or 'swap', the market type for the ledger (default 'spot')
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
-     */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
-    {
-        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
@@ -1933,31 +1684,25 @@ public class Deepcoin extends DeepcoinApi
             direction = "out";
         }
         String currencyId = this.safeString(item, "ccy");
-        currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
+        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
         String type = this.safeString(item, "type");
-        final String finalDirection = direction;
-        final Map<String, Object> finalCurrency = currency;
-        return this.safeLedgerEntry(new HashMap<String, Object>() {{
-            put( "info", item );
-            put( "id", Deepcoin.this.safeString(item, "billId") );
-            put( "direction", finalDirection );
-            put( "account", null );
-            put( "referenceAccount", null );
-            put( "referenceId", null );
-            put( "type", Deepcoin.this.parseLedgerEntryType(type) );
-            put( "currency", ((Map<String, Object>)finalCurrency).get("code") );
-            put( "amount", amount );
-            put( "timestamp", timestamp );
-            put( "datetime", Deepcoin.this.iso8601(timestamp) );
-            put( "before", null );
-            put( "after", Deepcoin.this.safeString(item, "bal") );
-            put( "status", null );
-            put( "fee", null );
-        }}, currency);
-    }
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
-    {
-        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeLedgerEntry(Helpers.newMap(
+            "info", item,
+            "id", this.safeString(item, "billId"),
+            "direction", direction,
+            "account", null,
+            "referenceAccount", null,
+            "referenceId", null,
+            "type", this.parseLedgerEntryType(type),
+            "currency", ((Map<String, Object>)currencyResolved).get("code"),
+            "amount", amount,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "before", null,
+            "after", this.safeString(item, "bal"),
+            "status", null,
+            "fee", null
+        ), Helpers.toMapArg(currencyResolved));
     }
 
     public String parseLedgerEntryType(String type)
@@ -1985,37 +1730,42 @@ public class Deepcoin extends DeepcoinApi
      * @param {string} [params.userId] user id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters2)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
+            List<Object> userIdOptionparamsUserIdVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "transfer", "userId", (String) null);
+            String userIdOption = (String) ((List<Object>) userIdOptionparamsUserIdVariable).get(0);
+            Map<String, Object> paramsUserId = (Map<String, Object>) ((List<Object>) userIdOptionparamsUserIdVariable).get(1);
             String userId = null;
-            List<Object> userIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "transfer", "userId");
-            userId = (String) ((List<Object>) userIdparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) userIdparametersVariable).get(1);
-            userId = (((!java.util.Objects.equals(userId, null) && !java.util.Objects.equals(userId, "")))) ? userId : this.safeString(parameters, "uid");
+            if (!java.util.Objects.equals(userIdOption, null) && !java.util.Objects.equals(userIdOption, ""))
+            {
+                userId = userIdOption;
+            } else
+            {
+                userId = this.safeString(paramsUserId, "uid");
+            }
             if (java.util.Objects.equals(userId, null))
             {
                 throw new ArgumentsRequired((this.id + " transfer() requires a userId parameter")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
-            final String finalUserId = userId;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency_id", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Deepcoin.this.currencyToPrecision((String) (code), amount) );
-                put( "from_id", fromId );
-                put( "to_id", toId );
-                put( "uid", finalUserId );
-            }};
-            Map<String, Object> response = (this.privatePostDeepcoinAssetTransfer(this.extend(request, parameters))).join();
+            Map<String, Object> request = Helpers.newMap(
+                "currency_id", ((Map<String, Object>)currency).get("id"),
+                "amount", this.currencyToPrecision((String) (code), amount, (String) null),
+                "from_id", fromId,
+                "to_id", toId,
+                "uid", userId
+            );
+            Map<String, Object> response = (this.privatePostDeepcoinAssetTransfer(this.extend(request, paramsUserId))).join();
             //
             //     {
             //         "code": "0",
@@ -2028,7 +1778,7 @@ public class Deepcoin extends DeepcoinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object transfer = this.parseTransfer(data, currency);
+            Object transfer = this.parseTransfer(data, Helpers.toMapArg(currency));
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
@@ -2040,23 +1790,6 @@ public class Deepcoin extends DeepcoinApi
             return transfer;
         }).thenApply(TransferEntry::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#transfer
-     * @description transfer currency internally between wallets on the same account
-     * @see https://www.deepcoin.com/docs/assets/transfer
-     * @param {string} code unified currency code
-     * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
-     * @param {string} toAccount account to transfer to ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.userId] user id
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Object... optionalArgs)
-    {
-        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransfer(Object transfer, Map<String, Object> currency)
@@ -2081,10 +1814,6 @@ public class Deepcoin extends DeepcoinApi
             put( "toAccount", null );
             put( "status", Deepcoin.this.parseTransferStatus(status) );
         }};
-    }
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
-    {
-        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseTransferStatus(String status)
@@ -2127,7 +1856,7 @@ public class Deepcoin extends DeepcoinApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String triggerPrice = this.safeString(parameters, "triggerPrice");
@@ -2156,37 +1885,9 @@ public class Deepcoin extends DeepcoinApi
                 response = (this.privatePostDeepcoinTradeOrder(request)).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, market);
+            return this.parseOrder(data, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#createOrder
-     * @description create a trade order
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/order
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrder
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] a unique id for the order
-     * @param {string} [params.timeInForce] *non trigger orders only* 'GTC' (Good Till Cancel), 'IOC' (Immediate Or Cancel) or 'PO' (Post Only)
-     * @param {bool} [params.postOnly] *non trigger orders only* true to place a post only order
-     * @param {bool} [params.reduceOnly] *non trigger orders only* a mark to reduce the position size for margin, swap and future orders
-     * @param {float} [params.triggerPrice] the price a trigger order is triggered at
-     * @param {float} [params.stopLoss.triggerPrice] the price that a stop loss order is triggered at
-     * @param {float} [params.takeProfit.triggerPrice] the price that a take profit order is triggered at
-     * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
-     * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode
-     * @param {string} [params.marginMode] *swap only*'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -2225,10 +1926,6 @@ public class Deepcoin extends DeepcoinApi
             return (Map<String, Object>) (this.createRegularOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters));
         }
     }
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     public Map<String, Object> createRegularOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
@@ -2262,35 +1959,33 @@ public class Deepcoin extends DeepcoinApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object orderType = type;
-        List<Object> orderTypeparametersVariable = (List<Object>) this.handleTypePostOnlyAndTimeInForce((String) (type), (Map<String, Object>) (parameters));
-        orderType = ((List<Object>) orderTypeparametersVariable).get(0);
-        parameters = (Map<String, Object>) ((List<Object>) orderTypeparametersVariable).get(1);
-        final String finalSide = side;
-        final Object finalOrderType = orderType;
-        Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "instId", ((Map<String, Object>)market).get("id") );
-            put( "side", finalSide );
-            put( "ordType", finalOrderType );
-        }};
-        String clientOrderId = this.safeString(parameters, "clientOrderId");
+        List<Object> orderTypeparamsOrderTypeVariable = (List<Object>) this.handleTypePostOnlyAndTimeInForce((String) (type), (Map<String, Object>) (parameters));
+        var orderType = ((List<Object>) orderTypeparamsOrderTypeVariable).get(0);
+        var paramsOrderType = ((List<Object>) orderTypeparamsOrderTypeVariable).get(1);
+        Map<String, Object> request = Helpers.newMap(
+            "instId", ((Map<String, Object>)market).get("id"),
+            "side", side,
+            "ordType", orderType
+        );
+        List<Object> keysToOmit = new ArrayList<Object>(Arrays.asList());
+        String clientOrderId = this.safeString(paramsOrderType, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             request.put("clOrdId", clientOrderId);
-            parameters = (Map<String, Object>) (this.omit(parameters, "clientOrderId"));
+            ((List<Object>)keysToOmit).add("clientOrderId");
         }
-        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", new HashMap<String, Object>() {{}});
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsOrderType, "stopLoss", new HashMap<String, Object>() {{}});
         String stopLossPrice = this.safeString(stopLoss, "triggerPrice");
         if (!java.util.Objects.equals(stopLossPrice, null))
         {
-            parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss"))));
+            ((List<Object>)keysToOmit).add("stopLoss");
             request.put("slTriggerPx", this.priceToPrecision(symbol, stopLossPrice));
         }
-        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", new HashMap<String, Object>() {{}});
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsOrderType, "takeProfit", new HashMap<String, Object>() {{}});
         String takeProfitPrice = this.safeString(takeProfit, "triggerPrice");
         if (!java.util.Objects.equals(takeProfitPrice, null))
         {
-            parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfit"))));
+            ((List<Object>)keysToOmit).add("takeProfit");
             request.put("tpTriggerPx", this.priceToPrecision(symbol, takeProfitPrice));
         }
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
@@ -2305,16 +2000,17 @@ public class Deepcoin extends DeepcoinApi
         {
             throw new BadRequest((this.id + " createOrder() requires a price argument for limit orders")) ;
         }
+        Object paramsRequest = null;
         if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
         {
-            String cost = this.safeString(parameters, "cost");
+            String cost = this.safeString(paramsOrderType, "cost");
             if (!java.util.Objects.equals(cost, null))
             {
                 if (!Boolean.TRUE.equals(isMarketOrder))
                 {
                     throw new BadRequest((this.id + " createOrder() accepts a cost parameter for spot market orders only")) ;
                 }
-                parameters = (Map<String, Object>) (this.omit(parameters, "cost"));
+                ((List<Object>)keysToOmit).add("cost");
                 request.put("sz", this.costToPrecision(symbol, cost));
                 request.put("tgtCcy", "quote_ccy");
             } else
@@ -2324,21 +2020,22 @@ public class Deepcoin extends DeepcoinApi
             }
             request.put("side", side);
             request.put("tdMode", "cash");
+            paramsRequest = this.omit(paramsOrderType, keysToOmit);
         } else
         {
             request.put("sz", this.amountToPrecision(symbol, amount));
-            String marginMode = "cross";
-            List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, marginMode);
-            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            Object paramsOmitted = this.omit(paramsOrderType, keysToOmit);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsOmitted), "cross");
+            String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
+            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             request.put("tdMode", marginMode);
-            String mrgPosition = "merge";
-            List<Object> mrgPositionparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "mrgPosition", mrgPosition);
-            mrgPosition = (String) ((List<Object>) mrgPositionparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) mrgPositionparametersVariable).get(1);
+            List<Object> mrgPositionparamsMrgPositionVariable = (List<Object>) this.handleOptionStringAndParams(paramsMarginMode, "createOrder", "mrgPosition", "merge");
+            String mrgPosition = (String) ((List<Object>) mrgPositionparamsMrgPositionVariable).get(0);
+            Map<String, Object> paramsMrgPosition = (Map<String, Object>) ((List<Object>) mrgPositionparamsMrgPositionVariable).get(1);
+            paramsRequest = paramsMrgPosition;
             request.put("mrgPosition", mrgPosition);
             String posSide = null;
-            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+            Boolean reduceOnly = (Boolean) this.safeBool(paramsMrgPosition, "reduceOnly", false);
             if (java.util.Objects.equals(reduceOnly, true))
             {
                 if (java.util.Objects.equals(side, "buy"))
@@ -2360,11 +2057,7 @@ public class Deepcoin extends DeepcoinApi
             }
             request.put("posSide", posSide);
         }
-        return (Map<String, Object>) (this.extend(request, parameters));
-    }
-    public Map<String, Object> createRegularOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createRegularOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return (Map<String, Object>) (this.extend(request, paramsRequest));
     }
 
     public Map<String, Object> createTriggerOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -2392,15 +2085,13 @@ public class Deepcoin extends DeepcoinApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        final String finalSide = side;
-        final String finalType = type;
-        Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "instId", ((Map<String, Object>)market).get("id") );
-            put( "productGroup", Deepcoin.this.capitalize(((Map<String, Object>)market).get("type")) );
-            put( "sz", Deepcoin.this.amountToPrecision(symbol, amount) );
-            put( "side", finalSide );
-            put( "orderType", finalType );
-        }};
+        Map<String, Object> request = Helpers.newMap(
+            "instId", ((Map<String, Object>)market).get("id"),
+            "productGroup", this.capitalize(((Map<String, Object>)market).get("type")),
+            "sz", this.amountToPrecision(symbol, amount),
+            "side", side,
+            "orderType", type
+        );
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         // const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         // const stopLossPrice = this.safeString (params, 'stopLossPrice');
@@ -2422,18 +2113,18 @@ public class Deepcoin extends DeepcoinApi
             throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for limit trigger orders")) ;
         }
         String marginMode = "cross";
-        List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, marginMode);
-        marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
-        parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+        List<Object> marginModeOptionparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, marginMode);
+        String marginModeOption = (String) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(0);
+        var paramsMarginMode = ((List<Object>) marginModeOptionparamsMarginModeVariable).get(1);
         Integer isCrossMargin = 1;
-        if (java.util.Objects.equals(marginMode, "isolated"))
+        if (java.util.Objects.equals(marginModeOption, "isolated"))
         {
             isCrossMargin = 0;
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
-        parameters = (Map<String, Object>) (this.omit(parameters, "reduceOnly"));
+        Boolean reduceOnly = (Boolean) this.safeBool(paramsMarginMode, "reduceOnly", false);
+        Object paramsOmitted = this.omit(paramsMarginMode, "reduceOnly");
         request.put("isCrossMargin", isCrossMargin);
-        request.put("tdMode", marginMode);
+        request.put("tdMode", marginModeOption);
         if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
         {
             if (java.util.Objects.equals(reduceOnly, true))
@@ -2457,34 +2148,31 @@ public class Deepcoin extends DeepcoinApi
             }
         }
         String mrgPosition = "merge";
-        List<Object> mrgPositionparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "mrgPosition", mrgPosition);
-        mrgPosition = (String) ((List<Object>) mrgPositionparametersVariable).get(0);
-        parameters = (Map<String, Object>) ((List<Object>) mrgPositionparametersVariable).get(1);
-        request.put("mrgPosition", mrgPosition);
-        return (Map<String, Object>) (this.extend(request, parameters));
-    }
-    public Map<String, Object> createTriggerOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createTriggerOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        List<Object> mrgPositionOptionparamsMrgPositionVariable = (List<Object>) this.handleOptionStringAndParams(paramsOmitted, "createOrder", "mrgPosition", mrgPosition);
+        String mrgPositionOption = (String) ((List<Object>) mrgPositionOptionparamsMrgPositionVariable).get(0);
+        Map<String, Object> paramsMrgPosition = (Map<String, Object>) ((List<Object>) mrgPositionOptionparamsMrgPositionVariable).get(1);
+        request.put("mrgPosition", mrgPositionOption);
+        return (Map<String, Object>) (this.extend(request, paramsMrgPosition));
     }
 
     public Object handleTypePostOnlyAndTimeInForce(String type, Map<String, Object> parameters)
     {
-        Boolean postOnly = false;
-        List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
-        postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-        parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
-        if (Boolean.TRUE.equals(postOnly))
+        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
+        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
+        var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        String typePostOnly = type;
+        if (Helpers.isTrue(postOnly))
         {
-            type = "post_only";
+            typePostOnly = "post_only";
         }
-        String timeInForce = this.handleTimeInForce(parameters);
-        parameters = (Map<String, Object>) (this.omit(parameters, "timeInForce"));
+        String timeInForce = this.handleTimeInForce(Helpers.toMapArg(paramsPostOnly));
+        Object paramsOmitted = this.omit(paramsPostOnly, "timeInForce");
+        String typeValue = typePostOnly;
         if ((!java.util.Objects.equals(timeInForce, null)) && (java.util.Objects.equals(timeInForce, "IOC")))
         {
-            type = "ioc";
+            typeValue = "ioc";
         }
-        return new ArrayList<Object>(Arrays.asList(type, parameters));
+        return new ArrayList<Object>(Arrays.asList(typeValue, paramsOmitted));
     }
 
     /**
@@ -2497,31 +2185,17 @@ public class Deepcoin extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
-            parameters = this.extend(parameters, new HashMap<String, Object>() {{
+
+            Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "cost", cost );
             }});
-            return (this.createOrder(symbol, "market", (String) (side), (Object)(0), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder(symbol, "market", (String) (side), 0, (Object) null, Helpers.toMapArg(paramsExtended))).join();
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#createMarketOrderWithCost
-     * @description create a market order by providing the symbol, side and cost
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} cost how much you want to trade in units of the quote currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Object... optionalArgs)
-    {
-        return this.createMarketOrderWithCost(symbol, side, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2533,30 +2207,17 @@ public class Deepcoin extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
-            parameters = this.extend(parameters, new HashMap<String, Object>() {{
+
+            Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "cost", cost );
             }});
-            return (this.createOrder(symbol, "market", "buy", (Object)(0), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder(symbol, "market", "buy", 0, (Object) null, Helpers.toMapArg(paramsExtended))).join();
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#createMarketBuyOrderWithCost
-     * @description create a market buy order by providing the symbol and cost
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {float} cost how much you want to trade in units of the quote currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
-    {
-        return this.createMarketBuyOrderWithCost(symbol, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2568,30 +2229,17 @@ public class Deepcoin extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
-            parameters = this.extend(parameters, new HashMap<String, Object>() {{
+
+            Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "cost", cost );
             }});
-            return (this.createOrder(symbol, "market", "sell", (Object)(0), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder(symbol, "market", "sell", 0, (Object) null, Helpers.toMapArg(paramsExtended))).join();
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#createMarketSellOrderWithCost
-     * @description create a market sell order by providing the symbol and cost
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {float} cost how much you want to trade in units of the quote currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
-    {
-        return this.createMarketSellOrderWithCost(symbol, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2604,14 +2252,14 @@ public class Deepcoin extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchClosedOrder(String id, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchClosedOrder(String id, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             if (java.util.Objects.equals(symbol, null))
             {
@@ -2671,23 +2319,9 @@ public class Deepcoin extends DeepcoinApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseOrder(entry, market);
+            return this.parseOrder(entry, Helpers.toMapArg(market));
         });
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchClosedOrder
-     * @description fetches information on a closed order made by the user
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/finishOrderByID
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Object> fetchClosedOrder(String id, Object... optionalArgs)
-    {
-        return this.fetchClosedOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2700,14 +2334,14 @@ public class Deepcoin extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             if (java.util.Objects.equals(symbol, null))
             {
@@ -2726,23 +2360,9 @@ public class Deepcoin extends DeepcoinApi
                 throw new OrderNotFound(((this.id + " fetchOpenOrder() could not find order id ") + id)) ;
             }
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseOrder(entry, market);
+            return this.parseOrder(entry, Helpers.toMapArg(market));
         });
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchOpenOrder
-     * @description fetch an open order by it's id
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/orderByID
-     * @param {string} id order id
-     * @param {string} symbol unified market symbol, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
-    {
-        return this.fetchOpenOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2762,32 +2382,28 @@ public class Deepcoin extends DeepcoinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, parameters)).join();
+                return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
             }
-            Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
-            String methodName = "fetchCanceledAndClosedOrders";
-            List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "methodName", methodName);
-            methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) methodNameparametersVariable).get(1);
+            Boolean trigger = (Boolean) this.safeBool(paramsPaginate, "trigger", false);
+            List<Object> methodNameparamsMethodNameVariable = (List<Object>) this.handleParamString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders");
+            String methodName = (String) ((List<Object>) methodNameparamsMethodNameVariable).get(0);
+            Map<String, Object> paramsMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsMethodNameVariable).get(1);
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
@@ -2795,10 +2411,9 @@ public class Deepcoin extends DeepcoinApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("instId", ((Map<String, Object>)market).get("id"));
             }
-            String marketType = "spot";
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, Helpers.toMapArg(market), Helpers.toMapArg(paramsMethodName), "spot");
+            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
+            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             request.put("instType", this.convertToInstrumentType(marketType));
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2815,7 +2430,7 @@ public class Deepcoin extends DeepcoinApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders")) ;
                 }
-                parameters = (Map<String, Object>) this.omit(parameters, "trigger");
+                Object paramsOmitted = this.omit(paramsMarketType, "trigger");
                 //
                 //     {
                 //         "code": "0",
@@ -2843,7 +2458,7 @@ public class Deepcoin extends DeepcoinApi
                 //         ]
                 //     }
                 //
-                response = (this.privateGetDeepcoinTradeTriggerOrdersHistory(this.extend(request, parameters))).join();
+                response = (this.privateGetDeepcoinTradeTriggerOrdersHistory(this.extend(request, paramsOmitted))).join();
             } else
             {
                 //
@@ -2892,34 +2507,13 @@ public class Deepcoin extends DeepcoinApi
                 //         ]
                 //     }
                 //
-                response = (this.privateGetDeepcoinTradeOrdersHistory(this.extend(request, parameters))).join();
+                response = (this.privateGetDeepcoinTradeOrdersHistory(this.extend(request, paramsMarketType))).join();
             }
             // todo handle with since, until and pagination
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, limit);
+            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchCanceledAndClosedOrders
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrdersHistory
-     * @description fetches information on multiple canceled and closed orders made by the user
-     * @param {string} [symbol] unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.trigger] whether to fetch trigger/algo orders (default false)
-     * @param {string} [params.type] *non trigger orders only* 'spot' or 'swap', the market type for the orders
-     * @param {string} [params.state] *non trigger orders only* 'canceled' or 'filled', the order state to filter by
-     * @param {string} [params.OrderType] *trigger orders only* 'limit' or 'market'
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
-    {
-        return this.fetchCanceledAndClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2934,37 +2528,21 @@ public class Deepcoin extends DeepcoinApi
      * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
             String methodName = "fetchCanceledOrders";
-            parameters = this.extend(parameters, new HashMap<String, Object>() {{
+            Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", methodName );
             }});
-            parameters = this.extend(parameters, new HashMap<String, Object>() {{
+            Map<String, Object> paramsExtended2 = this.extend(paramsExtended, new HashMap<String, Object>() {{
                 put( "state", "canceled" );
             }});
-            return (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
+            return (this.fetchCanceledAndClosedOrders(symbol, since, limit, Helpers.toMapArg(paramsExtended2))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchCanceledOrders
-     * @description fetches information on multiple canceled orders made by the user
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
-     * @param {string} symbol unified market symbol of the market the orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
-    {
-        return this.fetchCanceledOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2979,37 +2557,21 @@ public class Deepcoin extends DeepcoinApi
      * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
             String methodName = "fetchClosedOrders";
-            parameters = this.extend(parameters, new HashMap<String, Object>() {{
+            Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", methodName );
             }});
-            parameters = this.extend(parameters, new HashMap<String, Object>() {{
+            Map<String, Object> paramsExtended2 = this.extend(paramsExtended, new HashMap<String, Object>() {{
                 put( "state", "filled" );
             }});
-            return (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
+            return (this.fetchCanceledAndClosedOrders(symbol, since, limit, Helpers.toMapArg(paramsExtended2))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
-     * @param {string} symbol unified market symbol of the market the orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
-    {
-        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3027,18 +2589,14 @@ public class Deepcoin extends DeepcoinApi
      * @param {string} [params.orderType] *trigger orders only* 'limit' or 'market'
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             if (java.util.Objects.equals(symbol, null))
             {
@@ -3054,10 +2612,10 @@ public class Deepcoin extends DeepcoinApi
                 request.put("limit", limit);
             }
             Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "trigger");
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
-                parameters = (Map<String, Object>) this.omit(parameters, "trigger");
                 request.put("instType", this.convertToInstrumentType((String) (((Map<String, Object>)market).get("type"))));
                 //
                 //     {
@@ -3090,7 +2648,7 @@ public class Deepcoin extends DeepcoinApi
                 //         ]
                 //     }
                 //
-                response = (this.privateGetDeepcoinTradeTriggerOrdersPending(this.extend(request, parameters))).join();
+                response = (this.privateGetDeepcoinTradeTriggerOrdersPending(this.extend(request, paramsOmitted))).join();
             } else
             {
                 request.put("index", index);
@@ -3143,30 +2701,11 @@ public class Deepcoin extends DeepcoinApi
                 response = (this.privateGetDeepcoinTradeV2OrdersPending(this.extend(request, parameters))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{
+            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
                 put( "status", "open" );
-            }});
+            }}));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersPendingV2
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrdersPending
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.trigger] whether to fetch trigger/algo orders (default false)
-     * @param {int} [params.index] *non trigger orders only* pagination index, default is 1
-     * @param {string} [params.orderType] *trigger orders only* 'limit' or 'market'
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3180,16 +2719,14 @@ public class Deepcoin extends DeepcoinApi
      * @param {bool} [params.trigger] whether the order is a trigger/algo order (default false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(String id, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             if (java.util.Objects.equals(symbol, null))
             {
@@ -3204,31 +2741,16 @@ public class Deepcoin extends DeepcoinApi
             Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
             if (java.util.Objects.equals(trigger, true))
             {
-                parameters = (Map<String, Object>) this.omit(parameters, "trigger");
-                response = (this.privatePostDeepcoinTradeCancelTriggerOrder(this.extend(request, parameters))).join();
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "trigger");
+                response = (this.privatePostDeepcoinTradeCancelTriggerOrder(this.extend(request, paramsOmitted))).join();
             } else
             {
                 response = (this.privatePostDeepcoinTradeCancelOrder(this.extend(request, parameters))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, market);
+            return this.parseOrder(data, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#cancelOrder
-     * @description cancels an open order
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/cancelOrder
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.trigger] whether the order is a trigger/algo order (default false)
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(String id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3242,16 +2764,14 @@ public class Deepcoin extends DeepcoinApi
      * @param {bool} [params.merged] *swap only* true for merged positions, false for split positions (default true)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             if (java.util.Objects.equals(symbol, null))
             {
@@ -3264,47 +2784,23 @@ public class Deepcoin extends DeepcoinApi
             }
             String productGroup = this.getProductGroupFromMarket((Map<String, Object>) (market));
             String marginMode = this.safeString(parameters, "marginMode");
-            Integer encodedMarginMode = 1;
-            if (!java.util.Objects.equals(marginMode, null))
-            {
-                parameters = (Map<String, Object>) this.omit(parameters, "marginMode");
-                if (java.util.Objects.equals(marginMode, "isolated"))
-                {
-                    encodedMarginMode = 0;
-                }
-            }
-            Boolean merged = true;
-            List<Object> mergedparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "cancelAllOrders", "merged", merged);
-            merged = (Boolean) ((List<Object>) mergedparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) mergedparametersVariable).get(1);
-            Integer isMergedMode = ((Boolean.TRUE.equals(merged))) ? 1 : 0;
-            final Integer finalEncodedMarginMode = encodedMarginMode;
+            Integer encodedMarginMode = (((java.util.Objects.equals(marginMode, "isolated")))) ? 0 : 1;
+            Object paramsOmitted = (((!java.util.Objects.equals(marginMode, null)))) ? this.omit(parameters, "marginMode") : parameters;
+            List<Object> mergedparamsMergedVariable = (List<Object>) this.handleOptionBoolAndParams(paramsOmitted, "cancelAllOrders", "merged", true);
+            Boolean merged = (Boolean) ((List<Object>) mergedparamsMergedVariable).get(0);
+            var paramsMerged = ((List<Object>) mergedparamsMergedVariable).get(1);
+            Integer isMergedMode = ((Helpers.isTrue(merged))) ? 1 : 0;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "InstrumentID", ((Map<String, Object>)market).get("id") );
                 put( "ProductGroup", productGroup );
-                put( "IsCrossMargin", finalEncodedMarginMode );
+                put( "IsCrossMargin", encodedMarginMode );
                 put( "IsMergeMode", isMergedMode );
             }};
-            Map<String, Object> response = (this.privatePostDeepcoinTradeSwapCancelAll(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostDeepcoinTradeSwapCancelAll(this.extend(request, paramsMerged))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market);
+            return this.parseOrders(data, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#cancelAllOrders
-     * @description cancel all open orders in a market
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/cancelAllOrder
-     * @param {string} symbol unified market symbol of the market to cancel orders in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
-     * @param {bool} [params.merged] *swap only* true for merged positions, false for split positions (default true)
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
-    {
-        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3324,25 +2820,20 @@ public class Deepcoin extends DeepcoinApi
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol2, String type, String side, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Object amount3 = amount2;
-        final Object price3 = price2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Object amount = amount3;
-            Object price = price3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "OrderSysID", id );
             }};
             Map<String, Object> market = null;
+            Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -3350,10 +2841,10 @@ public class Deepcoin extends DeepcoinApi
                 {
                     throw new NotSupported((this.id + " editOrder() is not supported for spot markets")) ;
                 }
-                symbol = (String) ((Map<String, Object>)market).get("symbol");
+                symbolResolved = ((Map<String, Object>)market).get("symbol");
             }
-            Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
-            Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
+            Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice", (Object) null);
+            Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice", (Object) null);
             Boolean isTPSL = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isTPSL))
@@ -3364,21 +2855,21 @@ public class Deepcoin extends DeepcoinApi
                 }
                 if (!java.util.Objects.equals(stopLossPrice, null))
                 {
-                    request.put("slTriggerPx", (((!java.util.Objects.equals(symbol, "")))) ? this.priceToPrecision(symbol, stopLossPrice) : this.numberToString(stopLossPrice));
+                    request.put("slTriggerPx", (((!java.util.Objects.equals(symbolResolved, "")))) ? this.priceToPrecision(symbolResolved, stopLossPrice) : this.numberToString(stopLossPrice));
                 }
                 if (!java.util.Objects.equals(takeProfitPrice, null))
                 {
-                    request.put("tpTriggerPx", (((!java.util.Objects.equals(symbol, "")))) ? this.priceToPrecision(symbol, takeProfitPrice) : this.numberToString(takeProfitPrice));
+                    request.put("tpTriggerPx", (((!java.util.Objects.equals(symbolResolved, "")))) ? this.priceToPrecision(symbolResolved, takeProfitPrice) : this.numberToString(takeProfitPrice));
                 }
-                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice")));
-                response = (this.privatePostDeepcoinTradeReplaceOrderSltp(this.extend(request, parameters))).join();
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice")));
+                response = (this.privatePostDeepcoinTradeReplaceOrderSltp(this.extend(request, paramsOmitted))).join();
             } else
             {
                 if (!java.util.Objects.equals(price, null))
                 {
-                    if (!java.util.Objects.equals(symbol, null))
+                    if (!java.util.Objects.equals(symbolResolved, null))
                     {
-                        request.put("price", this.priceToPrecision(symbol, price));
+                        request.put("price", this.priceToPrecision(symbolResolved, price));
                     } else
                     {
                         request.put("price", this.numberToString(price));
@@ -3386,9 +2877,9 @@ public class Deepcoin extends DeepcoinApi
                 }
                 if (!java.util.Objects.equals(amount, null))
                 {
-                    if (!java.util.Objects.equals(symbol, null))
+                    if (!java.util.Objects.equals(symbolResolved, null))
                     {
-                        request.put("volume", this.amountToPrecision(symbol, amount));
+                        request.put("volume", this.amountToPrecision(symbolResolved, amount));
                     } else
                     {
                         request.put("volume", this.numberToString(amount));
@@ -3397,30 +2888,9 @@ public class Deepcoin extends DeepcoinApi
                 response = (this.privatePostDeepcoinTradeReplaceOrder(this.extend(request, parameters))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data);
+            return this.parseOrder(data, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#editOrder
-     * @description edit a trade order
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/replaceOrder
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/replaceTPSL
-     * @param {string} id cancel order id
-     * @param {string} [symbol] unified symbol of the market to create an order in (not used in deepcoin editOrder)
-     * @param {string} [type] 'market' or 'limit' (not used in deepcoin editOrder)
-     * @param {string} [side] 'buy' or 'sell' (not used in deepcoin editOrder)
-     * @param {float} [amount] how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
-     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
-    {
-        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3432,14 +2902,14 @@ public class Deepcoin extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -3455,22 +2925,9 @@ public class Deepcoin extends DeepcoinApi
             }};
             Map<String, Object> response = (this.privatePostDeepcoinTradeBatchCancelOrder(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market);
+            return this.parseOrders(data, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#cancelOrders
-     * @description cancel multiple orders
-     * @param {string[]} ids order ids
-     * @param {string} [symbol] unified market symbol, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
-    {
-        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOrder(Object order, Map<String, Object> market)
@@ -3542,7 +2999,7 @@ public class Deepcoin extends DeepcoinApi
         //     }
         //
         String marketId = this.safeString(order, "instId");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(order, "cTime");
         String timestampString = this.safeString(order, "cTime", "");
         if (timestampString.length() < 13)
@@ -3561,48 +3018,38 @@ public class Deepcoin extends DeepcoinApi
         if (!java.util.Objects.equals(feeCurrencyId, null))
         {
             String feeCost = this.safeString(order, "fee");
-            final String finalFeeCurrencyId = feeCurrencyId;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", Deepcoin.this.parseNumber(feeCost) );
-                put( "currency", Deepcoin.this.safeCurrencyCode((String) (finalFeeCurrencyId)) );
-            }};
+            fee = Helpers.newMap(
+                "cost", this.parseNumber(feeCost),
+                "currency", this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null)
+            );
         }
-        final Long finalTimestamp = timestamp;
-        final Map<String, Object> finalMarket = market;
-        final String finalOrderType = orderType;
-        final String finalAverage = average;
-        final Map<String, Object> finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "id", Deepcoin.this.safeString(order, "ordId") );
-            put( "clientOrderId", Deepcoin.this.safeString(order, "clOrdId") );
-            put( "datetime", Deepcoin.this.iso8601(finalTimestamp) );
-            put( "timestamp", finalTimestamp );
-            put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", Deepcoin.this.safeInteger(order, "uTime") );
-            put( "status", Deepcoin.this.parseOrderStatus(state) );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "type", Deepcoin.this.parseOrderType((String) (finalOrderType)) );
-            put( "timeInForce", Deepcoin.this.parseOrderTimeInForce((String) (finalOrderType)) );
-            put( "side", Deepcoin.this.safeString(order, "side") );
-            put( "price", Deepcoin.this.safeString2(order, "px", "ordPx") );
-            put( "average", finalAverage );
-            put( "amount", Deepcoin.this.safeString(order, "sz") );
-            put( "filled", Deepcoin.this.safeString(order, "accFillSz") );
-            put( "remaining", null );
-            put( "triggerPrice", Deepcoin.this.omitZero(((String)Deepcoin.this.safeString(order, "triggerPx"))) );
-            put( "takeProfitPrice", Deepcoin.this.safeString2(order, "tpTriggerPx", "tpTriggerPrice") );
-            put( "stopLossPrice", Deepcoin.this.safeString2(order, "slTriggerPx", "slTriggerPrice") );
-            put( "cost", null );
-            put( "trades", null );
-            put( "fee", finalFee );
-            put( "reduceOnly", null );
-            put( "postOnly", (((!java.util.Objects.equals(finalOrderType, null) && !java.util.Objects.equals(finalOrderType, "")))) ? (java.util.Objects.equals(finalOrderType, "post_only")) : null );
-            put( "info", order );
-        }}, market);
-    }
-    public Object parseOrder(Object order, Object... optionalArgs)
-    {
-        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeOrder(Helpers.newMap(
+            "id", this.safeString(order, "ordId"),
+            "clientOrderId", this.safeString(order, "clOrdId"),
+            "datetime", this.iso8601(timestamp),
+            "timestamp", timestamp,
+            "lastTradeTimestamp", null,
+            "lastUpdateTimestamp", this.safeInteger(order, "uTime"),
+            "status", this.parseOrderStatus(state),
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "type", this.parseOrderType(orderType),
+            "timeInForce", this.parseOrderTimeInForce(orderType),
+            "side", this.safeString(order, "side"),
+            "price", this.safeString2(order, "px", "ordPx"),
+            "average", average,
+            "amount", this.safeString(order, "sz"),
+            "filled", this.safeString(order, "accFillSz"),
+            "remaining", null,
+            "triggerPrice", this.omitZero(((String)this.safeString(order, "triggerPx"))),
+            "takeProfitPrice", this.safeString2(order, "tpTriggerPx", "tpTriggerPrice"),
+            "stopLossPrice", this.safeString2(order, "slTriggerPx", "slTriggerPrice"),
+            "cost", null,
+            "trades", null,
+            "fee", fee,
+            "reduceOnly", null,
+            "postOnly", (((!java.util.Objects.equals(orderType, null) && !java.util.Objects.equals(orderType, "")))) ? (java.util.Objects.equals(orderType, "post_only")) : null,
+            "info", order
+        ), Helpers.toMapArg(marketResolved));
     }
 
     public String parseOrderStatus(String status)
@@ -3656,7 +3103,7 @@ public class Deepcoin extends DeepcoinApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String instrumentType = this.convertToInstrumentType((String) (((Map<String, Object>)market).get("type")));
@@ -3666,23 +3113,9 @@ public class Deepcoin extends DeepcoinApi
             }};
             Map<String, Object> response = (this.privateGetDeepcoinAccountPositions(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(data, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"))));
+            return this.parsePositions(data, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @description fetch open positions for a single market
-     * @name deepcoin#fetchPositionsForSymbol
-     * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
-     * @description fetch all open positions for specific symbol
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<List<Position>> fetchPositionsForSymbol(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchPositionsForSymbol(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3694,33 +3127,31 @@ public class Deepcoin extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
             String marketType = "swap";
             Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbols, null))
+            if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                String firstSymbol = this.safeString(symbols, 0);
+                String firstSymbol = this.safeString(symbolsNormalized, 0);
                 market = (Map<String, Object>) this.market(firstSymbol);
             }
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters, marketType);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            String instrumentType = this.convertToInstrumentType(marketType);
+            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", Helpers.toMapArg(market), parameters, marketType);
+            String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
+            var paramsMarketType = ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
+            String instrumentType = this.convertToInstrumentType(marketTypeOption);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", instrumentType );
             }};
-            Map<String, Object> response = (this.privateGetDeepcoinAccountPositions(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGetDeepcoinAccountPositions(this.extend(request, paramsMarketType))).join();
             //
             //     {
             //         "code": "0",
@@ -3746,22 +3177,9 @@ public class Deepcoin extends DeepcoinApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(data, symbols);
+            return this.parsePositions(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchPositions
-     * @description fetch all open positions
-     * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
-    {
-        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -3785,15 +3203,14 @@ public class Deepcoin extends DeepcoinApi
         //     }
         //
         String marketId = this.safeString(position, "instId");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(position, "cTime");
-        final Map<String, Object> finalMarket = market;
         return this.safePosition(new HashMap<String, Object>() {{
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
             put( "id", Deepcoin.this.safeString(position, "posId") );
             put( "timestamp", timestamp );
             put( "datetime", Deepcoin.this.iso8601(timestamp) );
-            put( "contracts", Deepcoin.this.safeNumber(position, "pos") );
+            put( "contracts", Deepcoin.this.safeNumber(position, "pos", (Object) null) );
             put( "contractSize", null );
             put( "side", Deepcoin.this.safeString(position, "posSide") );
             put( "notional", null );
@@ -3801,12 +3218,12 @@ public class Deepcoin extends DeepcoinApi
             put( "unrealizedPnl", null );
             put( "realizedPnl", null );
             put( "collateral", null );
-            put( "entryPrice", Deepcoin.this.safeNumber(position, "avgPx") );
+            put( "entryPrice", Deepcoin.this.safeNumber(position, "avgPx", (Object) null) );
             put( "markPrice", null );
-            put( "liquidationPrice", Deepcoin.this.safeNumber(position, "liqPx") );
+            put( "liquidationPrice", Deepcoin.this.safeNumber(position, "liqPx", (Object) null) );
             put( "marginMode", Deepcoin.this.safeString(position, "mgnMode") );
             put( "hedged", true );
-            put( "maintenanceMargin", Deepcoin.this.safeNumber(position, "useMargin") );
+            put( "maintenanceMargin", Deepcoin.this.safeNumber(position, "useMargin", (Object) null) );
             put( "maintenanceMarginPercentage", null );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
@@ -3818,10 +3235,6 @@ public class Deepcoin extends DeepcoinApi
             put( "percentage", null );
             put( "info", position );
         }});
-    }
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
-    {
-        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3836,15 +3249,11 @@ public class Deepcoin extends DeepcoinApi
      * @param {string} [params.mrgPosition] 'merge' or 'split', default is merge
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage2, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
     {
-        final Object leverage3 = leverage2;
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object leverage = leverage3;
-            String symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -3857,35 +3266,32 @@ public class Deepcoin extends DeepcoinApi
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String marginMode = "cross";
-            List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, marginMode);
-            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-            if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "isolated")))
+            List<Object> marginModeOptionparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, marginMode);
+            String marginModeOption = (String) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(0);
+            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(1);
+            if ((!java.util.Objects.equals(marginModeOption, "cross")) && (!java.util.Objects.equals(marginModeOption, "isolated")))
             {
                 throw new BadRequest((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             String mrgPosition = "merge";
-            List<Object> mrgPositionparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "setLeverage", "mrgPosition", mrgPosition);
-            mrgPosition = (String) ((List<Object>) mrgPositionparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) mrgPositionparametersVariable).get(1);
-            if (!java.util.Objects.equals(mrgPosition, "merge") && !java.util.Objects.equals(mrgPosition, "split"))
+            List<Object> mrgPositionOptionparamsMrgPositionVariable = (List<Object>) this.handleOptionStringAndParams(paramsMarginMode, "setLeverage", "mrgPosition", mrgPosition);
+            String mrgPositionOption = (String) ((List<Object>) mrgPositionOptionparamsMrgPositionVariable).get(0);
+            Map<String, Object> paramsMrgPosition = (Map<String, Object>) ((List<Object>) mrgPositionOptionparamsMrgPositionVariable).get(1);
+            if (!java.util.Objects.equals(mrgPositionOption, "merge") && !java.util.Objects.equals(mrgPositionOption, "split"))
             {
                 throw new BadRequest((this.id + " setLeverage() mrgPosition parameter must be either merge or split")) ;
             }
-            final Object finalLeverage = leverage;
-            final String finalMarginMode = marginMode;
-            final String finalMrgPosition = mrgPosition;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "lever", finalLeverage );
-                put( "mgnMode", finalMarginMode );
-                put( "instId", ((Map<String, Object>)market).get("id") );
-                put( "mrgPosition", finalMrgPosition );
-            }};
-            Map<String, Object> response = (this.privatePostDeepcoinAccountSetLeverage(this.extend(request, parameters))).join();
+            Map<String, Object> request = Helpers.newMap(
+                "lever", leverage,
+                "mgnMode", marginModeOption,
+                "instId", ((Map<String, Object>)market).get("id"),
+                "mrgPosition", mrgPositionOption
+            );
+            Map<String, Object> response = (this.privatePostDeepcoinAccountSetLeverage(this.extend(request, paramsMrgPosition))).join();
             //
             //     {
             //         code: '0',
@@ -3904,22 +3310,6 @@ public class Deepcoin extends DeepcoinApi
         });
 
     }
-    /**
-     * @method
-     * @name deepcoin#setLeverage
-     * @description set the level of leverage for a market
-     * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountSetLeverage
-     * @param {float} leverage the rate of leverage
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'cross' or 'isolated' (default is cross)
-     * @param {string} [params.mrgPosition] 'merge' or 'split', default is merge
-     * @returns {object} response from the exchange
-     */
-    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
-    {
-        return this.setLeverage(leverage, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3931,41 +3321,38 @@ public class Deepcoin extends DeepcoinApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, "swap", true, true, true));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, "swap", true, true, true);
             String subType = "linear";
             Map<String, Object> firstMarket = null;
-            if (!java.util.Objects.equals(symbols, null))
+            if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                String firstSymbol = this.safeString(symbols, 0);
+                String firstSymbol = this.safeString(symbolsNormalized, 0);
                 firstMarket = (Map<String, Object>) this.market(firstSymbol);
             }
-            List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
-            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            List<Object> subTypeOptionparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", Helpers.toMapArg(firstMarket), parameters, subType);
+            String subTypeOption = (String) ((List<Object>) subTypeOptionparamsSubTypeVariable).get(0);
+            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeOptionparamsSubTypeVariable).get(1);
             String instType = "SwapU";
-            if (java.util.Objects.equals(subType, "inverse"))
+            if (java.util.Objects.equals(subTypeOption, "inverse"))
             {
                 instType = "Swap";
-            } else if (!java.util.Objects.equals(subType, "linear"))
+            } else if (!java.util.Objects.equals(subTypeOption, "linear"))
             {
                 throw new BadRequest((this.id + " fetchFundingRates() subType parameter must be either linear or inverse")) ;
             }
-            final String finalInstType = instType;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", finalInstType );
-            }};
-            Map<String, Object> response = (this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters))).join();
+            Map<String, Object> request = Helpers.newMap(
+                "instType", instType
+            );
+            Map<String, Object> response = (this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, paramsSubType))).join();
             //
             //     {
             //         "code": "0",
@@ -3986,23 +3373,9 @@ public class Deepcoin extends DeepcoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rates = (List<Object>) this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRates(rates, symbols);
+            return this.parseFundingRates(rates, Helpers.toStringListArg(symbolsNormalized));
         }).thenApply(FundingRates::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchFundingRates
-     * @description fetch the funding rate for multiple markets
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
-     */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
-    {
-        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4014,14 +3387,14 @@ public class Deepcoin extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object parameters)
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -4050,26 +3423,9 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rates = (List<Object>) this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(rates, 0, new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(entry, market);
+            return this.parseFundingRate(entry, Helpers.toMapArg(market));
         }).thenApply(FundingRate::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchFundingRate
-     * @description fetch the current funding rate
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
-     */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
-    {
-        return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
-    {
-        return this.fetchFundingRate(symbol, (Object) (parameters));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -4081,7 +3437,7 @@ public class Deepcoin extends DeepcoinApi
         //     }
         //
         String marketId = this.safeString2(contract, "instrumentId", "instrumentID");
-        String symbol = this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -4091,7 +3447,7 @@ public class Deepcoin extends DeepcoinApi
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", Deepcoin.this.safeNumber(contract, "fundingRate") );
+            put( "fundingRate", Deepcoin.this.safeNumber(contract, "fundingRate", (Object) null) );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
             put( "nextFundingRate", null );
@@ -4102,10 +3458,6 @@ public class Deepcoin extends DeepcoinApi
             put( "previousFundingDatetime", null );
             put( "interval", null );
         }};
-    }
-    public Object parseFundingRate(Object contract, Object... optionalArgs)
-    {
-        return this.parseFundingRate(contract, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -4120,20 +3472,18 @@ public class Deepcoin extends DeepcoinApi
      * @param {int} [params.page] pagination page number
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4168,25 +3518,9 @@ public class Deepcoin extends DeepcoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRateHistories(rows, market, since, limit);
+            return this.parseFundingRateHistories(rows, Helpers.toMapArg(market), since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchFundingRateHistory
-     * @description fetches historical funding rate prices
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/fundingRateHistory
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.page] pagination page number
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
-     */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
-    {
-        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseFundingRateHistory(Object info, Map<String, Object> market)
@@ -4201,19 +3535,14 @@ public class Deepcoin extends DeepcoinApi
         //
         Long timestamp = this.safeTimestamp(info, "CreateTime");
         String instrumentID = this.safeString2(info, "instrumentID", "instrumentId");
-        market = (Map<String, Object>) (this.safeMarket(instrumentID, market, null, "swap"));
-        final Map<String, Object> finalMarket = market;
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(instrumentID, market, (String) null, "swap");
         return new HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "fundingRate", Deepcoin.this.safeNumber(info, "rate") );
+            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "fundingRate", Deepcoin.this.safeNumber(info, "rate", (Object) null) );
             put( "timestamp", timestamp );
             put( "datetime", Deepcoin.this.iso8601(timestamp) );
         }};
-    }
-    public Object parseFundingRateHistory(Object info, Object... optionalArgs)
-    {
-        return this.parseFundingRateHistory(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -4230,41 +3559,34 @@ public class Deepcoin extends DeepcoinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            String marketType = "spot";
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, marketType);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            final String finalMarketType = marketType;
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), Helpers.toMapArg(paramsPaginate), "spot");
+            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
+            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (finalMarketType)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(marketType) );
             }};
             if (!java.util.Objects.equals(market, null))
             {
@@ -4278,13 +3600,13 @@ public class Deepcoin extends DeepcoinApi
             {
                 request.put("limit", limit); // default 100, max 100
             }
-            Long until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(paramsMarketType, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = (Map<String, Object>) this.omit(parameters, "until");
                 request.put("end", until);
             }
-            Map<String, Object> response = (this.privateGetDeepcoinTradeFills(this.extend(request, parameters))).join();
+            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsMarketType, "until") : paramsMarketType;
+            Map<String, Object> response = (this.privateGetDeepcoinTradeFills(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "code": "0",
@@ -4311,27 +3633,9 @@ public class Deepcoin extends DeepcoinApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limit);
+            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
-     * @param {string} [params.type] 'spot' or 'swap', the market type for the trades (default is 'spot')
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4347,45 +3651,26 @@ public class Deepcoin extends DeepcoinApi
      * @param {string} [params.type] 'spot' or 'swap', the market type for the trades
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol2, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Object parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String marketType = this.safeString(parameters, "type");
             if (java.util.Objects.equals(symbol, null) && java.util.Objects.equals(marketType, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrderTrades requires a symbol argument or a market type in the params")) ;
             }
-            parameters = this.extend(new HashMap<String, Object>() {{
+            Map<String, Object> paramsExtended = this.extend(new HashMap<String, Object>() {{
                 put( "ordId", id );
             }}, parameters);
-            return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(paramsExtended))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name deepcoin#fetchOrderTrades
-     * @description fetch all the trades made from a single order
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills
-     * @param {string} id order id
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot' or 'swap', the market type for the trades
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
-    {
-        return this.fetchOrderTrades(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4401,19 +3686,19 @@ public class Deepcoin extends DeepcoinApi
      * @param {string[]|undefined} [params.positionIds] list of position ids to close (for batch closing)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> closePosition(String symbol, String side, Map<String, Object> parameters2)
+    public CompletableFuture<Order> closePosition(String symbol, String side, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String productGroup = this.getProductGroupFromMarket((Map<String, Object>) (market));
             String positionId = this.safeString(parameters, "positionId");
-            List<Object> positionIds = (List<Object>) this.safeList(parameters, "positionIds");
+            List<Object> positionIds = (List<Object>) this.safeList(parameters, "positionIds", (Object) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
                 put( "productGroup", productGroup );
@@ -4426,38 +3711,21 @@ public class Deepcoin extends DeepcoinApi
             {
                 if (!java.util.Objects.equals(positionId, null))
                 {
-                    parameters = (Map<String, Object>) this.omit(parameters, "positionId");
                     request.put("positionIds", new ArrayList<Object>(Arrays.asList(positionId)));
                 }
-                response = (this.privatePostDeepcoinTradeClosePositionByIds(this.extend(request, parameters))).join();
+                Object paramsOmitted = (((!java.util.Objects.equals(positionId, null)))) ? this.omit(parameters, "positionId") : parameters;
+                response = (this.privatePostDeepcoinTradeClosePositionByIds(this.extend(request, paramsOmitted))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrder(data, market);
+            return this.parseOrder(data, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name deepcoin#closePosition
-     * @description closes open positions for a market
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/batchClosePosition
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/closePositionByIds
-     * @param {string} symbol Unified CCXT market symbol
-     * @param {string} [side] not used by deepcoin
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.positionId] the id of the position you would like to close
-     * @param {string[]|undefined} [params.positionIds] list of position ids to close (for batch closing)
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> closePosition(String symbol, Object... optionalArgs)
-    {
-        return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object requestPath = path;
-        if (java.util.Objects.equals(method, "GET"))
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             String query = this.urlencode(parameters);
             if (query.length() > 0)
@@ -4465,47 +3733,45 @@ public class Deepcoin extends DeepcoinApi
                 requestPath = (requestPath + ("?" + query));
             }
         }
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((apiUrl + "/") + requestPath);
-        if (java.util.Objects.equals(api, "private"))
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
-            this.checkRequiredCredentials();
+            this.checkRequiredCredentials(true);
             Long timestamp = this.milliseconds();
             String dateTime = this.iso8601(timestamp);
-            Object payload = (((dateTime + method) + "/") + requestPath);
-            final String finalDateTime = dateTime;
-            headers = new HashMap<String, Object>() {{
-                put( "DC-ACCESS-KEY", Deepcoin.this.apiKey );
-                put( "DC-ACCESS-TIMESTAMP", finalDateTime );
-                put( "DC-ACCESS-PASSPHRASE", Deepcoin.this.password );
-                put( "appid", "200103" );
-            }};
-            if (!java.util.Objects.equals(method, "GET"))
+            Object payload = (((dateTime + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + requestPath);
+            Map<String, Object> privateHeaders = Helpers.newMap(
+                "DC-ACCESS-KEY", this.apiKey,
+                "DC-ACCESS-TIMESTAMP", dateTime,
+                "DC-ACCESS-PASSPHRASE", this.password,
+                "appid", "200103"
+            );
+            String requestBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.json(parameters) : body;
+            if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                body = (String) (this.json(parameters));
-                ((Map<String, Object>)headers).put("Content-Type", "application/json");
-                payload = Helpers.add(payload, body);
+                privateHeaders.put("Content-Type", "application/json");
+                payload = (payload + requestBody);
             }
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
-            ((Map<String, Object>)headers).put("DC-ACCESS-SIGN", signature);
+            privateHeaders.put("DC-ACCESS-SIGN", signature);
+            return Helpers.newMap(
+                "url", url,
+                "method", java.util.Objects.requireNonNullElse(method, "GET"),
+                "body", requestBody,
+                "headers", privateHeaders
+            );
         }
-        final Object finalMethod = method;
-        final String finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", url );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", body,
+            "headers", headers
+        );
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -4520,7 +3786,7 @@ public class Deepcoin extends DeepcoinApi
         {
             msg = sMsg;
         }
-        List<Object> errorList = (List<Object>) this.safeList(data, "errorList");
+        List<Object> errorList = (List<Object>) this.safeList(data, "errorList", (Object) null);
         if (!java.util.Objects.equals(errorList, null))
         {
             for (var i = 0; i < ((List<?>)errorList).size(); i++)

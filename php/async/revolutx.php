@@ -215,6 +215,8 @@ class revolutx extends Exchange {
     }
 
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $implodedPath = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $queryKeys = is_array($query) ? array_keys($query) : array();
@@ -236,22 +238,20 @@ class revolutx extends Exchange {
                     $url .= '?' . $queryString;
                 }
             } else {
-                $body = $this->json($query);
+                $requestBody = $this->json($query);
             }
             $requestPath = '/api/' . $implodedPath;
-            $bodyString = '';
-            if ($body !== null) {
-                $bodyString = $body;
-            }
+            $bodyValue = ($requestBody !== null) ? $requestBody : $body;
+            $bodyString = ($bodyValue !== null) ? $bodyValue : '';
             $message = $timestamp . strtoupper($method) . $requestPath . $queryString . $bodyString;
             $signature = $this->eddsa($this->encode($message), $this->privateKey, 'ed25519');
-            $headers = array(
+            $requestHeaders = array(
                 'X-Revx-API-Key' => $this->apiKey,
                 'X-Revx-Timestamp' => $timestamp,
                 'X-Revx-Signature' => $signature,
             );
             if ($method === 'POST' || $method === 'PUT') {
-                $headers['Content-Type'] = 'application/json';
+                $requestHeaders['Content-Type'] = 'application/json';
             }
         } else {
             if ($method === 'GET') {
@@ -260,11 +260,13 @@ class revolutx extends Exchange {
                     $url .= '?' . $queryString;
                 }
             } else {
-                $body = $this->json($query);
-                $headers = array( 'Content-Type' => 'application/json' );
+                $requestBody = $this->json($query);
+                $requestHeaders = array( 'Content-Type' => 'application/json' );
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
+        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
     public function parse_market(array $market): array {

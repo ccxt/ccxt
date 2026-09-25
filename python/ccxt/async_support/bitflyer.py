@@ -565,13 +565,13 @@ class bitflyer(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
         id = self.safe_string(trade, 'id')
-        market = self.safe_market(None, market)
+        marketResolved = self.safe_market(None, market)
         return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': order,
             'type': None,
             'side': side,
@@ -580,7 +580,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': None,
             'fee': None,
-        }, market)
+        }, marketResolved)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1120,7 +1120,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -1176,6 +1176,8 @@ class bitflyer(Exchange, ImplicitAPI):
         }
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        bodySigned = None
+        headersSigned = None
         request = '/' + self.version + '/'
         if api == 'private':
             request += 'me/'
@@ -1195,15 +1197,17 @@ class bitflyer(Exchange, ImplicitAPI):
             auth = ''.join(content)
             if len(params) > 0:
                 if method != 'GET':
-                    body = self.json(params)
-                    auth += body
-            headers = {
+                    bodySigned = self.json(params)
+                    auth += bodySigned
+            headersSigned = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
                 'ACCESS-SIGN': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
                 'Content-Type': 'application/json',
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        headersResolved = headers if (headersSigned is None) else headersSigned
+        bodyResolved = body if (bodySigned is None) else bodySigned
+        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

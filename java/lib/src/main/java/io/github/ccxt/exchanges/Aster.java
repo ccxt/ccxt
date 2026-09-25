@@ -1162,10 +1162,6 @@ public class Aster extends AsterApi
             return java.util.Objects.equals(subType, "inverse");
         }
     }
-    public Object isInverse(Object type, Object... optionalArgs)
-    {
-        return this.isInverse(type, Helpers.getArgString(optionalArgs, 0, null));
-    }
 
     public Object isLinear(Object type, String subType)
     {
@@ -1176,10 +1172,6 @@ public class Aster extends AsterApi
         {
             return java.util.Objects.equals(subType, "linear");
         }
-    }
-    public Object isLinear(Object type, Object... optionalArgs)
-    {
-        return this.isLinear(type, Helpers.getArgString(optionalArgs, 0, null));
     }
 
     /**
@@ -1211,24 +1203,11 @@ public class Aster extends AsterApi
         });
 
     }
-    /**
-     * @method
-     * @name aster#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
-    {
-        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "asset");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "code", code );
@@ -1239,7 +1218,7 @@ public class Aster extends AsterApi
             put( "withdraw", null );
             put( "fee", null );
             put( "precision", null );
-            put( "margin", Aster.this.safeBool(rawCurrency, "marginAvailable") );
+            put( "margin", Aster.this.safeBool(rawCurrency, "marginAvailable", (Object) null) );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -1274,7 +1253,7 @@ public class Aster extends AsterApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.sapiPublicGetV3ExchangeInfo(parameters), this.fapiPublicGetV3ExchangeInfo(parameters)));
-            ((List<Object>)promises).add(this.signIn());
+            ((List<Object>)promises).add(this.signIn(new HashMap<String, Object>() {{}}));
             Object results = (Helpers.promiseAll(promises)).join();
             Map<String, Object> sapiResult = (Map<String, Object>) this.safeDict(results, 0, new HashMap<String, Object>() {{}});
             List<Object> sapiRows = (List<Object>) this.safeList(sapiResult, "symbols", new ArrayList<Object>(Arrays.asList()));
@@ -1389,27 +1368,14 @@ public class Aster extends AsterApi
         });
 
     }
-    /**
-     * @method
-     * @name aster#fetchMarkets
-     * @description retrieves data on all markets for bigone
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseMarket(Object market)
     {
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseAsset");
         String quoteId = this.safeString(market, "quoteAsset");
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
@@ -1431,7 +1397,7 @@ public class Aster extends AsterApi
             spot = false;
             swap = true;
             settleId = this.safeString(market, "marginAsset");
-            settle = this.safeCurrencyCode(settleId);
+            settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
             symbol = ((((base + "/") + quote) + ":") + settle);
             linear = java.util.Objects.equals(settle, quote);
             inverse = java.util.Objects.equals(settle, base);
@@ -1445,85 +1411,73 @@ public class Aster extends AsterApi
         // filters
         List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String,Object> filtersByType = this.indexBy(filters, "filterType");
-        Map<String, Object> filterNotional = (Map<String, Object>) this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL");
-        Map<String, Object> filterPrice = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER");
-        Map<String, Object> filterLotSize = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE");
+        Map<String, Object> filterNotional = (Map<String, Object>) this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", (Object) null);
+        Map<String, Object> filterPrice = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", (Object) null);
+        Map<String, Object> filterLotSize = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", (Object) null);
         Map<String, Object> filterMarketLotSize = (Map<String, Object>) this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
-        Double pricePrecision = this.safeNumber(filterPrice, "tickSize");
+        Double pricePrecision = this.safeNumber(filterPrice, "tickSize", (Object) null);
         if (java.util.Objects.equals(pricePrecision, null))
         {
             pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
         }
-        Double amountPrecision = (((!java.util.Objects.equals(filterLotSize, null)))) ? this.safeNumber(filterLotSize, "stepSize") : this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
-        final String finalSymbol = symbol;
-        final String finalBase = base;
-        final String finalQuote = quote;
-        final String finalSettle = settle;
-        final String finalSettleId = settleId;
-        final Boolean finalSpot = spot;
-        final Boolean finalSwap = swap;
-        final Boolean finalLinear = linear;
-        final Boolean finalInverse = inverse;
-        final Double finalContractSize = contractSize;
-        final Double finalPricePrecision = pricePrecision;
-        final Map<String, Object> finalFilterLotSize = filterLotSize;
-        return this.safeMarketStructure(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "symbol", finalSymbol );
-            put( "base", finalBase );
-            put( "quote", finalQuote );
-            put( "settle", finalSettle );
-            put( "baseId", baseId );
-            put( "quoteId", quoteId );
-            put( "settleId", finalSettleId );
-            put( "type", ((Boolean.TRUE.equals(isContract))) ? "swap" : "spot" );
-            put( "spot", finalSpot );
-            put( "margin", false );
-            put( "swap", finalSwap );
-            put( "future", false );
-            put( "option", false );
-            put( "active", active );
-            put( "contract", isContract );
-            put( "linear", finalLinear );
-            put( "inverse", finalInverse );
-            put( "taker", Helpers.GetValue(Helpers.GetValue(Aster.this.fees, "trading"), "taker") );
-            put( "maker", Helpers.GetValue(Helpers.GetValue(Aster.this.fees, "trading"), "maker") );
-            put( "contractSize", finalContractSize );
-            put( "expiry", null );
-            put( "expiryDatetime", null );
-            put( "strike", null );
-            put( "optionType", null );
-            put( "precision", new HashMap<String, Object>() {{
-                put( "amount", amountPrecision );
-                put( "price", finalPricePrecision );
-                put( "base", Aster.this.parseNumber(Aster.this.parsePrecision(Aster.this.safeString(market, "baseAssetPrecision"))) );
-                put( "quote", Aster.this.parseNumber(Aster.this.parsePrecision(Aster.this.safeString(market, "quotePrecision"))) );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
-                put( "leverage", new HashMap<String, Object>() {{
+        Double amountPrecision = (((!java.util.Objects.equals(filterLotSize, null)))) ? this.safeNumber(filterLotSize, "stepSize", (Object) null) : this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
+        return this.safeMarketStructure(Helpers.newMap(
+            "id", id,
+            "symbol", symbol,
+            "base", base,
+            "quote", quote,
+            "settle", settle,
+            "baseId", baseId,
+            "quoteId", quoteId,
+            "settleId", settleId,
+            "type", ((Boolean.TRUE.equals(isContract))) ? "swap" : "spot",
+            "spot", spot,
+            "margin", false,
+            "swap", swap,
+            "future", false,
+            "option", false,
+            "active", active,
+            "contract", isContract,
+            "linear", linear,
+            "inverse", inverse,
+            "taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"),
+            "maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"),
+            "contractSize", contractSize,
+            "expiry", null,
+            "expiryDatetime", null,
+            "strike", null,
+            "optionType", null,
+            "precision", Helpers.newMap(
+                "amount", amountPrecision,
+                "price", pricePrecision,
+                "base", this.parseNumber(this.parsePrecision(this.safeString(market, "baseAssetPrecision"))),
+                "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision")))
+            ),
+            "limits", Helpers.newMap(
+                "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }} );
-                put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Aster.this.safeNumber(finalFilterLotSize, "minQty") );
-                    put( "max", Aster.this.safeNumber(finalFilterLotSize, "maxQty") );
-                }} );
-                put( "price", new HashMap<String, Object>() {{
-                    put( "min", Aster.this.safeNumber(filterPrice, "minPrice") );
-                    put( "max", Aster.this.safeNumber(filterPrice, "maxPrice") );
-                }} );
-                put( "cost", new HashMap<String, Object>() {{
-                    put( "min", Aster.this.safeNumber2(filterNotional, "notional", "minNotional") );
+                }},
+                "amount", Helpers.newMap(
+                    "min", this.safeNumber(filterLotSize, "minQty", (Object) null),
+                    "max", this.safeNumber(filterLotSize, "maxQty", (Object) null)
+                ),
+                "price", new HashMap<String, Object>() {{
+                    put( "min", Aster.this.safeNumber(filterPrice, "minPrice", (Object) null) );
+                    put( "max", Aster.this.safeNumber(filterPrice, "maxPrice", (Object) null) );
+                }},
+                "cost", new HashMap<String, Object>() {{
+                    put( "min", Aster.this.safeNumber2(filterNotional, "notional", "minNotional", (Object) null) );
                     put( "max", null );
-                }} );
-                put( "market", new HashMap<String, Object>() {{
-                    put( "min", Aster.this.safeNumber(filterMarketLotSize, "minQty") );
-                    put( "max", Aster.this.safeNumber(filterMarketLotSize, "maxQty") );
-                }} );
-            }} );
-            put( "created", Aster.this.safeInteger2(market, "listingTime", "createTime") );
-            put( "info", market );
-        }});
+                }},
+                "market", new HashMap<String, Object>() {{
+                    put( "min", Aster.this.safeNumber(filterMarketLotSize, "minQty", (Object) null) );
+                    put( "max", Aster.this.safeNumber(filterMarketLotSize, "maxQty", (Object) null) );
+                }}
+            ),
+            "created", this.safeInteger2(market, "listingTime", "createTime"),
+            "info", market
+        ));
     }
 
     /**
@@ -1535,22 +1489,21 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters2)
+    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
-            String marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTime", (Map<String, Object>) null, parameters, (Object) null);
+            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
+            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                response = (this.fapiPublicGetV3Time(parameters)).join();
+                response = (this.fapiPublicGetV3Time(paramsMarketType)).join();
             } else
             {
-                response = (this.sapiPublicGetV3Time(parameters)).join();
+                response = (this.sapiPublicGetV3Time(paramsMarketType)).join();
             }
             //
             // both SPOT & PERP has same format
@@ -1562,19 +1515,6 @@ public class Aster extends AsterApi
             return this.safeInteger(response, "serverTime");
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchTime
-     * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-server-time
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#check-server-time
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int} the current integer timestamp in milliseconds from the exchange server
-     */
-    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
-    {
-        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -1597,11 +1537,7 @@ public class Aster extends AsterApi
         //         "0"  // ??
         //     ]
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
-    }
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 5, (Object) null)));
     }
 
     /**
@@ -1621,18 +1557,14 @@ public class Aster extends AsterApi
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1644,58 +1576,37 @@ public class Aster extends AsterApi
             {
                 request.put("limit", Math.min(limit, 1500));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            request.put("interval", this.safeString(this.timeframes, timeframe, timeframe));
-            String price = this.safeString(parameters, "price");
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            var paramsUntil = ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            ((Map<String, Object>)requestUntil).put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
+            String price = this.safeString(paramsUntil, "price");
             Boolean isMark = (java.util.Objects.equals(price, "mark"));
             Boolean isIndex = (java.util.Objects.equals(price, "index"));
-            parameters = (Map<String, Object>) this.omit(parameters, "price");
+            Object paramsOmitted = this.omit(paramsUntil, "price");
             List<Object> response = null;
             if (Boolean.TRUE.equals(isMark))
             {
-                request.put("symbol", ((Map<String, Object>)market).get("id"));
-                response = (this.fapiPublicGetV3MarkPriceKlines(this.extend(request, parameters))).join();
+                Helpers.addElementToObject(requestUntil, "symbol", ((Map<String, Object>)market).get("id"));
+                response = (this.fapiPublicGetV3MarkPriceKlines(this.extend(requestUntil, paramsOmitted))).join();
             } else if (Boolean.TRUE.equals(isIndex))
             {
-                request.put("pair", ((Map<String, Object>)market).get("id"));
-                response = (this.fapiPublicGetV3IndexPriceKlines(this.extend(request, parameters))).join();
+                Helpers.addElementToObject(requestUntil, "pair", ((Map<String, Object>)market).get("id"));
+                response = (this.fapiPublicGetV3IndexPriceKlines(this.extend(requestUntil, paramsOmitted))).join();
             } else
             {
-                request.put("symbol", ((Map<String, Object>)market).get("id"));
+                Helpers.addElementToObject(requestUntil, "symbol", ((Map<String, Object>)market).get("id"));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
-                    response = (this.fapiPublicGetV3Klines(this.extend(request, parameters))).join();
+                    response = (this.fapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted))).join();
                 } else
                 {
-                    response = (this.sapiPublicGetV3Klines(this.extend(request, parameters))).join();
+                    response = (this.sapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted))).join();
                 }
             }
-            return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#k-line-data
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#klinecandlestick-data
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#index-price-klinecandlestick-data
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#mark-price-klinecandlestick-data
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
-     * @param {int} [params.until] the latest time in ms to fetch orders for
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1756,58 +1667,51 @@ public class Aster extends AsterApi
         {
             marketType = "swap";
         }
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, null, marketType));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, marketType);
         String currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
-        String currencyCode = this.safeCurrencyCode(currencyId);
+        String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         String amountString = this.safeString2(trade, "qty", "q");
         String priceString = this.safeString2(trade, "price", "p");
         String costString = this.safeString2(trade, "quoteQty", "baseQty");
         Long timestamp = (Long) this.safeInteger2(trade, "time", "T");
         String side = this.safeStringLower(trade, "side");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "maker");
+        Boolean isMaker = (Boolean) this.safeBool(trade, "maker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
             if (java.util.Objects.equals(side, null))
             {
-                Boolean isBuyer = (Boolean) this.safeBool(trade, "buyer");
+                Boolean isBuyer = (Boolean) this.safeBool(trade, "buyer", (Object) null);
                 if (!java.util.Objects.equals(isBuyer, null))
                 {
                     side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
                 }
             }
         }
-        Boolean isBuyerMaker = (Boolean) this.safeBool2(trade, "isBuyerMaker", "m");
+        Boolean isBuyerMaker = (Boolean) this.safeBool2(trade, "isBuyerMaker", "m", (Object) null);
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
             side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
         }
-        final Map<String, Object> finalMarket = market;
-        final String finalSide = side;
-        final String finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "info", trade );
-            put( "timestamp", timestamp );
-            put( "datetime", Aster.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "order", Aster.this.safeString(trade, "orderId") );
-            put( "type", null );
-            put( "side", finalSide );
-            put( "takerOrMaker", finalTakerOrMaker );
-            put( "price", priceString );
-            put( "amount", amountString );
-            put( "cost", costString );
-            put( "fee", new HashMap<String, Object>() {{
+        return this.safeTrade(Helpers.newMap(
+            "id", id,
+            "info", trade,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "order", this.safeString(trade, "orderId"),
+            "type", null,
+            "side", side,
+            "takerOrMaker", takerOrMaker,
+            "price", priceString,
+            "amount", amountString,
+            "cost", costString,
+            "fee", new HashMap<String, Object>() {{
                 put( "cost", Aster.this.parseNumber(Precise.stringAbs(Aster.this.safeString(trade, "commission"))) );
                 put( "currency", currencyCode );
-            }} );
-        }}, market);
-    }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+            }}
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1824,16 +1728,14 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since2, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{
@@ -1852,7 +1754,7 @@ public class Aster extends AsterApi
             }
             if (Boolean.TRUE.equals(untilDefined))
             {
-                request = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
+                request = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             }
             // use historical endpoint for targeted requests
             if (((Map<?, ?>)request).containsKey("startTime"))
@@ -1874,27 +1776,9 @@ public class Aster extends AsterApi
                     response = (this.sapiPublicGetV3Trades(this.extend(request, parameters))).join();
                 }
             }
-            return this.parseTrades(response, market, since, limit);
+            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-list
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-aggregated
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#recent-trades-list
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#compressedaggregate-trades-list
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1910,17 +1794,11 @@ public class Aster extends AsterApi
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -1929,10 +1807,9 @@ public class Aster extends AsterApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            String marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), parameters, (Object) null);
+            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
+            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
@@ -1941,16 +1818,16 @@ public class Aster extends AsterApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
             List<Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                response = (this.fapiPrivateGetV3UserTrades(this.extend(request, parameters))).join();
+                response = (this.fapiPrivateGetV3UserTrades(this.extend(requestUntil, paramsUntil))).join();
             } else
             {
-                response = (this.sapiPrivateGetV3UserTrades(this.extend(request, parameters))).join();
+                response = (this.sapiPrivateGetV3UserTrades(this.extend(requestUntil, paramsUntil))).join();
             }
             //
             // SPOT & PERP have similar format
@@ -1975,26 +1852,9 @@ public class Aster extends AsterApi
             //     "positionSide": "BOTH",      // only in SPOT
             // }
             //
-            return this.parseTrades(response, market, since, limit, parameters);
+            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(paramsUntil));
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-trade-history-user_data
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#account-trade-list-user_data
-     * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2008,14 +1868,14 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2055,24 +1915,9 @@ public class Aster extends AsterApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "T");
-            return this.parseOrderBook(response, symbol, timestamp, "bids", "asks");
+            return this.parseOrderBook(response, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#depth-information
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#order-book
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -2137,10 +1982,9 @@ public class Aster extends AsterApi
             marketType = (((((Map<?, ?>)ticker).containsKey("lastUpdateId")))) ? "swap" : "spot";
         }
         String marketId = this.safeString(ticker, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, null, marketType));
-        final Map<String, Object> finalMarket = market;
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, marketType);
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Aster.this.iso8601(timestamp) );
             put( "high", high );
@@ -2162,11 +2006,7 @@ public class Aster extends AsterApi
             put( "markPrice", null );
             put( "indexPrice", null );
             put( "info", ticker );
-        }}, market);
-    }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+        }}, Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -2186,7 +2026,7 @@ public class Aster extends AsterApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2228,23 +2068,9 @@ public class Aster extends AsterApi
             //        "askQty": "0.32399"            // only in SPOT
             //    }
             //
-            return this.parseTicker(response, market);
+            return this.parseTicker(response, Helpers.toMapArg(market));
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2259,30 +2085,27 @@ public class Aster extends AsterApi
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
-            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            String marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", Helpers.toMapArg(market), parameters, (Object) null);
+            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
+            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                response = (this.fapiPublicGetV3Ticker24hr(parameters)).join();
+                response = (this.fapiPublicGetV3Ticker24hr(paramsMarketType)).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
-                response = (this.sapiPublicGetV3Ticker24hr(parameters)).join();
+                response = (this.sapiPublicGetV3Ticker24hr(paramsMarketType)).join();
             }
             //
             //     [
@@ -2312,25 +2135,9 @@ public class Aster extends AsterApi
             //         }
             //     ]
             //
-            return this.parseTickers(response, symbols);
+            return this.parseTickers(response, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
-     * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] "linear" or "inverse"
-     * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-     * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
-    {
-        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2344,30 +2151,27 @@ public class Aster extends AsterApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of lastprices structures
      */
-    public CompletableFuture<LastPrices> fetchLastPrices(List<String> symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<LastPrices> fetchLastPrices(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
-            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            String marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", Helpers.toMapArg(market), parameters, (Object) null);
+            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
+            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             List<Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                response = (this.fapiPublicGetV3TickerPrice(parameters)).join();
+                response = (this.fapiPublicGetV3TickerPrice(paramsMarketType)).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
-                response = (this.sapiPublicGetV3TickerPrice(parameters)).join();
+                response = (this.sapiPublicGetV3TickerPrice(paramsMarketType)).join();
             }
             //
             // both SPOT & SWAP has same format
@@ -2390,29 +2194,14 @@ public class Aster extends AsterApi
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 String marketId = this.safeString((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "symbol");
-                Map<String, Object> safeMarket = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-                Map<String, Object> priceData = this.extend(this.parseLastPrice((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), safeMarket), parameters);
+                Map<String, Object> safeMarket = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+                Map<String, Object> priceData = this.extend(this.parseLastPrice((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), Helpers.toMapArg(safeMarket)), paramsMarketType);
                 ((List<Object>)results).add(priceData);
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            return this.filterByArray(results, "symbol", symbols);
+            List<String> symbolsNormalized2 = this.marketSymbols(symbolsNormalized, (Object) null, true, false, false);
+            return this.filterByArray(results, "symbol", symbolsNormalized2, true);
         }).thenApply(LastPrices::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchLastPrices
-     * @description fetches the last price for multiple markets
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#latest-price
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of lastprices structures
-     */
-    public CompletableFuture<LastPrices> fetchLastPrices(Object... optionalArgs)
-    {
-        return this.fetchLastPrices(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLastPrice(Map<String, Object> entry, Map<String, Object> market)
@@ -2431,14 +2220,10 @@ public class Aster extends AsterApi
             put( "symbol", Aster.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Aster.this.iso8601(timestamp) );
-            put( "price", Aster.this.safeNumberOmitZero(entry, "price") );
+            put( "price", Aster.this.safeNumberOmitZero(entry, "price", (Object) null) );
             put( "side", null );
             put( "info", entry );
         }};
-    }
-    public Object parseLastPrice(Map<String, Object> entry, Object... optionalArgs)
-    {
-        return this.parseLastPrice(entry, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2452,30 +2237,27 @@ public class Aster extends AsterApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
-            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            String marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", Helpers.toMapArg(market), parameters, (Object) null);
+            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
+            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             List<Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                response = (this.fapiPublicGetV3TickerBookTicker(parameters)).join();
+                response = (this.fapiPublicGetV3TickerBookTicker(paramsMarketType)).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
-                response = (this.sapiPublicGetV3TickerBookTicker(parameters)).join();
+                response = (this.sapiPublicGetV3TickerBookTicker(paramsMarketType)).join();
             }
             //
             // SPOT & PERP have only one field difference
@@ -2491,24 +2273,9 @@ public class Aster extends AsterApi
             //            "lastUpdateId": "453174307613"   // only in PERP
             //        }, ...
             //
-            return this.parseTickers(response, symbols);
+            return this.parseTickers(response, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchBidsAsks
-     * @description fetches the bid and ask price and volume for multiple markets
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#current-best-order
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-order-book-ticker
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Tickers> fetchBidsAsks(Object... optionalArgs)
-    {
-        return this.fetchBidsAsks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -2547,31 +2314,26 @@ public class Aster extends AsterApi
         {
             intervalString = (interval + "h");
         }
-        final String finalIntervalString = intervalString;
-        return new HashMap<String, Object>() {{
-            put( "info", contract );
-            put( "symbol", Aster.this.safeSymbol(marketId, market, null, "contract") );
-            put( "markPrice", Aster.this.safeNumber(contract, "markPrice") );
-            put( "indexPrice", Aster.this.safeNumber(contract, "indexPrice") );
-            put( "interestRate", Aster.this.safeNumber(contract, "interestRate") );
-            put( "estimatedSettlePrice", Aster.this.safeNumber(contract, "estimatedSettlePrice") );
-            put( "timestamp", timestamp );
-            put( "datetime", Aster.this.iso8601(timestamp) );
-            put( "fundingRate", Aster.this.safeNumber(contract, "lastFundingRate") );
-            put( "fundingTimestamp", null );
-            put( "fundingDatetime", null );
-            put( "nextFundingRate", null );
-            put( "nextFundingTimestamp", nextFundingTimestamp );
-            put( "nextFundingDatetime", Aster.this.iso8601(nextFundingTimestamp) );
-            put( "previousFundingRate", null );
-            put( "previousFundingTimestamp", null );
-            put( "previousFundingDatetime", null );
-            put( "interval", finalIntervalString );
-        }};
-    }
-    public Object parseFundingRate(Object contract, Object... optionalArgs)
-    {
-        return this.parseFundingRate(contract, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "info", contract,
+            "symbol", this.safeSymbol(marketId, market, (String) null, "contract"),
+            "markPrice", this.safeNumber(contract, "markPrice", (Object) null),
+            "indexPrice", this.safeNumber(contract, "indexPrice", (Object) null),
+            "interestRate", this.safeNumber(contract, "interestRate", (Object) null),
+            "estimatedSettlePrice", this.safeNumber(contract, "estimatedSettlePrice", (Object) null),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "fundingRate", this.safeNumber(contract, "lastFundingRate", (Object) null),
+            "fundingTimestamp", null,
+            "fundingDatetime", null,
+            "nextFundingRate", null,
+            "nextFundingTimestamp", nextFundingTimestamp,
+            "nextFundingDatetime", this.iso8601(nextFundingTimestamp),
+            "previousFundingRate", null,
+            "previousFundingTimestamp", null,
+            "previousFundingDatetime", null,
+            "interval", intervalString
+        );
     }
 
     /**
@@ -2583,18 +2345,18 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol2, Object parameters)
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRate() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2613,26 +2375,9 @@ public class Aster extends AsterApi
             //         "time": 1750146970000
             //     }
             //
-            return this.parseFundingRate(response, market);
+            return this.parseFundingRate(response, Helpers.toMapArg(market));
         }).thenApply(FundingRate::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchFundingRate
-     * @description fetch the current funding rate
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
-     */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
-    {
-        return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
-    {
-        return this.fetchFundingRate(symbol, (Object) (parameters));
     }
 
     /**
@@ -2644,16 +2389,16 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Object response = (this.fapiPublicGetV3PremiumIndex(this.extend(parameters))).join();
             //
             //     [
@@ -2669,22 +2414,9 @@ public class Aster extends AsterApi
             //         }
             //     ]
             //
-            return this.parseFundingRates(response, symbols);
+            return this.parseFundingRates(response, Helpers.toStringListArg(symbolsNormalized));
         }).thenApply(FundingRates::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchFundingRates
-     * @description fetch the current funding rate for multiple symbols
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
-     */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
-    {
-        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2696,19 +2428,16 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingIntervals(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> fetchFundingIntervals(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            if (!java.util.Objects.equals(symbols, null))
-            {
-                symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            }
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> response = (this.fapiPublicGetV3FundingInfo(parameters)).join();
             //
             //     [
@@ -2722,22 +2451,9 @@ public class Aster extends AsterApi
             //         }
             //     ]
             //
-            return this.parseFundingRates(response, symbols);
+            return this.parseFundingRates(response, Helpers.toStringListArg(symbolsNormalized));
         }).thenApply(FundingRates::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchFundingIntervals
-     * @description fetch the funding rate interval for multiple markets
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-config
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
-     */
-    public CompletableFuture<FundingRates> fetchFundingIntervals(Object... optionalArgs)
-    {
-        return this.fetchFundingIntervals(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2752,20 +2468,14 @@ public class Aster extends AsterApi
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2782,10 +2492,10 @@ public class Aster extends AsterApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            List<Object> response = (this.fapiPublicGetV3FundingRate(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            List<Object> response = (this.fapiPublicGetV3FundingRate(this.extend(requestUntil, paramsUntil))).join();
             //
             //     [
             //         {
@@ -2795,25 +2505,9 @@ public class Aster extends AsterApi
             //         }
             //     ]
             //
-            return this.parseFundingRateHistories(response, market);
+            return this.parseFundingRateHistories(response, Helpers.toMapArg(market), (Long) null, (Long) null);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#fetchFundingRateHistory
-     * @description fetches historical funding rate prices
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-history
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest funding rate
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
-     */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
-    {
-        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseFundingRateHistory(Object contract, Map<String, Object> market)
@@ -2828,15 +2522,11 @@ public class Aster extends AsterApi
         Long timestamp = this.safeInteger(contract, "fundingTime");
         return new HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", Aster.this.safeSymbol(Aster.this.safeString(contract, "symbol"), null, null, "swap") );
-            put( "fundingRate", Aster.this.safeNumber(contract, "fundingRate") );
+            put( "symbol", Aster.this.safeSymbol(Aster.this.safeString(contract, "symbol"), (Map<String, Object>) null, (String) null, "swap") );
+            put( "fundingRate", Aster.this.safeNumber(contract, "fundingRate", (Object) null) );
             put( "timestamp", timestamp );
             put( "datetime", Aster.this.iso8601(timestamp) );
         }};
-    }
-    public Object parseFundingRateHistory(Object contract, Object... optionalArgs)
-    {
-        return this.parseFundingRateHistory(contract, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2850,44 +2540,28 @@ public class Aster extends AsterApi
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters2)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             (this.loadMarketsAndSignIn()).join();
-            String marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (Object) null);
+            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
+            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
             List<Object> data = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                data = (this.fapiPrivateGetV3Balance(parameters)).join();
+                data = (this.fapiPrivateGetV3Balance(paramsMarketType)).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
-                response = (this.sapiPrivateGetV3Account(parameters)).join();
+                response = (this.sapiPrivateGetV3Account(paramsMarketType)).join();
                 data = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseBalance(data);
         }).thenApply(Balances::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-information-user_data
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#futures-account-balance-v3-user_data
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] "linear" or "inverse"
-     * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseBalance(Object response)
@@ -2897,9 +2571,9 @@ public class Aster extends AsterApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "asset");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = (Map<String, Object>) this.account();
             account.put("free", this.safeString2(balance, "free", "availableBalance"));
             account.put("used", this.safeString(balance, "locked"));
@@ -2922,33 +2596,27 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode2, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
-        final String marginMode3 = marginMode2;
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String marginMode = marginMode3;
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires a symbol argument")) ;
             }
-            marginMode = ((String)marginMode).toUpperCase();
-            if (java.util.Objects.equals(marginMode, "CROSS"))
-            {
-                marginMode = "CROSSED";
-            }
-            if ((!java.util.Objects.equals(marginMode, "ISOLATED")) && (!java.util.Objects.equals(marginMode, "CROSSED")))
+            String marginModeUpper = ((String)marginMode).toUpperCase();
+            Object marginModeValue = (((java.util.Objects.equals(marginModeUpper, "CROSS")))) ? "CROSSED" : marginModeUpper;
+            if ((!java.util.Objects.equals(marginModeValue, "ISOLATED")) && (!java.util.Objects.equals(marginModeValue, "CROSSED")))
             {
                 throw new BadRequest((this.id + " marginMode must be either isolated or cross")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final String finalMarginMode = marginMode;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "marginType", finalMarginMode );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "symbol", ((Map<String, Object>)market).get("id"),
+                "marginType", marginModeValue
+            );
             Map<String, Object> response = (this.fapiPrivatePostV3MarginType(this.extend(request, parameters))).join();
             //
             //     { "code": 200,"msg": "success" }
@@ -2956,20 +2624,6 @@ public class Aster extends AsterApi
             return response;
         });
 
-    }
-    /**
-     * @method
-     * @name aster#setMarginMode
-     * @description set margin mode to 'cross' or 'isolated'
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-margin-type-trade
-     * @param {string} marginMode 'cross' or 'isolated'
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
-     */
-    public CompletableFuture<Object> setMarginMode(String marginMode, Object... optionalArgs)
-    {
-        return this.setMarginMode(marginMode, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2994,23 +2648,10 @@ public class Aster extends AsterApi
             //
             return new HashMap<String, Object>() {{
                 put( "info", response );
-                put( "hedged", Aster.this.safeBool(response, "dualSidePosition") );
+                put( "hedged", Aster.this.safeBool(response, "dualSidePosition", (Object) null) );
             }};
         }).thenApply(PositionModeInfo::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchPositionMode
-     * @description fetchs the position mode, hedged or one way, hedged for aster is set identically for all linear markets or all inverse markets
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-current-position-modeuser_data
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an object detailing whether the market is in hedged or one-way mode
-     */
-    public CompletableFuture<PositionModeInfo> fetchPositionMode(Object... optionalArgs)
-    {
-        return this.fetchPositionMode(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3033,10 +2674,9 @@ public class Aster extends AsterApi
             {
                 strValue = "true";
             }
-            final String finalStrValue = strValue;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "dualSidePosition", finalStrValue );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "dualSidePosition", strValue
+            );
             //
             //     {
             //         "code": 200,
@@ -3047,38 +2687,20 @@ public class Aster extends AsterApi
         });
 
     }
-    /**
-     * @method
-     * @name aster#setPositionMode
-     * @description set hedged to true or false for a market
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
-     * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by setPositionMode ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
-     */
-    public CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
-    {
-        return this.setPositionMode(hedged, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
     {
         String marketId = this.safeString(fee, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        String symbol = this.safeSymbol(marketId, market);
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", Aster.this.safeNumber(fee, "makerCommissionRate") );
-            put( "taker", Aster.this.safeNumber(fee, "takerCommissionRate") );
+            put( "maker", Aster.this.safeNumber(fee, "makerCommissionRate", (Object) null) );
+            put( "taker", Aster.this.safeNumber(fee, "takerCommissionRate", (Object) null) );
             put( "percentage", false );
             put( "tierBased", false );
         }};
-    }
-    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
-    {
-        return this.parseTradingFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3118,23 +2740,9 @@ public class Aster extends AsterApi
             //         "takerCommissionRate": "0.0004"
             //     }
             //
-            return this.parseTradingFee((Map<String, Object>) (response), market);
+            return this.parseTradingFee((Map<String, Object>) (response), Helpers.toMapArg(market));
         }).thenApply(TradingFeeInterface::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchTradingFee
-     * @description fetch the trading fees for a market
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-symbol-fees
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#user-commission-rate-user_data
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
-     */
-    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTradingFee(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public String parseOrderStatus(String status)
@@ -3226,19 +2834,18 @@ public class Aster extends AsterApi
             defaultType = "swap";
         }
         String marketId = this.safeString(order, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, null, defaultType));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, defaultType);
         String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "time");
         String statusId = this.safeStringUpper(order, "status");
         String rawType = this.safeStringUpper(order, "type");
         String stopPriceString = this.safeString(order, "stopPrice");
         Double triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
-        final Map<String, Object> finalMarket = market;
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", info );
             put( "id", Aster.this.safeString(order, "orderId") );
             put( "clientOrderId", Aster.this.safeString(order, "clientOrderId") );
-            put( "symbol", Aster.this.safeSymbol(marketId, finalMarket) );
+            put( "symbol", Aster.this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null) );
             put( "timestamp", timestamp );
             put( "datetime", Aster.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
@@ -3257,12 +2864,8 @@ public class Aster extends AsterApi
             put( "status", Aster.this.parseOrderStatus(statusId) );
             put( "fee", null );
             put( "trades", null );
-            put( "reduceOnly", Aster.this.safeBool2(order, "reduceOnly", "ro") );
-        }}, market);
-    }
-    public Object parseOrder(Object order, Object... optionalArgs)
-    {
-        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+            put( "reduceOnly", Aster.this.safeBool2(order, "reduceOnly", "ro", (Object) null) );
+        }}, Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -3277,13 +2880,11 @@ public class Aster extends AsterApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
@@ -3294,7 +2895,7 @@ public class Aster extends AsterApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientOid")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientOid")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("origClientOrderId", clientOrderId);
@@ -3305,10 +2906,10 @@ public class Aster extends AsterApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                response = (this.fapiPrivateGetV3Order(this.extend(request, parameters))).join();
+                response = (this.fapiPrivateGetV3Order(this.extend(request, paramsOmitted))).join();
             } else
             {
-                response = (this.sapiPrivateGetV3Order(this.extend(request, parameters))).join();
+                response = (this.sapiPrivateGetV3Order(this.extend(request, paramsOmitted))).join();
             }
             //
             // SPOT & SWAP has similar formats
@@ -3339,25 +2940,9 @@ public class Aster extends AsterApi
             //        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
             //    }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder(response, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchOrder
-     * @description fetches information on an order made by the user
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-order-user_data
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-order-user_data
-     * @param {string} id the order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
-    {
-        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3371,13 +2956,11 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrder() requires a symbol argument")) ;
@@ -3388,7 +2971,7 @@ public class Aster extends AsterApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientOid")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientOid")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("origClientOrderId", clientOrderId);
@@ -3399,10 +2982,10 @@ public class Aster extends AsterApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                response = (this.sapiPrivateGetV3OpenOrder(this.extend(request, parameters))).join();
+                response = (this.sapiPrivateGetV3OpenOrder(this.extend(request, paramsOmitted))).join();
             } else
             {
-                response = (this.fapiPrivateGetV3OpenOrder(this.extend(request, parameters))).join();
+                response = (this.fapiPrivateGetV3OpenOrder(this.extend(request, paramsOmitted))).join();
             }
             //
             // SPOT & SWAP has similar formats
@@ -3433,24 +3016,9 @@ public class Aster extends AsterApi
             //        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
             //    }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder(response, Helpers.toMapArg(market));
         });
 
-    }
-    /**
-     * @method
-     * @name aster#fetchOpenOrder
-     * @description fetch an open order by the id
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-current-open-order-user_data
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-current-open-order-user_data
-     * @param {string} id order id
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
-    {
-        return this.fetchOpenOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3466,17 +3034,11 @@ public class Aster extends AsterApi
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument")) ;
@@ -3494,16 +3056,16 @@ public class Aster extends AsterApi
             {
                 request.put("startTime", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
             List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                response = (this.fapiPrivateGetV3AllOrders(this.extend(request, parameters))).join();
+                response = (this.fapiPrivateGetV3AllOrders(this.extend(requestUntil, paramsUntil))).join();
             } else
             {
-                response = (this.sapiPrivateGetV3AllOrders(this.extend(request, parameters))).join();
+                response = (this.sapiPrivateGetV3AllOrders(this.extend(requestUntil, paramsUntil))).join();
             }
             //
             // SPOT & SWAP has similar responses
@@ -3535,26 +3097,9 @@ public class Aster extends AsterApi
             //            "newChainData": { "hash": "0xe17d3d5b...dbca8b01" }      // only in PERP
             //        }, ...
             //
-            return this.parseOrders(response, market, since, limit);
+            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#fetchOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-all-orders-user_data
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#all-orders-user_data
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch orders for
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
-    {
-        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3571,17 +3116,14 @@ public class Aster extends AsterApi
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
+
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            String marketType = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -3589,7 +3131,7 @@ public class Aster extends AsterApi
             }
             if (java.util.Objects.equals(symbol, null))
             {
-                if (java.util.Objects.equals(this.safeBool(((Map<String, Object>)this.options).get("fetchOpenOrders"), "warnIfNoSymbol"), true))
+                if (java.util.Objects.equals(this.safeBool(((Map<String, Object>)this.options).get("fetchOpenOrders"), "warnIfNoSymbol", (Object) null), true))
                 {
                     throw new ExchangeError((((this.id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ") + this.id) + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
                 }
@@ -3598,20 +3140,19 @@ public class Aster extends AsterApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
-            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            String subType = null;
-            List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
-            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", Helpers.toMapArg(market), parameters, (Object) null);
+            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
+            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+            String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
+            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> response = null;
             if (Boolean.TRUE.equals(this.isLinear(marketType, subType)))
             {
-                response = (this.fapiPrivateGetV3OpenOrders(this.extend(request, parameters))).join();
+                response = (this.fapiPrivateGetV3OpenOrders(this.extend(request, paramsSubType))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
-                response = (this.sapiPrivateGetV3OpenOrders(this.extend(request, parameters))).join();
+                response = (this.sapiPrivateGetV3OpenOrders(this.extend(request, paramsSubType))).join();
             }
             //
             // SPOT & SWAP has similar responses
@@ -3644,27 +3185,9 @@ public class Aster extends AsterApi
             //        }
             //    ]
             //
-            return this.parseOrders(response, market, since, limit);
+            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#current-open-orders-user_data
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
-     * @param {int} [limit] the maximum number of  open orders structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] "linear" or "inverse"
-     * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3735,35 +3258,9 @@ public class Aster extends AsterApi
             //        "newChainData": { "hash": "0x46ae....c8ba" }      // only in PERP
             //    }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder(response, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name aster#createOrder
-     * @description create a trade order
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#place-order-trade
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit' or 'STOP' or 'STOP_MARKET' or 'TAKE_PROFIT' or 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of you want to trade in units of the base currency
-     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
-     * @param {boolean} [params.test] whether to use the test endpoint or not, default is false
-     * @param {float} [params.trailingPercent] the percent to trail away from the current market price
-     * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
-     * @param {string} [params.positionSide] "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
-     * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
-     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
-     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3789,7 +3286,7 @@ public class Aster extends AsterApi
             }
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
                 String marketId = this.safeString(rawOrder, "symbol");
                 Map<String, Object> currentMarket = (Map<String, Object>) this.market(marketId);
                 ((List<Object>)orderSymbols).add(((Map<String, Object>)currentMarket).get("symbol"));
@@ -3798,11 +3295,11 @@ public class Aster extends AsterApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(orderParams));
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
+            List<String> orderSymbolsResolved = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
+            Map<String, Object> market = (Map<String, Object>) this.market((orderSymbolsResolved == null || 0 >= ((List<?>)orderSymbolsResolved).size() ? null : ((List<?>)orderSymbolsResolved).get(0)));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((((this.id + " createOrders() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
@@ -3841,22 +3338,9 @@ public class Aster extends AsterApi
             //        }
             //    ]
             //
-            return this.parseOrders(response);
+            return this.parseOrders(response, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#createOrders
-     * @description create a list of trade orders
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
-    {
-        return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -3886,11 +3370,10 @@ public class Aster extends AsterApi
         String initialUppercaseType = ((String)type).toUpperCase();
         Boolean isMarketOrder = java.util.Objects.equals(initialUppercaseType, "MARKET");
         Boolean isLimitOrder = java.util.Objects.equals(initialUppercaseType, "LIMIT");
-        final String finalSide = side;
-        Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "symbol", ((Map<String, Object>)market).get("id") );
-            put( "side", ((String)finalSide).toUpperCase() );
-        }};
+        Map<String, Object> request = Helpers.newMap(
+            "symbol", ((Map<String, Object>)market).get("id"),
+            "side", ((String)side).toUpperCase()
+        );
         String clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
@@ -4049,25 +3532,26 @@ public class Aster extends AsterApi
                 request.put("stopPrice", this.priceToPrecision(symbol, stopPrice));
             }
         }
-        if (Boolean.TRUE.equals(timeInForceIsRequired) && (java.util.Objects.equals(this.safeString(parameters, "timeInForce"), null)) && (java.util.Objects.equals(this.safeString(request, "timeInForce"), null)))
+        List<Object> tifOptionparamsTifOptionVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", (String) null);
+        String tifOption = (String) ((List<Object>) tifOptionparamsTifOptionVariable).get(0);
+        Map<String, Object> paramsTifOption = (Map<String, Object>) ((List<Object>) tifOptionparamsTifOptionVariable).get(1);
+        Boolean tifIsMissing = Boolean.TRUE.equals(timeInForceIsRequired) && (java.util.Objects.equals(this.safeString(parameters, "timeInForce"), null)) && (java.util.Objects.equals(this.safeString(request, "timeInForce"), null));
+        List<Object> omitKeys = new ArrayList<Object>(Arrays.asList("newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"));
+        Object requestParams = null;
+        if (Boolean.TRUE.equals(tifIsMissing))
         {
-            String tif = null;
-            List<Object> tifparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
-            tif = (String) ((List<Object>) tifparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) tifparametersVariable).get(1);
-            request.put("timeInForce", tif);
+            request.put("timeInForce", tifOption);
+            requestParams = this.omit(paramsTifOption, omitKeys);
+        } else
+        {
+            requestParams = this.omit(parameters, omitKeys);
         }
-        Object requestParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice")));
-        if ((java.util.Objects.equals(this.safeBool(this.options, "builderFee"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))
+        if ((java.util.Objects.equals(this.safeBool(this.options, "builderFee", (Object) null), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))
         {
             request.put("builder", this.safeString(this.options, "builder"));
             request.put("feeRate", this.safeString(this.options, "builderRate"));
         }
         return (Map<String, Object>) (this.extend(request, requestParams));
-    }
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4080,11 +3564,11 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
@@ -4110,26 +3594,11 @@ public class Aster extends AsterApi
             //         "msg": "The operation of cancel all open order is done."
             //     }
             //
-            final Object finalResponse = response;
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
-        put( "info", finalResponse );
-    }})));
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(Helpers.newMap(
+        "info", response
+    ), (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#cancelAllOrders
-     * @description cancel all open orders in a market
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
-     * @param {string} symbol unified market symbol of the market to cancel orders in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
-    {
-        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4143,13 +3612,11 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(String id, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
@@ -4167,33 +3634,18 @@ public class Aster extends AsterApi
             {
                 request.put("orderId", id);
             }
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                response = (this.fapiPrivateDeleteV3Order(this.extend(request, parameters))).join();
+                response = (this.fapiPrivateDeleteV3Order(this.extend(request, paramsOmitted))).join();
             } else
             {
-                response = (this.sapiPrivateDeleteV3Order(this.extend(request, parameters))).join();
+                response = (this.sapiPrivateDeleteV3Order(this.extend(request, paramsOmitted))).join();
             }
-            return this.parseOrder(response, market);
+            return this.parseOrder(response, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name aster#cancelOrder
-     * @description cancels an open order
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-order-trade
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-order-trade
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(String id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4211,11 +3663,11 @@ public class Aster extends AsterApi
      * @param {int[]} [params.recvWindow]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a symbol argument")) ;
@@ -4225,7 +3677,7 @@ public class Aster extends AsterApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            List<Object> clientOrderIdList = (List<Object>) this.safeList(parameters, "origClientOrderIdList");
+            List<Object> clientOrderIdList = (List<Object>) this.safeList(parameters, "origClientOrderIdList", (Object) null);
             if (!java.util.Objects.equals(clientOrderIdList, null))
             {
                 request.put("origClientOrderIdList", clientOrderIdList);
@@ -4241,28 +3693,9 @@ public class Aster extends AsterApi
             {
                 response = (this.sapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters))).join();
             }
-            return this.parseOrders(response, market);
+            return this.parseOrders(response, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#cancelOrders
-     * @description cancel multiple orders
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-multiple-orders-trade
-     * @param {string[]} ids order ids
-     * @param {string} [symbol] unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     *
-     * EXCHANGE SPECIFIC PARAMETERS
-     * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
-     * @param {int[]} [params.recvWindow]
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
-    {
-        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4275,13 +3708,11 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage2, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
     {
-        final Object leverage3 = leverage2;
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object leverage = leverage3;
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -4292,11 +3723,10 @@ public class Aster extends AsterApi
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final Object finalLeverage = leverage;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "leverage", finalLeverage );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "symbol", ((Map<String, Object>)market).get("id"),
+                "leverage", leverage
+            );
             Map<String, Object> response = (this.fapiPrivatePostV3Leverage(this.extend(request, parameters))).join();
             //
             //     {
@@ -4308,20 +3738,6 @@ public class Aster extends AsterApi
             return response;
         });
 
-    }
-    /**
-     * @method
-     * @name aster#setLeverage
-     * @description set the level of leverage for a market
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-initial-leverage-trade
-     * @param {float} leverage the rate of leverage
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
-     */
-    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
-    {
-        return this.setLeverage(leverage, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4361,22 +3777,9 @@ public class Aster extends AsterApi
             //         }
             //     ]
             //
-            return this.parseLeverages(this.toArray(response), symbols, "symbol");
+            return this.parseLeverages(this.toArray(response), symbols, "symbol", (Object) null);
         }).thenApply(Leverages::new);
 
-    }
-    /**
-     * @method
-     * @name aster#fetchLeverages
-     * @description fetch the set leverage for all markets
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
-     * @param {string[]} [symbols] a list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
-     */
-    public CompletableFuture<Leverages> fetchLeverages(Object... optionalArgs)
-    {
-        return this.fetchLeverages(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
@@ -4417,19 +3820,13 @@ public class Aster extends AsterApi
         {
             shortLeverage = leverageValue;
         }
-        final Long finalLongLeverage = longLeverage;
-        final Long finalShortLeverage = shortLeverage;
-        return new HashMap<String, Object>() {{
-            put( "info", leverage );
-            put( "symbol", Aster.this.safeSymbol(marketId, market) );
-            put( "marginMode", marginMode );
-            put( "longLeverage", finalLongLeverage );
-            put( "shortLeverage", finalShortLeverage );
-        }};
-    }
-    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
-    {
-        return this.parseLeverage(leverage, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "info", leverage,
+            "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
+            "marginMode", marginMode,
+            "longLeverage", longLeverage,
+            "shortLeverage", shortLeverage
+        );
     }
 
     /**
@@ -4475,19 +3872,6 @@ public class Aster extends AsterApi
         }).thenApply(MarginModes::new);
 
     }
-    /**
-     * @method
-     * @name aster#fetchMarginModes
-     * @description fetches margin mode of the user
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
-     * @param {string[]} symbols unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
-     */
-    public CompletableFuture<MarginModes> fetchMarginModes(Object... optionalArgs)
-    {
-        return this.fetchMarginModes(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
     {
@@ -4511,17 +3895,12 @@ public class Aster extends AsterApi
         //     }
         //
         String marketId = this.safeString(marginMode, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, null, "swap"));
-        final Map<String, Object> finalMarket = market;
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "swap");
         return new HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", Aster.this.safeString(finalMarket, "symbol") );
+            put( "symbol", Aster.this.safeString(marketResolved, "symbol") );
             put( "marginMode", Aster.this.safeStringLower(marginMode, "marginType") );
         }};
-    }
-    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
-    {
-        return this.parseMarginMode(marginMode, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -4537,19 +3916,11 @@ public class Aster extends AsterApi
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistory(String symbol2, String type2, Object since2, Object limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistory(String symbol, String type, Object since, Object limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final String type3 = type2;
-        final Object since3 = since2;
-        final Object limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            String type = type3;
-            Object since = since3;
-            Object limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
@@ -4557,7 +3928,7 @@ public class Aster extends AsterApi
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long until = this.safeInteger(parameters, "until");
-            parameters = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4577,7 +3948,7 @@ public class Aster extends AsterApi
             {
                 request.put("endTime", until);
             }
-            List<Object> response = (this.fapiPrivateGetV3PositionMarginHistory(this.extend(request, parameters))).join();
+            List<Object> response = (this.fapiPrivateGetV3PositionMarginHistory(this.extend(request, paramsOmitted))).join();
             //
             //     [
             //         {
@@ -4590,27 +3961,10 @@ public class Aster extends AsterApi
             //         }
             //     ]
             //
-            List<Object> modifications = this.parseMarginModifications(this.toArray(response));
-            return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
+            List<Object> modifications = this.parseMarginModifications(this.toArray(response), (List<String>) null, (String) null, (Object) null);
+            return this.filterBySymbolSinceLimit(modifications, symbol, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), false);
         }).thenApply(res -> ((List<?>) res).stream().map(MarginModification::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#fetchMarginAdjustmentHistory
-     * @description fetches the history of margin added or reduced from contract isolated positions
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-position-margin-change-history-trade
-     * @param {string} symbol unified market symbol
-     * @param {string} [type] "add" or "reduce"
-     * @param {int} [since] timestamp in ms of the earliest change to fetch
-     * @param {int} [limit] the maximum amount of changes to fetch
-     * @param {object} params extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest change to fetch
-     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
-     */
-    public CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistory(Object... optionalArgs)
-    {
-        return this.fetchMarginAdjustmentHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgMap(optionalArgs, 4, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
@@ -4636,43 +3990,35 @@ public class Aster extends AsterApi
         String errorCode = this.safeString(data, "code");
         String marketId = this.safeString(data, "symbol");
         Long timestamp = this.safeInteger(data, "time");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, null, "swap"));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "swap");
         Boolean noErrorCode = java.util.Objects.equals(errorCode, null);
         Boolean success = java.util.Objects.equals(errorCode, "200");
-        final Map<String, Object> finalMarket = market;
-        final Long finalRawType = rawType;
-        final Boolean finalSuccess = success;
-        return new HashMap<String, Object>() {{
-            put( "info", data );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "type", (((Helpers.isEqual(finalRawType, 1)))) ? "add" : "reduce" );
-            put( "marginMode", "isolated" );
-            put( "amount", Aster.this.safeNumber(data, "amount") );
-            put( "code", Aster.this.safeString(data, "asset") );
-            put( "total", null );
-            put( "status", (((Boolean.TRUE.equals(finalSuccess) || Boolean.TRUE.equals(noErrorCode)))) ? "ok" : "failed" );
-            put( "timestamp", timestamp );
-            put( "datetime", Aster.this.iso8601(timestamp) );
-        }};
-    }
-    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
-    {
-        return this.parseMarginModification(data, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "info", data,
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "type", ((((rawType != null && rawType == 1)))) ? "add" : "reduce",
+            "marginMode", "isolated",
+            "amount", this.safeNumber(data, "amount", (Object) null),
+            "code", this.safeString(data, "asset"),
+            "total", null,
+            "status", (((Boolean.TRUE.equals(success) || Boolean.TRUE.equals(noErrorCode)))) ? "ok" : "failed",
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp)
+        );
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object addOrReduce, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object addOrReduce, Map<String, Object> parameters)
     {
-        final Object amount3 = amount2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object amount = amount3;
+
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            amount = this.amountToPrecision(symbol, amount);
-            final Object finalAmount = amount;
+            String amountValue = this.amountToPrecision(symbol, amount);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", addOrReduce );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "amount", finalAmount );
+                put( "amount", amountValue );
             }};
             String code = (String) ((Map<String, Object>)market).get("quote");
             Map<String, Object> response = (this.fapiPrivatePostV3PositionMargin(this.extend(request, parameters))).join();
@@ -4684,15 +4030,11 @@ public class Aster extends AsterApi
             //         "type": 1
             //     }
             //
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), Helpers.toMapArg(market)), new HashMap<String, Object>() {{
                 put( "code", code );
             }});
         });
 
-    }
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object addOrReduce, Object... optionalArgs)
-    {
-        return this.modifyMarginHelper(symbol, amount, addOrReduce, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4714,20 +4056,6 @@ public class Aster extends AsterApi
         }).thenApply(MarginModification::new);
 
     }
-    /**
-     * @method
-     * @name aster#reduceMargin
-     * @description remove margin from a position
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade
-     * @param {string} symbol unified market symbol
-     * @param {float} amount the amount of margin to remove
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
-     */
-    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
-    {
-        return this.reduceMargin(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -4747,20 +4075,6 @@ public class Aster extends AsterApi
             return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
         }).thenApply(MarginModification::new);
 
-    }
-    /**
-     * @method
-     * @name aster#addMargin
-     * @description add margin
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade
-     * @param {string} symbol unified market symbol
-     * @param {float} amount amount of margin to add
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
-     */
-    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
-    {
-        return this.addMargin(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
@@ -4782,17 +4096,13 @@ public class Aster extends AsterApi
         Long timestamp = this.safeInteger(income, "time");
         return new HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", Aster.this.safeSymbol(marketId, market, null, "swap") );
-            put( "code", Aster.this.safeCurrencyCode(currencyId) );
+            put( "symbol", Aster.this.safeSymbol(marketId, market, (String) null, "swap") );
+            put( "code", Aster.this.safeCurrencyCode(currencyId, (Map<String, Object>) null) );
             put( "timestamp", timestamp );
             put( "datetime", Aster.this.iso8601(timestamp) );
             put( "id", Aster.this.safeString(income, "tranId") );
-            put( "amount", Aster.this.safeNumber(income, "income") );
+            put( "amount", Aster.this.safeNumber(income, "income", (Object) null) );
         }};
-    }
-    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
-    {
-        return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -4809,17 +4119,11 @@ public class Aster extends AsterApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4830,39 +4134,21 @@ public class Aster extends AsterApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("startTime", since);
+                ((Map<String, Object>)requestUntil).put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Math.min(limit, 1000)); // max 1000
+                ((Map<String, Object>)requestUntil).put("limit", Math.min(limit, 1000)); // max 1000
             }
-            List<Object> response = (this.fapiPrivateGetV3Income(this.extend(request, parameters))).join();
-            return this.parseIncomes(response, market, since, limit);
+            List<Object> response = (this.fapiPrivateGetV3Income(this.extend(requestUntil, paramsUntil))).join();
+            return this.parseIncomes(response, Helpers.toMapArg(market), since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#fetchFundingHistory
-     * @description fetch the history of funding payments paid and received on this account
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch funding history for
-     * @param {int} [limit] the maximum number of funding history structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest funding history entry
-     * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
-     * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
-     */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
-    {
-        return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
@@ -4891,32 +4177,26 @@ public class Aster extends AsterApi
         }
         String currencyId = this.safeString(item, "asset");
         String code = this.safeCurrencyCode(currencyId, currency);
-        currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
+        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
         Long timestamp = this.safeInteger(item, "time");
         String type = this.safeString(item, "incomeType");
-        final String finalDirection = direction;
-        final String finalAmount = amount;
-        return this.safeLedgerEntry(new HashMap<String, Object>() {{
-            put( "info", item );
-            put( "id", Aster.this.safeString(item, "tranId") );
-            put( "direction", finalDirection );
-            put( "account", null );
-            put( "referenceAccount", null );
-            put( "referenceId", Aster.this.safeString(item, "tradeId") );
-            put( "type", Aster.this.parseLedgerEntryType(type) );
-            put( "currency", code );
-            put( "amount", Aster.this.parseNumber(finalAmount) );
-            put( "timestamp", timestamp );
-            put( "datetime", Aster.this.iso8601(timestamp) );
-            put( "before", null );
-            put( "after", null );
-            put( "status", null );
-            put( "fee", null );
-        }}, currency);
-    }
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
-    {
-        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeLedgerEntry(Helpers.newMap(
+            "info", item,
+            "id", this.safeString(item, "tranId"),
+            "direction", direction,
+            "account", null,
+            "referenceAccount", null,
+            "referenceId", this.safeString(item, "tradeId"),
+            "type", this.parseLedgerEntryType(type),
+            "currency", code,
+            "amount", this.parseNumber(amount),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "before", null,
+            "after", null,
+            "status", null,
+            "fee", null
+        ), Helpers.toMapArg(currencyResolved));
     }
 
     public String parseLedgerEntryType(String type)
@@ -4945,17 +4225,11 @@ public class Aster extends AsterApi
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
@@ -4972,12 +4246,12 @@ public class Aster extends AsterApi
                 request.put("limit", Math.min(limit, 1000)); // max 1000
             }
             Long until = this.safeInteger(parameters, "until");
+            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = (Map<String, Object>) this.omit(parameters, "until");
                 request.put("endTime", until);
             }
-            List<Object> response = (this.fapiPrivateGetV3Income(this.extend(request, parameters))).join();
+            List<Object> response = (this.fapiPrivateGetV3Income(this.extend(request, paramsOmitted))).join();
             //
             //     [
             //         {
@@ -4992,25 +4266,9 @@ public class Aster extends AsterApi
             //         }
             //     ]
             //
-            return this.parseLedger(response, currency, since, limit);
+            return this.parseLedger(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#fetchLedger
-     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data
-     * @param {string} [code] unified currency code
-     * @param {int} [since] timestamp in ms of the earliest ledger entry
-     * @param {int} [limit] max number of ledger entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
-     */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
-    {
-        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePositionRisk(Map<String, Object> position, Map<String, Object> market)
@@ -5033,8 +4291,8 @@ public class Aster extends AsterApi
         //     }
         //
         String marketId = this.safeString(position, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, null, "contract"));
-        String symbol = this.safeString(market, "symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "contract");
+        String symbol = this.safeString(marketResolved, "symbol");
         String isolatedMarginString = this.safeString(position, "isolatedMargin");
         Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
         List<Object> leverageBracket = (List<Object>) this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
@@ -5073,14 +4331,14 @@ public class Aster extends AsterApi
         }
         String entryPriceString = this.safeString(position, "entryPrice");
         Double entryPrice = this.parseNumber(entryPriceString);
-        Double contractSize = this.safeNumber(market, "contractSize");
+        Double contractSize = this.safeNumber(marketResolved, "contractSize", (Object) null);
         String contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         Boolean linear = (position.containsKey("notional"));
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             // calculate collateral
-            Map<String, Object> precision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+            Map<String, Object> precision = (Map<String, Object>) this.safeDict(marketResolved, "precision", new HashMap<String, Object>() {{}});
             String basePrecisionValue = this.safeString(precision, "base");
             String quotePrecisionValue = this.safeString2(precision, "quote", "price");
             Boolean precisionIsUndefined = (java.util.Objects.equals(basePrecisionValue, null)) && (java.util.Objects.equals(quotePrecisionValue, null));
@@ -5171,45 +4429,33 @@ public class Aster extends AsterApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
-        final String finalLeverageString = leverageString;
-        final Long finalTimestamp = timestamp;
-        final String finalInitialMarginString = initialMarginString;
-        final String finalInitialMarginPercentageString = initialMarginPercentageString;
-        final Double finalMarginRatio = marginRatio;
-        final String finalMarginMode = marginMode;
-        final String finalSide = side;
-        final Double finalPercentage = percentage;
-        return this.safePosition(new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", null );
-            put( "symbol", symbol );
-            put( "contracts", contracts );
-            put( "contractSize", contractSize );
-            put( "unrealizedPnl", unrealizedPnl );
-            put( "leverage", Aster.this.parseNumber(finalLeverageString) );
-            put( "liquidationPrice", liquidationPrice );
-            put( "collateral", collateral );
-            put( "notional", notional );
-            put( "markPrice", markPrice );
-            put( "entryPrice", entryPrice );
-            put( "timestamp", finalTimestamp );
-            put( "initialMargin", Aster.this.parseNumber(finalInitialMarginString) );
-            put( "initialMarginPercentage", Aster.this.parseNumber(finalInitialMarginPercentageString) );
-            put( "maintenanceMargin", maintenanceMargin );
-            put( "maintenanceMarginPercentage", maintenanceMarginPercentage );
-            put( "marginRatio", finalMarginRatio );
-            put( "datetime", Aster.this.iso8601(finalTimestamp) );
-            put( "marginMode", finalMarginMode );
-            put( "side", finalSide );
-            put( "hedged", hedged );
-            put( "percentage", finalPercentage );
-            put( "stopLossPrice", null );
-            put( "takeProfitPrice", null );
-        }});
-    }
-    public Object parsePositionRisk(Map<String, Object> position, Object... optionalArgs)
-    {
-        return this.parsePositionRisk(position, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safePosition(Helpers.newMap(
+            "info", position,
+            "id", null,
+            "symbol", symbol,
+            "contracts", contracts,
+            "contractSize", contractSize,
+            "unrealizedPnl", unrealizedPnl,
+            "leverage", this.parseNumber(leverageString),
+            "liquidationPrice", liquidationPrice,
+            "collateral", collateral,
+            "notional", notional,
+            "markPrice", markPrice,
+            "entryPrice", entryPrice,
+            "timestamp", timestamp,
+            "initialMargin", this.parseNumber(initialMarginString),
+            "initialMarginPercentage", this.parseNumber(initialMarginPercentageString),
+            "maintenanceMargin", maintenanceMargin,
+            "maintenanceMarginPercentage", maintenanceMarginPercentage,
+            "marginRatio", marginRatio,
+            "datetime", this.iso8601(timestamp),
+            "marginMode", marginMode,
+            "side", side,
+            "hedged", hedged,
+            "percentage", percentage,
+            "stopLossPrice", null,
+            "takeProfitPrice", null
+        ));
     }
 
     /**
@@ -5221,11 +4467,11 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on the positions risk
      */
-    public CompletableFuture<List<Position>> fetchPositionsRisk(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositionsRisk(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (!java.util.Objects.equals(symbols, null))
             {
                 if (!(symbols instanceof List))
@@ -5264,26 +4510,13 @@ public class Aster extends AsterApi
                 String entryPriceString = this.safeString(rawPosition, "entryPrice");
                 if (Precise.stringGt(entryPriceString, "0"))
                 {
-                    ((List<Object>)result).add(this.parsePositionRisk((Map<String, Object>) (rawPosition)));
+                    ((List<Object>)result).add(this.parsePositionRisk((Map<String, Object>) (rawPosition), (Map<String, Object>) null));
                 }
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            return this.filterByArrayPositions(result, "symbol", symbols, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#fetchPositionsRisk
-     * @description fetch positions risk
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} data on the positions risk
-     */
-    public CompletableFuture<List<Position>> fetchPositionsRisk(Object... optionalArgs)
-    {
-        return this.fetchPositionsRisk(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -5296,18 +4529,18 @@ public class Aster extends AsterApi
      * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
-            String defaultMethod = null;
-            List<Object> defaultMethodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositions", "method");
-            defaultMethod = (String) ((List<Object>) defaultMethodparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) defaultMethodparametersVariable).get(1);
+
+            List<Object> methodOptionparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositions", "method", (String) null);
+            String methodOption = (String) ((List<Object>) methodOptionparamsMethodVariable).get(0);
+            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodOptionparamsMethodVariable).get(1);
+            String defaultMethod = methodOption;
             if (java.util.Objects.equals(defaultMethod, null))
             {
-                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchPositions");
+                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchPositions", (Object) null);
                 if (java.util.Objects.equals(options, null))
                 {
                     defaultMethod = this.safeString(this.options, "fetchPositions", "positionRisk");
@@ -5318,30 +4551,16 @@ public class Aster extends AsterApi
             }
             if (java.util.Objects.equals(defaultMethod, "positionRisk"))
             {
-                return (this.fetchPositionsRisk((Object)(symbols), (Object)(parameters))).join();
+                return (this.fetchPositionsRisk(symbols, Helpers.toMapArg(paramsMethod))).join();
             } else if (java.util.Objects.equals(defaultMethod, "account"))
             {
-                return (this.fetchAccountPositions(symbols, parameters)).join();
+                return (this.fetchAccountPositions(symbols, Helpers.toMapArg(paramsMethod))).join();
             } else
             {
                 throw new NotSupported((((this.id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"") + defaultMethod) + "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name aster#fetchPositions
-     * @description fetch all open positions
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
-    {
-        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseAccountPositions(Map<String, Object> account, Object filterClosed)
@@ -5351,9 +4570,9 @@ public class Aster extends AsterApi
         Map<String, Object> balances = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)assets).size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(assets, i);
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(assets, i, (Object) null);
             String currencyId = this.safeString(entry, "asset");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             String crossWalletBalance = this.safeString(entry, "crossWalletBalance");
             String crossUnPnl = this.safeString(entry, "crossUnPnl");
             if (!java.util.Objects.equals(code, null))
@@ -5369,37 +4588,32 @@ public class Aster extends AsterApi
         {
             Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
             String marketId = this.safeString(position, "symbol");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
             Object code = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? ((Map<String, Object>)market).get("quote") : ((Map<String, Object>)market).get("base");
             String maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             Boolean isPositionOpen = (!java.util.Objects.equals(maintenanceMargin, "0")) && (!java.util.Objects.equals(maintenanceMargin, "0.00000000"));
-            if (!Helpers.isTrue(filterClosed) || Boolean.TRUE.equals(isPositionOpen))
+            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(filterClosed, false)) || Boolean.TRUE.equals(isPositionOpen))
             {
                 // sometimes not all the codes are correctly returned...
                 if (balances.containsKey(code))
                 {
-                    final Object finalCode = code;
-                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, new HashMap<String, Object>() {{
-                        put( "crossMargin", Helpers.GetValue((balances == null || finalCode == null ? null : balances.get(finalCode)), "crossMargin") );
-                        put( "crossWalletBalance", Helpers.GetValue((balances == null || finalCode == null ? null : balances.get(finalCode)), "crossWalletBalance") );
-                    }})), market);
+                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, Helpers.newMap(
+                        "crossMargin", Helpers.GetValue((balances == null || code == null ? null : balances.get(code)), "crossMargin"),
+                        "crossWalletBalance", Helpers.GetValue((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance")
+                    ))), Helpers.toMapArg(market));
                     ((List<Object>)result).add(parsed);
                 }
             }
         }
         return result;
     }
-    public Object parseAccountPositions(Map<String, Object> account, Object... optionalArgs)
-    {
-        return this.parseAccountPositions(account, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
-    }
 
     public Map<String, Object> parseAccountPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String marketId = this.safeString(position, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, null, "contract"));
-        String symbol = this.safeString(market, "symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "contract");
+        String symbol = this.safeString(marketResolved, "symbol");
         String leverageString = this.safeString(position, "leverage");
         Object leverage = (((!java.util.Objects.equals(leverageString, null)))) ? Helpers.parseInt(leverageString) : null;
         String initialMarginString = this.safeString(position, "initialMargin");
@@ -5432,7 +4646,7 @@ public class Aster extends AsterApi
         if (java.util.Objects.equals(contractsString, null))
         {
             String entryNotional = Precise.stringMul(Precise.stringMul(leverageString, initialMarginString), entryPriceString);
-            String contractSizeNew = this.safeString(market, "contractSize");
+            String contractSizeNew = this.safeString(marketResolved, "contractSize");
             contractsString = Precise.stringDiv(entryNotional, contractSizeNew);
             contractsStringAbs = Precise.stringDiv(Precise.stringAdd(contractsString, "0.5"), "1", 0);
         }
@@ -5457,7 +4671,7 @@ public class Aster extends AsterApi
         {
             timestamp = null;
         }
-        Boolean isolated = (Boolean) this.safeBool(position, "isolated");
+        Boolean isolated = (Boolean) this.safeBool(position, "isolated", (Object) null);
         if (java.util.Objects.equals(isolated, null))
         {
             String isolatedMarginRaw = this.safeString(position, "isolatedMargin");
@@ -5483,7 +4697,7 @@ public class Aster extends AsterApi
         Double percentage = null;
         String liquidationPriceStringRaw = null;
         Double liquidationPrice = null;
-        Double contractSize = this.safeNumber(market, "contractSize");
+        Double contractSize = this.safeNumber(marketResolved, "contractSize", (Object) null);
         String contractSizeString = this.numberToString(contractSize);
         if (Precise.stringEquals(notionalString, "0"))
         {
@@ -5536,7 +4750,7 @@ public class Aster extends AsterApi
                 Object rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            Object pricePrecision = this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "price"));
+            Object pricePrecision = this.precisionFromString(this.safeString(((Map<String, Object>)marketResolved).get("precision"), "price"));
             Object pricePrecisionPlusOne = Helpers.add(pricePrecision, 1);
             String pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
@@ -5558,44 +4772,31 @@ public class Aster extends AsterApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
-        final Long finalTimestamp = timestamp;
-        final String finalInitialMarginPercentageString = initialMarginPercentageString;
-        final Double finalEntryPrice = entryPrice;
-        final String finalLeverageString = leverageString;
-        final Double finalMarginRatio = marginRatio;
-        final Double finalLiquidationPrice = liquidationPrice;
-        final String finalMarginMode = marginMode;
-        final String finalSide = side;
-        final Double finalPercentage = percentage;
-        return new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", null );
-            put( "symbol", symbol );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", Aster.this.iso8601(finalTimestamp) );
-            put( "initialMargin", initialMargin );
-            put( "initialMarginPercentage", Aster.this.parseNumber(finalInitialMarginPercentageString) );
-            put( "maintenanceMargin", maintenanceMargin );
-            put( "maintenanceMarginPercentage", maintenanceMarginPercentage );
-            put( "entryPrice", finalEntryPrice );
-            put( "notional", notional );
-            put( "leverage", Aster.this.parseNumber(finalLeverageString) );
-            put( "unrealizedPnl", unrealizedPnl );
-            put( "contracts", contracts );
-            put( "contractSize", contractSize );
-            put( "marginRatio", finalMarginRatio );
-            put( "liquidationPrice", finalLiquidationPrice );
-            put( "markPrice", null );
-            put( "collateral", collateral );
-            put( "marginMode", finalMarginMode );
-            put( "side", finalSide );
-            put( "hedged", hedged );
-            put( "percentage", finalPercentage );
-        }};
-    }
-    public Map<String, Object> parseAccountPosition(Map<String, Object> position, Object... optionalArgs)
-    {
-        return this.parseAccountPosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "info", position,
+            "id", null,
+            "symbol", symbol,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "initialMargin", initialMargin,
+            "initialMarginPercentage", this.parseNumber(initialMarginPercentageString),
+            "maintenanceMargin", maintenanceMargin,
+            "maintenanceMarginPercentage", maintenanceMarginPercentage,
+            "entryPrice", entryPrice,
+            "notional", notional,
+            "leverage", this.parseNumber(leverageString),
+            "unrealizedPnl", unrealizedPnl,
+            "contracts", contracts,
+            "contractSize", contractSize,
+            "marginRatio", marginRatio,
+            "liquidationPrice", liquidationPrice,
+            "markPrice", null,
+            "collateral", collateral,
+            "marginMode", marginMode,
+            "side", side,
+            "hedged", hedged,
+            "percentage", percentage
+        );
     }
 
     /**
@@ -5608,13 +4809,11 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on account positions
      */
-    public CompletableFuture<Object> fetchAccountPositions(List<String> symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Object> fetchAccountPositions(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            Map<String, Object> parameters = parameters3;
+
             if (!java.util.Objects.equals(symbols, null))
             {
                 if (!(symbols instanceof List))
@@ -5625,29 +4824,12 @@ public class Aster extends AsterApi
             (this.loadMarketsAndSignIn()).join();
             (this.loadLeverageBrackets(false, parameters)).join();
             Map<String, Object> response = (this.fapiPrivateGetV4Account(parameters)).join();
-            Boolean filterClosed = null;
-            List<Object> filterClosedparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
-            filterClosed = (Boolean) ((List<Object>) filterClosedparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) filterClosedparametersVariable).get(1);
+            Boolean filterClosed = (Boolean) ((List<Object>)this.handleOptionBoolAndParams(parameters, "fetchAccountPositions", "filterClosed", false)).get(0);
             Object result = this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            return this.filterByArrayPositions(result, "symbol", symbols, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
         });
 
-    }
-    /**
-     * @method
-     * @name aster#fetchAccountPositions
-     * @ignore
-     * @description fetch account positions
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} data on account positions
-     */
-    public CompletableFuture<Object> fetchAccountPositions(Object... optionalArgs)
-    {
-        return this.fetchAccountPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Map<String, Object>> loadLeverageBrackets(Object reload, Map<String, Object> parameters)
@@ -5658,8 +4840,8 @@ public class Aster extends AsterApi
             (this.loadMarketsAndSignIn()).join();
             // by default cache the leverage bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
-            Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets");
-            if ((java.util.Objects.equals(leverageBrackets, null)) || Helpers.isTrue((reload)))
+            Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", (Object) null);
+            if ((java.util.Objects.equals(leverageBrackets, null)) || Helpers.isTrue((java.util.Objects.requireNonNullElse(reload, false))))
             {
                 List<Object> response = (this.fapiPrivateGetV3LeverageBracket(parameters)).join();
                 //
@@ -5689,14 +4871,14 @@ public class Aster extends AsterApi
                 List<Object> entries = this.toArray(response);
                 for (var i = 0; i < ((List<?>)entries).size(); i++)
                 {
-                    Map<String, Object> entry = (Map<String, Object>) this.safeDict(entries, i);
+                    Map<String, Object> entry = (Map<String, Object>) this.safeDict(entries, i, (Object) null);
                     String marketId = this.safeString(entry, "symbol");
-                    String symbol = this.safeSymbol(marketId, null, null, "contract");
+                    String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, "contract");
                     List<Object> brackets = (List<Object>) this.safeList(entry, "brackets", new ArrayList<Object>(Arrays.asList()));
                     List<Object> result = new ArrayList<Object>(Arrays.asList());
                     for (var j = 0; j < ((List<?>)brackets).size(); j++)
                     {
-                        Map<String, Object> bracket = (Map<String, Object>) this.safeDict(brackets, j);
+                        Map<String, Object> bracket = (Map<String, Object>) this.safeDict(brackets, j, (Object) null);
                         String floorValue = this.safeString(bracket, "notionalFloor");
                         String maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                         ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(floorValue, maintenanceMarginPercentage)));
@@ -5707,10 +4889,6 @@ public class Aster extends AsterApi
             return ((Map<String, Object>)this.options).get("leverageBrackets");
         }).thenApply(res -> (Map<String, Object>) res);
 
-    }
-    public CompletableFuture<Map<String, Object>> loadLeverageBrackets(Object... optionalArgs)
-    {
-        return this.loadLeverageBrackets(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object keccakMessage(Object message)
@@ -5788,16 +4966,13 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag2, Map<String, Object> parameters2)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
-        final String tag3 = tag2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String tag = tag3;
-            Map<String, Object> parameters = parameters3;
-            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = (String) ((List<Object>) tagparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
+
+            List<Object> tagAndParams = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) (tagAndParams == null || 1 >= tagAndParams.size() ? null : tagAndParams.get(1));
             this.checkAddress(address);
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
@@ -5807,10 +4982,10 @@ public class Aster extends AsterApi
                 put( "receiver", address );
                 put( "userNonce", String.valueOf(nonce) );
             }};
-            Long chainId = this.safeInteger(parameters, "chainId");
+            Long chainId = this.safeInteger(paramsWithdrawTag, "chainId");
             // TODO: check how ARBI signature would work
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            String network = this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(paramsWithdrawTag, "network");
             network = this.safeString(networks, network, network);
             if ((java.util.Objects.equals(chainId, null)) && (!java.util.Objects.equals(network, null)))
             {
@@ -5822,43 +4997,25 @@ public class Aster extends AsterApi
                 throw new ArgumentsRequired((this.id + " withdraw require chainId or network parameter")) ;
             }
             request.put("chainId", chainId);
-            String fee = this.safeString(parameters, "fee");
+            String fee = this.safeString(paramsWithdrawTag, "fee");
             if (java.util.Objects.equals(fee, null))
             {
                 throw new ArgumentsRequired((this.id + " withdraw require fee parameter")) ;
             }
             request.put("fee", fee);
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("chainId", "network", "fee")));
+            Object paramsOmitted = this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("chainId", "network", "fee")));
             request.put("amount", this.currencyToPrecision((String) (code), amount, network));
             request.put("userSignature", this.signWithdrawPayload(request, network));
-            Map<String, Object> response = (this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, paramsOmitted))).join();
             //
             //   {
             //       "withdrawId": "1097219372504338432",
             //       "hash": "0x9e6baa3eb75d92a1164eef51a0cc97b9591930518ba3e8e5ab40ce524ba4e463"
             //   }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
         }).thenApply(Transaction::new);
 
-    }
-    /**
-     * @method
-     * @name aster#withdraw
-     * @description make a withdrawal
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#withdraw-user_data
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-futures
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-spot
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} tag
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
-    {
-        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
@@ -5886,10 +5043,6 @@ public class Aster extends AsterApi
             put( "fee", null );
         }};
     }
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -5904,18 +5057,16 @@ public class Aster extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount2, String toAccount2, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
-        final String fromAccount3 = fromAccount2;
-        final String toAccount3 = toAccount2;
+
         return BaseExchange.supplyAsync(() -> {
-            String fromAccount = fromAccount3;
-            String toAccount = toAccount3;
+
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Aster.this.currencyToPrecision((String) (code), amount) );
+                put( "amount", Aster.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};
             String type = null;
             Object fromId = null;
@@ -5944,26 +5095,9 @@ public class Aster extends AsterApi
             request.put("kindType", type);
             request.put("clientTranId", clientTranId);
             Map<String, Object> response = (this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters))).join();
-            return this.parseTransfer(response, currency);
+            return this.parseTransfer(response, Helpers.toMapArg(currency));
         }).thenApply(TransferEntry::new);
 
-    }
-    /**
-     * @method
-     * @name aster#transfer
-     * @description transfer currency internally between wallets on the same account
-     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#perp-spot-transfer-trade
-     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#transfer-between-futures-and-spot-transfer
-     * @param {string} code unified currency code
-     * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Object... optionalArgs)
-    {
-        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransfer(Object transfer, Map<String, Object> currency)
@@ -5980,10 +5114,6 @@ public class Aster extends AsterApi
             put( "toAccount", null );
             put( "status", Aster.this.parseTransferStatus(Aster.this.safeString(transfer, "status")) );
         }};
-    }
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
-    {
-        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseTransferStatus(String status)
@@ -6006,7 +5136,7 @@ public class Aster extends AsterApi
 
     public Object signHash(Object hash, Object privateKey)
     {
-        this.checkRequiredCredentials();
+        this.checkRequiredCredentials(true);
         Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
@@ -6016,16 +5146,16 @@ public class Aster extends AsterApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), path);
-        if (java.util.Objects.equals(api, "fapiPublic") || java.util.Objects.equals(api, "sapiPublic"))
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), "/"), path);
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPublic") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiPublic"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.rawencode(parameters)));
             }
-        } else if (java.util.Objects.equals(api, "fapiPrivate") || java.util.Objects.equals(api, "sapiPrivate"))
+        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivate") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiPrivate"))
         {
-            this.checkRequiredCredentials();
+            this.checkRequiredCredentials(true);
             Long nonce = (this.milliseconds() * 1000L);
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             String zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
@@ -6058,13 +5188,11 @@ public class Aster extends AsterApi
             }};
             // Build v3 params: original endpoint params + nonce (microseconds) + user + signer
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
-            final Object finalWalletAddress = walletAddress;
-            final String finalSignerAddress = signerAddress;
-            Object finalParams = this.extend(new HashMap<String, Object>() {{
-                put( "nonce", String.valueOf(nonce) );
-                put( "user", finalWalletAddress );
-                put( "signer", finalSignerAddress );
-            }}, parameters);
+            Object finalParams = this.extend(Helpers.newMap(
+                "nonce", String.valueOf(nonce),
+                "user", walletAddress,
+                "signer", signerAddress
+            ), parameters);
             String paramString = null;
             Object paramsToEncode = null;
             Boolean isApproveBuilder = (Helpers.getIndexOf(path, "/approveBuilder") >= 0);
@@ -6098,38 +5226,35 @@ public class Aster extends AsterApi
             } else
             {
                 paramString = this.encodeValuesWithJson((Map<String, Object>) (finalParams));
-                final String finalParamString = paramString;
-                paramsToEncode = new HashMap<String, Object>() {{
-                    put( "msg", finalParamString );
-                }};
+                paramsToEncode = Helpers.newMap(
+                    "msg", paramString
+                );
             }
             Object encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
             Object signature = this.signMessage(encodedMessage, this.privateKey);
             String queryString = (((paramString + "&") + "signature=") + signature);
-            if (java.util.Objects.equals(method, "GET"))
+            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 url = (url + ("?" + queryString));
             } else
             {
-                headers = new HashMap<String, Object>() {{}};
-                ((Map<String, Object>)headers).put("Content-Type", "application/x-www-form-urlencoded");
-                body = queryString;
+                Map<String, Object> formHeaders = new HashMap<String, Object>() {{
+                    put( "Content-Type", "application/x-www-form-urlencoded" );
+                }};
+                return Helpers.newMap(
+                    "url", url,
+                    "method", java.util.Objects.requireNonNullElse(method, "GET"),
+                    "body", queryString,
+                    "headers", formHeaders
+                );
             }
         }
-        final Object finalUrl = url;
-        final Object finalMethod = method;
-        final String finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", body,
+            "headers", headers
+        );
     }
 
     public String encodeValuesWithJson(Map<String, Object> values)
@@ -6167,7 +5292,7 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.signIn()))).join();
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.signIn(new HashMap<String, Object>() {{}})))).join();
             return null;
         });
 
@@ -6198,22 +5323,10 @@ public class Aster extends AsterApi
             {
                 throw new NotSupported((this.id + " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
             }
-            (this.initializeClient(parameters)).join();
+            (this.initializeClient(Helpers.toMapArg(parameters))).join();
             return true;
         });
 
-    }
-    /**
-     * @method
-     * @name aster#signIn
-     * @description sign in, must be called prior to using other authenticated methods
-     * @see https://asterdex.github.io/aster-api-website/asterCode/integration-flow/
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns response from exchange
-     */
-    public CompletableFuture<Object> signIn(Object... optionalArgs)
-    {
-        return this.signIn(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     public CompletableFuture<Object> initializeClient(Map<String, Object> parameters)
@@ -6285,10 +5398,6 @@ public class Aster extends AsterApi
             return null;  // just c#
         });
 
-    }
-    public CompletableFuture<Object> initializeClient(Object... optionalArgs)
-    {
-        return this.initializeClient(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

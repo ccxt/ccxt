@@ -597,7 +597,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             return outcomeObj;
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
-        outcomeObj = Value::Map({
+        let mut outcomeObjValue: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("outcome".to_string(), outcomeIdOrSymbol.clone());
                 m.insert("outcomeId".to_string(), outcomeIdOrSymbol);
@@ -610,15 +610,15 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
 }));
             m
         });
-        return outcomeObj;
+        return outcomeObjValue;
 
     Value::Null
 }
 
     fn safe_outcome_symbol(&self, mut outcomeIdOrSymbol: Value, optional_args: &[Value]) -> Value {
         let mut outcomeObj = get_arg(optional_args, 0, Value::Null);
-        outcomeObj = self.safe_outcome(outcomeIdOrSymbol, &[outcomeObj.clone()]);
-        return crate::value::get_value_k(&outcomeObj, "outcome");
+        let mut outcomeObjValue: Value = self.safe_outcome(outcomeIdOrSymbol, &[outcomeObj]);
+        return crate::value::get_value_k(&outcomeObjValue, "outcome");
 
     Value::Null
 }
@@ -730,10 +730,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        if (outcome == Value::Null) {
-            outcome = Value::Str("".into());
-        }
-        let mut upper: Value = to_upper(&outcome);
+        let mut outcomeValue: Value = (if (outcome == Value::Null) { Value::Str("".into()) } else { outcome });
+        let mut upper: Value = to_upper(&outcomeValue);
         let mut allowed: Value = Value::Str("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".into());
         let mut chars: Value = self.string_to_chars_array(upper.clone());
         let mut label: Value = Value::Str("".into());

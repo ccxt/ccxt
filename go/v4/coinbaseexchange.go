@@ -1211,7 +1211,7 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized any = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProductsSparkLines(this.Extend(request, params))).Raw))
@@ -1247,7 +1247,7 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 		AddElementToObject(result, symbol, this.ParseTicker(first, market))
 	}
 
-	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+	ch <- this.FilterByArrayTickers(result, "symbol", symbolsNormalized)
 	return nil
 }
 
@@ -1341,11 +1341,11 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString2(trade, "time", "created_at"))
 	var marketId *string = this.SafeString(trade, "product_id")
-	market = this.SafeMarket(marketId, market, "-")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
 	var feeRate *string = nil
 	var takerOrMaker *string = nil
 	var cost *string = nil
-	var feeCurrencyId *string = this.SafeStringLower(market, "quoteId")
+	var feeCurrencyId *string = this.SafeStringLower(marketResolved, "quoteId")
 	if feeCurrencyId != nil {
 		var costField string = *feeCurrencyId + "_value"
 		cost = this.SafeString(trade, costField)
@@ -1357,13 +1357,13 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 				}
 				return "maker"
 			}())
-			feeRate = this.SafeString(market, takerOrMaker)
+			feeRate = this.SafeString(marketResolved, takerOrMaker)
 		}
 	}
 	var feeCost *string = this.SafeString2(trade, "fill_fees", "fee")
 	var fee map[string]any = map[string]any{
 		"cost":     feeCost,
-		"currency": GetValue(market, "quote"),
+		"currency": marketResolved["quote"],
 		"rate":     feeRate,
 	}
 	var id *string = this.SafeString(trade, "trade_id")
@@ -1386,7 +1386,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "size")
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"order":        orderId,
@@ -1401,7 +1401,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amount,
 		"fee":          fee,
 		"cost":         cost,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1437,13 +1437,14 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan any, optionalArgs ...any
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes114219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))))
-		ch <- BoxAbsent(retRes114219)
+		var retRes114319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, 100))))
+		ch <- BoxAbsent(retRes114319)
 		return nil
 	}
 	if this.Markets == nil {
@@ -1460,13 +1461,18 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan any, optionalArgs ...any
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
-	var until any = this.SafeValue2(params, "until", "end_date")
+	var until any = this.SafeValue2(paramsPaginate, "until", "end_date")
 	if !IsEqual(until, nil) {
-		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["end_date"] = this.Iso8601(until)
 	}
+	var paramsUntil any = func() any {
+		if !IsEqual(until, nil) {
+			return this.Omit(paramsPaginate, []any{"until"})
+		}
+		return paramsPaginate
+	}()
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(request, params))).Raw))
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(request, paramsUntil))).Raw))
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -1626,13 +1632,12 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan any, symbol any, optionalAr
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes128219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))))
+		var retRes128219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 300))))
 		ch <- BoxAbsent(retRes128219)
 		return nil
 	}
@@ -1646,29 +1651,36 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan any, symbol any, optionalAr
 	} else {
 		request["granularity"] = timeframe
 	}
-	var until any = this.SafeValue2(params, "until", "end")
-	params = MapTyped(this.Omit(params, []any{"until"}))
+	var until any = this.SafeValue2(paramsPaginate, "until", "end")
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	// https://docs.pro.coinbase.com/#get-historic-rates max = 300
+	var cappedLimit any = func() any {
+		if limit == nil {
+			return 300
+		}
+		return mathMin(300, limit)
+	}()
+	var limitResolved any = func() any {
+		if since != nil {
+			return cappedLimit
+		}
+		return limit
+	}()
 	if since != nil {
 		request["start"] = this.Iso8601(since)
-		if limit == nil {
-			// https://docs.pro.coinbase.com/#get-historic-rates
-			limit = Int64PtrTyped(300) // max = 300
-		} else {
-			limit = Int64PtrTyped(mathMin(300, limit))
-		}
 		if IsEqual(until, nil) {
 			var parsedTimeframeMilliseconds any = Multiply(parsedTimeframe, 1000)
 			if this.IsRoundNumber(Mod(since, parsedTimeframeMilliseconds)) {
-				request["end"] = this.Iso8601(this.Sum(Multiply((Subtract(limit, 1)), parsedTimeframeMilliseconds), since))
+				request["end"] = this.Iso8601(this.Sum(Multiply((Subtract(cappedLimit, 1)), parsedTimeframeMilliseconds), since))
 			} else {
-				request["end"] = this.Iso8601(this.Sum(Multiply(limit, parsedTimeframeMilliseconds), since))
+				request["end"] = this.Iso8601(this.Sum(Multiply(cappedLimit, parsedTimeframeMilliseconds), since))
 			}
 		} else {
 			request["end"] = this.Iso8601(until)
 		}
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetProductsIdCandles(this.Extend(request, params))).Raw))
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetProductsIdCandles(this.Extend(request, paramsOmitted))).Raw))
 
 	//
 	//     [
@@ -1677,7 +1689,7 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan any, symbol any, optionalAr
 	//         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
 	//     ]
 	//
-	ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
+	ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limitResolved)
 	return nil
 }
 
@@ -1747,7 +1759,7 @@ func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var marketId *string = this.SafeString(order, "product_id")
-	market = this.SafeMarket(marketId, market, "-")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var doneReason *string = this.SafeString(order, "done_reason")
 	if (status != nil && *status == "closed") && (doneReason != nil && *doneReason == "canceled") {
@@ -1762,7 +1774,7 @@ func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) any {
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
-			"currency": GetValue(market, "quote"),
+			"currency": marketResolved["quote"],
 			"rate":     nil,
 		}
 	}
@@ -1781,7 +1793,7 @@ func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) any {
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
 		"status":             status,
-		"symbol":             GetValue(market, "symbol"),
+		"symbol":             marketResolved["symbol"],
 		"type":               typeVar,
 		"timeInForce":        timeInForce,
 		"postOnly":           postOnly,
@@ -1795,7 +1807,7 @@ func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) any {
 		"fee":                fee,
 		"average":            nil,
 		"trades":             nil,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1833,9 +1845,9 @@ func (this *Coinbaseexchange) fetchOrderBody(ch chan any, id any, optionalArgs .
 		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersId(this.Extend(request, params))).Raw))
 	} else {
 		request["client_oid"] = clientOrderId
-		params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_oid"}))
+		var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "client_oid"}))
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersClientClientOid(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersClientClientOid(this.Extend(request, paramsOmitted))).Raw))
 	}
 
 	ch <- this.ParseOrder(response)
@@ -1919,8 +1931,8 @@ func (this *Coinbaseexchange) fetchOrdersBody(ch chan any, optionalArgs ...any) 
 		"status": "all",
 	}
 
-	var retRes150115 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes150115)
+	var retRes149815 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes149815)
 	return nil
 }
 
@@ -1958,13 +1970,14 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = MapTyped(GetValue(paginateparamsVariable, 1))
+	var paramsPaginate map[string]any = map[string]any{}
+	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
+	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes152419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params, 100))))
-		ch <- BoxAbsent(retRes152419)
+		var retRes152219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate, 100))))
+		ch <- BoxAbsent(retRes152219)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -1979,13 +1992,18 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
-	var until any = this.SafeValue2(params, "until", "end_date")
+	var until any = this.SafeValue2(paramsPaginate, "until", "end_date")
 	if !IsEqual(until, nil) {
-		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["end_date"] = this.Iso8601(until)
 	}
+	var paramsUntil any = func() any {
+		if !IsEqual(until, nil) {
+			return this.Omit(paramsPaginate, []any{"until"})
+		}
+		return paramsPaginate
+	}()
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, paramsUntil))).Raw))
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -2023,8 +2041,8 @@ func (this *Coinbaseexchange) fetchClosedOrdersBody(ch chan any, optionalArgs ..
 		"status": "done",
 	}
 
-	var retRes156315 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes156315)
+	var retRes156115 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes156115)
 	return nil
 }
 
@@ -2079,18 +2097,22 @@ func (this *Coinbaseexchange) createOrderBody(ch chan any, symbol any, typeVar s
 	if postOnly != nil && *postOnly == true {
 		request["post_only"] = true
 	}
-	params = MapTyped(this.Omit(params, []any{"timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"}))
+	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"}))
+	var costParam *float64 = this.SafeNumber2(paramsOmitted, "cost", "funds")
+	var omitCost bool = (typeVar == "market") && (costParam != nil)
+	var paramsCost any = paramsOmitted
+	if omitCost {
+		paramsCost = this.Omit(paramsOmitted, []any{"cost", "funds"})
+	}
 	if typeVar == "limit" {
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["size"] = this.AmountToPrecision(symbol, amount)
 	} else if typeVar == "market" {
-		var cost any = DerefScalar(this.SafeNumber2(params, "cost", "funds"))
+		var cost any = costParam
 		if IsEqual(cost, nil) {
 			if price != nil {
 				cost = Multiply(amount, price)
 			}
-		} else {
-			params = MapTyped(this.Omit(params, []any{"cost", "funds"}))
 		}
 		if !IsEqual(cost, nil) {
 			request["funds"] = this.CostToPrecision(symbol, cost)
@@ -2099,7 +2121,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan any, symbol any, typeVar s
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, paramsCost))).Raw))
 
 	//
 	//     {
@@ -2156,8 +2178,13 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan any, id any, optionalArgs 
 		request["id"] = id
 	} else {
 		request["client_oid"] = clientOrderId
-		params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_oid"}))
 	}
+	var paramsOmitted any = func() any {
+		if clientOrderId != nil {
+			return this.Omit(params, []any{"clientOrderId", "client_oid"})
+		}
+		return params
+	}()
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2166,11 +2193,11 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan any, id any, optionalArgs 
 	var response any = nil
 	if clientOrderId == nil {
 
-		response = (<-this.PrivateDeleteOrdersId(this.Extend(request, params))).Raw
+		response = (<-this.PrivateDeleteOrdersId(this.Extend(request, paramsOmitted))).Raw
 		PanicOnError(response)
 	} else {
 
-		response = (<-this.PrivateDeleteOrdersClientClientOid(this.Extend(request, params))).Raw
+		response = (<-this.PrivateDeleteOrdersClientClientOid(this.Extend(request, paramsOmitted))).Raw
 		PanicOnError(response)
 	}
 
@@ -2260,9 +2287,9 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code any, amount any, ad
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -2274,19 +2301,19 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code any, amount any, ad
 		"amount":   amount,
 	}
 	var response map[string]any = nil
-	if InOp(params, "payment_method_id") {
+	if InOp(paramsWithdrawTag, "payment_method_id") {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsPaymentMethod(this.Extend(request, params))).Raw))
-	} else if InOp(params, "coinbase_account_id") {
+		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsPaymentMethod(this.Extend(request, paramsWithdrawTag))).Raw))
+	} else if InOp(paramsWithdrawTag, "coinbase_account_id") {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCoinbaseAccount(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCoinbaseAccount(this.Extend(request, paramsWithdrawTag))).Raw))
 	} else {
 		request["crypto_address"] = address
-		if tag != nil {
-			request["destination_tag"] = tag
+		if !IsEqual(tagWithdrawTag, nil) {
+			request["destination_tag"] = tagWithdrawTag
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCrypto(this.Extend(request, params))).Raw))
+		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCrypto(this.Extend(request, paramsWithdrawTag))).Raw))
 	}
 	if response == nil {
 		panic(ExchangeError(Add(this.Id+" withdraw() error: ", this.Json(response))))
@@ -2435,11 +2462,16 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 	}
 	var until any = this.SafeValue2(params, "until", "end_date")
 	if !IsEqual(until, nil) {
-		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["end_date"] = this.Iso8601(until)
 	}
+	var paramsUntil any = func() any {
+		if !IsEqual(until, nil) {
+			return this.Omit(params, []any{"until"})
+		}
+		return params
+	}()
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetAccountsIdLedger(this.Extend(request, params))).Raw))
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil))).Raw))
 	var entries []any = this.ToArray(response)
 	for i := 0; i < len(entries); i++ {
 		AddElementToObject(GetValue(entries, i), "currency", code)
@@ -2611,10 +2643,10 @@ func (this *Coinbaseexchange) fetchDepositsBody(ch chan any, optionalArgs ...any
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes203315 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(map[string]any{
+	var retRes203515 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(map[string]any{
 		"type": "deposit",
 	}, params)))))
-	ch <- BoxAbsent(retRes203315)
+	ch <- BoxAbsent(retRes203515)
 	return nil
 }
 
@@ -2647,10 +2679,10 @@ func (this *Coinbaseexchange) fetchWithdrawalsBody(ch chan any, optionalArgs ...
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes204915 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(map[string]any{
+	var retRes205115 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(map[string]any{
 		"type": "withdraw",
 	}, params)))))
-	ch <- BoxAbsent(retRes204915)
+	ch <- BoxAbsent(retRes205115)
 	return nil
 }
 func (this *Coinbaseexchange) ParseTransactionStatus(transaction any) string {
@@ -2815,8 +2847,10 @@ func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var requestHeaders any = headers
+	var requestBody any = body
 	var request any = Add("/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
@@ -2835,8 +2869,8 @@ func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
 		var payload any = ""
 		if method != "GET" {
 			if len(ObjectKeys(query)) > 0 {
-				body = this.Json(query)
-				payload = body
+				requestBody = this.Json(query)
+				payload = requestBody
 			}
 		}
 		var what *string = SafeStringPtr(Add(Add(nonce+method, request), payload))
@@ -2863,7 +2897,7 @@ func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
 
 		}
 		var signature string = this.Hmac(this.Encode(what), secret, sha256, "base64")
-		headers = map[string]any{
+		requestHeaders = map[string]any{
 			"CB-ACCESS-KEY":        this.ApiKey,
 			"CB-ACCESS-SIGN":       signature,
 			"CB-ACCESS-TIMESTAMP":  nonce,
@@ -2874,8 +2908,8 @@ func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Coinbaseexchange) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

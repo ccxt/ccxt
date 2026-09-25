@@ -248,8 +248,10 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var requestHeaders any = nil
+	var requestBody any = nil
 	var implodedPath any = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var queryKeys []string = ObjectKeys(query)
@@ -271,22 +273,30 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 				url = Add(url, "?"+queryString)
 			}
 		} else {
-			body = this.Json(query)
+			requestBody = this.Json(query)
 		}
 		var requestPath any = Add("/api/", implodedPath)
-		var bodyString any = ""
-		if body != nil {
-			bodyString = body
-		}
+		var bodyValue any = func() any {
+			if requestBody != nil {
+				return requestBody
+			}
+			return body
+		}()
+		var bodyString any = func() any {
+			if !IsEqual(bodyValue, nil) {
+				return bodyValue
+			}
+			return ""
+		}()
 		var message *string = SafeStringPtr(Add(Add(Add(timestamp+strings.ToUpper(method), requestPath), queryString), bodyString))
 		var signature string = Eddsa(this.Encode(message), this.PrivateKey, ed25519)
-		headers = map[string]any{
+		requestHeaders = map[string]any{
 			"X-Revx-API-Key":   this.ApiKey,
 			"X-Revx-Timestamp": timestamp,
 			"X-Revx-Signature": signature,
 		}
 		if (method == "POST") || (method == "PUT") {
-			AddElementToObject(headers, "Content-Type", "application/json")
+			AddElementToObject(requestHeaders, "Content-Type", "application/json")
 		}
 	} else {
 		if method == "GET" {
@@ -295,17 +305,29 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 				url = Add(url, "?"+queryString)
 			}
 		} else {
-			body = this.Json(query)
-			headers = map[string]any{
+			requestBody = this.Json(query)
+			requestHeaders = map[string]any{
 				"Content-Type": "application/json",
 			}
 		}
 	}
+	var headersResult any = func() any {
+		if requestHeaders != nil {
+			return requestHeaders
+		}
+		return headers
+	}()
+	var bodyResult any = func() any {
+		if requestBody != nil {
+			return requestBody
+		}
+		return body
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyResult,
+		"headers": headersResult,
 	}
 }
 
@@ -1601,8 +1623,8 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		"order_states": orderStates,
 	})
 
-	var retRes126815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, requestParams))))
-	ch <- BoxAbsent(retRes126815)
+	var retRes127015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, requestParams))))
+	ch <- BoxAbsent(retRes127015)
 	return nil
 }
 

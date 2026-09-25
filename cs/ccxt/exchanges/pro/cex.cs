@@ -138,23 +138,22 @@ public partial class cex : ccxt.cex
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         string? currentSymbol = this.safeString((this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null), "symbol");
-        if ((currentSymbol != null) && !(currentSymbol == symbolVar))
+        if ((currentSymbol != null) && (currentSymbol != symbol))
         {
             throw new ArgumentsRequired ((this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
         }
-        ((IDictionary<string,object>)(this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null))["symbol"] = symbolVar;
+        ((IDictionary<string,object>)(this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null))["symbol"] = symbol;
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = "trades";
-        string subscriptionHash = ("old:" + (symbolVar));
+        string subscriptionHash = ("old:" + symbolValue);
         WebSocketClient client = ((WebSocketClient)this.safeValue(this.clients, url));
         if ((client != null))
         {
@@ -207,17 +206,18 @@ public partial class cex : ccxt.cex
         //  update trade
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
+        object tradeParts = trade;
         if (!((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            trade = ((string)trade).Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
+            tradeParts = ((string)trade).Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         }
-        string? side = this.safeString(trade, 0);
-        Int64? timestamp = this.safeInteger(trade, 1);
-        string? amount = this.safeString(trade, 2);
-        string? price = this.safeString(trade, 3);
-        string? id = this.safeString(trade, 4);
+        string? side = this.safeString(tradeParts, 0);
+        Int64? timestamp = this.safeInteger(tradeParts, 1);
+        string? amount = this.safeString(tradeParts, 2);
+        string? price = this.safeString(tradeParts, 3);
+        string? id = this.safeString(tradeParts, 4);
         return this.safeTrade(new Dictionary<string, object>() {
-            { "info", trade },
+            { "info", tradeParts },
             { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -286,16 +286,15 @@ public partial class cex : ccxt.cex
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        string messageHash = ("ticker:" + (symbolVar));
+        string messageHash = ("ticker:" + symbolValue);
         string? method = this.safeString(parameters, "method", "private"); // default to private because the specified ticker is received quicker
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "e", "subscribe" },
@@ -310,7 +309,7 @@ public partial class cex : ccxt.cex
                 { "data", new List<object>() {(market.ContainsKey("baseId") ? market["baseId"] : null), (market.ContainsKey("quoteId") ? market["quoteId"] : null)} },
                 { "oid", this.requestId() },
             };
-            subscriptionHash = ("ticker:" + (symbolVar));
+            subscriptionHash = ("ticker:" + symbolValue);
         }
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, subscriptionHash));
@@ -332,7 +331,7 @@ public partial class cex : ccxt.cex
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = "tickers";
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -342,9 +341,9 @@ public partial class cex : ccxt.cex
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object ticker = await this.watch(url, messageHash, request, messageHash);
         object tickerSymbol = getValue(ticker, "symbol");
-        if ((symbols != null) && !this.inArray(tickerSymbol, symbols))
+        if ((symbolsNormalized != null) && !this.inArray(tickerSymbol, symbolsNormalized))
         {
-            return await this.WatchTickers(symbols, parameters);
+            return await this.WatchTickers(symbolsNormalized, parameters);
         }
         if (this.newUpdates)
         {
@@ -352,7 +351,7 @@ public partial class cex : ccxt.cex
             result[(string)tickerSymbol] = ticker;
             return ccxt.BaseExchange.ToTickers(result);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
     }
 
     /**
@@ -520,10 +519,8 @@ public partial class cex : ccxt.cex
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((symbolVar == null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((this.id + " watchOrders() requires a symbol argument")) ;
         }
@@ -533,23 +530,24 @@ public partial class cex : ccxt.cex
         }
         await this.authenticate(parameters);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string messageHash = ("orders:" + (symbolVar));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("orders:" + symbolValue);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "e", "open-orders" },
             { "data", new Dictionary<string, object>() {
                 { "pair", new List<object>() {(market.ContainsKey("baseId") ? market["baseId"] : null), (market.ContainsKey("quoteId") ? market["quoteId"] : null)} },
             } },
-            { "oid", symbolVar },
+            { "oid", symbolValue },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash, request));
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
+            limitResolved = ((Int64?)orders.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolValue, since, limitResolved, true));
     }
 
     /**
@@ -927,7 +925,7 @@ public partial class cex : ccxt.cex
         {
             symbol = ((bs + "/") + quote);
         }
-        market = this.safeMarket(symbol, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(symbol, market);
         Int64? time = this.safeInteger(order, "time");
         Int64? timestamp = time;
         if (isTransaction)
@@ -973,9 +971,9 @@ public partial class cex : ccxt.cex
         };
         if (isTransaction)
         {
-            parsedOrder["trades"] = this.parseWsTrade(order, market);
+            parsedOrder["trades"] = this.parseWsTrade(order, marketResolved);
         }
-        return this.safeOrder(parsedOrder, market);
+        return this.safeOrder(parsedOrder, marketResolved);
     }
 
     public virtual string? fromPrecision(object amount, object scale)
@@ -1050,17 +1048,16 @@ public partial class cex : ccxt.cex
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         await this.authenticate();
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        string messageHash = ("orderbook:" + (symbolVar));
+        string messageHash = ("orderbook:" + symbolValue);
         object depth = ((limit == null)) ? 0 : limit;
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "e", "order-book-subscribe" },
@@ -1196,18 +1193,16 @@ public partial class cex : ccxt.cex
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string messageHash = ("ohlcv:" + (symbolVar));
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("ohlcv:" + symbolValue);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "e", "init-ohlcv" },
@@ -1215,11 +1210,12 @@ public partial class cex : ccxt.cex
             { "rooms", new List<object>() {((("pair-" + ((market.ContainsKey("baseId") ? market["baseId"] : null))) + "-") + ((market.ContainsKey("quoteId") ? market["quoteId"] : null)))} },
         };
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitResolved = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolValue, limit}));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     public virtual void handleInitOHLCV(WebSocketClient client, Dictionary<string, object> message)

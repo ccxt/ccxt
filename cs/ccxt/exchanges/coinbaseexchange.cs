@@ -1141,7 +1141,7 @@ public partial class coinbaseexchange : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = await this.publicGetProductsSparkLines(this.extend(request, parameters));
         //
@@ -1176,7 +1176,7 @@ public partial class coinbaseexchange : Exchange
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             result[(string)symbol] = this.parseTicker(first, market);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
     /**
@@ -1260,11 +1260,11 @@ public partial class coinbaseexchange : Exchange
         //
         Int64? timestamp = this.parse8601(this.safeString2(trade, "time", "created_at"));
         string? marketId = this.safeString(trade, "product_id");
-        market = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? feeRate = null;
         string? takerOrMaker = null;
         string? cost = null;
-        string? feeCurrencyId = this.safeStringLower(market, "quoteId");
+        string? feeCurrencyId = this.safeStringLower(marketResolved, "quoteId");
         if ((feeCurrencyId != null))
         {
             string costField = (feeCurrencyId + "_value");
@@ -1273,13 +1273,13 @@ public partial class coinbaseexchange : Exchange
             if ((liquidity != null))
             {
                 takerOrMaker = (liquidity == "T") ? "taker" : "maker";
-                feeRate = this.safeString(market, takerOrMaker);
+                feeRate = this.safeString(marketResolved, takerOrMaker);
             }
         }
         string? feeCost = this.safeString2(trade, "fill_fees", "fee");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", feeCost },
-            { "currency", getValue(market, "quote") },
+            { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
             { "rate", feeRate },
         };
         string? id = this.safeString(trade, "trade_id");
@@ -1299,7 +1299,7 @@ public partial class coinbaseexchange : Exchange
         }
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "size");
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "order", orderId },
@@ -1314,7 +1314,7 @@ public partial class coinbaseexchange : Exchange
             { "amount", amount },
             { "fee", fee },
             { "cost", cost },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1338,12 +1338,13 @@ public partial class coinbaseexchange : Exchange
             throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
+        object paramsPaginate = new Dictionary<string, object>() {};
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparamsPaginateVariable[0];
+        paramsPaginate = paginateparamsPaginateVariable[1];
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100));
+            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, 100));
         }
         if ((this.markets == null))
         {
@@ -1361,13 +1362,13 @@ public partial class coinbaseexchange : Exchange
         {
             request["start_date"] = this.iso8601(since);
         }
-        object until = this.safeValue2(parameters, "until", "end_date");
+        object until = this.safeValue2(paramsPaginate, "until", "end_date");
         if ((until != null))
         {
-            parameters = this.omit(parameters, new List<object>() {"until"});
             request["end_date"] = this.iso8601(until);
         }
-        List<object> response = await this.privateGetFills(this.extend(request, parameters));
+        object paramsUntil = ((until != null)) ? this.omit(paramsPaginate, new List<object>() {"until"}) : paramsPaginate;
+        List<object> response = await this.privateGetFills(this.extend(request, paramsUntil));
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
@@ -1485,20 +1486,18 @@ public partial class coinbaseexchange : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
-        if ((paginate == true))
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
+        var paramsPaginate = paginateparamsPaginateVariable[1];
+        if (isTrue(paginate))
         {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, parameters, 300));
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 300));
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? parsedTimeframe = this.safeInteger(this.timeframes, timeframeVar);
@@ -1512,35 +1511,30 @@ public partial class coinbaseexchange : Exchange
         {
             request["granularity"] = timeframeVar;
         }
-        object until = this.safeValue2(parameters, "until", "end");
-        parameters = this.omit(parameters, new List<object>() {"until"});
+        object until = this.safeValue2(paramsPaginate, "until", "end");
+        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
+        // https://docs.pro.coinbase.com/#get-historic-rates max = 300
+        object cappedLimit = ((limit == null)) ? 300 : mathMin(300, limit);
+        object limitResolved = ((since != null)) ? cappedLimit : limit;
         if ((since != null))
         {
             request["start"] = this.iso8601(since);
-            if ((limitVar == null))
-            {
-                // https://docs.pro.coinbase.com/#get-historic-rates
-                limitVar = 300; // max = 300
-            } else
-            {
-                limitVar = mathMin(300, limitVar);
-            }
             if ((until == null))
             {
                 Int64? parsedTimeframeMilliseconds = (parsedTimeframe * 1000);
                 if (this.isRoundNumber(mod(since, parsedTimeframeMilliseconds)))
                 {
-                    request["end"] = this.iso8601(this.sum(multiply((subtract(limitVar, 1)), parsedTimeframeMilliseconds), since));
+                    request["end"] = this.iso8601(this.sum(multiply((subtract(cappedLimit, 1)), parsedTimeframeMilliseconds), since));
                 } else
                 {
-                    request["end"] = this.iso8601(this.sum(multiply(limitVar, parsedTimeframeMilliseconds), since));
+                    request["end"] = this.iso8601(this.sum(multiply(cappedLimit, parsedTimeframeMilliseconds), since));
                 }
             } else
             {
                 request["end"] = this.iso8601(until);
             }
         }
-        List<object> response = await this.publicGetProductsIdCandles(this.extend(request, parameters));
+        List<object> response = await this.publicGetProductsIdCandles(this.extend(request, paramsOmitted));
         //
         //     [
         //         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
@@ -1548,7 +1542,7 @@ public partial class coinbaseexchange : Exchange
         //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitVar));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitResolved));
     }
 
     /**
@@ -1609,7 +1603,7 @@ public partial class coinbaseexchange : Exchange
         //
         Int64? timestamp = this.parse8601(this.safeString(order, "created_at"));
         string? marketId = this.safeString(order, "product_id");
-        market = this.safeMarket(marketId, market, "-");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? doneReason = this.safeString(order, "done_reason");
         if ((status == "closed") && (doneReason == "canceled"))
@@ -1626,7 +1620,7 @@ public partial class coinbaseexchange : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", (market != null && market.ContainsKey("quote") ? market["quote"] : null) },
+                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
                 { "rate", null },
             };
         }
@@ -1645,7 +1639,7 @@ public partial class coinbaseexchange : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "status", status },
-            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
             { "type", type },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
@@ -1659,7 +1653,7 @@ public partial class coinbaseexchange : Exchange
             { "fee", fee },
             { "average", null },
             { "trades", null },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1689,8 +1683,8 @@ public partial class coinbaseexchange : Exchange
         } else
         {
             request["client_oid"] = clientOrderId;
-            parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid"});
-            response = await this.privateGetOrdersClientClientOid(this.extend(request, parameters));
+            object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid"});
+            response = await this.privateGetOrdersClientClientOid(this.extend(request, paramsOmitted));
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
     }
@@ -1767,12 +1761,13 @@ public partial class coinbaseexchange : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
-        parameters = paginateparametersVariable[1];
+        object paramsPaginate = new Dictionary<string, object>() {};
+        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+        paginate = (bool?)paginateparamsPaginateVariable[0];
+        paramsPaginate = paginateparamsPaginateVariable[1];
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters, 100));
+            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, paramsPaginate, 100));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
@@ -1789,13 +1784,13 @@ public partial class coinbaseexchange : Exchange
         {
             request["start_date"] = this.iso8601(since);
         }
-        object until = this.safeValue2(parameters, "until", "end_date");
+        object until = this.safeValue2(paramsPaginate, "until", "end_date");
         if ((until != null))
         {
-            parameters = this.omit(parameters, new List<object>() {"until"});
             request["end_date"] = this.iso8601(until);
         }
-        List<object> response = await this.privateGetOrders(this.extend(request, parameters));
+        object paramsUntil = ((until != null)) ? this.omit(paramsPaginate, new List<object>() {"until"}) : paramsPaginate;
+        List<object> response = await this.privateGetOrders(this.extend(request, paramsUntil));
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
 
@@ -1866,23 +1861,27 @@ public partial class coinbaseexchange : Exchange
         {
             request["post_only"] = true;
         }
-        parameters = this.omit(parameters, new List<object>() {"timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"});
+        double? costParam = this.safeNumber2(paramsOmitted, "cost", "funds");
+        bool omitCost = ((type == "market")) && ((costParam != null));
+        object paramsCost = paramsOmitted;
+        if (omitCost)
+        {
+            paramsCost = this.omit(paramsOmitted, new List<object>() {"cost", "funds"});
+        }
         if ((type == "limit"))
         {
             request["price"] = this.priceToPrecision(symbol, price);
             request["size"] = this.amountToPrecision(symbol, amount);
         } else if ((type == "market"))
         {
-            object cost = this.safeNumber2(parameters, "cost", "funds");
+            object cost = costParam;
             if (isEqual(cost, null))
             {
                 if ((price != null))
                 {
                     cost = multiply(amount, price);
                 }
-            } else
-            {
-                parameters = this.omit(parameters, new List<object>() {"cost", "funds"});
             }
             if (!isEqual(cost, null))
             {
@@ -1892,7 +1891,7 @@ public partial class coinbaseexchange : Exchange
                 request["size"] = this.amountToPrecision(symbol, amount);
             }
         }
-        Dictionary<string, object> response = await this.privatePostOrders(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostOrders(this.extend(request, paramsCost));
         //
         //     {
         //         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
@@ -1940,8 +1939,8 @@ public partial class coinbaseexchange : Exchange
         } else
         {
             request["client_oid"] = clientOrderId;
-            parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid"});
         }
+        object paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clientOrderId", "client_oid"}) : parameters;
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
@@ -1951,10 +1950,10 @@ public partial class coinbaseexchange : Exchange
         object response = null;
         if ((clientOrderId == null))
         {
-            response = await this.privateDeleteOrdersId(this.extend(request, parameters));
+            response = await this.privateDeleteOrdersId(this.extend(request, paramsOmitted));
         } else
         {
-            response = await this.privateDeleteOrdersClientClientOid(this.extend(request, parameters));
+            response = await this.privateDeleteOrdersClientClientOid(this.extend(request, paramsOmitted));
         }
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
     }
@@ -2007,11 +2006,10 @@ public partial class coinbaseexchange : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
-        parameters = tagparametersVariable[1];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
+        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         this.checkAddress(address);
         if ((this.markets == null))
         {
@@ -2023,20 +2021,20 @@ public partial class coinbaseexchange : Exchange
             { "amount", amount },
         };
         Dictionary<string, object> response = null;
-        if (((IDictionary<string, object>)parameters).ContainsKey("payment_method_id"))
+        if ((paramsWithdrawTag != null && paramsWithdrawTag.ContainsKey("payment_method_id")))
         {
-            response = await this.privatePostWithdrawalsPaymentMethod(this.extend(request, parameters));
-        } else if (((IDictionary<string, object>)parameters).ContainsKey("coinbase_account_id"))
+            response = await this.privatePostWithdrawalsPaymentMethod(this.extend(request, paramsWithdrawTag));
+        } else if ((paramsWithdrawTag != null && paramsWithdrawTag.ContainsKey("coinbase_account_id")))
         {
-            response = await this.privatePostWithdrawalsCoinbaseAccount(this.extend(request, parameters));
+            response = await this.privatePostWithdrawalsCoinbaseAccount(this.extend(request, paramsWithdrawTag));
         } else
         {
             request["crypto_address"] = address;
-            if ((tagVar != null))
+            if ((tagWithdrawTag != null))
             {
-                request["destination_tag"] = tagVar;
+                request["destination_tag"] = tagWithdrawTag;
             }
-            response = await this.privatePostWithdrawalsCrypto(this.extend(request, parameters));
+            response = await this.privatePostWithdrawalsCrypto(this.extend(request, paramsWithdrawTag));
         }
         if ((response == null))
         {
@@ -2181,10 +2179,10 @@ public partial class coinbaseexchange : Exchange
         object until = this.safeValue2(parameters, "until", "end_date");
         if ((until != null))
         {
-            parameters = this.omit(parameters, new List<object>() {"until"});
             request["end_date"] = this.iso8601(until);
         }
-        List<object> response = await this.privateGetAccountsIdLedger(this.extend(request, parameters));
+        object paramsUntil = ((until != null)) ? this.omit(parameters, new List<object>() {"until"}) : parameters;
+        List<object> response = await this.privateGetAccountsIdLedger(this.extend(request, paramsUntil));
         IList<object> entries = this.toArray(response);
         for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
@@ -2507,6 +2505,8 @@ public partial class coinbaseexchange : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object requestHeaders = headers;
+        object requestBody = body;
         string request = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if ((method == "GET"))
@@ -2531,8 +2531,8 @@ public partial class coinbaseexchange : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    body = this.json(query);
-                    payload = body;
+                    requestBody = this.json(query);
+                    payload = requestBody;
                 }
             }
             string? what = ((string)(((nonce + method) + request) + (payload)));
@@ -2545,7 +2545,7 @@ public partial class coinbaseexchange : Exchange
                 throw new AuthenticationError ((this.id + " sign() invalid base64 secret")) ;
             }
             string signature = this.hmac(this.encode(what), secret, sha256, "base64");
-            headers = new Dictionary<string, object>() {
+            requestHeaders = new Dictionary<string, object>() {
                 { "CB-ACCESS-KEY", this.apiKey },
                 { "CB-ACCESS-SIGN", signature },
                 { "CB-ACCESS-TIMESTAMP", nonce },
@@ -2556,8 +2556,8 @@ public partial class coinbaseexchange : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", requestBody },
+            { "headers", requestHeaders },
         };
     }
 

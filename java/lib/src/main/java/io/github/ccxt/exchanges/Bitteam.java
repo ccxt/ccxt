@@ -532,18 +532,6 @@ public class Bitteam extends BitteamApi
         });
 
     }
-    /**
-     * @method
-     * @name bitteam#fetchMarkets
-     * @description retrieves data on all markets for bitteam
-     * @see https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseMarket(Object market)
     {
@@ -552,13 +540,13 @@ public class Bitteam extends BitteamApi
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
         }
-        Boolean active = (Boolean) this.safeBool(market, "active");
+        Boolean active = (Boolean) this.safeBool(market, "active", (Object) null);
         String timeStart = this.safeString(market, "timeStart");
         Long created = this.parse8601(timeStart);
         Double minCost = null;
@@ -567,61 +555,58 @@ public class Bitteam extends BitteamApi
         if (java.util.Objects.equals(quoteInUsd, true))
         {
             Map<String, Object> settings = (Map<String, Object>) this.safeDict(market, "settings", new HashMap<String, Object>() {{}});
-            minCost = this.safeNumber(settings, "limit_usd");
+            minCost = this.safeNumber(settings, "limit_usd", (Object) null);
         }
-        final String finalBase = base;
-        final String finalQuote = quote;
-        final Double finalMinCost = minCost;
-        return this.safeMarketStructure(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "numericId", numericId );
-            put( "symbol", ((finalBase + "/") + finalQuote) );
-            put( "base", finalBase );
-            put( "quote", finalQuote );
-            put( "settle", null );
-            put( "baseId", baseId );
-            put( "quoteId", quoteId );
-            put( "settleId", null );
-            put( "type", "spot" );
-            put( "spot", true );
-            put( "margin", false );
-            put( "swap", false );
-            put( "future", false );
-            put( "option", false );
-            put( "active", active );
-            put( "contract", false );
-            put( "linear", null );
-            put( "inverse", null );
-            put( "contractSize", null );
-            put( "expiry", null );
-            put( "expiryDatetime", null );
-            put( "strike", null );
-            put( "optionType", null );
-            put( "precision", new HashMap<String, Object>() {{
+        return this.safeMarketStructure(Helpers.newMap(
+            "id", id,
+            "numericId", numericId,
+            "symbol", ((base + "/") + quote),
+            "base", base,
+            "quote", quote,
+            "settle", null,
+            "baseId", baseId,
+            "quoteId", quoteId,
+            "settleId", null,
+            "type", "spot",
+            "spot", true,
+            "margin", false,
+            "swap", false,
+            "future", false,
+            "option", false,
+            "active", active,
+            "contract", false,
+            "linear", null,
+            "inverse", null,
+            "contractSize", null,
+            "expiry", null,
+            "expiryDatetime", null,
+            "strike", null,
+            "optionType", null,
+            "precision", new HashMap<String, Object>() {{
                 put( "amount", Bitteam.this.parseNumber(Bitteam.this.parsePrecision(Bitteam.this.safeString(market, "baseStep"))) );
                 put( "price", Bitteam.this.parseNumber(Bitteam.this.parsePrecision(Bitteam.this.safeString(market, "quoteStep"))) );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
-                put( "leverage", new HashMap<String, Object>() {{
+            }},
+            "limits", Helpers.newMap(
+                "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }} );
-                put( "amount", new HashMap<String, Object>() {{
+                }},
+                "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }} );
-                put( "price", new HashMap<String, Object>() {{
+                }},
+                "price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }} );
-                put( "cost", new HashMap<String, Object>() {{
-                    put( "min", finalMinCost );
-                    put( "max", null );
-                }} );
-            }} );
-            put( "created", created );
-            put( "info", market );
-        }});
+                }},
+                "cost", Helpers.newMap(
+                    "min", minCost,
+                    "max", null
+                )
+            ),
+            "created", created,
+            "info", market
+        ));
     }
 
     /**
@@ -760,25 +745,13 @@ public class Bitteam extends BitteamApi
         });
 
     }
-    /**
-     * @method
-     * @name bitteam#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
-    {
-        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseCurrency(Object currency)
     {
         Map<String, Object> statusesResponse = (Map<String, Object>) this.safeDict(this.options, "_temp_currencies_statuses", new HashMap<String, Object>() {{}});
         String id = this.safeString(currency, "symbol");
         Long numericId = this.safeInteger(currency, "id");
-        String code = this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Boolean active = (Boolean) this.safeBool(currency, "active", false);
         Double precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         Map<String, Object> txLimits = (Map<String, Object>) this.safeDict(currency, "txLimits", new HashMap<String, Object>() {{}});
@@ -799,8 +772,8 @@ public class Bitteam extends BitteamApi
             feesByNetworkId = withdrawCommissionFixed;
         }
         Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesResponse, numericId, new HashMap<String, Object>() {{}});
-        Boolean deposit = (Boolean) this.safeBool(statuses, "depositStatus");
-        Boolean withdraw = (Boolean) this.safeBool(statuses, "withdrawStatus");
+        Boolean deposit = (Boolean) this.safeBool(statuses, "depositStatus", (Object) null);
+        Boolean withdraw = (Boolean) this.safeBool(statuses, "withdrawStatus", (Object) null);
         List<String> networkIds = new ArrayList<String>(feesByNetworkId.keySet());
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Double networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
@@ -809,19 +782,18 @@ public class Bitteam extends BitteamApi
         {
             String networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
             String networkCode = this.networkIdToCode(networkId, code);
-            Double networkFee = this.safeNumber(feesByNetworkId, networkId);
+            Double networkFee = this.safeNumber(feesByNetworkId, networkId, (Object) null);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final String finalNetworkCode = networkCode;
-                networks.put((String)networkCode, new HashMap<String, Object>() {{
-    put( "id", networkId );
-    put( "network", finalNetworkCode );
-    put( "deposit", deposit );
-    put( "withdraw", withdraw );
-    put( "active", active );
-    put( "fee", networkFee );
-    put( "precision", networkPrecision );
-    put( "limits", new HashMap<String, Object>() {{
+                networks.put((String)networkCode, Helpers.newMap(
+    "id", networkId,
+    "network", networkCode,
+    "deposit", deposit,
+    "withdraw", withdraw,
+    "active", active,
+    "fee", networkFee,
+    "precision", networkPrecision,
+    "limits", new HashMap<String, Object>() {{
         put( "amount", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
@@ -834,24 +806,23 @@ public class Bitteam extends BitteamApi
             put( "min", Bitteam.this.parseNumber(minDeposit) );
             put( "max", null );
         }} );
-    }} );
-    put( "info", currency );
-}});
+    }},
+    "info", currency
+));
             }
         }
-        final Double finalFee = fee;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "numericId", numericId );
-            put( "code", code );
-            put( "name", code );
-            put( "info", currency );
-            put( "active", active );
-            put( "deposit", deposit );
-            put( "withdraw", withdraw );
-            put( "fee", finalFee );
-            put( "precision", precision );
-            put( "limits", new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(Helpers.newMap(
+            "id", id,
+            "numericId", numericId,
+            "code", code,
+            "name", code,
+            "info", currency,
+            "active", active,
+            "deposit", deposit,
+            "withdraw", withdraw,
+            "fee", fee,
+            "precision", precision,
+            "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -864,10 +835,10 @@ public class Bitteam extends BitteamApi
                     put( "min", Bitteam.this.parseNumber(minDeposit) );
                     put( "max", null );
                 }} );
-            }} );
-            put( "type", typeRaw );
-            put( "networks", networks );
-        }});
+            }},
+            "type", typeRaw,
+            "networks", networks
+        ));
     }
 
     /**
@@ -888,10 +859,10 @@ public class Bitteam extends BitteamApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String resolution = this.safeString(this.timeframes, timeframe, timeframe);
+            String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pairName", ((Map<String, Object>)market).get("id") );
                 put( "resolution", resolution );
@@ -926,24 +897,9 @@ public class Bitteam extends BitteamApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, timeframe, since, limit);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitteam#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -958,11 +914,7 @@ public class Bitteam extends BitteamApi
         //         "v": 3.0872548400000115
         //     },
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
-    }
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
+        return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "t"), this.safeNumber(ohlcv, "o", (Object) null), this.safeNumber(ohlcv, "h", (Object) null), this.safeNumber(ohlcv, "l", (Object) null), this.safeNumber(ohlcv, "c", (Object) null), this.safeNumber(ohlcv, "v", (Object) null)));
     }
 
     /**
@@ -982,7 +934,7 @@ public class Bitteam extends BitteamApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1017,24 +969,10 @@ public class Bitteam extends BitteamApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
             return orderbook;
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name bitteam#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1049,16 +987,14 @@ public class Bitteam extends BitteamApi
      * @param {string} [params.type] the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String type = this.safeString(parameters, "type", "all");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1159,25 +1095,9 @@ public class Bitteam extends BitteamApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, market, since, limit);
+            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitteam#fetchOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of  orde structures to retrieve (default 10)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
-     * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
-    {
-        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1190,14 +1110,14 @@ public class Bitteam extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -1246,23 +1166,9 @@ public class Bitteam extends BitteamApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, market);
+            return this.parseOrder(result, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name bitteam#fetchOrder
-     * @description fetches information on an order
-     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
-     * @param {int|string} id order id
-     * @param {string} symbol not used by fetchOrder ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-     */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
-    {
-        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1283,29 +1189,14 @@ public class Bitteam extends BitteamApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "active" );
             }};
-            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitteam#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
-     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
-     * @param {int} [limit] the maximum number of open order structures to retrieve (default 10)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1326,29 +1217,14 @@ public class Bitteam extends BitteamApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "closed" );
             }};
-            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitteam#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user
-     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of closed order structures to retrieve (default 10)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
-    {
-        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1369,29 +1245,14 @@ public class Bitteam extends BitteamApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "cancelled" );
             }};
-            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitteam#fetchCanceledOrders
-     * @description fetches information on multiple canceled orders made by the user
-     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of canceled order structures to retrieve (default 10)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
-    {
-        return this.fetchCanceledOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1407,25 +1268,22 @@ public class Bitteam extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type2, String side, Object amount, Object price2, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final String type3 = type2;
-        final Object price3 = price2;
+
         return BaseExchange.supplyAsync(() -> {
-            String type = type3;
-            Object price = price3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final String finalType = type;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pairId", Bitteam.this.safeString(market, "numericId") );
-                put( "type", finalType );
-                put( "side", side );
-                put( "amount", Bitteam.this.amountToPrecision(symbol, amount) );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "pairId", this.safeString(market, "numericId"),
+                "type", type,
+                "side", side,
+                "amount", this.amountToPrecision(symbol, amount)
+            );
             if (java.util.Objects.equals(type, "limit"))
             {
                 if (java.util.Objects.equals(price, null))
@@ -1461,26 +1319,9 @@ public class Bitteam extends BitteamApi
             //     }
             //
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, market);
+            return this.parseOrder(order, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name bitteam#createOrder
-     * @description create a trade order
-     * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-     */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1500,7 +1341,7 @@ public class Bitteam extends BitteamApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -1515,23 +1356,9 @@ public class Bitteam extends BitteamApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result);
+            return this.parseOrder(result, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name bitteam#cancelOrder
-     * @description cancels an open order
-     * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder
-     * @param {string} id order id
-     * @param {string} symbol not used by cancelOrder ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(String id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1543,14 +1370,14 @@ public class Bitteam extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1573,22 +1400,9 @@ public class Bitteam extends BitteamApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList(result));
-            return this.parseOrders(orders, market);
+            return this.parseOrders(orders, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitteam#cancelAllOrders
-     * @description cancel open orders of market
-     * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
-     * @param {string} [symbol] unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
-    {
-        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOrder(Object order, Map<String, Object> market)
@@ -1680,7 +1494,7 @@ public class Bitteam extends BitteamApi
         //
         String id = this.safeString(order, "id");
         String marketId = this.safeString(order, "pair");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         String clientOrderId = this.safeString(order, "orderCid");
         Long timestamp = null;
         String createdAt = this.safeString(order, "createdAt");
@@ -1696,7 +1510,7 @@ public class Bitteam extends BitteamApi
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String type = this.parseOrderType(this.safeString(order, "type"));
         String side = this.safeString(order, "side");
-        Map<String, Object> feeRaw = (Map<String, Object>) this.safeDict(order, "fee");
+        Map<String, Object> feeRaw = (Map<String, Object>) this.safeDict(order, "fee", (Object) null);
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "quantity");
         String filled = this.safeString(order, "executed");
@@ -1706,42 +1520,35 @@ public class Bitteam extends BitteamApi
             String feeCost = this.safeString(feeRaw, "amount");
             String feeCurrencyId = this.safeString(feeRaw, "symbol");
             fee = new HashMap<String, Object>() {{
-                put( "currency", Bitteam.this.safeCurrencyCode(feeCurrencyId) );
+                put( "currency", Bitteam.this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null) );
                 put( "cost", feeCost );
                 put( "rate", null );
             }};
         }
-        final Long finalTimestamp = timestamp;
-        final Map<String, Object> finalMarket = market;
-        final Map<String, Object> finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "clientOrderId", clientOrderId );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", Bitteam.this.iso8601(finalTimestamp) );
-            put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "status", status );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "type", type );
-            put( "timeInForce", "GTC" );
-            put( "side", side );
-            put( "price", price );
-            put( "triggerPrice", Bitteam.this.safeString(order, "stopPrice") );
-            put( "average", null );
-            put( "amount", amount );
-            put( "cost", null );
-            put( "filled", filled );
-            put( "remaining", null );
-            put( "fee", finalFee );
-            put( "trades", null );
-            put( "info", order );
-            put( "postOnly", false );
-        }}, market);
-    }
-    public Object parseOrder(Object order, Object... optionalArgs)
-    {
-        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeOrder(Helpers.newMap(
+            "id", id,
+            "clientOrderId", clientOrderId,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastTradeTimestamp", null,
+            "lastUpdateTimestamp", lastUpdateTimestamp,
+            "status", status,
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "type", type,
+            "timeInForce", "GTC",
+            "side", side,
+            "price", price,
+            "triggerPrice", this.safeString(order, "stopPrice"),
+            "average", null,
+            "amount", amount,
+            "cost", null,
+            "filled", filled,
+            "remaining", null,
+            "fee", fee,
+            "trades", null,
+            "info", order,
+            "postOnly", false
+        ), Helpers.toMapArg(marketResolved));
     }
 
     public String parseOrderStatus(String status)
@@ -1796,7 +1603,7 @@ public class Bitteam extends BitteamApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> response = (this.publicGetTradeApiCmcSummary()).join();
             //
@@ -1839,25 +1646,12 @@ public class Bitteam extends BitteamApi
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
                 Object rawTicker = (rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i));
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, (Map<String, Object>) null);
                 ((List<Object>)tickers).add(ticker);
             }
-            return this.filterByArrayTickers(tickers, "symbol", symbols);
+            return this.filterByArrayTickers(tickers, "symbol", symbols, true);
         }).thenApply(Tickers::new);
 
-    }
-    /**
-     * @method
-     * @name bitteam#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-     * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
-     */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
-    {
-        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1876,7 +1670,7 @@ public class Bitteam extends BitteamApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2068,22 +1862,9 @@ public class Bitteam extends BitteamApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> pair = (Map<String, Object>) this.safeDict(result, "pair", new HashMap<String, Object>() {{}});
-            return this.parseTicker(pair, market);
+            return this.parseTicker(pair, Helpers.toMapArg(market));
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name bitteam#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -2168,13 +1949,13 @@ public class Bitteam extends BitteamApi
         //         "lowest_price_24h": 37574.894999
         //     }
         String marketId = this.safeStringLower(ticker, "trading_pairs");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         String bestBidPrice = null;
         String bestAskPrice = null;
         String bestBidVolume = null;
         String bestAskVolume = null;
-        List<Object> bids = (List<Object>) this.safeList(ticker, "bids");
-        List<Object> asks = (List<Object>) this.safeList(ticker, "asks");
+        List<Object> bids = (List<Object>) this.safeList(ticker, "bids", (Object) null);
+        List<Object> asks = (List<Object>) this.safeList(ticker, "asks", (Object) null);
         if ((!java.util.Objects.equals(bids, null)) && (bids instanceof List) && (!java.util.Objects.equals(asks, null)) && (asks instanceof List))
         {
             Map<String, Object> bestBid = (Map<String, Object>) this.safeDict(bids, 0, new HashMap<String, Object>() {{}});
@@ -2194,36 +1975,27 @@ public class Bitteam extends BitteamApi
         String low = this.safeString2(ticker, "lowPrice24", "lowest_price_24h");
         String close = this.safeString2(ticker, "lastPrice", "last_price");
         String changePcnt = this.safeString2(ticker, "change24", "price_change_percent_24h");
-        final Map<String, Object> finalMarket = market;
-        final String finalBestBidPrice = bestBidPrice;
-        final String finalBestBidVolume = bestBidVolume;
-        final String finalBestAskPrice = bestAskPrice;
-        final String finalBestAskVolume = bestAskVolume;
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "open", null );
-            put( "high", high );
-            put( "low", low );
-            put( "close", close );
-            put( "bid", finalBestBidPrice );
-            put( "bidVolume", finalBestBidVolume );
-            put( "ask", finalBestAskPrice );
-            put( "askVolume", finalBestAskVolume );
-            put( "vwap", null );
-            put( "previousClose", null );
-            put( "change", null );
-            put( "percentage", changePcnt );
-            put( "average", null );
-            put( "baseVolume", baseVolume );
-            put( "quoteVolume", quoteVolume );
-            put( "info", ticker );
-        }}, market);
-    }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeTicker(Helpers.newMap(
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "timestamp", null,
+            "datetime", null,
+            "open", null,
+            "high", high,
+            "low", low,
+            "close", close,
+            "bid", bestBidPrice,
+            "bidVolume", bestBidVolume,
+            "ask", bestAskPrice,
+            "askVolume", bestAskVolume,
+            "vwap", null,
+            "previousClose", null,
+            "change", null,
+            "percentage", changePcnt,
+            "average", null,
+            "baseVolume", baseVolume,
+            "quoteVolume", quoteVolume,
+            "info", ticker
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -2244,7 +2016,7 @@ public class Bitteam extends BitteamApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2272,24 +2044,9 @@ public class Bitteam extends BitteamApi
             //         ...
             //     ]
             //
-            return this.parseTrades(response, market, since, limit);
+            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitteam#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcTradesPair
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2303,16 +2060,14 @@ public class Bitteam extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2461,24 +2216,9 @@ public class Bitteam extends BitteamApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit);
+            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitteam#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtTradesofuser
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades structures to retrieve (default 10)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -2538,8 +2278,8 @@ public class Bitteam extends BitteamApi
         //     }
         //
         String marketId = this.safeString(trade, "pair");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String id = this.safeString2(trade, "id", "trade_id");
         String price = this.safeString(trade, "price");
         String amount = this.safeString2(trade, "quantity", "base_volume");
@@ -2573,32 +2313,25 @@ public class Bitteam extends BitteamApi
         String feeCurrencyId = this.safeString(feeInfo, "symbol");
         String feeCost = this.safeString(feeInfo, "amount");
         Map<String, Object> fee = new HashMap<String, Object>() {{
-            put( "currency", Bitteam.this.safeCurrencyCode(feeCurrencyId) );
+            put( "currency", Bitteam.this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null) );
             put( "cost", feeCost );
         }};
         Long intTs = this.parseToInt(timestamp);
-        final String finalOrder = order;
-        final String finalSide = side;
-        final String finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "order", finalOrder );
-            put( "timestamp", intTs );
-            put( "datetime", Bitteam.this.iso8601(intTs) );
-            put( "symbol", symbol );
-            put( "type", null );
-            put( "side", finalSide );
-            put( "takerOrMaker", finalTakerOrMaker );
-            put( "price", price );
-            put( "amount", amount );
-            put( "cost", cost );
-            put( "fee", fee );
-            put( "info", trade );
-        }}, market);
-    }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeTrade(Helpers.newMap(
+            "id", id,
+            "order", order,
+            "timestamp", intTs,
+            "datetime", this.iso8601(intTs),
+            "symbol", symbol,
+            "type", null,
+            "side", side,
+            "takerOrMaker", takerOrMaker,
+            "price", price,
+            "amount", amount,
+            "cost", cost,
+            "fee", fee,
+            "info", trade
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -2616,24 +2349,12 @@ public class Bitteam extends BitteamApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetTradeApiCcxtBalance(parameters)).join();
             return this.parseBalance(response);
         }).thenApply(Balances::new);
 
-    }
-    /**
-     * @method
-     * @name betteam#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseBalance(Object response)
@@ -2690,11 +2411,11 @@ public class Bitteam extends BitteamApi
         for (var i = 0; i < ((List<?>)rawCurrencyIds).size(); i++)
         {
             Object rawCurrencyId = (rawCurrencyIds == null || i < 0 || i >= rawCurrencyIds.size() ? null : rawCurrencyIds.get(i));
-            Map<String, Object> currencyBalance = (Map<String, Object>) this.safeDict(result, rawCurrencyId);
+            Map<String, Object> currencyBalance = (Map<String, Object>) this.safeDict(result, rawCurrencyId, (Object) null);
             String free = this.safeString(currencyBalance, "free");
             String used = this.safeString(currencyBalance, "used");
             String total = this.safeString(currencyBalance, "total");
-            String currencyCode = this.safeCurrencyCode((String) (((String)rawCurrencyId).toLowerCase()));
+            String currencyCode = this.safeCurrencyCode((String) (((String)rawCurrencyId).toLowerCase()), (Map<String, Object>) null);
             if (!java.util.Objects.equals(currencyCode, null))
             {
                 balance.put((String)currencyCode, new HashMap<String, Object>() {{
@@ -2718,16 +2439,14 @@ public class Bitteam extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2831,24 +2550,9 @@ public class Bitteam extends BitteamApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> transactions = (List<Object>) this.safeList(result, "transactions", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(transactions, currency, since, limit);
+            return this.parseTransactions(transactions, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitteam#fetchDepositsWithdrawals
-     * @description fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
-     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiTransactionsofuser
-     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals
-     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal
-     * @param {int} [limit] max number of deposit/withdrawals to return (default 10)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
-    {
-        return this.fetchDepositsWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
@@ -2900,11 +2604,11 @@ public class Bitteam extends BitteamApi
         //         }
         //     }
         //
-        Map<String, Object> currencyObject = (Map<String, Object>) this.safeDict(transaction, "currency");
+        Map<String, Object> currencyObject = (Map<String, Object>) this.safeDict(transaction, "currency", (Object) null);
         String currencyId = this.safeString(currencyObject, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);
         String id = this.safeString(transaction, "id");
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(transaction, "params");
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(transaction, "params", (Object) null);
         String txid = this.safeString(parameters, "tx_id");
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String networkId = this.safeString(transaction, "blockChain");
@@ -2920,33 +2624,28 @@ public class Bitteam extends BitteamApi
         String type = this.parseTransactionType(this.safeString(transaction, "type"));
         String amount = this.parseValueToPricision((Map<String, Object>) (transaction), "amount", currencyObject, "decimals");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        final String finalNetworkId = networkId;
-        return new HashMap<String, Object>() {{
-            put( "info", transaction );
-            put( "id", id );
-            put( "txid", txid );
-            put( "timestamp", timestamp );
-            put( "datetime", Bitteam.this.iso8601(timestamp) );
-            put( "network", Bitteam.this.networkIdToCode(finalNetworkId, code) );
-            put( "addressFrom", addressFrom );
-            put( "address", null );
-            put( "addressTo", addressTo );
-            put( "tagFrom", null );
-            put( "tag", tag );
-            put( "tagTo", null );
-            put( "type", type );
-            put( "amount", Bitteam.this.parseNumber(amount) );
-            put( "currency", code );
-            put( "status", status );
-            put( "updated", null );
-            put( "fee", null );
-            put( "comment", Bitteam.this.safeString(transaction, "description") );
-            put( "internal", false );
-        }};
-    }
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "info", transaction,
+            "id", id,
+            "txid", txid,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "network", this.networkIdToCode(networkId, code),
+            "addressFrom", addressFrom,
+            "address", null,
+            "addressTo", addressTo,
+            "tagFrom", null,
+            "tag", tag,
+            "tagTo", null,
+            "type", type,
+            "amount", this.parseNumber(amount),
+            "currency", code,
+            "status", status,
+            "updated", null,
+            "fee", null,
+            "comment", this.safeString(transaction, "description"),
+            "internal", false
+        );
     }
 
     public String parseTransactionType(String type)
@@ -2971,19 +2670,21 @@ public class Bitteam extends BitteamApi
     {
         Object request = this.omit(parameters, this.extractParams(path));
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + endpoint);
         String query = this.urlencode(request);
-        if (java.util.Objects.equals(api, "private"))
+        String requestBody = null;
+        Map<String, Object> requestHeaders = null;
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
-            this.checkRequiredCredentials();
-            if (java.util.Objects.equals(method, "POST"))
+            this.checkRequiredCredentials(true);
+            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
-                body = (String) (this.json(request));
+                requestBody = this.json(request);
             } else if ((query.length() != 0))
             {
                 url = (url + ("?" + query));
@@ -2991,7 +2692,7 @@ public class Bitteam extends BitteamApi
             String auth = ((this.apiKey + ":") + this.secret);
             String auth64 = this.stringToBase64(auth);
             String signature = ("Basic " + auth64);
-            headers = new HashMap<String, Object>() {{
+            requestHeaders = new HashMap<String, Object>() {{
                 put( "Authorization", signature );
                 put( "Content-Type", "application/json" );
             }};
@@ -2999,20 +2700,14 @@ public class Bitteam extends BitteamApi
         {
             url = (url + ("?" + query));
         }
-        final String finalUrl = url;
-        final Object finalMethod = method;
-        final String finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
+        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
+        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", bodyResolved,
+            "headers", headersResolved
+        );
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

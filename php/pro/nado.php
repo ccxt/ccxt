@@ -109,10 +109,11 @@ class nado extends \ccxt\async\nado {
         $market = $this->market($symbol);
         $messageHash = 'trade:' . $market['symbol'];
         $trades = Async\await($this->watch_public('trade', $market, $messageHash, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($market['symbol'], $limit);
+            $limitResolved = $trades->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
@@ -154,21 +155,22 @@ class nado extends \ccxt\async\nado {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $markets = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $market = $this->market($symbols[$i]);
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
             $markets[] = $market;
             $messageHashes[] = 'trade:' . $market['symbol'];
         }
         $trades = Async\await($this->watch_public_multiple('trade', $markets, $messageHashes, $params));
+        $first = $this->safe_dict($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_dict($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
@@ -190,11 +192,11 @@ class nado extends \ccxt\async\nado {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' unWatchTradesForSymbols() requires a non-empty array of symbols');
         }
-        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $markets = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $market = $this->market($symbols[$i]);
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
             $markets[] = $market;
             $messageHashes[] = 'trade:' . $market['symbol'];
         }
@@ -265,11 +267,11 @@ class nado extends \ccxt\async\nado {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $markets = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
             $messageHash = 'orderbook:' . $market['symbol'];
             $markets[] = $market;
@@ -302,11 +304,11 @@ class nado extends \ccxt\async\nado {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' unWatchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $markets = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $market = $this->market($symbols[$i]);
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
             $markets[] = $market;
             $messageHashes[] = 'orderbook:' . $market['symbol'];
         }
@@ -338,10 +340,11 @@ class nado extends \ccxt\async\nado {
         );
         $result = Async\await($this->watch_public('latest_candlestick', $market, $messageHash, $this->extend($request, $params)));
         $stored = $result[2];
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $stored->getLimit($market['symbol'], $limit);
+            $limitResolved = $stored->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_since_limit($stored, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($stored, $since, $limitResolved, 0, true);
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -380,10 +383,11 @@ class nado extends \ccxt\async\nado {
             ), $params);
         }
         list($resultSymbol, $resultTimeframe, $stored) = Async\await($this->watch_public_multiple('latest_candlestick', $markets, $messageHashes, $params, $subscriptionParams));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $stored->getLimit($resultSymbol, $limit);
+            $limitResolved = $stored->getLimit($resultSymbol, $limit);
         }
-        $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
+        $filtered = $this->filter_by_since_limit($stored, $since, $limitResolved, 0, true);
         return $this->create_ohlcv_object($resultSymbol, $resultTimeframe, $filtered);
     }
 
@@ -457,9 +461,9 @@ class nado extends \ccxt\async\nado {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         Async\await($this->load_markets());
-        $symbol = $this->symbol($symbol);
-        $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
-        return $tickers[$symbol];
+        $symbolValue = $this->symbol($symbol);
+        $tickers = Async\await($this->watch_tickers(array( $symbolValue ), $params));
+        return $tickers[$symbolValue];
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -495,14 +499,14 @@ class nado extends \ccxt\async\nado {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         Async\await($this->load_markets());
-        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         $market = null;
         $messageHash = 'ticker';
         $streamType = 'all_bbo';
-        if ($symbols !== null) {
-            $symbolsLength = count($symbols);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $market = $this->market($symbols[0]);
+                $market = $this->market($symbolsNormalized[0]);
                 $messageHash = 'ticker:' . $market['symbol'];
                 $streamType = 'best_bid_offer';
             }
@@ -510,13 +514,13 @@ class nado extends \ccxt\async\nado {
         $ticker = Async\await($this->watch_public($streamType, $market, $messageHash, $params));
         if ($this->newUpdates) {
             if ($messageHash === 'ticker') {
-                return $this->filter_by_array($ticker, 'symbol', $symbols);
+                return $this->filter_by_array($ticker, 'symbol', $symbolsNormalized);
             }
             $tickers = array();
             $tickers[$ticker['symbol']] = $ticker;
             return $tickers;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -534,14 +538,14 @@ class nado extends \ccxt\async\nado {
          * @return {array} the exchange response
          */
         Async\await($this->load_markets());
-        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         $market = null;
         $messageHash = 'ticker';
         $streamType = 'all_bbo';
-        if ($symbols !== null) {
-            $symbolsLength = count($symbols);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $market = $this->market($symbols[0]);
+                $market = $this->market($symbolsNormalized[0]);
                 $messageHash = 'ticker:' . $market['symbol'];
                 $streamType = 'best_bid_offer';
             }
@@ -564,14 +568,14 @@ class nado extends \ccxt\async\nado {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         Async\await($this->load_markets());
-        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         $market = null;
         $messageHash = 'bidask';
         $streamType = 'all_bbo';
-        if ($symbols !== null) {
-            $symbolsLength = count($symbols);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $market = $this->market($symbols[0]);
+                $market = $this->market($symbolsNormalized[0]);
                 $messageHash = 'bidask:' . $market['symbol'];
                 $streamType = 'best_bid_offer';
             }
@@ -579,13 +583,13 @@ class nado extends \ccxt\async\nado {
         $ticker = Async\await($this->watch_public($streamType, $market, $messageHash, $params));
         if ($this->newUpdates) {
             if ($messageHash === 'bidask') {
-                return $this->filter_by_array($ticker, 'symbol', $symbols);
+                return $this->filter_by_array($ticker, 'symbol', $symbolsNormalized);
             }
             $tickers = array();
             $tickers[$ticker['symbol']] = $ticker;
             return $tickers;
         }
-        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
     }
 
     public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -603,14 +607,14 @@ class nado extends \ccxt\async\nado {
          * @return {array} the exchange response
          */
         Async\await($this->load_markets());
-        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         $market = null;
         $messageHash = 'bidask';
         $streamType = 'all_bbo';
-        if ($symbols !== null) {
-            $symbolsLength = count($symbols);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $market = $this->market($symbols[0]);
+                $market = $this->market($symbolsNormalized[0]);
                 $messageHash = 'bidask:' . $market['symbol'];
                 $streamType = 'best_bid_offer';
             }
@@ -642,25 +646,26 @@ class nado extends \ccxt\async\nado {
         $market = null;
         $messageHash = 'orders';
         $productId = null;
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $market['symbol'];
+            $messageHash .= ':' . $symbolResolved;
             $productId = $this->parse_to_int($market['id']);
         }
-        $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'watchOrders', 'subaccount', 'default');
+        list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'watchOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $stream = array(
             'type' => 'order_update',
             'subaccount' => $sender,
             'product_id' => $productId,
         );
-        $orders = Async\await($this->watch_private('order_update', $stream, $messageHash, $params));
+        $orders = Async\await($this->watch_private('order_update', $stream, $messageHash, $paramsSubaccount));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -684,21 +689,21 @@ class nado extends \ccxt\async\nado {
         $market = null;
         $messageHash = 'orders';
         $productId = null;
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $market['symbol'];
+            $messageHash .= ':' . $symbolResolved;
             $productId = $this->parse_to_int($market['id']);
         }
-        $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'unWatchOrders', 'subaccount', 'default');
+        list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'unWatchOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $stream = array(
             'type' => 'order_update',
             'subaccount' => $sender,
             'product_id' => $productId,
         );
-        return Async\await($this->un_watch_private($stream, $messageHash, $params));
+        return Async\await($this->un_watch_private($stream, $messageHash, $paramsSubaccount));
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -725,25 +730,26 @@ class nado extends \ccxt\async\nado {
         $market = null;
         $messageHash = 'myTrades';
         $productId = null;
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $market['symbol'];
+            $messageHash .= ':' . $symbolResolved;
             $productId = $this->parse_to_int($market['id']);
         }
-        $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'watchMyTrades', 'subaccount', 'default');
+        list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'watchMyTrades', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $stream = array(
             'type' => 'fill',
             'subaccount' => $sender,
             'product_id' => $productId,
         );
-        $trades = Async\await($this->watch_private('fill', $stream, $messageHash, $params));
+        $trades = Async\await($this->watch_private('fill', $stream, $messageHash, $paramsSubaccount));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
@@ -767,21 +773,21 @@ class nado extends \ccxt\async\nado {
         $market = null;
         $messageHash = 'myTrades';
         $productId = null;
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $market['symbol'];
+            $messageHash .= ':' . $symbolResolved;
             $productId = $this->parse_to_int($market['id']);
         }
-        $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'unWatchMyTrades', 'subaccount', 'default');
+        list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'unWatchMyTrades', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $stream = array(
             'type' => 'fill',
             'subaccount' => $sender,
             'product_id' => $productId,
         );
-        return Async\await($this->un_watch_private($stream, $messageHash, $params));
+        return Async\await($this->un_watch_private($stream, $messageHash, $paramsSubaccount));
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -805,30 +811,29 @@ class nado extends \ccxt\async\nado {
         $this->check_required_credentials();
         Async\await($this->load_markets());
         Async\await($this->authenticate($this->extend(array(), $params)));
-        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $messageHash = 'positions';
         $productId = null;
-        if ($symbols !== null) {
-            $symbolsLength = count($symbols);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $market = $this->market($symbols[0]);
+                $market = $this->market($symbolsNormalized[0]);
                 $messageHash .= ':' . $market['symbol'];
                 $productId = $this->parse_to_int($market['id']);
             }
         }
-        $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'watchPositions', 'subaccount', 'default');
+        list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'watchPositions', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $stream = array(
             'type' => 'position_change',
             'subaccount' => $sender,
             'product_id' => $productId,
         );
-        $positions = Async\await($this->watch_private('position_change', $stream, $messageHash, $params));
+        $positions = Async\await($this->watch_private('position_change', $stream, $messageHash, $paramsSubaccount));
         if ($this->newUpdates) {
             return $positions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
     public function un_watch_positions(?array $symbols = null, $params = array()): PromiseInterface {
@@ -849,26 +854,25 @@ class nado extends \ccxt\async\nado {
         $this->check_required_credentials();
         Async\await($this->load_markets());
         Async\await($this->authenticate($this->extend(array(), $params)));
-        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $messageHash = 'positions';
         $productId = null;
-        if ($symbols !== null) {
-            $symbolsLength = count($symbols);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $market = $this->market($symbols[0]);
+                $market = $this->market($symbolsNormalized[0]);
                 $messageHash .= ':' . $market['symbol'];
                 $productId = $this->parse_to_int($market['id']);
             }
         }
-        $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'unWatchPositions', 'subaccount', 'default');
+        list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'unWatchPositions', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $stream = array(
             'type' => 'position_change',
             'subaccount' => $sender,
             'product_id' => $productId,
         );
-        return Async\await($this->un_watch_private($stream, $messageHash, $params));
+        return Async\await($this->un_watch_private($stream, $messageHash, $paramsSubaccount));
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -901,12 +905,12 @@ class nado extends \ccxt\async\nado {
         $this->check_required_credentials();
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $params = $this->extend(array( 'id' => $this->request_id() ), $params);
-        $requestIdString = $this->safe_string($params, 'id');
+        $paramsExtended = $this->extend(array( 'id' => $this->request_id() ), $params);
+        $requestIdString = $this->safe_string($paramsExtended, 'id');
         if ($requestIdString === null) {
             throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
         }
-        $request = Async\await($this->create_order_request($symbol, $type, $side, $amount, $price, $params));
+        $request = Async\await($this->create_order_request($symbol, $type, $side, $amount, $price, $paramsExtended));
         $placeOrder = $this->safe_dict($request, 'place_order', array());
         if (is_array($placeOrder) && array_key_exists('trigger' ?? '', $placeOrder)) {
             throw new NotSupported($this->id . ' createOrderWs() does not support trigger orders, use createOrder() instead');
@@ -960,12 +964,12 @@ class nado extends \ccxt\async\nado {
         Async\await($this->load_markets());
         $market = $this->market($symbol);
         // for cancel_and_place the request id is echoed from the nested place_order object
-        $params = $this->extend(array( 'id' => $this->request_id() ), $params);
-        $requestIdString = $this->safe_string($params, 'id');
+        $paramsExtended = $this->extend(array( 'id' => $this->request_id() ), $params);
+        $requestIdString = $this->safe_string($paramsExtended, 'id');
         if ($requestIdString === null) {
             throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
         }
-        $request = Async\await($this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params));
+        $request = Async\await($this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $paramsExtended));
         $response = Async\await($this->watch_execute_request($requestIdString, $request));
         //
         //     {
@@ -1035,12 +1039,12 @@ class nado extends \ccxt\async\nado {
         if ($trigger === true) {
             throw new NotSupported($this->id . ' cancelOrdersWs() does not support $trigger orders, use cancelOrders() instead');
         }
-        $params = $this->extend(array( 'id' => $this->request_id() ), $params);
-        $requestIdString = $this->safe_string($params, 'id');
+        $paramsExtended = $this->extend(array( 'id' => $this->request_id() ), $params);
+        $requestIdString = $this->safe_string($paramsExtended, 'id');
         if ($requestIdString === null) {
             throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
         }
-        $request = Async\await($this->cancelOrdersRequest($ids, $symbol, $params));
+        $request = Async\await($this->cancelOrdersRequest($ids, $symbol, $paramsExtended));
         $response = Async\await($this->watch_execute_request($requestIdString, $request));
         //
         //     {
@@ -1089,12 +1093,12 @@ class nado extends \ccxt\async\nado {
         if ($trigger === true) {
             throw new NotSupported($this->id . ' cancelAllOrdersWs() does not support $trigger orders, use cancelAllOrders() instead');
         }
-        $params = $this->extend(array( 'id' => $this->request_id() ), $params);
-        $requestIdString = $this->safe_string($params, 'id');
+        $paramsExtended = $this->extend(array( 'id' => $this->request_id() ), $params);
+        $requestIdString = $this->safe_string($paramsExtended, 'id');
         if ($requestIdString === null) {
             throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
         }
-        $request = Async\await($this->cancelAllOrdersRequest($symbol, $params));
+        $request = Async\await($this->cancelAllOrdersRequest($symbol, $paramsExtended));
         $response = Async\await($this->watch_execute_request($requestIdString, $request));
         $data = $this->safe_dict($response, 'data', array());
         $cancelledOrders = $this->safe_list($data, 'cancelled_orders', array());
@@ -1225,10 +1229,8 @@ class nado extends \ccxt\async\nado {
             }
             return $authenticated;
         }
-        $recvWindow = null;
-        list($recvWindow, $params) = $this->handle_option_integer_and_params($params, 'authenticate', 'recvWindow', 5000);
-        $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'authenticate', 'subaccount', 'default');
+        list($recvWindow, $paramsRecvWindow) = $this->handle_option_integer_and_params($params, 'authenticate', 'recvWindow', 5000);
+        list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($paramsRecvWindow, 'authenticate', 'subaccount', 'default');
         $id = $this->request_id();
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $expiration = $this->sum($this->milliseconds(), $recvWindow);
@@ -1250,7 +1252,7 @@ class nado extends \ccxt\async\nado {
             'signature' => $signature,
         );
         $client->subscriptions['authentication:' . $this->number_to_string($id)] = $messageHash;
-        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $paramsSubaccount), $messageHash));
     }
 
     public function sign_stream_authentication(array $tx, ?string $chainId, ?string $endpointAddress): string {
@@ -1388,7 +1390,7 @@ class nado extends \ccxt\async\nado {
         //     }
         //
         $marketId = $this->safe_string($trade, 'product_id');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->parse_ws_timestamp($trade, 'timestamp');
         $isTakerBuyer = $this->safe_bool($trade, 'is_taker_buyer');
         $side = null;
@@ -1400,7 +1402,7 @@ class nado extends \ccxt\async\nado {
             'id' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'order' => null,
             'type' => null,
             'side' => $side,
@@ -1409,7 +1411,7 @@ class nado extends \ccxt\async\nado {
             'amount' => $this->parseX18($this->safe_string($trade, 'taker_qty')),
             'cost' => null,
             'fee' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_ws_my_trade(array $trade, ?array $market = null): array {
@@ -1433,7 +1435,7 @@ class nado extends \ccxt\async\nado {
         //     }
         //
         $marketId = $this->safe_string($trade, 'product_id');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->parse_ws_timestamp($trade, 'timestamp');
         $isBid = $this->safe_bool($trade, 'is_bid');
         $side = null;
@@ -1450,7 +1452,7 @@ class nado extends \ccxt\async\nado {
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
             );
         }
         return $this->safe_trade(array(
@@ -1460,7 +1462,7 @@ class nado extends \ccxt\async\nado {
             'id' => $this->safe_string_2($trade, 'id', 'submission_idx'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'order' => $this->safe_string($trade, 'order_digest'),
             'type' => null,
             'side' => $side,
@@ -1469,7 +1471,7 @@ class nado extends \ccxt\async\nado {
             'amount' => $this->parseX18($this->safe_string($trade, 'filled_qty')),
             'cost' => null,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function handle_trade(Client $client, array $message) {
@@ -1553,7 +1555,7 @@ class nado extends \ccxt\async\nado {
         //     }
         //
         $marketId = $this->safe_string($order, 'product_id');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->parse_ws_timestamp($order, 'timestamp');
         $id = $this->safe_string($order, 'digest');
         $amountString = $this->safe_string($order, 'amount');
@@ -1583,7 +1585,7 @@ class nado extends \ccxt\async\nado {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => ($filled === null) ? null : $timestamp,
             'lastUpdateTimestamp' => $timestamp,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => null,
             'timeInForce' => null,
             'postOnly' => null,
@@ -1599,7 +1601,7 @@ class nado extends \ccxt\async\nado {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function handle_order(Client $client, array $message) {
@@ -1629,7 +1631,7 @@ class nado extends \ccxt\async\nado {
         //     }
         //
         $marketId = $this->safe_string($position, 'product_id');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->parse_ws_timestamp($position, 'timestamp');
         $amountString = $this->safe_string($position, 'amount');
         $vQuoteAmount = $this->safe_string($position, 'v_quote_amount');
@@ -1651,14 +1653,14 @@ class nado extends \ccxt\async\nado {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'isolated' => $this->safe_bool($position, 'isolated'),
             'hedged' => false,
             'side' => $side,
             'contracts' => $contracts,
-            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'entryPrice' => $entryPrice,
             'markPrice' => null,
             'notional' => null,
@@ -1716,10 +1718,10 @@ class nado extends \ccxt\async\nado {
         //     }
         //
         $marketId = $this->safe_string($bidask, 'product_id');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->parse_ws_timestamp($bidask, 'timestamp');
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'ask' => $this->parseX18($this->safe_string($bidask, 'ask_price')),
@@ -1727,7 +1729,7 @@ class nado extends \ccxt\async\nado {
             'bid' => $this->parseX18($this->safe_string($bidask, 'bid_price')),
             'bidVolume' => $this->parseX18($this->safe_string($bidask, 'bid_qty')),
             'info' => $bidask,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function handle_bid_ask(Client $client, array $message) {

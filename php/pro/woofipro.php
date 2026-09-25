@@ -189,7 +189,6 @@ class woofipro extends \ccxt\async\woofipro {
         }
         $name = 'ticker';
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
         $topic = $market['id'] . '@' . $name;
         $request = array(
             'event' => 'subscribe',
@@ -283,7 +282,7 @@ class woofipro extends \ccxt\async\woofipro {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $name = 'tickers';
         $topic = $name;
         $request = array(
@@ -292,7 +291,7 @@ class woofipro extends \ccxt\async\woofipro {
         );
         $message = $this->extend($request, $params);
         $tickers = Async\await($this->watch_public($topic, $message));
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $this->filter_by_array($tickers, 'symbol', $symbolsNormalized);
     }
 
     public function handle_tickers(Client $client, array $message) {
@@ -346,7 +345,7 @@ class woofipro extends \ccxt\async\woofipro {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $name = 'bbos';
         $topic = $name;
         $request = array(
@@ -355,7 +354,7 @@ class woofipro extends \ccxt\async\woofipro {
         );
         $message = $this->extend($request, $params);
         $tickers = Async\await($this->watch_public($topic, $message));
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $this->filter_by_array($tickers, 'symbol', $symbolsNormalized);
     }
 
     public function handle_bid_ask(Client $client, array $message) {
@@ -390,8 +389,8 @@ class woofipro extends \ccxt\async\woofipro {
 
     public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_string($market, 'symbol');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($ticker, 'ts');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -402,7 +401,7 @@ class woofipro extends \ccxt\async\woofipro {
             'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => $this->safe_string($ticker, 'bidSize'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -438,10 +437,11 @@ class woofipro extends \ccxt\async\woofipro {
         );
         $message = $this->extend($request, $params);
         $ohlcv = Async\await($this->watch_public($topic, $message));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($market['symbol'], $limit);
+            $limitResolved = $ohlcv->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -511,7 +511,7 @@ class woofipro extends \ccxt\async\woofipro {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $topic = $market['id'] . '@trade';
         $request = array(
             'event' => 'subscribe',
@@ -519,10 +519,11 @@ class woofipro extends \ccxt\async\woofipro {
         );
         $message = $this->extend($request, $params);
         $trades = Async\await($this->watch_public($topic, $message));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($market['symbol'], $limit);
+            $limitResolved = $trades->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolValue, $since, $limitResolved, true);
     }
 
     public function handle_trade(Client $client, array $message) {
@@ -594,8 +595,8 @@ class woofipro extends \ccxt\async\woofipro {
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $price = $this->safe_string_2($trade, 'executedPrice', 'price');
         $amount = $this->safe_string_2($trade, 'executedQuantity', 'size');
         $cost = Precise::string_mul($price, $amount);
@@ -628,7 +629,7 @@ class woofipro extends \ccxt\async\woofipro {
             'type' => $this->safe_string_lower($trade, 'type'),
             'fee' => $fee,
             'info' => $trade,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function handle_auth(Client $client, array $message) {
@@ -746,23 +747,27 @@ class woofipro extends \ccxt\async\woofipro {
         if ($trigger === true) {
             $topic = 'algoexecutionreport';
         }
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = $topic;
+        $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+        }
+        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
+        if ($symbol !== null) {
+            $messageHash .= ':' . $symbolResolved;
         }
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsOmitted);
         $orders = Async\await($this->watch_private($messageHash, $message));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -791,23 +796,27 @@ class woofipro extends \ccxt\async\woofipro {
         if ($trigger === true) {
             $topic = 'algoexecutionreport';
         }
-        $params = $this->omit($params, 'stop');
+        $paramsOmitted = $this->omit($params, 'stop');
         $messageHash = 'myTrades';
+        $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
+        }
+        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
+        if ($symbol !== null) {
+            $messageHash .= ':' . $symbolResolved;
         }
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsOmitted);
         $orders = Async\await($this->watch_private($messageHash, $message));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function parse_ws_order(array $order, ?array $market = null): array {
@@ -878,8 +887,8 @@ class woofipro extends \ccxt\async\woofipro {
         //
         $orderId = $this->safe_string($order, 'orderId');
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->market($marketId);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->market($marketId);
+        $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer($order, 'timestamp');
         $fee = array(
             'cost' => $this->safe_string($order, 'totalFee'),
@@ -1080,16 +1089,16 @@ class woofipro extends \ccxt\async\woofipro {
             Async\await($this->load_markets());
         }
         $messageHashes = array();
-        $symbols = $this->market_symbols($symbols);
-        if (!$this->is_empty($symbols)) {
-            if ($symbols === null) {
+        $symbolsNormalized = $this->market_symbols($symbols);
+        if (!$this->is_empty($symbolsNormalized)) {
+            if ($symbolsNormalized === null) {
                 throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
             }
-            for ($i = 0; $i < count($symbols); $i++) {
-                if ($symbols === null) {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                if ($symbolsNormalized === null) {
                     throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
                 }
-                $symbol = $symbols[$i];
+                $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = 'positions::' . $symbol;
             }
         } else {
@@ -1097,12 +1106,12 @@ class woofipro extends \ccxt\async\woofipro {
         }
         $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->accountId;
         $client = $this->client($url);
-        $this->set_positions_cache($client, $symbols);
+        $this->set_positions_cache($client, $symbolsNormalized);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($this->positions === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
-            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+            return $this->filter_by_symbols_since_limit($snapshot, $symbolsNormalized, $since, $limit, true);
         }
         $request = array(
             'event' => 'subscribe',
@@ -1112,7 +1121,7 @@ class woofipro extends \ccxt\async\woofipro {
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
     public function set_positions_cache(Client $client, ?array $symbols = null) {
@@ -1230,7 +1239,7 @@ class woofipro extends \ccxt\async\woofipro {
         //     }
         //
         $contract = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($contract, $market);
+        $marketResolved = $this->safe_market($contract, $market);
         $size = $this->safe_string($position, 'positionQty');
         $side = null;
         if (Precise::string_gt($size, '0')) {
@@ -1238,7 +1247,7 @@ class woofipro extends \ccxt\async\woofipro {
         } else {
             $side = 'short';
         }
-        $contractSize = $this->safe_string($market, 'contractSize');
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
         $markPrice = $this->safe_string($position, 'markPrice');
         $timestamp = $this->safe_integer($position, 'timestamp');
         $entryPrice = $this->safe_string($position, 'averageOpenPrice');
@@ -1248,7 +1257,7 @@ class woofipro extends \ccxt\async\woofipro {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => null,

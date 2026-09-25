@@ -39,12 +39,12 @@ class upbit(ccxt.async_support.upbit):
     async def watch_public_multiple(self, symbols: Strings, channel: Str, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
+        symbolsRequested = symbols
         if symbols is None:
-            symbols = self.symbols
-        symbols = self.market_symbols(symbols)
-        if symbols is None:
-            symbols = []
-        marketIds = self.market_ids(symbols)
+            symbolsRequested = self.symbols
+        symbolsMarket = self.market_symbols(symbolsRequested)
+        symbolsNormalized = [] if (symbolsMarket is None) else symbolsMarket
+        marketIds = self.market_ids(symbolsNormalized)
         url = self.implode_params(self.urls['api']['ws'], {
             'hostname': self.hostname,
         })
@@ -54,9 +54,9 @@ class upbit(ccxt.async_support.upbit):
             client.subscriptions[subscriptionsKey] = self.create_safe_dictionary(True)
         subscriptions = client.subscriptions[subscriptionsKey]
         messageHashes = []
-        for i in range(0, len(symbols)):
+        for i in range(0, len(symbolsNormalized)):
             marketId = marketIds[i]
-            symbol = symbols[i]
+            symbol = symbolsNormalized[i]
             messageHash = channel + ':' + symbol
             messageHashes.append(messageHash)
             if not (messageHash in subscriptions):
@@ -131,11 +131,12 @@ class upbit(ccxt.async_support.upbit):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         trades = await self.watch_public_multiple(symbols, 'trade')
+        first = self.safe_dict(trades, 0)
+        tradeSymbol = self.safe_string(first, 'symbol')
+        limitResolved = limit
         if self.newUpdates:
-            first = self.safe_dict(trades, 0)
-            tradeSymbol = self.safe_string(first, 'symbol')
-            limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -341,14 +342,17 @@ class upbit(ccxt.async_support.upbit):
         request = {
             'type': channel,
         }
+        symbolResolved = None
         if symbol is not None:
             await self.load_markets()
             market = self.market(symbol)
-            symbol = market['symbol']
-            symbols = [symbol]
+            symbolResolved = market['symbol']
+            symbols = [symbolResolved]
             marketIds = self.market_ids(symbols)
             request['codes'] = marketIds
-            messageHash = messageHash + ':' + symbol
+        messageHashResolved = messageHash
+        if symbolResolved is not None:
+            messageHashResolved = messageHash + ':' + symbolResolved
         url = self.implode_params(self.urls['api']['ws'], {
             'hostname': self.hostname,
         })
@@ -359,8 +363,8 @@ class upbit(ccxt.async_support.upbit):
         if not (subscriptionsKey in client.subscriptions):
             client.subscriptions[subscriptionsKey] = self.create_safe_dictionary(True)
         channelKey = channel
-        if symbol is not None:
-            channelKey = channel + ':' + symbol
+        if symbolResolved is not None:
+            channelKey = channel + ':' + symbolResolved
         subscriptions = client.subscriptions[subscriptionsKey]
         isNewChannel = not (channelKey in subscriptions)
         if isNewChannel:
@@ -378,7 +382,7 @@ class upbit(ccxt.async_support.upbit):
         ]
         for i in range(0, len(requests)):
             message.append(requests[i])
-        return await self.watch(url, messageHash, message, messageHash)
+        return await self.watch(url, messageHashResolved, message, messageHashResolved)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -397,9 +401,10 @@ class upbit(ccxt.async_support.upbit):
         channel = 'myOrder'
         messageHash = 'myOrder'
         orders = await self.watch_private(symbol, channel, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limitResolved, True)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -418,9 +423,10 @@ class upbit(ccxt.async_support.upbit):
         channel = 'myOrder'
         messageHash = 'myTrades'
         trades = await self.watch_private(symbol, channel, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+            limitResolved = trades.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limitResolved, True)
 
     def parse_ws_order_status(self, status: Str):
         statuses = {
@@ -468,12 +474,12 @@ class upbit(ccxt.async_support.upbit):
         timestamp = self.parse8601(self.safe_string(order, 'order_timestamp'))
         status = self.parse_ws_order_status(self.safe_string(order, 'state'))
         marketId = self.safe_string(order, 'code')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         fee = None
         feeCost = self.safe_string(order, 'paid_fee')
         if feeCost is not None:
             fee = {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': feeCost,
             }
         return self.safe_order({
@@ -483,7 +489,7 @@ class upbit(ccxt.async_support.upbit):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': self.safe_string(order, 'trade_timestamp'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': self.safe_string(order, 'order_type'),
             'timeInForce': self.safe_string(order, 'time_in_force'),
             'postOnly': None,
@@ -510,19 +516,19 @@ class upbit(ccxt.async_support.upbit):
             side = 'sell'
         timestamp = self.parse8601(self.safe_string(trade, 'trade_timestamp'))
         marketId = self.safe_string(trade, 'code')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         fee = None
         feeCost = self.safe_string(trade, 'paid_fee')
         if feeCost is not None:
             fee = {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': feeCost,
             }
         return self.safe_trade({
             'id': self.safe_string(trade, 'trade_uuid'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'side': side,
             'price': self.safe_string(trade, 'price'),
             'amount': self.safe_string(trade, 'volume'),
@@ -532,7 +538,7 @@ class upbit(ccxt.async_support.upbit):
             'type': self.safe_string(trade, 'order_type'),
             'fee': fee,
             'info': trade,
-        }, market)
+        }, marketResolved)
 
     def handle_my_order(self, client: Client, message: dict):
         # see: parseWsOrder

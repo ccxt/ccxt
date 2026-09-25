@@ -746,13 +746,12 @@ class sxbet(PredictionExchange, ImplicitAPI):
         tokenAddress = self.safe_string(params, 'tokenAddress', usdcAddress)
         if tokenAddress is None:
             raise BadRequest(self.id + ' approve() could not resolve the base token address from /metadata/obv3')
-        spender = None
-        spender, params = self.handle_option_string_and_params_2(params, 'approve', 'spender', 'transferToProxySpender', executorAddress)
+        spender, paramsSpender = self.handle_option_string_and_params_2(params, 'approve', 'spender', 'transferToProxySpender', executorAddress)
         if spender is None:
             raise BadRequest(self.id + ' approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender')
         chains = self.safe_dict(self.options, 'chains', {})
         chainConfig = self.safe_dict(chains, self.number_to_string(chainId), {})
-        rpcUrl = self.safe_string(params, 'rpcUrl', self.safe_string(chainConfig, 'rpcUrl'))
+        rpcUrl = self.safe_string(paramsSpender, 'rpcUrl', self.safe_string(chainConfig, 'rpcUrl'))
         if rpcUrl is None:
             raise ArgumentsRequired(self.id + ' approve() has no RPC endpoint configured for chainId ' + self.number_to_string(chainId) + ' - pass params.rpcUrl')
         owner = self.walletAddress
@@ -762,7 +761,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         nonce = '0' if (nonceHex == '') else self.number_to_string(self.hex_to_int(nonceHex))
         tokenName = await self.fetch_erc20_name(rpcUrl, tokenAddress)
         defaultDeadlineSeconds = self.safe_integer(self.options, 'approveDeadlineSeconds', 7200)
-        deadline = self.safe_integer(params, 'deadline', self.sum(self.seconds(), defaultDeadlineSeconds))
+        deadline = self.safe_integer(paramsSpender, 'deadline', self.sum(self.seconds(), defaultDeadlineSeconds))
         value = self.decimal_to_precision(Precise.string_mul(self.number_to_string(amount), '1000000'), ROUND, 0, DECIMAL_PLACES)
         domain = {'name': tokenName, 'version': '1', 'chainId': chainId, 'verifyingContract': tokenAddress}
         messageTypes = {
@@ -786,7 +785,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'deadline': self.number_to_string(deadline),
             'signature': signature,
         }
-        rest = self.omit(params, ['amount', 'tokenAddress', 'deadline', 'rpcUrl'])
+        rest = self.omit(paramsSpender, ['amount', 'tokenAddress', 'deadline', 'rpcUrl'])
         response = await self.sxbetPrivatePostUserTransferToProxy(self.extend(request, rest))
         data = self.safe_dict(response, 'data', {})
         return {
@@ -860,8 +859,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         defaultTif = 'IOC'
         if type == 'limit':
             defaultTif = 'GTC'
-        timeInForce = None
-        timeInForce, params = self.handle_option_string_and_params(params, 'createOrder', 'timeInForce', defaultTif)
+        timeInForce, paramsTimeInForce = self.handle_option_string_and_params(params, 'createOrder', 'timeInForce', defaultTif)
         # an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         # that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         # contradicting the immediate-fill semantics the type promises
@@ -905,19 +903,19 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'timeInForce': timeInForce,
             'orderSignature': orderSignature,
         }
-        clientOrderId = self.safe_string(params, 'clientOrderId')
+        clientOrderId = self.safe_string(paramsTimeInForce, 'clientOrderId')
         if clientOrderId is not None:
             orderItem['clientOrderId'] = clientOrderId
         # useBetCredits and externalUserId are per-order fields - route them into the order item,
         # not the top-level body, where the venue would silently ignore them
-        useBetCredits = self.safe_bool(params, 'useBetCredits')
+        useBetCredits = self.safe_bool(paramsTimeInForce, 'useBetCredits')
         if useBetCredits is not None:
             orderItem['useBetCredits'] = useBetCredits
-        externalUserId = self.safe_string(params, 'externalUserId')
+        externalUserId = self.safe_string(paramsTimeInForce, 'externalUserId')
         if externalUserId is not None:
             orderItem['externalUserId'] = externalUserId
-        waitForOutcome = self.safe_bool(params, 'waitForOutcome', True)
-        rest = self.omit(params, ['salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId'])
+        waitForOutcome = self.safe_bool(paramsTimeInForce, 'waitForOutcome', True)
+        rest = self.omit(paramsTimeInForce, ['salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId'])
         request = {'orders': [orderItem], 'waitForOutcome': waitForOutcome}
         response = await self.sxbetPrivatePostOrdersV3(self.extend(request, rest))
         data = self.safe_dict(response, 'data', {})
@@ -2481,18 +2479,19 @@ class sxbet(PredictionExchange, ImplicitAPI):
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         existingHeaders = headers if (headers is not None) else {}
-        headers = self.extend({
+        headersExtended = self.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders)
         if self.apiKey is not None:
-            headers['x-sx-api-key'] = self.apiKey
+            headersExtended['x-sx-api-key'] = self.apiKey
         # DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         # /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         sendAsQuery = (method == 'GET')
         if method == 'DELETE':
             hasOrdersList = ('orders' in query)
             sendAsQuery = not hasOrdersList
+        bodyValue = body
         if sendAsQuery:
             querystring = self.urlencode(query)
             if querystring != '':
@@ -2501,5 +2500,5 @@ class sxbet(PredictionExchange, ImplicitAPI):
             queryKeys = list(query.keys())
             queryKeysLength = len(queryKeys)
             if queryKeysLength > 0:
-                body = self.json(query)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+                bodyValue = self.json(query)
+        return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended}

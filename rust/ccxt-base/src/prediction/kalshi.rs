@@ -1838,13 +1838,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  */
     pub fn sorted_orders(&self, mut outcome: Value, mut timestamp: Value, mut bids: Value, mut asks: Value) -> Value {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
-        bids = self.sort_by(bids.clone(), Value::Int(0), &[Value::Bool(true)]);
-        asks = self.sort_by(asks.clone(), Value::Int(0), &[]);
+        let mut bidsValue: Value = self.sort_by(bids, Value::Int(0), &[Value::Bool(true)]);
+        let mut asksValue: Value = self.sort_by(asks, Value::Int(0), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), outcome);
-        m.insert("bids".to_string(), bids);
-        m.insert("asks".to_string(), asks);
+        m.insert("bids".to_string(), bidsValue);
+        m.insert("asks".to_string(), asksValue);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("nonce".to_string(), Value::Null);
@@ -2951,7 +2951,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
         let mut unifiedTif: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        params = self.omit(params.clone(), Value::Str("timeInForce".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(params, Value::Str("timeInForce".into()), &[]);
         let mut defaultTif: Value = Value::Str("good_till_canceled".into());
         if isMarket {
             defaultTif = Value::Str("immediate_or_cancel".into());
@@ -2965,10 +2965,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else if (unifiedTif.as_deref() == Some("GTC")) {
             defaultTif = Value::Str("good_till_canceled".into());
         }
-        let mut timeInForce: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("time_in_force".into()), &[defaultTif]); timeInForce = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut stp: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("self_trade_prevention_type".into()), &[Value::Str("taker_at_cross".into())]); stp = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut timeInForceparamsTimeInForceVariable = self.handle_option_string_and_params(paramsOmitted, Value::Str("createOrder".into()), Value::Str("time_in_force".into()), &[defaultTif]);
+        let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut stpparamsSelfTradePreventionTypeVariable = self.handle_option_string_and_params(paramsTimeInForce, Value::Str("createOrder".into()), Value::Str("self_trade_prevention_type".into()), &[Value::Str("taker_at_cross".into())]);
+        let mut stp: Value = stpparamsSelfTradePreventionTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsSelfTradePreventionType: Value = stpparamsSelfTradePreventionTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), ticker);
@@ -2981,7 +2983,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (yesPrice != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.number_to_string(yesPrice)); }
         }
-        let __ws_arg_12 = self.extend(request, &[params]);
+        let __ws_arg_12 = self.extend(request, &[paramsSelfTradePreventionType]);
         let mut response: Value = self.kalshi_private_post_portfolio_events_orders(&[__ws_arg_12]).await;
         // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
         // the known order details and resolve the status from the remaining count
@@ -3179,8 +3181,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".into()))));
         }
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
-        params = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
-        let mut userLimit: Value = self.safe_integer_k(params.clone(), "limit", &[]);
+        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
+        let mut userLimit: Value = self.safe_integer_k(paramsOmitted.clone(), "limit", &[]);
         // bound how many events are actually FETCHED (not just returned) so a broad scope like
         // category='Crypto' (hundreds of series) doesn't page every one of them
         let mut fetchCap: Value = self.safe_integer_k(self.options.clone(), "maxFetchEventsResults", &[Value::Int(100)]);
@@ -3190,7 +3192,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
         // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
         // silently rewritten to 'open'); 'all' sends no filter
-        let mut requestedStatus: Option<String> = self.safe_string_k(params.clone(), "status", &[self.safe_string(self.options.clone(), Value::Str("defaultEventStatus".into()), &[Value::Str("open".into())])]).as_str().map(str::to_owned);
+        let mut requestedStatus: Option<String> = self.safe_string_k(paramsOmitted.clone(), "status", &[self.safe_string(self.options.clone(), Value::Str("defaultEventStatus".into()), &[Value::Str("open".into())])]).as_str().map(str::to_owned);
         let mut status: Value = Value::Null;
         if (requestedStatus.as_deref() == Some("active")) || (requestedStatus.as_deref() == Some("open")) {
             status = Value::Str("open".into());
@@ -3200,11 +3202,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             status = Value::Str("settled".into());
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("maxPages".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("category".into()), Value::Str("series_ticker".into())]), &[]);
+        let mut rest: Value = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("maxPages".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("category".into()), Value::Str("series_ticker".into())]), &[]);
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
-        let mut eventId: Value = self.safe_string2(params.clone(), Value::Str("eventId".into()), Value::Str("slug".into()), &[]);
+        let mut eventId: Value = self.safe_string2(paramsOmitted.clone(), Value::Str("eventId".into()), Value::Str("slug".into()), &[]);
         let mut rawEvents: Value = Value::from(vec![]);
         if queriesLength > ((0i64) as f64) {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
@@ -3215,10 +3217,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             rawEvents = Value::from(vec![fullEvent]);
         }  else {
             // tags / category / series_ticker resolve to a set of series; fetch their events, capped
-            let mut seriesTickers: Value = self.resolve_event_series_tickers(&[params.clone()]).await;
+            let mut seriesTickers: Value = self.resolve_event_series_tickers(&[paramsOmitted.clone()]).await;
             let mut seriesTickersLength: f64 = ((seriesTickers.len() as i64) as f64);
             if (seriesTickersLength == 0.0) {
-                self.require_event_query(&[params.clone()]);
+                self.require_event_query(&[paramsOmitted.clone()]);
             }
             rawEvents = self.fetch_series_events(seriesTickers, status, fetchCap, &[rest]).await;
         }
@@ -3249,7 +3251,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // scoping already happened server-side, so strip the resolved scopes before the client-side
         // pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
         // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-        let mut postParams: Value = self.omit(params, Value::from(vec![Value::Str("tags".into()), Value::Str("category".into()), Value::Str("series_ticker".into())]), &[]);
+        let mut postParams: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("tags".into()), Value::Str("category".into()), Value::Str("series_ticker".into())]), &[]);
         return self.apply_event_fetch_params(result, &[postParams, Value::from(vec![])]);
 
     Value::Null
@@ -3774,16 +3776,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (method.as_str() == Some("GET")) && (querystring.as_str() != Some("")) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), querystring).into())).into());
         }
-        let mut existingHeaders: Value = (if (headers != Value::Null) { headers.clone() } else { Value::Map({
+        let mut existingHeaders: Value = (if (headers != Value::Null) { headers } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        headers = self.extend(Value::Map({
+        let mut headersValue: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Accept".to_string(), Value::Str("application/json".into()));
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
             m
         }), &[existingHeaders]);
+        let mut bodyValue: Value = body;
         if (access.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = to_string_val(&self.milliseconds());
@@ -3798,7 +3801,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut keyParts: Value = split(&self.privateKey, &Value::Str("\\n".into()));
             let mut cleanPrivateKey: Value = join(&keyParts, &Value::Str("\n".into()));
             let mut signature: Value = rsa(payload, cleanPrivateKey, Value::Str("sha256".into()));
-            headers = self.extend(headers.clone(), &[Value::Map({
+            headersValue = self.extend(headersValue.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("KALSHI-ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("KALSHI-ACCESS-SIGNATURE".to_string(), signature);
@@ -3807,15 +3810,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]);
             if (method.as_str() != Some("GET")) && (querystring.as_str() != Some("")) {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
-                body = json_stringify(&query);
+                bodyValue = json_stringify(&query);
             }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), bodyValue);
+        m.insert("headers".to_string(), headersValue);
     m
 });
 

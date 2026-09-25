@@ -88,7 +88,7 @@ class whitebit extends \ccxt\async\whitebit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $interval = $this->safe_integer($timeframes, $timeframe);
         $marketId = $market['id'];
@@ -96,14 +96,15 @@ class whitebit extends \ccxt\async\whitebit {
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
         // to one timeframe per symbol
-        $messageHash = 'candles:' . $symbol;
+        $messageHash = 'candles:' . $symbolValue;
         $reqParams = array( $marketId, $interval );
         $method = 'candles_subscribe';
         $ohlcv = Async\await($this->watch_public($messageHash, $method, $reqParams, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message): array {
@@ -169,22 +170,20 @@ class whitebit extends \ccxt\async\whitebit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 10; // max 100
-        }
+        $limitValue = ($limit === null) ? 10 : $limit;
         $messageHash = 'orderbook' . ':' . $market['symbol'];
         $method = 'depth_subscribe';
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
         $defaultPriceInterval = $this->safe_string($options, 'priceInterval', '0');
         $priceInterval = $this->safe_string($params, 'priceInterval', $defaultPriceInterval);
-        $params = $this->omit($params, 'priceInterval');
+        $paramsOmitted = $this->omit($params, 'priceInterval');
         $reqParams = array(
             $market['id'],
-            $limit,
+            $limitValue,
             $priceInterval,
             true, // true for allowing multiple subscriptions
         );
-        $orderbook = Async\await($this->watch_public($messageHash, $method, $reqParams, $params));
+        $orderbook = Async\await($this->watch_public($messageHash, $method, $reqParams, $paramsOmitted));
         return $orderbook->limit();
     }
 
@@ -283,11 +282,11 @@ class whitebit extends \ccxt\async\whitebit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $method = 'market_subscribe';
-        $messageHash = 'ticker:' . $symbol;
+        $messageHash = 'ticker:' . $symbolValue;
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
-        return Async\await($this->watch_multiple_subscription($messageHash, $method, $symbol, false, $params));
+        return Async\await($this->watch_multiple_subscription($messageHash, $method, $symbolValue, false, $params));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -307,14 +306,14 @@ class whitebit extends \ccxt\async\whitebit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $method = 'market_subscribe';
         $url = $this->urls['api']['ws'];
         $id = $this->incrementing_nonce();
         $messageHashes = array();
         $args = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $market = $this->market($symbols[$i]);
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
             $messageHashes[] = 'ticker:' . $market['symbol'];
             $args[] = $market['id'];
         }
@@ -324,7 +323,7 @@ class whitebit extends \ccxt\async\whitebit {
             'params' => $args,
         );
         Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function handle_ticker(Client $client, array $message): array {
@@ -397,15 +396,16 @@ class whitebit extends \ccxt\async\whitebit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'trades' . ':' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'trades' . ':' . $symbolValue;
         $method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        $trades = Async\await($this->watch_multiple_subscription($messageHash, $method, $symbol, false, $params));
+        $trades = Async\await($this->watch_multiple_subscription($messageHash, $method, $symbolValue, false, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -476,14 +476,15 @@ class whitebit extends \ccxt\async\whitebit {
         }
         Async\await($this->authenticate());
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'myTrades:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'myTrades:' . $symbolValue;
         $method = 'deals_subscribe';
-        $trades = Async\await($this->watch_multiple_subscription($messageHash, $method, $symbol, true, $params));
+        $trades = Async\await($this->watch_multiple_subscription($messageHash, $method, $symbolValue, true, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolValue, $since, $limitResolved, true);
     }
 
     public function handle_my_trades(Client $client, array $message, ?array $subscription = null) {
@@ -541,7 +542,7 @@ class whitebit extends \ccxt\async\whitebit {
         $price = $this->safe_string($trade, 4);
         $amount = $this->safe_string($trade, 5);
         $marketId = $this->safe_string($trade, 2);
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $fee = null;
         $feeCost = $this->safe_string($trade, 6);
         if ($feeCost !== null) {
@@ -550,7 +551,7 @@ class whitebit extends \ccxt\async\whitebit {
             if ($feeCurrencyId !== null) {
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             } else {
-                $feeCurrencyCode = $market['quote'];
+                $feeCurrencyCode = $marketResolved['quote'];
             }
             $fee = array(
                 'cost' => $feeCost,
@@ -576,7 +577,7 @@ class whitebit extends \ccxt\async\whitebit {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'order' => $orderId,
             'type' => null,
             'side' => $side,
@@ -585,7 +586,7 @@ class whitebit extends \ccxt\async\whitebit {
             'amount' => $amount,
             'cost' => null,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -612,14 +613,15 @@ class whitebit extends \ccxt\async\whitebit {
         }
         Async\await($this->authenticate());
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'orders:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'orders:' . $symbolValue;
         $method = 'ordersPending_subscribe';
-        $trades = Async\await($this->watch_multiple_subscription($messageHash, $method, $symbol, false, $params));
+        $trades = Async\await($this->watch_multiple_subscription($messageHash, $method, $symbolValue, false, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolValue, $since, $limitResolved, true);
     }
 
     public function handle_order(Client $client, array $message, ?array $subscription = null) {
@@ -689,7 +691,7 @@ class whitebit extends \ccxt\async\whitebit {
         //
         $status = $this->safe_integer($order, 'status');
         $marketId = $this->safe_string($order, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $id = $this->safe_string($order, 'id');
         $clientOrderId = $this->omit_zero($this->safe_string($order, 'client_order_id'));
         $price = $this->safe_string($order, 'price');
@@ -709,7 +711,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         $timestamp = $this->safe_timestamp($order, 'ctime');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'mtime');
-        $symbol = $market['symbol'];
+        $symbol = $marketResolved['symbol'];
         $rawSide = $this->safe_integer($order, 'side');
         $side = 'buy';
         if ($rawSide === 1) {
@@ -720,7 +722,7 @@ class whitebit extends \ccxt\async\whitebit {
         if ($dealFee !== null) {
             $fee = array(
                 'cost' => $this->parse_number($dealFee),
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
             );
         }
         $unifiedStatus = null;
@@ -756,7 +758,7 @@ class whitebit extends \ccxt\async\whitebit {
             'status' => $unifiedStatus,
             'fee' => $fee,
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_ws_order_type(mixed $status): string {
@@ -794,8 +796,7 @@ class whitebit extends \ccxt\async\whitebit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params);
         $messageHash = 'wallet:';
         $method = null;
         if ($type === 'spot') {
@@ -808,16 +809,14 @@ class whitebit extends \ccxt\async\whitebit {
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $this->set_balance_cache($client, $type, $messageHash);
-        $fetchBalanceSnapshot = null;
-        $awaitBalanceSnapshot = null;
-        list($fetchBalanceSnapshot, $params) = $this->handle_option_bool_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
-        list($awaitBalanceSnapshot, $params) = $this->handle_option_bool_and_params($params, 'watchBalance', 'awaitBalanceSnapshot', true);
+        list($fetchBalanceSnapshot, $paramsFetchBalanceSnapshot) = $this->handle_option_bool_and_params($paramsMarketType, 'watchBalance', 'fetchBalanceSnapshot', true);
+        list($awaitBalanceSnapshot, $paramsAwaitBalanceSnapshot) = $this->handle_option_bool_and_params($paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', true);
         if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }
         // an empty params array subscribes to updates for all assets,
         // listing all tickers explicitly is rejected with "invalid argument"
-        return Async\await($this->watch_private($messageHash, $method, array(), $params));
+        return Async\await($this->watch_private($messageHash, $method, array(), $paramsAwaitBalanceSnapshot));
     }
 
     public function set_balance_cache(Client $client, ?string $type, mixed $subscriptionHash) {

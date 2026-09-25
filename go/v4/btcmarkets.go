@@ -968,8 +968,8 @@ func (this *Btcmarkets) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "marketId")
-	market = this.SafeMarket(marketId, market, "-")
-	var symbol *string = SafeStringPtr(market["symbol"])
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "timestamp"))
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var baseVolume *string = this.SafeString(ticker, "volume24h")
@@ -997,7 +997,7 @@ func (this *Btcmarkets) ParseTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    baseVolume,
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1099,16 +1099,16 @@ func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) any {
 	//         "clientOrderId": "48"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "timestamp"))
 	var marketId *string = this.SafeString(trade, "marketId")
-	market = this.SafeMarket(marketId, market, "-")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
 	var feeCurrencyCode any = nil
-	if GetValue(market, "quote") == "AUD" {
-		feeCurrencyCode = GetValue(market, "quote")
+	if marketResolved["quote"] == "AUD" {
+		feeCurrencyCode = marketResolved["quote"]
 	} else {
-		feeCurrencyCode = GetValue(market, "base")
+		feeCurrencyCode = marketResolved["base"]
 	}
 	var side *string = this.SafeString(trade, "side")
 	if side != nil && *side == "Bid" {
@@ -1135,7 +1135,7 @@ func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) any {
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"order":        orderId,
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"type":         nil,
 		"side":         side,
 		"price":        priceString,
@@ -1143,7 +1143,7 @@ func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) any {
 		"cost":         nil,
 		"takerOrMaker": takerOrMaker,
 		"fee":          fee,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1264,7 +1264,6 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar string,
 	}
 	if triggerPriceIsRequired {
 		var triggerPrice *float64 = this.SafeNumber(params, "triggerPrice")
-		params = MapTyped(this.Omit(params, "triggerPrice"))
 		if triggerPrice == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice parameter for a " + typeVar + "order"))
 		} else {
@@ -1275,9 +1274,13 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar string,
 	if clientOrderId != nil {
 		request["clientOrderId"] = clientOrderId
 	}
-	params = MapTyped(this.Omit(params, "clientOrderId"))
+	var paramsTriggerPrice any = params
+	if triggerPriceIsRequired {
+		paramsTriggerPrice = this.Omit(params, "triggerPrice")
+	}
+	var paramsOmitted any = this.Omit(paramsTriggerPrice, "clientOrderId")
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, paramsOmitted))).Raw))
 
 	//
 	//     {
@@ -1486,7 +1489,7 @@ func (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "creationTime"))
 	var marketId *string = this.SafeString(order, "marketId")
-	market = this.SafeMarket(marketId, market, "-")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
 	var side *string = this.SafeString(order, "side")
 	if side != nil && *side == "Bid" {
 		side = SafeStringPtr("buy")
@@ -1509,7 +1512,7 @@ func (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) any {
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
-		"symbol":             GetValue(market, "symbol"),
+		"symbol":             marketResolved["symbol"],
 		"type":               typeVar,
 		"timeInForce":        timeInForce,
 		"postOnly":           postOnly,
@@ -1524,7 +1527,7 @@ func (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) any {
 		"status":             status,
 		"trades":             nil,
 		"fee":                nil,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1646,8 +1649,8 @@ func (this *Btcmarkets) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		"status": "open",
 	}
 
-	var retRes131115 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes131115)
+	var retRes131415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes131415)
 	return nil
 }
 
@@ -1786,9 +1789,9 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code any, amount any, address 
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tag = GetValue(tagparamsVariable, 0)
-	params = MapTyped(GetValue(tagparamsVariable, 1))
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -1802,11 +1805,11 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code any, amount any, address 
 		this.CheckAddress(address)
 		request["toAddress"] = address
 	}
-	if tag != nil {
-		request["toAddress"] = Add(Add(address, "?dt="), tag)
+	if !IsEqual(tagWithdrawTag, nil) {
+		request["toAddress"] = Add(Add(address, "?dt="), tagWithdrawTag)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawals(this.Extend(request, params))).Raw))
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawals(this.Extend(request, paramsWithdrawTag))).Raw))
 
 	//
 	//      {
@@ -1839,8 +1842,10 @@ func (this *Btcmarkets) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
+	var requestHeaders any = nil
+	var requestBody any = nil
 	var request any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
 	var query map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
 	if IsEqual(api, "private") {
@@ -1853,11 +1858,11 @@ func (this *Btcmarkets) Sign(path any, optionalArgs ...any) any {
 				request = Add(request, "?"+this.Urlencode(query))
 			}
 		} else {
-			body = this.Json(query)
-			auth = Add(auth, body)
+			requestBody = this.Json(query)
+			auth = Add(auth, requestBody)
 		}
 		var signature string = this.Hmac(this.Encode(auth), secret, sha512, "base64")
-		headers = map[string]any{
+		requestHeaders = map[string]any{
 			"Accept":            "application/json",
 			"Accept-Charset":    "UTF-8",
 			"Content-Type":      "application/json",
@@ -1875,11 +1880,23 @@ func (this *Btcmarkets) Sign(path any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url *string = SafeStringPtr(Add(apiUrl, request))
+	var headersResult any = func() any {
+		if requestHeaders != nil {
+			return requestHeaders
+		}
+		return headers
+	}()
+	var bodyResult any = func() any {
+		if requestBody != nil {
+			return requestBody
+		}
+		return body
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyResult,
+		"headers": headersResult,
 	}
 }
 func (this *Btcmarkets) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {

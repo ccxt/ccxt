@@ -1989,11 +1989,11 @@ func (this *Limitless) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	params = this.Extend(params, map[string]any{
+	var paramsExtended map[string]any = this.Extend(params, map[string]any{
 		"statuses": []any{"LIVE"},
 	})
 
-	var retRes157115 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, params))))
+	var retRes157115 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, paramsExtended))))
 	ch <- ccxt.BoxAbsent(retRes157115)
 	return nil
 }
@@ -2030,11 +2030,11 @@ func (this *Limitless) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) a
 	}
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	params = this.Extend(params, map[string]any{
+	var paramsExtended map[string]any = this.Extend(params, map[string]any{
 		"statuses": []any{"MATCHED"},
 	})
 
-	var retRes159315 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, params))))
+	var retRes159315 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, paramsExtended))))
 	ch <- ccxt.BoxAbsent(retRes159315)
 	return nil
 }
@@ -2577,9 +2577,10 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar string,
 	if this.WalletAddress != "" {
 		maker = this.WalletAddress
 	}
-	var makerparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "maker", maker)
-	maker = ccxt.GetValue(makerparamsVariable, 0)
-	params = ccxt.MapTyped(ccxt.GetValue(makerparamsVariable, 1))
+	var paramsValue any = params
+	var makerparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "createOrder", "maker", maker)
+	maker = ccxt.GetValue(makerparamsValueVariable, 0)
+	paramsValue = ccxt.GetValue(makerparamsValueVariable, 1)
 
 	{
 		func(this *Limitless) (ret_ any) {
@@ -2610,9 +2611,9 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar string,
 	if isSmartWallet {
 		signer = embeddedAddress
 	}
-	var signerparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "signer", signer)
-	signer = ccxt.GetValue(signerparamsVariable, 0)
-	params = ccxt.MapTyped(ccxt.GetValue(signerparamsVariable, 1))
+	var signerparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "createOrder", "signer", signer)
+	signer = ccxt.GetValue(signerparamsValueVariable, 0)
+	paramsValue = ccxt.GetValue(signerparamsValueVariable, 1)
 
 	{
 		func(this *Limitless) (ret_ any) {
@@ -2635,9 +2636,9 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar string,
 
 	}
 	var taker any = ccxt.DerefScalar(this.SafeString(this.Options, "nullAddress", "0x0000000000000000000000000000000000000000"))
-	var takerparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "taker", taker)
-	taker = ccxt.GetValue(takerparamsVariable, 0)
-	params = ccxt.MapTyped(ccxt.GetValue(takerparamsVariable, 1))
+	var takerparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "createOrder", "taker", taker)
+	taker = ccxt.GetValue(takerparamsValueVariable, 0)
+	paramsValue = ccxt.GetValue(takerparamsValueVariable, 1)
 
 	{
 		func(this *Limitless) (ret_ any) {
@@ -2674,9 +2675,9 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar string,
 		}
 		return 0
 	}()
-	var signatureTypeparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "signatureType", signatureType)
-	signatureType = ccxt.GetValue(signatureTypeparamsVariable, 0)
-	params = ccxt.MapTyped(ccxt.GetValue(signatureTypeparamsVariable, 1))
+	var signatureTypeparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "createOrder", "signatureType", signatureType)
+	signatureType = ccxt.GetValue(signatureTypeparamsValueVariable, 0)
+	paramsValue = ccxt.GetValue(signatureTypeparamsValueVariable, 1)
 	var signRequest map[string]any = map[string]any{
 		"salt":          nonce,
 		"maker":         maker,
@@ -2689,9 +2690,9 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar string,
 		"signatureType": signatureType,
 	}
 	// the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
-	var expirationInt *int64 = this.SafeInteger(params, "expiration")
+	var expirationInt *int64 = this.SafeInteger(paramsValue, "expiration")
 	if expirationInt != nil {
-		params = ccxt.MapTyped(this.Omit(params, "expiration"))
+		paramsValue = this.Omit(paramsValue, "expiration")
 		signRequest["expiration"] = this.NumberToString(expirationInt)
 	} else {
 		signRequest["expiration"] = "0"
@@ -2702,11 +2703,11 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar string,
 	var takerAmount any = nil
 	var isMarket bool = (typeVar == "market")
 	var postOnly any = false
-	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarket, false, params)
-	postOnly = ccxt.GetValue(postOnlyparamsVariable, 0)
-	params = ccxt.MapTyped(ccxt.GetValue(postOnlyparamsVariable, 1))
-	var timeInForce *string = this.SafeString(params, "timeInForce")
-	params = ccxt.MapTyped(this.Omit(params, "timeInForce"))
+	var postOnlyparamsValueVariable []any = this.HandlePostOnly(isMarket, false, paramsValue)
+	postOnly = ccxt.GetValue(postOnlyparamsValueVariable, 0)
+	paramsValue = ccxt.GetValue(postOnlyparamsValueVariable, 1)
+	var timeInForce *string = this.SafeString(paramsValue, "timeInForce")
+	paramsValue = this.Omit(paramsValue, "timeInForce")
 	if timeInForce == nil {
 		timeInForce = ccxt.SafeStringPtr(func() string {
 			if isMarket {
@@ -2718,11 +2719,11 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar string,
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
 	if isMarket && (side == "buy") {
 		var createMarketBuyOrderRequiresPrice bool = true
-		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-		createMarketBuyOrderRequiresPrice = ccxt.GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
-		params = ccxt.MapTyped(ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
-		var cost *float64 = this.SafeNumber(params, "cost")
-		params = ccxt.MapTyped(this.Omit(params, "cost"))
+		var createMarketBuyOrderRequiresPriceparamsValueVariable []any = this.HandleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+		createMarketBuyOrderRequiresPrice = ccxt.GetValueBool(createMarketBuyOrderRequiresPriceparamsValueVariable, 0, false)
+		paramsValue = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsValueVariable, 1)
+		var cost *float64 = this.SafeNumber(paramsValue, "cost")
+		paramsValue = this.Omit(paramsValue, "cost")
 		if createMarketBuyOrderRequiresPrice {
 			if (price == nil) && (cost == nil) {
 				panic(ccxt.InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -2776,7 +2777,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar string,
 		request["postOnly"] = postOnly
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPrivatePostOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPrivatePostOrders(this.Extend(request, paramsValue))).Raw))
 	var parsedOrder any = this.ParsePredictionOrder(response, outcomeObj)
 	// the create-order response omits a status field; a freshly accepted order is open
 	if ccxt.IsEqual(ccxt.GetValue(parsedOrder, "status"), nil) {
@@ -3105,17 +3106,18 @@ func (this *Limitless) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
+	var paramsValue any = params
 	if outcome != nil {
 		var warn any = true
-		var warnparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn)
-		warn = ccxt.GetValue(warnparamsVariable, 0)
-		params = ccxt.MapTyped(ccxt.GetValue(warnparamsVariable, 1))
+		var warnparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn)
+		warn = ccxt.GetValue(warnparamsValueVariable, 0)
+		paramsValue = ccxt.GetValue(warnparamsValueVariable, 1)
 		if warn == true {
 			panic(ccxt.BadRequest(this.Id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message."))
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var slug *string = this.SafeString(params, "slug")
+	var slug *string = this.SafeString(paramsValue, "slug")
 	if outcome != nil {
 
 		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
@@ -3124,7 +3126,7 @@ func (this *Limitless) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelAllOrders requires either an outcome argument or a slug parameter"))
 	}
 
-	response := (<-this.LimitlessPrivateDeleteOrdersAllSlug(this.Extend(request, params))).Raw
+	response := (<-this.LimitlessPrivateDeleteOrdersAllSlug(this.Extend(request, paramsValue))).Raw
 	ccxt.PanicOnError(response)
 
 	//
@@ -3158,7 +3160,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// resolve the handle for the final filter — the caller may have passed an outcomeId
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -3166,22 +3168,23 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var outcomeSymbol any = outcome
+	var outcomeSymbol *string = outcome
 	if outcome != nil {
 
 		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
-		outcomeSymbol = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
+		outcomeSymbol = this.SafeString(outcomeObj, "outcome")
 	}
 	var paginate any = false
 	var maxLimit int = 100
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", paginate)
-	paginate = ccxt.GetValue(paginateparamsVariable, 0)
-	params = ccxt.MapTyped(ccxt.GetValue(paginateparamsVariable, 1))
+	var paramsValue any = params
+	var paginateparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "fetchMyTrades", "paginate", paginate)
+	paginate = ccxt.GetValue(paginateparamsValueVariable, 0)
+	paramsValue = ccxt.GetValue(paginateparamsValueVariable, 1)
 	if paginate == true {
-		params = ccxt.MapTyped(this.Omit(params, "paginate"))
+		paramsValue = this.Omit(paramsValue, "paginate")
 
-		var retRes248519 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", outcome, since, limit, params, "nextCursor", "cursor", nil, maxLimit))))
-		ch <- ccxt.BoxAbsent(retRes248519)
+		var retRes248819 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", outcome, since, limit, paramsValue, "nextCursor", "cursor", nil, maxLimit))))
+		ch <- ccxt.BoxAbsent(retRes248819)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3189,7 +3192,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = ccxt.MathMin(limit, maxLimit)
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPrivateGetPortfolioHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPrivateGetPortfolioHistory(this.Extend(request, paramsValue))).Raw))
 	//
 	//     {
 	//         "data": [
@@ -4041,21 +4044,23 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 	if (method == "GET") && (querystring != "") {
 		url = ccxt.Add(url, "?"+querystring)
 	}
+	var headersValue any = headers
+	var bodyValue any = body
 	if ccxt.IsEqual(access, "private") {
 		var bodyString any = ""
-		if ccxt.IsEqual(headers, nil) {
-			headers = map[string]any{}
+		if ccxt.IsEqual(headersValue, nil) {
+			headersValue = map[string]any{}
 		}
 		if (method == "POST") && (querystring != "") {
 			bodyString = this.Json(query)
-			body = bodyString
+			bodyValue = bodyString
 			var headerDefaults any = func() any {
-				if !ccxt.IsEqual(headers, nil) {
-					return headers
+				if !ccxt.IsEqual(headersValue, nil) {
+					return headersValue
 				}
 				return map[string]any{}
 			}()
-			headers = this.Extend(map[string]any{
+			headersValue = this.Extend(map[string]any{
 				"Accept":       "application/json",
 				"Content-Type": "application/json",
 			}, headerDefaults)
@@ -4065,21 +4070,21 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 		var newline string = "\n" // eslint-disable-line quotes
 		var payload *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(timestamp, newline), method), newline), url), newline), bodyString))
 		var signature string = this.Hmac(this.Encode(payload), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
-		headers = this.Extend(headers, map[string]any{
+		headersValue = this.Extend(headersValue, map[string]any{
 			"lmts-timestamp": timestamp,
 			"lmts-signature": signature,
 		})
 		var headerKey string = "lmts-api" + "-key" // concatenating because of the php version
 		var headersKey map[string]any = map[string]any{}
 		headersKey[headerKey] = this.ApiKey
-		headers = this.Extend(headers, headersKey)
+		headersValue = this.Extend(headersValue, headersKey)
 	}
 	url = ccxt.Add(baseUrl, url)
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    bodyValue,
+		"headers": headersValue,
 	}
 }
 

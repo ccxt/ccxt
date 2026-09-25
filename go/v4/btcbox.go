@@ -617,7 +617,7 @@ func (this *Btcbox) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp(trade, "date")
-	market = this.SafeMarket(nil, market)
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var id *string = this.SafeString(trade, "tid")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
@@ -629,7 +629,7 @@ func (this *Btcbox) ParseTrade(trade any, optionalArgs ...any) any {
 		"order":        nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"type":         typeVar,
 		"side":         side,
 		"takerOrMaker": nil,
@@ -637,7 +637,7 @@ func (this *Btcbox) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       amountString,
 		"cost":         nil,
 		"fee":          nil,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -769,10 +769,13 @@ func (this *Btcbox) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	// a special case for btcbox – default symbol is BTC/JPY
-	if symbol == nil {
-		symbol = SafeStringPtr("BTC/JPY")
-	}
-	var market map[string]any = this.Market(symbol)
+	var symbolResolved string = func() string {
+		if symbol == nil {
+			return "BTC/JPY"
+		}
+		return *symbol
+	}()
+	var market map[string]any = this.Market(symbolResolved)
 	var request map[string]any = map[string]any{
 		"id":   id,
 		"coin": market["baseId"],
@@ -832,7 +835,7 @@ func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var trades any = nil // todo: this.parseTrades (order['trades']);
-	market = this.SafeMarket(nil, market)
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var side *string = this.SafeString(order, "type")
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
@@ -848,7 +851,7 @@ func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) any {
 		"timeInForce":        nil,
 		"postOnly":           nil,
 		"status":             status,
-		"symbol":             GetValue(market, "symbol"),
+		"symbol":             marketResolved["symbol"],
 		"price":              price,
 		"triggerPrice":       nil,
 		"cost":               nil,
@@ -856,7 +859,7 @@ func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) any {
 		"fee":                nil,
 		"info":               order,
 		"average":            nil,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -886,10 +889,13 @@ func (this *Btcbox) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	// a special case for btcbox – default symbol is BTC/JPY
-	if symbol == nil {
-		symbol = SafeStringPtr("BTC/JPY")
-	}
-	var market map[string]any = this.Market(symbol)
+	var symbolResolved string = func() string {
+		if symbol == nil {
+			return "BTC/JPY"
+		}
+		return *symbol
+	}()
+	var market map[string]any = this.Market(symbolResolved)
 	var request map[string]any = this.Extend(map[string]any{
 		"id":   id,
 		"coin": market["baseId"],
@@ -933,10 +939,13 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan any, typeVar any, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	// a special case for btcbox – default symbol is BTC/JPY
-	if symbol == nil {
-		symbol = SafeStringPtr("BTC/JPY")
-	}
-	var market map[string]any = this.Market(symbol)
+	var symbolResolved string = func() string {
+		if symbol == nil {
+			return "BTC/JPY"
+		}
+		return *symbol
+	}()
+	var market map[string]any = this.Market(symbolResolved)
 	var request map[string]any = map[string]any{
 		"type": typeVar,
 		"coin": market["baseId"],
@@ -996,8 +1005,8 @@ func (this *Btcbox) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes80315 []any = ListTyped(PanicOnError((<-this.FetchOrdersByTypeAsync("all", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes80315)
+	var retRes79715 []any = ListTyped(PanicOnError((<-this.FetchOrdersByTypeAsync("all", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes79715)
 	return nil
 }
 
@@ -1029,8 +1038,8 @@ func (this *Btcbox) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes81815 []any = ListTyped(PanicOnError((<-this.FetchOrdersByTypeAsync("open", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes81815)
+	var retRes81215 []any = ListTyped(PanicOnError((<-this.FetchOrdersByTypeAsync("open", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes81215)
 	return nil
 }
 func (this *Btcbox) Nonce() any {
@@ -1045,7 +1054,7 @@ func (this *Btcbox) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
 	if apiUrl == nil {
@@ -1068,9 +1077,15 @@ func (this *Btcbox) Sign(path any, optionalArgs ...any) any {
 		var request string = this.Urlencode(query)
 		var secret any = this.Hash(this.Encode(this.Secret), md5)
 		query["signature"] = this.Hmac(this.Encode(request), this.Encode(secret), sha256)
-		body = this.Urlencode(query)
-		headers = map[string]any{
+		var signedBody string = this.Urlencode(query)
+		var signedHeaders map[string]any = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
+		}
+		return map[string]any{
+			"url":     url,
+			"method":  method,
+			"body":    signedBody,
+			"headers": signedHeaders,
 		}
 	}
 	return map[string]any{

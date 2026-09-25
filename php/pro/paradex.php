@@ -129,10 +129,11 @@ class paradex extends \ccxt\async\paradex {
             ),
         );
         $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trade(Client $client, array $message): array {
@@ -281,7 +282,7 @@ class paradex extends \ccxt\async\paradex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbol = $this->symbol($symbol);
+        $symbolValue = $this->symbol($symbol);
         $channel = 'markets_summary';
         $url = $this->urls['api']['ws'];
         $request = array(
@@ -291,7 +292,7 @@ class paradex extends \ccxt\async\paradex {
                 'channel' => $channel,
             ),
         );
-        $messageHash = $channel . '.' . $symbol;
+        $messageHash = $channel . '.' . $symbolValue;
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
     }
 
@@ -312,7 +313,7 @@ class paradex extends \ccxt\async\paradex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $channel = 'markets_summary';
         $url = $this->urls['api']['ws'];
         $request = array(
@@ -323,9 +324,9 @@ class paradex extends \ccxt\async\paradex {
             ),
         );
         $messageHashes = array();
-        if ($symbols !== null && (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $messageHash = $channel . '.' . $symbols[$i];
+        if ($symbolsNormalized !== null && (gettype($symbolsNormalized) === 'array' && array_keys($symbolsNormalized) === array_keys(array_keys($symbolsNormalized)))) {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $messageHash = $channel . '.' . $symbolsNormalized[$i];
                 $messageHashes[] = $messageHash;
             }
         } else {
@@ -337,7 +338,7 @@ class paradex extends \ccxt\async\paradex {
             $result[$newTicker['symbol']] = $newTicker;
             return $result;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -362,11 +363,11 @@ class paradex extends \ccxt\async\paradex {
         Async\await($this->authenticate());
         $messageHash = 'orders';
         $channel = 'orders.';
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
             $channel .= $market['id'];
-            $messageHash .= ':' . $symbol;
+            $messageHash .= ':' . $symbolResolved;
         } else {
             $channel .= 'ALL';
         }
@@ -379,10 +380,11 @@ class paradex extends \ccxt\async\paradex {
             ),
         );
         $orders = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function handle_order(Client $client, array $message) {
@@ -486,7 +488,7 @@ class paradex extends \ccxt\async\paradex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbol = $this->symbol($symbol);
+        $symbolValue = $this->symbol($symbol);
         $channel = 'funding_data';
         $url = $this->urls['api']['ws'];
         $request = array(
@@ -496,7 +498,7 @@ class paradex extends \ccxt\async\paradex {
                 'channel' => $channel,
             ),
         );
-        $messageHash = $channel . '.' . $symbol;
+        $messageHash = $channel . '.' . $symbolValue;
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
     }
 
@@ -517,7 +519,7 @@ class paradex extends \ccxt\async\paradex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $channel = 'funding_data';
         $url = $this->urls['api']['ws'];
         $request = array(
@@ -528,11 +530,11 @@ class paradex extends \ccxt\async\paradex {
             ),
         );
         $messageHashes = array();
-        if ($symbols !== null) {
-            $symbolsLength = count($symbols);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength > 0) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $messageHash = $channel . '.' . $symbols[$i];
+                for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                    $messageHash = $channel . '.' . $symbolsNormalized[$i];
                     $messageHashes[] = $messageHash;
                 }
             } else {
@@ -547,7 +549,7 @@ class paradex extends \ccxt\async\paradex {
             $result[$newFundingRates['symbol']] = $newFundingRates;
             return $result;
         }
-        return $this->filter_by_array($this->fundingRates, 'symbol', $symbols);
+        return $this->filter_by_array($this->fundingRates, 'symbol', $symbolsNormalized);
     }
 
     public function handle_funding_rate(Client $client, array $message) {

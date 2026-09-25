@@ -114,7 +114,7 @@ func HelperTestHandleTypedOptions() {
 	var utaparams2Variable []any = exchange.HandleOptionBoolAndParams(map[string]any{}, "fetchX", "uta", false)
 	uta := ccxt.GetValue(utaparams2Variable, 0)
 	params2 := ccxt.GetValue(utaparams2Variable, 1)
-	Assert((uta == true))
+	Assert(ccxt.IsEqual(uta, true))
 	var absentparams3Variable []any = exchange.HandleOptionStringAndParams(map[string]any{}, "fetchX", "absentKey", "fallback")
 	var absent *string = ccxt.SafeStringPtr(ccxt.GetValue(absentparams3Variable, 0))
 	params3 := ccxt.GetValue(absentparams3Variable, 1)
