@@ -220,7 +220,15 @@ const WATCH_ZERO_ARG_WHITELIST = new Set([
     'watchPositions',
 ]);
 
+// one full Exchange.ts transpile per source per process: main() and javaTypedCore both ask for it
+const parsedMethodsCache = new Map<string, MethodInfo[]>();
 export function parseMethodsFromTS(sourceFile: string = TS_BASE_FILE): MethodInfo[] {
+    let cached = parsedMethodsCache.get(sourceFile);
+    if (!cached) parsedMethodsCache.set(sourceFile, cached = parseMethodsFromTSUncached(sourceFile));
+    return cached;
+}
+
+function parseMethodsFromTSUncached(sourceFile: string): MethodInfo[] {
     const transpiler = new Transpiler({ verbose: false, csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } } });
     const strippedBaseFile = writeOverloadStrippedFile (sourceFile);
     const baseFile: any = transpiler.transpileJavaByPath(strippedBaseFile);

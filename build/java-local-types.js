@@ -184,7 +184,6 @@
 
 import { SyntaxKind } from 'typescript/unstable/ast';
 import { isArrayLiteralExpression, isAsExpression, isAwaitExpression, isBinaryExpression, isBlock, isCallExpression, isClassDeclaration, isConditionalExpression, isDeleteExpression, isDoStatement, isElementAccessExpression, isForOfStatement, isForStatement, isIdentifier, isIfStatement, isMethodDeclaration, isNewExpression, isNoSubstitutionTemplateLiteral, isNonNullExpression, isObjectLiteralExpression, isParameterDeclaration, isParenthesizedExpression, isPostfixUnaryExpression, isPrefixUnaryExpression, isPropertyAccessExpression, isPropertyAssignment, isPropertyDeclaration, isPropertySignatureDeclaration, isReturnStatement, isSourceFile, isSpreadElement, isStatement, isStringLiteral, isStringLiteralLikeNode, isTemplateExpression, isThrowStatement, isTypeAssertion, isTypeOfExpression, isTypeReferenceNode, isVariableDeclaration, isWhileStatement } from 'typescript/unstable/ast/is';
-import { createRequire } from 'node:module';
 import { SymbolFlags, TypeFlags } from 'typescript/unstable/sync';
 import { canHaveModifiers, getModifiers, isFunctionLike } from 'ast-transpiler/tsUtils';
 import fs from 'node:fs';
@@ -3303,24 +3302,70 @@ function receiverCallIsSafe (method, javaType) {
     return false;
 }
 
-// every Identifier node in `scope`, by source name. Not cached: the Java printer
-// renames identifiers inside object literals in place (`x` -> `finalX`) while a body
-// is being printed, so the walk must read the live AST each time.
-function identifierIndex (scope) {
-    const index = new Map ();
-    const visit = (n) => {
-        if (n.kind === SyntaxKind.Identifier) {
-            const name = n.text;
-            let list = index.get (name);
-            if (list === undefined) {
-                list = [];
-                index.set (name, list);
+// Identifier / binder nodes under `scope` in walk order, cached per scope: the printer's
+// in-place renames change only `.text`, never the tree, so names are still read live.
+const scopeNodeLists = new WeakMap ();
+function scopeNodes (scope) {
+    let lists = scopeNodeLists.get (scope);
+    if (lists === undefined) {
+        const identifiers = [];
+        const binders = [];
+        const visit = (n) => {
+            const kind = n.kind;
+            if (kind === SyntaxKind.Identifier) {
+                identifiers.push (n);
+            } else if (kind === SyntaxKind.Parameter || kind === SyntaxKind.VariableDeclaration || kind === SyntaxKind.CatchClause) {
+                binders.push (n);
             }
-            list.push (n);
+            n.forEachChild(visit);
+        };
+        scope.forEachChild(visit);
+        lists = { identifiers, texts: identifiers.map ((n) => n.text), binders };
+        scopeNodeLists.set (scope, lists);
+    }
+    return lists;
+}
+
+// a scope's index stays valid until the printer records another in-place rename
+// (finalVarMutations is append-only between restores, which replace the array)
+function mutationStamp (printer) {
+    const mutations = printer?.finalVarMutations;
+    return Array.isArray (mutations) ? mutations : undefined;
+}
+function stampFresh (entry, stamp) {
+    return entry !== undefined && entry.stamp === stamp && entry.length === (stamp?.length ?? 0);
+}
+
+// every Identifier node in `scope`, by its live source name (read-only for callers)
+const identifierIndexCache = new WeakMap ();
+let currentIndexPrinter;
+let indexPrinterCount = 0;
+function identifierIndex (scope) {
+    if (indexPrinterCount !== 1) {
+        return buildIdentifierIndex (scope);
+    }
+    const stamp = mutationStamp (currentIndexPrinter);
+    const cached = identifierIndexCache.get (scope);
+    if (stampFresh (cached, stamp)) {
+        return cached.index;
+    }
+    const index = buildIdentifierIndex (scope);
+    identifierIndexCache.set (scope, { stamp, length: stamp?.length ?? 0, index });
+    return index;
+}
+function buildIdentifierIndex (scope) {
+    const index = new Map ();
+    const { identifiers, texts } = scopeNodes (scope);
+    for (let i = 0; i < identifiers.length; i++) {
+        const n = identifiers[i];
+        const name = Object.hasOwn (n, 'text') ? n.text : texts[i];
+        let list = index.get (name);
+        if (list === undefined) {
+            list = [];
+            index.set (name, list);
         }
-        n.forEachChild(visit);
-    };
-    scope.forEachChild(visit);
+        list.push (n);
+    }
     return index;
 }
 
@@ -5412,6 +5457,8 @@ export function installJavaLocalTypes (transpiler) {
     if (!printer || typeof printer.printFunctionType !== 'function' || printer._javaLocalTypesPatched) {
         return;
     }
+    currentIndexPrinter = printer;
+    indexPrinterCount++;
     // (1) string/list method signatures. Wrapped on the printer instance so every
     // declaration — base tier and every venue override — goes through the same table.
     const upstreamFunctionType = printer.printFunctionType.bind (printer);
@@ -5811,11 +5858,21 @@ function dataflowCanonicalName (printer, node) {
     return node.text;
 }
 
-// one walk per query: every Identifier grouped by its CANONICAL name, plus the binding
-// tables the dataflow resolution reads. Deliberately NOT cached — the printer mutates
-// identifier names in place while a body prints, so a cached index goes stale between
-// two declarations of the same method.
+// every Identifier grouped by its CANONICAL name, plus the binding tables the dataflow
+// resolution reads. Names are read live per query (the printer renames in place); only
+// the node lists are cached (scopeNodes).
+const dataflowIndexCache = new WeakMap ();
 function dataflowIndex (printer, scope) {
+    const stamp = mutationStamp (printer);
+    const cached = dataflowIndexCache.get (scope);
+    if (cached?.printer === printer && stampFresh (cached, stamp)) {
+        return cached.index;
+    }
+    const index = buildDataflowIndex (printer, scope);
+    dataflowIndexCache.set (scope, { printer, stamp, length: stamp?.length ?? 0, index });
+    return index;
+}
+function buildDataflowIndex (printer, scope) {
     const identifiers = new Map ();
     const declarations = new Map ();
     const parameterNames = new Set ();
@@ -5831,16 +5888,18 @@ function dataflowIndex (printer, scope) {
         };
         walk (name);
     };
-    const visit = (n) => {
-        if (n.kind === SyntaxKind.Identifier) {
-            const name = dataflowCanonicalName (printer, n);
-            let list = identifiers.get (name);
-            if (list === undefined) {
-                list = [];
-                identifiers.set (name, list);
-            }
-            list.push (n);
+    const nodes = scopeNodes (scope);
+    for (let i = 0; i < nodes.identifiers.length; i++) {
+        const n = nodes.identifiers[i];
+        const name = Object.hasOwn (n, 'text') ? dataflowCanonicalName (printer, n) : nodes.texts[i];
+        let list = identifiers.get (name);
+        if (list === undefined) {
+            list = [];
+            identifiers.set (name, list);
         }
+        list.push (n);
+    }
+    for (const n of nodes.binders) {
         if ((n.kind === SyntaxKind.Parameter || n.kind === SyntaxKind.VariableDeclaration)
             && n.name?.kind === SyntaxKind.Identifier) {
             const printed = String (n.name.text);
@@ -5870,9 +5929,7 @@ function dataflowIndex (printer, scope) {
             }
             markBound (n.variableDeclaration.name);
         }
-        n.forEachChild(visit);
-    };
-    scope.forEachChild(visit);
+    }
     return { identifiers, declarations, parameterNames, blockedNames, bindingNames, bindingCounts };
 }
 
@@ -9440,10 +9497,49 @@ export const JAVA_STRING_PARAM_POSITIONS = {
 // Fixed OrderType/OrderSide parameters of the base Exchange / PredictionExchange declarations: the
 // ast printer declares them `String` (JAVA_NATIVE_PARAMETER_TYPES), so the typed surface and the
 // uncast-argument sites treat them like the SS-05 positions.
-// the generator's own typescript (the ccxt root one may be an older 7.x without createSourceFile)
-function generatorTypescriptApi () {
-    const req = createRequire (createRequire (import.meta.url).resolve ('ast-transpiler'));
-    return req ('typescript/unstable/sync').API;
+// Text scan of the class-member method heads (4-space indent), no tsgo parse: a required
+// `name: OrderType|OrderSide` parameter (no `?`, default or rest) at top level of the list.
+function orderStringPositionsOf (text, table) {
+    const head = /^ {4}(?:(?:public|protected|private|static|async|override) +)*([A-Za-z_$][\w$]*) *(?:<[^>\n]*>)? *\(/gm;
+    let m;
+    while ((m = head.exec (text)) !== null) {
+        let depth = 1;
+        let i = head.lastIndex;
+        let start = i;
+        const params = [];
+        let quote;
+        for (; i < text.length && depth > 0; i++) {
+            const c = text[i];
+            if (quote !== undefined) {
+                if (c === '\\') {
+                    i++;
+                } else if (c === quote) {
+                    quote = undefined;
+                }
+            } else if (c === '"' || c === "'" || c === '`') {
+                quote = c;
+            } else if (c === '(' || c === '[' || c === '{' || c === '<') {
+                depth++;
+            } else if (c === ')' || c === ']' || c === '}' || (c === '>' && text[i - 1] !== '=')) {
+                depth--;
+                if (depth === 0) {
+                    params.push (text.slice (start, i));
+                }
+            } else if (c === ',' && depth === 1) {
+                params.push (text.slice (start, i));
+                start = i + 1;
+            }
+        }
+        head.lastIndex = i;
+        params.forEach ((p, index) => {
+            if (/^\s*[A-Za-z_$][\w$]*\s*:\s*(?:OrderType|OrderSide)\s*$/.test (p)) {
+                const list = table[m[1]] ?? (table[m[1]] = []);
+                if (!list.includes (index)) {
+                    list.push (index);
+                }
+            }
+        });
+    }
 }
 
 let _javaOrderStringPositions;
@@ -9452,34 +9548,13 @@ function javaOrderStringPositions () {
         return _javaOrderStringPositions;
     }
     const table = {};
-    let api;
     const root = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'ts', 'src', 'base');
     for (const file of [ 'Exchange.ts', 'PredictionExchange.ts' ]) {
         const full = path.join (root, file);
-        if (!fs.existsSync (full)) {
-            continue;
+        if (fs.existsSync (full)) {
+            orderStringPositionsOf (fs.readFileSync (full, 'utf8'), table);
         }
-        api ??= new (generatorTypescriptApi ()) ({ cwd: root });
-        const sf = api.createSourceFile (full, fs.readFileSync (full, 'utf8'));
-        const visit = (node) => {
-            if (isMethodDeclaration (node) && node.name !== undefined && isIdentifier (node.name)) {
-                node.parameters.forEach ((p, i) => {
-                    const t = p.type;
-                    if (p.initializer === undefined && p.questionToken === undefined && p.dotDotDotToken === undefined
-                        && t !== undefined && isTypeReferenceNode (t) && isIdentifier (t.typeName)
-                        && (t.typeName.text === 'OrderType' || t.typeName.text === 'OrderSide')) {
-                        const list = table[node.name.text] ?? (table[node.name.text] = []);
-                        if (!list.includes (i)) {
-                            list.push (i);
-                        }
-                    }
-                });
-            }
-            node.forEachChild(visit);
-        };
-        visit (sf);
     }
-    api?.close ();
     _javaOrderStringPositions = table;
     return table;
 }

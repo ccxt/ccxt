@@ -1971,19 +1971,28 @@ const sourceFileMethodDeclarations = new WeakMap ();
 function sourceFileMethods (sourceFile, name) {
     let byName = sourceFileMethodDeclarations.get (sourceFile);
     if (byName === undefined) {
+        // one walk indexes every method name of the file (pre-order)
         byName = new Map ();
+        const visit = (node) => {
+            if (isMethodDeclaration (node)) {
+                const key = node.name?.text;
+                if (key !== undefined) {
+                    const list = byName.get (key);
+                    if (list === undefined) {
+                        byName.set (key, [ node ]);
+                    } else {
+                        list.push (node);
+                    }
+                }
+            }
+            node.forEachChild (visit);
+        };
+        sourceFile.forEachChild (visit);
         sourceFileMethodDeclarations.set (sourceFile, byName);
     }
     let declarations = byName.get (name);
     if (declarations === undefined) {
         declarations = [];
-        const visit = (node) => {
-            if (isMethodDeclaration (node) && node.name?.text === name) {
-                declarations.push (node);
-            }
-            node.forEachChild (visit);
-        };
-        sourceFile.forEachChild (visit);
         byName.set (name, declarations);
     }
     return declarations;
@@ -2881,6 +2890,18 @@ function csharpFunnelFileContent (file) {
     return csharpFunnelFileCache.get (file);
 }
 
+// lines of a generated file that can hold a funnel call (both regexes need this literal, /i),
+// split once per content
+const csharpFunnelLinesCache = new Map ();
+function csharpFunnelCandidateLines (content) {
+    let lines = csharpFunnelLinesCache.get (content);
+    if (lines === undefined) {
+        lines = content.split ('\n').filter ((text) => text.toLowerCase ().includes ('ccxt.baseexchange.from'));
+        csharpFunnelLinesCache.set (content, lines);
+    }
+    return lines;
+}
+
 // the funnel declaration this local had in the last generated output — `<type> <name> =
 // ccxt.BaseExchange.From<Helper>(await this.<core>(` — so the helper (and with it the box) is the
 // funnel pass's own verdict for this exact site: a site the pass did not wrap matches nothing
@@ -2888,7 +2909,7 @@ function csharpFunnelHelper (content, name, core) {
     // the emitted call site is pascalized (pascalizeTypedCores), the AST holds the TS name, so the
     // core matches case-insensitively; the helper and the local name must match exactly
     const line = new RegExp ('^[ \\t]*[A-Za-z][\\w<>,. ]* ' + name + ' = ccxt\\.BaseExchange\\.(From\\w+)\\(await this\\.' + core + '\\(', 'i');
-    for (const text of content.split ('\n')) {
+    for (const text of csharpFunnelCandidateLines (content)) {
         const match = line.exec (text);
         if (match !== null) {
             return match[1];
@@ -3021,7 +3042,7 @@ function predictionFunnelCallType (csharp, declaration) {
     // the declaration may already carry the cast this rule emits (a second run reads its own
     // output), so the cast is optional: the helper and the core decide, not the prefix
     const line = new RegExp ('^[ \\t]*[A-Za-z][\\w<>,. ]* ' + declaration.name.text + ' = (?:\\(\\([A-Za-z][\\w<>,.? ]*\\))?ccxt\\.BaseExchange\\.(From\\w+)\\(await this\\.' + core + '\\(', 'i');
-    for (const text of content.split ('\n')) {
+    for (const text of csharpFunnelCandidateLines (content)) {
         const match = line.exec (text);
         if (match !== null) {
             return CSHARP_PREDICTION_FUNNEL_BOXES[match[1]];
@@ -4372,21 +4393,9 @@ function resolveLocalDeclaration (identifier) {
     if (scope === undefined) {
         return undefined;
     }
-    let binding;
-    let bindings = 0;
-    const visit = (n) => {
-        if (n !== scope && isFunctionScope (n)) {
-            return;
-        }
-        if (n.kind === SyntaxKind.VariableDeclaration || n.kind === SyntaxKind.Parameter) {
-            if (bindingNamesOf (n.name).includes (identifier.text)) {
-                bindings++;
-                binding = n;
-            }
-        }
-        n.forEachChild (visit);
-    };
-    scope.forEachChild (visit);
+    const found = scopeBindings (scope).get (identifier.text) ?? [];
+    const bindings = found.length;
+    const binding = found[bindings - 1];
     return (bindings === 1 && binding?.kind === SyntaxKind.VariableDeclaration) ? binding : undefined;
 }
 
@@ -5338,18 +5347,32 @@ function parseReturnDeclarations (tables, name) {
     if (tables.declarations.has (name)) {
         return tables.declarations.get (name);
     }
-    const found = [];
-    for (const sourceFile of (tables.program.getSourceFileNames () ?? []).map ((name) => tables.program.getSourceFile (name))) {
-        const visit = (node) => {
-            // a bodiless declaration (an interface method, a js/src/*.d.ts twin of a ts/src
-            // definition) is not a runtime implementation and proves nothing
-            if (node.kind === SyntaxKind.MethodDeclaration && node.body !== undefined && node.name !== undefined && node.name.text === name) {
-                found.push (node);
-            }
-            node.forEachChild (visit);
-        };
-        visit (sourceFile);
+    if (tables.methodIndex === undefined) {
+        // one walk per program indexes every method by name (file order, pre-order)
+        const index = new Map ();
+        // a .d.ts declares no method bodies, so only implementation files are walked
+        const names = (tables.program.getSourceFileNames () ?? []).filter ((n) => !n.endsWith ('.d.ts'));
+        for (const sourceFile of names.map ((n) => tables.program.getSourceFile (n))) {
+            const visit = (node) => {
+                // a bodiless declaration (an interface method, a js/src/*.d.ts twin) proves nothing
+                if (node.kind === SyntaxKind.MethodDeclaration && node.body !== undefined && node.name !== undefined) {
+                    const key = node.name.text;
+                    if (key !== undefined) {
+                        const list = index.get (key);
+                        if (list === undefined) {
+                            index.set (key, [ node ]);
+                        } else {
+                            list.push (node);
+                        }
+                    }
+                }
+                node.forEachChild (visit);
+            };
+            visit (sourceFile);
+        }
+        tables.methodIndex = index;
     }
+    const found = (tables.methodIndex.get (name) ?? []).slice ();
     tables.declarations.set (name, found);
     return found;
 }
@@ -6827,25 +6850,9 @@ function localIdentifierType (csharp, node) {
     if (scope === undefined) {
         return undefined;
     }
-    let binding;
-    let bindings = 0;
-    const visit = (n) => {
-        if (bindings > 1) {
-            return;
-        }
-        if (n !== scope && isFunctionScope (n)) {
-            return; // a nested function binds its own names
-        }
-        if (n.kind === SyntaxKind.Parameter || n.kind === SyntaxKind.VariableDeclaration) {
-            const names = bindingNamesOf (n.name);
-            if (names.includes (name)) {
-                bindings++;
-                binding = n;
-            }
-        }
-        n.forEachChild (visit);
-    };
-    scope.forEachChild (visit);
+    const found = scopeBindings (scope).get (name) ?? [];
+    const bindings = found.length;
+    const binding = found[bindings - 1];
     if (bindings !== 1 || binding === undefined) {
         return undefined;
     }
@@ -6890,6 +6897,36 @@ function bindingNamesOf (name) {
     };
     visit (name);
     return names;
+}
+
+// Parameter / VariableDeclaration bindings of a function scope by bound name (pre-order,
+// nested functions excluded), built once per scope node
+const scopeBindingsCache = new WeakMap ();
+function scopeBindings (scope) {
+    let index = scopeBindingsCache.get (scope);
+    if (index !== undefined) {
+        return index;
+    }
+    index = new Map ();
+    const visit = (n) => {
+        if (n !== scope && isFunctionScope (n)) {
+            return;
+        }
+        if (n.kind === SyntaxKind.Parameter || n.kind === SyntaxKind.VariableDeclaration) {
+            for (const name of new Set (bindingNamesOf (n.name))) {
+                const list = index.get (name);
+                if (list === undefined) {
+                    index.set (name, [ n ]);
+                } else {
+                    list.push (n);
+                }
+            }
+        }
+        n.forEachChild (visit);
+    };
+    scope.forEachChild (visit);
+    scopeBindingsCache.set (scope, index);
+    return index;
 }
 
 function isFunctionScope (node) {
@@ -13366,24 +13403,9 @@ const NULL_COMPARISON_REFERENCE_HEADS = [ 'string', 'IDictionary<', 'Dictionary<
 // declaration read after it (the shape whose printed line the record above tracks)
 function stringEqualityBindingIsProvable (scope, node) {
     const name = node.text;
-    let binding;
-    let bindings = 0;
-    const visit = (n) => {
-        if (bindings > 1) {
-            return;
-        }
-        if (n !== scope && isFunctionScope (n)) {
-            return; // a nested function binds its own names
-        }
-        if (n.kind === SyntaxKind.Parameter || n.kind === SyntaxKind.VariableDeclaration) {
-            if (bindingNamesOf (n.name).includes (name)) {
-                bindings++;
-                binding = n;
-            }
-        }
-        n.forEachChild (visit);
-    };
-    scope.forEachChild (visit);
+    const found = scopeBindings (scope).get (name) ?? [];
+    const bindings = found.length;
+    const binding = found[bindings - 1];
     return bindings === 1
         && binding?.kind === SyntaxKind.VariableDeclaration
         && binding.parent?.declarations?.length === 1
@@ -14639,10 +14661,21 @@ function coreArgParamType (csharp, node) {
 // the parameter is the target of a write anywhere in the method body: its own symbol, an
 // assignment (or compound assignment) left side -- through parens and array/object patterns, so
 // a `[ tag, params ] = this.handleWithdrawTagAndParams (…)` destructure counts -- or ++/--
+const csharpParameterWrittenCache = new WeakMap ();
 function csharpParameterIsWritten (csharp, owner, declaration) {
     if (owner.body === undefined) {
         return false;
     }
+    const cached = csharpParameterWrittenCache.get (declaration);
+    if (cached !== undefined && cached.owner === owner) {
+        return cached.written;
+    }
+    const written = csharpParameterIsWrittenUncached (csharp, owner, declaration);
+    csharpParameterWrittenCache.set (declaration, { owner, written });
+    return written;
+}
+
+function csharpParameterIsWrittenUncached (csharp, owner, declaration) {
     let checker;
     try {
         checker = csharp.getChecker ();
@@ -14654,14 +14687,15 @@ function csharpParameterIsWritten (csharp, owner, declaration) {
         if (written || node === undefined) {
             return;
         }
-        if ((node.kind === SyntaxKind.Identifier) && (node !== declaration.name)) {
+        // the cheap syntactic write test first: only write targets need the checker
+        if ((node.kind === SyntaxKind.Identifier) && (node !== declaration.name) && csharpWriteTarget (node)) {
             let symbol;
             try {
                 symbol = checker.getSymbolAtLocation (node);
             } catch (e) {
                 symbol = undefined;
             }
-            if ((symbol !== undefined) && (symbol.valueDeclaration?.resolve() === declaration) && csharpWriteTarget (node)) {
+            if ((symbol !== undefined) && (symbol.valueDeclaration?.resolve() === declaration)) {
                 written = true;
                 return;
             }

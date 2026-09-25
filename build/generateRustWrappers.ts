@@ -461,19 +461,20 @@ function parseMethodsFromTS(): MethodInfo[] {
     // directory so the relative imports in Exchange.ts still resolve).
     const rawTs = fs.readFileSync(TS_BASE_FILE, 'utf-8');
     const cleanedTs = stripTsOverloadSignatures(rawTs);
-    let baseFile: any;
+    // Only the checker-derived method signatures are needed, so skip printing the file.
+    const methodTypesOf = (file: string) => transpiler.pythonTranspiler.getMethodTypes(transpiler.createProgramByPathAndSetContext(file).src);
+    let methodsTypes: any[];
     if (cleanedTs !== rawTs) {
         const tmpFile = path.join(path.dirname(TS_BASE_FILE), '.__ExchangeNoOverloadsRustWrap.ts');
         fs.writeFileSync(tmpFile, cleanedTs);
         try {
-            baseFile = transpiler.transpileJavaByPath(tmpFile);
+            methodsTypes = methodTypesOf(tmpFile);
         } finally {
             fs.unlinkSync(tmpFile);
         }
     } else {
-        baseFile = transpiler.transpileJavaByPath(TS_BASE_FILE);
+        methodsTypes = methodTypesOf(TS_BASE_FILE);
     }
-    const methodsTypes = baseFile.methodsTypes || [];
 
     const methods: MethodInfo[] = [];
     for (const m of methodsTypes) {

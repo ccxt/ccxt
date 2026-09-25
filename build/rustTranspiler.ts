@@ -5,6 +5,9 @@ import { basename } from 'path';
 import { createFolderRecursively, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js';
 import { platform } from 'process';
 import fs from 'fs';
+import os from 'os';
+import Piscina from 'piscina';
+import { isMainThread } from 'worker_threads';
 import log from 'ololog';
 import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
@@ -107,9 +110,15 @@ export // The ast printer's numeric-comparison emission (`printNativeNumericComp
 // a local narrowed to `f64` by `narrowFloatLocals` below.
 const RUST_FLOAT_NAN_UNWRAP = '.as_f64().unwrap_or(f64::NAN)';
 
+// memoized reads of generated base files; rust-worker.ts seeds them from the main thread
+export const RUST_WORKER_CACHES = [ 'errorClassesWithSubclasses', '_rustBoolReturnMethods', '_discoveredVariadicsCache',
+    '_variadicsByExchange', '_predictionVariadicsCache', '_allBaseMethodNames' ];
+
 export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
+    // set when one shared program already covers every file this run prints
+    runProgram = false;
 
     constructor() {
         this.setupTranspiler();
@@ -145,14 +154,11 @@ export class RustTranspilerBuilder {
      */
     replaceOutsideStrings(text: string, rx: RegExp, replacer: any): string {
         const segments: string[] = [];
-        let buf = '';
+        let run = 0; // start of the pending code run
         let i = 0;
         const n = text.length;
         const flush = () => {
-            if (buf) {
-                segments.push(buf.replace(rx, replacer));
-                buf = '';
-            }
+            if (i > run) segments.push(text.slice(run, i).replace(rx, replacer));
         };
         while (i < n) {
             const ch = text[i];
@@ -162,7 +168,7 @@ export class RustTranspilerBuilder {
                 let j = i;
                 while (j < n && text[j] !== '\n') j++;
                 segments.push(text.slice(i, j));
-                i = j;
+                i = run = j;
                 continue;
             }
             // Block comment
@@ -172,7 +178,7 @@ export class RustTranspilerBuilder {
                 while (j < n && !(text[j] === '*' && text[j + 1] === '/')) j++;
                 j = Math.min(j + 2, n);
                 segments.push(text.slice(i, j));
-                i = j;
+                i = run = j;
                 continue;
             }
             // String literal
@@ -185,7 +191,7 @@ export class RustTranspilerBuilder {
                 }
                 j = Math.min(j + 1, n);
                 segments.push(text.slice(i, j));
-                i = j;
+                i = run = j;
                 continue;
             }
             // Char literal vs lifetime
@@ -201,14 +207,14 @@ export class RustTranspilerBuilder {
                 if (text[j] === '\'') {
                     flush();
                     segments.push(text.slice(i, j + 1));
-                    i = j + 1;
+                    i = run = j + 1;
                     continue;
                 }
                 // It's a lifetime — flow through as code.
             }
-            buf += ch;
             i++;
         }
+        i = n;
         flush();
         return segments.join('');
     }
@@ -1833,30 +1839,35 @@ export class RustTranspilerBuilder {
      *   `self.safe_value(a, b, c)`   → `self.safe_value(a, b, &[c])`
      *   `self.safe_value(a, b, c, d)`→ `self.safe_value(a, b, &[c, d])`
      */
+    private _variadicNameSets = new WeakMap<object, Set<string>>();
+    private variadicNameSet(fixedArities: Record<string, number>): Set<string> {
+        let s = this._variadicNameSets.get(fixedArities);
+        if (!s) { s = new Set(Object.keys(fixedArities)); this._variadicNameSets.set(fixedArities, s); }
+        return s;
+    }
+
     wrapVariadicCalls(content: string, fixedArities: Record<string, number>): string {
-        const names = Object.keys(fixedArities);
-        // Match `<ident>.<variadicName>(` — the receiver is usually
-        // `self`, but in transpiled tests it's `exchange` (a local).
-        // We also accept the compound `self.parent.<method>(` shape
-        // used by WS exchanges to call into their REST parent.
-        const namesAlt = names.join('|');
-        const pattern = new RegExp(
-            `\\b(self\\.parent|[a-zA-Z_][a-zA-Z0-9_]*)\\.(${namesAlt})\\(`,
-        );
+        // `\b(self.parent|ident).(ident)(` + name-set lookup == the old `(names)` alternation.
+        const nameSet = this.variadicNameSet(fixedArities);
+        const cand = /\b(self\.parent|[a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)\(/g;
         // Single-pass forward scan. When we hit a target call, we recurse on
         // its inside-text first (so nested target calls are wrapped before
         // we slice up the outer args), then re-emit.
         let i = 0;
         let out = '';
         while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(pattern);
-            if (!m || m.index === undefined) {
-                out += rest;
+            let m: RegExpExecArray | null = null;
+            cand.lastIndex = i;
+            for (let c = cand.exec(content); c; c = cand.exec(content)) {
+                if (nameSet.has(c[2])) { m = c; break; }
+                cand.lastIndex = c.index + 1;
+            }
+            if (!m) {
+                out += content.slice(i);
                 break;
             }
-            out += rest.slice(0, m.index);
-            const absStart = i + m.index;
+            out += content.slice(i, m.index);
+            const absStart = m.index;
             const receiver = m[1];
             const name = m[2];
             const callStart = absStart + m[0].length;
@@ -2029,75 +2040,61 @@ export class RustTranspilerBuilder {
     rewriteValueFieldAccess(content: string): string {
         const skipObjs = new Set(['self', 'crate', 'std', 'Value', 'Self',
             'Some', 'None', 'Ok', 'Err', 'Box', 'true', 'false']);
+        // Output is the input verbatim except at rewrites: copy spans, not chars.
         let out = '';
+        let last = 0;
         let i = 0;
         let inStr = false;
         let escape = false;
-        const isIdentStart = (c: string) => /[a-zA-Z_]/.test(c);
-        const isIdentCont  = (c: string) => /[a-zA-Z0-9_]/.test(c);
-        while (i < content.length) {
-            const c = content[i];
-            if (escape) { out += c; escape = false; i++; continue; }
-            if (c === '\\' && inStr) { out += c; escape = true; i++; continue; }
-            if (c === '"') { inStr = !inStr; out += c; i++; continue; }
-            if (inStr) { out += c; i++; continue; }
+        const n = content.length;
+        const isIdentStart = (c: number) => (c >= 97 && c <= 122) || (c >= 65 && c <= 90) || c === 95;
+        const isIdentCont  = (c: number) => isIdentStart(c) || (c >= 48 && c <= 57);
+        while (i < n) {
+            const c = content.charCodeAt(i);
+            if (escape) { escape = false; i++; continue; }
+            if (c === 92 && inStr) { escape = true; i++; continue; }
+            if (c === 34) { inStr = !inStr; i++; continue; }
+            if (inStr) { i++; continue; }
 
             // Skip comments verbatim — a `<ident>.<field>` inside a `//`
-            // line comment or a `/* */` block comment (e.g. `i.e.` or a
-            // `@see https://docs.gemini.com/...` URL in a JSDoc block) is
-            // text, not a property access, and must not be rewritten.
-            if (c === '/' && content[i + 1] === '/') {
-                while (i < content.length && content[i] !== '\n') { out += content[i]; i++; }
+            // line comment or a `/* */` block comment is text, not a property access.
+            if (c === 47 && content.charCodeAt(i + 1) === 47) {
+                const nl = content.indexOf('\n', i);
+                i = nl < 0 ? n : nl;
                 continue;
             }
-            if (c === '/' && content[i + 1] === '*') {
-                out += '/*';
-                i += 2;
-                while (i < content.length && !(content[i] === '*' && content[i + 1] === '/')) { out += content[i]; i++; }
-                if (i < content.length) { out += '*/'; i += 2; }
+            if (c === 47 && content.charCodeAt(i + 1) === 42) {
+                const cl = content.indexOf('*/', i + 2);
+                i = cl < 0 ? n : cl + 2;
                 continue;
             }
 
             // Try matching <ident>.<field> at i
             if (isIdentStart(c)) {
                 let j = i + 1;
-                while (j < content.length && isIdentCont(content[j])) j++;
-                const obj = content.slice(i, j);
-                // dot must follow
-                if (content[j] !== '.') { out += obj; i = j; continue; }
-                // skip if preceded by `:` (path) or `.` or `\w` (continuing)
-                const prev = i > 0 ? content[i - 1] : '';
-                if (prev === ':' || prev === '.') { out += obj; i = j; continue; }
-                // field
+                while (j < n && isIdentCont(content.charCodeAt(j))) j++;
+                // dot must follow; skip if preceded by `:` (path) or `.`
+                const prev = i > 0 ? content.charCodeAt(i - 1) : 0;
+                if (content.charCodeAt(j) !== 46 || prev === 58 || prev === 46) { i = j; continue; }
                 let k = j + 1;
-                if (!isIdentStart(content[k] || '')) { out += obj; i = j; continue; }
-                while (k < content.length && isIdentCont(content[k])) k++;
-                const field = content.slice(j + 1, k);
+                if (!isIdentStart(content.charCodeAt(k))) { i = j; continue; }
+                while (k < n && isIdentCont(content.charCodeAt(k))) k++;
                 // skip if followed by `(` (method call), `::` (path), or `=` (assignment LHS)
                 const next = content[k];
                 const next2 = content[k + 1];
-                if (next === '(' ||
-                    (next === ':' && next2 === ':') ||
-                    (next === '=' && next2 !== '=')) {
-                    out += content.slice(i, k);
+                const obj = content.slice(i, j);
+                if (next === '(' || (next === ':' && next2 === ':') || (next === '=' && next2 !== '=') ||
+                    skipObjs.has(obj) || !/^[a-z]/.test(obj)) {
                     i = k;
                     continue;
                 }
-                // skip excluded identifiers + low-cased non-locals
-                if (skipObjs.has(obj) || !/^[a-z]/.test(obj)) {
-                    out += content.slice(i, k);
-                    i = k;
-                    continue;
-                }
-                // emit get_value(...)
-                out += `get_value(&${obj}, &Value::Str("${field}".to_string()))`;
-                i = k;
+                out += content.slice(last, i) + `get_value(&${obj}, &Value::Str("${content.slice(j + 1, k)}".to_string()))`;
+                i = last = k;
                 continue;
             }
-            out += c;
             i++;
         }
-        return out;
+        return out + content.slice(last);
     }
 
     /**
@@ -2215,11 +2212,11 @@ export class RustTranspilerBuilder {
             // Check last non-whitespace, non-comment char before `}`.
             // Trailing `// ...` comments would otherwise hide the
             // terminating `;` and stop us inserting `Value::Null`.
-            let trimmed = body.replace(/\s+$/, '');
+            let trimmed = body.trimEnd();
             // Strip trailing line comments + their preceding whitespace.
             while (true) {
                 const before = trimmed;
-                trimmed = trimmed.replace(/\s*\/\/[^\n]*$/, '').replace(/\s+$/, '');
+                trimmed = RustTranspilerBuilder.stripLastLineComment(trimmed).trimEnd();
                 if (trimmed === before) break;
             }
             const lastChar = trimmed.slice(-1);
@@ -2476,7 +2473,7 @@ export class RustTranspilerBuilder {
             // string-state tracker and lands `j` on the wrong brace.
             const j = this.findMatchingBrace(content, braceIdx);
             const body = content.slice(braceIdx + 1, j);
-            const trimmed = body.replace(/\s+$/, '');
+            const trimmed = body.trimEnd();
             // The function returns `()` (and so needs a fallback
             // `Value::Null`) unless the body already ends with an
             // expression that produces a Value — i.e. the last
@@ -2596,16 +2593,22 @@ export class RustTranspilerBuilder {
             if (seeded) mutSet.add(f.name);
         }
         // Fixed-point: any fn that calls a known-mut method joins the set.
+        // `self.parent.<m>(…)` (WS calling into its REST parent) needs `&mut self`
+        // just like `self.<m>(…)`; each body's callee set is extracted once.
+        const callRe = /\bself\.(?:parent\.)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+        const callees = fns.map(f => {
+            const set = new Set<string>();
+            for (const cm of content.slice(f.bodyStart, f.bodyEnd).matchAll(callRe)) set.add(cm[1]);
+            return set;
+        });
         let changed = true;
         while (changed) {
             changed = false;
-            for (const f of fns) {
+            for (let k = 0; k < fns.length; k++) {
+                const f = fns[k];
                 if (mutSet.has(f.name)) continue;
-                const body = content.slice(f.bodyStart, f.bodyEnd);
-                for (const mutName of mutSet) {
-                    // `self.parent.<m>(…)` (WS calling into its REST
-                    // parent) needs `&mut self` just like `self.<m>(…)`.
-                    if (new RegExp(`\\bself\\.(?:parent\\.)?${mutName}\\s*\\(`).test(body)) {
+                for (const callee of callees[k]) {
+                    if (mutSet.has(callee)) {
                         mutSet.add(f.name);
                         changed = true;
                         break;
@@ -4191,22 +4194,32 @@ export class RustTranspilerBuilder {
 
     /** `src` with string literals and line comments blanked out (same length). */
     private maskStrings(src: string): string {
-        let out = ''; let inStr = false; let esc = false; let inLineComment = false;
-        for (let k = 0; k < src.length; k++) {
-            const c = src[k];
-            if (inLineComment) { out += c === '\n' ? '\n' : ' '; if (c === '\n') inLineComment = false; continue; }
-            if (inStr) {
-                out += ' ';
-                if (esc) esc = false;
-                else if (c === '\\') esc = true;
-                else if (c === '"') inStr = false;
-                continue;
-            }
-            if (c === '"') { inStr = true; out += ' '; continue; }
-            if (c === '/' && src[k + 1] === '/') { inLineComment = true; out += ' '; continue; }
-            out += c;
+        // Chunked: copy code runs, blank each string (quotes included) / line comment wholesale.
+        const parts: string[] = [];
+        const n = src.length;
+        let run = 0; let k = 0;
+        while (k < n) {
+            const c = src.charCodeAt(k);
+            if (c === 34) {
+                let j = k + 1;
+                while (j < n) {
+                    const d = src.charCodeAt(j);
+                    if (d === 92) { j += 2; continue; }
+                    j++;
+                    if (d === 34) break;
+                }
+                if (j > n) j = n;
+                parts.push(src.slice(run, k), ' '.repeat(j - k));
+                k = run = j;
+            } else if (c === 47 && src.charCodeAt(k + 1) === 47) {
+                let j = src.indexOf('\n', k);
+                if (j < 0) j = n;
+                parts.push(src.slice(run, k), ' '.repeat(j - k));
+                k = run = j;
+            } else k++;
         }
-        return out;
+        parts.push(src.slice(run));
+        return parts.join('');
     }
 
     /** Index of the `}` that closes the enclosing block, from `from` onwards. */
@@ -4881,27 +4894,35 @@ export class RustTranspilerBuilder {
 
     /** Blank string bodies and line comments, keeping every index in place. */
     private maskStringsAndComments(src: string): string {
-        let out = '';
-        let i = 0;
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '"') {
-                out += ' '; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
+        // Chunked: string bodies keep newlines (escape pairs blank to two spaces).
+        const parts: string[] = [];
+        const n = src.length;
+        let run = 0; let i = 0;
+        while (i < n) {
+            const c = src.charCodeAt(i);
+            if (c === 47 && src.charCodeAt(i + 1) === 47) {
+                let j = src.indexOf('\n', i);
+                if (j < 0) j = n;
+                parts.push(src.slice(run, i), ' '.repeat(j - i));
+                i = run = j;
+            } else if (c === 34) {
+                let j = i + 1; let esc = false;
+                while (j < n) {
+                    const d = src.charCodeAt(j);
+                    if (d === 92) { j += 2; esc = true; continue; }
+                    if (d === 34) break;
+                    j++;
                 }
-                if (i < src.length) { out += ' '; i++; }
-                continue;
-            }
-            out += c; i++;
+                let body = src.slice(i + 1, Math.min(j, n));
+                if (esc) body = body.replace(/\\[\s\S]?/g, '  ');
+                body = body.indexOf('\n') < 0 ? ' '.repeat(body.length) : body.replace(/[^\n]/g, ' ');
+                if (j < n) { body += ' '; j++; }
+                parts.push(src.slice(run, i), ' ', body);
+                i = run = j > n ? n : j;
+            } else i++;
         }
-        return out;
+        parts.push(src.slice(run));
+        return parts.join('');
     }
 
     /** True when `raw` is a Rust expression the generator types as `bool`. */
@@ -5247,34 +5268,30 @@ export class RustTranspilerBuilder {
             }
             return [...seen.entries()].filter(([, b]) => b).map(([n]) => n);
         };
+        // Verbatim except at `is_true` rewrites: copy spans from `last`.
         let out = '';
+        let last = from;
         let i = from;
         let depth = 0;
         while (i < to) {
             const c = text[i];
             if (c === '"') {
-                const end = this.endOfRustStringLiteral(text, i);
-                out += text.slice(i, end);
-                i = end;
+                i = this.endOfRustStringLiteral(text, i);
                 continue;
             }
             if (c === '/' && text[i + 1] === '/') {
                 const nl = text.indexOf('\n', i);
-                const end = nl < 0 || nl > to ? to : nl;
-                out += text.slice(i, end);
-                i = end;
+                i = nl < 0 || nl > to ? to : nl;
                 continue;
             }
             if (c === '{') {
                 depth += 1;
-                out += c;
                 i += 1;
                 continue;
             }
             if (c === '}') {
                 depth -= 1;
                 while (stack.length > 0 && stack[stack.length - 1].depth > depth) stack.pop();
-                out += c;
                 i += 1;
                 continue;
             }
@@ -5283,7 +5300,6 @@ export class RustTranspilerBuilder {
                 const decl = declRe.exec(text);
                 if (decl !== null && decl.index === i) {
                     stack.push({ name: decl[1], isBool: decl[2] === 'bool', depth });
-                    out += decl[0];
                     i += decl[0].length;
                     continue;
                 }
@@ -5296,7 +5312,6 @@ export class RustTranspilerBuilder {
                 const params = this.matchClosureParams(text, i);
                 if (params !== null) {
                     for (const name of params.names) stack.push({ name, isBool: false, depth });
-                    out += text.slice(i, params.end);
                     i = params.end;
                     continue;
                 }
@@ -5305,7 +5320,6 @@ export class RustTranspilerBuilder {
                 const pattern = this.matchBindingPattern(text, i);
                 if (pattern !== null) {
                     for (const name of pattern.names) stack.push({ name, isBool: false, depth });
-                    out += text.slice(i, pattern.end);
                     i = pattern.end;
                     continue;
                 }
@@ -5314,20 +5328,18 @@ export class RustTranspilerBuilder {
                 const open = i + 'is_true('.length - 1;
                 const close = this.closeParenAt(text, open);
                 if (close < 0 || close > to) {
-                    out += c;
                     i += 1;
                     continue;
                 }
                 const snapshot = boolLocals();
                 const inner = this.rewriteRedundantIsTrue(text, open + 2, close, stack);
-                out += this.isRustBoolExpr(inner, snapshot) ? inner : `is_true(&${inner})`;
-                i = close + 1;
+                out += text.slice(last, i) + (this.isRustBoolExpr(inner, snapshot) ? inner : `is_true(&${inner})`);
+                i = last = close + 1;
                 continue;
             }
-            out += c;
             i += 1;
         }
-        return out;
+        return out + text.slice(last, i);
     }
 
     /**
@@ -6328,12 +6340,15 @@ export class RustTranspilerBuilder {
         const markers = ['Value::Array(vec![', 'Value::List(vec![', 'Value::from(vec!['];
         let i = 0;
         let out = '';
+        // Next occurrence per marker, refreshed only once passed (absent markers never rescan).
+        const next = markers.map(mk => content.indexOf(mk));
         while (i < content.length) {
             // Find the nearest marker at or after `i`.
             let idx = -1; let marker = '';
-            for (const mk of markers) {
-                const ix = content.indexOf(mk, i);
-                if (ix >= 0 && (idx === -1 || ix < idx)) { idx = ix; marker = mk; }
+            for (let k = 0; k < markers.length; k++) {
+                if (next[k] >= 0 && next[k] < i) next[k] = content.indexOf(markers[k], i);
+                const ix = next[k];
+                if (ix >= 0 && (idx === -1 || ix < idx)) { idx = ix; marker = markers[k]; }
             }
             if (idx < 0) { out += content.slice(i); break; }
             out += content.slice(i, idx);
@@ -6451,6 +6466,22 @@ export class RustTranspilerBuilder {
         return blocks;
     }
 
+    /** Index of the last block (ascending `open`, as rustBlocksOf emits) opening before `x`, or -1. */
+    static lastBlockOpenBefore(blocks: any[], x: number): number {
+        let lo = 0, hi = blocks.length;
+        while (lo < hi) { const mid = (lo + hi) >> 1; if (blocks[mid].open < x) lo = mid + 1; else hi = mid; }
+        return lo - 1;
+    }
+
+    /** `t.replace(/\s*\/\/[^\n]*$/, '')` without the regex's per-position rescans. */
+    static stripLastLineComment(t: string): string {
+        const q = t.indexOf('//', t.lastIndexOf('\n') + 1);
+        if (q < 0) return t;
+        let p = q;
+        while (p > 0 && /\s/.test(t[p - 1])) p--;
+        return t.slice(0, p);
+    }
+
     static skipRustStringLiteral(content: string, start: number): number {
         let i = start + 1;
         const n = content.length;
@@ -6496,13 +6527,7 @@ export class RustTranspilerBuilder {
      */
     rustArgIsDeadAfter(content: string, blocks: any[], callStart: number, callEnd: number, ident: string): boolean {
         const word = new RegExp(`\\b${ident}\\b`);
-        let inner = -1;
-        for (let k = blocks.length - 1; k >= 0; k--) {
-            if (blocks[k].open < callStart) {
-                inner = k;
-                break;
-            }
-        }
+        let inner = RustTranspilerBuilder.lastBlockOpenBefore(blocks, callStart);
         while (inner !== -1 && !(blocks[inner].open < callStart && blocks[inner].end > callStart)) {
             inner = blocks[inner].parent;
         }
@@ -6704,10 +6729,7 @@ export class RustTranspilerBuilder {
         ident: string,
     ): boolean {
         const word = new RegExp(`\\b${ident}\\b`);
-        let inner = -1;
-        for (let k = blocks.length - 1; k >= 0; k--) {
-            if (blocks[k].open < pos) { inner = k; break; }
-        }
+        let inner = RustTranspilerBuilder.lastBlockOpenBefore(blocks, pos);
         while (inner !== -1 && !(blocks[inner].open < pos && blocks[inner].end > pos)) {
             inner = blocks[inner].parent;
         }
@@ -6824,10 +6846,7 @@ export class RustTranspilerBuilder {
                 if (borrow.test(masked.slice(stack[k] + 1, inner))) blocked = true;
             }
             if (blocked) continue;
-            let inner = -1;
-            for (let k = blocks.length - 1; k >= 0; k--) {
-                if (blocks[k].open < rs) { inner = k; break; }
-            }
+            let inner = RustTranspilerBuilder.lastBlockOpenBefore(blocks, rs);
             while (inner !== -1 && !(blocks[inner].open < rs && blocks[inner].end > rs)) {
                 inner = blocks[inner].parent;
             }
@@ -7539,7 +7558,7 @@ export class RustTranspilerBuilder {
         return candidates[0];
     }
 
-    private _parentHopsCache: Map<string, Set<string>[]> = new Map();
+    _parentHopsCache: Map<string, Set<string>[]> = new Map();
     /**
      * Walk a subclass/WS Core's `parent` chain and return, per hop (hop 1 =
      * immediate parent), the method names DEFINED at that level — the Core file
@@ -8868,6 +8887,105 @@ impl std::ops::DerefMut for ${coreName} {
 
     // ── derived-exchange file transpilation ───────────────────────────────────
 
+    // the text-only post-passes of one exchange; pure on (result, disk), so it also runs in rust-worker.ts
+    postProcessExchange(exchangeName: string, result: any, ws: boolean, isPrediction: boolean): string {
+        let rustContent = this.createRustExchange(exchangeName, result, ws, isPrediction);
+        rustContent = this.rewriteLiteralKeySafeCalls(rustContent);
+        rustContent = this.dropDeadFirstArgClones(rustContent);
+        rustContent = this.rewriteJavaReqAliases(rustContent);
+        // Then type the `safe_number[_k]` / `safe_integer[_k]` locals
+        // whose every sink is Option-native.
+        rustContent = this.narrowOptionalSafeLocals(rustContent);
+        // Last: narrow `Value::Bool` locals whose every sink takes
+        // a `bool`. Must see the final shape of the file.
+        rustContent = this.narrowBoolLocals(rustContent);
+        // Then retype `Value::Int/Float` locals read only as numbers and
+        // collapse the `as_f64()` boxes the compares wrap them in.
+        rustContent = this.narrowFloatLocals(rustContent);
+        rustContent = this.collapseNumericBoxAccessors(rustContent);
+        // Then drop the `is_true(&x)` those locals no longer need.
+        rustContent = this.dropRedundantIsTrue(rustContent);
+        // Then `is_true(&x)` over a local that can only hold a
+        // bool-valued `Value` (one decl, every assignment a
+        // `Value::Bool` box / `safe_bool*` default).
+        rustContent = this.dropBoolValuedIsTrue(rustContent);
+        // D-32: bool/`Option<bool>` callees and `Option`-typed shadow
+        // locals make the remaining `is_true` sites native.
+        rustContent = this.dropNativeCallIsTrue(rustContent);
+        rustContent = this.dropOptionShadowIsTrue(rustContent);
+        // Last: drop `.clone()` on the value arg of
+        // extend/omit/market/parse_number when the local is dead
+        // afterwards (those callees take the Value by value).
+        rustContent = this.dropDeadLastUseArgClones(rustContent);
+        // Last: element writes into a fresh dict local go native.
+        rustContent = this.nativeRequestDictInserts(rustContent);
+        // Last: payload accessors on a local whose declaration pins its
+        // variant (`Value::Map`/`List`/`Str`/`Bool`, never reassigned).
+        rustContent = this.nativePayloadAccessorDrops(rustContent);
+        // Last: retype `safe_list` locals whose every later use is a
+        // length sink or an index read. Must see the final text (the
+        // write-back pass appends `set_value(&mut X, ..)` lines those
+        // locals must keep the box for).
+        rustContent = this.typeSafeListLocals(rustContent);
+        // And `instanceof <errorClass>` whose class has no subclass.
+        rustContent = this.rewriteNativeErrorClassChecks(rustContent);
+        // Last: a `.clone()` in a by-value slot whose local is dead
+        // afterwards moves instead of copying (B-32).
+        rustContent = this.dropDeadValueSlotClones(rustContent);
+        // And `while (true)` → `loop {` (rustc's `while_true` lint is
+        // an error under the CI clippy lane's `-D warnings`).
+        rustContent = this.whileTrueToLoop(rustContent);
+        return rustContent;
+    }
+
+    // the id of the exchange `tsPath` extends when that parent's generated file is read back by the post-passes
+    inPassParent(tsPath: string, ws: boolean): { id: string, core: string } | undefined {
+        const m = fs.readFileSync(tsPath, 'utf8').match(/\bclass\s+\w+\s+extends\s+([A-Za-z_]\w*)/);
+        if (!m || m[1] === 'Exchange' || (ws && m[1].endsWith('Rest'))) return undefined;
+        const id = m[1].toLowerCase();
+        return { id, core: `crate::${ws ? 'pro' : 'exchanges'}::${id}::${capitalize(m[1])}Core` };
+    }
+
+    private _postProcessPool: Piscina | undefined;
+    postProcessPool(): Piscina {
+        const requested = Number(process.env.CCXT_TRANSPILE_PROCESSES);
+        const maxThreads = requested > 0 ? requested : Math.max(1, Math.min(3, os.availableParallelism() - 1));
+        // the base-file caches as this thread holds them, so workers never re-read a file written since
+        const caches = Object.fromEntries(RUST_WORKER_CACHES.map(k => [k, (this as any)[k]]));
+        this._postProcessPool ??= new Piscina({ filename: path.resolve(__dirname, 'rust-worker-entry.mjs'), minThreads: maxThreads, maxThreads, workerData: { caches } });
+        return this._postProcessPool;
+    }
+
+    async closePostProcessPool() {
+        await this._postProcessPool?.destroy();
+        this._postProcessPool = undefined;
+    }
+
+    // Phase 2 — lexical sanity check, then write. A file with mismatched delimiters would break
+    // the whole crate: dump the broken output and throw with a pointer to it.
+    writeExchangeFile(exchangeName: string, file: string, outPath: string, rustContent: string) {
+        const lexErr = this.detectLexicalErrors(rustContent);
+        if (lexErr) {
+            let dumpPath = `/tmp/rust-broken-${exchangeName}.rs`;
+            try {
+                fs.writeFileSync(dumpPath, rustContent);
+            } catch (_) {
+                dumpPath = '(failed to write dump file)';
+            }
+            // Remove any stale .rs from a previous run so a broken
+            // exchange can't sneak back into mod.rs via existsSync().
+            try { fs.unlinkSync(outPath); } catch (_) { /* ignore */ }
+            throw new Error(
+                `[rust] Failed to transpile exchange '${exchangeName}' (ts/src/${file}):\n` +
+                `       the generated Rust is lexically invalid — ${lexErr}.\n` +
+                `       This means the transpiler mishandled a TypeScript construct in that file.\n` +
+                `       The broken output was dumped to ${dumpPath} for inspection.`
+            );
+        }
+        overwriteFileAndFolder(outPath, rustContent);
+        log.magenta('→', (outPath as any).yellow);
+    }
+
     async transpileDerivedExchangeFiles(
         tsFolder: string,
         options: any,
@@ -8904,104 +9022,64 @@ impl std::ops::DerefMut for ${coreName} {
         log.blue(`[rust] Transpiling [${files.join(', ')}]`);
 
         // one TS7 snapshot for every file of this pass instead of one per file
-        if (files.length > 1) {
+        if (files.length > 1 && !this.runProgram) {
             this.transpiler.setSharedProgram(files.map(f => `${tsFolder}/${f}`));
         }
 
-        const written: string[] = [];
+        // tsgo printing stays on this thread (one shared snapshot); the text post-passes run on a
+        // worker pool, a subclass waiting for its in-pass parent's file (read back from disk)
+        const pool = files.length > 1 ? this.postProcessPool() : undefined;
+        const ids_ = new Set(files.map(f => basename(f, '.ts')));
+        const writtenBy = new Map<string, Promise<void>>();
+        const earlyReaders = new Map<string, Promise<void>[]>();
         for (const file of files) {
             const tsPath = `${tsFolder}/${file}`;
             const exchangeName = basename(file, '.ts');
             const outPath = `${outFolder}/${exchangeName}.rs`;
-
-            // Phase 1 — run the transpiler. A throw here means the
-            // transpiler choked on a TypeScript construct; fail loudly with
-            // the underlying error rather than silently dropping the file.
-            let result: any;
-            let rustContent: string;
-            try {
-                result = this.transpiler.transpileRustByPath(tsPath);
-                rustContent = this.createRustExchange(exchangeName, result, ws, isPrediction);
-                rustContent = this.rewriteLiteralKeySafeCalls(rustContent);
-                rustContent = this.dropDeadFirstArgClones(rustContent);
-                rustContent = this.rewriteJavaReqAliases(rustContent);
-                // Then type the `safe_number[_k]` / `safe_integer[_k]` locals
-                // whose every sink is Option-native.
-                rustContent = this.narrowOptionalSafeLocals(rustContent);
-                // Last: narrow `Value::Bool` locals whose every sink takes
-                // a `bool`. Must see the final shape of the file.
-                rustContent = this.narrowBoolLocals(rustContent);
-                // Then retype `Value::Int/Float` locals read only as numbers and
-                // collapse the `as_f64()` boxes the compares wrap them in.
-                rustContent = this.narrowFloatLocals(rustContent);
-                rustContent = this.collapseNumericBoxAccessors(rustContent);
-                // Then drop the `is_true(&x)` those locals no longer need.
-                rustContent = this.dropRedundantIsTrue(rustContent);
-                // Then `is_true(&x)` over a local that can only hold a
-                // bool-valued `Value` (one decl, every assignment a
-                // `Value::Bool` box / `safe_bool*` default).
-                rustContent = this.dropBoolValuedIsTrue(rustContent);
-                // D-32: bool/`Option<bool>` callees and `Option`-typed shadow
-                // locals make the remaining `is_true` sites native.
-                rustContent = this.dropNativeCallIsTrue(rustContent);
-                rustContent = this.dropOptionShadowIsTrue(rustContent);
-                // Last: drop `.clone()` on the value arg of
-                // extend/omit/market/parse_number when the local is dead
-                // afterwards (those callees take the Value by value).
-                rustContent = this.dropDeadLastUseArgClones(rustContent);
-                // Last: element writes into a fresh dict local go native.
-                rustContent = this.nativeRequestDictInserts(rustContent);
-                // Last: payload accessors on a local whose declaration pins its
-                // variant (`Value::Map`/`List`/`Str`/`Bool`, never reassigned).
-                rustContent = this.nativePayloadAccessorDrops(rustContent);
-                // Last: retype `safe_list` locals whose every later use is a
-                // length sink or an index read. Must see the final text (the
-                // write-back pass appends `set_value(&mut X, ..)` lines those
-                // locals must keep the box for).
-                rustContent = this.typeSafeListLocals(rustContent);
-                // And `instanceof <errorClass>` whose class has no subclass.
-                rustContent = this.rewriteNativeErrorClassChecks(rustContent);
-                // Last: a `.clone()` in a by-value slot whose local is dead
-                // afterwards moves instead of copying (B-32).
-                rustContent = this.dropDeadValueSlotClones(rustContent);
-                // And `while (true)` → `loop {` (rustc's `while_true` lint is
-                // an error under the CI clippy lane's `-D warnings`).
-                rustContent = this.whileTrueToLoop(rustContent);
-            } catch (e: any) {
+            const fail = (e: any) => {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
-                throw new Error(
+                return new Error(
                     `[rust] Failed to transpile exchange '${exchangeName}' (ts/src/${file}):\n` +
                     `       the transpiler threw while generating Rust.\n\n${detail}`
                 );
+            };
+            // Phase 1 — run the transpiler; a throw means it choked on a TypeScript construct.
+            let result: any;
+            try {
+                result = this.transpiler.transpileRustByPath(tsPath);
+            } catch (e: any) {
+                throw fail(e);
             }
-
-            // Phase 2 — lexical sanity check. A file with mismatched
-            // delimiters would break the whole crate, so a failure here is
-            // a transpiler bug that must be fixed, not skipped. Dump the
-            // broken output and throw with a pointer to it.
-            const lexErr = this.detectLexicalErrors(rustContent);
-            if (lexErr) {
-                let dumpPath = `/tmp/rust-broken-${exchangeName}.rs`;
-                try {
-                    fs.writeFileSync(dumpPath, rustContent);
-                } catch (_) {
-                    dumpPath = '(failed to write dump file)';
+            // same disk state as the serial order: a child reads its parent's file after the parent
+            // wrote it when listed later, before the parent rewrites it when listed earlier
+            // the parent's hop sets are cached by the first child, so they are computed here, in list order
+            const inPass = this.inPassParent(tsPath, ws);
+            const parent = (inPass !== undefined && ids_.has(inPass.id)) ? inPass.id : undefined;
+            const after = parent !== undefined ? writtenBy.get(parent) : undefined;
+            const readers = earlyReaders.get(exchangeName) ?? [];
+            const task: any = { exchangeName, result: { content: result.content, methodsTypes: result.methodsTypes }, ws, isPrediction };
+            const done = (async () => {
+                if (after) await after;
+                if (inPass !== undefined) {
+                    task.parentHops = [inPass.core, this.parentChainHops(inPass.core).map(h => [...h])];
                 }
-                // Remove any stale .rs from a previous run so a broken
-                // exchange can't sneak back into mod.rs via existsSync().
-                try { fs.unlinkSync(outPath); } catch (_) { /* ignore */ }
-                throw new Error(
-                    `[rust] Failed to transpile exchange '${exchangeName}' (ts/src/${file}):\n` +
-                    `       the generated Rust is lexically invalid — ${lexErr}.\n` +
-                    `       This means the transpiler mishandled a TypeScript construct in that file.\n` +
-                    `       The broken output was dumped to ${dumpPath} for inspection.`
-                );
+                let rustContent: string;
+                try {
+                    rustContent = pool ? await pool.run(task) : this.postProcessExchange(exchangeName, result, ws, isPrediction);
+                } catch (e: any) {
+                    throw fail(e);
+                }
+                await Promise.allSettled(readers);
+                this.writeExchangeFile(exchangeName, file, outPath, rustContent);
+            })();
+            done.catch(() => { /* surfaced by the Promise.all below */ });
+            writtenBy.set(exchangeName, done);
+            if (parent !== undefined && after === undefined) {
+                earlyReaders.set(parent, [...(earlyReaders.get(parent) ?? []), done]);
             }
-
-            overwriteFileAndFolder(outPath, rustContent);
-            log.magenta('→', (outPath as any).yellow);
-            written.push(exchangeName);
+            if (!pool) await done;
         }
+        await Promise.all(writtenBy.values());
 
         // Prune orphans — on a FULL run (no explicit subset requested) any
         // generated `<id>.rs` / `<id>_api.rs` / `<id>_typed.rs` whose exchange
@@ -11264,17 +11342,21 @@ impl std::ops::DerefMut for ${coreName} {
         overwriteFileAndFolder(`${outDir}/mod.rs`, file);
     }
 
+    testRoots(): string[] {
+        const roots = [ './ts/src/test/base', './ts/src/pro/test/base', './ts/src/test/Exchange/base',
+            './ts/src/test/Exchange', './ts/src/pro/test/Exchange' ]
+            .filter(d => fs.existsSync(d))
+            .flatMap(d => fs.readdirSync(d).filter(f => f.endsWith('.ts')).map(f => `${d}/${f}`));
+        if (fs.existsSync('./ts/src/test/tests.ts')) roots.push('./ts/src/test/tests.ts');
+        return roots;
+    }
+
     transpileTests() {
         createFolderRecursively(BASE_TESTS_FOLDER);
         createFolderRecursively(BASE_TESTS_WS_FOLDER);
         createFolderRecursively(GENERATED_TESTS_FOLDER);
         // one TS7 snapshot for every test file of this pass instead of one per file
-        const testRoots = [ './ts/src/test/base', './ts/src/pro/test/base', './ts/src/test/Exchange/base',
-            './ts/src/test/Exchange', './ts/src/pro/test/Exchange' ]
-            .filter(d => fs.existsSync(d))
-            .flatMap(d => fs.readdirSync(d).filter(f => f.endsWith('.ts')).map(f => `${d}/${f}`));
-        if (fs.existsSync('./ts/src/test/tests.ts')) testRoots.push('./ts/src/test/tests.ts');
-        this.transpiler.setSharedProgram(testRoots);
+        if (!this.runProgram) this.transpiler.setSharedProgram(this.testRoots());
         this.transpileBaseTests(BASE_TESTS_FOLDER);
         this.transpileBaseTestsWs(BASE_TESTS_WS_FOLDER);
         this.transpileExchangeTests(GENERATED_TESTS_FOLDER);
@@ -11568,6 +11650,7 @@ impl std::ops::DerefMut for ${coreName} {
         const inputExchanges = process.argv.slice(2).filter(x => !x.startsWith('--'));
         const options = { rustFolder: EXCHANGES_WS_FOLDER, exchanges: inputExchanges };
         await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, true);
+        await this.closePostProcessPool();
     }
 
     // ── main entry ─────────────────────────────────────────────────────────────
@@ -11589,6 +11672,14 @@ impl std::ops::DerefMut for ${coreName} {
 
         const options = { rustFolder: EXCHANGES_FOLDER, exchanges };
 
+        // a full run prints every tier (base, REST, prediction, tests) off one TS7 snapshot
+        if (!child && !baseOnly && exchanges.length === 0) {
+            const tier = (d: string, ids: string[] | undefined) => fs.readdirSync(d)
+                .filter(f => f.endsWith('.ts') && (ids === undefined || ids.includes(basename(f, '.ts')))).map(f => `${d}/${f}`);
+            this.transpiler.setSharedProgram([ './ts/src/base/PredictionExchange.ts', ...tier(tsFolder, exchangeIds),
+                ...tier('./ts/src/prediction', undefined), ...this.testRoots() ]);
+            this.runProgram = true;
+        }
         // Base methods are always needed for wrapper info
         this.transpileBaseMethods(exchangeBase);
         // Prediction tier base (impl PredictionExchange → prediction_exchange_generated.rs).
@@ -11608,8 +11699,12 @@ impl std::ops::DerefMut for ${coreName} {
             }
         }
 
-        if (child || exchanges.length > 0 || baseOnly) return;
+        if (child || exchanges.length > 0 || baseOnly) {
+            await this.closePostProcessPool();
+            return;
+        }
 
+        await this.closePostProcessPool();
         this.transpileErrorHierarchy();
         this.transpileTests();
         this.reportDroppedTests();
@@ -11651,7 +11746,7 @@ impl std::ops::DerefMut for ${coreName} {
 
 // ── CLI entry point ───────────────────────────────────────────────────────────
 
-if (isMainEntry(import.meta.url)) {
+if (isMainThread && isMainEntry(import.meta.url)) {
     const ws        = process.argv.includes('--ws');
     const force     = process.argv.includes('--force');
     const child     = process.argv.includes('--child');

@@ -2086,6 +2086,10 @@ class NewTranspiler {
     // transpilePredictionBaseMethods twice (recursive prediction pass, then the main pass)
     // with identical inputs, so the second call would only rewrite the same bytes.
     private _predictionBaseWritten = false;
+    // the pooled stage file lists of a full forced run; webworkerTranspile queues them all on
+    // its first call so the pool never idles, keyed by (stage roots, file) so a mismatch recomputes
+    runStages: string[][] = [];
+    prefetchedTasks = new Map<string, Promise<any>> ();
 
     constructor() {
 
@@ -4846,23 +4850,29 @@ class NewTranspiler {
     // the insertion pass; the wrap only names what the box already is, so the argument's static
     // type, overload and box are identical without it. Runs after retypeCoreArgCopies.
     dropRedundantCoreArgCasts (content: string): string {
+        // the backward declaration scan reads the unedited text: an unwrap cannot add or remove
+        // a declaration, signature, comment or brace, so its answer is the same
         for (const name of CORE_ARG_CAST_EXEMPT_NAMES) {
             const needle = '((string)' + name + ')';
+            let out = '';
+            let copied = 0;
             let from = 0;
             for (;;) {
                 const at = content.indexOf (needle, from);
                 if (at === -1) {
                     break;
                 }
-                const before = content[at - 1];
+                const before = (at === copied && copied > 0) ? out[out.length - 1] : content[at - 1];
                 const after = content[at + needle.length];
                 const free = (before === undefined || !/[\w.]/.test (before)) && (after === undefined || !/\w/.test (after));
                 if (free && this.coreArgCastExempt (content, at, name)) {
-                    content = content.slice (0, at) + name + content.slice (at + needle.length);
-                    from = at + name.length;
-                    continue;
+                    out += content.substring (copied, at) + name;
+                    copied = at + needle.length;
                 }
                 from = at + needle.length;
+            }
+            if (copied > 0) {
+                content = out + content.substring (copied);
             }
         }
         return content;
@@ -4873,7 +4883,8 @@ class NewTranspiler {
     // before `at` (C# forbids a local from shadowing a parameter, so the two cannot disagree).
     // Null when the enclosing declaration cannot be resolved -- then the caller keeps the cast.
     coreArgCallSiteDeclaredType (content: string, at: number, ident: string): string | null {
-        const lines = content.split ('\n');
+        const lineEnd = content.indexOf ('\n', at);
+        const lines = content.substring (0, (lineEnd === -1) ? content.length : lineEnd).split ('\n');
         let lineIndex = 0;
         for (let i = 0, off = 0; i < lines.length; i++) {
             if (off + lines[i].length >= at) { lineIndex = i; break; }
@@ -5105,10 +5116,27 @@ class NewTranspiler {
             .concat (Object.keys (CORE_NUMERIC_ARGS).filter ((n) => !(n in CORE_STRING_ARGS)))
             .concat (Object.keys (CORE_LIST_ARGS).filter ((n) => !(n in CORE_STRING_ARGS) && !(n in CORE_NUMERIC_ARGS)))
             .concat (Object.keys (SIGNATURE_ARG_TYPES));
+        // edits never create a `<receiver><name>(`, so one upfront scan bounds the needles
+        const called = new Set<string> ();
+        const callRe = /(\w+)\(/g;
+        for (const receiver of receivers) {
+            for (let at = content.indexOf (receiver); at !== -1; at = content.indexOf (receiver, at + 1)) {
+                callRe.lastIndex = at + receiver.length;
+                const m = callRe.exec (content);
+                if (m !== null && m.index === at + receiver.length) {
+                    called.add (receiver + m[1]);
+                }
+            }
+        }
         for (const methodName of allNames) {
             const positions = Object.assign ({}, this.coreArgTypes (methodName), SIGNATURE_ARG_TYPES[methodName]);
             for (const receiver of receivers) {
+                if (!called.has (receiver + methodName)) {
+                    continue;
+                }
                 const needle = receiver + methodName + '(';
+                // rewritten text so far is `done` + content.substring (from); edits append to `done`
+                let done = '';
                 let from = 0;
             for (;;) {
                 const at = content.indexOf (needle, from);
@@ -5117,15 +5145,18 @@ class NewTranspiler {
                 }
                 const before = content[at - 1];
                 if (before !== undefined && /[\w.]/.test (before)) {
+                    done += content.substring (from, at + needle.length);
                     from = at + needle.length;
                     continue;
                 }
                 const open = at + needle.length - 1;
                 const close = this.matchingParen (content, open);
                 if (close === -1) {
+                    done += content.substring (from, at + needle.length);
                     from = at + needle.length;
                     continue;
                 }
+                const base = done.length - from;
                 const args = this.splitCsharpParams (content.substring (open + 1, close));
                 let changed = false;
                 // content offset of each argument, so the skip below can look up the enclosing scope
@@ -5152,9 +5183,13 @@ class NewTranspiler {
                         // the argument already carries the target type: `string symbol` (a
                         // `typeCoreArgs`-narrowed parameter or a `string` local) needs no cast --
                         // the callee receives the identical reference
-                        if (CORE_ARG_CALL_SITE_TYPED_IDENTIFIERS.indexOf (trimmed) !== -1
-                                && this.coreArgCallSiteDeclaredType (content, argOffsets[pos] + (arg.length - arg.trimStart ().length), trimmed) === 'string') {
-                            continue;
+                        if (CORE_ARG_CALL_SITE_TYPED_IDENTIFIERS.indexOf (trimmed) !== -1) {
+                            const argAt = argOffsets[pos] + (arg.length - arg.trimStart ().length);
+                            const lineEnd = content.indexOf ('\n', argAt);
+                            const seen = done + content.substring (from, (lineEnd === -1) ? content.length : lineEnd);
+                            if (this.coreArgCallSiteDeclaredType (seen, argAt + base, trimmed) === 'string') {
+                                continue;
+                            }
                         }
                         args[pos] = '((string)' + trimmed + ')';
                         changed = true;
@@ -5188,10 +5223,15 @@ class NewTranspiler {
                     args[pos] = 'ccxt.BaseExchange.' + helper + '(' + trimmed + ')';
                     changed = true;
                 }
-                const replacement = changed ? needle + args.join (',') + ')' : content.substring (at, close + 1);
-                content = content.substring (0, at) + replacement + content.substring (close + 1);
-                from = at + replacement.length;
+                if (!changed) {
+                    done += content.substring (from, close + 1);
+                    from = close + 1;
+                    continue;
                 }
+                done += content.substring (from, at) + needle + args.join (',') + ')';
+                from = close + 1;
+                }
+                content = done + content.substring (from);
             }
         }
         return content;
@@ -5771,68 +5811,68 @@ class NewTranspiler {
     // same-length copy of `content` with string/char literals and comments blanked out (a brace or
     // a `getArrayLength(` inside a literal must not move any structural scan)
     maskCsharpLiterals (content: string): string {
-        const out: string[] = content.split ('');
-        const blank = (at: number) => { out[at] = (content[at] === '\n') ? '\n' : ' '; };
+        // every char of a literal/comment span becomes ' ' (newlines kept); spans are contiguous
+        const parts: string[] = [];
+        let copied = 0;
+        const blankSpan = (a: number, b: number) => {
+            const span = content.substring (a, b);
+            parts.push (content.substring (copied, a), span.includes ('\n') ? span.replace (/[^\n]/g, ' ') : ' '.repeat (b - a));
+            copied = b;
+        };
+        const n = content.length;
         let i = 0;
-        while (i < content.length) {
-            const ch = content[i];
-            const verbatim = (ch === '@') && (content[i + 1] === '"');
-            if (verbatim || (ch === '"') || (ch === "'")) {
-                const quote = verbatim ? '"' : ch;
-                blank (i);
+        while (i < n) {
+            const ch = content.charCodeAt (i);
+            const verbatim = (ch === 64) && (content.charCodeAt (i + 1) === 34);
+            if (verbatim || (ch === 34) || (ch === 39)) {
+                const quote = verbatim ? 34 : ch;
+                const start = i;
                 i += verbatim ? 2 : 1;
-                while (i < content.length) {
-                    if (!verbatim && (content[i] === '\\') && (i + 1 < content.length)) {
-                        blank (i);
-                        blank (i + 1);
+                while (i < n) {
+                    const c = content.charCodeAt (i);
+                    if (!verbatim && (c === 92) && (i + 1 < n)) {
                         i += 2;
                         continue;
                     }
-                    if (verbatim && (content[i] === '"') && (content[i + 1] === '"')) {
-                        blank (i);
-                        blank (i + 1);
+                    if (verbatim && (c === 34) && (content.charCodeAt (i + 1) === 34)) {
                         i += 2;
                         continue;
                     }
-                    if (content[i] === quote) {
-                        blank (i);
+                    if (c === quote) {
                         i++;
                         break;
                     }
-                    if (content[i] === '\n') {
+                    if (c === 10) {
                         i++;
                         break;
                     }
-                    blank (i);
                     i++;
                 }
+                blankSpan (start, start + 1);
+                blankSpan (start + (verbatim ? 2 : 1), Math.min (i, n));
                 continue;
             }
-            if ((ch === '/') && (content[i + 1] === '/')) {
-                while ((i < content.length) && (content[i] !== '\n')) {
-                    blank (i);
-                    i++;
-                }
+            if ((ch === 47) && (content.charCodeAt (i + 1) === 47)) {
+                const nl = content.indexOf ('\n', i);
+                const end = (nl === -1) ? n : nl;
+                blankSpan (i, end);
+                i = end;
                 continue;
             }
-            if ((ch === '/') && (content[i + 1] === '*')) {
-                blank (i);
-                blank (i + 1);
-                i += 2;
-                while ((i < content.length) && !((content[i] === '*') && (content[i + 1] === '/'))) {
-                    blank (i);
-                    i++;
-                }
-                if (i < content.length) {
-                    blank (i);
-                    blank (i + 1);
-                    i += 2;
-                }
+            if ((ch === 47) && (content.charCodeAt (i + 1) === 42)) {
+                const close = content.indexOf ('*/', i + 2);
+                const end = (close === -1) ? n : close + 2;
+                blankSpan (i, end);
+                i = end;
                 continue;
             }
             i++;
         }
-        return out.join ('');
+        if (copied === 0) {
+            return content;
+        }
+        parts.push (content.substring (copied));
+        return parts.join ('');
     }
 
     csharpBraceDelta (maskedLine: string): number {
@@ -7560,12 +7600,27 @@ class NewTranspiler {
         const configKey = JSON.stringify (parserConfig);
 
         // One file per task. `roots` is the FULL stage list on every task so each worker
-        // builds ONE sticky ts.Program (build/worker-program-batch.ts) and prints off it.
+        // builds ONE sticky snapshot per stage (build/worker-program-batch.ts) and prints off it.
         const promises: any = [];
         const now = Date.now();
         for (const file of allFiles) {
+            const prefetched = this.prefetchedTasks.get (allFiles.join ('\n') + '\n' + file);
+            if (prefetched !== undefined) {
+                promises.push (prefetched);
+                continue;
+            }
             promises.push(piscina.run({transpilerConfig:parserConfig, configKey, roots: allFiles, files: [file]}));
         }
+        // the later stages of the run queue behind this one, so the workers keep printing
+        // while the main thread runs this stage's post-passes
+        for (const stage of this.runStages.filter ((files) => files.join ('\n') !== allFiles.join ('\n'))) {
+            for (const file of stage) {
+                const task = piscina.run({transpilerConfig:parserConfig, configKey, roots: stage, files: [file]});
+                task.catch (() => {});
+                this.prefetchedTasks.set (stage.join ('\n') + '\n' + file, task);
+            }
+        }
+        this.runStages = [];
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
@@ -7672,7 +7727,11 @@ class NewTranspiler {
         } else if (this.isPrediction) {
             this.createClassAliasFile (predictionIds, PREDICTION_CLASS_ALIAS_FILE, this.getNamespace (false));
         }
-        exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
+        // yield between files: piscina hands the queued later stages to idle workers from this thread
+        for (let idx = 0; idx < exchangeFiles.length; idx++) {
+            this.transpileDerivedExchangeFile (jsFolder, exchangeFiles[idx], options, transpiledFiles[idx], force, ws, prediction)
+            await new Promise ((resolve) => setImmediate (resolve))
+        }
 
         const classes = {}
 
@@ -8245,6 +8304,22 @@ class NewTranspiler {
         });
     }
 
+    // the pooled stages of a full forced --rest-and-ws run (REST, prediction, tests, WS); each
+    // list must equal the one its stage later passes to webworkerTranspile, in the same order
+    planRunStages () {
+        const ids: string[] = (exchanges as any).ids
+        const tsFiles = (dir: string) => fs.readdirSync (dir).filter ((f) => f.endsWith ('.ts') && ids.includes (basename (f, '.ts'))).map ((f) => dir + f)
+        const stages = [ tsFiles ('./ts/src/'), predictionIds.map ((id: string) => './ts/src/prediction/' + id + '.ts') ]
+        if (shouldTranspileTests) {
+            const all = (dir: string) => fs.readdirSync (dir).filter ((f) => f.endsWith ('.ts'))
+            stages.push (all ('./ts/src/test/base/').filter ((f) => !fs.readFileSync ('./ts/src/test/base/' + f).toString ().includes ('// NO_AUTO_TRANSPILE')).map ((f) => './ts/src/test/base/' + f))
+            stages.push ([ ...all ('./ts/src/test/Exchange/base/').filter ((f) => f !== 'test.throttle.ts').map ((f) => './ts/src/test/Exchange/base/' + f), ...all ('./ts/src/test/Exchange/').map ((f) => './ts/src/test/Exchange/' + f) ])
+            stages.push (all ('./ts/src/pro/test/Exchange/').map ((f) => './ts/src/pro/test/Exchange/' + f))
+        }
+        stages.push (tsFiles ('./ts/src/pro/'))
+        this.runStages = stages
+    }
+
     async transpileTests(force = true){
         if (!shouldTranspileTests) {
             log.bright.yellow ('Skipping tests transpilation');
@@ -8289,6 +8364,9 @@ async function runMain () {
         transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
         transpiler.transpilePredictionBaseMethods ()
     } else if (restAndWs) {
+        if (force && !inputExchanges.length && !examples && !prediction) {
+            transpiler.planRunStages ()
+        }
         // same work as `transpileCS --force` followed by `transpileCSWs --force`, but on
         // one transpiler instance, so the single piscina pool (and its warm per-thread
         // Transpilers) survives into the ws stage instead of paying a second process

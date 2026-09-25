@@ -475,39 +475,46 @@ function retypeDepthScan (lines: string[]): number[] {
     let depth = 0;
     let inComment = false;
     for (const line of lines) {
-        let code = '';
         let i = 0;
+        let delta = 0;
         while (i < line.length) {
             if (inComment) {
                 const j = line.indexOf ('*/', i);
                 if (j === -1) { i = line.length; break; }
                 i = j + 2; inComment = false; continue;
             }
-            if (line.startsWith ('//', i)) break;
-            if (line.startsWith ('/*', i)) {
-                const j = line.indexOf ('*/', i + 2);
-                if (j === -1) { inComment = true; break; }
-                i = j + 2; continue;
+            const c = line.charCodeAt (i);
+            if (c === 47 /* / */) {
+                const n = line.charCodeAt (i + 1);
+                if (n === 47) break;
+                if (n === 42) {
+                    const j = line.indexOf ('*/', i + 2);
+                    if (j === -1) { inComment = true; break; }
+                    i = j + 2; continue;
+                }
+                i++; continue;
             }
-            const c = line[i];
-            if (c === '"') {
+            if (c === 34 /* " */) {
                 i++;
                 while (i < line.length) {
-                    if (line[i] === '\\') { i += 2; continue; }
-                    if (line[i] === '"') { i++; break; }
+                    const d = line.charCodeAt (i);
+                    if (d === 92) { i += 2; continue; }
                     i++;
+                    if (d === 34) break;
                 }
                 continue;
             }
-            if (c === "'") {
+            if (c === 39 /* ' */) {
                 const j = line.indexOf ("'", i + 1);
                 if (j !== -1 && j - i <= 3) { i = j + 1; continue; }
-                code += c; i++; continue;
+                i++; continue;
             }
-            code += c; i++;
+            if (c === 123) delta++;
+            else if (c === 125) delta--;
+            i++;
         }
         depths.push (depth);
-        depth += (code.match (/{/g) ?? []).length - (code.match (/}/g) ?? []).length;
+        depth += delta;
     }
     return depths;
 }
@@ -1793,14 +1800,29 @@ function ss02Record (printer: any, declaration: any, javaType: string | undefine
     }
 }
 
-// default min(2, AP): 2w + shared-Program chunks is within ~10% of 4w and uses fewer cores.
-// Override with CCXT_TRANSPILE_PROCESSES.
+// Full forced REST+WS run: every pooled stage shares one program root list, so each
+// worker thread builds ONE snapshot for the whole run instead of one per stage.
+let runProgramRoots: Set<string> | undefined = undefined;
+function computeRunProgramRoots (): Set<string> {
+    const restIds = (exchanges as any).ids as string[];
+    const rest = fs.readdirSync ('./ts/src/').filter ((f) => f.endsWith ('.ts') && restIds.includes (basename (f, '.ts'))).map ((f) => basename (f, '.ts'));
+    const roots = rest.map ((id) => './ts/src/' + id + '.ts');
+    for (const id of ((exchanges as any).prediction as string[])) roots.push ('./ts/src/prediction/' + id + '.ts');
+    for (const dir of [ './ts/src/test/Exchange/base/', './ts/src/test/Exchange/', './ts/src/pro/test/Exchange/' ]) {
+        for (const f of fs.readdirSync (dir)) if (f.endsWith ('.ts')) roots.push (dir + f);
+    }
+    for (const id of ((exchanges as any).ws as string[])) if (rest.includes (id)) roots.push ('./ts/src/pro/' + id + '.ts');
+    return new Set (roots);
+}
+
+// default min(4, AP): on TS7 the per-file print is node-bound, so the 4-core farm lane
+// scales past 2 workers. Override with CCXT_TRANSPILE_PROCESSES.
 function javaWorkerThreads () {
     const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
     if (requested > 0) {
         return requested;
     }
-    return Math.max (1, Math.min (2, os.availableParallelism ()));
+    return Math.max (1, Math.min (4, os.availableParallelism ()));
 }
 
 class NewTranspiler {
@@ -1817,6 +1839,10 @@ class NewTranspiler {
     // trading methods), reused by both the Exchange.java injection and the
     // PredictionExchange.java convenience-method injection.
     _exchangeTierBody: string | undefined;
+    // provablyStringLocal memo: comment-masked text + member-modifier spans of the last content
+    maskedFor: string | undefined;
+    masked = '';
+    memberBreaks: number[][] = [];
 
     constructor() {
 
@@ -3106,7 +3132,7 @@ class NewTranspiler {
         const maxThreads = javaWorkerThreads ();
         if (!this.piscina) {
             this.piscina = new Piscina({
-                filename: resolve(__dirname, 'java-worker.ts'),
+                filename: resolve(__dirname, 'java-worker-entry.mjs'),
                 maxThreads
             });
         }
@@ -3116,10 +3142,12 @@ class NewTranspiler {
         // One file per task (load-balances; a slow file can't stall others). `roots` is
         // the FULL stage list on every task so each worker builds ONE sticky ts.Program
         // (see build/worker-program-batch.ts) and prints each file off that checker.
+        const runRoots = runProgramRoots;
+        const roots = (runRoots !== undefined && allFiles.every ((f: string) => runRoots.has (f))) ? [ ...runRoots ] : allFiles;
         const promises: any = [];
         const now = Date.now();
         for (const file of allFiles) {
-            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: [file] }));
+            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots, files: [file] }));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
@@ -3749,13 +3777,20 @@ class NewTranspiler {
     // the hash local is already declared String (WsClient.future/reusableFuture take
     // `String`). A field/param not declared in the file proves nothing -> keep the cast.
     provablyStringLocal (content: string, name: string, pos: number): boolean {
-        const masked = maskJavaComments(content);
+        if (this.maskedFor !== content) {
+            this.maskedFor = content;
+            this.masked = maskJavaComments(content);
+            this.memberBreaks = [...this.masked.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm)].map((b) => [b.index, b.index + b[0].length]);
+        }
+        const masked = this.masked;
         const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const before = masked.slice(0, pos);
-        // the enclosing method: the last member-modifier line before `pos`; a use that has
+        // the enclosing method: the last member-modifier line ending before `pos`; a use that has
         // no declaration inside its own method binds to a field/param -> keep the cast
-        const breaks = [...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm)];
-        const windowStart = breaks.length > 0 ? breaks[breaks.length - 1].index : 0;
+        let windowStart = 0;
+        for (let lo = 0, hi = this.memberBreaks.length - 1; lo <= hi;) {
+            const mid = (lo + hi) >> 1;
+            if (this.memberBreaks[mid][1] <= pos) { windowStart = this.memberBreaks[mid][0]; lo = mid + 1; } else hi = mid - 1;
+        }
         const window = masked.slice(windowStart, pos);
         const decl = new RegExp(`\\b(String|Object|Integer|Long|Double|Boolean|var|char)\\s+${escaped}\\s*(?=[=;,)])`, 'g');
         let last = null;
@@ -4375,6 +4410,8 @@ class NewTranspiler {
         // brace depths are rescanned only after a rewrite changes a line's brace balance
         let depthCache: number[] | undefined = undefined;
         for (let i = 0; i < lines.length; i++) {
+            // all three shapes declare `Object <name> = <name>;`
+            if (!lines[i].includes ('Object ')) continue;
             const hoistMatch = lines[i].match (RETYPE_HOIST_LINE);
             const snapshotMatch = hoistMatch === null ? lines[i].match (RETYPE_SNAPSHOT_LINE) : null;
             const copyMatch = hoistMatch === null && snapshotMatch === null ? lines[i].match (RETYPE_COPY_LINE) : null;
@@ -4394,8 +4431,9 @@ class NewTranspiler {
             if (!isSnapshot) {
                 const depths = (depthCache ??= retypeDepthScan (lines));
                 let sawDeclaration = false;
+                const declRe = new RegExp (`^(\\s*)(?:final\\s+)?([A-Za-z_$][\\w$.]*(?:<[^;=]*>)?)\\s+${sourceName}\\s*=`);
                 for (let j = i - 1; j > start; j--) {
-                    const decl = lines[j].match (new RegExp (`^(\\s*)(?:final\\s+)?([A-Za-z_$][\\w$.]*(?:<[^;=]*>)?)\\s+${sourceName}\\s*=`));
+                    const decl = lines[j].includes (sourceName) ? lines[j].match (declRe) : null;
                     if (decl !== null) {
                         sawDeclaration = true;
                         // in scope = the declaration's block is still open at the
@@ -4431,10 +4469,13 @@ class NewTranspiler {
             // the async-param copy `x = x3` joins its writes against the snapshot type
             const isParamCopy = isCopy && sourceName === `${hoistedName}3`;
             const rewrites: [number, string][] = [];
+            const writeRe = new RegExp (`^(\\s*${hoistedName}\\s*=\\s*)(?!=)(.+)$`);
             for (let j = i + 1; j <= end; j++) {
+                // a line without the name is neither a write nor a use (both audits pass it)
+                if (!lines[j].includes (hoistedName)) continue;
                 if (isCopy) {
                     // the copy is not final, so every later write is audited too
-                    const write = lines[j].match (new RegExp (`^(\\s*${hoistedName}\\s*=\\s*)(?!=)(.+)$`));
+                    const write = lines[j].match (writeRe);
                     if (write !== null) {
                         if (isParamCopy) {
                             const printed = retypeCopyWrite (write[2], reference, hoistedName);
@@ -5774,6 +5815,9 @@ async function runMain() {
         transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
         transpiler.transpilePredictionBaseMethods();
     } else if (restAndWs) {
+        if (force && cliExchanges.length === 0) {
+            runProgramRoots = computeRunProgramRoots ();
+        }
         await transpiler.transpileEverything(force, false, examples)
         await transpiler.transpileWS(force)
     } else if (prediction) {
