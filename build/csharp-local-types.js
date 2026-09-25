@@ -17019,7 +17019,8 @@ function nativeGuardedSubtractExpression (csharp, node) {
         }
         const kind = nativeArithmeticOperandKind (csharp, operand);
         if (kind === 'Int64?') {
-            return (operand.kind === ts.SyntaxKind.Identifier) && csharp.csharpNullGuardAdmitsRead (node, operand) ? 'Int64' : undefined;
+            return (operand.kind === ts.SyntaxKind.Identifier) && !nativeSubtractOperandIsRebound (csharp, operand)
+                && csharp.csharpNullGuardAdmitsRead (node, operand) ? 'Int64' : undefined;
         }
         return NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (kind) ? kind : undefined;
     });
@@ -17030,6 +17031,46 @@ function nativeGuardedSubtractExpression (csharp, node) {
         return undefined; // no nullable operand: nativeArithmeticIsProven's decision
     }
     return '(' + csharp.printNode (node.left, 0) + ' - ' + csharp.printNode (node.right, 0) + ')';
+}
+
+// the guard proof is dropped for a binding written anywhere after its declaration (a write
+// between the null test and the read would put null back)
+function nativeSubtractOperandIsRebound (csharp, operand) {
+    let checker;
+    let declaration;
+    try {
+        checker = csharp.getChecker ();
+        declaration = checker.getSymbolAtLocation (operand)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return true;
+    }
+    let scope = declaration?.parent;
+    while (scope !== undefined && scope.body === undefined) {
+        scope = scope.parent;
+    }
+    if (scope?.body === undefined) {
+        return true;
+    }
+    let written = false;
+    const visit = (n) => {
+        if (written || n === undefined) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n !== declaration.name) && csharpWriteTarget (n)) {
+            try {
+                if (checker.getSymbolAtLocation (n)?.valueDeclaration?.resolve () === declaration) {
+                    written = true;
+                    return;
+                }
+            } catch (e) {
+                written = true;
+                return;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    scope.body.forEachChild (visit);
+    return written;
 }
 
 export function installCsharpNativeComparisons (transpiler) {
