@@ -6994,6 +6994,8 @@ function indexScope (csharp, scope) {
         walk (name);
     };
     const bindingCounts = new Map ();
+    // printed names bound by a destructuring element (`const [ a, b ] = ...`)
+    const patternBindingCounts = new Map ();
     const bindings = new Map ();
     // every binding node per name (parameters, identifier variable declarations, catch
     // variables) — the scope-aware classifier below resolves same-name uses against it.
@@ -7033,6 +7035,10 @@ function indexScope (csharp, scope) {
             }
             list.push (n);
         }
+        if (n.kind === ts.SyntaxKind.BindingElement && n.name?.kind === ts.SyntaxKind.Identifier) {
+            const printed = csharp.printNode (n.name, 0);
+            patternBindingCounts.set (printed, (patternBindingCounts.get (printed) ?? 0) + 1);
+        }
         if (n.kind === ts.SyntaxKind.Parameter) {
             if (n.name?.kind === ts.SyntaxKind.Identifier) {
                 parameterNames.add (n.name.escapedText);
@@ -7060,7 +7066,7 @@ function indexScope (csharp, scope) {
         ts.forEachChild (n, visit);
     };
     ts.forEachChild (scope, visit);
-    index = { identifiers, bindingNames, bindingCounts, bindings, declarations, parameterNames, blockedNames, bindingScopes, bindingScopesPrinted };
+    index = { identifiers, bindingNames, bindingCounts, patternBindingCounts, bindings, declarations, parameterNames, blockedNames, bindingScopes, bindingScopesPrinted };
     scopeIndexCache.set (scope, index);
     return index;
 }
@@ -12465,7 +12471,10 @@ function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
         return printed;
     }
     const match = DESTRUCTURED_ELEMENT0_LINE_RE.exec (printed);
-    if (match === null || match[2] !== csharp.printNode (target, 0) || (indexScope (csharp, scope).bindingCounts.get (match[2]) ?? 0) !== 1) {
+    // the element is the only binding of its printed name in the function
+    const index = indexScope (csharp, scope);
+    const bindingCount = (index.bindingCounts.get (match?.[2]) ?? 0) + (index.patternBindingCounts.get (match?.[2]) ?? 0);
+    if (match === null || match[2] !== csharp.printNode (target, 0) || bindingCount !== 1) {
         return printed;
     }
     if (!csharpLocalIsSafeToRetype (csharp, scope, target.parent, target.escapedText, type, { scope, stack: new Set (), depth: 0 })) {
