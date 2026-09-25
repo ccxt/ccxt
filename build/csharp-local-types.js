@@ -16420,6 +16420,41 @@ export const CORE_LIST_ARGS = {
 // body write cannot be attributed to a list producer (see bodyWritesAreListTyped there).
 export const CORE_LIST_TARGET_TYPES = [ 'IList<object>' ];
 
+// Venue list parameters read through `.length`: every declaration of the name prints `object` at
+// that position and every caller in the generated tree (tests and hand-written base included)
+// passes a list or null (census research/r16/cs-arrlen/famadmit.py); merged into CORE_LIST_ARGS.
+const CORE_LIST_ARGS_LENGTH_READS = {
+    'parseFeeTiers': 0,
+    'parseBorrowRateHistories': 0,
+    'parseAccountSettings': 0,
+    'insertMissingCandles': 0,
+    'watchTopics': 2,
+    'parseBidsAsksCustom': 0,
+    'parsePublicDepositWithdrawFees': 0,
+    'ordersToTrades': 0,
+    'parseNetworks': 0,
+    'indexPositionBreakList': 0,
+    'parseTransactionFees': 0,
+    'filterTransfersByType': 0,
+    'parseBorrowRates': 0,
+    'matchesEventQuery': 1,
+    'parseSxbetTickersByHash': 0,
+    'fetchRawTopicsByQueries': 0,
+    'watchMany': 3,
+    'handleOrderBookHelper': 1,
+    'unWatchChannels': 2,
+    'handleTradesForMultidata': 1,
+    'handleBidsAsksForMultidata': 1,
+    'handleOrderBookForMultidata': 1,
+    'parseWSBalances': 0,
+    'getAccountTypeFromSubscriptions': 0,
+    'separateBidsOrAsks': 0,
+    'handleBooksideDelta': 1,
+};
+for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_LENGTH_READS)) {
+    CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
+}
+
 // ===== native Math.Min / Math.Max on a guarded nullable integer parameter =====
 //
 // `Math.min (limit, 1000)` with `limit` a narrowed `Int64?` parameter proven non-null by a
