@@ -9271,7 +9271,7 @@ function ccxtGoTupleResultCall (node) {
 
 // `TupleSlice(<call>)` -> `<call>`, undefined for any other text
 function ccxtGoTupleResultUnwrap (text) {
-    const t = text.trim ();
+    const t = text.trim ().replace (/^ccxt\./, '');
     return (t.startsWith ('TupleSlice(') && t.endsWith (')')) ? t.substring ('TupleSlice('.length, t.length - 1) : undefined;
 }
 
@@ -9289,7 +9289,7 @@ function ccxtGoTupleResultJoin (printed, count, declare) {
     }
     const names = [ '_', '_' ];
     for (let i = 1; i < lines.length; i++) {
-        const l = lines[i].trim ();
+        const l = lines[i].trim ().replace (/\bccxt\.(SafeStringPtr|MapTyped|GetValue)\(/g, '$1(');
         const m = declare
             ? /^var (\w+) (?:\*string|map\[string\]any) = (SafeStringPtr|MapTyped)\(GetValue\((\w+), (\d)\)\)$/.exec (l)
             : (/^(\w+) = (SafeStringPtr|MapTyped)\(GetValue\((\w+), (\d)\)\)$/.exec (l) ?? /^(\w+) = ()GetValue\((\w+), (\d)\)$/.exec (l));
