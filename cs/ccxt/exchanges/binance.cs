@@ -17939,14 +17939,14 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object msInThirtyDays = 2592000000;
+        Int64 msInThirtyDays = 2592000000;
         Int64 now = this.milliseconds();
         if ((since != null))
         {
             request["startTime"] = since;
         } else
         {
-            request["startTime"] = subtract(now, msInThirtyDays);
+            request["startTime"] = (now - msInThirtyDays);
         }
         Int64? endTime = this.safeInteger2(parameters, "endTime", "until");
         if ((endTime != null))
