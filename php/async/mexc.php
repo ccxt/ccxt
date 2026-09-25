@@ -6548,12 +6548,13 @@ class mexc extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestHeaders = $headers;
         $requestBody = $body;
         $section = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
-        list($pathValue, $paramsValue) = $this->resolve_path($path, $params);
+        $pathValue = $this->implode_params($path, $params);
+        $paramsValue = $this->omit($params, $this->extract_params($path));
         $url = null;
         if ($section === 'spot' || $section === 'broker') {
             if ($section === 'broker') {

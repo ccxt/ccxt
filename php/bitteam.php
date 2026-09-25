@@ -2426,7 +2426,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $apiUrl = $this->safe_string($this->urls['api'], $api);

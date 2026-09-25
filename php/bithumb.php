@@ -3314,7 +3314,7 @@ class bithumb extends Exchange {
         return $result;
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestHeaders = null;
         $requestBody = null;
         $endpoint = '/' . $this->implode_params($path, $params);

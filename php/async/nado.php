@@ -3256,7 +3256,7 @@ class nado extends Exchange {
         return $marketId;
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestBody = null;
         $endpoint = $api[0];
         if (gettype($api) === 'string') {

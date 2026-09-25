@@ -206,7 +206,7 @@ class revolutx extends Exchange {
         ));
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestHeaders = null;
         $requestBody = null;
         $implodedPath = $this->implode_params($path, $params);

@@ -3850,7 +3850,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if (count($params) > 0) {

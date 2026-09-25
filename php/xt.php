@@ -5835,7 +5835,7 @@ class xt extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $request = '/' . $this->implode_params($path, $params);

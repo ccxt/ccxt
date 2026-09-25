@@ -3211,7 +3211,7 @@ class limitless extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'limitless', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, mixed $api = 'limitless', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request URL and attaches the lmts authentication $headers for private endpoints

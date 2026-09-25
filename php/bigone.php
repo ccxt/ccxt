@@ -1969,7 +1969,7 @@ class bigone extends Exchange {
         return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $bodySigned = null;
         $query = $this->omit($params, $this->extract_params($path));
         $apiUrl = $this->safe_string($this->urls['api'], $api);

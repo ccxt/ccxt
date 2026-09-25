@@ -1998,7 +1998,7 @@ class apex extends Exchange {
         ));
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         $headersValue = array(
             'User-Agent' => 'apex-CCXT',

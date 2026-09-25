@@ -10404,7 +10404,7 @@ class bybit extends Exchange {
         return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestBody = null;
         $requestHeaders = null;
         $apiUrl = $this->safe_string($this->urls['api'], $api);

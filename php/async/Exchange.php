@@ -1304,7 +1304,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $this->options['enableDemoTrading'] = $enable;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         return array( 'url' => null, 'method' => null, 'headers' => null, 'body' => null );
     }
 
@@ -4070,11 +4070,11 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $results;
     }
 
-    public function fetch2(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
+    public function fetch2(string $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
         return Async\async(self::do_fetch2(...))($path, $api, $method, $params, $headers, $body, $config);
     }
 
-    protected function do_fetch2(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
+    protected function do_fetch2(string $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
         if ($this->enableRateLimit) {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             Async\await($this->throttle($cost));
@@ -4129,11 +4129,11 @@ class BaseExchange extends \ccxt\BaseExchange {
         return null; // this line is never reached, but exists for c# value return requirement
     }
 
-    public function request(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
+    public function request(string $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
         return Async\async(self::do_request(...))($path, $api, $method, $params, $headers, $body, $config);
     }
 
-    private function do_request(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
+    private function do_request(string $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
         return $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
     }
 

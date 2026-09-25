@@ -3223,7 +3223,7 @@ class deepcoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestPath = $path;
         if ($method === 'GET') {
             $query = $this->urlencode($params);
