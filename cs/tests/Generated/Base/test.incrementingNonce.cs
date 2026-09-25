@@ -20,6 +20,6 @@ public partial class BaseTest
             Int64? second = exchange.incrementingNonce();
             Assert(isGreaterThan(first, seed), "incrementingNonce should bump past the stored lastNonce");
             Assert(isEqual(second, (first + 1)), "two incrementingNonce calls in the same tick should return n and n + 1");
-            Assert(isGreaterThan(second, first), "incrementingNonce should be strictly increasing");
+            Assert((second != null && (first == null || second > first)), "incrementingNonce should be strictly increasing");
         }
 }

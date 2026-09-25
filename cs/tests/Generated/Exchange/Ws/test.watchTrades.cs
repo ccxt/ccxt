@@ -39,7 +39,7 @@ public partial class testMainClass : BaseTest
                 {
                     testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now, true);
                 }
-                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                if ((((now - startTime)) > maxIdleTime))
                 {
                     idle = true;
                 }

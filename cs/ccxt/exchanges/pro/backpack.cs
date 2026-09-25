@@ -1043,7 +1043,7 @@ public partial class backpack : ccxt.backpack
             }
             (storedOrderBook as ccxt.pro.OrderBook).cache.Add(data);
             return;
-        } else if (((deltaNonce != null)) && (isGreaterThan(nonce, deltaNonce)))
+        } else if (((deltaNonce != null)) && ((nonce != null && (deltaNonce == null || nonce > deltaNonce))))
         {
             return;
         }
@@ -1089,7 +1089,7 @@ public partial class backpack : ccxt.backpack
         {
             return -1;
         }
-        if (isLessThan(nonce, subtract(firstDeltaStart, 1)))
+        if (isLessThan(nonce, (firstDeltaStart - 1)))
         {
             return -1;
         }
@@ -1102,7 +1102,7 @@ public partial class backpack : ccxt.backpack
             {
                 return cache?.Count ?? 0;
             }
-            if ((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))) && (isLessThan(nonce, deltaEnd)))
+            if ((isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
             {
                 return i;
             }

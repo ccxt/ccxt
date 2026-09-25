@@ -67,7 +67,7 @@ public partial class testMainClass : BaseTest
                     object ticker = values[i];
                     testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                 }
-                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                if ((((now - startTime)) > maxIdleTime))
                 {
                     idle = true;
                 }
