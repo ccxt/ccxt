@@ -3629,7 +3629,7 @@ class okx extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function edit_order_request(string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
+    public function edit_order_request(string $id, ?string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
