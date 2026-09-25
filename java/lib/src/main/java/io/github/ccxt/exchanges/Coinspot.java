@@ -1031,12 +1031,12 @@ public class Coinspot extends CoinspotApi
             List<Object> buyTrades = (List<Object>) this.safeList(response, "buyorders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)buyTrades).size(); i++)
             {
-                Helpers.addElementToObject((buyTrades == null || i < 0 || i >= buyTrades.size() ? null : buyTrades.get(i)), "side", "buy");
+                ((Map<String, Object>)(buyTrades == null || i < 0 || i >= buyTrades.size() ? null : buyTrades.get(i))).put("side", "buy");
             }
             List<Object> sellTrades = (List<Object>) this.safeList(response, "sellorders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)sellTrades).size(); i++)
             {
-                Helpers.addElementToObject((sellTrades == null || i < 0 || i >= sellTrades.size() ? null : sellTrades.get(i)), "side", "sell");
+                ((Map<String, Object>)(sellTrades == null || i < 0 || i >= sellTrades.size() ? null : sellTrades.get(i))).put("side", "sell");
             }
             List<Object> trades = (List<Object>) this.arrayConcat(buyTrades, sellTrades);
             return this.parseTrades(trades, market, since, limit);

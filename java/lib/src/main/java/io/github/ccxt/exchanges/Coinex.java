@@ -3382,7 +3382,7 @@ public class Coinex extends CoinexApi
                 Object order = null;
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && !Boolean.TRUE.equals(isTriggerOrder))
                 {
-                    Helpers.addElementToObject(entry, "status", status);
+                    ((Map<String, Object>)entry).put("status", status);
                     order = this.parseOrder(entry, market);
                 } else
                 {

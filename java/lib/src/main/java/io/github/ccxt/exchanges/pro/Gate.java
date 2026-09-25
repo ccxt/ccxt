@@ -1751,7 +1751,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String symbol = this.safeSymbol(marketId, null, "_", marketType);
             List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -2310,7 +2310,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 Helpers.callDynamically(cache, "append", new Object[]{position});
             }
         }
-        Object messageHashes = this.findMessageHashes(client, Helpers.add(type, ":positions::"));
+        Object messageHashes = this.findMessageHashes(client, (type + ":positions::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
@@ -2323,7 +2323,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 client.resolve(positions, messageHash);
             }
         }
-        client.resolve(newPositions, Helpers.add(type, ":positions"));
+        client.resolve(newPositions, (type + ":positions"));
     }
 
     /**

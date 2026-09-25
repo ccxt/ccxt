@@ -2437,7 +2437,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public CompletableFuture<Object> handleBuilderFeeApproval()
+    public CompletableFuture<Boolean> handleBuilderFeeApproval()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2465,7 +2465,7 @@ public class Hyperliquid extends HyperliquidApi
                 Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
             }
             return true;
-        });
+        }).thenApply(res -> (Boolean) res);
 
     }
 

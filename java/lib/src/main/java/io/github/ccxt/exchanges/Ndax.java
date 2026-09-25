@@ -1850,7 +1850,7 @@ public class Ndax extends NdaxApi
         return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Trade", "trade" );

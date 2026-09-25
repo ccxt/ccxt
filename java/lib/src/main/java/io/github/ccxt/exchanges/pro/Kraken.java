@@ -829,7 +829,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Long interval = this.safeInteger(first, "interval");
         Object timeframe = ((String)this.findTimeframe(interval));
         String messageHash = this.getMessageHash("ohlcv", null, symbol);
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         if (java.util.Objects.equals(stored, null))
         {

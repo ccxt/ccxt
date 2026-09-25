@@ -609,7 +609,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String marketId = this.safeString(rawLiquidation, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "", "contract");
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
-        Object liquidation = this.parseWsLiquidation(rawLiquidation, market);
+        Object liquidation = this.parseWsLiquidation((Map<String, Object>) (rawLiquidation), market);
         if (java.util.Objects.equals(this.liquidations, null))
         {
             Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
@@ -621,7 +621,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), ("liquidations::" + symbol));
     }
 
-    public Object parseWsLiquidation(Object liquidation, Map<String, Object> market)
+    public Object parseWsLiquidation(Map<String, Object> liquidation, Map<String, Object> market)
     {
         //
         // future
@@ -714,7 +714,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             put( "datetime", Binance.this.iso8601(timestamp) );
         }});
     }
-    public Object parseWsLiquidation(Object liquidation, Object... optionalArgs)
+    public Object parseWsLiquidation(Map<String, Object> liquidation, Object... optionalArgs)
     {
         return this.parseWsLiquidation(liquidation, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -836,7 +836,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return this.watchMyLiquidationsForSymbols(symbols, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public void handleMyLiquidation(Client client, Object message)
+    public void handleMyLiquidation(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -890,7 +890,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String marketId = this.safeString(message, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, "swap");
         String symbol = this.safeSymbol(marketId, market);
-        Object liquidation = this.parseWsLiquidation(message, market);
+        Object liquidation = this.parseWsLiquidation((Map<String, Object>) (message), market);
         Object cache = this.myLiquidations;
         if (java.util.Objects.equals(cache, null))
         {
@@ -1218,6 +1218,19 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    //                {
+    //                    "asset": "USDT",
+    //                    "free": "1021.21000000",
+    //                    "locked": "0.00000000"
+    //                }
+    //            ],
+    //            "permissions": [
+    //                "SPOT"
+    //            ]
+    //        }
+    //    }
+    // swap
+    //
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
     {
         return this.unWatchOrderBook(symbol, (Object) (parameters));
@@ -1603,7 +1616,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Object message)
+    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2553,7 +2566,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters) // account.status
+    //
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
     {
         return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, (Object) (parameters));
     }
@@ -3237,6 +3251,48 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchMarkPrice(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    //        "status": 200,
+    //        "result": {
+    //            "makerCommission": 15,
+    //            "takerCommission": 15,
+    //            "buyerCommission": 0,
+    //            "sellerCommission": 0,
+    //            "canTrade": true,
+    //            "canWithdraw": true,
+    //            "canDeposit": true,
+    //            "commissionRates": {
+    //                "maker": "0.00150000",
+    //                "taker": "0.00150000",
+    //                "buyer": "0.00000000",
+    //                "seller": "0.00000000"
+    //            },
+    //            "brokered": false,
+    //            "requireSelfTradePrevention": false,
+    //            "updateTime": 1660801833000,
+    //            "accountType": "SPOT",
+    //            "balances": [{
+    //                    "asset": "BNB",
+    //                    "free": "0.00000000",
+    //                    "locked": "0.00000000"
+    //                },
+    //                {
+    //                    "asset": "BTC",
+    //                    "free": "1.3447112",
+    //                    "locked": "0.08600000"
+    //                },
+    //                {
+    //                    "asset": "USDT",
+    //                    "free": "1021.21000000",
+    //                    "locked": "0.00000000"
+    //                }
+    //            ],
+    //            "permissions": [
+    //                "SPOT"
+    //            ]
+    //        }
+    //    }
+    // swap
+    //
     public CompletableFuture<Object> unWatchMarkPrice(String symbol, Map<String, Object> parameters)
     {
         return this.unWatchMarkPrice(symbol, (Object) (parameters));
@@ -4070,7 +4126,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return this.ensureUserDataStreamWsSubscribeSignature(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "spot");
     }
 
-    public void handleUserDataStreamSubscribe(Client client, Object message)
+    public void handleUserDataStreamSubscribe(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -6689,7 +6745,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         this.handleMyTrade(client, (Map<String, Object>) (message));
         this.handleOrder(client, (Map<String, Object>) (message));
-        this.handleMyLiquidation(client, message);
+        this.handleMyLiquidation(client, (Map<String, Object>) (message));
     }
 
     public void handleStockPrice(Client client, Map<String, Object> message)
@@ -7699,7 +7755,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 {
                     Helpers.addElementToObject(parsed, "fee", fee);
                 }
-                Object fees = this.safeValue(order, "fees");
+                List<Object> fees = (List<Object>) this.safeList(order, "fees");
                 if (!java.util.Objects.equals(fees, null))
                 {
                     ((Map<String, Object>)parsed).put("fees", fees);
@@ -7726,7 +7782,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         this.handlePositions(client, (Map<String, Object>) (message));
     }
 
-    public void handleOptionsAccountUpdate(Client client, Object message)
+    public void handleOptionsAccountUpdate(Client client, Map<String, Object> message)
     {
         //
         // BALANCE_POSITION_UPDATE (options user data stream)
@@ -7811,7 +7867,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         client.resolve(newPositions, (accountType + ":positions"));
     }
 
-    public void handleWsError(Client client, Object message)
+    public void handleWsError(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -7865,7 +7921,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
     }
 
-    public void handleEventStreamTerminated(Client client, Object message)
+    public void handleEventStreamTerminated(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -7909,7 +7965,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Object error = this.safeValue(message, "error");
         if ((!java.util.Objects.equals(error, null)) || (!java.util.Objects.equals(status, null) && !java.util.Objects.equals(status, "200")))
         {
-            this.handleWsError(client, message);
+            this.handleWsError(client, (Map<String, Object>) (message));
             return;
         }
         // user subscription wraps message in subscriptionId and event
@@ -7971,7 +8027,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String requestId = this.safeString(message, "id");
             if (!java.util.Objects.equals(requestId, null))
             {
-                this.handleSubscriptionStatus(client, message);
+                this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
                 return;
             }
             // special case for the real-time bookTicker, since it comes without an event identifier

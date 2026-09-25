@@ -4488,8 +4488,8 @@ final Object finalClobTokenId = clobTokenId;
         }
         Object orderbook = ((Map<?, ?>)this.orderbooks).get(outcome);
         Object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
-        Object rawBids = (List<Object>)(this.safeList(eventVar, "bids", new ArrayList<Object>(Arrays.asList())));
-        Object rawAsks = (List<Object>)(this.safeList(eventVar, "asks", new ArrayList<Object>(Arrays.asList())));
+        List<Object> rawBids = (List<Object>) this.safeList(eventVar, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawAsks = (List<Object>) this.safeList(eventVar, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawBids).size(); i++)
         {
@@ -4520,7 +4520,7 @@ final String finalOutcome = outcome;
     public void handleOrderBookDelta(Client client, Map<String, Object> eventVar)
     {
         Object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
-        Object changes = (List<Object>)(this.safeList(eventVar, "price_changes", new ArrayList<Object>(Arrays.asList())));
+        List<Object> changes = (List<Object>) this.safeList(eventVar, "price_changes", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> updated = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)changes).size(); i++)
         {

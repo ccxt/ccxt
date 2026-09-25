@@ -2052,7 +2052,7 @@ public class Paradex extends ParadexApi
         return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
     }
 
-    public CompletableFuture<Object> getSystemConfig()
+    public CompletableFuture<Map<String, Object>> getSystemConfig()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2093,7 +2093,7 @@ public class Paradex extends ParadexApi
             //
             Helpers.addElementToObject(this.options, "systemConfig", response);
             return this.safeDict(this.options, "systemConfig", new HashMap<String, Object>() {{}});
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -2102,7 +2102,7 @@ public class Paradex extends ParadexApi
         final Object l13 = l12;
         return BaseExchange.supplyAsync(() -> {
             Object l1 = l13;
-            Object systemConfig = (this.getSystemConfig()).join();
+            Map<String, Object> systemConfig = (this.getSystemConfig()).join();
             if (java.util.Objects.equals(l1, true))
             {
                 Map<String, Object> l1D = new HashMap<String, Object>() {{
@@ -2126,7 +2126,7 @@ public class Paradex extends ParadexApi
         return this.prepareParadexDomain(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
     }
 
-    public CompletableFuture<Object> retrieveAccount()
+    public CompletableFuture<Map<String, Object>> retrieveAccount()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2137,7 +2137,7 @@ public class Paradex extends ParadexApi
                 return cachedAccount;
             }
             this.checkRequiredCredentials();
-            Object systemConfig = (this.getSystemConfig()).join();
+            Map<String, Object> systemConfig = (this.getSystemConfig()).join();
             Map<String, Object> domain = (this.prepareParadexDomain(true)).join();
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Constant", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2153,7 +2153,7 @@ public class Paradex extends ParadexApi
             Object account = this.retrieveStarkAccount(signature, ((Map<String, Object>)systemConfig).get("paraclear_account_hash"), ((Map<String, Object>)systemConfig).get("paraclear_account_proxy_hash"));
             Helpers.addElementToObject(this.options, "paradexAccount", account);
             return account;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -2162,7 +2162,7 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object account = (this.retrieveAccount()).join();
+            Map<String, Object> account = (this.retrieveAccount()).join();
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "action", "Onboarding" );
             }};
@@ -2173,11 +2173,11 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }})) );
             }};
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, Helpers.GetValue(account, "address"));
-            Object signature = this.starknetSign(msg, Helpers.GetValue(account, "privateKey"));
+            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, ((Map<String, Object>)account).get("address"));
+            Object signature = this.starknetSign(msg, ((Map<String, Object>)account).get("privateKey"));
             ((Map<String, Object>)parameters).put("signature", signature);
-            ((Map<String, Object>)parameters).put("account", Helpers.GetValue(account, "address"));
-            ((Map<String, Object>)parameters).put("public_key", Helpers.GetValue(account, "publicKey"));
+            ((Map<String, Object>)parameters).put("account", ((Map<String, Object>)account).get("address"));
+            ((Map<String, Object>)parameters).put("public_key", ((Map<String, Object>)account).get("publicKey"));
             Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
             return response;
         });
@@ -2188,7 +2188,7 @@ public class Paradex extends ParadexApi
         return this.onboarding(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> authenticateRest(Map<String, Object> parameters)
+    public CompletableFuture<String> authenticateRest(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2207,7 +2207,7 @@ public class Paradex extends ParadexApi
                     return cachedToken;
                 }
             }
-            Object account = (this.retrieveAccount()).join();
+            Map<String, Object> account = (this.retrieveAccount()).join();
             // https://docs.paradex.trade/api-reference/general-information/authentication
             Object expires = (now + 180L);
             final Long finalNow = now;
@@ -2237,10 +2237,10 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }})) );
             }};
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, Helpers.GetValue(account, "address"));
-            Object signature = this.starknetSign(msg, Helpers.GetValue(account, "privateKey"));
+            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, ((Map<String, Object>)account).get("address"));
+            Object signature = this.starknetSign(msg, ((Map<String, Object>)account).get("privateKey"));
             ((Map<String, Object>)parameters).put("signature", signature);
-            ((Map<String, Object>)parameters).put("account", Helpers.GetValue(account, "address"));
+            ((Map<String, Object>)parameters).put("account", ((Map<String, Object>)account).get("address"));
             ((Map<String, Object>)parameters).put("timestamp", req.get("timestamp"));
             ((Map<String, Object>)parameters).put("expiration", req.get("expiration"));
             Map<String, Object> response = (this.privatePostAuth(parameters)).join();
@@ -2253,10 +2253,10 @@ public class Paradex extends ParadexApi
             Helpers.addElementToObject(this.options, "authToken", token);
             Helpers.addElementToObject(this.options, "expires", expires);
             return token;
-        });
+        }).thenApply(res -> (String) res);
 
     }
-    public CompletableFuture<Object> authenticateRest(Object... optionalArgs)
+    public CompletableFuture<String> authenticateRest(Object... optionalArgs)
     {
         return this.authenticateRest(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -2519,7 +2519,7 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object account = (this.retrieveAccount()).join();
+            Map<String, Object> account = (this.retrieveAccount()).join();
             Long now = this.nonce();
             String orderType = this.safeString(request, "type");
             if (java.util.Objects.equals(orderType, null))
@@ -2573,8 +2573,8 @@ public class Paradex extends ParadexApi
                 }};
             }
             Map<String, Object> domain = (this.prepareParadexDomain()).join();
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, Helpers.GetValue(account, "address"));
-            Object signature = this.starknetSign(msg, Helpers.GetValue(account, "privateKey"));
+            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, ((Map<String, Object>)account).get("address"));
+            Object signature = this.starknetSign(msg, ((Map<String, Object>)account).get("privateKey"));
             request.put("signature", signature);
             request.put("signature_timestamp", ((Map<String, Object>)orderReq).get("timestamp"));
             return request;
@@ -3268,7 +3268,7 @@ public class Paradex extends ParadexApi
             if ((!java.util.Objects.equals(paginationCursor, null)) && (Helpers.isGreaterThan(ordersLength, 0)))
             {
                 Object first = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
-                Helpers.addElementToObject(first, "next", paginationCursor);
+                ((Map<String, Object>)first).put("next", paginationCursor);
                 Helpers.addElementToObject(orders, 0, first);
             }
             return this.parseOrders(orders, market, since, limit);

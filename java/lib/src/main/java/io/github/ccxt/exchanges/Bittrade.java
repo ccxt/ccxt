@@ -1772,7 +1772,7 @@ public class Bittrade extends BittradeApi
             {
                 throw new ExchangeError((this.id + " parseBalance() could not resolve account")) ;
             }
-            if (java.util.Objects.equals(Helpers.GetValue(balance, "type"), "trade"))
+            if (java.util.Objects.equals(((Map<String, Object>)balance).get("type"), "trade"))
             {
                 ((Map<String, Object>)account).put("free", this.safeString(balance, "balance"));
             }
@@ -1780,7 +1780,7 @@ public class Bittrade extends BittradeApi
             {
                 throw new ExchangeError((this.id + " parseBalance() could not resolve account")) ;
             }
-            if (java.util.Objects.equals(Helpers.GetValue(balance, "type"), "frozen"))
+            if (java.util.Objects.equals(((Map<String, Object>)balance).get("type"), "frozen"))
             {
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "balance"));
             }

@@ -2766,7 +2766,7 @@ public class Htx extends HtxApi
                 Object settleId = null;
                 Object id = null;
                 Object lowercaseId = null;
-                Boolean contract = (Helpers.inOp(market, "contract_code"));
+                Boolean contract = (((Map<?, ?>)market).containsKey("contract_code"));
                 Boolean spot = !Boolean.TRUE.equals(contract);
                 Boolean swap = false;
                 Boolean future = false;
@@ -4608,7 +4608,7 @@ public class Htx extends HtxApi
         //
         String typeId = this.safeString(account, "type");
         Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
-        Object type = this.safeValue(accountsById, typeId, typeId);
+        String type = this.safeString(accountsById, typeId, typeId);
         return new HashMap<String, Object>() {{
             put( "info", account );
             put( "id", Htx.this.safeString(account, "id") );
@@ -4870,8 +4870,8 @@ public class Htx extends HtxApi
         {
             throw new ExchangeError((this.id + " networkIdToCode() - markets need to be loaded at first")) ;
         }
-        Object networkTitle = this.safeValue(((Map<String, Object>)this.options).get("networkNamesByChainIds"), networkId, networkId);
-        return (String) (super.networkIdToCode(Helpers.toStringArg(networkTitle), currencyCode));
+        String networkTitle = this.safeString(((Map<String, Object>)this.options).get("networkNamesByChainIds"), networkId, networkId);
+        return (String) (super.networkIdToCode(networkTitle, currencyCode));
     }
     public String networkIdToCode(Object... optionalArgs)
     {
@@ -4901,7 +4901,7 @@ public class Htx extends HtxApi
         } else
         {
             Object networkTitle = super.networkCodeToId(networkCode, currencyCode);
-            return this.safeValue(uniqueNetworkIds, networkTitle, networkTitle);
+            return this.safeString(uniqueNetworkIds, networkTitle, networkTitle);
         }
     }
     public Object networkCodeToId(String networkCode, Object... optionalArgs)
@@ -9853,7 +9853,7 @@ public class Htx extends HtxApi
                 for (var i = 0; i < ((List<?>)result).size(); i++)
                 {
                     Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
-                    Helpers.addElementToObject(entry, "current_page", cursor);
+                    ((Map<String, Object>)entry).put("current_page", cursor);
                     String marketId = this.safeString(entry, "contract_code");
                     String symbolInner = this.safeSymbol(marketId);
                     Long timestamp = this.safeInteger(entry, "funding_time");

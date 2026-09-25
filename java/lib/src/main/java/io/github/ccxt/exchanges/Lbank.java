@@ -1716,7 +1716,7 @@ public class Lbank extends LbankApi
             put( "timestamp", timestamp );
             put( "datetime", Lbank.this.iso8601(timestamp) );
         }};
-        Object data = this.safeValue(response, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
         // from spotPrivatePostUserInfo
         Object toBtc = this.safeValue(data, "toBtc");
         if (!java.util.Objects.equals(toBtc, null))

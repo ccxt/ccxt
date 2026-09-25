@@ -1085,7 +1085,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1797,7 +1797,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         String messageHash = this.safeString(message, "method");
-        Object parameters = this.safeValue(message, "params");
+        List<Object> parameters = (List<Object>) this.safeList(message, "params");
         Map<String, Object> balance = (Map<String, Object>) this.parseBalance(parameters);
         this.balance = this.deepExtend(this.balance, balance);
         client.resolve(this.balance, messageHash);

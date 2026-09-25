@@ -3532,7 +3532,7 @@ final Object finalNetworkId = networkId;
         //     }
         //
         String outcomeId = (((!java.util.Objects.equals(market, null) && !java.util.Objects.equals(market, null)))) ? this.safeString(((Map<String, Object>)market).get("info"), "outcomeId") : null;
-        Object outcomes = (List<Object>)(this.safeList(raw, "outcomes", new ArrayList<Object>(Arrays.asList())));
+        List<Object> outcomes = (List<Object>) this.safeList(raw, "outcomes", new ArrayList<Object>(Arrays.asList()));
         Double price = null;
         Double change = null;
         for (var i = 0; i < ((List<?>)outcomes).size(); i++)
@@ -3720,7 +3720,7 @@ final Object finalNetworkId = networkId;
             //         "externalSources": []
             //     }
             //
-            Object outcomes = (List<Object>)(this.safeList(response, "outcomes", new ArrayList<Object>(Arrays.asList())));
+            List<Object> outcomes = (List<Object>) this.safeList(response, "outcomes", new ArrayList<Object>(Arrays.asList()));
             Double price = null;
             for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {

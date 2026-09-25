@@ -1671,7 +1671,7 @@ public class Dydx extends DydxApi
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "action", "dYdX Chain Onboarding" );
         }};
-        Object chainId = ((Map<String, Object>)this.options).get("chainId");
+        Long chainId = this.safeInteger(this.options, "chainId");
         Map<String, Object> domain = new HashMap<String, Object>() {{
             put( "chainId", chainId );
             put( "name", "dYdX Chain" );
@@ -1724,7 +1724,7 @@ public class Dydx extends DydxApi
         return credentials;
     }
 
-    public CompletableFuture<Object> fetchDydxAccount()
+    public CompletableFuture<Map<String, Object>> fetchDydxAccount()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1767,7 +1767,7 @@ public class Dydx extends DydxApi
     }});
             Helpers.addElementToObject(this.options, "dydxAccount", account);
             return account;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -2038,7 +2038,7 @@ public class Dydx extends DydxApi
                 (this.loadMarkets()).join();
             }
             Object credentials = this.retrieveCredentials();
-            Object account = (this.fetchDydxAccount()).join();
+            Map<String, Object> account = (this.fetchDydxAccount()).join();
             Long lastBlockHeight = (this.fetchLatestBlockHeight()).join();
             // params['latestBlockHeight'] = lastBlockHeight;
             Map<String, Object> newParams = this.extend(parameters, new HashMap<String, Object>() {{
@@ -2047,8 +2047,8 @@ public class Dydx extends DydxApi
             List<Object> orderRequestRes = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, newParams);
             Object orderId = (orderRequestRes == null || 0 >= ((List<?>)orderRequestRes).size() ? null : ((List<?>)orderRequestRes).get(0));
             Object orderRequest = (orderRequestRes == null || 1 >= ((List<?>)orderRequestRes).size() ? null : ((List<?>)orderRequestRes).get(1));
-            Object chainName = ((Map<String, Object>)this.options).get("chainName");
-            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), orderRequest, "", (String) (chainName), account, null);
+            String chainName = this.safeString(this.options, "chainName");
+            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), orderRequest, "", chainName, account, null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx", signedTx );
             }};
@@ -2186,7 +2186,7 @@ public class Dydx extends DydxApi
                 }
             }
             Object credentials = this.retrieveCredentials();
-            Object account = (this.fetchDydxAccount()).join();
+            Map<String, Object> account = (this.fetchDydxAccount()).join();
             final Object finalSubAccountId = subAccountId;
             final String finalClientOrderId = clientOrderId;
             final Long finalOrderFlags = orderFlags;
@@ -2209,8 +2209,8 @@ public class Dydx extends DydxApi
                 put( "typeUrl", "/dydxprotocol.clob.MsgCancelOrder" );
                 put( "value", cancelPayload );
             }};
-            Object chainName = ((Map<String, Object>)this.options).get("chainName");
-            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, "", (String) (chainName), account, null);
+            String chainName = this.safeString(this.options, "chainName");
+            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, "", chainName, account, null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx", signedTx );
             }};
@@ -2295,7 +2295,7 @@ public class Dydx extends DydxApi
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "goodTillBlock", "subaccountId")));
             Object credentials = this.retrieveCredentials();
-            Object account = (this.fetchDydxAccount()).join();
+            Map<String, Object> account = (this.fetchDydxAccount()).join();
             final List<Object> finalClientOrderIds = clientOrderIds;
             Map<String, Object> cancelOrders = new HashMap<String, Object>() {{
                 put( "clientIds", finalClientOrderIds );
@@ -2315,8 +2315,8 @@ public class Dydx extends DydxApi
                 put( "typeUrl", "/dydxprotocol.clob.MsgBatchCancel" );
                 put( "value", cancelPayload );
             }};
-            Object chainName = ((Map<String, Object>)this.options).get("chainName");
-            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, "", (String) (chainName), account, null);
+            String chainName = this.safeString(this.options, "chainName");
+            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, "", chainName, account, null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx", signedTx );
             }};
@@ -2545,7 +2545,7 @@ public class Dydx extends DydxApi
         return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> estimateTxFee(Object message, String memo, Object account)
+    public CompletableFuture<Map<String, Object>> estimateTxFee(Object message, String memo, Object account)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2607,7 +2607,7 @@ public class Dydx extends DydxApi
                 put( "amount", new ArrayList<Object>(Arrays.asList(feeObj)) );
                 put( "gasLimit", gasLimit );
             }};
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -2656,7 +2656,7 @@ public class Dydx extends DydxApi
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("fromSubaccountId", "toSubaccountId")));
             Object credentials = this.retrieveCredentials();
-            Object account = (this.fetchDydxAccount()).join();
+            Map<String, Object> account = (this.fetchDydxAccount()).join();
             Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
             Map<String, Object> payload = null;
             Map<String, Object> signingPayload = null;
@@ -2707,9 +2707,9 @@ public class Dydx extends DydxApi
                     put( "value", finalPayload_2 );
                 }};
             }
-            Object txFee = (this.estimateTxFee(signingPayload, "", account)).join();
-            Object chainName = ((Map<String, Object>)this.options).get("chainName");
-            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, "", (String) (chainName), account, null, txFee);
+            Map<String, Object> txFee = (this.estimateTxFee(signingPayload, "", account)).join();
+            String chainName = this.safeString(this.options, "chainName");
+            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, "", chainName, account, null, txFee);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx", signedTx );
             }};
@@ -2945,7 +2945,7 @@ public class Dydx extends DydxApi
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("subaccountId")));
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Object credentials = this.retrieveCredentials();
-            Object account = (this.fetchDydxAccount()).join();
+            Map<String, Object> account = (this.fetchDydxAccount()).join();
             Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
             final Long finalSubaccountId = subaccountId;
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -2961,9 +2961,9 @@ public class Dydx extends DydxApi
                 put( "typeUrl", "/dydxprotocol.sending.MsgWithdrawFromSubaccount" );
                 put( "value", payload );
             }};
-            Object txFee = (this.estimateTxFee(signingPayload, (String) (tag), account)).join();
-            Object chainName = ((Map<String, Object>)this.options).get("chainName");
-            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, (String) (tag), (String) (chainName), account, null, txFee);
+            Map<String, Object> txFee = (this.estimateTxFee(signingPayload, (String) (tag), account)).join();
+            String chainName = this.safeString(this.options, "chainName");
+            Object signedTx = this.signDydxTx((String) (Helpers.GetValue(credentials, "privateKey")), signingPayload, (String) (tag), chainName, account, null, txFee);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx", signedTx );
             }};

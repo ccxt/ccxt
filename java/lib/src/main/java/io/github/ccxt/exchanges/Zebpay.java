@@ -1821,7 +1821,7 @@ public class Zebpay extends ZebpayApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = null;
-            Object orders = new ArrayList<Object>(Arrays.asList());
+            List<Object> orders = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 request.put("currentPage", 1);
@@ -1831,7 +1831,7 @@ public class Zebpay extends ZebpayApi
                 }
                 response = (this.privateSpotGetV2ExOrders(this.extend(request, parameters))).join();
                 Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                orders = this.safeList(responseData, "items", new ArrayList<Object>(Arrays.asList()));
+                orders = (List<Object>) this.safeList(responseData, "items", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 if (!java.util.Objects.equals(since, null))
@@ -1844,7 +1844,7 @@ public class Zebpay extends ZebpayApi
                 }
                 response = (this.privateSwapGetV1TradeOrderOpenOrders(this.extend(request, parameters))).join();
                 Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                orders = this.safeList(responseData, "data", new ArrayList<Object>(Arrays.asList()));
+                orders = (List<Object>) this.safeList(responseData, "data", new ArrayList<Object>(Arrays.asList()));
             }
             //
             //     {

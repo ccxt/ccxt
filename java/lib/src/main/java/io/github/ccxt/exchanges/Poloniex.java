@@ -3617,7 +3617,7 @@ public class Poloniex extends PoloniexApi
             //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
             //     }
             //
-            return this.parseDepositAddressSpecial(response, currency, networkEntry);
+            return this.parseDepositAddressSpecial((Map<String, Object>) (response), currency, (Map<String, Object>) (networkEntry));
         }).thenApply(DepositAddress::new);
 
     }
@@ -3668,7 +3668,7 @@ public class Poloniex extends PoloniexApi
             {
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
             }
-            return this.parseDepositAddressSpecial(response, currency, networkEntry);
+            return this.parseDepositAddressSpecial((Map<String, Object>) (response), currency, (Map<String, Object>) (networkEntry));
         }).thenApply(DepositAddress::new);
 
     }
@@ -3722,25 +3722,25 @@ public class Poloniex extends PoloniexApi
         return this.prepareRequestForDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Map<String, Object> parseDepositAddressSpecial(Object response, Object currency, Object networkEntry)
+    public Map<String, Object> parseDepositAddressSpecial(Map<String, Object> response, Object currency, Map<String, Object> networkEntry)
     {
         String address = this.safeString(response, "address");
         if (java.util.Objects.equals(address, null))
         {
-            address = this.safeString(response, Helpers.GetValue(networkEntry, "id"));
+            address = this.safeString(response, ((Map<String, Object>)networkEntry).get("id"));
         }
         String tag = null;
         this.checkAddress(address);
         if (!java.util.Objects.equals(networkEntry, null))
         {
-            String depositAddress = this.safeString(Helpers.GetValue(networkEntry, "info"), "depositAddress");
+            String depositAddress = this.safeString(((Map<String, Object>)networkEntry).get("info"), "depositAddress");
             if (!java.util.Objects.equals(depositAddress, null))
             {
                 tag = address;
                 address = depositAddress;
             }
         }
-        final Object finalNetworkEntry = networkEntry;
+        final Map<String, Object> finalNetworkEntry = networkEntry;
         final String finalAddress = address;
         final String finalTag = tag;
         return new HashMap<String, Object>() {{

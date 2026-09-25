@@ -2751,7 +2751,7 @@ public class Deribit extends DeribitApi
             put( "postOnly", postOnly );
             put( "side", side );
             put( "price", finalPriceString );
-            put( "triggerPrice", Deribit.this.safeValue(order, "stop_price") );
+            put( "triggerPrice", Deribit.this.safeNumber(order, "stop_price") );
             put( "amount", amount );
             put( "cost", finalCost );
             put( "average", finalAverageString );

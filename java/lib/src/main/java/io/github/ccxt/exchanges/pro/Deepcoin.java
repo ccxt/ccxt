@@ -1569,14 +1569,14 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             }
-            Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition(data, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (data), market);
             Helpers.callDynamically(this.positions, "append", new Object[]{parsed});
             client.resolve(this.positions, messageHash);
             client.resolve(this.positions, symbolMessageHash);
         }
     }
 
-    public Object parseWsPosition(Object position, Map<String, Object> market)
+    public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {
@@ -1627,7 +1627,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             put( "info", position );
         }});
     }
-    public Object parseWsPosition(Object position, Object... optionalArgs)
+    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
     {
         return this.parseWsPosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }

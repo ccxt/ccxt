@@ -2635,7 +2635,7 @@ public class Grvt extends GrvtApi
         return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public CompletableFuture<Object> loadAccountInfos()
+    public CompletableFuture<Boolean> loadAccountInfos()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2700,7 +2700,7 @@ public class Grvt extends GrvtApi
                 Helpers.addElementToObject(this.options, "accountId", subAccountId);
             }
             return true;
-        });
+        }).thenApply(res -> (Boolean) res);
 
     }
 
@@ -3062,12 +3062,12 @@ public class Grvt extends GrvtApi
         for (var i = 0; i < ((List<?>)orderLegs).size(); i++)
         {
             Object leg = (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
-            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(leg, "instrument"));
+            Map<String, Object> market = (Map<String, Object>) this.market(((Map<String, Object>)leg).get("instrument"));
             Object bigInt10 = this.convertToBigIntCustom("10");
             Object precisionValue = this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "base"));
             String precisionValueStr = String.valueOf(precisionValue);
             Object sizeMultiplier = Math.pow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(precisionValueStr))));
-            Object size = Helpers.GetValue(leg, "size");
+            Object size = ((Map<String, Object>)leg).get("size");
             List<Object> sizeParts = (List<Object>) Helpers.split(size, ".");
             String sizeDec = this.safeString(sizeParts, 1, "");
             Object sizeDecLength = (((long) sizeDec.length()) + 0L); // php tr
@@ -3076,12 +3076,12 @@ public class Grvt extends GrvtApi
             Map<String, Object> legOrder = new HashMap<String, Object>() {{
                 put( "assetID", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instrument_hash") );
                 put( "contractSize", Grvt.this.parseToInt(sizeInteger) );
-                put( "isBuyingContract", Helpers.GetValue(leg, "is_buying_asset") );
+                put( "isBuyingContract", ((Map<String, Object>)leg).get("is_buying_asset") );
             }};
             String limitPrice = this.safeString(leg, "limit_price");
             if (!java.util.Objects.equals(this.omitZero(limitPrice), null))
             {
-                Object price = Helpers.GetValue(leg, "limit_price");
+                Object price = ((Map<String, Object>)leg).get("limit_price");
                 List<Object> limitParts = (List<Object>) Helpers.split(price, ".");
                 String limitDec = this.safeString(limitParts, 1, "");
                 Object limitDecLength = (((long) limitDec.length()) + 0L); // php tr

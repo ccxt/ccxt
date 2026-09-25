@@ -1961,9 +1961,9 @@ public class Toobit extends ToobitApi
     public Object parseBidsAsksCustom(Object tickers, List<String> symbols, Map<String, Object> parameters)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(tickers); i++)
+        for (var i = 0; i < ((List<?>)tickers).size(); i++)
         {
-            Map<String, Object> parsedTicker = this.parseBidAskCustom((Map<String, Object>) (Helpers.GetValue(tickers, i)));
+            Map<String, Object> parsedTicker = this.parseBidAskCustom((Map<String, Object>) ((tickers == null || i < 0 || i >= ((List<?>)tickers).size() ? null : ((List<?>)tickers).get(i))));
             Map<String, Object> ticker = this.extend(parsedTicker, parameters);
             ((List<Object>)results).add(ticker);
         }

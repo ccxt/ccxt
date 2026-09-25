@@ -591,7 +591,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         // ]
         //
         String name = "myTrade";
-        Object data = this.safeValue(message, 2);
+        List<Object> data = (List<Object>) this.safeList(message, 2);
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data));
         String symbol = (String) ((Map<String, Object>)trade).get("symbol");
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -1213,7 +1213,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //       null
         //   ]
         //
-        Object updateType = this.safeValue(message, 1);
+        String updateType = this.safeString(message, 1);
         Object data = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(updateType, "ws"))
         {

@@ -1205,7 +1205,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         List<String> balanceKeys = new ArrayList<String>(Arrays.asList("locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"));
         for (var i = 0; i < ((List<?>)balanceKeys).size(); i++)
         {
-            Object newBalance = this.safeValue(update, Helpers.GetValue(balanceKeys, i));
+            Map<String, Object> newBalance = (Map<String, Object>) this.safeDict(update, Helpers.GetValue(balanceKeys, i));
             if (!java.util.Objects.equals(newBalance, null))
             {
                 this.updateBalance((Map<String, Object>) (newBalance));

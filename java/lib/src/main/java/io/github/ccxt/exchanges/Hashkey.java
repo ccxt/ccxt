@@ -3014,7 +3014,7 @@ public class Hashkey extends HashkeyApi
         }};
     }
 
-    public String parseAccountType(Object type)
+    public String parseAccountType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "1", "spot account" );
