@@ -1384,8 +1384,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), deltaNonce);
         let mut asks: Value = self.safe_list_k(delta.clone(), "asks", &[Value::from(vec![])]);
         let mut bids: Value = self.safe_list_k(delta, "bids", &[Value::from(vec![])]);
-        let mut asksOrderSide: Value = crate::value::get_value_k(&orderbook, "asks");
-        let mut bidsOrderSide: Value = crate::value::get_value_k(&orderbook, "bids");
+        let mut asksOrderSide: Value = get_value(&orderbook, &Value::Str("asks".into()));
+        let mut bidsOrderSide: Value = get_value(&orderbook, &Value::Str("bids".into()));
         self.handle_bookside_delta(asksOrderSide, asks);
         self.handle_bookside_delta(bidsOrderSide, bids);
 }

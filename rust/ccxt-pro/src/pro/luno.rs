@@ -614,8 +614,8 @@ impl LunoCore {
         //     }
         //
         let mut createUpdate: Value = self.safe_dict_k(message.clone(), "create_update", &[]);
-        let mut asksOrderSide: Value = crate::value::get_value_k(&orderbook, "asks");
-        let mut bidsOrderSide: Value = crate::value::get_value_k(&orderbook, "bids");
+        let mut asksOrderSide: Value = get_value(&orderbook, &Value::Str("asks".into()));
+        let mut bidsOrderSide: Value = get_value(&orderbook, &Value::Str("bids".into()));
         if (createUpdate != Value::Null) {
             let mut bidAskArray: Value = self.custom_parse_bid_ask(createUpdate.clone(), &[Value::Str("price".into()), Value::Str("volume".into()), Value::Str("order_id".into())]);
             let mut type_var: Option<String> = self.safe_string_k(createUpdate, "type", &[]).as_str().map(str::to_owned);

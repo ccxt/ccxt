@@ -474,8 +474,8 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
-        self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]));
+        self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
+        self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]));
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(data, "offset", &[]));
         let mut timestamp: Value = self.safe_integer_k(message, "timestamp", &[]);
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());

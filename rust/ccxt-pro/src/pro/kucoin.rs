@@ -2545,8 +2545,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         let mut change: Value = self.safe_string_k(delta.clone(), "change", &[]);
         let mut changes: Value = self.safe_dict_k(delta.clone(), "changes", &[delta.clone()]);
-        let mut storedBids: Value = crate::value::get_value_k(&orderbook, "bids");
-        let mut storedAsks: Value = crate::value::get_value_k(&orderbook, "asks");
+        let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
+        let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".into()));
         if (change != Value::Null) {
             // handling futures orderbook update
             let mut splitChange: Value = split(&change, &Value::Str(",".into()));

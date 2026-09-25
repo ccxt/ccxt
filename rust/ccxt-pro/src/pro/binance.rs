@@ -1633,8 +1633,8 @@ impl BinanceCore {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut u: Value = (match message.get("u") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), (match message.get("a") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
-        self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), (match message.get("b") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
+        self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), (match message.get("a") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
+        self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), (match message.get("b") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), u);
         let mut timestamp: Value = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());

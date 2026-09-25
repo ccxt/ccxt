@@ -1325,8 +1325,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut bids: Value = crate::value::get_value_k(&orderbook, "bids");
-        let mut asks: Value = crate::value::get_value_k(&orderbook, "asks");
+        let mut bids: Value = get_value(&orderbook, &Value::Str("bids".into()));
+        let mut asks: Value = get_value(&orderbook, &Value::Str("asks".into()));
         let mut side: Option<String> = self.safe_string_k(data.clone(), "D", &[]).as_str().map(str::to_owned);
         let mut price: Value = self.safe_number_k(data.clone(), "P", &[]);
         let mut volume: Value = self.safe_number_k(data, "V", &[]);
