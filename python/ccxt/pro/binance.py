@@ -858,7 +858,9 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('fetchOrderBookWs', market, params)
         if marketType != 'future':
             raise BadRequest(self.id + ' fetchOrderBookWs only supports swap markets')
-        url = self.urls['api']['ws']['ws-api'][marketType]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], marketType)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'fetchOrderBookWs', 'returnRateLimits', False)
@@ -1794,7 +1796,9 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchTickerWs', market, params)
         if type != 'future':
             raise BadRequest(self.id + ' fetchTickerWs only supports swap markets')
-        url = self.urls['api']['ws']['ws-api'][type]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         subscription = {
@@ -1835,7 +1839,9 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('fetchOHLCVWs', market, params)
         if marketType != 'spot' and marketType != 'future':
             raise BadRequest(self.id + ' fetchOHLCVWs only supports spot or swap markets')
-        url = self.urls['api']['ws']['ws-api'][marketType]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], marketType)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'fetchOHLCVWs', 'returnRateLimits', False)
@@ -2568,7 +2574,9 @@ class binance(ccxt.async_support.binance):
 
         :returns: Promise<number> The subscription ID for the user data stream
         """
-        url = self.urls['api']['ws']['ws-api'][marketType]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], marketType)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         client = self.client(url)
         subscriptions = client.subscriptions
         subscriptionsKeys = list(subscriptions.keys())
@@ -2640,7 +2648,9 @@ class binance(ccxt.async_support.binance):
 
         :returns: Promise<void>
         """
-        url = self.urls['api']['ws']['ws-api']['spot']
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], 'spot')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         options = self.safe_dict(self.options, marketType, {})
         lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
         listenTokenRefreshRate = self.safe_integer(self.options, 'listenTokenRefreshRate', 82800000)  # 23 hours default
@@ -2972,7 +2982,9 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchBalanceWs', None, params)
         if type != 'spot' and type != 'future' and type != 'delivery':
             raise BadRequest(self.id + ' fetchBalanceWs only supports spot or swap markets')
-        url = self.urls['api']['ws']['ws-api'][type]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'fetchBalanceWs', 'returnRateLimits', False)
@@ -3099,7 +3111,9 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         if type != 'future' and type != 'delivery':
             raise BadRequest(self.id + ' fetchPositionsWs only supports swap markets')
-        url = self.urls['api']['ws']['ws-api'][type]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'fetchPositionsWs', 'returnRateLimits', False)
@@ -3376,7 +3390,9 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('createOrderWs', market, params)
         if marketType != 'spot' and marketType != 'future' and marketType != 'delivery':
             raise BadRequest(self.id + ' createOrderWs only supports spot or swap markets')
-        url = self.urls['api']['ws']['ws-api'][marketType]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], marketType)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         sor = self.safe_bool_2(params, 'sor', 'SOR', False)
@@ -3534,7 +3550,9 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('editOrderWs', market, params)
         if marketType != 'spot' and marketType != 'future' and marketType != 'delivery':
             raise BadRequest(self.id + ' editOrderWs only supports spot or swap markets')
-        url = self.urls['api']['ws']['ws-api'][marketType]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], marketType)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         isSwap = (marketType == 'future' or marketType == 'delivery')
@@ -3686,7 +3704,9 @@ class binance(ccxt.async_support.binance):
             raise BadRequest(self.id + ' cancelOrderWs requires a symbol')
         market = self.market(symbol)
         type = self.get_market_type('cancelOrderWs', market, params)
-        url = self.urls['api']['ws']['ws-api'][type]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'cancelOrderWs', 'returnRateLimits', False)
@@ -3738,7 +3758,9 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('cancelAllOrdersWs', market, params)
         if type != 'spot':
             raise BadRequest(self.id + ' cancelAllOrdersWs only supports spot markets')
-        url = self.urls['api']['ws']['ws-api'][type]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'cancelAllOrdersWs', 'returnRateLimits', False)
@@ -3777,7 +3799,9 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchOrderWs', market, params)
         if type != 'spot' and type != 'future' and type != 'delivery':
             raise BadRequest(self.id + ' fetchOrderWs only supports spot or swap markets')
-        url = self.urls['api']['ws']['ws-api'][type]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'fetchOrderWs', 'returnRateLimits', False)
@@ -3824,7 +3848,9 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchOrdersWs', market, params)
         if type != 'spot':
             raise BadRequest(self.id + ' fetchOrdersWs only supports spot markets')
-        url = self.urls['api']['ws']['ws-api'][type]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'fetchOrdersWs', 'returnRateLimits', False)
@@ -3881,7 +3907,9 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchOpenOrdersWs', market, params)
         if type != 'spot':
             raise BadRequest(self.id + ' fetchOpenOrdersWs only supports spot markets')
-        url = self.urls['api']['ws']['ws-api'][type]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'fetchOpenOrdersWs', 'returnRateLimits', False)
@@ -4789,7 +4817,9 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchMyTradesWs', market, params)
         if type != 'spot' and type != 'future':
             raise BadRequest(self.id + ' fetchMyTradesWs does not support ' + type + ' markets')
-        url = self.urls['api']['ws']['ws-api'][type]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'fetchMyTradesWs', 'returnRateLimits', False)
@@ -4836,7 +4866,9 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchTradesWs', market, params)
         if type != 'spot' and type != 'future':
             raise BadRequest(self.id + ' fetchTradesWs does not support ' + type + ' markets')
-        url = self.urls['api']['ws']['ws-api'][type]
+        url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'fetchTradesWs', 'returnRateLimits', False)
