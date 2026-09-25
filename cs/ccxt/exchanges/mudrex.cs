@@ -385,7 +385,7 @@ public partial class mudrex : Exchange
         object startTime = null;
         if ((since != null))
         {
-            startTime = this.parseToInt((since / 1000));
+            startTime = this.parseToInt(((double?)since / 1000));
         } else
         {
             startTime = subtract(now, multiply(duration, requestLimit));
@@ -399,7 +399,7 @@ public partial class mudrex : Exchange
         object paramsOmitted = this.omit(parameters, new List<object>() {"price", "until"});
         if ((until != null))
         {
-            endTime = this.parseToInt((until / 1000));
+            endTime = this.parseToInt(((double?)until / 1000));
         } else if (isGreaterThan(endTime, now))
         {
             endTime = now;

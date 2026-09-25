@@ -677,12 +677,12 @@ public partial class polymarket : PredictionExchange
             int firstEventsLength = (firstEvents?.Count ?? 0);
             IDictionary<string, object> pagination = this.safeDict(first, "pagination", new Dictionary<string, object>() {});
             Int64? totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
-            object totalPages = Math.Ceiling(Convert.ToDouble((totalResults / pageSize)));
+            object totalPages = Math.Ceiling(Convert.ToDouble(((double?)totalResults / pageSize)));
             // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
             // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
             if ((resultLimit != null))
             {
-                double limitPages = Math.Ceiling(Convert.ToDouble((resultLimit / pageSize)));
+                double limitPages = Math.Ceiling(Convert.ToDouble(((double?)resultLimit / pageSize)));
                 if (isLessThan(limitPages, totalPages))
                 {
                     totalPages = limitPages;
@@ -797,7 +797,7 @@ public partial class polymarket : PredictionExchange
         // scope the listing: without a search query loadMarkets would otherwise dump every
         // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
         Int64? limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 200));
-        double maxPages = Math.Ceiling(Convert.ToDouble((limit / pageSize)));
+        double maxPages = Math.Ceiling(Convert.ToDouble(((double?)limit / pageSize)));
         string? status = this.safeString(parameters, "status", this.safeString(this.options, "defaultEventStatus", "active"));
         // sort maps to the gamma `order` field; 'volume' is the default ranking
         string? sort = this.safeString(parameters, "sort");
@@ -1659,7 +1659,7 @@ public partial class polymarket : PredictionExchange
         object endS = nowS;
         if ((since != null))
         {
-            startS = this.parseToInt((since / 1000));
+            startS = this.parseToInt(((double?)since / 1000));
             if ((limitVar != null))
             {
                 object endBound = this.sum(startS, multiply(multiply(limitVar, fidelityMin), 60));
@@ -1714,7 +1714,7 @@ public partial class polymarket : PredictionExchange
                 continue;
             }
             Int64? rawMs = (t * 1000);
-            object snappedMs = multiply((Math.Floor(Double.Parse(((rawMs / resolutionMs)).ToString()))), resolutionMs);
+            object snappedMs = multiply((Math.Floor(Double.Parse((((double?)rawMs / resolutionMs)).ToString()))), resolutionMs);
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             double? vol = this.safeNumber(item, "s");

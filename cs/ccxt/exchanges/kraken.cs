@@ -1370,7 +1370,7 @@ public partial class kraken : Exchange
         }
         if ((since != null))
         {
-            Int64? scaledSince = this.parseToInt((since / 1000));
+            Int64? scaledSince = this.parseToInt(((double?)since / 1000));
             if ((parsedTimeframe == null))
             {
                 throw new ExchangeError ((this.id + " fetchOHLCV() missing parsedTimeframe")) ;
@@ -1497,7 +1497,7 @@ public partial class kraken : Exchange
         }
         if ((since != null))
         {
-            request["start"] = this.parseToInt((since / 1000));
+            request["start"] = this.parseToInt(((double?)since / 1000));
         }
         string? until = this.safeString2(parameters, "until", "till");
         object paramsOmitted = ((until != null)) ? this.omit(parameters, new List<object>() {"until", "till"}) : parameters;
@@ -1760,7 +1760,7 @@ public partial class kraken : Exchange
         // https://github.com/ccxt/ccxt/issues/5677
         if ((since != null))
         {
-            request["since"] = this.numberToString(this.parseToInt((since / 1000))); // expected to be in seconds
+            request["since"] = this.numberToString(this.parseToInt(((double?)since / 1000))); // expected to be in seconds
         }
         if ((limit != null))
         {
@@ -2793,7 +2793,7 @@ public partial class kraken : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOrderTrades", new Dictionary<string, object>() {});
         Int64? batchSize = this.safeInteger(options, "batchSize", 20);
         int numTradeIds = (tradeIds?.Count ?? 0);
-        object numBatches = this.parseToInt((numTradeIds / batchSize));
+        object numBatches = this.parseToInt(((double)numTradeIds / batchSize));
         numBatches = this.sum(numBatches, 1);
         List<object> result = new List<object>() {};
         for (int j = 0; isLessThan(j, numBatches); j++)
@@ -2904,7 +2904,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((since != null))
         {
-            request["start"] = this.parseToInt((since / 1000));
+            request["start"] = this.parseToInt(((double?)since / 1000));
         }
         string? until = this.safeString2(parameters, "until", "till");
         object paramsOmitted = ((until != null)) ? this.omit(parameters, new List<object>() {"until", "till"}) : parameters;
@@ -3130,7 +3130,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((since != null))
         {
-            request["start"] = this.parseToInt((since / 1000));
+            request["start"] = this.parseToInt(((double?)since / 1000));
         }
         Int64? userref = this.safeInteger(parameters, "userref");
         object paramsOmitted = ((userref != null)) ? this.omit(parameters, "userref") : parameters;
@@ -3226,7 +3226,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((since != null))
         {
-            request["start"] = this.parseToInt((since / 1000));
+            request["start"] = this.parseToInt(((double?)since / 1000));
         }
         Int64? userref = this.safeInteger(parameters, "userref");
         object paramsOmitted = ((userref != null)) ? this.omit(parameters, "userref") : parameters;

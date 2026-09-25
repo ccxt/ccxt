@@ -1968,7 +1968,7 @@ public partial class PredictionExchange : BaseExchange
             return "";
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        Int64? byteLength = this.parseToInt(divide(((string)hex).Length, 2));
+        Int64? byteLength = this.parseToInt(((double)((string)hex).Length / 2));
         if ((byteLength == 0))
         {
             return "80";
@@ -1983,7 +1983,7 @@ public partial class PredictionExchange : BaseExchange
         }
         string? lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
-        Int64? lengthOfLength = this.parseToInt(divide(lengthHex.Length, 2));
+        Int64? lengthOfLength = this.parseToInt(((double)lengthHex.Length / 2));
         return ((this.intToBase16(add(183, lengthOfLength)) + lengthHex) + (hex));
     }
 
@@ -1994,14 +1994,14 @@ public partial class PredictionExchange : BaseExchange
         {
             concatenated = add(concatenated, getValue(items, i));
         }
-        Int64? byteLength = this.parseToInt(divide(((string)concatenated).Length, 2));
+        Int64? byteLength = this.parseToInt(((double)((string)concatenated).Length / 2));
         if (isLessThan(byteLength, 56))
         {
             return (this.intToBase16(add(192, byteLength)) + (concatenated));
         }
         string? lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
-        Int64? lengthOfLength = this.parseToInt(divide(lengthHex.Length, 2));
+        Int64? lengthOfLength = this.parseToInt(((double)lengthHex.Length / 2));
         return ((this.intToBase16(add(247, lengthOfLength)) + lengthHex) + (concatenated));
     }
 

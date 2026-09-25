@@ -564,89 +564,89 @@ public partial class gate : Exchange
                     { "unified", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "accounts", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "borrowable", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "transferable", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "transferables", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "batch_borrowable", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "loans", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "loan_records", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "interest_records", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "risk_units", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "unified_mode", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "estimate_rate", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "currency_discount_tiers", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "loan_margin_tiers", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "leverage/user_currency_config", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "leverage/user_currency_setting", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "delta_neutral", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "estimated_quick_repayment", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "account_mode", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "loans", new Dictionary<string, object>() {
-                                { "cost", divide(200, 15) },
+                                { "cost", ((double)200 / 15) },
                             } },
                             { "portfolio_calculator", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "leverage/user_currency_setting", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "collateral_currencies", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "delta_neutral", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "leverage/user_setting", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "quick_repayment", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "account_mode", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "put", new Dictionary<string, object>() {
                             { "unified_mode", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                     } },
@@ -700,10 +700,10 @@ public partial class gate : Exchange
                                 { "cost", 0.4 },
                             } },
                             { "cancel_batch_orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 75) },
+                                { "cost", ((double)20 / 75) },
                             } },
                             { "countdown_cancel_all", new Dictionary<string, object>() {
-                                { "cost", divide(20, 75) },
+                                { "cost", ((double)20 / 75) },
                             } },
                             { "amend_batch_orders", new Dictionary<string, object>() {
                                 { "cost", 0.4 },
@@ -717,22 +717,22 @@ public partial class gate : Exchange
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 75) },
+                                { "cost", ((double)20 / 75) },
                             } },
                             { "orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 75) },
+                                { "cost", ((double)20 / 75) },
                             } },
                             { "price_orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 75) },
+                                { "cost", ((double)20 / 75) },
                             } },
                             { "price_orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 75) },
+                                { "cost", ((double)20 / 75) },
                             } },
                             { "pov_orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 75) },
+                                { "cost", ((double)20 / 75) },
                             } },
                             { "pov_orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 75) },
+                                { "cost", ((double)20 / 75) },
                             } },
                         } },
                         { "patch", new Dictionary<string, object>() {
@@ -744,124 +744,124 @@ public partial class gate : Exchange
                     { "margin", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "accounts", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "account_book", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "funding_accounts", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "auto_repay", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "transferable", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/estimate_rate", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/loans", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/loan_records", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/interest_records", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/borrowable", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "user/loan_margin_tiers", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "user/account", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "loans", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "loans/{loan_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "loans/{loan_id}/repayment", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "loan_records", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "loan_records/{loan_record_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "borrowable", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "cross/accounts", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "cross/account_book", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "cross/loans", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "cross/loans/{loan_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "cross/repayments", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "cross/interest_records", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "cross/transferable", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "cross/estimate_rate", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "cross/borrowable", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "auto_repay", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/loans", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "leverage/user_market_setting", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "loans", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "merged_loans", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "loans/{loan_id}/repayment", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "cross/loans", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "cross/repayments", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "patch", new Dictionary<string, object>() {
                             { "loans/{loan_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "loan_records/{loan_record_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "loans/{loan_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                     } },
@@ -1042,431 +1042,431 @@ public partial class gate : Exchange
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "{settle}/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 75) },
+                                { "cost", ((double)20 / 75) },
                             } },
                             { "{settle}/orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 75) },
+                                { "cost", ((double)20 / 75) },
                             } },
                             { "{settle}/price_orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 75) },
+                                { "cost", ((double)20 / 75) },
                             } },
                             { "{settle}/price_orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 75) },
+                                { "cost", ((double)20 / 75) },
                             } },
                         } },
                     } },
                     { "delivery", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "{settle}/accounts", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/account_book", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/positions", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/positions/{contract}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/my_trades", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/position_close", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/liquidates", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/settlements", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/price_orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/price_orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "{settle}/positions/{contract}/margin", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/positions/{contract}/leverage", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/positions/{contract}/risk_limit", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/price_orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "{settle}/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/price_orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "{settle}/price_orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                     } },
                     { "options", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "my_settlements", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "accounts", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "account_book", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "positions", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "positions/{contract}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "position_close", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "my_trades", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "mmp", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "countdown_cancel_all", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "mmp", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "mmp/reset", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "put", new Dictionary<string, object>() {
                             { "orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                     } },
                     { "earn", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "uni/lends", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/lend_records", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/interests/{currency}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/interest_records", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/interest_status/{currency}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/chart", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/rate", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "staking/eth2/rate_records", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "dual/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "dual/balance", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "structured/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "staking/coins", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "staking/order_list", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "staking/award_list", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "staking/assets", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "dual/order-refund-preview", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "fixed-term/user/lend", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "fixed-term/user/history", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "autoinvest/coins", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "autoinvest/config", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "autoinvest/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "autoinvest/plans/detail", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "autoinvest/plans/list_info", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "autoinvest/plans/records", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/currencies", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "uni/currencies/{currency}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "uni/lends", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "staking/eth2/swap", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "dual/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "structured/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "staking/swap", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "dual/order-refund", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "dual/modify-order-reinvest", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "fixed-term/user/lend", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "fixed-term/user/pre-redeem", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "autoinvest/min_invest_amount", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "autoinvest/plans/add_position", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "autoinvest/plans/create", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "autoinvest/plans/stop", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "autoinvest/plans/update", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "put", new Dictionary<string, object>() {
                             { "uni/interest_reinvest", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "patch", new Dictionary<string, object>() {
                             { "uni/lends", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                     } },
                     { "loan", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "collateral/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "collateral/orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "collateral/repay_records", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "collateral/collaterals", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "collateral/total_amount", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "collateral/ltv", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "multi_collateral/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "multi_collateral/orders/{order_id}", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "multi_collateral/repay", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "multi_collateral/mortgage", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "multi_collateral/currency_quota", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "collateral/currencies", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "multi_collateral/currencies", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "multi_collateral/ltv", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "multi_collateral/fixed_rate", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "multi_collateral/current_rate", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "collateral/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "collateral/repay", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "collateral/collaterals", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "multi_collateral/orders", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "multi_collateral/repay", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "multi_collateral/mortgage", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                     } },
                     { "account", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "detail", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "main_keys", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "rate_limit", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "stp_groups", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "stp_groups/{stp_id}/users", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "stp_groups/debit_fee", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "debit_fee", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "stp_groups", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "stp_groups/{stp_id}/users", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "debit_fee", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "stp_groups/{stp_id}/users", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                     } },
                     { "rebate", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "agency/transaction_history", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "agency/commission_history", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "partner/transaction_history", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "partner/commission_history", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "partner/sub_list", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "broker/commission_history", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "broker/transaction_history", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "user/info", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "user/sub_relation", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                             { "partner/data/aggregated", new Dictionary<string, object>() {
-                                { "cost", divide(20, 15) },
+                                { "cost", ((double)20 / 15) },
                             } },
                         } },
                     } },
@@ -3657,7 +3657,7 @@ public partial class gate : Exchange
         if ((since != null))
         {
             // from should be integer
-            request["from"] = this.parseToInt((since / 1000));
+            request["from"] = this.parseToInt(((double?)since / 1000));
         }
         if ((limit != null))
         {
@@ -4493,13 +4493,13 @@ public partial class gate : Exchange
         Int64? until = this.safeInteger(paramsRequest, "until");
         if ((until != null))
         {
-            until = this.parseToInt((until / 1000));
+            until = this.parseToInt(((double?)until / 1000));
         }
         object paramsOmitted = this.omit(paramsRequest, "until");
         if ((since != null))
         {
             int duration = this.parseTimeframe(timeframeVar);
-            request["from"] = this.parseToInt((since / 1000));
+            request["from"] = this.parseToInt(((double?)since / 1000));
             object distance = multiply((subtract(limitValue, 1)), duration);
             object toTimestamp = this.sum(GetValue(request, "from"), distance);
             Int64 currentTimestamp = this.seconds();
@@ -4613,12 +4613,12 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            request["from"] = this.parseToInt((since / 1000));
+            request["from"] = this.parseToInt(((double?)since / 1000));
         }
         Int64? until = this.safeInteger(paramsRequest, "until");
         if ((until != null))
         {
-            request["to"] = this.parseToInt((until / 1000));
+            request["to"] = this.parseToInt(((double?)until / 1000));
         }
         List<object> response = await this.publicFuturesGetSettleFundingRate(this.extend(request, this.omit(paramsRequest, "until")));
         //
@@ -4740,7 +4740,7 @@ public partial class gate : Exchange
         Int64? until = this.safeInteger2(paramsPaginate, "to", "until");
         if ((until != null))
         {
-            request["to"] = this.parseToInt((until / 1000));
+            request["to"] = this.parseToInt(((double?)until / 1000));
         }
         if ((limit != null))
         {
@@ -4748,7 +4748,7 @@ public partial class gate : Exchange
         }
         if ((since != null) && ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)))
         {
-            request["from"] = this.parseToInt((since / 1000));
+            request["from"] = this.parseToInt(((double?)since / 1000));
         }
         List<object> response = null;
         if ((((market.ContainsKey("type") ? market["type"] : null) as string) == "spot") || (((market.ContainsKey("type") ? market["type"] : null) as string) == "margin"))
@@ -4935,11 +4935,11 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            request["from"] = this.parseToInt((since / 1000));
+            request["from"] = this.parseToInt(((double?)since / 1000));
         }
         if ((until != null))
         {
-            request["to"] = this.parseToInt((until / 1000));
+            request["to"] = this.parseToInt(((double?)until / 1000));
         }
         List<object> response = null;
         if ((type == "spot") || (type == "margin"))
@@ -5249,7 +5249,7 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            Int64? start = this.parseToInt((since / 1000));
+            Int64? start = this.parseToInt(((double?)since / 1000));
             request["from"] = start;
             request["to"] = this.sum(start, (((30L * 24L) * 60) * 60));
         }
@@ -5302,7 +5302,7 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            Int64? start = this.parseToInt((since / 1000));
+            Int64? start = this.parseToInt(((double?)since / 1000));
             request["from"] = start;
             request["to"] = this.sum(start, (((30L * 24L) * 60) * 60));
         }
@@ -6785,11 +6785,11 @@ public partial class gate : Exchange
         var paramsRequest = requestparamsRequestVariable[1];
         if ((since != null))
         {
-            request["from"] = this.parseToInt((since / 1000));
+            request["from"] = this.parseToInt(((double?)since / 1000));
         }
         if ((until != null))
         {
-            request["to"] = this.parseToInt((until / 1000));
+            request["to"] = this.parseToInt(((double?)until / 1000));
         }
         if ((limit != null))
         {
@@ -6838,7 +6838,7 @@ public partial class gate : Exchange
             if ((until != null))
             {
                 query = this.omit(query, "until");
-                request["to"] = this.parseToInt((until / 1000));
+                request["to"] = this.parseToInt(((double?)until / 1000));
             }
         }
         IList<object> lastIdfinalParamsVariable = (IList<object>)this.handleParamString2(query, "lastId", "last_id");
@@ -8724,7 +8724,7 @@ public partial class gate : Exchange
             object bodyPayload = ((bodySigned == null)) ? "" : bodySigned;
             string bodySignature = ((string)this.hash(this.encode(bodyPayload), sha512));
             Int64 nonce = this.nonce();
-            Int64? timestamp = this.parseToInt((nonce / 1000));
+            Int64? timestamp = this.parseToInt(((double)nonce / 1000));
             string timestampString = ((object)timestamp).ToString();
             string signaturePath = (("/api/" + this.version) + entirePath);
             List<object> payloadArray = new List<object> {method.ToUpper(), signaturePath, rawQueryString, bodySignature, timestampString};
@@ -8900,7 +8900,7 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            request["from"] = this.parseToInt((since / 1000));
+            request["from"] = this.parseToInt(((double?)since / 1000));
         }
         List<object> response = await this.publicFuturesGetSettleContractStats(this.extend(request, paramsPaginate));
         //
@@ -10276,11 +10276,11 @@ public partial class gate : Exchange
         }
         if ((since != null))
         {
-            request["from"] = this.parseToInt((since / 1000));
+            request["from"] = this.parseToInt(((double?)since / 1000));
         }
         if ((until != null))
         {
-            request["to"] = this.parseToInt((until / 1000));
+            request["to"] = this.parseToInt(((double?)until / 1000));
         }
         List<object> response = null;
         if ((marketType == "swap"))

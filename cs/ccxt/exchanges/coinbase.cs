@@ -4404,7 +4404,7 @@ public partial class coinbase : Exchange
         string? sinceString = null;
         if ((since != null))
         {
-            sinceString = this.numberToString(this.parseToInt((since / 1000)));
+            sinceString = this.numberToString(this.parseToInt(((double?)since / 1000)));
         } else
         {
             string now = this.seconds().ToString();
@@ -4413,7 +4413,7 @@ public partial class coinbase : Exchange
         request["start"] = sinceString;
         if ((until != null))
         {
-            request["end"] = this.numberToString(this.parseToInt((until / 1000)));
+            request["end"] = this.numberToString(this.parseToInt(((double?)until / 1000)));
         } else
         {
             // 300 candles max
@@ -4491,7 +4491,7 @@ public partial class coinbase : Exchange
         };
         if ((since != null))
         {
-            request["start"] = this.numberToString(this.parseToInt((since / 1000)));
+            request["start"] = this.numberToString(this.parseToInt(((double?)since / 1000)));
         }
         if ((limit != null))
         {
@@ -4502,7 +4502,7 @@ public partial class coinbase : Exchange
         var paramsUntil = untilparamsUntilVariable[1];
         if (!(until == null))
         {
-            request["end"] = this.numberToString(this.parseToInt((until / 1000)));
+            request["end"] = this.numberToString(this.parseToInt(((double?)until / 1000)));
         } else if ((since != null))
         {
             throw new ArgumentsRequired ((this.id + " fetchTrades() requires a `until` parameter when you use `since` argument")) ;
@@ -6060,7 +6060,7 @@ public partial class coinbase : Exchange
                 } else
                 {
                     Int64 nonce = this.nonce();
-                    Int64? timestamp = this.parseToInt((nonce / 1000));
+                    Int64? timestamp = this.parseToInt(((double)nonce / 1000));
                     string timestampString = ((object)timestamp).ToString();
                     string? auth = ((string)(((timestampString + method) + savedPath) + (payload)));
                     string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);

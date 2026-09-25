@@ -1413,7 +1413,7 @@ public partial class pacifica : Exchange
         double? oraclePx = this.safeNumber(info, "oracle");
         double? nextFundingRate = this.safeNumber(info, "next_funding");
         Int64? timestamp = this.safeInteger(info, "timestamp");
-        object fundingTimestamp = multiply(multiply(multiply((((Math.Floor(Double.Parse(((((this.milliseconds() / 60) / 60) / 1000)).ToString()))) + 1)), 60), 60), 1000);
+        object fundingTimestamp = multiply(multiply(multiply((((Math.Floor(Double.Parse((((((double)this.milliseconds() / 60) / 60) / 1000)).ToString()))) + 1)), 60), 60), 1000);
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", symbol },

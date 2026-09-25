@@ -2065,7 +2065,7 @@ public partial class htx : Exchange
                         { "untilDays", 2 },
                         { "limit", 500 },
                         { "daysBack", 180 },
-                        { "daysBackCanceled", divide(1, 12) },
+                        { "daysBackCanceled", ((double)1 / 12) },
                         { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
@@ -2106,7 +2106,7 @@ public partial class htx : Exchange
                         { "untilDays", 2 },
                         { "limit", 50 },
                         { "daysBack", 90 },
-                        { "daysBackCanceled", divide(1, 12) },
+                        { "daysBackCanceled", ((double)1 / 12) },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 2000 },
@@ -3972,7 +3972,7 @@ public partial class htx : Exchange
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleParamInteger(paramsOmitted, "until");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
-        Int64? untilSeconds = (!(until == null)) ? this.parseToInt((until / 1000)) : null;
+        Int64? untilSeconds = (!(until == null)) ? this.parseToInt(((double?)until / 1000)) : null;
         bool isContract = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true));
         object contractLimit = ((limit != null)) ? limit : 2000; // only used for from/to calculation
         object rangeLimit = limit;
@@ -3997,7 +3997,7 @@ public partial class htx : Exchange
                     calcualtedEnd = now;
                 } else
                 {
-                    Int64? start = this.parseToInt((since / 1000));
+                    Int64? start = this.parseToInt(((double?)since / 1000));
                     request["from"] = start;
                     calcualtedEnd = this.sum(start, multiply(duration, (subtract(contractLimit, 1))));
                 }
@@ -4092,7 +4092,7 @@ public partial class htx : Exchange
                 // "from & to" only available for the this endpoint
                 if ((since != null))
                 {
-                    request["from"] = this.parseToInt((since / 1000));
+                    request["from"] = this.parseToInt(((double?)since / 1000));
                 }
                 if ((untilSeconds != null))
                 {

@@ -216,10 +216,10 @@ public partial class bitopro : Exchange
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "orders/{pair}", new Dictionary<string, object>() {
-                            { "cost", divide(1, 2) },
+                            { "cost", ((double)1 / 2) },
                         } },
                         { "orders/batch", new Dictionary<string, object>() {
-                            { "cost", divide(20, 3) },
+                            { "cost", ((double)20 / 3) },
                         } },
                         { "wallet/withdraw/{currency}", new Dictionary<string, object>() {
                             { "cost", 10 },
@@ -232,7 +232,7 @@ public partial class bitopro : Exchange
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "orders/{pair}/{id}", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "orders/all", new Dictionary<string, object>() {
                             { "cost", 5 },
@@ -980,8 +980,8 @@ public partial class bitopro : Exchange
         } else
         {
             Int64 timeframeInMilliseconds = multiply(timeframeInSeconds, 1000);
-            alignedSince = multiply((Math.Floor(Double.Parse(((since / timeframeInMilliseconds)).ToString()))), timeframeInMilliseconds);
-            request["from"] = (Math.Floor(Double.Parse(((since / 1000)).ToString())));
+            alignedSince = multiply((Math.Floor(Double.Parse((((double?)since / timeframeInMilliseconds)).ToString()))), timeframeInMilliseconds);
+            request["from"] = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
             request["to"] = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), multiply(limitResolved, timeframeInSeconds));
         }
         Dictionary<string, object> response = await this.publicGetTradingHistoryPair(this.extend(request, parameters));

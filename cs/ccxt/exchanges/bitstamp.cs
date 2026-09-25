@@ -1470,7 +1470,7 @@ public partial class bitstamp : Exchange
         {
             throw new ExchangeError ((this.id + " fetchOrderBook() missing microtimestamp")) ;
         }
-        Int64? timestamp = this.parseToInt((microtimestamp / 1000));
+        Int64? timestamp = this.parseToInt(((double?)microtimestamp / 1000));
         Dictionary<string, object> orderbook = this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp);
         orderbook["nonce"] = microtimestamp;
         return ccxt.BaseExchange.ToOrderBook(orderbook);
@@ -1934,17 +1934,17 @@ public partial class bitstamp : Exchange
                 request["limit"] = limitResolved;
                 if (untilIsDefined)
                 {
-                    Int64? end = this.parseToInt((until / 1000));
+                    Int64? end = this.parseToInt(((double?)until / 1000));
                     request["start"] = subtract(subtract(end, (multiply(duration, limitResolved))), 1);
                     request["end"] = end;
                 }
             } else
             {
-                Int64? start = this.parseToInt((since / 1000));
+                Int64? start = this.parseToInt(((double?)since / 1000));
                 request["start"] = start;
                 if (untilIsDefined)
                 {
-                    request["end"] = this.parseToInt((until / 1000));
+                    request["end"] = this.parseToInt(((double?)until / 1000));
                 } else
                 {
                     request["end"] = this.sum(start, subtract(multiply(duration, limitResolved), 1));
@@ -1955,17 +1955,17 @@ public partial class bitstamp : Exchange
         {
             if ((since != null))
             {
-                Int64? start = this.parseToInt((since / 1000));
+                Int64? start = this.parseToInt(((double?)since / 1000));
                 request["start"] = start;
                 object end = this.sum(start, subtract(multiply(duration, limitResolved), 1));
                 if (untilIsDefined)
                 {
-                    end = mathMin(end, this.parseToInt((until / 1000)));
+                    end = mathMin(end, this.parseToInt(((double?)until / 1000)));
                 }
                 request["end"] = end;
             } else if (untilIsDefined)
             {
-                Int64? end = this.parseToInt((until / 1000));
+                Int64? end = this.parseToInt(((double?)until / 1000));
                 request["end"] = end;
                 request["start"] = subtract(subtract(end, (multiply(duration, limitResolved))), 1);
             }
@@ -2643,7 +2643,7 @@ public partial class bitstamp : Exchange
         }
         if ((since != null))
         {
-            request["since_timestamp"] = Math.Round(Convert.ToDouble((since / 1000)));
+            request["since_timestamp"] = Math.Round(Convert.ToDouble(((double?)since / 1000)));
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("until_timestamp", request, paramsPaginate, 0.001);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];

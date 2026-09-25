@@ -156,10 +156,10 @@ public partial class cryptocom : Exchange
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "public/auth", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "public/get-instruments", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "public/get-book", new Dictionary<string, object>() {
                                 { "cost", 1 },
@@ -177,7 +177,7 @@ public partial class cryptocom : Exchange
                                 { "cost", 1 },
                             } },
                             { "public/get-expired-settlement-price", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "public/get-insurance", new Dictionary<string, object>() {
                                 { "cost", 1 },
@@ -198,85 +198,85 @@ public partial class cryptocom : Exchange
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
                             { "private/set-cancel-on-disconnect", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-cancel-on-disconnect", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/user-balance", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/user-balance-history", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-positions", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/create-order", new Dictionary<string, object>() {
-                                { "cost", divide(2, 3) },
+                                { "cost", ((double)2 / 3) },
                             } },
                             { "private/amend-order", new Dictionary<string, object>() {
-                                { "cost", divide(4, 3) },
+                                { "cost", ((double)4 / 3) },
                             } },
                             { "private/create-order-list", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/cancel-order", new Dictionary<string, object>() {
-                                { "cost", divide(2, 3) },
+                                { "cost", ((double)2 / 3) },
                             } },
                             { "private/cancel-order-list", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/cancel-all-orders", new Dictionary<string, object>() {
-                                { "cost", divide(2, 3) },
+                                { "cost", ((double)2 / 3) },
                             } },
                             { "private/close-position", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-order-history", new Dictionary<string, object>() {
                                 { "cost", 100 },
                             } },
                             { "private/get-open-orders", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-order-detail", new Dictionary<string, object>() {
-                                { "cost", divide(1, 3) },
+                                { "cost", ((double)1 / 3) },
                             } },
                             { "private/get-trades", new Dictionary<string, object>() {
                                 { "cost", 100 },
                             } },
                             { "private/change-account-leverage", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-transactions", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/create-subaccount-transfer", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-subaccount-balances", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-order-list", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/create-withdrawal", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-currency-networks", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-deposit-address", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-accounts", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-withdrawal-history", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-deposit-history", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-fee-rate", new Dictionary<string, object>() {
                                 { "cost", 2 },
@@ -285,28 +285,28 @@ public partial class cryptocom : Exchange
                                 { "cost", 2 },
                             } },
                             { "private/get-fee-credit-balances", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/fiat/fiat-deposit-info", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/fiat/fiat-deposit-history", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/fiat/fiat-withdraw-history", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/fiat/fiat-create-withdraw", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/fiat/fiat-transaction-quota", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/fiat/fiat-transaction-limit", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/fiat/fiat-get-bank-accounts", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/staking/stake", new Dictionary<string, object>() {
                                 { "cost", 2 },
@@ -339,31 +339,31 @@ public partial class cryptocom : Exchange
                                 { "cost", 2 },
                             } },
                             { "private/create-isolated-margin-transfer", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/change-isolated-margin-leverage", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/bot/create-trading-bot", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/bot/update-trading-bot", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/bot/terminate-trading-bot", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/bot/pause-trading-bot", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/bot/resume-trading-bot", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/bot/get-trading-bots", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/bot/get-trading-bot-executions", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                         } },
                     } },
@@ -403,76 +403,76 @@ public partial class cryptocom : Exchange
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
                             { "private/set-cancel-on-disconnect", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-cancel-on-disconnect", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/create-withdrawal", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-withdrawal-history", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-currency-networks", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-deposit-history", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-deposit-address", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/export/create-export-request", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/export/get-export-requests", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/export/download-export-output", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-account-summary", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/create-order", new Dictionary<string, object>() {
-                                { "cost", divide(2, 3) },
+                                { "cost", ((double)2 / 3) },
                             } },
                             { "private/cancel-order", new Dictionary<string, object>() {
-                                { "cost", divide(2, 3) },
+                                { "cost", ((double)2 / 3) },
                             } },
                             { "private/cancel-all-orders", new Dictionary<string, object>() {
-                                { "cost", divide(2, 3) },
+                                { "cost", ((double)2 / 3) },
                             } },
                             { "private/create-order-list", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-order-history", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-open-orders", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-order-detail", new Dictionary<string, object>() {
-                                { "cost", divide(1, 3) },
+                                { "cost", ((double)1 / 3) },
                             } },
                             { "private/get-trades", new Dictionary<string, object>() {
                                 { "cost", 100 },
                             } },
                             { "private/get-accounts", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-subaccount-balances", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/create-subaccount-transfer", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/otc/get-otc-user", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/otc/get-instruments", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/otc/request-quote", new Dictionary<string, object>() {
                                 { "cost", 100 },
@@ -481,13 +481,13 @@ public partial class cryptocom : Exchange
                                 { "cost", 100 },
                             } },
                             { "private/otc/get-quote-history", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/otc/get-trade-history", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/otc/create-order", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                         } },
                     } },
@@ -496,10 +496,10 @@ public partial class cryptocom : Exchange
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "public/auth", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "public/get-instruments", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "public/get-book", new Dictionary<string, object>() {
                                 { "cost", 1 },
@@ -517,7 +517,7 @@ public partial class cryptocom : Exchange
                                 { "cost", 1 },
                             } },
                             { "public/get-expired-settlement-price", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "public/get-insurance", new Dictionary<string, object>() {
                                 { "cost", 1 },
@@ -527,67 +527,67 @@ public partial class cryptocom : Exchange
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
                             { "private/set-cancel-on-disconnect", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-cancel-on-disconnect", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/user-balance", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/user-balance-history", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-positions", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/create-order", new Dictionary<string, object>() {
-                                { "cost", divide(2, 3) },
+                                { "cost", ((double)2 / 3) },
                             } },
                             { "private/create-order-list", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/cancel-order", new Dictionary<string, object>() {
-                                { "cost", divide(2, 3) },
+                                { "cost", ((double)2 / 3) },
                             } },
                             { "private/cancel-order-list", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/cancel-all-orders", new Dictionary<string, object>() {
-                                { "cost", divide(2, 3) },
+                                { "cost", ((double)2 / 3) },
                             } },
                             { "private/close-position", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/convert-collateral", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-order-history", new Dictionary<string, object>() {
                                 { "cost", 100 },
                             } },
                             { "private/get-open-orders", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-order-detail", new Dictionary<string, object>() {
-                                { "cost", divide(1, 3) },
+                                { "cost", ((double)1 / 3) },
                             } },
                             { "private/get-trades", new Dictionary<string, object>() {
                                 { "cost", 100 },
                             } },
                             { "private/change-account-leverage", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-transactions", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/create-subaccount-transfer", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-subaccount-balances", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                             { "private/get-order-list", new Dictionary<string, object>() {
-                                { "cost", divide(10, 3) },
+                                { "cost", ((double)10 / 3) },
                             } },
                         } },
                     } },
@@ -3704,7 +3704,7 @@ public partial class cryptocom : Exchange
         object fundingTimestamp = null;
         if ((timestamp != null))
         {
-            fundingTimestamp = multiply(Math.Ceiling(Convert.ToDouble((timestamp / 3600000))), 3600000); // end of the next hour
+            fundingTimestamp = multiply(Math.Ceiling(Convert.ToDouble(((double?)timestamp / 3600000))), 3600000); // end of the next hour
         }
         return new Dictionary<string, object>() {
             { "info", contract },

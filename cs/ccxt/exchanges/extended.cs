@@ -2866,7 +2866,7 @@ public partial class extended : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64 now = this.milliseconds();
-        Int64? settlementExpiration = this.safeInteger(parameters, "settlementExpiration", ((this.parseToInt((((now + 999)) / 1000)) + 1209600) + 60));
+        Int64? settlementExpiration = this.safeInteger(parameters, "settlementExpiration", ((this.parseToInt(((double)((now + 999)) / 1000)) + 1209600) + 60));
         Int64? nonce = this.safeInteger(parameters, "nonce", this.nonce());
         string? positionId = this.safeString2(parameters, "positionId", "l2Vault", this.safeString(account, "l2Vault"));
         string? recipient = this.safeString(parameters, "recipient", address);
@@ -2902,7 +2902,7 @@ public partial class extended : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64 now = this.milliseconds();
-        Int64? settlementExpiration = this.safeInteger(parameters, "settlementExpiration", (this.parseToInt((((now + 999)) / 1000)) + 1814400));
+        Int64? settlementExpiration = this.safeInteger(parameters, "settlementExpiration", (this.parseToInt(((double)((now + 999)) / 1000)) + 1814400));
         Int64? nonce = this.safeInteger(parameters, "nonce", this.nonce());
         string? fromVault = this.safeString2(parameters, "fromVault", "senderPositionId", this.safeString(account, "l2Vault"));
         string? fromL2Key = this.safeString2(parameters, "fromL2Key", "senderPublicKey", this.safeString(account, "l2Key"));
@@ -2995,7 +2995,7 @@ public partial class extended : Exchange
         }
         Int64 now = this.milliseconds();
         Int64? expiryEpochMillis = this.safeInteger(paramsBuilder, "expiryEpochMillis", (now + 3600000));
-        Int64? settlementExpiration = this.safeInteger(paramsBuilder, "settlementExpiration", (this.parseToInt((((expiryEpochMillis + 999)) / 1000)) + 1209600));
+        Int64? settlementExpiration = this.safeInteger(paramsBuilder, "settlementExpiration", (this.parseToInt(((double?)((expiryEpochMillis + 999)) / 1000)) + 1209600));
         string? nonce = this.numberToString(this.nonce());
         Dictionary<string, object> account = ccxt.BaseExchange.FromDict(await this.FetchExtendedAccount());
         string? starkKey = this.safeString(account, "l2Key");

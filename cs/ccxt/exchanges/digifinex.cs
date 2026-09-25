@@ -1892,7 +1892,7 @@ public partial class digifinex : Exchange
                 {
                     if ((until != null))
                     {
-                        Int64? endByUntil = this.parseToInt((until / 1000));
+                        Int64? endByUntil = this.parseToInt(((double?)until / 1000));
                         if ((limit != null))
                         {
                             object endByLimit = this.sum(startTime, (limit * duration));
@@ -2820,7 +2820,7 @@ public partial class digifinex : Exchange
             request["market"] = marketType;
             if ((since != null))
             {
-                request["start_time"] = this.parseToInt((since / 1000)); // default 3 days from now, max 30 days
+                request["start_time"] = this.parseToInt(((double?)since / 1000)); // default 3 days from now, max 30 days
             }
         }
         if ((market != null))
@@ -3066,7 +3066,7 @@ public partial class digifinex : Exchange
             request["market"] = marketType;
             if ((since != null))
             {
-                request["start_time"] = this.parseToInt((since / 1000)); // default 3 days from now, max 30 days
+                request["start_time"] = this.parseToInt(((double?)since / 1000)); // default 3 days from now, max 30 days
             }
         }
         string marketIdRequest = "symbol";
@@ -3248,7 +3248,7 @@ public partial class digifinex : Exchange
             request["market"] = marketType;
             if ((since != null))
             {
-                request["start_time"] = this.parseToInt((since / 1000)); // default 3 days from now, max 30 days
+                request["start_time"] = this.parseToInt(((double?)since / 1000)); // default 3 days from now, max 30 days
             }
         }
         string currencyIdRequest = "currency_mark";

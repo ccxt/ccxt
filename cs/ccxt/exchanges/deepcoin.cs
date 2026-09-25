@@ -307,7 +307,7 @@ public partial class deepcoin : Exchange
                             { "cost", 5 },
                         } },
                         { "deepcoin/trade/cancel-trigger-order", new Dictionary<string, object>() {
-                            { "cost", divide(1, 6) },
+                            { "cost", ((double)1 / 6) },
                         } },
                         { "deepcoin/trade/swap/cancel-all", new Dictionary<string, object>() {
                             { "cost", 5 },

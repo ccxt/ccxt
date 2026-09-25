@@ -1066,7 +1066,7 @@ public partial class krakenfutures : Exchange
         if ((since != null))
         {
             int duration = this.parseTimeframe(timeframeVar);
-            request["from"] = this.parseToInt((since / 1000));
+            request["from"] = this.parseToInt(((double?)since / 1000));
             object toTimestamp = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), subtract(multiply(windowLimit, duration), 1));
             Int64 currentTimestamp = this.seconds();
             request["to"] = mathMin(toTimestamp, currentTimestamp);

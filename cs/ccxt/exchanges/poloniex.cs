@@ -333,13 +333,13 @@ public partial class poloniex : Exchange
                 { "swapPublic", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "v3/market/allInstruments", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/instruments", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/orderBook", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/candles", new Dictionary<string, object>() {
                             { "cost", 10 },
@@ -354,40 +354,40 @@ public partial class poloniex : Exchange
                             { "cost", 10 },
                         } },
                         { "v3/market/trades", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/liquidationOrder", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/tickers", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/markPrice", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/indexPrice", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/indexPriceComponents", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/fundingRate", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/fundingRate/history", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/openInterest", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/insurance", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/riskLimit", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                         { "v3/market/limitPrice", new Dictionary<string, object>() {
-                            { "cost", divide(2, 3) },
+                            { "cost", ((double)2 / 3) },
                         } },
                     } },
                 } },
@@ -614,7 +614,7 @@ public partial class poloniex : Exchange
                         { "marginMode", false },
                         { "limit", 100 },
                         { "daysBack", null },
-                        { "daysBackCanceled", divide(1, 6) },
+                        { "daysBackCanceled", ((double)1 / 6) },
                         { "untilDays", null },
                         { "trigger", false },
                         { "trailing", false },

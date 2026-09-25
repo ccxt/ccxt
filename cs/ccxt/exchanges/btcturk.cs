@@ -784,10 +784,10 @@ public partial class btcturk : Exchange
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
-        request["to"] = this.parseToInt(((until / 1000)));
+        request["to"] = this.parseToInt((((double?)until / 1000)));
         if ((since != null))
         {
-            request["from"] = this.parseToInt((since / 1000));
+            request["from"] = this.parseToInt(((double?)since / 1000));
         }
         Int64? limitDefaulted = limit;
         if (((since == null)) && ((limit == null)))
@@ -805,11 +805,11 @@ public partial class btcturk : Exchange
             object limitSeconds = multiply(seconds, (subtract(limitResolved, 1)));
             if ((since != null))
             {
-                object to = add(this.parseToInt((since / 1000)), limitSeconds);
+                object to = add(this.parseToInt(((double?)since / 1000)), limitSeconds);
                 request["to"] = mathMin((request != null && ((IDictionary<string, object>)request).ContainsKey("to") ? ((IDictionary<string, object>)request)["to"] : null), to);
             } else
             {
-                request["from"] = subtract(this.parseToInt(divide(0, 1000)), limitSeconds);
+                request["from"] = subtract(this.parseToInt(((double)0 / 1000)), limitSeconds);
             }
         }
         Dictionary<string, object> response = await this.graphGetKlinesHistory(this.extend(request, parameters));
@@ -1010,7 +1010,7 @@ public partial class btcturk : Exchange
         }
         if ((since != null))
         {
-            request["startTime"] = (Math.Floor(Double.Parse(((since / 1000)).ToString())));
+            request["startTime"] = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
         }
         Dictionary<string, object> response = await this.privateGetAllOrders(this.extend(request, parameters));
         // {

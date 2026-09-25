@@ -352,7 +352,7 @@ public partial class backpack : ccxt.backpack
         //     }
         //
         Int64? microseconds = this.safeInteger(ticker, "E", 0);
-        Int64? timestamp = this.parseToInt((microseconds / 1000));
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         string? marketId = this.safeString(ticker, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeSymbol(marketId, marketResolved);
@@ -486,7 +486,7 @@ public partial class backpack : ccxt.backpack
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? microseconds = this.safeInteger(ticker, "E", 0);
-        Int64? timestamp = this.parseToInt((microseconds / 1000));
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         string? ask = this.safeString(ticker, "a");
         string? askVolume = this.safeString(ticker, "A");
         string? bid = this.safeString(ticker, "b");
@@ -857,7 +857,7 @@ public partial class backpack : ccxt.backpack
         //     }
         //
         Int64? microseconds = this.safeInteger(trade, "E", 0);
-        Int64? timestamp = this.parseToInt((microseconds / 1000));
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         string? id = this.safeString(trade, "t");
         string? marketId = this.safeString(trade, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -1053,7 +1053,7 @@ public partial class backpack : ccxt.backpack
 
     public override void handleDelta(object orderbook, object delta)
     {
-        Int64? timestamp = this.parseToInt((this.safeInteger(delta, "T", 0) / 1000));
+        Int64? timestamp = this.parseToInt(((double?)this.safeInteger(delta, "T", 0) / 1000));
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "u");
@@ -1258,7 +1258,7 @@ public partial class backpack : ccxt.backpack
         string? id = this.safeString(order, "i");
         string? clientOrderId = this.safeString(order, "c");
         Int64? microseconds = this.safeInteger(order, "E", 0);
-        Int64? timestamp = this.parseToInt((microseconds / 1000));
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         string? status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
         string? marketId = this.safeString(order, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -1439,7 +1439,7 @@ public partial class backpack : ccxt.backpack
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         Dictionary<string, object> parsedPosition = this.parseWsPosition(data);
         Int64? microseconds = this.safeInteger(data, "E", 0);
-        Int64? timestamp = this.parseToInt((microseconds / 1000));
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         parsedPosition["timestamp"] = timestamp;
         parsedPosition["datetime"] = this.iso8601(timestamp);
         cache.append(parsedPosition);
@@ -1496,7 +1496,7 @@ public partial class backpack : ccxt.backpack
             side = null;
         }
         Int64? microseconds = this.safeInteger(position, "E", 0);
-        Int64? timestamp = this.parseToInt((microseconds / 1000));
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         double? maintenanceMarginPercentage = this.safeNumber(position, "m");
         double? initialMarginPercentage = this.safeNumber(position, "f");
         return this.safePosition(new Dictionary<string, object>() {

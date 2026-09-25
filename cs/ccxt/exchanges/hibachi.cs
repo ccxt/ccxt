@@ -2436,7 +2436,7 @@ public partial class hibachi : Exchange
         }
         if ((since != null))
         {
-            request["startTime"] = this.parseToInt((since / 1000));
+            request["startTime"] = this.parseToInt(((double?)since / 1000));
         }
         if ((limit != null))
         {
@@ -2447,7 +2447,7 @@ public partial class hibachi : Exchange
         var paramsUntil = untilparamsUntilVariable[1];
         if (!(until == null))
         {
-            request["endTime"] = this.parseToInt((until / 1000));
+            request["endTime"] = this.parseToInt(((double?)until / 1000));
         }
         Dictionary<string, object> response = await this.privateGetTradeAccountSettlementsHistory(this.extend(request, paramsUntil));
         //

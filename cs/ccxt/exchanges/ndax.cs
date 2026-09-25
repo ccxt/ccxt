@@ -2037,7 +2037,7 @@ public partial class ndax : Exchange
         }
         if ((since != null))
         {
-            request["StartTimeStamp"] = this.parseToInt((since / 1000));
+            request["StartTimeStamp"] = this.parseToInt(((double?)since / 1000));
         }
         if ((limit != null))
         {
@@ -2298,7 +2298,7 @@ public partial class ndax : Exchange
         }
         if ((since != null))
         {
-            request["StartTimeStamp"] = this.parseToInt((since / 1000));
+            request["StartTimeStamp"] = this.parseToInt(((double?)since / 1000));
         }
         if ((limit != null))
         {

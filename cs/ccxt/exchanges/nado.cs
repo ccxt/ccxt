@@ -2336,7 +2336,7 @@ public partial class nado : Exchange
         }
         if ((until != null))
         {
-            ((IDictionary<string,object>)request["candlesticks"])["max_time"] = this.parseToInt((until / 1000));
+            ((IDictionary<string,object>)request["candlesticks"])["max_time"] = this.parseToInt(((double?)until / 1000));
         }
         Dictionary<string, object> response = await this.archivePost(this.deepExtend(request, paramsOmitted));
         //

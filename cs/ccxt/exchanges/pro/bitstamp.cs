@@ -327,7 +327,7 @@ public partial class bitstamp : ccxt.bitstamp
         //
         Int64? microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         string? id = this.safeString(trade, "id");
-        Int64? timestamp = this.parseToInt((microtimestamp / 1000));
+        Int64? timestamp = this.parseToInt(((double?)microtimestamp / 1000));
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "amount");
         object marketResolved = ((market == null)) ? this.safeMarket(null, market) : market;
@@ -668,7 +668,7 @@ public partial class bitstamp : ccxt.bitstamp
         // omits for plain spot orderbook fills
         //
         Int64? microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
-        Int64? timestamp = this.parseToInt((microtimestamp / 1000));
+        Int64? timestamp = this.parseToInt(((double?)microtimestamp / 1000));
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
         string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         string? feeCost = this.safeString(trade, "fee");
