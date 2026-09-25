@@ -6644,7 +6644,11 @@ function ccxtGoIsUnifiedInt64Parameter (goTranspiler, table, param) {
     const parts = (type === undefined) ? [] : (type.isUnion?.() ? type.types : [ type ]);
     const numeric = parts.some ((t) => (t.flags & ts.TypeFlags.NumberLike) !== 0)
         && parts.every ((t) => (t.flags & (ts.TypeFlags.NumberLike | ts.TypeFlags.Undefined)) !== 0);
-    return numeric && goTranspiler.goLocalIsSafeToType (fn.body, param, param.name.text, 'int64');
+    // the table types the base and every override together: a body that breaks it fails the build
+    if (!numeric || !goTranspiler.goLocalIsSafeToType (fn.body, param, param.name.text, 'int64')) {
+        throw new Error (`unifiedInt64Params: ${fn.name.text} parameter ${param.name.text} is not a number written only as int64`);
+    }
+    return true;
 }
 
 function installCcxtGoUnifiedInt64Params (goTranspiler, table) {
