@@ -1600,9 +1600,32 @@ function ccxtGoSafeCollectionLocalType (goTranspiler, declaration, families, res
         if (ccxtGoSafeCollectionUseReads (goTranspiler, n, found.family, defaulted)) {
             return false;
         }
-        return !(restTree && ccxtGoSafeCollectionRestUse (goTranspiler, n, found.family, defaulted));
+        return !(restTree && (ccxtGoSafeCollectionRestUse (goTranspiler, ccxtGoSafeCollectionTypeOnlyWrapper (n), found.family, defaulted)
+            || ccxtGoSafeCollectionLiteralDefaultWrite (n, found)));
     });
     return unsafe ? undefined : goType;
+}
+
+// `x as Dict` / `(x)` / `x!` print as x itself: the use is the wrapper's position
+function ccxtGoSafeCollectionTypeOnlyWrapper (node) {
+    let current = node;
+    while ((current.parent !== undefined) && (((current.parent.kind === ts.SyntaxKind.AsExpression) || (current.parent.kind === ts.SyntaxKind.NonNullExpression)
+        || (current.parent.kind === ts.SyntaxKind.ParenthesizedExpression)) && (current.parent.expression === current))) {
+        current = current.parent;
+    }
+    return current;
+}
+
+// `x[k] = v` into a dict local read with a `{}` default: the member is a decoded map or the fresh
+// default, never nil, and MapTyped keeps that same map, so the write lands where the box's did
+function ccxtGoSafeCollectionLiteralDefaultWrite (node, found) {
+    if (((found.family !== 'dict') && (found.family !== 'dict2')) || (found.fallback === undefined)) {
+        return false;
+    }
+    const parent = node.parent;
+    const above = parent?.parent;
+    return (parent?.kind === ts.SyntaxKind.ElementAccessExpression) && (parent.expression === node)
+        && (above?.kind === ts.SyntaxKind.BinaryExpression) && (above.left === parent) && (above.operatorToken?.kind === ts.SyntaxKind.EqualsToken);
 }
 
 // the ws caches and order-book sides live only under ts/src/pro and ts/src/prediction: a REST
