@@ -866,11 +866,52 @@ function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
     }) as any);
 }
 
+// `P && P` / `P || P` over one ident (TS `x !== undefined && x !== null`) is one Go nil test; vet
+// rejects the duplicate. A helper/native pair folds only where the helper side absorbs the other.
+export function goCollapseDuplicateNilCompares (text: string, isEqualFn: string): string {
+    const helper = isEqualFn.replace (/[.(]/g, '\\$&');
+    const side = '(\\(*)(?:(!?)' + helper + '(\\w+), nil\\)|(\\w+) ([!=])= nil)(\\)*)';
+    const pattern = new RegExp (side + ' (&&|\\|\\|) ' + side, 'g');
+    // true when the side tests "is nil"
+    const isNil = (not: string, eq: string): boolean => (eq === undefined) ? (not === '') : (eq === '=');
+    for (let changed = true; changed;) {
+        changed = false;
+        text = text.replace (pattern, ((m: string, o1: string, n1: string, h1: string, v1: string, e1: string, c1: string, op: string, o2: string, n2: string, h2: string, v2: string, e2: string, c2: string, at: number, all: string) => {
+            const or = (op === '||');
+            // parens opened before side 1 / closed after side 2 belong to the enclosing group
+            const lead = o1.length - c1.length;
+            const trail = c2.length - o2.length;
+            const mixed = ((h1 === undefined) !== (h2 === undefined));
+            if ((lead < 0) || (trail < 0) || ((h1 || v1) !== (h2 || v2)) || (isNil (n1, e1) !== isNil (n2, e2)) || (mixed && (isNil (n1, e1) !== or))) {
+                return m;
+            }
+            const prefix = o1.slice (0, lead);
+            const suffix = c2.slice (o2.length);
+            const core = m.slice (lead, m.length - trail);
+            const before = all.slice (0, at) + prefix;
+            const after = suffix + all.slice (at + m.length);
+            // only whole operands of a boolean chain; `A && P || P` is not `A && P`
+            if (!/(?:^|[({,]|&&|\|\||[^=!<>]=|\breturn|\bif)\s*$/.test (before) || !/^\s*(?:$|[)}{,;\n]|&&|\|\|)/.test (after)) {
+                return m;
+            }
+            if (or && (/&&\s*$/.test (before) || /^\s*&&/.test (after))) {
+                return m;
+            }
+            changed = true;
+            const joint = core.indexOf (c1 + ' ' + op + ' ' + o2) + c1.length;
+            // the helper side implies the native one (IsEqual also folds typed nil pointers)
+            const kept = ((h2 !== undefined) && (h1 === undefined)) ? core.slice (joint + op.length + 2) : core.slice (0, joint);
+            return prefix + kept + suffix;
+        }) as any);
+    }
+    return text;
+}
+
 export function goAnyLocalNativeNilCompares (content: string, isEqualFn: string): string {
     const ranges = goFuncBlockRanges (content);
     for (let i = ranges.length - 1; i >= 0; i--) {
         const block = content.slice (ranges[i].start, ranges[i].end);
-        const rewritten = goAnyLocalNilCompareText (block, isEqualFn);
+        const rewritten = goCollapseDuplicateNilCompares (goAnyLocalNilCompareText (block, isEqualFn), isEqualFn);
         if (rewritten !== block) {
             content = content.slice (0, ranges[i].start) + rewritten + content.slice (ranges[i].end);
         }
@@ -905,6 +946,15 @@ function goAnyLocalNilSelfTest (): string[] {
     const ws = goAnyLocalNativeNilCompares ('\nfunc (this *X) f() any {\n\tvar c any = ccxt.NewArrayCache(1)\n\tif !ccxt.IsEqual(c, nil) {\n\t}\n}\n', 'ccxt.IsEqual(');
     ok (ws.indexOf ('if (c != nil) {') >= 0, 'the package-qualified helper is rewritten');
     ok (pass (ws) === ws, 'a second application is a no-op');
+    const dup = (body: string): string => f ('\tvar a any = this.SafeDict(p, "a")\n\tvar q *string = nil\n' + body);
+    ok (dup ('\tvar h bool = ((a != nil)) && ((a != nil)) && (q != nil)\n').indexOf ('var h bool = ((a != nil)) && (q != nil)') >= 0, 'duplicate native && collapses');
+    ok (dup ('\tvar h bool = (!IsEqual(a, nil)) && (!IsEqual(a, nil))\n').indexOf ('var h bool = ((a != nil))\n') >= 0, 'duplicate helper && collapses after the native rewrite');
+    ok (dup ('\tif (IsEqual(a, nil)) || (IsEqual(a, nil)) || (q == nil) {\n\t}\n').indexOf ('if ((a == nil)) || (q == nil) {') >= 0, 'duplicate native || collapses');
+    ok (dup ('\tif (q == nil) || IsEqual(q, nil) {\n\t}\n').indexOf ('if IsEqual(q, nil) {') >= 0, 'mixed native/helper || keeps the helper');
+    ok (dup ('\tif (q != nil) && ((!IsEqual(q, nil))) {\n\t}\n').indexOf ('if ((!IsEqual(q, nil))) {') >= 0, 'mixed native/helper && keeps the helper');
+    ok (dup ('\tif (q == nil) && (q == nil) {\n\t}\n\tif (q != nil) || (q != nil) {\n\t}\n').indexOf ('if (q == nil) {\n\t}\n\tif (q != nil) {') >= 0, 'any same-polarity duplicate collapses');
+    ok (dup ('\tif (q != nil) && (q == nil) {\n\t}\n\tif (a != nil) && (q != nil) {\n\t}\n\tif (q == nil) && IsEqual(q, nil) {\n\t}\n').indexOf ('if (q != nil) && (q == nil) {\n\t}\n\tif (a != nil) && (q != nil) {\n\t}\n\tif (q == nil) && IsEqual(q, nil) {') >= 0, 'contradictions, other idents and non-absorbing mixed pairs are kept');
+    ok (dup ('\tif (q != nil) && (q == nil) || (q == nil) {\n\t}\n\tif (q == nil) || (q == nil) && (a != nil) {\n\t}\n').indexOf ('if (q != nil) && (q == nil) || (q == nil) {\n\t}\n\tif (q == nil) || (q == nil) && (a != nil) {') >= 0, 'an || pair bound into && is kept');
     return problems;
 }
 
