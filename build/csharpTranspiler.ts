@@ -3515,6 +3515,31 @@ class NewTranspiler {
         return out + content.slice (last);
     }
 
+    // a test function parameter annotated `string[]` in its TS source prints as IList<object>, so
+    // it can reach a list-typed core parameter; skipped when the body reassigns it
+    typeTestListParams (csharp: string, tsFile: string): string {
+        const ts = fs.readFileSync (tsFile, 'utf8');
+        const fnRe = /function (\w+) \(([^)]*)\)/g;
+        let fn: RegExpExecArray | null;
+        while ((fn = fnRe.exec (ts)) !== null) {
+            const names = [ ...fn[2].matchAll (/(\w+): string\[\](?=\s*[,)]|$)/g) ].map ((m) => m[1]);
+            for (const name of names) {
+                const sigRe = new RegExp ('(static public [^\\n(]* ' + fn[1] + '\\([^\\n)]*?)\\bobject ' + name + '(?=[,)])');
+                const sig = sigRe.exec (csharp);
+                if (sig === null) {
+                    continue;
+                }
+                const bodyStart = csharp.indexOf ('{', sig.index);
+                const body = csharp.substring (bodyStart, csharp.indexOf ('\n    }', bodyStart));
+                if (new RegExp ('(?<![\\w.])' + name + '\\s*(?:\\?\\?)?=(?!=)').test (stripCsStringLiterals (body))) {
+                    continue;
+                }
+                csharp = csharp.replace (sigRe, '$1IList<object> ' + name);
+            }
+        }
+        return csharp;
+    }
+
     // index of the `)` closing the `(` at `open`, skipping string and char literals
     matchingParen (content: string, open: number): number {
         let depth = 0;
@@ -8636,7 +8661,7 @@ class NewTranspiler {
                     '}',
                 ].join('\n');
             }
-            overwriteFileAndFolder (tests[idx].csharpFile, nativeDeclaredHelperCalls (csharp));
+            overwriteFileAndFolder (tests[idx].csharpFile, nativeDeclaredHelperCalls (this.typeTestListParams (csharp, tests[idx].tsFile)));
         });
     }
 
