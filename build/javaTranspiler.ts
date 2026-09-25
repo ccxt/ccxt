@@ -1618,12 +1618,13 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
             const declarations = node?.declarations;
             if (declarations !== undefined && declarations.length === 1) {
                 const declaration = declarations[0];
-                if (declaration.name?.kind === ts.SyntaxKind.ArrayBindingPattern && !wsPostProcessReverts (declaration)) {
+                // element lines print `String x = (String) ...get(i)`, which the ws `this.` revert never matches
+                if (declaration.name?.kind === ts.SyntaxKind.ArrayBindingPattern) {
                     // a destructured element the handle pass printed `String <name> = ` reads as String
-                    const iden = printer.getIden (identation);
+                    const lines = printed.split ('\n').map ((line: string) => line.trimStart ());
                     for (const element of declaration.name.elements) {
                         if (element.kind === ts.SyntaxKind.BindingElement && element.name?.kind === ts.SyntaxKind.Identifier
-                            && printed.includes (`\n${iden}String ${printer.printNode (element.name, 0)} = `)) {
+                            && lines.some ((line: string) => line.startsWith (`String ${printer.printNode (element.name, 0)} = `))) {
                             emittedStringLocals.add (element);
                         }
                     }
