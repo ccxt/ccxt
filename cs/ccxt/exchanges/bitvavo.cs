@@ -917,7 +917,7 @@ public partial class bitvavo : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         if ((since != null))
         {
@@ -2501,7 +2501,7 @@ public partial class bitvavo : Exchange
         }
         if ((limit != null))
         {
-            request["maxItems"] = mathMin(limit, 100);
+            request["maxItems"] = Math.Min(limit.Value, 100);
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("toDate", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];

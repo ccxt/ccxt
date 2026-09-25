@@ -1842,7 +1842,7 @@ public partial class woofipro : Exchange
         }
         if ((limit != null))
         {
-            request["size"] = mathMin(limit, 500);
+            request["size"] = Math.Min(limit.Value, 500);
         }
         Dictionary<string, object> response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, paramsOmitted));
         //
@@ -1959,7 +1959,7 @@ public partial class woofipro : Exchange
         };
         if ((limit != null))
         {
-            request["max_level"] = mathMin(limit, 1000);
+            request["max_level"] = Math.Min(limit.Value, 1000);
         }
         Dictionary<string, object> response = await this.v1PrivateGetOrderbookSymbol(this.extend(request, parameters));
         //
@@ -2017,7 +2017,7 @@ public partial class woofipro : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         Dictionary<string, object> response = await this.v1PrivateGetKline(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});

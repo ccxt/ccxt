@@ -1865,7 +1865,7 @@ public partial class digifinex : Exchange
             request["granularity"] = timeframeVar;
             if ((limit != null))
             {
-                request["limit"] = mathMin(limit, 100);
+                request["limit"] = Math.Min(limit.Value, 100);
             }
             response = await this.publicSwapGetPublicCandles(this.extend(request, parameters));
         } else
@@ -3409,7 +3409,7 @@ public partial class digifinex : Exchange
         }
         if ((limit != null))
         {
-            request["size"] = mathMin(500, limit);
+            request["size"] = Math.Min(500, limit.Value);
         }
         Dictionary<string, object> response = null;
         if ((type == "deposit"))

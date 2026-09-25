@@ -784,7 +784,7 @@ public partial class btcmarkets : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 200); // default is 10, max 200
+            request["limit"] = Math.Min(limit.Value, 200); // default is 10, max 200
         }
         List<object> response = await this.publicGetMarketsMarketIdCandles(this.extend(request, parameters));
         //

@@ -2938,7 +2938,7 @@ public partial class blofin : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 100);
+            request["limit"] = Math.Min(limit.Value, 100);
         }
         if ((since != null))
         {

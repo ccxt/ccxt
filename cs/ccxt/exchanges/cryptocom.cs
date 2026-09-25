@@ -1494,7 +1494,7 @@ public partial class cryptocom : Exchange
         };
         if (((limit != null)) && ((limit != 0)))
         {
-            request["depth"] = mathMin(limit, 50); // max 50
+            request["depth"] = Math.Min(limit.Value, 50); // max 50
         }
         Dictionary<string, object> response = await this.v1PublicGetPublicGetBook(this.extend(request, parameters));
         //

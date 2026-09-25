@@ -2278,7 +2278,7 @@ public partial class poloniex : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(200, limit);
+            request["limit"] = Math.Min(200, limit.Value);
         }
         if ((since != null))
         {

@@ -1521,7 +1521,7 @@ public partial class aster : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1500);
+            request["limit"] = Math.Min(limit.Value, 1500);
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -1686,7 +1686,7 @@ public partial class aster : Exchange
         };
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
+            ((IDictionary<string,object>)request)["limit"] = Math.Min(limit.Value, 1000);
         }
         List<object> response = null;
         bool sinceDefined = (since != null);
@@ -1755,7 +1755,7 @@ public partial class aster : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, paramsMarketType);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -2393,7 +2393,7 @@ public partial class aster : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -2918,7 +2918,7 @@ public partial class aster : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         if ((since != null))
         {
@@ -3954,7 +3954,7 @@ public partial class aster : Exchange
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = mathMin(limit, 1000); // max 1000
+            ((IDictionary<string,object>)requestUntil)["limit"] = Math.Min(limit.Value, 1000); // max 1000
         }
         List<object> response = await this.fapiPrivateGetV3Income(this.extend(requestUntil, paramsUntil));
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(response, market, since, limit));
@@ -4050,7 +4050,7 @@ public partial class aster : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000); // max 1000
+            request["limit"] = Math.Min(limit.Value, 1000); // max 1000
         }
         Int64? until = this.safeInteger(parameters, "until");
         object paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;

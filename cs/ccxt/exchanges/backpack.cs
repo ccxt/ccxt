@@ -1350,7 +1350,7 @@ public partial class backpack : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000); // api maximum 1000
+            request["limit"] = Math.Min(limit.Value, 1000); // api maximum 1000
         }
         List<object> response = await this.publicGetApiV1FundingRates(this.extend(request, parameters));
         //
@@ -1407,7 +1407,7 @@ public partial class backpack : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000); // api maximum 1000
+            request["limit"] = Math.Min(limit.Value, 1000); // api maximum 1000
         }
         List<object> response = null;
         Int64? offset = this.safeInteger(parameters, "offset");

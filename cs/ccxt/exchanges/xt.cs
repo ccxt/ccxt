@@ -2021,14 +2021,14 @@ public partial class xt : Exchange
         {
             if ((limit != null))
             {
-                request["limit"] = mathMin(limit, 500);
+                request["limit"] = Math.Min(limit.Value, 500);
             }
             response = await this.publicSpotGetDepth(this.extend(request, parameters));
         } else
         {
             if ((limit != null))
             {
-                request["level"] = mathMin(limit, 50);
+                request["level"] = Math.Min(limit.Value, 50);
             } else
             {
                 request["level"] = 50;
@@ -2508,14 +2508,14 @@ public partial class xt : Exchange
         {
             if ((limit != null))
             {
-                request["limit"] = mathMin(limit, 1000);
+                request["limit"] = Math.Min(limit.Value, 1000);
             }
             response = await this.publicSpotGetTradeRecent(this.extend(request, parameters));
         } else
         {
             if ((limit != null))
             {
-                request["num"] = mathMin(limit, 1000);
+                request["num"] = Math.Min(limit.Value, 1000);
             }
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {

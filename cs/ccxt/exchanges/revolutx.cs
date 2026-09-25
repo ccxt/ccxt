@@ -902,7 +902,7 @@ public partial class revolutx : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1900);
+            request["limit"] = Math.Min(limit.Value, 1900);
         }
         string? cursor = this.safeString(parameters, "cursor");
         if ((cursor != null))

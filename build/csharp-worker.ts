@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
+import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpGuardedMinMax, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
 
 // task payload posted by csharpTranspiler.ts#webworkerTranspile (structured clone)
@@ -148,6 +148,8 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // call-site proof sees the same tables, and registers its parameters with
     // csharpDeclaredLocalTypeResolver for the body's own reads
     installCsharpParameterDeclarations (transpiler);
+    // Math.Min/Max on a null-guarded Int64? parameter (see build/csharp-local-types.js)
+    installCsharpGuardedMinMax (transpiler);
     // S17: `return ((bool)((object)(x))!)` in a bool / bool? method is an identity box + unbox.
     // Drop it when the returned expression's own C# static type already IS the method's boolean
     // type — exact match only, so no nullability (and no spelling) is crossed.

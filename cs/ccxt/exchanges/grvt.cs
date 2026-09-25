@@ -1299,7 +1299,7 @@ public partial class grvt : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
@@ -1467,7 +1467,7 @@ public partial class grvt : Exchange
         request["type"] = this.safeString(priceTypeMap, selectedPriceType);
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
@@ -1556,7 +1556,7 @@ public partial class grvt : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
@@ -1747,7 +1747,7 @@ public partial class grvt : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
@@ -1814,7 +1814,7 @@ public partial class grvt : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
@@ -2050,7 +2050,7 @@ public partial class grvt : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
@@ -2700,7 +2700,7 @@ public partial class grvt : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
@@ -3058,7 +3058,7 @@ public partial class grvt : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
@@ -3145,7 +3145,7 @@ public partial class grvt : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];

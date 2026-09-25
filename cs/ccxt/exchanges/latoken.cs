@@ -1100,7 +1100,7 @@ public partial class latoken : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 100); // default 100, limit 100
+            request["limit"] = Math.Min(limit.Value, 100); // default 100, limit 100
         }
         List<object> response = await this.publicGetTradeHistoryCurrencyQuote(this.extend(request, parameters));
         //

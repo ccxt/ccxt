@@ -1583,7 +1583,7 @@ public partial class kalshi : PredictionExchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         Dictionary<string, object> response = await this.kalshiPublicGetMarketsTrades(this.extend(request, parameters));
         List<object> trades = this.safeList(response, "trades", new List<object>() {});

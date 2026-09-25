@@ -4734,7 +4734,7 @@ public partial class gate : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000); // default 100, max 1000
+            request["limit"] = Math.Min(limit.Value, 1000); // default 100, max 1000
         }
         if ((since != null) && ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)))
         {

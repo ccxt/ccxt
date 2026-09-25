@@ -1013,7 +1013,7 @@ public partial class btse : Exchange
         };
         if ((limit != null))
         {
-            request["depth"] = mathMin(limit, 50); // the endpoint supports a maximum depth of 50
+            request["depth"] = Math.Min(limit.Value, 50); // the endpoint supports a maximum depth of 50
         }
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Orderbook(this.extend(request, parameters));
         //
@@ -1742,7 +1742,7 @@ public partial class btse : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 500); // the endpoint supports a maximum of 500 trades
+            request["limit"] = Math.Min(limit.Value, 500); // the endpoint supports a maximum of 500 trades
         }
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchTrades", "until");

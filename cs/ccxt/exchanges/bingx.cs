@@ -2092,7 +2092,7 @@ public partial class bingx : Exchange
         {
             if ((marketType == "spot"))
             {
-                request["limit"] = mathMin(limit, 1000); // api maximum 1000
+                request["limit"] = Math.Min(limit.Value, 1000); // api maximum 1000
             } else
             {
                 request["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100, 500, 1000}, limit);
@@ -2375,7 +2375,7 @@ public partial class bingx : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000); // api maximum 1000
+            request["limit"] = Math.Min(limit.Value, 1000); // api maximum 1000
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -5778,7 +5778,7 @@ public partial class bingx : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000); // api maximum 1000
+            request["limit"] = Math.Min(limit.Value, 1000); // api maximum 1000
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -5836,7 +5836,7 @@ public partial class bingx : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1000); // api maximum 1000
+            request["limit"] = Math.Min(limit.Value, 1000); // api maximum 1000
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -6547,7 +6547,7 @@ public partial class bingx : Exchange
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = mathMin(limit, 100); // api maximum 100
+            ((IDictionary<string,object>)requestUntil)["limit"] = Math.Min(limit.Value, 100); // api maximum 100
         }
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchMyLiquidations", market, paramsUntil);
         string? subType = (string)subTypeparamsSubTypeVariable[0];

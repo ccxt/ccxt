@@ -1031,7 +1031,7 @@ public partial class deepcoin : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 500);
+            request["limit"] = Math.Min(limit.Value, 500);
         }
         string productGroup = this.getProductGroupFromMarket(market);
         request["productGroup"] = productGroup;
