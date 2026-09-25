@@ -2042,8 +2042,8 @@ func (this *Paradex) onboardingBody(ch chan any, optionalArgs ...any) any {
 	var msg any = this.StarknetEncodeStructuredData(domain, messageTypes, req, GetValue(account, "address"))
 	var signature any = this.StarknetSign(msg, GetValue(account, "privateKey"))
 	AddElementToObject(params, "signature", signature)
-	AddElementToObject(params, "account", GetValue(account, "address"))
-	AddElementToObject(params, "public_key", GetValue(account, "publicKey"))
+	params["account"] = GetValue(account, "address")
+	params["public_key"] = GetValue(account, "publicKey")
 
 	response := (<-this.PrivatePostOnboarding(params)).Raw
 	PanicOnError(response)
@@ -2110,7 +2110,7 @@ func (this *Paradex) authenticateRestBody(ch chan any, optionalArgs ...any) any 
 	var msg any = this.StarknetEncodeStructuredData(domain, messageTypes, req, GetValue(account, "address"))
 	var signature any = this.StarknetSign(msg, GetValue(account, "privateKey"))
 	AddElementToObject(params, "signature", signature)
-	AddElementToObject(params, "account", GetValue(account, "address"))
+	params["account"] = GetValue(account, "address")
 	AddElementToObject(params, "timestamp", req["timestamp"])
 	AddElementToObject(params, "expiration", req["expiration"])
 

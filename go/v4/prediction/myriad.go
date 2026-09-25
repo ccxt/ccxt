@@ -752,7 +752,7 @@ func (this *Myriad) fetchRawQuestionsListBody(ch chan any, optionalArgs ...any) 
 				continue
 			}
 			if questionId != nil {
-				ccxt.AddElementToObject(seen, questionId, true)
+				seen[*questionId] = true
 			}
 			if ccxt.IsLessThan(collected, maxQuestions) {
 				allRawQuestions = append(allRawQuestions, rawQuestion)

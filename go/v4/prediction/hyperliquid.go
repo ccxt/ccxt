@@ -2469,7 +2469,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			return ok
 		}()) {
 			if parentSymbol != nil {
-				ccxt.AddElementToObject(groupMap, parentSymbol, []any{})
+				groupMap[*parentSymbol] = []any{}
 			}
 		}
 		// push through a local and write the slice back — the go transpiler's

@@ -3511,7 +3511,7 @@ func (this *Lbank) fetchPublicTransactionFeesBody(ch chan any, optionalArgs ...a
 			var fee *string = this.SafeString(item, "fee")
 			if IsEqual(this.SafeValue(withdrawFees, codeInner), nil) {
 				if codeInner != nil {
-					AddElementToObject(withdrawFees, codeInner, map[string]any{})
+					withdrawFees[*codeInner] = map[string]any{}
 				}
 			}
 			if (codeInner != nil) && (network != nil) {

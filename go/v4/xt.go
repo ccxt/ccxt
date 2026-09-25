@@ -1360,7 +1360,7 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 			var networkId *string = this.SafeString(rawNetwork, "chain")
 			var networkCode *string = this.NetworkIdToCode(networkId, code)
 			if networkCode != nil {
-				AddElementToObject(networks, networkCode, map[string]any{
+				networks[*networkCode] = map[string]any{
 					"info":      rawNetwork,
 					"id":        networkId,
 					"network":   networkCode,
@@ -1384,7 +1384,7 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 							"max": nil,
 						},
 					},
-				})
+				}
 			}
 		}
 		var typeRaw *string = this.SafeString(entry, "type")

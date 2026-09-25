@@ -195,7 +195,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	}
 	var topicParams any = this.SafeValue(params, "params")
 	if ccxt.IsEqual(topicParams, nil) {
-		ccxt.AddElementToObject(params, "params", map[string]any{})
+		params["params"] = map[string]any{}
 	}
 	bookSubscriptionType, paramsBookSubscriptionType := this.HandleOptionStringAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
 	bookSubscriptionType2, paramsBookSubscriptionType2 := this.HandleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
@@ -253,7 +253,7 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, 
 	var limit *int64 = this.SafeInteger(params, "limit", 50)
 	var topicParams any = this.SafeValue(params, "params")
 	if ccxt.IsEqual(topicParams, nil) {
-		ccxt.AddElementToObject(params, "params", map[string]any{})
+		params["params"] = map[string]any{}
 	}
 	bookSubscriptionType, paramsBookSubscriptionType := this.HandleOptionStringAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
 	bookSubscriptionType2, paramsBookSubscriptionType2 := this.HandleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
