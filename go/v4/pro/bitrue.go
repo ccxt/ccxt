@@ -787,7 +787,7 @@ func (this *Bitrue) ParseWsOHLCV(tick any, optionalArgs ...any) any {
 		if idSeconds == nil {
 			return nil
 		}
-		return ccxt.Multiply(idSeconds, 1000)
+		return *idSeconds * 1000
 	}()
 	var open *float64 = this.SafeNumber(tick, "open")
 	var high *float64 = this.SafeNumber(tick, "high")

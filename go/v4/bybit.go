@@ -4198,9 +4198,9 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	} else {
 		if since != nil {
 			// end time is required when since is not empty
-			var fundingInterval any = (60 * 60) * 8 * 1000
+			var fundingInterval int64 = (60 * 60) * 8 * 1000
 			if fundingTimeFrameMins != nil {
-				fundingInterval = Multiply(Multiply(fundingTimeFrameMins, 60), 1000)
+				fundingInterval = (*fundingTimeFrameMins * 60) * 1000
 			}
 			request["endTime"] = this.Sum(since, Multiply(limitResolved, fundingInterval))
 		}

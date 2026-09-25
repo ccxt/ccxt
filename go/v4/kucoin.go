@@ -4102,13 +4102,13 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol string, optionalArgs .
 	}()
 	var sinceResolved any = since
 	if (since == nil) && (limit != nil) {
-		sinceResolved = Subtract(endAt, Multiply(limit, duration))
+		sinceResolved = Subtract(endAt, *limit*duration)
 	}
 	if since != nil {
 		request["startAt"] = this.ParseToInt(MathFloor(Divide(since, denominator)))
 		endAt = this.Sum(since, Multiply(windowLimit, duration))
 	} else if limit != nil {
-		request["startAt"] = this.ParseToInt(MathFloor(Divide((Subtract(endAt, Multiply(limit, duration))), denominator)))
+		request["startAt"] = this.ParseToInt(MathFloor(Divide((Subtract(endAt, *limit*duration)), denominator)))
 	}
 	request["endAt"] = this.ParseToInt(MathFloor(Divide(endAt, denominator)))
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOHLCV", market, paramsPaginate)
@@ -4219,13 +4219,13 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan any, symbol string, optionalArgs 
 	}()
 	var sinceResolved any = since
 	if (since == nil) && (limit != nil) {
-		sinceResolved = Subtract(endAt, Multiply(limit, duration))
+		sinceResolved = Subtract(endAt, *limit*duration)
 	}
 	if since != nil {
 		request["startAt"] = this.ParseToInt(MathFloor(Divide(since, denominator)))
 		endAt = this.Sum(since, Multiply(windowLimit, duration))
 	} else if limit != nil {
-		request["startAt"] = this.ParseToInt(MathFloor(Divide((Subtract(endAt, Multiply(limit, duration))), denominator)))
+		request["startAt"] = this.ParseToInt(MathFloor(Divide((Subtract(endAt, *limit*duration)), denominator)))
 	}
 	request["endAt"] = this.ParseToInt(MathFloor(Divide(endAt, denominator)))
 
@@ -4317,7 +4317,7 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan any, symbol string, optionalA
 	}()
 	var sinceResolved any = since
 	if (since == nil) && (limit != nil) {
-		sinceResolved = Subtract(endAt, Multiply(limit, duration))
+		sinceResolved = Subtract(endAt, *limit*duration)
 	}
 	if since != nil {
 		request["from"] = since

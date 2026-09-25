@@ -1674,7 +1674,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome string, optionalArgs ...
 		var sinceS int64 = this.ParseToInt(float64(*since) / 1000)
 		request["start_ts"] = sinceS
 		if limit != nil {
-			var end any = this.Sum(sinceS, ccxt.Multiply(limit, tf))
+			var end any = this.Sum(sinceS, *limit*tf)
 			request["end_ts"] = func() any {
 				if ccxt.IsLessThan(end, now) {
 					return end
@@ -1806,7 +1806,7 @@ func (this *Kalshi) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	var durationSeconds *int64 = this.SafeInteger(this.Options, "ohlcvCandleDurationSeconds", 0)
 	var timestamp any = endTimestamp
 	if endTimestamp != nil {
-		timestamp = ccxt.Subtract(endTimestamp, ccxt.Multiply(durationSeconds, 1000))
+		timestamp = ccxt.Subtract(endTimestamp, *durationSeconds*1000)
 	}
 	return []any{timestamp, this.SafeNumber(price, "open_dollars", previous), this.SafeNumber(price, "high_dollars", previous), this.SafeNumber(price, "low_dollars", previous), this.SafeNumber(price, "close_dollars", previous), this.SafeNumber(ohlcv, "volume_fp", 0)}
 }

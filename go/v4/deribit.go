@@ -2022,7 +2022,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		if limit == nil {
 			request["end_timestamp"] = now
 		} else {
-			request["end_timestamp"] = this.Sum(sinceResolved, Multiply(Multiply(limit, duration), 1000))
+			request["end_timestamp"] = this.Sum(sinceResolved, (*limit * duration)*1000)
 		}
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
@@ -4293,7 +4293,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		if limit == nil {
 			panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a limit argument"))
 		}
-		var maxUntil any = this.Sum(sinceResolved, Multiply(limit, duration))
+		var maxUntil any = this.Sum(sinceResolved, *limit*duration)
 		request["end_timestamp"] = mathMin(request["end_timestamp"], maxUntil)
 	}
 

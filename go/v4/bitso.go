@@ -1050,12 +1050,12 @@ func (this *Bitso) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		request["start"] = since
 		if limit != nil {
 			var duration int64 = this.ParseTimeframe(timeframe)
-			request["end"] = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
+			request["end"] = this.Sum(since, (duration * *limit)*1000)
 		}
 	} else if limit != nil {
 		var now int64 = this.Milliseconds()
 		request["end"] = now
-		request["start"] = Subtract(now, Multiply(this.ParseTimeframe(timeframe)*1000, limit))
+		request["start"] = now - (this.ParseTimeframe(timeframe)*1000)**limit
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOhlc(this.Extend(request, params))).Raw))

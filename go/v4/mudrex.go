@@ -1783,7 +1783,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var pageSize any = 0
 	if limit != nil {
 		// every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-		pageSize = Multiply(limit, 2)
+		pageSize = *limit * 2
 	}
 	var allRows []any = []any{}
 	var transactionsCount any = 0

@@ -1336,7 +1336,7 @@ func (this *Ndax) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	var now int64 = this.Milliseconds()
 	if since == nil {
 		if limit != nil {
-			request["FromDate"] = this.Ymdhms(Subtract(now, Multiply(Multiply(duration, limit), 1000)))
+			request["FromDate"] = this.Ymdhms(now-(duration * *limit)*1000)
 			request["ToDate"] = this.Ymdhms(now)
 		}
 	} else {
@@ -1344,7 +1344,7 @@ func (this *Ndax) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		if limit == nil {
 			request["ToDate"] = this.Ymdhms(now)
 		} else {
-			request["ToDate"] = this.Ymdhms(this.Sum(since, Multiply(Multiply(duration, limit), 1000)))
+			request["ToDate"] = this.Ymdhms(this.Sum(since, (duration * *limit)*1000))
 		}
 	}
 

@@ -2335,7 +2335,7 @@ func (this *Bigone) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *Bigone) Nonce() any {
-	var exchangeTimeCorrection any = Multiply(this.SafeInteger(this.Options, "exchangeMillisecondsCorrection", 0), 1000000)
+	var exchangeTimeCorrection int64 = *this.SafeInteger(this.Options, "exchangeMillisecondsCorrection", 0) * 1000000
 	return this.Sum(this.Microseconds()*1000, exchangeTimeCorrection)
 }
 func (this *Bigone) Sign(path string, optionalArgs ...any) any {
