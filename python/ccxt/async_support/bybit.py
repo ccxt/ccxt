@@ -6889,7 +6889,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             request['symbol'] = self.safe_string(market, 'id')
         query = params
         if symbol is not None:
-            isLinear = (self.safe_bool(market, 'linear') is True)
+            isLinear = self.safe_bool(market, 'linear', False)
             request['category'] = 'linear' if isLinear else 'inverse'
         else:
             type = None
@@ -7073,8 +7073,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         timestamp = self.safe_integer(interest, 'timestamp')
         openInterest = self.safe_number_2(interest, 'open_interest', 'openInterest')
         # the openInterest is in the base asset for linear and quote asset for inverse
-        isLinear = (self.safe_bool(market, 'linear') is True)
-        isInverse = (self.safe_bool(market, 'inverse') is True)
+        isLinear = self.safe_bool(market, 'linear', False)
+        isInverse = self.safe_bool(market, 'inverse', False)
         amount = openInterest if isLinear else None
         value = openInterest if isInverse else None
         return self.safe_open_interest({

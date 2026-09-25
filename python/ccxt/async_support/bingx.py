@@ -1094,7 +1094,7 @@ class bingx(Exchange, ImplicitAPI):
         isActive = False
         if (self.safe_string(market, 'apiStateOpen') == 'true') and (self.safe_string(market, 'apiStateClose') == 'true'):
             isActive = True  # swap active
-        elif (self.safe_bool(market, 'apiStateSell') is True) and (self.safe_bool(market, 'apiStateBuy') is True) and (self.safe_string(market, 'status') == '1'):
+        elif (self.safe_bool(market, 'apiStateSell', False)) and (self.safe_bool(market, 'apiStateBuy', False)) and (self.safe_string(market, 'status') == '1'):
             isActive = True  # spot active
         elif checkIsInverse and (self.safe_string(market, 'status') == '1'):
             isActive = True  # inverse swap active

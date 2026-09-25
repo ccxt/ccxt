@@ -1090,7 +1090,7 @@ class mexc(Exchange, ImplicitAPI):
             #
             #     {"success":true,"code":"0","data":"1648124374985"}
             #
-            success = (self.safe_bool(response, 'success') is True)
+            success = self.safe_bool(response, 'success', False)
             status = 'ok' if success else self.json(response)
             updated = self.safe_integer(response, 'data')
         return {
@@ -1240,7 +1240,7 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         spotMarketPromise = self.fetch_spot_markets(params)
         swapMarketPromise = self.fetch_swap_markets(params)
@@ -1769,7 +1769,7 @@ class mexc(Exchange, ImplicitAPI):
                     'cost': self.safe_string(trade, 'fee'),
                     'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
                 }
-                isTaker = (self.safe_bool_2(trade, 'isTaker', 'taker') is True)
+                isTaker = self.safe_bool_2(trade, 'isTaker', 'taker', False)
                 takerOrMaker = 'taker' if isTaker else 'maker'
             else:
                 timestamp = self.safe_integer_2(trade, 'time', 'T')

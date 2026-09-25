@@ -607,7 +607,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         promises = []
         promises.append(self.publicGetAssetPairs(params))
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             promises.append(self.load_time_difference())
         responses = promises
         assetsResponse = self.safe_dict(responses, 0)

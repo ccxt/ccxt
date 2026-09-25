@@ -1862,7 +1862,7 @@ class kucoin(Exchange, ImplicitAPI):
         if fetchContractMarkets:
             contractMarkets = self.safe_list(responses, contractIndex, [])
             result = self.array_concat(result, contractMarkets)
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
         return result
 
@@ -2194,7 +2194,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'created': self.safe_integer(market, 'launchTime'),
                 'info': market,
             })
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
         return result
 

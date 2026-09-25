@@ -373,7 +373,7 @@ class cex(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(id)
-        isFiat = (self.safe_bool(rawCurrency, 'fiat') is True)
+        isFiat = self.safe_bool(rawCurrency, 'fiat', False)
         type = 'crypto'
         if isFiat:
             type = 'fiat'

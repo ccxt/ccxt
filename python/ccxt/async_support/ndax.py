@@ -534,7 +534,7 @@ class ndax(Exchange, ImplicitAPI):
             'type': type,
             'precision': self.safe_number(rawCurrency, 'TickSize'),
             'info': rawCurrency,
-            'active': (self.safe_bool(rawCurrency, 'IsDisabled') is not True),
+            'active': (not self.safe_bool(rawCurrency, 'IsDisabled', False)),
             'deposit': self.safe_bool(rawCurrency, 'DepositEnabled'),
             'withdraw': self.safe_bool(rawCurrency, 'WithdrawEnabled'),
             'fee': None,

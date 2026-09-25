@@ -1247,7 +1247,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             firstSymbol = self.safe_string(symbolsNormalized, 0)
             if firstSymbol is not None:
                 market = self.market(firstSymbol)
-                if self.safe_bool(self.safe_dict(market, 'info'), 'hip3') is True:
+                if self.safe_bool(self.safe_dict(market, 'info'), 'hip3', False):
                     hip3 = True
         if hip3:
             response = await self.fetch_hip3_markets(self.omit(paramsHip3, 'hip3'))
@@ -3271,7 +3271,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         postOnly = None
         if tif is not None:
             postOnly = (tif == 'ALO')
-        isTrigger = (self.safe_bool(entry, 'isTrigger') is True)
+        isTrigger = self.safe_bool(entry, 'isTrigger', False)
         triggerPx = self.safe_number(entry, 'triggerPx') if isTrigger else None
         # standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         # through the unified stopLossPrice / takeProfitPrice fields as well, see #24318

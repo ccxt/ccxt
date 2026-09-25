@@ -443,7 +443,7 @@ class kucoin(ccxt.async_support.kucoin):
     async def subscribe_public_multiple_uta(self, messageHashes: list[str], channel: str, symbols: list[object], params: dict = {}, subscription: dict = None):
         requestId = str(self.request_id())
         market = self.get_market_from_symbols(symbols)
-        isContract = (self.safe_bool(market, 'contract') is True)
+        isContract = self.safe_bool(market, 'contract', False)
         urlType = 'spot'
         if isContract:
             urlType = 'futures'
@@ -700,7 +700,7 @@ class kucoin(ccxt.async_support.kucoin):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False, True, False)
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
-        isFuturesMethod = (self.safe_bool(firstMarket, 'contract') is True)
+        isFuturesMethod = self.safe_bool(firstMarket, 'contract', False)
         channelName = '/spotMarket/level1:'
         if isFuturesMethod:
             channelName = '/contractMarket/tickerV2:'
@@ -1076,7 +1076,7 @@ class kucoin(ccxt.async_support.kucoin):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
-        isFuturesMethod = (self.safe_bool(firstMarket, 'contract') is True)
+        isFuturesMethod = self.safe_bool(firstMarket, 'contract', False)
         marketIds = self.market_ids(symbolsNormalized)
         url = await self.negotiate(False, isFuturesMethod)
         messageHashes = []
@@ -1114,7 +1114,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbolsNormalized = self.market_symbols(symbols, None, False, True)
         marketIds = self.market_ids(symbolsNormalized)
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
-        isFuturesMethod = (self.safe_bool(firstMarket, 'contract') is True)
+        isFuturesMethod = self.safe_bool(firstMarket, 'contract', False)
         url = await self.negotiate(False, isFuturesMethod)
         messageHashes = []
         subscriptionHashes = []
@@ -1405,7 +1405,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbolsNormalized = self.market_symbols(symbols)
         marketIds = self.market_ids(symbolsNormalized)
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
-        isFuturesMethod = (self.safe_bool(firstMarket, 'contract') is True)
+        isFuturesMethod = self.safe_bool(firstMarket, 'contract', False)
         url = await self.negotiate(False, isFuturesMethod)
         defaultMethod = '/market/level2'
         if isFuturesMethod:
@@ -1461,7 +1461,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbolsNormalized = self.market_symbols(symbols, None, False, True)
         marketIds = self.market_ids(symbolsNormalized)
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
-        isFuturesMethod = (self.safe_bool(firstMarket, 'contract') is True)
+        isFuturesMethod = self.safe_bool(firstMarket, 'contract', False)
         url = await self.negotiate(False, isFuturesMethod)
         defaultMethod = '/market/level2'
         if isFuturesMethod:

@@ -1542,7 +1542,7 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         types = {}
         paramsTypes = {}
@@ -1552,7 +1552,7 @@ class htx(Exchange, ImplicitAPI):
         keys = list(types.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if self.safe_bool(types, key) is True:
+            if self.safe_bool(types, key, False):
                 if key == 'spot':
                     promises.append(self.fetch_markets_by_type_and_sub_type('spot', None, paramsTypes))
                 elif key == 'linear':
@@ -2658,12 +2658,12 @@ class htx(Exchange, ImplicitAPI):
             if since is not None:
                 request['start_time'] = since
             request, paramsUntil = self.handle_until_option('end_time', request, paramsMarketType)
-            if self.safe_bool(market, 'linear') is True:
+            if self.safe_bool(market, 'linear', False):
                 request['contract_code'] = self.safe_string(market, 'id')
                 if limit is not None:
                     request['limit'] = limit  # default 100, max 500
                 response = self.contractPrivateGetV5TradeOrderDetails(self.extend(request, paramsUntil))
-            elif self.safe_bool(market, 'inverse') is True:
+            elif self.safe_bool(market, 'inverse', False):
                 if limit is not None:
                     request['page_size'] = limit  # default 100, max 500
                 request['contract'] = self.safe_string(market, 'id')
@@ -3555,7 +3555,7 @@ class htx(Exchange, ImplicitAPI):
                     request['algo_client_order_id'] = clientOrderId
                 else:
                     request['client_order_id'] = clientOrderId
-            if self.safe_bool(market, 'linear') is True:
+            if self.safe_bool(market, 'linear', False):
                 if isAlgo is True:
                     if trigger is True:
                         request['type'] = 'trigger'
@@ -3575,7 +3575,7 @@ class htx(Exchange, ImplicitAPI):
                     marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchOrder', paramsClientOrderId)
                     request['margin_mode'] = 'cross' if (marginMode is None) else marginMode
                     response = self.contractPrivateGetV5TradeOrder(self.extend(request, paramsMarginMode))
-            elif self.safe_bool(market, 'inverse') is True:
+            elif self.safe_bool(market, 'inverse', False):
                 if marketType == 'future':
                     request['symbol'] = self.safe_string(market, 'settleId')
                     response = self.contractPrivatePostApiV1ContractOrderInfo(self.extend(request, paramsClientOrderId))
@@ -4013,7 +4013,7 @@ class htx(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires a symbol argument for ' + marketType + ' orders')
             request = {}
-            if self.safe_bool(market, 'linear') is True:
+            if self.safe_bool(market, 'linear', False):
                 trigger = self.safe_bool_2(paramsMarketType, 'stop', 'trigger')
                 stopLossTakeProfit = self.safe_bool(paramsMarketType, 'stopLossTakeProfit')
                 stopLoss = self.safe_bool(paramsMarketType, 'stopLoss')
@@ -5295,16 +5295,16 @@ class htx(Exchange, ImplicitAPI):
             ordersRequests.append(orderRequest)
         request = {}
         response = None
-        if self.safe_bool(market, 'spot') is True:
+        if self.safe_bool(market, 'spot', False):
             response = self.privatePostOrderBatchOrders(ordersRequests)
         else:
-            if self.safe_bool(market, 'linear') is True:
+            if self.safe_bool(market, 'linear', False):
                 response = self.contractPrivatePostV5TradeBatchOrders(ordersRequests)
-            elif self.safe_bool(market, 'inverse') is True:
+            elif self.safe_bool(market, 'inverse', False):
                 request['orders_data'] = ordersRequests
-                if self.safe_bool(market, 'swap') is True:
+                if self.safe_bool(market, 'swap', False):
                     response = self.contractPrivatePostSwapApiV1SwapBatchorder(request)
-                elif self.safe_bool(market, 'future') is True:
+                elif self.safe_bool(market, 'future', False):
                     response = self.contractPrivatePostApiV1ContractBatchorder(request)
         #
         # spot
@@ -5371,7 +5371,7 @@ class htx(Exchange, ImplicitAPI):
         #
         #
         result = None
-        if self.safe_bool(market, 'spot') is True:
+        if self.safe_bool(market, 'spot', False):
             result = self.safe_list(response, 'data', [])
         else:
             data = self.safe_value(response, 'data')
@@ -5445,7 +5445,7 @@ class htx(Exchange, ImplicitAPI):
                 else:
                     request['client_order_id'] = clientOrderId
                     query = self.omit(query, ['client_order_id', 'clientOrderId'])
-            if self.safe_bool(market, 'future') is True:
+            if self.safe_bool(market, 'future', False):
                 request['symbol'] = self.safe_string(market, 'settleId')
             else:
                 request['contract_code'] = self.safe_string(market, 'id')
@@ -5464,8 +5464,8 @@ class htx(Exchange, ImplicitAPI):
                     response = self.contractPrivatePostV5AlgoCancelOrders(requestBody)
                 else:
                     response = self.contractPrivatePostV5TradeCancelOrder(self.extend(request, query))
-            elif self.safe_bool(market, 'inverse') is True:
-                if self.safe_bool(market, 'swap') is True:
+            elif self.safe_bool(market, 'inverse', False):
+                if self.safe_bool(market, 'swap', False):
                     if trigger is True:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerCancel(self.extend(request, query))
                     elif stopLossTakeProfit is True:
@@ -5474,7 +5474,7 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostSwapApiV1SwapTrackCancel(self.extend(request, query))
                     else:
                         response = self.contractPrivatePostSwapApiV1SwapCancel(self.extend(request, query))
-                elif self.safe_bool(market, 'future') is True:
+                elif self.safe_bool(market, 'future', False):
                     if trigger is True:
                         response = self.contractPrivatePostApiV1ContractTriggerCancel(self.extend(request, query))
                     elif stopLossTakeProfit is True:
@@ -5602,16 +5602,16 @@ class htx(Exchange, ImplicitAPI):
             clientOrderIds = self.safe_value_2(query, 'client_order_id', 'clientOrderId')
             clientOrderIds = self.safe_value_2(query, 'client_order_ids', 'clientOrderIds', clientOrderIds)
             query = self.omit(query, ['client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds'])
-            if self.safe_bool(market, 'linear') is not True:
+            if not self.safe_bool(market, 'linear', False):
                 if clientOrderIds is None:
                     request['order_id'] = ','.join(ids)
                 else:
                     request['client_order_id'] = clientOrderIds
-            if self.safe_bool(market, 'future') is True:
+            if self.safe_bool(market, 'future', False):
                 request['symbol'] = self.safe_string(market, 'settleId')
             else:
                 request['contract_code'] = self.safe_string(market, 'id')
-            if self.safe_bool(market, 'linear') is True:
+            if self.safe_bool(market, 'linear', False):
                 if clientOrderIds is None:
                     request['order_id'] = ids
                 else:
@@ -5620,15 +5620,15 @@ class htx(Exchange, ImplicitAPI):
                     else:
                         request['client_order_id'] = clientOrderIds
                 response = self.contractPrivatePostV5TradeCancelBatchOrders(self.extend(request, query))
-            elif self.safe_bool(market, 'inverse') is True:
-                if self.safe_bool(market, 'swap') is True:
+            elif self.safe_bool(market, 'inverse', False):
+                if self.safe_bool(market, 'swap', False):
                     if trigger is True:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerCancel(self.extend(request, query))
                     elif stopLossTakeProfit is True:
                         response = self.contractPrivatePostSwapApiV1SwapTpslCancel(self.extend(request, query))
                     else:
                         response = self.contractPrivatePostSwapApiV1SwapCancel(self.extend(request, query))
-                elif self.safe_bool(market, 'future') is True:
+                elif self.safe_bool(market, 'future', False):
                     if trigger is True:
                         response = self.contractPrivatePostApiV1ContractTriggerCancel(self.extend(request, query))
                     elif stopLossTakeProfit is True:
@@ -5710,7 +5710,7 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1780822053167
         #     }
         #
-        if (self.safe_bool(market, 'linear') is True) and (trigger is not True) and (stopLossTakeProfit is not True):
+        if (self.safe_bool(market, 'linear', False)) and (trigger is not True) and (stopLossTakeProfit is not True):
             return self.parse_cancel_orders(response)
         data = self.safe_dict(response, 'data')
         return self.parse_cancel_orders(data)
@@ -5857,14 +5857,14 @@ class htx(Exchange, ImplicitAPI):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
-            if self.safe_bool(market, 'future') is True:
+            if self.safe_bool(market, 'future', False):
                 request['symbol'] = self.safe_string(market, 'settleId')
             request['contract_code'] = self.safe_string(market, 'id')
             trigger = self.safe_bool_2(paramsMarketType, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_bool(paramsMarketType, 'stopLossTakeProfit')
             trailing = self.safe_bool(paramsMarketType, 'trailing', False)
             paramsOmitted = self.omit(paramsMarketType, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
-            if self.safe_bool(market, 'linear') is True:
+            if self.safe_bool(market, 'linear', False):
                 response = self.contractPrivatePostV5TradeCancelAllOrders(self.extend(request, paramsOmitted))
                 #
                 #     {
@@ -5881,8 +5881,8 @@ class htx(Exchange, ImplicitAPI):
                 #         "ts": 1780899655629
                 #     }
                 #
-            elif self.safe_bool(market, 'inverse') is True:
-                if self.safe_bool(market, 'swap') is True:
+            elif self.safe_bool(market, 'inverse', False):
+                if self.safe_bool(market, 'swap', False):
                     if trigger is True:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerCancelall(self.extend(request, paramsOmitted))
                     elif stopLossTakeProfit is True:
@@ -5891,7 +5891,7 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostSwapApiV1SwapTrackCancelall(self.extend(request, paramsOmitted))
                     else:
                         response = self.contractPrivatePostSwapApiV1SwapCancelall(self.extend(request, paramsOmitted))
-                elif self.safe_bool(market, 'future') is True:
+                elif self.safe_bool(market, 'future', False):
                     if trigger is True:
                         response = self.contractPrivatePostApiV1ContractTriggerCancelall(self.extend(request, paramsOmitted))
                     elif stopLossTakeProfit is True:
@@ -5912,7 +5912,7 @@ class htx(Exchange, ImplicitAPI):
             #         "ts": "1683435723755"
             #     }
             #
-            if (self.safe_bool(market, 'linear') is True) and ((trigger is not True) and (trailing is not True) and (stopLossTakeProfit is not True)):
+            if (self.safe_bool(market, 'linear', False)) and ((trigger is not True) and (trailing is not True) and (stopLossTakeProfit is not True)):
                 return self.parse_cancel_orders(response)
             data = self.safe_dict(response, 'data')
             return self.parse_cancel_orders(data)

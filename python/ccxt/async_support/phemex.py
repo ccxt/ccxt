@@ -2663,7 +2663,7 @@ class phemex(Exchange, ImplicitAPI):
             if qtyType == 'ByQuote':
                 cost = self.safe_number(orderParams, 'cost')
                 orderParams = self.omit(orderParams, 'cost')
-                if self.safe_bool(self.options, 'createOrderByQuoteRequiresPrice') is True:
+                if self.safe_bool(self.options, 'createOrderByQuoteRequiresPrice', False):
                     if price is not None:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -2682,7 +2682,7 @@ class phemex(Exchange, ImplicitAPI):
             orderParams = self.omit(orderParams, 'hedged')
             posSide = self.safe_string_lower(orderParams, 'posSide')
             # a hedged reduceOnly order without posSide closes the opposite side
-            flipSide = (posSide is None) and (hedged is True) and (self.safe_bool(orderParams, 'reduceOnly') is True)
+            flipSide = (posSide is None) and (hedged is True) and (self.safe_bool(orderParams, 'reduceOnly', False))
             oppositeSide = 'sell' if (side == 'buy') else 'buy'
             sideResolved = side
             if flipSide:

@@ -1092,8 +1092,8 @@ class grvt(Exchange, ImplicitAPI):
             side = 'buy' if isTakerBuyer else 'sell'
             takerOrMaker = 'taker'
         else:
-            isTaker = (self.safe_bool(trade, 'is_taker') is True)
-            isBuyer = (self.safe_bool(trade, 'is_buyer') is True)
+            isTaker = self.safe_bool(trade, 'is_taker', False)
+            isBuyer = self.safe_bool(trade, 'is_buyer', False)
             takerOrMaker = 'taker' if isTaker else 'maker'
             side = 'buy' if isBuyer else 'sell'
         fee = None
@@ -2907,7 +2907,7 @@ class grvt(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(legMarketId, market) if (firstLeg is not None) else market
         if firstLeg is not None:
             size = self.safe_string(firstLeg, 'size')
-            isBuyingAsset = (self.safe_bool(firstLeg, 'is_buying_asset') is True)
+            isBuyingAsset = self.safe_bool(firstLeg, 'is_buying_asset', False)
             side = 'buy' if isBuyingAsset else 'sell'
             price = self.safe_string(firstLeg, 'limit_price')
             filled = self.safe_string(filledAmounts, primaryOrderIndex)

@@ -1055,14 +1055,14 @@ class luno(Exchange, ImplicitAPI):
                 side = 'sell'
             elif (type == 'BID') or (type == 'BUY'):
                 side = 'buy'
-            if (side == 'sell') and (self.safe_bool(trade, 'is_buy') is True):
+            if (side == 'sell') and (self.safe_bool(trade, 'is_buy', False)):
                 takerOrMaker = 'maker'
-            elif (side == 'buy') and (self.safe_bool(trade, 'is_buy') is not True):
+            elif (side == 'buy') and (not self.safe_bool(trade, 'is_buy', False)):
                 takerOrMaker = 'maker'
             else:
                 takerOrMaker = 'taker'
         else:
-            side = 'buy' if (self.safe_bool(trade, 'is_buy') is True) else 'sell'
+            side = 'buy' if (self.safe_bool(trade, 'is_buy', False)) else 'sell'
         feeBaseString = self.safe_string(trade, 'fee_base')
         feeCounterString = self.safe_string(trade, 'fee_counter')
         feeCurrency = None

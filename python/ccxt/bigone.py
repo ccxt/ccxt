@@ -570,7 +570,7 @@ class bigone(Exchange, ImplicitAPI):
                 }
         chainLength = len(chains)
         type = None
-        if self.safe_bool(rawCurrency, 'is_fiat') is True:
+        if self.safe_bool(rawCurrency, 'is_fiat', False):
             type = 'fiat'
         elif chainLength == 0:
             if self.is_leveraged_currency(id):

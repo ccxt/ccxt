@@ -1480,7 +1480,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         tifRaw = self.safe_string(entry, 'tif')
         tif = self.parse_time_in_force(tifRaw)
         postOnly = (tif == 'PO')
-        isTrigger = (self.safe_bool(entry, 'isTrigger') is True)
+        isTrigger = self.safe_bool(entry, 'isTrigger', False)
         triggerPrice = self.safe_number(entry, 'triggerPx') if isTrigger else None
         return self.safe_prediction_order({
             'id': self.safe_string(entry, 'oid'),
@@ -1666,7 +1666,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         cost = None
         if (price is not None) and (amount is not None):
             cost = self.parse_number(Precise.string_mul(price, amount))
-        crossed = (self.safe_bool(trade, 'crossed') is True)
+        crossed = self.safe_bool(trade, 'crossed', False)
         takerOrMaker = 'maker'
         if crossed:
             takerOrMaker = 'taker'

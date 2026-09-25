@@ -1703,7 +1703,7 @@ class bitso(Exchange, ImplicitAPI):
                     result[code] = {
                         'deposit': {
                             'fee': self.safe_number(entry, 'fee'),
-                            'percentage': (self.safe_bool(entry, 'is_fixed') is not True),
+                            'percentage': (not self.safe_bool(entry, 'is_fixed', False)),
                         },
                         'withdraw': {
                             'fee': None,

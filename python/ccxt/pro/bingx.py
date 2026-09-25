@@ -729,12 +729,12 @@ class bingx(ccxt.async_support.bingx):
         #
         # for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         # for linear swap, (T) is the opening time
-        isSpot = (self.safe_bool(market, 'spot') is True)
-        isInverse = (self.safe_bool(market, 'inverse') is True)
+        isSpot = self.safe_bool(market, 'spot', False)
+        isInverse = self.safe_bool(market, 'inverse', False)
         timestamp = 'T'
         if isSpot:
             timestamp = 't'
-        if self.safe_bool(market, 'swap') is True:
+        if self.safe_bool(market, 'swap', False):
             timestamp = 't' if isInverse else 'T'
         return [
             self.safe_integer(ohlcv, timestamp),

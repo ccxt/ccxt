@@ -925,7 +925,7 @@ class toobit(ccxt.async_support.toobit):
     def parse_my_trade(self, trade: dict, market: Market = None) -> Trade:
         marketId = self.safe_string(trade, 's')
         ts = self.safe_string(trade, 't')
-        isMaker = (self.safe_bool(trade, 'm') is True)
+        isMaker = self.safe_bool(trade, 'm', False)
         takerOrMaker = 'taker'
         if isMaker:
             takerOrMaker = 'maker'

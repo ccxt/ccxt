@@ -2029,8 +2029,8 @@ class gate(ccxt.async_support.gate):
 
     def get_url_by_market(self, market: object) -> str:
         baseUrl = self.urls['api'][market['type']]
-        if self.safe_bool(market, 'contract') is True:
-            return baseUrl['usdt'] if (self.safe_bool(market, 'linear') is True) else baseUrl['btc']
+        if self.safe_bool(market, 'contract', False):
+            return baseUrl['usdt'] if (self.safe_bool(market, 'linear', False)) else baseUrl['btc']
         else:
             return baseUrl
 

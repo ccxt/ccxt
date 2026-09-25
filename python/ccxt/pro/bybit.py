@@ -827,7 +827,7 @@ class bybit(ccxt.async_support.bybit):
         #         "timestamp": 1670363219614
         #     }
         #
-        isInverse = (self.safe_bool(market, 'inverse') is True)
+        isInverse = self.safe_bool(market, 'inverse', False)
         volumeIndex = 'volume'
         if isInverse:
             volumeIndex = 'turnover'

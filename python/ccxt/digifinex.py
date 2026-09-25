@@ -1518,7 +1518,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         0.029927
         #     ]
         #
-        if self.safe_bool(market, 'swap') is True:
+        if self.safe_bool(market, 'swap', False):
             return [
                 self.safe_integer(ohlcv, 0),
                 self.safe_number(ohlcv, 1),  # open

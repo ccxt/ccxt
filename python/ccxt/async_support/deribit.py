@@ -1900,7 +1900,7 @@ class deribit(Exchange, ImplicitAPI):
         filledString = self.safe_string(order, 'filled_amount')
         amount = self.safe_string(order, 'amount')
         cost = Precise.string_mul(filledString, averageString)
-        if self.safe_bool(marketResolved, 'inverse') is True:
+        if self.safe_bool(marketResolved, 'inverse', False):
             if averageString != '0':
                 cost = Precise.string_div(amount, averageString)
         lastTradeTimestamp = None

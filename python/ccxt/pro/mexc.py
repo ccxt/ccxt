@@ -719,7 +719,7 @@ class mexc(ccxt.async_support.mexc):
         volume = self.safe_number_2(ohlcv, 'v', 'volume')
         # MEXC swap websocket klines publish contracts volume in `q`,
         # while spot/protobuf uses `v`/`volume`.
-        if (market is not None) and (self.safe_bool(market, 'spot') is not True) and (volume is None):
+        if (market is not None) and (not self.safe_bool(market, 'spot', False)) and (volume is None):
             volume = self.safe_number_2(ohlcv, 'q', 'v')
         return [
             self.safe_timestamp_2(ohlcv, 't', 'windowStart'),

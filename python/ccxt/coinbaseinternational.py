@@ -373,7 +373,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         for i in range(0, len(accounts)):
             account = self.safe_dict(accounts, i)
             info = self.safe_dict(account, 'info', {})
-            if self.safe_bool(info, 'is_default') is True:
+            if self.safe_bool(info, 'is_default', False):
                 portfolioId = self.safe_string(info, 'portfolio_id')
                 self.options['portfolio'] = portfolioId
                 return [portfolioId, paramsPortfolio]

@@ -1387,7 +1387,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
         if self.check_required_credentials(False):
             await self.load_unified_status()
@@ -1531,7 +1531,7 @@ class gate(Exchange, ImplicitAPI):
     async def fetch_swap_markets(self, params: dict = {}) -> list[Market]:
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
-        if self.safe_bool(self.options, 'sandboxMode') is True:
+        if self.safe_bool(self.options, 'sandboxMode', False):
             swapSettlementCurrencies = ['usdt']  # gate sandbox only has usdt-margined swaps
         for c in range(0, len(swapSettlementCurrencies)):
             settleId = swapSettlementCurrencies[c]
@@ -1547,7 +1547,7 @@ class gate(Exchange, ImplicitAPI):
         return result
 
     async def fetch_future_markets(self, params: dict = {}) -> list[Market]:
-        if self.safe_bool(self.options, 'sandboxMode') is True:
+        if self.safe_bool(self.options, 'sandboxMode', False):
             return []  # right now sandbox does not have inverse swaps
         result = []
         futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
@@ -2074,8 +2074,8 @@ class gate(Exchange, ImplicitAPI):
                     'id': networkId,
                     'network': networkCode,
                     'active': None,
-                    'deposit': self.safe_bool(chain, 'deposit_disabled') is not True,
-                    'withdraw': self.safe_bool(chain, 'withdraw_disabled') is not True,
+                    'deposit': not self.safe_bool(chain, 'deposit_disabled', False),
+                    'withdraw': not self.safe_bool(chain, 'withdraw_disabled', False),
                     'fee': None,
                     'precision': self.parse_number('0.0001'),  # temporary safe default, because no value provided from API,
                     'limits': {
@@ -2094,9 +2094,9 @@ class gate(Exchange, ImplicitAPI):
             'code': code,
             'name': self.safe_string(rawCurrency, 'name'),
             'type': type,
-            'active': self.safe_bool(rawCurrency, 'delisted') is not True,
-            'deposit': self.safe_bool(rawCurrency, 'deposit_disabled') is not True,
-            'withdraw': self.safe_bool(rawCurrency, 'withdraw_disabled') is not True,
+            'active': not self.safe_bool(rawCurrency, 'delisted', False),
+            'deposit': not self.safe_bool(rawCurrency, 'deposit_disabled', False),
+            'withdraw': not self.safe_bool(rawCurrency, 'withdraw_disabled', False),
             'fee': None,
             'networks': networks,
             'precision': self.parse_number('0.0001'),
@@ -7818,7 +7818,7 @@ class gate(Exchange, ImplicitAPI):
         response: dict
         isUnified = self.safe_bool(params, 'unified')
         paramsOmitted = self.omit(params, 'unified')
-        if self.safe_bool(market, 'spot') is True:
+        if self.safe_bool(market, 'spot', False):
             request['currency_pair'] = self.safe_string(market, 'id')
             if isUnified is True:
                 response = await self.publicMarginGetUniCurrencyPairsCurrencyPair(self.extend(request, paramsOmitted))

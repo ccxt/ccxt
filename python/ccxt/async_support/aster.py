@@ -2482,7 +2482,7 @@ class aster(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         if symbol is None:
-            if self.safe_bool(self.options['fetchOpenOrders'], 'warnIfNoSymbol') is True:
+            if self.safe_bool(self.options['fetchOpenOrders'], 'warnIfNoSymbol', False):
                 raise ExchangeError(self.id + ' fetchOpenOrders(): WARNING - self method without providing "symbol" argument uses 40 times more rate-limit quota. If you acknowledge self warning, set ' + self.id + '.options["fetchOpenOrders"]["warnIfNoSymbol"] = False to suppress self warning message.')
         else:
             market = self.market(symbol)
@@ -2792,7 +2792,7 @@ class aster(Exchange, ImplicitAPI):
             requestParams = self.omit(paramsTifOption, omitKeys)
         else:
             requestParams = self.omit(params, omitKeys)
-        if (self.safe_bool(self.options, 'builderFee') is True) and (market['swap'] is True):
+        if (self.safe_bool(self.options, 'builderFee', False)) and (market['swap'] is True):
             request['builder'] = self.safe_string(self.options, 'builder')
             request['feeRate'] = self.safe_string(self.options, 'builderRate')
         return self.extend(request, requestParams)

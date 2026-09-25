@@ -1439,8 +1439,8 @@ class binance(ccxt.async_support.binance):
         orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
             if side is None:
-                side = 'sell' if (self.safe_bool(trade, 'm') is True) else 'buy'  # this is reversed intentionally
-            takerOrMaker = 'maker' if (self.safe_bool(trade, 'm') is True) else 'taker'
+                side = 'sell' if (self.safe_bool(trade, 'm', False)) else 'buy'  # this is reversed intentionally
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'm', False)) else 'taker'
         fee = None
         feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:

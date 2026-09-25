@@ -793,7 +793,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp":1659492212507
         #     }
         #
-        if self.safe_bool(self.options, 'adjustForTimeDifference', False) is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         data = self.safe_dict(response, 'data', {})
         list = self.safe_list(data, 'list', [])
@@ -1076,7 +1076,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             side = self.safe_string_lower(trade, 'side')
         else:
             if 'isBuyer' in trade:
-                side = 'buy' if (self.safe_bool(trade, 'isBuyer') is True) else 'sell'  # this is a true side
+                side = 'buy' if (self.safe_bool(trade, 'isBuyer', False)) else 'sell'  # this is a true side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -1084,9 +1084,9 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
         if 'isMaker' in trade:
-            takerOrMaker = 'maker' if (self.safe_bool(trade, 'isMaker') is True) else 'taker'
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'isMaker', False)) else 'taker'
         if 'maker' in trade:
-            takerOrMaker = 'maker' if (self.safe_bool(trade, 'maker') is True) else 'taker'
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'maker', False)) else 'taker'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -2611,7 +2611,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
-            if (error == '-2015') and (self.safe_bool(self.options, 'hasAlreadyAuthenticatedSuccessfully') is True):
+            if (error == '-2015') and (self.safe_bool(self.options, 'hasAlreadyAuthenticatedSuccessfully', False)):
                 raise DDoSProtection(self.id + ' ' + body)
             feedback = self.id + ' ' + body
             if message == 'No need to change margin type.':

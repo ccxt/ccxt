@@ -1423,9 +1423,9 @@ class gemini(Exchange, ImplicitAPI):
         remaining = self.safe_string(order, 'remaining_amount')
         filled = self.safe_string(order, 'executed_amount')
         status = 'closed'
-        if self.safe_bool(order, 'is_live') is True:
+        if self.safe_bool(order, 'is_live', False):
             status = 'open'
-        if self.safe_bool(order, 'is_cancelled') is True:
+        if self.safe_bool(order, 'is_cancelled', False):
             status = 'canceled'
         price = self.safe_string(order, 'price')
         average = self.safe_string(order, 'avg_execution_price')
