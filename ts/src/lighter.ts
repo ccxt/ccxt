@@ -975,7 +975,6 @@ export default class lighter extends Exchange {
         if (totalOrderRequests > 0) {
             order = orderRequests[0];
         }
-        await this.handleBuilderFeeApproval (accountIndex as number, apiKeyIndex as number);
         // the nonce could be updated
         if (this.safeInteger (order, 'nonce') === undefined) {
             (order as Dict)['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
