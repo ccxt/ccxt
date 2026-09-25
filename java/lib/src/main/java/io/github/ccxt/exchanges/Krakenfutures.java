@@ -1785,7 +1785,7 @@ public class Krakenfutures extends KrakenfuturesApi
             String status = this.safeString(editStatus, "status");
             this.verifyOrderActionSuccess(status, "editOrder", new ArrayList<Object>(Arrays.asList("filled")));
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(editStatus, (Map<String, Object>) null);
-            Helpers.addElementToObject(order, "info", response);
+            order.put("info", response);
             return order;
         }).thenApply(Order::new);
 

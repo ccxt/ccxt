@@ -1369,9 +1369,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         asksSide.store(price, amount);
                     }
                 }
-                Helpers.addElementToObject(orderbook, "symbol", symbol);
-                Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-                Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+                orderbook.put("symbol", symbol);
+                orderbook.put("timestamp", timestamp);
+                orderbook.put("datetime", this.iso8601(timestamp));
                 client.resolve(orderbook, messageHash);
             }
         }

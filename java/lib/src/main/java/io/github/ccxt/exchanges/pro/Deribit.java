@@ -783,10 +783,10 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
         this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("asks")), asks);
         this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("bids")), bids);
-        Helpers.addElementToObject(storedOrderBook, "nonce", timestamp);
-        Helpers.addElementToObject(storedOrderBook, "timestamp", timestamp);
-        Helpers.addElementToObject(storedOrderBook, "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(storedOrderBook, "symbol", symbol);
+        storedOrderBook.put("nonce", timestamp);
+        storedOrderBook.put("timestamp", timestamp);
+        storedOrderBook.put("datetime", this.iso8601(timestamp));
+        storedOrderBook.put("symbol", symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, storedOrderBook);
         String messageHash = ((("book|" + symbol) + "|") + descriptor);
         client.resolve(storedOrderBook, messageHash);

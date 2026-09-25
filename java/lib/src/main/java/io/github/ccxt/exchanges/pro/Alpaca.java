@@ -328,8 +328,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             List<Object> bids = (List<Object>) this.safeList(message, "b", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
             this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", datetime);
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", datetime);
         }
         String messageHash = (("orderbook" + ":") + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);

@@ -1034,8 +1034,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             this.handleBookDelta(storedOrderBook, data);
             Long timestamp = this.safeIntegerN(message, new ArrayList<Object>(Arrays.asList("t", "ts", "sendTime")));
-            Helpers.addElementToObject(storedOrderBook, "timestamp", timestamp);
-            Helpers.addElementToObject(storedOrderBook, "datetime", this.iso8601(timestamp));
+            storedOrderBook.put("timestamp", timestamp);
+            storedOrderBook.put("datetime", this.iso8601(timestamp));
         } catch(Exception e)
         {
             ((Map<String,Object>)client.subscriptions).remove(messageHash);

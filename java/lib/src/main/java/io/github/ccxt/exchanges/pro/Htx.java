@@ -283,8 +283,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
         Long timestamp = this.safeInteger(message, "ts");
-        Helpers.addElementToObject(ticker, "timestamp", timestamp);
-        Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
+        ticker.put("timestamp", timestamp);
+        ticker.put("datetime", this.iso8601(timestamp));
         String symbol = (String) ticker.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -881,7 +881,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp, "bids", "asks", 0, 1, 2);
             orderbook.reset(snapshot);
-            Helpers.addElementToObject(orderbook, "nonce", version);
+            orderbook.put("nonce", version);
         }
         if ((!java.util.Objects.equals(prevSeqNum, null)) && Helpers.isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))
         {
@@ -899,9 +899,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             List<Object> bids = (List<Object>) this.safeList(tick, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
             this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
-            Helpers.addElementToObject(orderbook, "nonce", (((java.util.Objects.equals(spotConditon, true)))) ? seqNum : version);
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+            orderbook.put("nonce", (((java.util.Objects.equals(spotConditon, true)))) ? seqNum : version);
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", this.iso8601(timestamp));
         }
     }
 

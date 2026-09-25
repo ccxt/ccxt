@@ -981,7 +981,7 @@ public class Mudrex extends MudrexApi
                 put( "trigger_type", request.get("trigger_type") );
             }});
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(merged, market);
-            Helpers.addElementToObject(order, "info", data);
+            order.put("info", data);
             return order;
         }).thenApply(Order::new);
 

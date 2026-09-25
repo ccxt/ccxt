@@ -2880,7 +2880,7 @@ public class Poloniex extends PoloniexApi
             //     }
             //
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, (Map<String, Object>) null);
-            Helpers.addElementToObject(order, "id", idValue);
+            order.put("id", idValue);
             return order;
         }).thenApply(Order::new);
 

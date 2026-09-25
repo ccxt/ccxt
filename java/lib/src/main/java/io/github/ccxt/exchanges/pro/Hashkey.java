@@ -449,7 +449,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Long timestamp = this.safeInteger(dataEntry, "t");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a", 0, 1, 2);
         orderbook.reset(snapshot);
-        Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "id"));
+        orderbook.put("nonce", this.safeInteger(message, "id"));
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }

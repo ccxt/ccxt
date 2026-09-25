@@ -1106,8 +1106,8 @@ public class Bittrade extends BittradeApi
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
             Long timestamp = this.safeInteger(response, "ts");
-            Helpers.addElementToObject(ticker, "timestamp", timestamp);
-            Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
+            ticker.put("timestamp", timestamp);
+            ticker.put("datetime", this.iso8601(timestamp));
             return ticker;
         }).thenApply(Ticker::new);
 
@@ -1141,8 +1141,8 @@ public class Bittrade extends BittradeApi
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) market.get("symbol");
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
-                Helpers.addElementToObject(ticker, "timestamp", timestamp);
-                Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
+                ticker.put("timestamp", timestamp);
+                ticker.put("datetime", this.iso8601(timestamp));
                 result.put((String)symbol, ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);

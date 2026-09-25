@@ -1238,7 +1238,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Helpers.addElementToObject(orderbook, "symbol", symbol);
+        orderbook.put("symbol", symbol);
         if (Boolean.TRUE.equals(isSnapshot))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1, 2);
@@ -1249,8 +1249,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<Object> bids = (List<Object>) this.safeList(data, "b", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
             this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", this.iso8601(timestamp));
         }
         String messageHash = (("orderbook" + ":") + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);

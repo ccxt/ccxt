@@ -545,13 +545,13 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             if (!(((Map<?, ?>)this.orderbooks).containsKey(legacySymbol)))
             {
                 io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
-                Helpers.addElementToObject(ob, "symbol", legacySymbol);
+                ob.put("symbol", legacySymbol);
                 Helpers.addElementToObject(this.orderbooks, legacySymbol, ob);
             }
             io.github.ccxt.ws.WsOrderBook legacyOrderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(legacySymbol);
             this.handleBookDeltas(legacyOrderbook, list);
-            Helpers.addElementToObject(legacyOrderbook, "timestamp", legacyTimestamp);
-            Helpers.addElementToObject(legacyOrderbook, "datetime", this.iso8601(legacyTimestamp));
+            legacyOrderbook.put("timestamp", legacyTimestamp);
+            legacyOrderbook.put("datetime", this.iso8601(legacyTimestamp));
             String legacyMessageHash = (("orderbook" + ":") + legacySymbol);
             client.resolve(legacyOrderbook, legacyMessageHash);
             return;
@@ -571,7 +571,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.reset(new HashMap<String, Object>() {{}});
-        Helpers.addElementToObject(orderbook, "symbol", symbol);
+        orderbook.put("symbol", symbol);
         io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
         io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         List<Object> units = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
@@ -601,8 +601,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             timestamp = this.milliseconds();
         }
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
         String messageHash = (("orderbook" + ":") + symbol);
         client.resolve(orderbook, messageHash);
     }
