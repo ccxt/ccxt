@@ -3200,13 +3200,13 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 				status = SafeStringPtr("open")
 			}
 		}
-		var innerData any = this.SafeDict(entry, "data", map[string]any{})
+		var innerData map[string]any = MapTyped(this.SafeDict(entry, "data", map[string]any{}))
 		var order any = nil
 		if (GetValue(market, "spot") == true) && !isTriggerOrder {
 			AddElementToObject(entry, "status", status)
 			order = this.ParseOrder(entry, market)
 		} else {
-			AddElementToObject(innerData, "status", status)
+			innerData["status"] = status
 			order = this.ParseOrder(innerData, market)
 		}
 		results = append(results, order)

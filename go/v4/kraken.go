@@ -2140,8 +2140,8 @@ func (this *Kraken) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
-	AddElementToObject(result, "usingCost", isUsingCost)
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
+	result["usingCost"] = isUsingCost
 
 	// it's impossible to know if the order was created using cost or base currency
 	// because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }

@@ -3581,8 +3581,8 @@ func (this *Digifinex) fetchDepositAddressBody(ch chan any, code any, optionalAr
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var addresses any = this.ParseDepositAddresses(data, []any{currency["code"]})
-	var address any = this.SafeDict(addresses, code)
-	if IsEqual(address, nil) {
+	var address map[string]any = SafeMapTyped(addresses, code)
+	if address == nil {
 		panic(InvalidAddress(Add(Add(this.Id+" fetchDepositAddress() did not return an address for ", code), " - create the deposit address in the user settings on the exchange website first.")))
 	}
 

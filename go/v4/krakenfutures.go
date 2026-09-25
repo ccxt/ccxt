@@ -2208,8 +2208,8 @@ func (this *Krakenfutures) fetchOrderBody(ch chan any, id any, optionalArgs ...a
 	}
 
 	var orders []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(nil, nil, nil, this.Extend(request, params)))))
-	var order any = this.SafeDict(orders, 0)
-	if IsEqual(order, nil) {
+	var order map[string]any = SafeMapTyped(orders, 0)
+	if order == nil {
 		panic(OrderNotFound(Add(this.Id+" fetchOrder could not find order id ", id)))
 	}
 
@@ -2279,17 +2279,17 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 		var orderPlaced map[string]any = SafeDict2Typed(event, "OrderPlaced", "OrderTriggerActivated")
 		var orderUpdated map[string]any = SafeMapTyped(event, "OrderUpdated")
 		if orderPlaced != nil {
-			var innerOrder any = this.SafeDict(orderPlaced, "order", map[string]any{})
+			var innerOrder map[string]any = MapTyped(this.SafeDict(orderPlaced, "order", map[string]any{}))
 			var filled *string = this.SafeString(innerOrder, "filled")
 			if filled == nil || *filled != "0" {
-				AddElementToObject(innerOrder, "status", "closed") // status not available in the response
+				innerOrder["status"] = "closed" // status not available in the response
 				closedOrders = append(closedOrders, innerOrder)
 			}
 		} else if orderUpdated != nil {
 			var reason *string = this.SafeString(orderUpdated, "reason")
 			if reason != nil && *reason == "full_fill" {
-				var newOrder any = this.SafeDict(orderUpdated, "newOrder", map[string]any{})
-				AddElementToObject(newOrder, "status", "closed")
+				var newOrder map[string]any = MapTyped(this.SafeDict(orderUpdated, "newOrder", map[string]any{}))
+				newOrder["status"] = "closed"
 				closedOrders = append(closedOrders, newOrder)
 			}
 		}
@@ -2360,23 +2360,23 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan any, optionalArgs ...
 		var isCancelledTriggerOrder bool = (func() bool { _, ok := event["OrderTriggerCancelled"]; return ok }())
 		var orderPlaced map[string]any = SafeDict2Typed(event, "OrderPlaced", "OrderTriggerCancelled")
 		if orderPlaced != nil {
-			var innerOrder any = this.SafeDict(orderPlaced, "order", map[string]any{})
+			var innerOrder map[string]any = MapTyped(this.SafeDict(orderPlaced, "order", map[string]any{}))
 			var filled *string = this.SafeString(innerOrder, "filled")
 			if (filled != nil && *filled == "0") || isCancelledTriggerOrder {
-				AddElementToObject(innerOrder, "status", "canceled") // status not available in the response
+				innerOrder["status"] = "canceled" // status not available in the response
 				canceledAndRejected = append(canceledAndRejected, innerOrder)
 			}
 		}
 		var orderCanceled map[string]any = SafeMapTyped(event, "OrderCancelled")
 		if orderCanceled != nil {
-			var innerOrder any = this.SafeDict(orderCanceled, "order", map[string]any{})
-			AddElementToObject(innerOrder, "status", "canceled") // status not available in the response
+			var innerOrder map[string]any = MapTyped(this.SafeDict(orderCanceled, "order", map[string]any{}))
+			innerOrder["status"] = "canceled" // status not available in the response
 			canceledAndRejected = append(canceledAndRejected, innerOrder)
 		}
 		var orderRejected map[string]any = SafeMapTyped(event, "OrderRejected")
 		if orderRejected != nil {
-			var innerOrder any = this.SafeDict(orderRejected, "order", map[string]any{})
-			AddElementToObject(innerOrder, "status", "rejected") // status not available in the response
+			var innerOrder map[string]any = MapTyped(this.SafeDict(orderRejected, "order", map[string]any{}))
+			innerOrder["status"] = "rejected" // status not available in the response
 			canceledAndRejected = append(canceledAndRejected, innerOrder)
 		}
 	}

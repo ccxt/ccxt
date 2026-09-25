@@ -3747,11 +3747,11 @@ func (this *Extended) createOrderBody(ch chan any, symbol any, typeVar string, s
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var market map[string]any = this.Market(symbol)
 	var now *int64 = this.SafeInteger(extendedOrderRequest, "timestamp")
-	AddElementToObject(data, "timestamp", now)
-	AddElementToObject(data, "status", "NEW")
+	data["timestamp"] = now
+	data["status"] = "NEW"
 
 	ch <- this.ParseOrder(this.Extend(request, data), market)
 	return nil
@@ -3847,11 +3847,11 @@ func (this *Extended) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	//         }
 	//     }
 	//
-	var responseData any = this.SafeDict(editResponse, "data", map[string]any{})
+	var responseData map[string]any = MapTyped(this.SafeDict(editResponse, "data", map[string]any{}))
 	var market map[string]any = this.Market(symbol)
 	var now *int64 = this.SafeInteger(extendedOrderRequest, "timestamp")
-	AddElementToObject(responseData, "timestamp", now)
-	AddElementToObject(responseData, "status", "NEW")
+	responseData["timestamp"] = now
+	responseData["status"] = "NEW"
 
 	ch <- this.ParseOrder(this.Extend(request, responseData), market)
 	return nil

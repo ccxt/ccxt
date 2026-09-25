@@ -991,7 +991,7 @@ func (this *Bitbank) createOrderBody(ch chan any, symbol any, typeVar string, si
 
 	response := (<-this.PrivatePostUserSpotOrder(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.ParseOrder(data, market)
 	return nil
@@ -1115,7 +1115,7 @@ func (this *Bitbank) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.ParseOrder(data, market)
 	return nil

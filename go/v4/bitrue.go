@@ -3361,7 +3361,7 @@ func (this *Bitrue) withdrawBody(ch chan any, code any, amount any, address any,
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTransaction(data, currency)
 	return nil

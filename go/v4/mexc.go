@@ -3731,7 +3731,7 @@ func (this *Mexc) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...any
 		//         ]
 		//     }
 		//
-		var data any = this.SafeList(response, "data")
+		var data []any = SafeListTyped(response, "data")
 
 		ch <- this.ParseOrders(data, market)
 		return nil
@@ -4121,7 +4121,7 @@ func (this *Mexc) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		//         ]
 		//     }
 		//
-		var data any = this.SafeList(response, "data")
+		var data []any = SafeListTyped(response, "data")
 
 		ch <- this.ParseOrders(data, market)
 		return nil

@@ -1593,8 +1593,8 @@ func (this *Woofipro) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	data["timestamp"] = this.SafeInteger(response, "timestamp")
 
 	ch <- this.ParseTicker(data, market)
 	return nil
@@ -1750,8 +1750,8 @@ func (this *Woofipro) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	data["timestamp"] = this.SafeInteger(response, "timestamp")
 
 	ch <- this.ParseOpenInterest(data, market)
 	return nil
@@ -2607,8 +2607,8 @@ func (this *Woofipro) createOrderBody(ch chan any, symbol any, typeVar string, s
 
 		response = MapTyped(PanicOnError((<-this.V1PrivatePostOrder(request)).Raw))
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	data["timestamp"] = this.SafeInteger(response, "timestamp")
 	var order map[string]any = MapTyped(this.ParseOrder(data, market))
 	order["type"] = typeVar
 
@@ -2791,8 +2791,8 @@ func (this *Woofipro) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	data["timestamp"] = this.SafeInteger(response, "timestamp")
 
 	ch <- this.ParseOrder(data, market)
 	return nil
@@ -4139,8 +4139,8 @@ func (this *Woofipro) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
 
 	marginModes := (<-this.FetchMarginModesAsync([]any{market["symbol"]}, params))
 	PanicOnError(marginModes)
-	var marginMode any = this.SafeDict(marginModes, market["symbol"])
-	if IsEqual(marginMode, nil) {
+	var marginMode map[string]any = SafeMapTyped(marginModes, market["symbol"])
+	if marginMode == nil {
 		panic(BadSymbol(Add(this.Id+" fetchMarginMode() did not return a margin mode for ", market["symbol"])))
 	}
 

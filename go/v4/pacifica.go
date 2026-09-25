@@ -2206,8 +2206,8 @@ func (this *Pacifica) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		var side *string = this.SafeString(order, "side")
 		var price *string = this.SafeString(order, "price")
 		var typeVar *string = this.SafeString(order, "type", "limit")
-		var orderParams any = this.SafeDict(order, "params", map[string]any{})
-		AddElementToObject(orderParams, "timestamp", timestamp)
+		var orderParams map[string]any = MapTyped(this.SafeDict(order, "params", map[string]any{}))
+		orderParams["timestamp"] = timestamp
 		var amount *string = this.SafeString(order, "amount")
 		var amountNumber *float64 = Float64PtrTyped(this.ParseNumber(amount))
 		var priceNumber *float64 = Float64PtrTyped(this.ParseNumber(price))
@@ -3917,8 +3917,8 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 
 	ois := (<-this.FetchOpenInterestsAsync([]any{symbolValue}, params))
 	PanicOnError(ois)
-	var oi any = this.SafeDict(ois, symbolValue)
-	if IsEqual(oi, nil) {
+	var oi map[string]any = SafeMapTyped(ois, symbolValue)
+	if oi == nil {
 		panic(BadSymbol(Add(this.Id+" fetchOpenInterest() could not find open interest for ", symbolValue)))
 	}
 

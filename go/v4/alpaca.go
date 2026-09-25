@@ -1013,7 +1013,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//   }
 	//
 	var orderbooks map[string]any = SafeMapTyped(response, "orderbooks")
-	var rawOrderbook any = this.SafeDict(orderbooks, id, map[string]any{})
+	var rawOrderbook map[string]any = MapTyped(this.SafeDict(orderbooks, id, map[string]any{}))
 	var timestamp *int64 = this.Parse8601(this.SafeString(rawOrderbook, "t"))
 
 	ch <- this.ParseOrderBook(rawOrderbook, market["symbol"], timestamp, "b", "a", "p", "s")

@@ -9611,8 +9611,8 @@ func (this *Bybit) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs 
 	var vipCoinList []any = SafeListTyped(data, "vipCoinList")
 	var firstVip map[string]any = SafeMapTyped(vipCoinList, 0)
 	var coins []any = SafeListTyped(firstVip, "list")
-	var coin any = this.SafeDict(coins, 0, map[string]any{})
-	AddElementToObject(coin, "timestamp", timestamp)
+	var coin map[string]any = MapTyped(this.SafeDict(coins, 0, map[string]any{}))
+	coin["timestamp"] = timestamp
 
 	ch <- this.ParseBorrowRate(coin, currency)
 	return nil

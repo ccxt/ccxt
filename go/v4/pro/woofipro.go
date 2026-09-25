@@ -221,7 +221,7 @@ func (this *Woofipro) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message)))
 	return nil
 }
-func (this *Woofipro) ParseWsTicker(ticker any, optionalArgs ...any) any {
+func (this *Woofipro) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDC",
@@ -276,12 +276,12 @@ func (this *Woofipro) HandleTicker(client any, message map[string]any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	ccxt.AddElementToObject(data, "date", timestamp)
+	data["date"] = timestamp
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
 	ticker["symbol"] = market["symbol"]
 	ccxt.AddElementToObject(this.Tickers, market["symbol"], ticker)

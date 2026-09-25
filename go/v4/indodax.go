@@ -1350,7 +1350,7 @@ func (this *Indodax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "return")
+	var data map[string]any = SafeMapTyped(response, "return")
 
 	ch <- this.ParseOrder(data)
 	return nil

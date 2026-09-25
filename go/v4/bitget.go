@@ -13190,8 +13190,8 @@ func (this *Bitget) transferBody(ch chan any, code any, amount any, fromAccount 
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	AddElementToObject(data, "ts", this.SafeInteger(response, "requestTime"))
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	data["ts"] = this.SafeInteger(response, "requestTime")
 
 	ch <- this.ParseTransfer(data, currency)
 	return nil
@@ -13902,8 +13902,8 @@ func (this *Bitget) fetchIsolatedBorrowRateBody(ch chan any, symbol any, optiona
 	//
 	var timestamp *int64 = this.SafeInteger(response, "requestTime")
 	var data []any = SafeListTyped(response, "data")
-	var first any = this.SafeDict(data, 0, map[string]any{})
-	AddElementToObject(first, "timestamp", timestamp)
+	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
+	first["timestamp"] = timestamp
 
 	ch <- this.ParseIsolatedBorrowRate(first, market)
 	return nil
