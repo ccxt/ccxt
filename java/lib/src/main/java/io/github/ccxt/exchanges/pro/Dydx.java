@@ -477,7 +477,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         client.resolve(stored, messageHash);
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         try
         {

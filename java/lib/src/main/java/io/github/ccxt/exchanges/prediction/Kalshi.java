@@ -598,7 +598,7 @@ public class Kalshi extends KalshiApi
                             throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                         }
                     }
-                    if (Boolean.TRUE.equals(this.hasOutcome((String) (outcomeSymbol))))
+                    if (this.hasOutcome((String) (outcomeSymbol)))
                     {
                         return this.safeOutcome((String) (outcomeSymbol), (Object) null);
                     }
@@ -688,7 +688,7 @@ public class Kalshi extends KalshiApi
             }
             for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
             {
-                if (!Boolean.TRUE.equals(this.hasOutcome((String) ((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i))))))
+                if (!this.hasOutcome((String) ((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))))
                 {
                     (this.fetchOutcome((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))).join();
                 }

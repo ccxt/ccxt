@@ -2004,7 +2004,7 @@ public class Modetrade extends ModetradeApi
         Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
-        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarket, null, parameters));
+        Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
         String orderQtyKey = "order_quantity";
         if (Boolean.TRUE.equals(isConditional))
         {
@@ -2023,7 +2023,7 @@ public class Modetrade extends ModetradeApi
         request.put((String)typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!Boolean.TRUE.equals(isConditional))
         {
-            if (postOnly)
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("order_type", "POST_ONLY");
             } else if (java.util.Objects.equals(timeInForce, "fok"))
@@ -2301,8 +2301,8 @@ public class Modetrade extends ModetradeApi
                 String orderType = ((String)type).toUpperCase();
                 String timeInForce = this.safeStringLower(paramsOmitted, "timeInForce");
                 Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
-                boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarket, null, Helpers.toMapArg(paramsOmitted)));
-                if (postOnly)
+                Boolean postOnly = this.isPostOnly(isMarket, null, Helpers.toMapArg(paramsOmitted));
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     request.put("order_type", "POST_ONLY");
                 } else if (java.util.Objects.equals(timeInForce, "fok"))

@@ -1025,7 +1025,7 @@ public class Lighter extends LighterApi
         Boolean isConditional = ((!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)));
         Boolean isMarketOrder = (java.util.Objects.equals(orderType, "MARKET"));
         String timeInForce = this.safeStringLower(paramsOrderExpiry, "timeInForce", "gtt");
-        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, null, Helpers.toMapArg(paramsOrderExpiry)));
+        Boolean postOnly = this.isPostOnly(isMarketOrder, null, Helpers.toMapArg(paramsOrderExpiry));
         Object paramsOmitted = this.omit(paramsOrderExpiry, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "timeInForce")));
         Object orderTypeNum = null;
         Object timeInForceNum = null;
@@ -1044,7 +1044,7 @@ public class Lighter extends LighterApi
         {
             request.put("is_ask", 1);
         }
-        if (postOnly)
+        if (Boolean.TRUE.equals(postOnly))
         {
             timeInForceNum = 2;
             orderExpiry = -1;
@@ -1643,7 +1643,7 @@ public class Lighter extends LighterApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.publicGetAssetDetails(parameters)).join();
-            if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
+            if (this.checkRequiredCredentials(false))
             {
                 (this.preLoadLighterLibrary(new HashMap<String, Object>() {{}})).join();
             }

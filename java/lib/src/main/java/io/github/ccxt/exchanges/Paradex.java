@@ -2197,10 +2197,10 @@ public class Paradex extends ParadexApi
         Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
         Boolean isStopOrder = (!java.util.Objects.equals(triggerPrice, null)) || Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isStopLossOrder);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarket, null, parameters));
+        Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
         if (!Boolean.TRUE.equals(isMarket))
         {
-            if (postOnly)
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("instruction", "POST_ONLY");
             } else if (java.util.Objects.equals(timeInForce, "IOC"))
@@ -2629,8 +2629,8 @@ public class Paradex extends ParadexApi
             }
             List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && (ids instanceof List);
-            Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && (clientOrderIds instanceof List);
+            Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && ((ids instanceof List));
+            Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && ((clientOrderIds instanceof List));
             if (!Boolean.TRUE.equals(hasOrderIds) && !Boolean.TRUE.equals(hasClientOrderIds))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;

@@ -2811,7 +2811,7 @@ public class Coinex extends CoinexApi
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         String option = this.safeString(parameters, "option");
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
-        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, java.util.Objects.equals(option, "maker_only"), parameters));
+        Boolean postOnly = this.isPostOnly(isMarketOrder, java.util.Objects.equals(option, "maker_only"), parameters);
         String timeInForceRaw = this.safeStringUpper(parameters, "timeInForce");
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", (Object) null);
         if (java.util.Objects.equals(reduceOnly, true))
@@ -2840,7 +2840,7 @@ public class Coinex extends CoinexApi
                 request.put("side", side);
             }
             String requestType = type;
-            if (postOnly)
+            if (Boolean.TRUE.equals(postOnly))
             {
                 requestType = "maker_only";
             } else if (!java.util.Objects.equals(timeInForceRaw, null))

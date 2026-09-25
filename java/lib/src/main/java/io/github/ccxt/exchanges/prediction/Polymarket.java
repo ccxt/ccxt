@@ -1360,7 +1360,7 @@ public class Polymarket extends PolymarketApi
             }
             for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
             {
-                if (!Boolean.TRUE.equals(this.hasOutcome((String) ((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i))))))
+                if (!this.hasOutcome((String) ((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))))
                 {
                     (this.fetchOutcome((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))).join();
                 }

@@ -1759,7 +1759,7 @@ public class Bitvavo extends BitvavoApi
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || (java.util.Objects.equals(type, "stopLossLimit")) || (java.util.Objects.equals(type, "takeProfitLimit"));
         String timeInForce = this.safeString(parameters, "timeInForce");
         String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
-        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, false, parameters));
+        Boolean postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         String stopLossPrice = this.safeString(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
         Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice")));
@@ -1821,7 +1821,7 @@ public class Bitvavo extends BitvavoApi
         {
             request.put("timeInForce", timeInForce);
         }
-        if (postOnly)
+        if (Boolean.TRUE.equals(postOnly))
         {
             request.put("postOnly", true);
         }

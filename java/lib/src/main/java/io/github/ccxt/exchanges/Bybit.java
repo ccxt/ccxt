@@ -2743,7 +2743,7 @@ public class Bybit extends BybitApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
+            if (!this.checkRequiredCredentials(false))
             {
                 return new HashMap<String, Object>() {{}};
             }

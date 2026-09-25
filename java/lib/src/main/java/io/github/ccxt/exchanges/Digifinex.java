@@ -2283,7 +2283,7 @@ public class Digifinex extends DigifinexApi
             marketIdRequest = "instrument_id";
         }
         request.put((String)marketIdRequest, ((Map<String, Object>)market).get("id"));
-        Object postOnly = this.isPostOnly(isMarketOrder, false, Helpers.toMapArg(paramsMarginMode));
+        Boolean postOnly = this.isPostOnly(isMarketOrder, false, Helpers.toMapArg(paramsMarginMode));
         Object postOnlyParsed = null;
         Object paramsRequest = null;
         if (Boolean.TRUE.equals(swap))
@@ -5146,7 +5146,7 @@ public class Digifinex extends DigifinexApi
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(entry, "currency");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || Helpers.isTrue((this.inArray(code, codesValue)))))
+            if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
                 Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code, (Object) null);
                 if (java.util.Objects.equals(depositWithdrawFee, null))

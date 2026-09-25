@@ -1100,7 +1100,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         ), marketResolved));
     }
 
-    public Object checkRequiredUid(Object error)
+    public Boolean checkRequiredUid(Object error)
     {
         if ((java.util.Objects.equals(this.uid, null)) || (java.util.Objects.equals(this.uid, "")))
         {

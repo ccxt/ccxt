@@ -1817,7 +1817,7 @@ public class TestMain extends BaseTest
             }
             String key = (String) Helpers.GetValue(keyValue, 0);
             Object value = Helpers.GetValue(keyValue, 1);
-            if ((!java.util.Objects.equals(value, null)) && (((String)value).startsWith("[") || ((String)value).startsWith("{")))
+            if ((!java.util.Objects.equals(value, null)) && ((((String)value).startsWith("[")) || (((String)value).startsWith("{"))))
             {
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value);
@@ -1979,7 +1979,7 @@ public class TestMain extends BaseTest
                 // top-level wrapper.
                 this.AssertNewAndStoredOutputInner(exchange, skipKeys, newValue, storedValue, java.util.Objects.requireNonNullElse(strictTypeCheck, true), key);
             }
-        } else if ((!java.util.Objects.equals(storedOutput, null)) && (!java.util.Objects.equals(newOutput, null)) && (storedOutput instanceof List) && (newOutput instanceof List))
+        } else if ((!java.util.Objects.equals(storedOutput, null)) && (!java.util.Objects.equals(newOutput, null)) && (storedOutput instanceof List) && ((newOutput instanceof List)))
         {
             Object storedArrayLength = ((List<?>)storedOutput).size();
             Object newArrayLength = ((List<?>)newOutput).size();

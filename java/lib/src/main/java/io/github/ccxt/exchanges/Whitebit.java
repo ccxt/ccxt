@@ -1271,7 +1271,7 @@ public class Whitebit extends WhitebitApi
             Object currencyId = (splitEntry == null || 0 >= splitEntry.size() ? null : splitEntry.get(0));
             Object feeInfo = Helpers.GetValue(response, entry);
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || Helpers.isTrue((this.inArray(code, codesValue)))))
+            if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
                 Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code, (Object) null);
                 if (java.util.Objects.equals(depositWithdrawFee, null))
@@ -2592,9 +2592,9 @@ public class Whitebit extends WhitebitApi
             {
                 throw new NotSupported((((this.id + " createOrder() does not support timeInForce ") + timeInForce) + ", only GTC, IOC and PO are allowed")) ;
             }
-            boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, false, Helpers.toMapArg(paramsOmitted)));
+            Boolean postOnly = this.isPostOnly(isMarketOrder, false, Helpers.toMapArg(paramsOmitted));
             Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC"));
-            if (Boolean.TRUE.equals(isStopOrder) && (postOnly || Boolean.TRUE.equals(ioc)))
+            if (Boolean.TRUE.equals(isStopOrder) && (Boolean.TRUE.equals(postOnly) || Boolean.TRUE.equals(ioc)))
             {
                 throw new NotSupported((this.id + " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
             }
@@ -2605,7 +2605,7 @@ public class Whitebit extends WhitebitApi
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsOmitted), (String) null);
             String marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
-            if (postOnly)
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("postOnly", true);
             }
@@ -5046,7 +5046,7 @@ public class Whitebit extends WhitebitApi
         }});
     }
 
-    public Object isFiat(Object currency)
+    public Boolean isFiat(Object currency)
     {
         List<Object> fiatCurrencies = (List<Object>) this.safeList(this.options, "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         return this.inArray(currency, fiatCurrencies);

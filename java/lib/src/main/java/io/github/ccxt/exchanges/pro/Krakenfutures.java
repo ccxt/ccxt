@@ -1831,7 +1831,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 String messageHash = this.getMessageHash(unifiedName, (String) null, Helpers.toStringArg(this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
                 ((List<Object>)messageHashes).add(messageHash);
                 Map<String, Object> market = (Map<String, Object>) this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-                if (!Boolean.TRUE.equals(this.subscriptionExistsForHash(url, messageHash)))
+                if (!this.subscriptionExistsForHash(url, messageHash))
                 {
                     ((List<Object>)rawSubs).add(((Map<String, Object>)market).get("id"));
                 }
@@ -1851,7 +1851,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
     }
 
-    public Object subscriptionExistsForHash(Object url, Object hash)
+    public Boolean subscriptionExistsForHash(Object url, Object hash)
     {
         Client client = this.client(url);
         return (((Map<?, ?>)client.subscriptions).containsKey(hash));

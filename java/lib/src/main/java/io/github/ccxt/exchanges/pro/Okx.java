@@ -1561,7 +1561,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             if ((java.util.Objects.equals(depth, "books-l2-tbt")) || (java.util.Objects.equals(depth, "books50-l2-tbt")))
             {
-                if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
+                if (!this.checkRequiredCredentials(false))
                 {
                     throw new AuthenticationError((this.id + " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5")) ;
                 }

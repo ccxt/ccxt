@@ -1152,7 +1152,7 @@ public class Aster extends AsterApi
         }});
     }
 
-    public Object isInverse(Object type, String subType)
+    public Boolean isInverse(Object type, String subType)
     {
         if (java.util.Objects.equals(subType, null))
         {
@@ -1163,7 +1163,7 @@ public class Aster extends AsterApi
         }
     }
 
-    public Object isLinear(Object type, String subType)
+    public Boolean isLinear(Object type, String subType)
     {
         if (java.util.Objects.equals(subType, null))
         {
@@ -3147,7 +3147,7 @@ public class Aster extends AsterApi
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> response = null;
-            if (Boolean.TRUE.equals(this.isLinear(marketType, subType)))
+            if (this.isLinear(marketType, subType))
             {
                 response = (this.fapiPrivateGetV3OpenOrders(this.extend(request, paramsSubType))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
@@ -3422,8 +3422,8 @@ public class Aster extends AsterApi
                 uppercaseType = "TAKE_PROFIT";
             }
         }
-        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, null, parameters));
-        if (postOnly)
+        Boolean postOnly = this.isPostOnly(isMarketOrder, null, parameters);
+        if (Boolean.TRUE.equals(postOnly))
         {
             request.put("timeInForce", "GTX");
         }
@@ -4406,7 +4406,7 @@ public class Aster extends AsterApi
         if (!java.util.Objects.equals(leverageString, null))
         {
             Object leverage = Helpers.parseInt(leverageString);
-            Object rational = this.isRoundNumber(Helpers.mod(1000, leverage));
+            Boolean rational = this.isRoundNumber(Helpers.mod(1000, leverage));
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
             if (!Boolean.TRUE.equals(rational))
             {
@@ -4626,7 +4626,7 @@ public class Aster extends AsterApi
             {
                 throw new ExchangeError((this.id + " parseAccountPosition() missing leverage")) ;
             }
-            Object rational = this.isRoundNumber(Helpers.mod(1000, leverage));
+            Boolean rational = this.isRoundNumber(Helpers.mod(1000, leverage));
             if (!Boolean.TRUE.equals(rational))
             {
                 initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
@@ -5311,9 +5311,9 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (Boolean.TRUE.equals(this.isEmptyString(this.privateKey)))
+            if (this.isEmptyString(this.privateKey))
             {
-                if (!Boolean.TRUE.equals(this.isEmptyString(this.apiKey)) || !Boolean.TRUE.equals(this.isEmptyString(this.secret)))
+                if (!this.isEmptyString(this.apiKey) || !this.isEmptyString(this.secret))
                 {
                     throw new NotSupported((this.id + "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
                 }

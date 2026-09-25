@@ -2209,8 +2209,8 @@ public class Kucoin extends KucoinApi
             List<String> defaultTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "contract"));
             Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", (Object) null);
             Object types = this.safeList(fetchMarketsOptions, "types", defaultTypes);
-            boolean credentialsSet = Helpers.isTrue(this.checkRequiredCredentials(false));
-            Boolean requestMarginables = credentialsSet && Boolean.TRUE.equals(this.safeBool(paramsRequest, "marginables", true));
+            Boolean credentialsSet = this.checkRequiredCredentials(false);
+            Boolean requestMarginables = Boolean.TRUE.equals(credentialsSet) && Boolean.TRUE.equals(this.safeBool(paramsRequest, "marginables", true));
             paramsRequest = this.omit(paramsRequest, "marginables");
             Boolean fetchContractMarkets = false;
             if (this.inArray("swap", types) || this.inArray("future", types) || this.inArray("contract", types))
@@ -2273,7 +2273,7 @@ public class Kucoin extends KucoinApi
             {
                 ((List<Object>)promises).add(this.fetchContractMarkets(Helpers.toMapArg(paramsRequest)));
             }
-            if (credentialsSet)
+            if (Boolean.TRUE.equals(credentialsSet))
             {
                 // load migration status for account
                 ((List<Object>)promises).add(this.loadMigrationStatus(false));
@@ -2849,7 +2849,7 @@ public class Kucoin extends KucoinApi
         return BaseExchange.supplyAsync(() -> {
 
             Object uta = false;
-            if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
+            if (this.checkRequiredCredentials(false))
             {
                 uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
             }
@@ -3247,7 +3247,7 @@ public class Kucoin extends KucoinApi
         return result;
     }
 
-    public Object isFuturesMethod(Object methodName, Map<String, Object> parameters)
+    public Boolean isFuturesMethod(Object methodName, Map<String, Object> parameters)
     {
         //
         // Helper
@@ -4579,7 +4579,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            boolean isAuthenticated = Helpers.isTrue(this.checkRequiredCredentials(false));
+            Boolean isAuthenticated = this.checkRequiredCredentials(false);
             Boolean uta = false;
             List<Object> utaOptionparamsUtaVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrderBook", "uta", uta);
             Boolean utaOption = (Boolean) ((List<Object>) utaOptionparamsUtaVariable).get(0);
@@ -4648,7 +4648,7 @@ public class Kucoin extends KucoinApi
                 {
                     throw new BadRequest((this.id + " fetchOrderBook() limit argument must be 20 or 100")) ;
                 }
-            } else if (!isAuthenticated || !java.util.Objects.equals(limit, null))
+            } else if (!Boolean.TRUE.equals(isAuthenticated) || !java.util.Objects.equals(limit, null))
             {
                 if ((level != null && level == 2))
                 {
@@ -10329,7 +10329,7 @@ public class Kucoin extends KucoinApi
                 request.put("toAccountTag", toId);
                 toId = "isolated";
             }
-            Object hfOrMining = this.isHfOrMining((String) (fromId), (String) (toId));
+            Boolean hfOrMining = this.isHfOrMining((String) (fromId), (String) (toId));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(hfOrMining))
             {
@@ -10369,7 +10369,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object isHfOrMining(String fromId, String toId)
+    public Boolean isHfOrMining(String fromId, String toId)
     {
         return (java.util.Objects.equals(fromId, "trade_hf") || java.util.Objects.equals(toId, "trade_hf") || java.util.Objects.equals(fromId, "pool") || java.util.Objects.equals(toId, "pool"));
     }

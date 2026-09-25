@@ -1136,7 +1136,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         return message;
     }
 
-    public Object handleUnsubscriptionStatus(Client client, Map<String, Object> message)
+    public Boolean handleUnsubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         // {

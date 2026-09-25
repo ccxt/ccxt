@@ -2414,7 +2414,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
     }
 
-    public Object handleProtobufMessage(Client client, Map<String, Object> message)
+    public Boolean handleProtobufMessage(Client client, Map<String, Object> message)
     {
         // protobuf message decoded
         //  {

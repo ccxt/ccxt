@@ -1700,7 +1700,7 @@ public class Indodax extends IndodaxApi
                 String marketId = (addressKeys == null || i < 0 || i >= addressKeys.size() ? null : addressKeys.get(i));
                 String code = this.safeCurrencyCode(marketId, (Map<String, Object>) null);
                 String address = this.safeString(addresses, marketId);
-                if ((!java.util.Objects.equals(address, null)) && ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes)))))
+                if ((!java.util.Objects.equals(address, null)) && ((java.util.Objects.equals(codes, null)) || (this.inArray(code, codes))))
                 {
                     this.checkAddress(address);
                     Object network = null;
