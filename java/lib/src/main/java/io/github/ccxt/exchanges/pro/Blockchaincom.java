@@ -693,7 +693,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         //
         String eventVar = this.safeString(message, "event");
         String messageHash = "orders";
-        Object cachedOrders = this.orders;
+        io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(cachedOrders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -713,12 +713,12 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             {
                 Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                 Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order));
-                Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
+                cachedOrders.append(parsedOrder);
             }
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
             Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message));
-            Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
+            cachedOrders.append(parsedOrder);
         }
         this.orders = cachedOrders;
         client.resolve(this.orders, messageHash);

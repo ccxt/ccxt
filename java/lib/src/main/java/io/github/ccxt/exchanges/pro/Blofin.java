@@ -920,7 +920,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
         List<Object> data = (List<Object>) this.safeList(message, "data");
@@ -929,7 +929,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
             String symbol = (String) ((Map<String, Object>)order).get("symbol");
             String messageHash = ((channelName + ":") + symbol);
-            Helpers.callDynamically(orders, "append", new Object[]{order});
+            orders.append(order);
             client.resolve(orders, messageHash);
             client.resolve(orders, channelName);
         }

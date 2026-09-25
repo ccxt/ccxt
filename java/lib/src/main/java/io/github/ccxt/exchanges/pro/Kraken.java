@@ -1353,8 +1353,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         if (java.util.Objects.equals(type, "update"))
         {
             orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
-            Object storedAsks = Helpers.GetValue(orderbook, "asks");
-            Object storedBids = Helpers.GetValue(orderbook, "bids");
+            io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+            io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
             if (!java.util.Objects.equals(a, null))
             {
                 this.customHandleDeltas(storedAsks, a);
@@ -1395,8 +1395,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Object payloadArray = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(c, null))
             {
-                Object checkAsks = Helpers.GetValue(orderbook, "asks");
-                Object checkBids = Helpers.GetValue(orderbook, "bids");
+                io.github.ccxt.ws.OrderBookSide checkAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+                io.github.ccxt.ws.OrderBookSide checkBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
                 // const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
                 // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for (var i = 0; i < 10; i++)
@@ -1690,13 +1690,13 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 this.myTrades = new ArrayCache(((Number)limit).intValue());
             }
-            Object stored = this.myTrades;
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)allTrades).size(); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(allTrades, i, new HashMap<String, Object>() {{}});
                 Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade));
-                Helpers.callDynamically(stored, "append", new Object[]{parsed});
+                stored.append(parsed);
                 Object symbol = ((String)((Map<String, Object>)parsed).get("symbol"));
                 symbols.put((String)symbol, true);
             }
@@ -1863,7 +1863,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             {
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
-            Object stored = this.orders;
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)allOrders).size(); i++)
             {
@@ -1889,7 +1889,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                         ((Map<String,Object>)symbolsByOrderId).remove((String)Helpers.GetValue(first, "id"));
                     }
                 }
-                Helpers.callDynamically(stored, "append", new Object[]{newOrder});
+                stored.append(newOrder);
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     symbols.put((String)symbol, true);

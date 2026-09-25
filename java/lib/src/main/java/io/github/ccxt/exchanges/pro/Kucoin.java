@@ -3067,7 +3067,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.triggerOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object cachedOrders = ((Boolean.TRUE.equals(isTriggerOrder))) ? this.triggerOrders : this.orders;
+        io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) (((Boolean.TRUE.equals(isTriggerOrder))) ? this.triggerOrders : this.orders);
         Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
         Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, orderId);
         if (!java.util.Objects.equals(order, null))
@@ -3109,7 +3109,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Helpers.addElementToObject(parsed, "average", this.parseNumber(Precise.stringDiv(costString, filledString)));
             }
         }
-        Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
+        cachedOrders.append(parsed);
         Object messageHash = "orders";
         String topic = this.safeString(message, "topic");
         Object suffix = this.getOrdersMessageHashSuffix((String) (topic));
@@ -3175,8 +3175,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object cachedOrders = this.orders;
-        Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
+        io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        cachedOrders.append(parsed);
         String messageHash = "uta:orders";
         String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(cachedOrders, symbolSpecificMessageHash);
@@ -3342,8 +3342,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data));
-        Object myTrades = this.myTrades;
-        Helpers.callDynamically(myTrades, "append", new Object[]{parsed});
+        io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        myTrades.append(parsed);
         Object messageHash = "myTrades";
         String topic = this.safeString(message, "topic");
         String suffix = this.getMyTradesMessageHashSuffix(topic);
@@ -3382,8 +3382,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object cache = this.myTrades;
-        Helpers.callDynamically(cache, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        cache.append(trade);
         String messageHash = "uta:myTrades";
         String symbolMessageHash = ((messageHash + ":") + symbol);
         client.resolve(this.myTrades, messageHash);

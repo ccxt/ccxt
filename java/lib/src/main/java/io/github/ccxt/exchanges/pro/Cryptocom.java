@@ -1387,11 +1387,11 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
-            Object stored = this.orders;
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
             List<Object> parsed = this.parseOrders(orders);
             for (var i = 0; i < ((List<?>)parsed).size(); i++)
             {
-                Helpers.callDynamically(stored, "append", new Object[]{(parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i))});
+                stored.append((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)));
             }
             client.resolve(stored, symbolSpecificMessageHash);
             // non-symbol specific

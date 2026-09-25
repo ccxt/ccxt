@@ -1171,7 +1171,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
-        Object stored = this.myTrades;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         String messageHash = this.getMessageHash("myTrades");
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
@@ -1185,7 +1185,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 Object tradeRaw = Helpers.GetValue(trades, jReversed);
                 Helpers.addElementToObject(tradeRaw, "accountIndex", accountIndex);
                 Object trade = this.parseWsOrderTrade((Map<String, Object>) (tradeRaw), market);
-                Helpers.callDynamically(stored, "append", new Object[]{trade});
+                stored.append(trade);
                 String symbol = (String) ((Map<String, Object>)trade).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2006,7 +2006,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache(((Number)limit).intValue());
         }
-        Object stored = this.orders;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         String messageHash = this.getMessageHash("orders");
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
@@ -2016,7 +2016,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             for (var j = 0; j < ((List<?>)orders).size(); j++)
             {
                 Map<String, Object> order = (Map<String, Object>) this.parseOrder((orders == null || j < 0 || j >= orders.size() ? null : orders.get(j)), market);
-                Helpers.callDynamically(stored, "append", new Object[]{order});
+                stored.append(order);
                 String symbol = (String) ((Map<String, Object>)order).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

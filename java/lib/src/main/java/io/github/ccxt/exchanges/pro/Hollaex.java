@@ -347,13 +347,13 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
-        Object stored = this.myTrades;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         for (var i = 0; i < Helpers.getArrayLength(rawTrades); i++)
         {
             Object trade = Helpers.GetValue(rawTrades, i);
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             Object symbol = Helpers.GetValue(trade, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String marketId = (String) ((Map<String, Object>)market).get("id");
@@ -504,7 +504,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object stored = this.orders;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         Object rawOrders = null;
         if (!(data instanceof List))
         {
@@ -518,7 +518,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         {
             Object order = (rawOrders == null || i < 0 || i >= ((List<?>)rawOrders).size() ? null : ((List<?>)rawOrders).get(i));
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             Object symbol = Helpers.GetValue(order, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String marketId = (String) ((Map<String, Object>)market).get("id");

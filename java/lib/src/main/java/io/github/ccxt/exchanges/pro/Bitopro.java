@@ -362,9 +362,9 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data));
-        Helpers.callDynamically(trades, "append", new Object[]{parsed});
+        trades.append(parsed);
         client.resolve(trades, messageHash);
         client.resolve(trades, Helpers.add((messageHash + ":"), symbol));
     }

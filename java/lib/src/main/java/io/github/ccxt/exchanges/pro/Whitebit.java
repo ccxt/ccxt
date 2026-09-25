@@ -661,9 +661,9 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
-        Object stored = this.myTrades;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade));
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
         String messageHash = ("myTrades:" + symbol);
         client.resolve(stored, messageHash);
@@ -851,12 +851,12 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object stored = this.orders;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         Long status = this.safeInteger(parameters, 0);
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
             put( "status", status );
         }})));
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
         String messageHash = ("orders:" + symbol);
         client.resolve(this.orders, messageHash);

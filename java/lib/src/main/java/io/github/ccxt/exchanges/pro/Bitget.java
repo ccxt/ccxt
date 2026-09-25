@@ -1342,8 +1342,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Long responseChecksum = this.safeInteger(rawOrderBook, "checksum");
             if (!Boolean.TRUE.equals(isSnapshot) && (java.util.Objects.equals(checksum, true)) && (!java.util.Objects.equals(responseChecksum, null)))
             {
-                Object storedAsks = Helpers.GetValue(storedOrderBook, "asks");
-                Object storedBids = Helpers.GetValue(storedOrderBook, "bids");
+                io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(storedOrderBook, "asks");
+                io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(storedOrderBook, "bids");
                 Integer asksLength = ((List<?>)storedAsks).size();
                 Integer bidsLength = ((List<?>)storedBids).size();
                 Object payloadArray = new ArrayList<Object>(Arrays.asList());
@@ -2480,7 +2480,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             this.triggerOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Boolean isTrigger = (java.util.Objects.equals(channel, "orders-algo")) || (java.util.Objects.equals(channel, "ordersAlgo"));
-        Object stored = ((Boolean.TRUE.equals(isTrigger))) ? this.triggerOrders : this.orders;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (((Boolean.TRUE.equals(isTrigger))) ? this.triggerOrders : this.orders);
         String messageHash = "order";
         if (Boolean.TRUE.equals(isTrigger))
         {
@@ -2493,7 +2493,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             String marketId = this.safeString2(order, "instId", "symbol", argInstId);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -3048,7 +3048,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
-        Object stored = this.myTrades;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Integer length = ((List<?>)data).size();
         String messageHash = "myTrades";
@@ -3073,7 +3073,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
             }
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
             String symbolSpecificMessageHash = ("myTrades:" + symbol);
             client.resolve(stored, symbolSpecificMessageHash);

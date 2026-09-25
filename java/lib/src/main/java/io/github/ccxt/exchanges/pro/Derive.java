@@ -828,7 +828,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                     this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
                 }
-                Object cachedOrders = this.orders;
+                io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
                 Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
                 Map<String, Object> order = (Map<String, Object>) ((((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId));
                 if (!java.util.Objects.equals(order, null))
@@ -847,7 +847,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     Helpers.addElementToObject(parsed, "timestamp", this.safeInteger(order, "timestamp"));
                     Helpers.addElementToObject(parsed, "datetime", this.safeString(order, "datetime"));
                 }
-                Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
+                cachedOrders.append(parsed);
                 String messageHashSymbol = Helpers.add((topic + ":"), symbol);
                 client.resolve(this.orders, messageHashSymbol);
             }
@@ -934,7 +934,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     {
         //
         //
-        Object myTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -946,7 +946,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message);
-            Helpers.callDynamically(myTrades, "append", new Object[]{trade});
+            myTrades.append(trade);
             client.resolve(myTrades, topic);
             Object messageHash = (topic + this.safeString(trade, "symbol", ""));
             client.resolve(myTrades, messageHash);

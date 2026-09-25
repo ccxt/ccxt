@@ -1688,8 +1688,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object cachedOrders = this.orders;
-        Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
+        io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        cachedOrders.append(parsedOrder);
         client.resolve(this.orders, messageHash);
         if ((java.util.Objects.equals(messageHash, "orders")) && (!java.util.Objects.equals(marketId, null)))
         {
@@ -3312,7 +3312,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object cachedTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache cachedTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         String messageHash = this.safeString2(message, "ch", "topic");
         if (!java.util.Objects.equals(messageHash, null))
         {
@@ -3329,7 +3329,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                         String symbol = this.safeString(parsed, "symbol");
                         if (!java.util.Objects.equals(symbol, null))
                         {
-                            Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
+                            cachedTrades.append(parsed);
                         }
                     }
                 } else
@@ -3338,7 +3338,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     String symbol = this.safeString(parsed, "symbol");
                     if (!java.util.Objects.equals(symbol, null))
                     {
-                        Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
+                        cachedTrades.append(parsed);
                     }
                 }
                 client.resolve(this.myTrades, messageHash);
@@ -3360,7 +3360,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     Object parsedTrade = this.parseTrade(trade, market);
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend(parsedTrade, extendParams);
-                    Helpers.callDynamically(cachedTrades, "append", new Object[]{parsedTrade});
+                    cachedTrades.append(parsedTrade);
                 }
                 // messageHash here is the orders one, so
                 // we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'

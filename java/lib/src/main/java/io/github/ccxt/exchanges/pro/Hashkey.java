@@ -624,8 +624,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message));
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{parsed});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(parsed);
         String messageHash = "orders";
         client.resolve(orders, messageHash);
         String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
@@ -773,9 +773,9 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object tradesArray = this.myTrades;
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (message));
-        Helpers.callDynamically(tradesArray, "append", new Object[]{parsed});
+        tradesArray.append(parsed);
         this.myTrades = tradesArray;
         String messageHash = "myTrades";
         client.resolve(tradesArray, messageHash);

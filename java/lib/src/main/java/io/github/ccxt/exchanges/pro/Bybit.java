@@ -2192,7 +2192,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         // the option was renamed from filterExecTypes to execType to mirror
         // the exchange's own field name, the old key is still read as a
@@ -2240,7 +2240,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 continue;
             }
             symbols.put((String)symbol, true);
-            Helpers.callDynamically(trades, "append", new Object[]{parsed});
+            trades.append(parsed);
         }
         List<Object> keys = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -2926,7 +2926,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Object rawOrders = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = (Map<String, Object>) this.safeDict(rawOrders, 0, new HashMap<String, Object>() {{}});
         String category = this.safeString(first, "category");
@@ -2950,7 +2950,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 continue;
             }
             symbols.put((String)symbol, true);
-            Helpers.callDynamically(orders, "append", new Object[]{parsed});
+            orders.append(parsed);
         }
         List<Object> symbolsArray = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)symbolsArray).size(); i++)

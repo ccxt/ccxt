@@ -1778,24 +1778,24 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             if (!java.util.Objects.equals(obAsks, null))
             {
-                Object asks = Helpers.GetValue(orderbook, "asks");
+                io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
                 for (var i = 0; i < ((List<?>)obAsks).size(); i++)
                 {
                     List<Object> ask = (List<Object>) this.safeList(obAsks, i);
                     Double price = this.safeNumber(ask, 0);
                     Double quantity = this.safeNumber(ask, 1);
-                    Helpers.callDynamically(asks, "store", new Object[]{price, quantity});
+                    asks.store(price, quantity);
                 }
             }
             if (!java.util.Objects.equals(obBids, null))
             {
-                Object bids = Helpers.GetValue(orderbook, "bids");
+                io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
                 for (var i = 0; i < ((List<?>)obBids).size(); i++)
                 {
                     List<Object> bid = (List<Object>) this.safeList(obBids, i);
                     Double price = this.safeNumber(bid, 0);
                     Double quantity = this.safeNumber(bid, 1);
-                    Helpers.callDynamically(bids, "store", new Object[]{price, quantity});
+                    bids.store(price, quantity);
                 }
             }
             Long timestamp = this.safeInteger(data, "t");
@@ -2006,7 +2006,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //           }
         //    }
         //
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit");
@@ -2024,7 +2024,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), market);
-            Helpers.callDynamically(orders, "append", new Object[]{parsed});
+            orders.append(parsed);
             client.resolve(orders, ("order::" + tradeType));
         }
         return message;
@@ -2123,7 +2123,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //    }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object stored = this.myTrades;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -2137,7 +2137,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             return;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(tradeSymbol);
-        Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
+        stored.append(parsedTrade);
         String tradeType = "spot";
         if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
         {

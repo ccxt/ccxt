@@ -1281,7 +1281,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 Object responseOrder = (responseOrders == null || j < 0 || j >= responseOrders.size() ? null : responseOrders.get(j));
                 Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (responseOrder));
-                Object cachedOrders = this.orders;
+                io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
                 String marketId = this.safeString(responseOrder, "product_id");
                 if (!java.util.Objects.equals(marketId, null))
                 {
@@ -1290,7 +1290,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                         ((List<Object>)marketIds).add(marketId);
                     }
                 }
-                Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
+                cachedOrders.append(parsed);
             }
         }
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)

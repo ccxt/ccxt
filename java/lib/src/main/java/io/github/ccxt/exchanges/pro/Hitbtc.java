@@ -1276,7 +1276,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
 
     public void handleOrderHelper(Client client, Map<String, Object> message, Map<String, Object> order)
     {
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(orders, null))
         {
             return;
@@ -1287,7 +1287,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         String messageHash = this.safeString(splitMethod, 0);
         String symbol = this.safeSymbol(marketId);
         Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order);
-        Helpers.callDynamically(orders, "append", new Object[]{parsed});
+        orders.append(parsed);
         client.resolve(orders, messageHash);
         client.resolve(orders, Helpers.add((messageHash + "::"), symbol));
     }

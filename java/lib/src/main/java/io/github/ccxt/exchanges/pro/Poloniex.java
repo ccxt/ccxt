@@ -1286,7 +1286,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //    }
         //
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit");
@@ -1307,7 +1307,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 if (java.util.Objects.equals(eventType, "place") || java.util.Objects.equals(eventType, "canceled"))
                 {
                     Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order));
-                    Helpers.callDynamically(orders, "append", new Object[]{parsed});
+                    orders.append(parsed);
                 } else
                 {
                     Map<String, Object> previousOrders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new HashMap<String, Object>() {{}});
@@ -1318,7 +1318,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     {
                         // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
                         Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order));
-                        Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
+                        orders.append(parsedOrder);
                         ((List<Object>)marketIds).add(marketId);
                         continue;
                     }
@@ -1374,7 +1374,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     String state = this.parseStatus((String) (rawState));
                     previousOrder.put("status", state);
                     // update the newUpdates count
-                    Helpers.callDynamically(orders, "append", new Object[]{previousOrder});
+                    orders.append(previousOrder);
                 }
                 ((List<Object>)marketIds).add(marketId);
             }
@@ -1614,8 +1614,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         List<Object> bid = (List<Object>) this.safeList(bids, j);
                         Double price = this.safeNumber(bid, 0);
                         Double amount = this.safeNumber(bid, 1);
-                        Object bidsSide = Helpers.GetValue(orderbook, "bids");
-                        Helpers.callDynamically(bidsSide, "store", new Object[]{price, amount});
+                        io.github.ccxt.ws.OrderBookSide bidsSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+                        bidsSide.store(price, amount);
                     }
                 }
                 if (!java.util.Objects.equals(asks, null))
@@ -1625,8 +1625,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         List<Object> ask = (List<Object>) this.safeList(asks, j);
                         Double price = this.safeNumber(ask, 0);
                         Double amount = this.safeNumber(ask, 1);
-                        Object asksSide = Helpers.GetValue(orderbook, "asks");
-                        Helpers.callDynamically(asksSide, "store", new Object[]{price, amount});
+                        io.github.ccxt.ws.OrderBookSide asksSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+                        asksSide.store(price, amount);
                     }
                 }
                 Helpers.addElementToObject(orderbook, "symbol", symbol);
@@ -1715,8 +1715,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trades = this.myTrades;
-        Helpers.callDynamically(trades, "append", new Object[]{parsedTrade});
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        trades.append(parsedTrade);
         client.resolve(trades, messageHash);
         String symbolMessageHash = ((messageHash + ":") + symbol);
         client.resolve(trades, symbolMessageHash);

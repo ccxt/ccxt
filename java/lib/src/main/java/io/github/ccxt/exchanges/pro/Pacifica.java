@@ -1207,7 +1207,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Integer dataLength = ((List<?>)data).size();
@@ -1224,7 +1224,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 symbols.put((String)symbol, true);
             }
-            Helpers.callDynamically(trades, "append", new Object[]{parsed});
+            trades.append(parsed);
         }
         List<Object> keys = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -1863,14 +1863,14 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             return;
         }
-        Object stored = this.orders;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         String messageHash = "order";
         Map<String, Object> marketSymbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object rawOrder = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder);
-            Helpers.callDynamically(stored, "append", new Object[]{order});
+            stored.append(order);
             String symbol = this.safeString(order, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

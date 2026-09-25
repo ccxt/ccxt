@@ -295,8 +295,8 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         Object checksum = this.handleOption("watchOrderBook", "checksum", true);
         if ((java.util.Objects.equals(checksum, true)) && (java.util.Objects.equals(receivedSnapshot, true)))
         {
-            Object storedAsks = Helpers.GetValue(orderbook, "asks");
-            Object storedBids = Helpers.GetValue(orderbook, "bids");
+            io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+            io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
             Integer asksLength = ((List<?>)storedAsks).size();
             Integer bidsLength = ((List<?>)storedBids).size();
             Object payload = "";
