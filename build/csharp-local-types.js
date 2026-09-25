@@ -12773,6 +12773,9 @@ const CSHARP_ELEMENT_1_PARAMS = new Set ([
     'handleTriggerAndParams', 'handleTriggerDirectionAndParams', 'handlePostOnly',
     'handleParamString', 'handleParamString2', 'handleParamInteger', 'handleParamInteger2',
     'handleParamBool', 'handleParamBool2', 'handleNetworkCodeAndParams',
+    // typed option readers: element 1 is handleOptionAndParams/2's element 1 unchanged
+    'handleOptionBoolAndParams', 'handleOptionBoolAndParams2', 'handleOptionStringAndParams',
+    'handleOptionStringAndParams2', 'handleOptionIntegerAndParams', 'handleOptionIntegerAndParams2',
 ]);
 const CSHARP_ELEMENT_1_BASE_FILE = /[\\/]base[\\/]Exchange(\.nooverloads\.\d+)?\.ts$/;
 const CSHARP_ELEMENT_1_TYPE = 'IDictionary<string, object>';
