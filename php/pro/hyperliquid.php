@@ -1210,7 +1210,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $rawBalances = array();
         $account = null;
         $timestamp = null;
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         if ($topic === 'spotState') {
             $spotState = $this->safe_dict($data, 'spotState');
             $rawBalances = $this->safe_list($spotState, 'balances', array());
