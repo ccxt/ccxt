@@ -6571,8 +6571,16 @@ function ccxtGoTupleAnnotationElement (typeNode, index) {
     return (element === undefined) ? undefined : CCXT_GO_TUPLE_ELEMENT_NATIVE[element.getText ().trim ()];
 }
 
+// a `Dict` element is not proven when a parameter is `object`/`any`: the body may hand that
+// value back (fetch2 passes a list request body through handleOption*AndParams)
+function ccxtGoTupleDictFromLooseParam (method, goType) {
+    return (goType === 'map[string]any') && (method.parameters ?? []).some ((p) => (p.type === undefined)
+        ? (p.initializer === undefined) : [ 'object', 'any', 'unknown' ].includes (p.type.getText ().trim ()));
+}
+
 function ccxtGoTupleOverridesAgree (declaration, name, index, goType) {
-    const fileName = declaration.getSourceFile ().fileName;
+    // drivers pass relative names (`ts/src/x.ts`): resolve so the marker matches
+    const fileName = path.resolve (declaration.getSourceFile ().fileName);
     const at = fileName.lastIndexOf ('/ts/src/');
     if (at < 0) {
         return false;
@@ -6611,7 +6619,7 @@ function ccxtGoTupleOverridesAgree (declaration, name, index, goType) {
             if ((n.kind === ts.SyntaxKind.MethodDeclaration) && (n.name?.escapedText === name) && (n.body !== undefined)) {
                 const onlySuper = collectReturnStatements (n.body).every ((r) => (r.expression?.kind === ts.SyntaxKind.CallExpression)
                     && (r.expression.expression?.expression?.kind === ts.SyntaxKind.SuperKeyword));
-                if (!onlySuper && (ccxtGoTupleAnnotationElement (n.type, index) !== goType)) {
+                if (!onlySuper && ((ccxtGoTupleAnnotationElement (n.type, index) !== goType) || ccxtGoTupleDictFromLooseParam (n, goType))) {
                     agreed = undefined;
                 }
             }
@@ -6647,6 +6655,7 @@ function ccxtGoTupleCheckerElementType (goTranspiler, init, index) {
         const goType = CCXT_GO_TUPLE_ELEMENT_NATIVE[alias ?? ''] ?? (((element?.flags & ts.TypeFlags.String) !== 0) ? '*string' : numeric);
         if ((goType === undefined) || (declaration?.kind !== ts.SyntaxKind.MethodDeclaration)
             || (ccxtGoTupleAnnotationElement (declaration.type, index) !== goType)
+            || ccxtGoTupleDictFromLooseParam (declaration, goType)
             || !ccxtGoTupleOverridesAgree (declaration, callee.name.escapedText, index, goType)) {
             return undefined;
         }
