@@ -670,7 +670,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
 
     }
 
-    public Object handleWsTickers(Client client, Map<String, Object> message)
+    public Boolean handleWsTickers(Client client, Map<String, Object> message)
     {
         // hip3 mids
         // {
@@ -714,7 +714,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         return true;
     }
 
-    public Object handleActiveAssetCtx(Client client, Map<String, Object> message)
+    public Boolean handleActiveAssetCtx(Client client, Map<String, Object> message)
     {
         //
         //     {

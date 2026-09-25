@@ -1956,7 +1956,7 @@ public class Bitteam extends BitteamApi
         String bestAskVolume = null;
         List<Object> bids = (List<Object>) this.safeList(ticker, "bids", (Object) null);
         List<Object> asks = (List<Object>) this.safeList(ticker, "asks", (Object) null);
-        if ((!java.util.Objects.equals(bids, null)) && (bids instanceof List) && (!java.util.Objects.equals(asks, null)) && (asks instanceof List))
+        if ((!java.util.Objects.equals(bids, null)) && ((bids instanceof List)) && (!java.util.Objects.equals(asks, null)) && ((asks instanceof List)))
         {
             Map<String, Object> bestBid = (Map<String, Object>) this.safeDict(bids, 0, new HashMap<String, Object>() {{}});
             bestBidPrice = this.safeString(bestBid, "price");

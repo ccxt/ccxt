@@ -1561,7 +1561,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
 
     public void handleMessage(Client client, Object message)
     {
-        if (Boolean.TRUE.equals(this.handleError(client, (Map<String, Object>) (message))))
+        if (this.handleError(client, (Map<String, Object>) (message)))
         {
             return;
         }
@@ -1649,7 +1649,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return message;
     }
 
-    public Object handleError(Client client, Map<String, Object> message)
+    public Boolean handleError(Client client, Map<String, Object> message)
     {
         //
         //    {

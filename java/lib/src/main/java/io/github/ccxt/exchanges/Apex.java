@@ -1611,14 +1611,14 @@ public class Apex extends ApexApi
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for market orders")) ;
             }
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-            boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarket, null, parameters));
+            Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
             if (java.util.Objects.equals(timeInForce, null))
             {
                 timeInForce = "GOOD_TIL_CANCEL";
             }
             if (!Boolean.TRUE.equals(isMarket))
             {
-                if (postOnly)
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     timeInForce = "POST_ONLY";
                 } else if (java.util.Objects.equals(timeInForce, "ioc"))

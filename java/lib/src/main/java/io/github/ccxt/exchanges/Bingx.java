@@ -1297,7 +1297,7 @@ public class Bingx extends BingxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
+            if (!this.checkRequiredCredentials(false))
             {
                 return new HashMap<String, Object>() {{}};
             }
@@ -6666,7 +6666,7 @@ public class Bingx extends BingxApi
             for (var i = 0; i < ((List<?>)responseCodes).size(); i++)
             {
                 String code = (responseCodes == null || i < 0 || i >= responseCodes.size() ? null : responseCodes.get(i));
-                if ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes))))
+                if ((java.util.Objects.equals(codes, null)) || (this.inArray(code, codes)))
                 {
                     Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, code, (Object) null);
                     depositWithdrawFees.put((String)code, this.parseDepositWithdrawFee(entry, (Map<String, Object>) null));

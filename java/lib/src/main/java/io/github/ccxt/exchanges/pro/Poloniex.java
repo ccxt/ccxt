@@ -285,8 +285,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 throw new ArgumentsRequired((this.id + " createOrderWs() side is required")) ;
             }
             String uppercaseSide = ((String)side).toUpperCase();
-            boolean isPostOnly = Helpers.isTrue(this.isPostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), java.util.Objects.equals(uppercaseType, "LIMIT_MAKER"), parameters));
-            if (isPostOnly)
+            Boolean isPostOnly = this.isPostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), java.util.Objects.equals(uppercaseType, "LIMIT_MAKER"), parameters);
+            if (Boolean.TRUE.equals(isPostOnly))
             {
                 uppercaseType = "LIMIT_MAKER";
             }

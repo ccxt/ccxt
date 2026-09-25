@@ -3122,7 +3122,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object isAuthorized = this.checkRequiredCredentials(false);
+            Boolean isAuthorized = this.checkRequiredCredentials(false);
             Object result = null;
             if (java.util.Objects.equals(isAuthorized, true))
             {
@@ -3324,7 +3324,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object isAuthorized = this.checkRequiredCredentials(false);
+            Boolean isAuthorized = this.checkRequiredCredentials(false);
             Object response = null;
             if (java.util.Objects.equals(isAuthorized, true))
             {

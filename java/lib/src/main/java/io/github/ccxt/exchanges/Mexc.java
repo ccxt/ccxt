@@ -1491,7 +1491,7 @@ public class Mexc extends MexcApi
             // while fetchCurrencies is a public API method by design
             // therefore we check the keys here
             // and fallback to generating the currencies from the markets
-            if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
+            if (!this.checkRequiredCredentials(false))
             {
                 return new HashMap<String, Object>() {{}};
             }
@@ -6744,7 +6744,7 @@ public class Mexc extends MexcApi
             String currencyId = this.safeString(entry, "coin");
             Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(currencyId, (Map<String, Object>) null);
             String code = this.safeString(currency, "code");
-            if ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes))))
+            if ((java.util.Objects.equals(codes, null)) || (this.inArray(code, codes)))
             {
                 withdrawFees.put((String)code, this.parseTransactionFee((Map<String, Object>) (entry), currency));
             }

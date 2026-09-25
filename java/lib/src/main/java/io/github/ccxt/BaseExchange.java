@@ -5584,7 +5584,7 @@ public Object describe()
         return Helpers.parseInt(stringVersion);
     }
 
-    public Object isRoundNumber(Object value)
+    public Boolean isRoundNumber(Object value)
     {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
@@ -5592,7 +5592,7 @@ public Object describe()
         return Helpers.isEqual(res, 0);
     }
 
-    public Object isEmptyString(Object value)
+    public Boolean isEmptyString(Object value)
     {
         return !this.valueIsDefined(value) || java.util.Objects.equals(value, "");
     }
@@ -7273,7 +7273,7 @@ public Object describe()
             if (java.util.Objects.equals(average, null) && !java.util.Objects.equals(close, null))
             {
                 Object precision = 18;
-                if (!java.util.Objects.equals(market, null) && Boolean.TRUE.equals(this.isTickPrecision()))
+                if (!java.util.Objects.equals(market, null) && this.isTickPrecision())
                 {
                     Map<String, Object> marketPrecision = (Map<String, Object>) this.safeDict(market, "precision", (Object) null);
                     String precisionPrice = this.safeString(marketPrecision, "price");
@@ -8884,7 +8884,7 @@ public Object describe()
         return this.market(symbol);
     }
 
-    public Object checkRequiredCredentials(Object error)
+    public Boolean checkRequiredCredentials(Object error)
     {
         /**
          * @ignore
@@ -9987,7 +9987,7 @@ public Object describe()
                 }
             }
             return Helpers.GetValue(marketsList, 0);
-        } else if (((String)symbol).endsWith("-C") || ((String)symbol).endsWith("-P") || ((String)symbol).startsWith("C-") || ((String)symbol).startsWith("P-"))
+        } else if ((((String)symbol).endsWith("-C")) || (((String)symbol).endsWith("-P")) || (((String)symbol).startsWith("C-")) || (((String)symbol).startsWith("P-")))
         {
             return this.createExpiredOptionMarket(symbol);
         }
@@ -9999,7 +9999,7 @@ public Object describe()
         throw new NotSupported((this.id + " createExpiredOptionMarket () is not supported yet")) ;
     }
 
-    public Object isLeveragedCurrency(Object currencyCode, Object checkBaseCoin, Object existingCurrencies)
+    public Boolean isLeveragedCurrency(Object currencyCode, Object checkBaseCoin, Object existingCurrencies)
     {
         List<String> leverageSuffixes = new ArrayList<String>(Arrays.asList("2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"));
         for (var i = 0; i < ((List<?>)leverageSuffixes).size(); i++)
@@ -10137,17 +10137,17 @@ public Object describe()
         return value;
     }
 
-    public Object isTickPrecision()
+    public Boolean isTickPrecision()
     {
         return Helpers.isEqual(this.precisionMode, TICK_SIZE);
     }
 
-    public Object isDecimalPrecision()
+    public Boolean isDecimalPrecision()
     {
         return Helpers.isEqual(this.precisionMode, DECIMAL_PLACES);
     }
 
-    public Object isSignificantPrecision()
+    public Boolean isSignificantPrecision()
     {
         return Helpers.isEqual(this.precisionMode, SIGNIFICANT_DIGITS);
     }
@@ -10604,7 +10604,7 @@ public Object describe()
         return this.handleTriggerAndParams(parameters);
     }
 
-    public Object isPostOnly(Object isMarketOrder, Object exchangeSpecificParam, Map<String, Object> parameters)
+    public Boolean isPostOnly(Object isMarketOrder, Object exchangeSpecificParam, Map<String, Object> parameters)
     {
         /**
          * @ignore
@@ -10980,7 +10980,7 @@ public Object describe()
          * @returns {undefined}
          */
         Integer optionsLength = ((List<?>)options).size();
-        if ((java.util.Objects.equals(argument, null)) || (((optionsLength != null && optionsLength > 0)) && (!Helpers.isTrue((this.inArray(argument, options))))))
+        if ((java.util.Objects.equals(argument, null)) || (((optionsLength != null && optionsLength > 0)) && (!(this.inArray(argument, options)))))
         {
             String messageOptions = String.join(", ", (List<String>)options);
             String message = (((((this.id + " ") + methodName) + "() requires a ") + argumentName) + " argument");
@@ -11038,7 +11038,7 @@ public Object describe()
             }
             Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (currencyId), (Map<String, Object>) null);
             String code = this.safeString(currency, "code");
-            if ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes))))
+            if ((java.util.Objects.equals(codes, null)) || (this.inArray(code, codes)))
             {
                 depositWithdrawFees.put((String)code, this.parseDepositWithdrawFee(dictionary, currency));
             }

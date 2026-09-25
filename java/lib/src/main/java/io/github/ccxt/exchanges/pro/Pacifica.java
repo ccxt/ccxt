@@ -884,7 +884,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
 
     }
 
-    public Object handleWsTickers(Client client, Map<String, Object> message)
+    public Boolean handleWsTickers(Client client, Map<String, Object> message)
     {
         //
         // {

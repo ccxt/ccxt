@@ -1193,7 +1193,7 @@ public class Bit2c extends Bit2cApi
         ), marketResolved);
     }
 
-    public Object isFiat(String code)
+    public Boolean isFiat(String code)
     {
         return java.util.Objects.equals(code, "NIS");
     }
@@ -1217,7 +1217,7 @@ public class Bit2c extends Bit2cApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            if (Boolean.TRUE.equals(this.isFiat((String) (code))))
+            if (this.isFiat((String) (code)))
             {
                 throw new NotSupported((this.id + " fetchDepositAddress() does not support fiat currencies")) ;
             }

@@ -1323,7 +1323,7 @@ public class Nado extends NadoApi
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
-                if (Boolean.TRUE.equals(this.isArchiveOrderClosed((Map<String, Object>) (order))))
+                if (this.isArchiveOrderClosed((Map<String, Object>) (order)))
                 {
                     ((List<Object>)closedOrders).add(this.extend(new HashMap<String, Object>() {{
                         put( "status", "closed" );
@@ -3057,7 +3057,7 @@ public class Nado extends NadoApi
         ));
     }
 
-    public Object isArchiveOrderClosed(Map<String, Object> order)
+    public Boolean isArchiveOrderClosed(Map<String, Object> order)
     {
         String amount = this.safeString(order, "amount");
         String filled = this.safeString(order, "base_filled");
@@ -3182,7 +3182,7 @@ public class Nado extends NadoApi
             status = this.safeString(order, "status");
             if (java.util.Objects.equals(status, null))
             {
-                if (Boolean.TRUE.equals(this.isArchiveOrderClosed((Map<String, Object>) (order))))
+                if (this.isArchiveOrderClosed((Map<String, Object>) (order)))
                 {
                     status = "closed";
                 }
@@ -3331,7 +3331,7 @@ public class Nado extends NadoApi
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
-        boolean postOnly = Helpers.isTrue(this.isPostOnly(false, null, parameters));
+        Boolean postOnly = this.isPostOnly(false, null, parameters);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Integer orderType = 0;
         if (java.util.Objects.equals(timeInForce, "IOC"))
@@ -3340,7 +3340,7 @@ public class Nado extends NadoApi
         } else if (java.util.Objects.equals(timeInForce, "FOK"))
         {
             orderType = 2;
-        } else if (postOnly || (java.util.Objects.equals(timeInForce, "PO")))
+        } else if (Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO")))
         {
             orderType = 3;
         } else if ((!java.util.Objects.equals(timeInForce, null)) && (!java.util.Objects.equals(timeInForce, "GTC")))

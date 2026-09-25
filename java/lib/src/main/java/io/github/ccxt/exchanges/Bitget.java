@@ -3680,7 +3680,7 @@ public class Bitget extends BitgetApi
             {
                 return new ArrayList<Object>(Arrays.asList(uta, paramsUta));
             }
-            if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
+            if (this.checkRequiredCredentials(false))
             {
                 // use the api to determine if the account is uta or not
                 Boolean accountIsUTa = false;

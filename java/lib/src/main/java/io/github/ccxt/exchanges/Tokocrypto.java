@@ -1038,7 +1038,7 @@ public class Tokocrypto extends TokocryptoApi
                 request.put("limit", limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
             }
             Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
+            if (this.isNativeMarket((Map<String, Object>) (market)))
             {
                 response = (this.publicGetOpenV1MarketDepth(this.extend(request, parameters))).join();
             } else
@@ -1264,7 +1264,7 @@ public class Tokocrypto extends TokocryptoApi
             // not by the quote currency: type 1 markets are served by the binance host
             // with the underscore-less id, every other type by open/v1 with the raw id
             request.put("symbol", this.getMarketIdByType((Map<String, Object>) (market)));
-            if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
+            if (this.isNativeMarket((Map<String, Object>) (market)))
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
@@ -1489,7 +1489,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} market a unified market structure
      * @returns {boolean} true when the symbol type of the market is known and is not 1
      */
-    public Object isNativeMarket(Map<String, Object> market)
+    public Boolean isNativeMarket(Map<String, Object> market)
     {
         Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         String symbolType = this.safeString(marketInfo, "type");
@@ -1510,7 +1510,7 @@ public class Tokocrypto extends TokocryptoApi
      */
     public String getMarketIdByType(Map<String, Object> market)
     {
-        if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
+        if (this.isNativeMarket((Map<String, Object>) (market)))
         {
             return this.safeString(market, "id");
         }
@@ -1536,7 +1536,7 @@ public class Tokocrypto extends TokocryptoApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
+            if (this.isNativeMarket((Map<String, Object>) (market)))
             {
                 throw new NotSupported((((this.id + " fetchTicker() does not support ") + symbol) + " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
             }
@@ -1670,7 +1670,7 @@ public class Tokocrypto extends TokocryptoApi
                 request.put("endTime", until);
             }
             Object response = null;
-            if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
+            if (this.isNativeMarket((Map<String, Object>) (market)))
             {
                 response = (this.publicGetOpenV1MarketKlines(this.extend(request, paramsOmitted))).join();
             } else

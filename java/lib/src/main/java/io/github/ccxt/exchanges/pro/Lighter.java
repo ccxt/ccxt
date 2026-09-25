@@ -912,7 +912,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         ), market);
     }
 
-    public Object handleMyTrades(Client client, Map<String, Object> message)
+    public Boolean handleMyTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1259,7 +1259,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     }
 
-    public Object handleBalance(Client client, Map<String, Object> message)
+    public Boolean handleBalance(Client client, Map<String, Object> message)
     {
         //
         //    spot balance
@@ -1594,7 +1594,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         client.resolve(message, ("jsonapi/sendtx:" + id));
     }
 
-    public Object handleOrders(Client client, Map<String, Object> message)
+    public Boolean handleOrders(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1650,7 +1650,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return true;
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         //
         //     {
@@ -1705,7 +1705,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     public void handleMessage(Client client, Object message)
     {
-        if (!Boolean.TRUE.equals(this.handleErrorMessage(client, message)))
+        if (!this.handleErrorMessage(client, message))
         {
             return;
         }

@@ -5970,7 +5970,7 @@ public class Phemex extends PhemexApi
             Object stableCoins = this.safeValue(this.options, "stableCoins");
             if (java.util.Objects.equals(networkId, null))
             {
-                if (!Helpers.isTrue((this.inArray(code, stableCoins))))
+                if (!(this.inArray(code, stableCoins)))
                 {
                     networkId = ((Map<String, Object>)currency).get("id");
                 } else

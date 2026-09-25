@@ -244,7 +244,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return Helpers.toLongOrNull(newValue);
     }
 
-    public Object isSpotUrl(Client client)
+    public Boolean isSpotUrl(Client client)
     {
         return (((String)client.url).indexOf("/stream") > -1) || (((String)client.url).indexOf("demo-stream") > -1);
     }
@@ -1260,7 +1260,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // market, and picking the first match drops the message under the wrong
         // symbol and stalls the orderbook future (delivery/option ids are
         // unique, so the swap hint resolves those correctly too)
-        Object isSpot = this.isSpotUrl(client);
+        Boolean isSpot = this.isSpotUrl(client);
         String marketType = "swap";
         if (Boolean.TRUE.equals(isSpot))
         {
@@ -1886,7 +1886,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String marketId = this.safeString(message, "s");
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
-        Object isSpot = this.isSpotUrl(client);
+        Boolean isSpot = this.isSpotUrl(client);
         String marketType = "contract";
         if (Boolean.TRUE.equals(isSpot))
         {
@@ -2265,7 +2265,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, "v")));
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
-        Object isSpot = this.isSpotUrl(client);
+        Boolean isSpot = this.isSpotUrl(client);
         String marketType = "contract";
         if (Boolean.TRUE.equals(isSpot))
         {
@@ -2826,10 +2826,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
                 // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
                 rawMarketType = ((Boolean.TRUE.equals(isOptionMarkPrice))) ? "optionMarket" : "option";
-            } else if (Boolean.TRUE.equals(this.isLinear(marketType, subType)))
+            } else if (this.isLinear(marketType, subType))
             {
                 rawMarketType = "future";
-            } else if (Boolean.TRUE.equals(this.isInverse(marketType, subType)))
+            } else if (this.isInverse(marketType, subType))
             {
                 rawMarketType = "delivery";
             } else if (java.util.Objects.equals(marketType, "spot"))
@@ -3293,7 +3293,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // blind first pick, the stream url decides; only a unique match, like an
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
             Map<String, Object> tickerMarketById = (Map<String, Object>) (((((numTickerMarkets != null && numTickerMarkets == 1)))) ? this.safeDict(tickerMarketsByIdList, 0, (Object) null) : null);
-            Object isSpot = this.isSpotUrl(client);
+            Boolean isSpot = this.isSpotUrl(client);
             String tickerFallbackType = "contract";
             if (Boolean.TRUE.equals(isSpot))
             {
@@ -3757,10 +3757,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // subType alone and would flip 'stock' to 'future' - the stock branch
                 // below would never run, and the bucket lookup would renew the
                 // FUTURES listen key while the stock key silently expires
-                if (Boolean.TRUE.equals(this.isLinear(type, Helpers.toStringArg(subType))))
+                if (this.isLinear(type, Helpers.toStringArg(subType)))
                 {
                     type = "future";
-                } else if (Boolean.TRUE.equals(this.isInverse(type, Helpers.toStringArg(subType))))
+                } else if (this.isInverse(type, Helpers.toStringArg(subType)))
                 {
                     type = "delivery";
                 }
@@ -4431,10 +4431,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String type = marketType;
         if (!java.util.Objects.equals(type, "option") && !java.util.Objects.equals(type, "stock"))
         {
-            if (Boolean.TRUE.equals(this.isLinear(type, subType)))
+            if (this.isLinear(type, subType))
             {
                 type = "future";
-            } else if (Boolean.TRUE.equals(this.isInverse(type, subType)))
+            } else if (this.isInverse(type, subType))
             {
                 type = "delivery";
             }
@@ -4453,10 +4453,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
         List<Object> subTypeAndParams = (List<Object>) this.handleSubTypeAndParams(method, Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
         String subType = (String) ((List<Object>)subTypeAndParams).get(0);
-        if (Boolean.TRUE.equals(this.isLinear(type, Helpers.toStringArg(subType))))
+        if (this.isLinear(type, Helpers.toStringArg(subType)))
         {
             type = "future";
-        } else if (Boolean.TRUE.equals(this.isInverse(type, Helpers.toStringArg(subType))))
+        } else if (this.isInverse(type, Helpers.toStringArg(subType)))
         {
             type = "delivery";
         }

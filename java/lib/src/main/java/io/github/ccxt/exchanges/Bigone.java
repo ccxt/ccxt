@@ -656,7 +656,7 @@ public class Bigone extends BigoneApi
             type = "fiat";
         } else if (java.util.Objects.equals(chainLength, 0))
         {
-            if (Boolean.TRUE.equals(this.isLeveragedCurrency(id, false, (Object) null)))
+            if (this.isLeveragedCurrency(id, false, (Object) null))
             {
                 type = "leveraged";
             } else

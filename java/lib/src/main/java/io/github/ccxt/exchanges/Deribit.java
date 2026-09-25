@@ -922,7 +922,7 @@ public class Deribit extends DeribitApi
 
     public Object safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
     {
-        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && (((String)marketId).endsWith("-C") || ((String)marketId).endsWith("-P"));
+        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((((String)marketId).endsWith("-C")) || (((String)marketId).endsWith("-P")));
         if (Boolean.TRUE.equals(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
@@ -2639,7 +2639,7 @@ public class Deribit extends DeribitApi
             Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || Boolean.TRUE.equals(isStopLimit) || Boolean.TRUE.equals(isTakeLimit);
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market")) || Boolean.TRUE.equals(isStopMarket) || Boolean.TRUE.equals(isTakeMarket);
             Object exchangeSpecificPostOnly = this.safeValue(parameters, "post_only");
-            boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, parameters));
+            Boolean postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, parameters);
             if (Boolean.TRUE.equals(isLimitOrder))
             {
                 request.put("type", "limit");
@@ -2686,7 +2686,7 @@ public class Deribit extends DeribitApi
             {
                 request.put("reduce_only", true);
             }
-            if (postOnly)
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("post_only", true);
                 request.put("reject_post_only", true);

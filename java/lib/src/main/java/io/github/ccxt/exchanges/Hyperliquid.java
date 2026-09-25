@@ -503,7 +503,7 @@ public class Hyperliquid extends HyperliquidApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
+            if (this.checkRequiredCredentials(false))
             {
                 (this.initializeClient()).join();
             }

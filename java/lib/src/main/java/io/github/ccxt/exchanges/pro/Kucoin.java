@@ -3451,7 +3451,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     public void setPositionsCache(Client client, Object uta)
     {
-        if (!Helpers.isTrue((this.isEmpty(this.positions))))
+        if (!(this.isEmpty(this.positions)))
         {
             return;
         }

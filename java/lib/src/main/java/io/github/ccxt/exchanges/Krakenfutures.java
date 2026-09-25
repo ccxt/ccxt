@@ -982,7 +982,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             Map<String, Object> volumes = new HashMap<String, Object>() {{}};
-            if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
+            if (this.checkRequiredCredentials(false))
             {
                 Map<String, Object> volumesResponse = (this.privateGetFeeschedulesVolumes()).join();
                 //

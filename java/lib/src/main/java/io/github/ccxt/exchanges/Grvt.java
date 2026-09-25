@@ -751,7 +751,7 @@ public class Grvt extends GrvtApi
         }};
     }
 
-    public Object usesPrivateKey()
+    public Boolean usesPrivateKey()
     {
         Boolean privateKeyDefined = !java.util.Objects.equals(this.privateKey, null) && !java.util.Objects.equals(this.privateKey, "");
         Boolean apiKeyDefined = !java.util.Objects.equals(this.apiKey, null) && !java.util.Objects.equals(this.apiKey, "");
@@ -977,7 +977,7 @@ public class Grvt extends GrvtApi
             //            ...
             //
             List<Object> promises = new ArrayList<Object>(Arrays.asList(marketsPromise));
-            if (!Boolean.TRUE.equals(this.isEmptyString(this.apiKey)) || !Boolean.TRUE.equals(this.isEmptyString(this.privateKey)))
+            if (!this.isEmptyString(this.apiKey) || !this.isEmptyString(this.privateKey))
             {
                 ((List<Object>)promises).add(this.signIn(new HashMap<String, Object>() {{}}));
             }
@@ -2539,8 +2539,8 @@ public class Grvt extends GrvtApi
                 "reduce_only", isReduceOnly
             );
             String timeInForce = this.safeStringUpper(paramsOmitted3, "timeInForce", "GOOD_TILL_TIME");
-            boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, null, Helpers.toMapArg(paramsOmitted3)));
-            if (postOnly)
+            Boolean postOnly = this.isPostOnly(isMarketOrder, null, Helpers.toMapArg(paramsOmitted3));
+            if (Boolean.TRUE.equals(postOnly))
             {
                 orderRequest.put("post_only", true);
             }
@@ -2559,7 +2559,7 @@ public class Grvt extends GrvtApi
             orderRequest.put("time_in_force", timeInForce);
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
-                if (postOnly)
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     timeInForce = "POST_ONLY";
                 } else if (java.util.Objects.equals(timeInForce, "ioc"))
@@ -3888,7 +3888,7 @@ public class Grvt extends GrvtApi
         Object definitions = this.eipDefinitions();
         Object ethEncodedMessage = this.ethEncodeStructuredData(domainData, Helpers.GetValue(definitions, structureType), messageData);
         String ethEncodedMessageHashed = ("0x" + this.hash(ethEncodedMessage, keccak(), "hex"));
-        Object usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
+        Boolean usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         Object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Object signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1(), null);

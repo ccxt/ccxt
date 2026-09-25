@@ -550,7 +550,7 @@ public Object describe()
         throw new BadSymbol((((this.id + " does not have outcome ") + outcomeSymbol) + " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
 
-    public Object hasOutcome(String outcomeIdOrSymbol)
+    public Boolean hasOutcome(String outcomeIdOrSymbol)
     {
         // sync cache-only membership probe — never throws and never fetches. this is the predicate
         // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
@@ -887,7 +887,7 @@ public Object describe()
                 List<Object> missing = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
-                    if (Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)) || !Boolean.TRUE.equals(this.hasOutcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))))))
+                    if (Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)) || !this.hasOutcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)))))
                     {
                         ((List<Object>)missing).add((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
                     }
@@ -903,7 +903,7 @@ public Object describe()
                     List<Object> stillMissing = new ArrayList<Object>(Arrays.asList());
                     for (var i = 0; (missingLength != null && i < missingLength); i++)
                     {
-                        if (!Boolean.TRUE.equals(this.hasOutcome((String) ((missing == null || i < 0 || i >= missing.size() ? null : missing.get(i))))))
+                        if (!this.hasOutcome((String) ((missing == null || i < 0 || i >= missing.size() ? null : missing.get(i)))))
                         {
                             ((List<Object>)stillMissing).add((missing == null || i < 0 || i >= missing.size() ? null : missing.get(i)));
                         }
@@ -968,7 +968,7 @@ public Object describe()
             }
             if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
             {
-                if (Boolean.TRUE.equals(this.hasOutcome((String) (outcomeSymbol))))
+                if (this.hasOutcome((String) (outcomeSymbol)))
                 {
                     return this.safeOutcome((String) (outcomeSymbol), (Object) null);
                 }
@@ -979,7 +979,7 @@ public Object describe()
                 if (!Boolean.TRUE.equals(wasWarm) && (!java.util.Objects.equals(this.markets, null)) && !this.isEmpty(this.markets))
                 {
                     this.populateOutcomes();
-                    if (Boolean.TRUE.equals(this.hasOutcome((String) (outcomeSymbol))))
+                    if (this.hasOutcome((String) (outcomeSymbol)))
                     {
                         return this.safeOutcome((String) (outcomeSymbol), (Object) null);
                     }
@@ -992,7 +992,7 @@ public Object describe()
                     // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
                     // the whole listing (which would mask typos and clobber offline-injected markets)
                     (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
-                    if (Boolean.TRUE.equals(this.hasOutcome((String) (outcomeSymbol))))
+                    if (this.hasOutcome((String) (outcomeSymbol)))
                     {
                         return this.safeOutcome((String) (outcomeSymbol), (Object) null);
                     }
@@ -1093,7 +1093,7 @@ public Object describe()
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                 }
-                if (Boolean.TRUE.equals(this.hasOutcome((String) (outcomeSymbol))))
+                if (this.hasOutcome((String) (outcomeSymbol)))
                 {
                     return this.safeOutcome((String) (outcomeSymbol), (Object) null);
                 }

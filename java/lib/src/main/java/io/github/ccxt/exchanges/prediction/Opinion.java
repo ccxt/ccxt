@@ -317,7 +317,7 @@ public class Opinion extends OpinionApi
             if (java.util.Objects.equals(this.outcomeSearchQuery(outcomeSymbol), null))
             {
                 (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
-                if (Boolean.TRUE.equals(this.hasOutcome((String) (outcomeSymbol))))
+                if (this.hasOutcome((String) (outcomeSymbol)))
                 {
                     return this.safeOutcome((String) (outcomeSymbol), (Object) null);
                 }
@@ -1994,7 +1994,7 @@ public class Opinion extends OpinionApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Boolean hasDirectApiKey = !Boolean.TRUE.equals(this.isEmptyString(this.apiKey));
+            Boolean hasDirectApiKey = !this.isEmptyString(this.apiKey);
             if (Boolean.TRUE.equals(hasDirectApiKey))
             {
                 return this.apiKey;
@@ -2048,7 +2048,7 @@ public class Opinion extends OpinionApi
      */
     public Object opinionWsUrl()
     {
-        Boolean hasDirectApiKey = !Boolean.TRUE.equals(this.isEmptyString(this.apiKey));
+        Boolean hasDirectApiKey = !this.isEmptyString(this.apiKey);
         Object apiKey = ((Boolean.TRUE.equals(hasDirectApiKey))) ? this.apiKey : this.safeString(this.options, "apiKey");
         if (java.util.Objects.equals(apiKey, null))
         {
@@ -2683,7 +2683,7 @@ public class Opinion extends OpinionApi
             {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
                 // strict base types the credential as string, undefined can not be assigned)
-                Boolean hasDirectApiKey = !Boolean.TRUE.equals(this.isEmptyString(this.apiKey));
+                Boolean hasDirectApiKey = !this.isEmptyString(this.apiKey);
                 Object apiKey = ((Boolean.TRUE.equals(hasDirectApiKey))) ? this.apiKey : this.safeString(this.options, "apiKey");
                 if (java.util.Objects.equals(apiKey, null))
                 {

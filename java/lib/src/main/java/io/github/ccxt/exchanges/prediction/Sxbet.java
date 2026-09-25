@@ -562,7 +562,7 @@ public class Sxbet extends SxbetApi
                 Integer preFilterLength = ((List<?>)rawMarkets).size();
                 for (var i = 0; (preFilterLength != null && i < preFilterLength); i++)
                 {
-                    if (Boolean.TRUE.equals(this.matchesEventQuery((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i))), queries)))
+                    if (this.matchesEventQuery((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i))), queries))
                     {
                         ((List<Object>)filtered).add((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i)));
                     }
@@ -655,7 +655,7 @@ public class Sxbet extends SxbetApi
      * @param {string[]} queries lowercase-insensitive free-text queries
      * @returns {boolean} whether any query matches any of the market's team/league/outcome names
      */
-    public Object matchesEventQuery(Map<String, Object> raw, Object queries)
+    public Boolean matchesEventQuery(Map<String, Object> raw, Object queries)
     {
         List<String> fields = new ArrayList<String>(Arrays.asList(this.safeString(raw, "teamOneName"), this.safeString(raw, "teamTwoName"), this.safeString(raw, "leagueLabel"), this.safeString(raw, "sportLabel"), this.safeString(raw, "outcomeOneName"), this.safeString(raw, "outcomeTwoName")));
         Integer queriesLength = ((List<?>)queries).size();
@@ -2310,7 +2310,7 @@ public class Sxbet extends SxbetApi
             // snapshots when the instance carries no credentials
             Map<String, Object> rowsByHash = new HashMap<String, Object>() {{}};
             Integer hashesLength = ((List<?>)hashesOrder).size();
-            Boolean hasApiKey = !Boolean.TRUE.equals(this.isEmptyString(this.apiKey));
+            Boolean hasApiKey = !this.isEmptyString(this.apiKey);
             if (!Boolean.TRUE.equals(hasApiKey))
             {
                 for (var i = 0; (hashesLength != null && i < hashesLength); i++)

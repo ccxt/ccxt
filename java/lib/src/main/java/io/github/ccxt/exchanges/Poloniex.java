@@ -2515,7 +2515,7 @@ public class Poloniex extends PoloniexApi
         }
         String upperCaseType = ((String)type).toUpperCase();
         Boolean isMarket = java.util.Objects.equals(upperCaseType, "MARKET");
-        boolean isPostOnly = Helpers.isTrue(this.isPostOnly(isMarket, java.util.Objects.equals(upperCaseType, "LIMIT_MAKER"), Helpers.toMapArg(query)));
+        Boolean isPostOnly = this.isPostOnly(isMarket, java.util.Objects.equals(upperCaseType, "LIMIT_MAKER"), Helpers.toMapArg(query));
         Object queryOmitted = this.omit(query, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice")));
         if (!java.util.Objects.equals(triggerPrice, null))
         {
@@ -2525,7 +2525,7 @@ public class Poloniex extends PoloniexApi
             }
             upperCaseType = (((java.util.Objects.equals(price, null)))) ? "STOP" : "STOP_LIMIT";
             request.put("stopPrice", triggerPrice);
-        } else if (isPostOnly)
+        } else if (Boolean.TRUE.equals(isPostOnly))
         {
             upperCaseType = "LIMIT_MAKER";
         }
@@ -3703,7 +3703,7 @@ public class Poloniex extends PoloniexApi
             Object currencyId = (responseKeys == null || i < 0 || i >= responseKeys.size() ? null : responseKeys.get(i));
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Object feeInfo = Helpers.GetValue(response, currencyId);
-            if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || Helpers.isTrue((this.inArray(code, codesValue)))))
+            if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
                 Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 depositWithdrawFees.put((String)code, this.parseDepositWithdrawFee(feeInfo, currency));

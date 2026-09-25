@@ -2605,7 +2605,7 @@ public class Kraken extends KrakenApi
             String trailingPercentString = null;
             if (!java.util.Objects.equals(trailingPercent, null))
             {
-                trailingPercentString = ((((String)trailingPercent).endsWith(((String)"%")))) ? (("+" + trailingPercent)) : ((("+" + trailingPercent) + "%"));
+                trailingPercentString = (((((String)trailingPercent).endsWith(((String)"%"))))) ? (("+" + trailingPercent)) : ((("+" + trailingPercent) + "%"));
             }
             String trailingAmountString = (((!java.util.Objects.equals(trailingAmount, null)))) ? ("+" + trailingAmount) : null; // must use + for this
             String offset = this.safeString(paramsOmitted2, "offset", "-"); // can use + or - for this
@@ -2617,7 +2617,7 @@ public class Kraken extends KrakenApi
                 request.put("ordertype", "trailing-stop-limit");
                 if (!java.util.Objects.equals(trailingLimitPercent, null))
                 {
-                    String trailingLimitPercentString = ((((String)trailingLimitPercent).endsWith(((String)"%")))) ? ((offset + trailingLimitPercent)) : (((offset + trailingLimitPercent) + "%"));
+                    String trailingLimitPercentString = (((((String)trailingLimitPercent).endsWith(((String)"%"))))) ? ((offset + trailingLimitPercent)) : (((offset + trailingLimitPercent) + "%"));
                     Helpers.addElementToObject(request, "price", trailingPercentString);
                     request.put("price2", trailingLimitPercentString);
                 } else if (!java.util.Objects.equals(trailingLimitAmount, null))
@@ -4297,7 +4297,7 @@ public class Kraken extends KrakenApi
             Boolean isTriggerPercent = false;
             if (!java.util.Objects.equals(price, null))
             {
-                isTriggerPercent = ((((String)price).endsWith(((String)"%")))) ? true : false;
+                isTriggerPercent = (((((String)price).endsWith(((String)"%"))))) ? true : false;
             }
             Boolean isCancelOrderBatch = (java.util.Objects.equals(path, "CancelOrderBatch"));
             Boolean isBatchOrder = (java.util.Objects.equals(path, "AddOrderBatch"));

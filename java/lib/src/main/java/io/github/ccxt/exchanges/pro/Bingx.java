@@ -1725,7 +1725,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         client.resolve(newPositions, "swap:positions");
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Object message)
     {
         //
         // { code: 100400, msg: '', timestamp: 1696245808833 }
@@ -2193,7 +2193,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             return;
         }
-        if (!Boolean.TRUE.equals(this.handleErrorMessage(client, message)))
+        if (!this.handleErrorMessage(client, message))
         {
             return;
         }

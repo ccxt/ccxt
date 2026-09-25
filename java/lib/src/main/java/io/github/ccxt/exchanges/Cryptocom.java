@@ -837,7 +837,7 @@ public class Cryptocom extends CryptocomApi
         return BaseExchange.supplyAsync(() -> {
 
             // this endpoint requires authentication
-            if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
+            if (!this.checkRequiredCredentials(false))
             {
                 return new HashMap<String, Object>() {{}};
             }

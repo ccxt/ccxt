@@ -1571,11 +1571,11 @@ public class Upbit extends UpbitApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             String customType = this.safeString2(parameters, "ordType", "ord_type");
-            boolean postOnly = Helpers.isTrue(this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters));
+            Boolean postOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters);
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
-            if (postOnly && (!java.util.Objects.equals(selfTradePrevention, null)))
+            if (Boolean.TRUE.equals(postOnly) && (!java.util.Objects.equals(selfTradePrevention, null)))
             {
                 throw new ExchangeError((this.id + " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
             }
@@ -1644,7 +1644,7 @@ public class Upbit extends UpbitApi
             {
                 request.put("identifier", clientOrderId);
             }
-            if (postOnly)
+            if (Boolean.TRUE.equals(postOnly))
             {
                 if (!java.util.Objects.equals(this.safeString(request, "ord_type"), "limit"))
                 {
@@ -1779,10 +1779,10 @@ public class Upbit extends UpbitApi
             String prevClientOrderId = this.safeString(parameters, "clientOrderId");
             String customType = this.safeString2(parameters, "newOrdType", "new_ord_type");
             String clientOrderId = this.safeString(parameters, "newClientOrderId");
-            boolean postOnly = Helpers.isTrue(this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters));
+            Boolean postOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters);
             String timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
             String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
-            if (postOnly && (!java.util.Objects.equals(selfTradePrevention, null)))
+            if (Boolean.TRUE.equals(postOnly) && (!java.util.Objects.equals(selfTradePrevention, null)))
             {
                 throw new ExchangeError((this.id + " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
             }
@@ -1851,7 +1851,7 @@ public class Upbit extends UpbitApi
             {
                 request.put("new_smp_type", selfTradePrevention);
             }
-            if (postOnly)
+            if (Boolean.TRUE.equals(postOnly))
             {
                 if (!java.util.Objects.equals(this.safeString(request, "new_ord_type"), "limit"))
                 {

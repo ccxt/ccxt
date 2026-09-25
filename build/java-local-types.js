@@ -5367,7 +5367,9 @@ function booleanCallLocalDeclaration (printer, declaration) {
     if (scan === undefined) {
         return undefined;
     }
-    const wrap = !JAVA_PRIMITIVE_BOOLEAN_CALL_CALLEES.has (callName);
+    // a callee the printer proves never-null Boolean unboxes into the primitive directly
+    const wrap = !JAVA_PRIMITIVE_BOOLEAN_CALL_CALLEES.has (callName)
+        && printer.javaCallPrintsNonNullBoolean?.(initializer, 0) !== true;
     if (wrap && scan.conditionReads === 0) {
         return undefined; // no read would lose its Helpers.isTrue
     }

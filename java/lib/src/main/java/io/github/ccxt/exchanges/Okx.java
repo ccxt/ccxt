@@ -3053,7 +3053,7 @@ public class Okx extends OkxApi
             // therefore we check the keys here
             // and fallback to generating the currencies from the markets
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)) || (java.util.Objects.equals(isSandboxMode, true)))
+            if (!this.checkRequiredCredentials(false) || (java.util.Objects.equals(isSandboxMode, true)))
             {
                 return new HashMap<String, Object>() {{}};
             }
@@ -10130,7 +10130,7 @@ public class Okx extends OkxApi
             Object feeInfo = Helpers.GetValue(response, i);
             String currencyId = this.safeString(feeInfo, "ccy");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || Helpers.isTrue((this.inArray(code, codesValue)))))
+            if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
                 Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code, (Object) null);
                 if (java.util.Objects.equals(depositWithdrawFee, null))

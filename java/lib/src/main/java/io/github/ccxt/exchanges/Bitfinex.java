@@ -836,7 +836,7 @@ public class Bitfinex extends BitfinexApi
         }});
     }
 
-    public Object isFiat(Object code)
+    public Boolean isFiat(Object code)
     {
         return (Helpers.inOp(((Map<String, Object>)this.options).get("fiat"), code));
     }
