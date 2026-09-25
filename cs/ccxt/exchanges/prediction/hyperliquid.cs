@@ -990,8 +990,8 @@ public partial class hyperliquid : PredictionExchange
                 { "endTime", until },
             } },
         };
-        parameters = this.omit(parameters, "until");
-        object response = await this.publicPostInfo(this.extend(request, parameters));
+        object paramsOmitted = this.omit(parameters, "until");
+        object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -1056,15 +1056,14 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object userAddress = null;
-        IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchBalance", parameters);
-        userAddress = userAddressparametersVariable[0];
-        parameters = userAddressparametersVariable[1];
+        IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchBalance", parameters);
+        var userAddress = userAddressparamsPublicAddressVariable[0];
+        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "spotClearinghouseState" },
             { "user", userAddress },
         };
-        object response = await this.publicPostInfo(this.extend(request, parameters));
+        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
         //
         //     {
         //         "balances": [
@@ -1126,10 +1125,9 @@ public partial class hyperliquid : PredictionExchange
             // no filter — warm the whole outcome set so identities resolve from the cache
             await this.loadOutcomes();
         }
-        object userAddress = null;
-        IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchPositions", parameters);
-        userAddress = userAddressparametersVariable[0];
-        parameters = userAddressparametersVariable[1];
+        IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchPositions", parameters);
+        var userAddress = userAddressparamsPublicAddressVariable[0];
+        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "spotClearinghouseState" },
             { "user", userAddress },
@@ -1137,7 +1135,7 @@ public partial class hyperliquid : PredictionExchange
         // outcome positions are spot token balances under the "+<encoding>" coin form; they carry
         // the size (total) and entry notional (entryNtl). hyperliquid does not return the position
         // value / entry price / pnl, so they are computed from the current mid prices
-        List<object> promises = new List<object> {this.publicPostInfo(this.extend(request, parameters)), this.publicPostInfo(new Dictionary<string, object>() {
+        List<object> promises = new List<object> {this.publicPostInfo(this.extend(request, paramsPublicAddress)), this.publicPostInfo(new Dictionary<string, object>() {
     { "type", "allMids" },
 })};
         List<object> results = await promiseAll(promises);
@@ -1459,11 +1457,8 @@ public partial class hyperliquid : PredictionExchange
         {
             orderObj["c"] = clientOrderId;
         }
-        string? vaultAddress = null;
-        IList<object> vaultAddressparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress");
-        vaultAddress = (string)vaultAddressparametersVariable[0];
-        parameters = vaultAddressparametersVariable[1];
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        string? vaultAddressOption = ((string)getValue(this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress"), 0));
+        string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Dictionary<string, object> orderAction = new Dictionary<string, object>() {
             { "type", "order" },
             { "orders", new List<object>() {orderObj} },
@@ -1564,7 +1559,7 @@ public partial class hyperliquid : PredictionExchange
         Int64? assetId = this.safeInteger(outcomeInfo, "assetId");
         Int64? nonce = this.incrementingNonce();
         object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
-        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
+        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         List<object> cancelReq = new List<object>() {};
         Dictionary<string, object> cancelAction = new Dictionary<string, object>() {
             { "type", "cancel" },
@@ -1593,11 +1588,8 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         cancelAction["cancels"] = cancelReq;
-        string? vaultAddress = null;
-        IList<object> vaultAddressparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "cancelOrders", "vaultAddress");
-        vaultAddress = (string)vaultAddressparametersVariable[0];
-        parameters = vaultAddressparametersVariable[1];
-        vaultAddress = this.formatVaultAddress(vaultAddress);
+        string? vaultAddressOption = ((string)getValue(this.handleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress"), 0));
+        string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Dictionary<string, object> signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", cancelAction },
@@ -1672,19 +1664,17 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object userAddress = null;
-        IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchOpenOrders", parameters);
-        userAddress = userAddressparametersVariable[0];
-        parameters = userAddressparametersVariable[1];
-        string? method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOpenOrders", "method", "frontendOpenOrders");
-        method = (string)methodparametersVariable[0];
-        parameters = methodparametersVariable[1];
+        IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchOpenOrders", parameters);
+        var userAddress = userAddressparamsPublicAddressVariable[0];
+        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
+        IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders");
+        string? method = (string)methodparamsMethodVariable[0];
+        var paramsMethod = methodparamsMethodVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", method },
             { "user", userAddress },
         };
-        object response = await this.publicPostInfo(this.extend(request, parameters));
+        object response = await this.publicPostInfo(this.extend(request, paramsMethod));
         List<object> ordersWithStatus = new List<object>() {};
         object rawOrders = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -1724,15 +1714,14 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<List<ccxt.PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object userAddress = null;
-        IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchOrders", parameters);
-        userAddress = userAddressparametersVariable[0];
-        parameters = userAddressparametersVariable[1];
+        IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchOrders", parameters);
+        var userAddress = userAddressparamsPublicAddressVariable[0];
+        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "historicalOrders" },
             { "user", userAddress },
         };
-        object response = await this.publicPostInfo(this.extend(request, parameters));
+        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
         // Deduplicate by oid keeping most recent statusTimestamp
         Dictionary<string, object> deduped = new Dictionary<string, object>() {};
         object historicalOrders = new List<object>() {};
@@ -1792,25 +1781,25 @@ public partial class hyperliquid : PredictionExchange
     public async virtual Task<ccxt.PredictionOrder> FetchOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object userAddress = null;
-        IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchOrder", parameters);
-        userAddress = userAddressparametersVariable[0];
-        parameters = userAddressparametersVariable[1];
-        string? clientOrderId = this.safeString(parameters, "clientOrderId");
+        IList<object> userAddressparamsAddressVariable = (IList<object>)this.handlePublicAddress("fetchOrder", parameters);
+        var userAddress = userAddressparamsAddressVariable[0];
+        var paramsAddress = userAddressparamsAddressVariable[1];
+        string? clientOrderId = this.safeString(paramsAddress, "clientOrderId");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "orderStatus" },
             { "user", userAddress },
         };
+        object paramsValue = paramsAddress;
         if ((clientOrderId != null))
         {
-            parameters = this.omit(parameters, "clientOrderId");
+            paramsValue = this.omit(paramsAddress, "clientOrderId");
             request["oid"] = clientOrderId;
         } else
         {
             bool isCloid = id.Length >= 34;
             request["oid"] = isCloid ? id : this.parseToNumeric(id);
         }
-        object response = await this.publicPostInfo(this.extend(request, parameters));
+        object response = await this.publicPostInfo(this.extend(request, paramsValue));
         object orderStatus = new Dictionary<string, object>() {};
         if ((!(response is string)) && !((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -2027,10 +2016,9 @@ public partial class hyperliquid : PredictionExchange
             // cache (one market load) so parsePredictionTrade can resolve the unified outcome identity
             await this.loadOutcomes();
         }
-        object userAddress = null;
-        IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchMyTrades", parameters);
-        userAddress = userAddressparametersVariable[0];
-        parameters = userAddressparametersVariable[1];
+        IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchMyTrades", parameters);
+        var userAddress = userAddressparamsPublicAddressVariable[0];
+        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "user", userAddress },
         };
@@ -2042,13 +2030,13 @@ public partial class hyperliquid : PredictionExchange
         {
             request["type"] = "userFills";
         }
-        Int64? until = this.safeInteger(parameters, "until");
-        parameters = this.omit(parameters, "until");
+        Int64? until = this.safeInteger(paramsPublicAddress, "until");
+        object paramsOmitted = this.omit(paramsPublicAddress, "until");
         if ((until != null))
         {
             request["endTime"] = until;
         }
-        object response = await this.publicPostInfo(this.extend(request, parameters));
+        object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
         object fills = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -2567,21 +2555,19 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual List<object> handlePublicAddress(object methodName, object parameters)
     {
-        string? userAux = null;
-        IList<object> userAuxparametersVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
-        userAux = (string)userAuxparametersVariable[0];
-        parameters = userAuxparametersVariable[1];
-        string? user = userAux;
-        IList<object> userparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "address", userAux);
-        user = (string)userparametersVariable[0];
-        parameters = userparametersVariable[1];
-        if ((user != null) && user != "")
+        IList<object> userAuxparamsUserVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
+        string? userAux = (string)userAuxparamsUserVariable[0];
+        var paramsUser = userAuxparamsUserVariable[1];
+        IList<object> userparamsAddressVariable = (IList<object>)this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
+        string? user = (string)userparamsAddressVariable[0];
+        var paramsAddress = userparamsAddressVariable[1];
+        if ((user != null) && !(user == ""))
         {
-            return new List<object>() {user, parameters};
+            return new List<object>() {user, paramsAddress};
         }
         if ((this.walletAddress != null) && !isEqual(this.walletAddress, ""))
         {
-            return new List<object>() {this.walletAddress, parameters};
+            return new List<object>() {this.walletAddress, paramsAddress};
         }
         throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires a user parameter or walletAddress to be set")) ;
     }
@@ -2618,18 +2604,20 @@ public partial class hyperliquid : PredictionExchange
             baseUrl = this.safeString(apiUrls, apiGroup, this.safeString(apiUrls, "public", ""));
         }
         object url = add(add(baseUrl, "/"), path);
+        object headersValue = headers;
+        object bodyValue = body;
         if ((method == "POST"))
         {
-            headers = new Dictionary<string, object>() {
+            headersValue = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
             };
-            body = this.json(parameters);
+            bodyValue = this.json(parameters);
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyValue },
+            { "headers", headersValue },
         };
     }
 
