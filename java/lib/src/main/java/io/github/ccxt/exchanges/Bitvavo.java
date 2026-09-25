@@ -1795,7 +1795,7 @@ public class Bitvavo extends BitvavoApi
             request.put("amount", this.amountToPrecision(symbol, amount));
         }
         Boolean isTakeProfit = (!java.util.Objects.equals(takeProfitPrice, null)) || (java.util.Objects.equals(type, "takeProfit")) || (java.util.Objects.equals(type, "takeProfitLimit"));
-        Boolean isStopLoss = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(triggerPrice, null)) && Helpers.isTrue((!Boolean.TRUE.equals(isTakeProfit))) || (java.util.Objects.equals(type, "stopLoss")) || (java.util.Objects.equals(type, "stopLossLimit"));
+        Boolean isStopLoss = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(triggerPrice, null)) && (!Boolean.TRUE.equals(isTakeProfit)) || (java.util.Objects.equals(type, "stopLoss")) || (java.util.Objects.equals(type, "stopLossLimit"));
         if (Boolean.TRUE.equals(isStopLoss))
         {
             if (!java.util.Objects.equals(stopLossPrice, null))

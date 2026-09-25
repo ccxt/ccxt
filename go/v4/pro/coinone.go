@@ -133,7 +133,10 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	var quoteId *string = this.SafeStringUpper(data, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
+	if (base == nil) || (quote == nil) {
+		return
+	}
+	var symbol any = this.Symbol(*base + "/" + *quote)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
@@ -229,8 +232,11 @@ func (this *Coinone) HandleTicker(client any, message map[string]any) {
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data))
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
+	if symbol == nil {
+		return
+	}
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
+	var messageHash string = "ticker:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
 }
 func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
@@ -267,7 +273,10 @@ func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) a
 	var quoteId *string = this.SafeString(ticker, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
+	var symbol any = nil
+	if (base != nil) && (quote != nil) {
+		symbol = this.Symbol(*base + "/" + *quote)
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,

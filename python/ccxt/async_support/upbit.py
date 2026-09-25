@@ -445,6 +445,8 @@ class upbit(Exchange, ImplicitAPI):
         quoteId = self.safe_string(bid, 'currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         state = self.safe_string(marketInfo, 'state')
         bidFee = self.safe_string(response, 'bid_fee')
         askFee = self.safe_string(response, 'ask_fee')

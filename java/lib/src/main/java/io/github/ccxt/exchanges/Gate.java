@@ -6978,7 +6978,7 @@ public class Gate extends GateApi
             List<Object> useHistoricalparamsHistoricalVariable = (List<Object>) this.handleOptionBoolAndParams(paramsPaginate, "fetchClosedOrders", "historical", false);
             Boolean useHistorical = (Boolean) ((List<Object>) useHistoricalparamsHistoricalVariable).get(0);
             var paramsHistorical = ((List<Object>) useHistoricalparamsHistoricalVariable).get(1);
-            if (!Helpers.isTrue(useHistorical) && ((java.util.Objects.equals(since, null) && java.util.Objects.equals(until, null)) || (!java.util.Objects.equals(type, "swap"))))
+            if (!Boolean.TRUE.equals(useHistorical) && ((java.util.Objects.equals(since, null) && java.util.Objects.equals(until, null)) || (!java.util.Objects.equals(type, "swap"))))
             {
                 return (this.fetchOrdersByStatus("finished", Helpers.toStringArg(symbolResolved), since, limit, Helpers.toMapArg(paramsHistorical))).join();
             }
@@ -9156,7 +9156,7 @@ public class Gate extends GateApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "5m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(100))).join();
             }

@@ -2523,7 +2523,7 @@ public class Weex extends WeexApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit), true)).join();
             }
@@ -3322,7 +3322,7 @@ public class Weex extends WeexApi
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             Integer maxLimit = 100;
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 if (Boolean.TRUE.equals(isSpot))
                 {
@@ -3578,7 +3578,7 @@ public class Weex extends WeexApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit), true)).join();
             }
@@ -3662,7 +3662,7 @@ public class Weex extends WeexApi
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             Integer maxLimit = 1000;
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit), true)).join();
             }
@@ -4009,7 +4009,7 @@ public class Weex extends WeexApi
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             Integer maxLimit = 100;
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit), true)).join();
             }
@@ -4111,7 +4111,7 @@ public class Weex extends WeexApi
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             Integer maxLimit = 100;
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit), true)).join();
             }
@@ -4317,7 +4317,7 @@ public class Weex extends WeexApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(100), true)).join();
             }
@@ -5243,7 +5243,7 @@ public class Weex extends WeexApi
         {
             return marketId;  // a live market id, not a demo one
         }
-        if (Helpers.isTrue(((String)marketId).endsWith("SUSDT")))
+        if (((String)marketId).endsWith("SUSDT"))
         {
             Long baseLength = (((long) ((String)marketId).length()) - 5L);
             return (Helpers.slice(marketId, 0, baseLength) + "USDT");

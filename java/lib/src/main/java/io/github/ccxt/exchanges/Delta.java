@@ -540,7 +540,7 @@ public class Delta extends DeltaApi
 
     public Object safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
     {
-        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && (Helpers.isTrue((((String)marketId).endsWith("-C"))) || Helpers.isTrue((((String)marketId).endsWith("-P"))) || Helpers.isTrue((((String)marketId).startsWith("C-"))) || Helpers.isTrue((((String)marketId).startsWith("P-"))));
+        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && (((String)marketId).endsWith("-C") || ((String)marketId).endsWith("-P") || ((String)marketId).startsWith("C-") || ((String)marketId).startsWith("P-"));
         if (Boolean.TRUE.equals(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts

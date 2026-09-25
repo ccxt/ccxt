@@ -2785,7 +2785,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 vwapSum = ((String)Precise.stringAdd(vwapSum, Precise.stringMul(tradeAmount, tradePrice)));
             }
             average = Precise.stringDiv(vwapSum, filled2);
-            if ((!java.util.Objects.equals(amount, null)) && Helpers.isTrue((!Boolean.TRUE.equals(isClosed))) && Boolean.TRUE.equals(isPrior) && Precise.stringGe(filled2, amount))
+            if ((!java.util.Objects.equals(amount, null)) && (!Boolean.TRUE.equals(isClosed)) && Boolean.TRUE.equals(isPrior) && Precise.stringGe(filled2, amount))
             {
                 status = "closed";
                 isClosed = true;
@@ -2813,7 +2813,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
         }
         // if fetchOpenOrders are parsed
-        if ((java.util.Objects.equals(amount, null)) && Helpers.isTrue((!Boolean.TRUE.equals(isPrior))) && (!java.util.Objects.equals(remaining, null)))
+        if ((java.util.Objects.equals(amount, null)) && (!Boolean.TRUE.equals(isPrior)) && (!java.util.Objects.equals(remaining, null)))
         {
             amount = Precise.stringAdd(filled, remaining);
         }

@@ -844,7 +844,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> skipFetchCurrenciesparamsSkipFetchCurrenciesVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
             Boolean skipFetchCurrencies = (Boolean) ((List<Object>) skipFetchCurrenciesparamsSkipFetchCurrenciesVariable).get(0);
             Map<String, Object> paramsSkipFetchCurrencies = (Map<String, Object>) ((List<Object>) skipFetchCurrenciesparamsSkipFetchCurrenciesVariable).get(1);
-            if (Helpers.isTrue(skipFetchCurrencies))
+            if (Boolean.TRUE.equals(skipFetchCurrencies))
             {
                 // sub-accounts can't access this endpoint
                 return new HashMap<String, Object>() {{}};
@@ -1473,7 +1473,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(300))).join();
             }
@@ -2167,7 +2167,7 @@ public class Cryptocom extends CryptocomApi
             if (!java.util.Objects.equals(cost, null))
             {
                 quoteAmount = this.costToPrecision(symbol, cost);
-            } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+            } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
             {
                 if (java.util.Objects.equals(price, null))
                 {

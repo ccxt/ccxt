@@ -423,7 +423,10 @@ export default class cex extends cexRest {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
+        let symbol: Str = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+        }
         let timestamp = this.safeInteger (ticker, 'timestamp');
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
@@ -651,10 +654,15 @@ export default class cex extends cexRest {
         const quoteId = this.safeString (trade, 'symbol2');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        let symbol = base + '/' + quote;
+        let symbol: Str = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if (side === 'sell') {
+                symbol = quote + '/' + base;
+            }
+        }
         let amount = this.safeString (trade, 'amount');
         if (side === 'sell') {
-            symbol = quote + '/' + base;
             amount = Precise.stringDiv (amount, price); // due to rounding errors amount in not exact to trade
         }
         const parsedTrade: Dict = {
@@ -765,6 +773,9 @@ export default class cex extends cexRest {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return;
+        }
         const symbol = base + '/' + quote;
         const market = this.safeMarket (symbol);
         remains = this.currencyFromPrecision (base, remains);
@@ -1032,6 +1043,9 @@ export default class cex extends cexRest {
         const data = this.safeDict (message, 'data', {});
         const pair = this.safeString (data, 'pair');
         const symbol = this.pairToSymbol (pair);
+        if (symbol === undefined) {
+            return;
+        }
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger2 (data, 'timestamp_ms', 'timestamp');
         const incrementalId = this.safeInteger (data, 'id');
@@ -1046,12 +1060,15 @@ export default class cex extends cexRest {
         client.resolve (orderbook, messageHash);
     }
 
-    pairToSymbol (pair: any): string {
+    pairToSymbol (pair: any): Str {
         const parts = pair.split (':');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         return symbol;
     }
@@ -1075,6 +1092,9 @@ export default class cex extends cexRest {
         const incrementalId = this.safeInteger (data, 'id');
         const pair = this.safeString (data, 'pair', '');
         const symbol = this.pairToSymbol (pair);
+        if (symbol === undefined) {
+            return;
+        }
         const storedOrderBook: Dict = this.safeValue (this.orderbooks, symbol);
         const messageHash = 'orderbook:' + symbol;
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
@@ -1167,6 +1187,9 @@ export default class cex extends cexRest {
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return;
+        }
         const symbol = base + '/' + quote;
         const market = this.safeMarket (symbol);
         const messageHash = 'ohlcv:' + symbol;
@@ -1214,6 +1237,9 @@ export default class cex extends cexRest {
         const data = this.safeDict (message, 'data', {});
         const pair = this.safeString (data, 'pair');
         const symbol = this.pairToSymbol (pair);
+        if (symbol === undefined) {
+            return;
+        }
         const messageHash = 'ohlcv:' + symbol;
         const ohlcv = [
             this.safeTimestamp (data, 'time'),
@@ -1241,6 +1267,9 @@ export default class cex extends cexRest {
         const data: Dict[] = this.safeList (message, 'data', []);
         const pair = this.safeString (message, 'pair');
         const symbol = this.pairToSymbol (pair);
+        if (symbol === undefined) {
+            return;
+        }
         const messageHash = 'ohlcv:' + symbol;
         // const stored = this.safeValue (this.ohlcvs, symbol);
         const stored = this.ohlcvs[symbol]['unknown'];

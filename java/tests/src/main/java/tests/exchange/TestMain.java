@@ -1817,7 +1817,7 @@ public class TestMain extends BaseTest
             }
             String key = (String) Helpers.GetValue(keyValue, 0);
             Object value = Helpers.GetValue(keyValue, 1);
-            if ((!java.util.Objects.equals(value, null)) && (Helpers.isTrue((((String)value).startsWith("["))) || Helpers.isTrue((((String)value).startsWith("{")))))
+            if ((!java.util.Objects.equals(value, null)) && (((String)value).startsWith("[") || ((String)value).startsWith("{")))
             {
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value);
@@ -1932,7 +1932,7 @@ public class TestMain extends BaseTest
             }
         }
         // if needed convert stringified jsons to objects
-        if (((storedOutput instanceof String)) && ((newOutput instanceof String)) && Helpers.isTrue(((String)storedOutput).startsWith("{")) && Helpers.isTrue(((String)newOutput).startsWith("{")))
+        if (((storedOutput instanceof String)) && ((newOutput instanceof String)) && ((String)storedOutput).startsWith("{") && ((String)newOutput).startsWith("{"))
         {
             storedOutput = jsonParse(storedOutput);
             newOutput = jsonParse(newOutput);

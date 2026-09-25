@@ -726,8 +726,12 @@ export default class coinone extends Exchange {
         const quoteId = this.safeString (ticker, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        let symbol: Str = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+        }
         return this.safeTicker ({
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),

@@ -319,7 +319,10 @@ func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 	var quoteId *string = this.SafeString(data, "quote")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
+	if (base == nil) || (quote == nil) {
+		return
+	}
+	var symbol any = this.Symbol(*base + "/" + *quote)
 	var messageHash *string = this.SafeString(message, "event")
 	if ccxt.IsEqual(this.MyTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

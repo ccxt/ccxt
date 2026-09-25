@@ -530,6 +530,9 @@ impl BitoproCore {
         let mut quoteId: Value = self.safe_string_k(data.clone(), "quote", &[]);
         let mut base: Value = self.safe_currency_code(baseId, &[]);
         let mut quote: Value = self.safe_currency_code(quoteId, &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return;
+        }
         let mut symbol: Value = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
         let mut messageHash: Value = (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (self.myTrades.clone() == Value::Null) {

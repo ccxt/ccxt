@@ -9987,7 +9987,7 @@ public Object describe()
                 }
             }
             return Helpers.GetValue(marketsList, 0);
-        } else if (Helpers.isTrue((((String)symbol).endsWith("-C"))) || Helpers.isTrue((((String)symbol).endsWith("-P"))) || Helpers.isTrue((((String)symbol).startsWith("C-"))) || Helpers.isTrue((((String)symbol).startsWith("P-"))))
+        } else if (((String)symbol).endsWith("-C") || ((String)symbol).endsWith("-P") || ((String)symbol).startsWith("C-") || ((String)symbol).startsWith("P-"))
         {
             return this.createExpiredOptionMarket(symbol);
         }
@@ -10980,7 +10980,7 @@ public Object describe()
          * @returns {undefined}
          */
         Integer optionsLength = ((List<?>)options).size();
-        if ((java.util.Objects.equals(argument, null)) || (((optionsLength != null && optionsLength > 0)) && Helpers.isTrue((!Helpers.isTrue((this.inArray(argument, options)))))))
+        if ((java.util.Objects.equals(argument, null)) || (((optionsLength != null && optionsLength > 0)) && (!Helpers.isTrue((this.inArray(argument, options))))))
         {
             String messageOptions = String.join(", ", (List<String>)options);
             String message = (((((this.id + " ") + methodName) + "() requires a ") + argumentName) + " argument");
@@ -12207,7 +12207,7 @@ public Object describe()
             for (var i = 0; i < ((List<?>)clientSubscriptions).size(); i++)
             {
                 Object sub = (clientSubscriptions == null || i < 0 || i >= clientSubscriptions.size() ? null : clientSubscriptions.get(i));
-                if ((!java.util.Objects.equals(sub, null)) && (!java.util.Objects.equals(subHash, null)) && Helpers.isTrue(((String)sub).startsWith(((String)subHash))))
+                if ((!java.util.Objects.equals(sub, null)) && (!java.util.Objects.equals(subHash, null)) && ((String)sub).startsWith(((String)subHash)))
                 {
                     ((Map<String,Object>)client.subscriptions).remove((String)sub);
                 }
@@ -12216,7 +12216,7 @@ public Object describe()
             for (var i = 0; i < ((List<?>)clientFutures).size(); i++)
             {
                 Object future = (clientFutures == null || i < 0 || i >= clientFutures.size() ? null : clientFutures.get(i));
-                if ((!java.util.Objects.equals(future, null)) && (!java.util.Objects.equals(subHash, null)) && Helpers.isTrue(((String)future).startsWith(((String)subHash))))
+                if ((!java.util.Objects.equals(future, null)) && (!java.util.Objects.equals(subHash, null)) && ((String)future).startsWith(((String)subHash)))
                 {
                     var error = new UnsubscribeError(((this.id + " ") + future));
                     client.reject(error, future);

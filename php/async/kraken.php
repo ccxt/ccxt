@@ -1964,6 +1964,9 @@ class kraken extends Exchange {
         $quoteId = mb_substr($id, $quoteIdStart, $quoteIdEnd - $quoteIdStart);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $market = array(
             'symbol' => $symbol,

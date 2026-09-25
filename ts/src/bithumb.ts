@@ -1165,6 +1165,9 @@ export default class bithumb extends Exchange {
                     const currencyId = currencyIds[j];
                     const ticker = data[currencyId];
                     const base = this.safeCurrencyCode (currencyId);
+                    if ((base === undefined) || (quote === undefined)) {
+                        continue;
+                    }
                     const symbol = base + '/' + quote;
                     const market = this.safeMarket (symbol);
                     ticker['date'] = timestamp;

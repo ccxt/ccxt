@@ -565,7 +565,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             var paramsVerbose = ((List<Object>) verboseparamsVerboseVariable).get(1);
             Object name = "open_orders";
             String messageHash = "orders";
-            if (Helpers.isTrue(verbose))
+            if (Boolean.TRUE.equals(verbose))
             {
                 name = "open_orders_verbose";
                 messageHash = "orders:verbose";

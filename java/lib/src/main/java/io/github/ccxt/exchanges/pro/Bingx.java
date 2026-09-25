@@ -1411,7 +1411,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Boolean fetchBalanceSnapshot = (Boolean) ((List<Object>) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable).get(0);
             Map<String, Object> paramsFetchBalanceSnapshot = (Map<String, Object>) ((List<Object>) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable).get(1);
             Boolean awaitBalanceSnapshot = (Boolean) ((List<Object>)this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false)).get(0);
-            if (Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot))
+            if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
             }
@@ -1530,7 +1530,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
-            if (Helpers.isTrue(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot) && java.util.Objects.equals(this.positions, null))
+            if (Boolean.TRUE.equals(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot) && java.util.Objects.equals(this.positions, null))
             {
                 Object snapshot = client.future((type + ":fetchPositionsSnapshot")).getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, Helpers.toStringListArg(symbolsNormalized), since, limit, true);

@@ -875,7 +875,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 Map<String, Object> paramsExtended = this.extend(paramsPaginate, new HashMap<String, Object>() {{
                     put( "calculateUntil", true );
@@ -1278,7 +1278,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "code", (String) null, Helpers.toLongOrNull(1), Helpers.toLongOrNull(50))).join();
             }
@@ -1339,7 +1339,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "code", (String) null, Helpers.toLongOrNull(1), Helpers.toLongOrNull(50))).join();
             }
@@ -2789,7 +2789,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> mergedparamsMergedVariable = (List<Object>) this.handleOptionBoolAndParams(paramsOmitted, "cancelAllOrders", "merged", true);
             Boolean merged = (Boolean) ((List<Object>) mergedparamsMergedVariable).get(0);
             var paramsMerged = ((List<Object>) mergedparamsMergedVariable).get(1);
-            Integer isMergedMode = ((Helpers.isTrue(merged))) ? 1 : 0;
+            Integer isMergedMode = ((Boolean.TRUE.equals(merged))) ? 1 : 0;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "InstrumentID", ((Map<String, Object>)market).get("id") );
                 put( "ProductGroup", productGroup );

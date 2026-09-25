@@ -1791,7 +1791,7 @@ public class Coinbase extends CoinbaseApi
             Boolean usePrivate = (Boolean) ((List<Object>) usePrivateparamsUsePrivateVariable).get(0);
             Map<String, Object> paramsUsePrivate = (Map<String, Object>) ((List<Object>) usePrivateparamsUsePrivateVariable).get(1);
             List<Object> spotUnresolvedPromises = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(usePrivate))
+            if (Boolean.TRUE.equals(usePrivate))
             {
                 ((List<Object>)spotUnresolvedPromises).add(this.v3PrivateGetBrokerageProducts(paramsUsePrivate));
             } else
@@ -2557,7 +2557,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> usePrivateparamsUsePrivateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsMarketType, "fetchTickers", "usePrivate", false);
             Boolean usePrivate = (Boolean) ((List<Object>) usePrivateparamsUsePrivateVariable).get(0);
             Map<String, Object> paramsUsePrivate = (Map<String, Object>) ((List<Object>) usePrivateparamsUsePrivateVariable).get(1);
-            if (Helpers.isTrue(usePrivate))
+            if (Boolean.TRUE.equals(usePrivate))
             {
                 response = (this.v3PrivateGetBrokerageProducts(this.extend(request, paramsUsePrivate))).join();
             } else
@@ -2699,7 +2699,7 @@ public class Coinbase extends CoinbaseApi
             Boolean usePrivate = (Boolean) ((List<Object>) usePrivateparamsUsePrivateVariable).get(0);
             Map<String, Object> paramsUsePrivate = (Map<String, Object>) ((List<Object>) usePrivateparamsUsePrivateVariable).get(1);
             Map<String, Object> response = null;
-            if (Helpers.isTrue(usePrivate))
+            if (Boolean.TRUE.equals(usePrivate))
             {
                 response = (this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, paramsUsePrivate))).join();
             } else
@@ -3753,7 +3753,7 @@ public class Coinbase extends CoinbaseApi
                     if (!java.util.Objects.equals(cost, null))
                     {
                         total = this.costToPrecision(symbol, cost);
-                    } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                    } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if (java.util.Objects.equals(price, null))
                         {
@@ -4577,7 +4577,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, Helpers.toLongOrNull(limitValue), Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull((((long) maxLimit) - 1L)))).join();
             }
@@ -4612,7 +4612,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> usePrivateparamsUsePrivateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "usePrivate", false);
             Boolean usePrivate = (Boolean) ((List<Object>) usePrivateparamsUsePrivateVariable).get(0);
             Map<String, Object> paramsUsePrivate = (Map<String, Object>) ((List<Object>) usePrivateparamsUsePrivateVariable).get(1);
-            if (Helpers.isTrue(usePrivate))
+            if (Boolean.TRUE.equals(usePrivate))
             {
                 response = (this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, paramsUsePrivate))).join();
             } else
@@ -4704,7 +4704,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> usePrivateparamsUsePrivateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsUntil, "fetchTrades", "usePrivate", false);
             Boolean usePrivate = (Boolean) ((List<Object>) usePrivateparamsUsePrivateVariable).get(0);
             Map<String, Object> paramsUsePrivate = (Map<String, Object>) ((List<Object>) usePrivateparamsUsePrivateVariable).get(1);
-            if (Helpers.isTrue(usePrivate))
+            if (Boolean.TRUE.equals(usePrivate))
             {
                 response = (this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, paramsUsePrivate))).join();
             } else
@@ -4858,7 +4858,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> usePrivateparamsUsePrivateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrderBook", "usePrivate", false);
             Boolean usePrivate = (Boolean) ((List<Object>) usePrivateparamsUsePrivateVariable).get(0);
             Map<String, Object> paramsUsePrivate = (Map<String, Object>) ((List<Object>) usePrivateparamsUsePrivateVariable).get(1);
-            if (Helpers.isTrue(usePrivate))
+            if (Boolean.TRUE.equals(usePrivate))
             {
                 response = (this.v3PrivateGetBrokerageProductBook(this.extend(request, paramsUsePrivate))).join();
             } else
