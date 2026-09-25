@@ -1362,7 +1362,7 @@ public partial class deepcoin : ccxt.deepcoin
     {
         if ((message is string))
         {
-            if (isEqual(message, "pong"))
+            if ((message is "pong"))
             {
                 this.handlePong(client, message);
             }

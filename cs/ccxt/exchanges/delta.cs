@@ -448,7 +448,7 @@ public partial class delta : Exchange
         string? datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         string optionTypeUnified = "put";
-        if (isEqual(optionType, "C"))
+        if ((optionType is "C"))
         {
             optionTypeUnified = "call";
         }
@@ -2540,10 +2540,10 @@ public partial class delta : Exchange
             request["page_size"] = limit;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privateGetOrders"))
+        if ((method is "privateGetOrders"))
         {
             response = await this.privateGetOrders(this.extend(request, parameters));
-        } else if (isEqual(method, "privateGetOrdersHistory"))
+        } else if ((method is "privateGetOrdersHistory"))
         {
             response = await this.privateGetOrdersHistory(this.extend(request, parameters));
         }
@@ -4407,13 +4407,13 @@ public partial class delta : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
-        } else if (isEqual(api, "private"))
+        } else if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.seconds().ToString();

@@ -6004,16 +6004,12 @@ public partial class coinex : Exchange
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
         bool? isMargin = this.safeBool(parameters, "margin", false);
-        (string?, object) marginModeValueparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
-        string? marginModeValue = marginModeValueparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeValueparamsMarginModeVariable.Item2);
-        string? marginMode = marginModeValue;
-        if ((marginMode == null))
+        (string?, object) marginModeparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        if (((marginMode == null)) && ((defaultType == "margin") || ((isMargin == true))))
         {
-            if ((defaultType == "margin") || ((isMargin == true)))
-            {
-                marginMode = "isolated";
-            }
+            return ("isolated", paramsMarginMode);
         }
         return (marginMode, paramsMarginMode);
     }
@@ -6070,7 +6066,7 @@ public partial class coinex : Exchange
         }
         Dictionary<string, object> signedHeaders = null;
         string? signedBody = null;
-        if (isEqual(requestUrl, "perpetualPrivate"))
+        if ((requestUrl is "perpetualPrivate"))
         {
             this.checkRequiredCredentials();
             query = this.extend(new Dictionary<string, object>() {
@@ -6092,7 +6088,7 @@ public partial class coinex : Exchange
                 signedHeaders["Content-Type"] = "application/x-www-form-urlencoded";
                 signedBody = urlencoded;
             }
-        } else if (isEqual(requestUrl, "public") || isEqual(requestUrl, "perpetualPublic"))
+        } else if ((requestUrl is "public") || (requestUrl is "perpetualPublic"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {

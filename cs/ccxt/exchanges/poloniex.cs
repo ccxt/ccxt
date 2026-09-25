@@ -4185,7 +4185,7 @@ public partial class poloniex : Exchange
         string? implodedPath = this.implodeParams(path, parameters);
         string? bodyJson = null;
         Dictionary<string, object> signedHeaders = null;
-        if (isEqual(api, "public") || isEqual(api, "swapPublic"))
+        if ((api is "public") || (api is "swapPublic"))
         {
             url = add(url, ("/" + implodedPath));
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)

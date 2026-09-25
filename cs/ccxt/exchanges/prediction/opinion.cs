@@ -2499,7 +2499,7 @@ public partial class opinion : PredictionExchange
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
         }, existingHeaders);
-        if (isEqual(access, "private"))
+        if ((access is "private"))
         {
             if ((path == "auth/api-key"))
             {

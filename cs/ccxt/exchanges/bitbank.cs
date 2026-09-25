@@ -1204,7 +1204,7 @@ public partial class bitbank : Exchange
         string url = (this.implodeHostname(apiUrl) + "/");
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if ((isEqual(api, "public")) || (isEqual(api, "markets")))
+        if (((api is "public")) || ((api is "markets")))
         {
             url = url + this.implodeParams(path, parameters);
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)

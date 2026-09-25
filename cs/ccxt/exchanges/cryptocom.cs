@@ -4014,7 +4014,7 @@ public partial class cryptocom : Exchange
             object key = getValue(paramsKeys, i);
             returnString = add(returnString, key);
             object value = getValue(obj, key);
-            if (isEqual(value, "undefined"))
+            if ((value is "undefined"))
             {
                 returnString = add(returnString, "null");
             } else if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))

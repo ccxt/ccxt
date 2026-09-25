@@ -3432,7 +3432,7 @@ public partial class toobit : Exchange
         bool isDelete = (method == "DELETE");
         Dictionary<string, object> extraQuery = new Dictionary<string, object>() {};
         object query = this.omit(parameters, this.extractParams(path));
-        if (!isEqual(api, "private"))
+        if (!(api is "private"))
         {
             // Public endpoints
             if (!isPost)

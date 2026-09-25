@@ -3325,7 +3325,7 @@ public partial class bitstamp : Exchange
 
     public virtual bool isFiat(object code)
     {
-        return isEqual(code, "USD") || isEqual(code, "EUR") || isEqual(code, "GBP");
+        return (code is "USD") || (code is "EUR") || (code is "GBP");
     }
 
     /**
@@ -3515,7 +3515,7 @@ public partial class bitstamp : Exchange
         url = url + (this.version + "/");
         url = url + this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
-        bool isPrivatePost = (!isEqual(api, "public")) && ((method == "POST"));
+        bool isPrivatePost = (!(api is "public")) && ((method == "POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
         string emptyPostBody = this.urlencode(new Dictionary<string, object>() {
@@ -3532,7 +3532,7 @@ public partial class bitstamp : Exchange
             requestBody = postBody;
         }
         Dictionary<string, object> privateHeaders = null;
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -3566,7 +3566,7 @@ public partial class bitstamp : Exchange
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             privateHeaders["X-Auth-Signature"] = signature;
         }
-        object requestHeaders = (isEqual(api, "public")) ? headers : privateHeaders;
+        object requestHeaders = ((api is "public")) ? headers : privateHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

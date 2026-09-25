@@ -1345,7 +1345,7 @@ public partial class independentreserve : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + path);
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {

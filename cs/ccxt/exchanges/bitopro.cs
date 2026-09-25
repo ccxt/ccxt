@@ -2068,7 +2068,7 @@ public partial class bitopro : Exchange
         object url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object requestHeaders = ((headers == null)) ? new Dictionary<string, object>() {} : headers;
-        bool isSignedBody = (isEqual(api, "private")) && (((method == "POST")) || ((method == "PUT")));
+        bool isSignedBody = ((api is "private")) && (((method == "POST")) || ((method == "PUT")));
         string signedBody = this.json(parameters);
         object requestBody = body;
         if (isSignedBody)
@@ -2076,7 +2076,7 @@ public partial class bitopro : Exchange
             requestBody = signedBody;
         }
         ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-API"] = "ccxt";
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             if ((method == "POST") || (method == "PUT"))
@@ -2103,7 +2103,7 @@ public partial class bitopro : Exchange
                 ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-PAYLOAD"] = payload;
                 ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-SIGNATURE"] = signature;
             }
-        } else if (isEqual(api, "public") && (method == "GET"))
+        } else if ((api is "public") && (method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {

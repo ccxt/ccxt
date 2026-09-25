@@ -2087,7 +2087,7 @@ public partial class latoken : Exchange
                 requestString = requestString + ("?" + urlencodedQuery);
             }
         }
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string auth = ((method + request) + urlencodedQuery);

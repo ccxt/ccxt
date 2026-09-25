@@ -3626,7 +3626,7 @@ public partial class limitless : PredictionExchange
         }
         object headersValue = headers;
         object bodyValue = body;
-        if (isEqual(access, "private"))
+        if ((access is "private"))
         {
             string bodyString = "";
             if ((headersValue == null))

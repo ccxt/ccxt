@@ -1442,7 +1442,7 @@ public partial class p2b : Exchange
                 url = url + ("?" + this.urlencode(paramsOmitted));
             }
         }
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             ((IDictionary<string,object>)paramsOmitted)["request"] = ("/api/v2/" + path);
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless

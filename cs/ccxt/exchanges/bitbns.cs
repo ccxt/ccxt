@@ -1437,14 +1437,14 @@ public partial class bitbns : Exchange
         {
             throw new ExchangeError ((((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
         }
-        if (!isEqual(api, "www"))
+        if (!(api is "www"))
         {
             this.checkRequiredCredentials();
         }
         Dictionary<string, object> apiKeyHeaders = new Dictionary<string, object>() {
             { "X-BITBNS-APIKEY", this.apiKey },
         };
-        object requestHeaders = (!isEqual(api, "www")) ? apiKeyHeaders : headers;
+        object requestHeaders = (!(api is "www")) ? apiKeyHeaders : headers;
         string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
         if ((baseApiUrl == null))
         {

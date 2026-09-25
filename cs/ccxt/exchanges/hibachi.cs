@@ -1985,7 +1985,7 @@ public partial class hibachi : Exchange
         {
             bodyResult = this.json(parameters);
         }
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             headersValue["Authorization"] = this.apiKey;

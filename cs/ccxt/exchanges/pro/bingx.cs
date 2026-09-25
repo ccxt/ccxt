@@ -1759,7 +1759,7 @@ public partial class bingx : ccxt.bingx
     {
         try
         {
-            if (isEqual(message, "Ping"))
+            if ((message is "Ping"))
             {
                 await client.send("Pong");
             } else
@@ -2079,7 +2079,7 @@ public partial class bingx : ccxt.bingx
         // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
         if ((message is string))
         {
-            if (isEqual(message, "Ping"))
+            if ((message is "Ping"))
             {
                 this.spawn(this.pong, new object[] { client, message});
             }

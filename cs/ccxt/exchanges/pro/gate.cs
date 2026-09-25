@@ -504,7 +504,7 @@ public partial class gate : ccxt.gate
         string messageHash = (("orderbook" + ":") + symbolValue);
         // max 100 atm, max 50 for options
         int defaultLimit = 100;
-        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) || (isEqual(messageType, "options")))
+        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) || ((messageType is "options")))
         {
             defaultLimit = 50;
         }
@@ -580,7 +580,7 @@ public partial class gate : ccxt.gate
         if ((limit == null))
         {
             limit = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? 50 : 100; // max 100 atm
-            if (isEqual(messageType, "options"))
+            if ((messageType is "options"))
             {
                 limit = 50; // max 50 for options
             }
@@ -1604,7 +1604,7 @@ public partial class gate : ccxt.gate
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("watchPositions", market, parameters);
         type = typequeryVariable[0];
         query = typequeryVariable[1];
-        if (isEqual(type, "spot"))
+        if ((type is "spot"))
         {
             type = "swap";
         }
@@ -2557,7 +2557,7 @@ public partial class gate : ccxt.gate
         isInverse ??= false;
         object api = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object url = this.safeValue(api, type);
-        if ((isEqual(type, "swap")) || (isEqual(type, "future")))
+        if (((type is "swap")) || ((type is "future")))
         {
             return isTrue(isInverse) ? getValue(url, "btc") : getValue(url, "usdt");
         } else
@@ -2700,7 +2700,7 @@ public partial class gate : ccxt.gate
             { "signature", signature },
             { "req_param", reqParams },
         };
-        if ((isEqual(channel, "spot.order_place")) || (isEqual(channel, "futures.order_place")))
+        if (((channel is "spot.order_place")) || ((channel is "futures.order_place")))
         {
             payload["req_header"] = new Dictionary<string, object>() {
                 { "X-Gate-Channel-Id", "ccxt" },

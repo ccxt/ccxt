@@ -2246,7 +2246,7 @@ public partial class hollaex : Exchange
         string url = (apiUrl + requestPath);
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             Int64? defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));

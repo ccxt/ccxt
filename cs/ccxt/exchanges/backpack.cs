@@ -2686,7 +2686,7 @@ public partial class backpack : Exchange
         object sortedParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.keysort(parameters);
         Dictionary<string, object> headersSigned = null;
         string? bodySigned = null;
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string ts = this.nonce().ToString();
@@ -2732,9 +2732,9 @@ public partial class backpack : Exchange
             }
         }
         url = url + endpoint;
-        object headersResolved = (isEqual(api, "private")) ? headersSigned : headers;
+        object headersResolved = ((api is "private")) ? headersSigned : headers;
         object bodyResolved = body;
-        if ((isEqual(api, "private")) && ((method != "GET")))
+        if (((api is "private")) && ((method != "GET")))
         {
             bodyResolved = bodySigned;
         }

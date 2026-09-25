@@ -3380,7 +3380,7 @@ public partial class polymarket : PredictionExchange
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
         }, headerDefaults);
-        if (isEqual(access, "private"))
+        if ((access is "private"))
         {
             // 'auth/derive-api-key' is built by concatenation so the substring "api" sits at a
             // string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by

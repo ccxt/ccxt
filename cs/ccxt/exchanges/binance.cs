@@ -4247,10 +4247,10 @@ public partial class binance : Exchange
     {
         if ((subType == null))
         {
-            return (isEqual(type, "delivery"));
+            return ((type is "delivery"));
         } else
         {
-            return isEqual(subType, "inverse");
+            return (subType is "inverse");
         }
     }
 
@@ -4258,7 +4258,7 @@ public partial class binance : Exchange
     {
         if ((subType == null))
         {
-            return (isEqual(type, "future")) || (isEqual(type, "swap"));
+            return ((type is "future")) || ((type is "swap"));
         } else
         {
             return (subType == "linear");
@@ -4975,7 +4975,7 @@ public partial class binance : Exchange
         for (int i = 0; i < (rawFetchMarkets?.Count ?? 0); i++)
         {
             object type = rawFetchMarkets[i];
-            if (isEqual(type, "option") && ((isDemoEnv == true)))
+            if ((type is "option") && ((isDemoEnv == true)))
             {
                 continue;
             }
@@ -4985,7 +4985,7 @@ public partial class binance : Exchange
         for (int i = 0; i < (fetchMarkets?.Count ?? 0); i++)
         {
             object marketType = fetchMarkets[i];
-            if (isEqual(marketType, "spot"))
+            if ((marketType is "spot"))
             {
                 promisesRaw.Add(this.publicGetExchangeInfo(parameters));
                 if (((fetchMargins == true)) && this.checkRequiredCredentials(false) && ((isDemoEnv != true)))
@@ -4993,16 +4993,16 @@ public partial class binance : Exchange
                     promisesRaw.Add(this.sapiGetMarginAllPairs(parameters));
                     promisesRaw.Add(this.sapiGetMarginIsolatedAllPairs(parameters));
                 }
-            } else if (isEqual(marketType, "linear"))
+            } else if ((marketType is "linear"))
             {
                 promisesRaw.Add(this.fapiPublicGetExchangeInfo(parameters));
-            } else if (isEqual(marketType, "inverse"))
+            } else if ((marketType is "inverse"))
             {
                 promisesRaw.Add(this.dapiPublicGetExchangeInfo(parameters));
-            } else if (isEqual(marketType, "option"))
+            } else if ((marketType is "option"))
             {
                 promisesRaw.Add(this.eapiPublicGetExchangeInfo(parameters));
-            } else if (isEqual(marketType, "stock"))
+            } else if ((marketType is "stock"))
             {
                 if (((isDemoEnv != true)) && ((this.apiKey != null) && !isEqual(this.apiKey, "")))
                 {
@@ -5562,8 +5562,8 @@ public partial class binance : Exchange
             { "info", response },
         };
         Int64? timestamp = null;
-        bool isolated = isEqual(marginMode, "isolated");
-        bool cross = (isEqual(type, "margin")) || (isEqual(marginMode, "cross"));
+        bool isolated = (marginMode is "isolated");
+        bool cross = ((type is "margin")) || ((marginMode is "cross"));
         if (isTrue(isPortfolioMargin))
         {
             for (int i = 0; i < getArrayLength(response); i++)
@@ -5572,11 +5572,11 @@ public partial class binance : Exchange
                 Dictionary<string, object> account = this.account();
                 string? currencyId = this.safeString(entry, "asset");
                 string? code = this.safeCurrencyCode(currencyId);
-                if (isEqual(type, "linear"))
+                if ((type is "linear"))
                 {
                     account["free"] = this.safeString(entry, "umWalletBalance");
                     account["used"] = this.safeString(entry, "umUnrealizedPNL");
-                } else if (isEqual(type, "inverse"))
+                } else if ((type is "inverse"))
                 {
                     account["free"] = this.safeString(entry, "cmWalletBalance");
                     account["used"] = this.safeString(entry, "cmUnrealizedPNL");
@@ -5601,7 +5601,7 @@ public partial class binance : Exchange
                     result[(string)code] = account;
                 }
             }
-        } else if (!isolated && ((isEqual(type, "spot")) || cross))
+        } else if (!isolated && (((type is "spot")) || cross))
         {
             timestamp = this.safeInteger(response, "updateTime");
             List<object> balances = this.safeList2(response, "balances", "userAssets", new List<object>() {});
@@ -5643,7 +5643,7 @@ public partial class binance : Exchange
                     result = this.mergeBalanceAccount(result,quoteCode, this.parseBalanceHelper(quote));
                 }
             }
-        } else if (isEqual(type, "savings"))
+        } else if ((type is "savings"))
         {
             List<object> positionAmountVos = this.safeList(response, "positionAmountVos", new List<object>() {});
             for (int i = 0; i < positionAmountVos.Count; i++)
@@ -5660,7 +5660,7 @@ public partial class binance : Exchange
                     result[(string)code] = account;
                 }
             }
-        } else if (isEqual(type, "funding"))
+        } else if ((type is "funding"))
         {
             for (int i = 0; i < getArrayLength(response); i++)
             {
@@ -15611,7 +15611,7 @@ public partial class binance : Exchange
             {
                 throw new AuthenticationError ((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if ((isEqual(api, "private")) || (isEqual(api, "eapiPrivate")) || (isEqual(api, "sapi") && (path != "system/status")) || (isEqual(api, "sapiV2")) || (isEqual(api, "sapiV3")) || (isEqual(api, "sapiV4")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")) || (isEqual(api, "fapiPrivateV3")) || (isEqual(api, "papiV2") || isEqual(api, "papi") && (path != "ping")))
+        } else if (((api is "private")) || ((api is "eapiPrivate")) || ((api is "sapi") && (path != "system/status")) || (isEqual(api, "sapiV2")) || (isEqual(api, "sapiV3")) || (isEqual(api, "sapiV4")) || ((api is "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || ((api is "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")) || (isEqual(api, "fapiPrivateV3")) || (isEqual(api, "papiV2") || (api is "papi") && (path != "ping")))
         {
             this.checkRequiredCredentials();
             if ((url.IndexOf("testnet.binancefuture.com", StringComparison.Ordinal) > -1) && this.isSandboxModeEnabled && (!(this.safeBool(this.options, "disableFuturesSandboxWarning", false) == true)))
@@ -15624,7 +15624,7 @@ public partial class binance : Exchange
                 string? newClientOrderId = this.safeString(parameters, "newClientOrderId");
                 if ((newClientOrderId == null))
                 {
-                    bool isSpotOrMargin = (getIndexOf(api, "sapi") > -1 || isEqual(api, "private"));
+                    bool isSpotOrMargin = (getIndexOf(api, "sapi") > -1 || (api is "private"));
                     string marketType = "future";
                     if (isSpotOrMargin)
                     {
@@ -15646,7 +15646,7 @@ public partial class binance : Exchange
             {
                 List<object> batchOrders = this.safeList(parameters, "batchOrders", new List<object>() {});
                 List<object> checkedBatchOrders = batchOrders;
-                if ((method == "POST") && isEqual(api, "fapiPrivate"))
+                if ((method == "POST") && (api is "fapiPrivate"))
                 {
                     // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
                     checkedBatchOrders = new List<object>() {};
@@ -15681,7 +15681,7 @@ public partial class binance : Exchange
             {
                 extendedParams["recvWindow"] = recvWindow;
             }
-            if ((isEqual(api, "sapi")) && ((path == "asset/dust")))
+            if (((api is "sapi")) && ((path == "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if (((path == "batchOrders")) || (path.IndexOf("sub-account", StringComparison.Ordinal) >= 0) || ((path == "capital/withdraw/apply")) || (path.IndexOf("staking", StringComparison.Ordinal) >= 0) || (path.IndexOf("simple-earn", StringComparison.Ordinal) >= 0))
@@ -15935,7 +15935,7 @@ public partial class binance : Exchange
         config ??= new Dictionary<string, object>();
         object response = await this.fetch2(path, api, method, parameters, headers, body, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.options["hasAlreadyAuthenticatedSuccessfully"] = true;
         }
@@ -17832,7 +17832,7 @@ public partial class binance : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        if ((isEqual(fromCode, "BUSD")) || (isEqual(toCode, "BUSD")))
+        if (((fromCode is "BUSD")) || ((toCode is "BUSD")))
         {
             if ((amount == null))
             {

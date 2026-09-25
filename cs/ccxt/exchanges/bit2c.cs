@@ -568,7 +568,7 @@ public partial class bit2c : Exchange
             request["limit"] = limit; // max 100000
         }
         IList<object> responseList = new List<object>() {};
-        if (isEqual(method, "public_get_exchanges_pair_trades"))
+        if ((method is "public_get_exchanges_pair_trades"))
         {
             object response = await this.publicGetExchangesPairTrades(this.extend(request, parameters));
             //
@@ -1203,7 +1203,7 @@ public partial class bit2c : Exchange
         string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             url = url + ".json";
         } else

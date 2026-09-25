@@ -3397,7 +3397,7 @@ public partial class bydfi : Exchange
         }
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();

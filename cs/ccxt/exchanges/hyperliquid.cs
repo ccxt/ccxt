@@ -2159,7 +2159,7 @@ public partial class hyperliquid : Exchange
             {
                 response = ((string)response).Replace("\"", (string)"");
                 response = ((string)response).Replace("\"", (string)"");
-                enableUnifiedMargin = isEqual(response, "unifiedAccount");
+                enableUnifiedMargin = (response is "unifiedAccount");
             }
             // don't cache this result if this is a different addresss
             this.options["enableUnifiedMargin"] = enableUnifiedMargin; // cache this for future calls
@@ -2454,7 +2454,7 @@ public partial class hyperliquid : Exchange
         for (int i = 0; i < statuses.Count; i++)
         {
             object order = statuses[i];
-            if (isEqual(order, "waitingForTrigger"))
+            if ((order is "waitingForTrigger"))
             {
                 ordersToBeParsed.Add(new Dictionary<string, object>() {
                     { "status", order },

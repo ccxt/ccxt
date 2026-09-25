@@ -3549,14 +3549,14 @@ public partial class bitfinex : Exchange
         string url = ((apiUrl + "/") + (request));
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)

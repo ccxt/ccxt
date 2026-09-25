@@ -2030,7 +2030,7 @@ public partial class cex : Exchange
         }
         string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             if ((method == "GET"))
             {

@@ -2518,7 +2518,7 @@ public partial class coinbaseexchange : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (this.implodeHostname(apiUrl) + request);
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();

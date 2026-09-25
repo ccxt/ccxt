@@ -2188,7 +2188,7 @@ public partial class digifinex : Exchange
             bool? reduceOnly = this.safeBool(paramsMarginMode, "reduceOnly", false);
             string? timeInForce = this.safeString(paramsMarginMode, "timeInForce");
             int? orderType = null;
-            if (isEqual(side, "buy"))
+            if ((side is "buy"))
             {
                 int requestType = ((reduceOnly == true)) ? 4 : 1;
                 request["type"] = requestType;
@@ -2239,7 +2239,7 @@ public partial class digifinex : Exchange
             (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsMarginMode, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
             bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
             IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
-            bool isMarketBuy = isMarketOrder && (isEqual(side, "buy"));
+            bool isMarketBuy = isMarketOrder && ((side is "buy"));
             List<object> keysToOmit = null;
             if (isMarketBuy)
             {
@@ -4821,22 +4821,18 @@ public partial class digifinex : Exchange
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
         bool? isMargin = this.safeBool(parameters, "margin", false);
-        (string?, object) marginModeValueparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
-        string? marginModeValue = marginModeValueparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeValueparamsMarginModeVariable.Item2);
-        string? marginMode = marginModeValue;
+        (string?, object) marginModeparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         if ((marginMode != null))
         {
-            if (marginMode != "cross")
+            if (!(marginMode == "cross"))
             {
                 throw new NotSupported ((this.id + " only cross margin is supported")) ;
             }
-        } else
+        } else if ((defaultType == "margin") || ((isMargin == true)))
         {
-            if ((defaultType == "margin") || ((isMargin == true)))
-            {
-                marginMode = "cross";
-            }
+            return ("cross", paramsMarginMode);
         }
         return (marginMode, paramsMarginMode);
     }
