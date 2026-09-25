@@ -877,7 +877,7 @@ export default class aster extends asterRest {
         if (market === undefined) {
             defaultType = this.safeString (this.options, 'defaultType', 'spot');
         } else {
-            defaultType = market['type'];
+            defaultType = this.safeString (market, 'type');
         }
         const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
         let side = this.safeStringLower (trade, 'S');
@@ -1776,7 +1776,7 @@ export default class aster extends asterRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         let messageHash = 'orders';
         const type: Str = undefined;
@@ -1820,7 +1820,7 @@ export default class aster extends asterRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         let messageHash = 'myTrades';
         const type: Str = undefined;

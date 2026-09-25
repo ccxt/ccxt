@@ -704,7 +704,7 @@ export default class woofipro extends woofiproRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
         if (symbol !== undefined) {
             messageHash += ':' + symbolResolved;
         }
@@ -749,7 +749,7 @@ export default class woofipro extends woofiproRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
         if (symbol !== undefined) {
             messageHash += ':' + symbolResolved;
         }

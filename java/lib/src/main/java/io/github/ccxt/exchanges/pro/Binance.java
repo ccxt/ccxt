@@ -1697,7 +1697,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchTrades");
+            parameters.put("callerMethodName", "watchTrades");
             return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1837,12 +1837,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             fallbackType = "contract";
         }
-        Object marketType = fallbackType;
+        String marketType = fallbackType;
         if (!java.util.Objects.equals(market, null))
         {
-            marketType = ((Map<String, Object>)market).get("type");
+            marketType = this.safeString(market, "type");
         }
-        String symbol = this.safeSymbol(marketId, market, (String) null, Helpers.toStringArg(marketType));
+        String symbol = this.safeSymbol(marketId, market, (String) null, marketType);
         String side = this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         String orderId = this.safeString(trade, "i");
@@ -2216,7 +2216,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOHLCV");
+            parameters.put("callerMethodName", "watchOHLCV");
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), parameters)).join();
         });
 
@@ -3350,12 +3350,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
         if (!java.util.Objects.equals(defaultRecvWindow, null))
         {
-            ((Map<String, Object>)parameters).put("recvWindow", defaultRecvWindow);
+            parameters.put("recvWindow", defaultRecvWindow);
         }
         Long recvWindow = this.safeInteger(parameters, "recvWindow");
         if (!java.util.Objects.equals(recvWindow, null))
         {
-            ((Map<String, Object>)parameters).put("recvWindow", recvWindow);
+            parameters.put("recvWindow", recvWindow);
         }
         Map<String, Object> extendedParams = this.extend(new HashMap<String, Object>() {{
             put( "timestamp", Binance.this.nonce() );

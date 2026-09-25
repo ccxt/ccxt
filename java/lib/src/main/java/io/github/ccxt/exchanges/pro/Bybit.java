@@ -815,7 +815,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOHLCV");
+            parameters.put("callerMethodName", "watchOHLCV");
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -935,7 +935,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOHLCV");
+            parameters.put("callerMethodName", "watchOHLCV");
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), parameters)).join();
         });
 
@@ -1498,17 +1498,17 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //
         String id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("i", "T", "v")));
         Boolean isContract = (trade.containsKey("BT"));
-        Object marketType = "spot";
+        String marketType = "spot";
         if (Boolean.TRUE.equals(isContract))
         {
             marketType = "contract";
         }
         if (!java.util.Objects.equals(market, null))
         {
-            marketType = ((Map<String, Object>)market).get("type");
+            marketType = this.safeString(market, "type");
         }
         String marketId = this.safeString(trade, "s");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, Helpers.toStringArg(marketType));
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         String symbol = (String) marketResolved.get("symbol");
         Long timestamp = (Long) this.safeInteger2(trade, "t", "T");
         String side = this.safeStringLower(trade, "S");

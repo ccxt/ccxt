@@ -8266,7 +8266,7 @@ public Object describe()
             ((List<Object>)result).add(transaction);
         }
         result = this.sortBy(result, "timestamp");
-        Object code = (((!java.util.Objects.equals(currency, null)))) ? ((Map<String, Object>)currency).get("code") : null;
+        Object code = (((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null;
         return this.filterByCurrencySinceLimit(result, Helpers.toStringArg(code), since, limit, false);
     }
 
@@ -8280,7 +8280,7 @@ public Object describe()
             ((List<Object>)result).add(transfer);
         }
         result = this.sortBy(result, "timestamp");
-        Object code = (((!java.util.Objects.equals(currency, null)))) ? ((Map<String, Object>)currency).get("code") : null;
+        Object code = (((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null;
         return this.filterByCurrencySinceLimit(result, Helpers.toStringArg(code), since, limit, false);
     }
 
@@ -8303,7 +8303,7 @@ public Object describe()
             }
         }
         result = this.sortBy(result, "timestamp");
-        Object code = (((!java.util.Objects.equals(currency, null)))) ? ((Map<String, Object>)currency).get("code") : null;
+        Object code = (((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null;
         return this.filterByCurrencySinceLimit(result, Helpers.toStringArg(code), since, limit, false);
     }
 
@@ -8549,7 +8549,7 @@ public Object describe()
         return results;
     }
 
-    public CompletableFuture<Object> fetch2(Object path, Object api, Object method, Object parameters, Object headers, Object body, Object config)
+    public CompletableFuture<Object> fetch2(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -8634,7 +8634,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Object config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -9086,12 +9086,12 @@ public Object describe()
         {
             throw new ArgumentsRequired((this.id + " getSupportedMapping() requires a key argument")) ;
         }
-        if (((Map<?, ?>)mapping).containsKey(key))
+        if (mapping.containsKey(key))
         {
-            return Helpers.GetValue(mapping, key);
+            return (mapping == null || key == null ? null : mapping.get(key));
         } else
         {
-            List<String> keys = new ArrayList<String>(((Map<String, Object>)mapping).keySet());
+            List<String> keys = new ArrayList<String>(mapping.keySet());
             throw new NotSupported((((((this.id + " ") + key) + " does not have a value in mapping") + ", must be one of ") + String.join(", ", (List<String>)keys))) ;
         }
     }
@@ -9296,7 +9296,7 @@ public Object describe()
         // type from market
         if (!java.util.Objects.equals(market, null))
         {
-            return new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("type"), parameters));
+            return new ArrayList<Object>(Arrays.asList(market.get("type"), parameters));
         }
         // type from default-argument
         if (!java.util.Objects.equals(defaultValue, null))
@@ -9341,10 +9341,10 @@ public Object describe()
             // at first, check from market object
             if (!java.util.Objects.equals(market, null))
             {
-                if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
+                if (java.util.Objects.equals(market.get("linear"), true))
                 {
                     subType = "linear";
-                } else if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
+                } else if (java.util.Objects.equals(market.get("inverse"), true))
                 {
                     subType = "inverse";
                 }
@@ -9416,7 +9416,7 @@ public Object describe()
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
         return this.safeValue(config, "cost", 1);
     }
@@ -9576,13 +9576,13 @@ public Object describe()
         }
         if (!java.util.Objects.equals(takeProfit, null))
         {
-            ((Map<String, Object>)parameters).put("takeProfit", Helpers.newMap(
+            parameters.put("takeProfit", Helpers.newMap(
     "triggerPrice", takeProfit
 ));
         }
         if (!java.util.Objects.equals(stopLoss, null))
         {
-            ((Map<String, Object>)parameters).put("stopLoss", Helpers.newMap(
+            parameters.put("stopLoss", Helpers.newMap(
     "triggerPrice", stopLoss
 ));
         }
@@ -9596,35 +9596,35 @@ public Object describe()
         String stopLossAmount = this.safeString(parameters, "stopLossAmount");
         if (!java.util.Objects.equals(takeProfitType, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "takeProfit"), "type", takeProfitType);
+            Helpers.addElementToObject(parameters.get("takeProfit"), "type", takeProfitType);
         }
         if (!java.util.Objects.equals(takeProfitPriceType, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "takeProfit"), "priceType", takeProfitPriceType);
+            Helpers.addElementToObject(parameters.get("takeProfit"), "priceType", takeProfitPriceType);
         }
         if (!java.util.Objects.equals(takeProfitLimitPrice, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "takeProfit"), "price", this.parseToNumeric(takeProfitLimitPrice));
+            Helpers.addElementToObject(parameters.get("takeProfit"), "price", this.parseToNumeric(takeProfitLimitPrice));
         }
         if (!java.util.Objects.equals(takeProfitAmount, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "takeProfit"), "amount", this.parseToNumeric(takeProfitAmount));
+            Helpers.addElementToObject(parameters.get("takeProfit"), "amount", this.parseToNumeric(takeProfitAmount));
         }
         if (!java.util.Objects.equals(stopLossType, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "stopLoss"), "type", stopLossType);
+            Helpers.addElementToObject(parameters.get("stopLoss"), "type", stopLossType);
         }
         if (!java.util.Objects.equals(stopLossPriceType, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "stopLoss"), "priceType", stopLossPriceType);
+            Helpers.addElementToObject(parameters.get("stopLoss"), "priceType", stopLossPriceType);
         }
         if (!java.util.Objects.equals(stopLossLimitPrice, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "stopLoss"), "price", this.parseToNumeric(stopLossLimitPrice));
+            Helpers.addElementToObject(parameters.get("stopLoss"), "price", this.parseToNumeric(stopLossLimitPrice));
         }
         if (!java.util.Objects.equals(stopLossAmount, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "stopLoss"), "amount", this.parseToNumeric(stopLossAmount));
+            Helpers.addElementToObject(parameters.get("stopLoss"), "amount", this.parseToNumeric(stopLossAmount));
         }
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount")));
         return paramsOmitted;
@@ -10496,7 +10496,7 @@ public Object describe()
             ((List<Object>)rates).add(this.parseFundingRateHistory(entry, market));
         }
         List<Object> sorted = this.sortBy(rates, "timestamp");
-        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
+        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : market.get("symbol");
         return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbol), since, limit, false);
     }
 
@@ -10540,7 +10540,7 @@ public Object describe()
             ((List<Object>)rates).add(this.parseLongShortRatio((Map<String, Object>) (entry), market));
         }
         List<Object> sorted = this.sortBy(rates, "timestamp");
-        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
+        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : market.get("symbol");
         return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbol), since, limit, false);
     }
 

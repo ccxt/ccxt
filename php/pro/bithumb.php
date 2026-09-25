@@ -941,7 +941,7 @@ class bithumb extends \ccxt\async\bithumb {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash = $messageHash . ':' . $symbolResolved;
         }
         $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash));

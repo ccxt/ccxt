@@ -2417,7 +2417,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -3966,7 +3966,7 @@ public class Digifinex extends DigifinexApi
         String leverageString = this.safeString(info, "leverage_ratio");
         String amountInvested = Precise.stringDiv(amountString, leverageString);
         String amountBorrowed = Precise.stringSub(amountString, amountInvested);
-        Object currency = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("base");
+        Object currency = (((java.util.Objects.equals(market, null)))) ? null : market.get("base");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", info );
@@ -5036,11 +5036,10 @@ public class Digifinex extends DigifinexApi
          */
         String defaultType = this.safeString(this.options, "defaultType");
         Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
-        Object marginMode = null;
-        Object paramsMarginMode = null;
-        List<Object> marginModeparamsMarginModeVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
-        marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-        paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+        List<Object> marginModeValueparamsMarginModeVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        var marginModeValue = ((List<Object>) marginModeValueparamsMarginModeVariable).get(0);
+        var paramsMarginMode = ((List<Object>) marginModeValueparamsMarginModeVariable).get(1);
+        Object marginMode = marginModeValue;
         if (!java.util.Objects.equals(marginMode, null))
         {
             if (!java.util.Objects.equals(marginMode, "cross"))

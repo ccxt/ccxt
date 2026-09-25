@@ -2118,7 +2118,7 @@ export default class hashkey extends Exchange {
         }
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
-            request['chainType'] = this.networkCodeToId (networkCode, currency['code']);
+            request['chainType'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         }
         const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, paramsNetworkCode));
         //

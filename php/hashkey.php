@@ -2112,7 +2112,7 @@ class hashkey extends Exchange {
         }
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
-            $request['chainType'] = $this->network_code_to_id($networkCode, $currency['code']);
+            $request['chainType'] = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         }
         $response = $this->privatePostApiV1AccountWithdraw($this->extend($request, $paramsNetworkCode));
         //

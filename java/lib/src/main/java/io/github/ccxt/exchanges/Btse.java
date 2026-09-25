@@ -4122,14 +4122,14 @@ public class Btse extends BtseApi
             Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", (Object) null);
             if (java.util.Objects.equals(marginModeValue, "cross"))
             {
-                if (!(((Map<?, ?>)parameters).containsKey("hedged")))
+                if (!(parameters.containsKey("hedged")))
                 {
                     throw new ArgumentsRequired((this.id + " setMarginMode() requires a hedged parameter for cross margin mode")) ;
                 } else if (java.util.Objects.equals(hedged, true))
                 {
                     positionMode = "HEDGE";
                 }
-            } else if ((((Map<?, ?>)parameters).containsKey("hedged")) && (!java.util.Objects.equals(hedged, true)))
+            } else if ((parameters.containsKey("hedged")) && (!java.util.Objects.equals(hedged, true)))
             {
                 throw new BadRequest((this.id + " setMarginMode() hedged parameter cannot be false for isolated margin mode")) ;
             } else

@@ -1203,9 +1203,9 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, paramsPaginate, "tradeId", "after", null, 100));
@@ -1219,9 +1219,9 @@ public partial class blofin : Exchange
         {
             request["limit"] = limit; // default 100
         }
-        IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades");
-        string? method = (string)methodparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
+        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades");
+        string? method = methodparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         if ((method == "publicGetMarketTrades"))
         {
             response = await this.publicGetMarketTrades(this.extend(request, paramsMethod));
@@ -1274,9 +1274,9 @@ public partial class blofin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         bool? paginate = false;
         object query = null;
-        IList<object> paginatequeryVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = (bool?)paginatequeryVariable[0];
-        query = paginatequeryVariable[1];
+        (bool?, object) paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = paginatequeryVariable.Item1;
+        query = paginatequeryVariable.Item2;
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, query, 100));
@@ -1324,9 +1324,9 @@ public partial class blofin : Exchange
         }
         bool? paginate = false;
         object query = null;
-        IList<object> paginatequeryVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        paginate = (bool?)paginatequeryVariable[0];
-        query = paginatequeryVariable[1];
+        (bool?, object) paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = paginatequeryVariable.Item1;
+        query = paginatequeryVariable.Item2;
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", query, 100));
@@ -1365,7 +1365,7 @@ public partial class blofin : Exchange
             });
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
     public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
@@ -1586,9 +1586,9 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> accountTypeparamsAccountTypeVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, "fetchBalance", "accountType", "type");
-        string? accountType = (string)accountTypeparamsAccountTypeVariable[0];
-        IDictionary<string, object> paramsAccountType = ((IDictionary<string, object>)accountTypeparamsAccountTypeVariable[1]);
+        (string?, object) accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams2(parameters, "fetchBalance", "accountType", "type");
+        string? accountType = accountTypeparamsAccountTypeVariable.Item1;
+        IDictionary<string, object> paramsAccountType = ((IDictionary<string, object>)accountTypeparamsAccountTypeVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
         if ((accountType != null) && !(accountType == "swap"))
@@ -1625,9 +1625,9 @@ public partial class blofin : Exchange
         };
         string? marginMode = null;
         object query = null;
-        IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters, "cross");
-        marginMode = (string)marginModequeryVariable[0];
-        query = marginModequeryVariable[1];
+        (string?, object) marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
+        marginMode = marginModequeryVariable.Item1;
+        query = marginModequeryVariable.Item2;
         request["marginMode"] = marginMode;
         string? triggerPriceAny = this.safeStringN(query, new List<object>() {"triggerPrice", "stopLossPrice", "takeProfitPrice"});
         string? triggerPriceSlTp = this.safeString2(query, "stopLossPrice", "takeProfitPrice");
@@ -1883,9 +1883,9 @@ public partial class blofin : Exchange
         bool isStopLossPriceDefined = (this.safeString(parameters, "stopLossPrice") != null);
         bool isTakeProfitPriceDefined = (this.safeString(parameters, "takeProfitPrice") != null);
         bool isTriggerOrder = (this.safeString(parameters, "triggerPrice") != null);
-        IList<object> isTpslEndpointparamsTpslVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "tpsl", false);
-        bool? isTpslEndpoint = (bool?)isTpslEndpointparamsTpslVariable[0];
-        IDictionary<string, object> paramsTpsl = ((IDictionary<string, object>)isTpslEndpointparamsTpslVariable[1]);
+        (bool?, object) isTpslEndpointparamsTpslVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "tpsl", false);
+        bool? isTpslEndpoint = isTpslEndpointparamsTpslVariable.Item1;
+        IDictionary<string, object> paramsTpsl = ((IDictionary<string, object>)isTpslEndpointparamsTpslVariable.Item2);
         bool isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined) || (isTpslEndpoint == true);
         bool isSlOrTp = isStopLossPriceDefined || isTakeProfitPriceDefined;
         Dictionary<string, object> response = null;
@@ -2116,9 +2116,9 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, paramsPaginate));
@@ -2136,9 +2136,9 @@ public partial class blofin : Exchange
         }
         bool? isTrigger = this.safeBoolN(paramsPaginate, new List<object>() {"stop", "trigger"}, false);
         bool? isTpSl = this.safeBool2(paramsPaginate, "tpsl", "TPSL", false);
-        IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsPaginate, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
-        string? method = (string)methodparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
+        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPaginate, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
+        string? method = methodparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> query = this.omit(paramsMethod, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         Dictionary<string, object> response = null;
         if (((isTpSl == true)) || ((method == "privateGetTradeOrdersTpslPending")))
@@ -2178,9 +2178,9 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
@@ -2257,9 +2257,9 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, paramsPaginate));
@@ -2307,9 +2307,9 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, paramsPaginate));
@@ -2449,9 +2449,9 @@ public partial class blofin : Exchange
         // consume the unified network key unconditionally so it never leaks
         // onto the wire; an explicit raw params['chain'] takes precedence
         string? networkCode = null;
-        IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(query);
-        networkCode = (string)networkCodequeryVariable[0];
-        query = networkCodequeryVariable[1];
+        (string?, object) networkCodequeryVariable = this.handleNetworkCodeAndParams(query);
+        networkCode = networkCodequeryVariable.Item1;
+        query = networkCodequeryVariable.Item2;
         string? chain = this.safeString(query, "chain");
         if ((chain == null))
         {
@@ -2503,9 +2503,9 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate));
@@ -3154,9 +3154,9 @@ public partial class blofin : Exchange
         }
         string? marginMode = null;
         object query = null;
-        IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchLeverages", parameters);
-        marginMode = (string)marginModequeryVariable[0];
-        query = marginModequeryVariable[1];
+        (string?, object) marginModequeryVariable = this.handleMarginModeAndParams("fetchLeverages", parameters);
+        marginMode = marginModequeryVariable.Item1;
+        query = marginModequeryVariable.Item2;
         if ((marginMode == null))
         {
             marginMode = this.safeString(query, "marginMode", "cross"); // cross as default marginMode
@@ -3221,9 +3221,9 @@ public partial class blofin : Exchange
         }
         string? marginMode = null;
         object query = null;
-        IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchLeverage", parameters);
-        marginMode = (string)marginModequeryVariable[0];
-        query = marginModequeryVariable[1];
+        (string?, object) marginModequeryVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
+        marginMode = marginModequeryVariable.Item1;
+        query = marginModequeryVariable.Item2;
         if ((marginMode == null))
         {
             marginMode = this.safeString(query, "marginMode", "cross"); // cross as default marginMode
@@ -3296,9 +3296,9 @@ public partial class blofin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters, "cross");
-        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         if ((!(marginMode == "cross")) && (!(marginMode == "isolated")))
         {
             throw new BadRequest ((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
@@ -3338,9 +3338,9 @@ public partial class blofin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("closePosition", parameters, "cross");
-        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
             { "marginMode", marginMode },
@@ -3374,9 +3374,9 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate));
@@ -3397,9 +3397,9 @@ public partial class blofin : Exchange
             request["begin"] = since;
         }
         bool? isTrigger = this.safeBoolN(paramsPaginate, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
-        IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsPaginate, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
-        string? method = (string)methodparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
+        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPaginate, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
+        string? method = methodparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> query = this.omit(paramsMethod, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         Dictionary<string, object> response = null;
         if (((isTrigger == true)) || ((method == "privateGetTradeOrdersTpslHistory")))

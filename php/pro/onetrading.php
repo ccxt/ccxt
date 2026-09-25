@@ -307,7 +307,7 @@ class onetrading extends \ccxt\async\onetrading {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash .= ':' . $symbolResolved;
         }
         Async\await($this->authenticate($params));
@@ -484,7 +484,7 @@ class onetrading extends \ccxt\async\onetrading {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash .= ':' . $symbolResolved;
         }
         Async\await($this->authenticate($params));

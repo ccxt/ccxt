@@ -7655,7 +7655,7 @@ impl BingxCore {
         });
         let mut network: Value = self.safe_string_upper_k(paramsWalletType.clone(), "network", &[]);
         if (network != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".into(), self.network_code_to_id(network, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".into(), self.network_code_to_id(network, &[self.safe_string_k(currency, "code", &[])])); }
         }
         if (tagWithdrawTag != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("addressTag".into(), tagWithdrawTag); }

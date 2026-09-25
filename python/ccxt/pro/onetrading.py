@@ -279,7 +279,7 @@ class onetrading(ccxt.async_support.onetrading):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash += ':' + symbolResolved
         await self.authenticate(params)
         url = self.urls['api']['ws']
@@ -433,7 +433,7 @@ class onetrading(ccxt.async_support.onetrading):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash += ':' + symbolResolved
         await self.authenticate(params)
         url = self.urls['api']['ws']

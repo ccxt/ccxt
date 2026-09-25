@@ -836,11 +836,11 @@ public partial class onetrading : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseFeeTiers(object feeTiers, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseFeeTiers(IList<object> feeTiers, IDictionary<string, object> market = null)
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
-        for (int i = 0; i < getArrayLength(feeTiers); i++)
+        for (int i = 0; i < (feeTiers?.Count ?? 0); i++)
         {
             IDictionary<string, object> tier = this.safeDict(feeTiers, i);
             double? volume = this.safeNumber(tier, "volume");

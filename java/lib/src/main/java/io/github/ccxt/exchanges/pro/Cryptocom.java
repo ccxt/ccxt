@@ -181,7 +181,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object topicParams = this.safeValue(parameters, "params");
             if (java.util.Objects.equals(topicParams, null))
             {
-                ((Map<String, Object>)parameters).put("params", new HashMap<String, Object>() {{}});
+                parameters.put("params", new HashMap<String, Object>() {{}});
             }
             List<Object> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
             String bookSubscriptionType = (String) ((List<Object>) bookSubscriptionTypeparamsBookSubscriptionTypeVariable).get(0);
@@ -244,7 +244,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object topicParams = this.safeValue(parameters, "params");
             if (java.util.Objects.equals(topicParams, null))
             {
-                ((Map<String, Object>)parameters).put("params", new HashMap<String, Object>() {{}});
+                parameters.put("params", new HashMap<String, Object>() {{}});
             }
             List<Object> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
             String bookSubscriptionType = (String) ((List<Object>) bookSubscriptionTypeparamsBookSubscriptionTypeVariable).get(0);
@@ -588,11 +588,11 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
             }
             Object messageHash = "user.trade";
             messageHash = (((!java.util.Objects.equals(market, null)))) ? (((messageHash + ".") + market.get("id"))) : messageHash;
@@ -602,7 +602,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1039,11 +1039,11 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
             }
             Object messageHash = "user.order";
             messageHash = (((!java.util.Objects.equals(market, null)))) ? (((messageHash + ".") + market.get("id"))) : messageHash;
@@ -1053,7 +1053,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

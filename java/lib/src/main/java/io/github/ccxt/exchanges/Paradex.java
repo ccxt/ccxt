@@ -1955,7 +1955,7 @@ public class Paradex extends ParadexApi
             }};
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account.get("address"));
             Object signature = this.starknetSign(msg, account.get("privateKey"));
-            ((Map<String, Object>)parameters).put("signature", signature);
+            parameters.put("signature", signature);
             Helpers.addElementToObject(parameters, "account", account.get("address"));
             Helpers.addElementToObject(parameters, "public_key", account.get("publicKey"));
             Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
@@ -2014,10 +2014,10 @@ public class Paradex extends ParadexApi
             }};
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account.get("address"));
             Object signature = this.starknetSign(msg, account.get("privateKey"));
-            ((Map<String, Object>)parameters).put("signature", signature);
+            parameters.put("signature", signature);
             Helpers.addElementToObject(parameters, "account", account.get("address"));
-            ((Map<String, Object>)parameters).put("timestamp", req.get("timestamp"));
-            ((Map<String, Object>)parameters).put("expiration", req.get("expiration"));
+            parameters.put("timestamp", req.get("timestamp"));
+            parameters.put("expiration", req.get("expiration"));
             Map<String, Object> response = (this.privatePostAuth(parameters)).join();
             //
             // {
@@ -4234,7 +4234,7 @@ public class Paradex extends ParadexApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }

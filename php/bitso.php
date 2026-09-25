@@ -1913,7 +1913,7 @@ class bitso extends Exchange {
         $networkId = $this->safe_string_2($transaction, 'network', 'method');
         $status = $this->safe_string($transaction, 'status');
         $withdrawId = $this->safe_string($transaction, 'wid');
-        $networkCode = $this->network_id_to_code($networkId, $currencyResolved['code']);
+        $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currencyResolved, 'code'));
         $networkCodeUpper = ($networkCode !== null) ? strtoupper($networkCode) : null;
         return array(
             'id' => $this->safe_string_2($transaction, 'wid', 'fid'),

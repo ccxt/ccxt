@@ -818,7 +818,7 @@ class btcbox(Exchange, ImplicitAPI):
         self.throw_exactly_matched_exception(self.exceptions, code, feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    def request(self, path: str, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: object = {}):
+    def request(self, path: str, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         if isinstance(response, str):
             # sometimes the exchange returns whitespace prepended to json

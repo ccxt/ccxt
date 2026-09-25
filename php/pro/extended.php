@@ -206,7 +206,7 @@ class extended extends \ccxt\async\extended {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash .= ':' . $symbolResolved;
         }
         $orders = Async\await($this->watch_private($messageHash, array(
@@ -328,7 +328,7 @@ class extended extends \ccxt\async\extended {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash .= ':' . $symbolResolved;
         }
         $trades = Async\await($this->watch_private($messageHash, array(

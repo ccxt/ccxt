@@ -2312,7 +2312,7 @@ export default class upbit extends Exchange {
         }
         const response = await this.privateGetDepositsCoinAddress (this.extend ({
             'currency': currency['id'],
-            'net_type': this.networkCodeToId (networkCode, currency['code']),
+            'net_type': this.networkCodeToId (networkCode, this.safeString (currency, 'code')),
         }, paramsNetworkCode));
         //
         //    {

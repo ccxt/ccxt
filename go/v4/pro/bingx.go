@@ -193,7 +193,7 @@ func (this *Bingx) watchTickerBody(ch chan any, symbol string, optionalArgs ...a
 		url = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), marketType)
 	}
 	var dataType any = ccxt.Add(market["id"], "@ticker")
-	var messageHash string = this.GetMessageHash("ticker", market["symbol"])
+	var messageHash string = this.GetMessageHash("ticker", this.SafeString(market, "symbol"))
 	var uuid string = this.Uuid()
 	var request map[string]any = map[string]any{
 		"id":       uuid,
@@ -238,7 +238,7 @@ func (this *Bingx) unWatchTickerBody(ch chan any, symbol string, optionalArgs ..
 	}
 	var market map[string]any = this.Market(symbol)
 	var dataType any = ccxt.Add(market["id"], "@ticker")
-	var subMessageHash string = this.GetMessageHash("ticker", market["symbol"])
+	var subMessageHash string = this.GetMessageHash("ticker", this.SafeString(market, "symbol"))
 	var messageHash string = "unsubscribe::" + subMessageHash
 	var topic string = "ticker"
 	var methodName string = "unWatchTicker"
@@ -523,7 +523,7 @@ func (this *Bingx) unWatchTradesBody(ch chan any, symbol string, optionalArgs ..
 	}
 	var market map[string]any = this.Market(symbol)
 	var dataType any = ccxt.Add(market["id"], "@trade")
-	var subMessageHash string = this.GetMessageHash("trade", market["symbol"])
+	var subMessageHash string = this.GetMessageHash("trade", this.SafeString(market, "symbol"))
 	var messageHash string = "unsubscribe::" + subMessageHash
 	var topic string = "trades"
 	var methodName string = "unWatchTrades"
@@ -682,7 +682,7 @@ func (this *Bingx) watchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var depth *int64 = this.SafeInteger(options, "depth", 100)
 	var subscriptionHash any = ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@"), "depth"), this.NumberToString(depth))
-	var messageHash string = this.GetMessageHash("orderbook", market["symbol"])
+	var messageHash string = this.GetMessageHash("orderbook", this.SafeString(market, "symbol"))
 	var uuid string = this.Uuid()
 	var request map[string]any = map[string]any{
 		"id":       uuid,
@@ -1065,7 +1065,7 @@ func (this *Bingx) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
 	var timeframes map[string]any = ccxt.SafeMapTyped(options, "timeframes")
 	var rawTimeframe *string = this.SafeString(timeframes, timeframe, timeframe)
-	var messageHash string = this.GetMessageHash("ohlcv", market["symbol"], timeframe)
+	var messageHash string = this.GetMessageHash("ohlcv", this.SafeString(market, "symbol"), timeframe)
 	var subscriptionHash any = ccxt.Add(ccxt.Add(market["id"], "@kline_"), rawTimeframe)
 	var uuid string = this.Uuid()
 	var request map[string]any = map[string]any{
@@ -1178,7 +1178,7 @@ func (this *Bingx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return symbol
 	}()
@@ -1277,7 +1277,7 @@ func (this *Bingx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return symbol
 	}()

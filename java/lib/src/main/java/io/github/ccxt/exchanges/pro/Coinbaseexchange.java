@@ -108,7 +108,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 throw new ExchangeError((this.id + " urls.api.ws is not set")) ;
             }
-            if (((Map<?, ?>)parameters).containsKey("signature"))
+            if (parameters.containsKey("signature"))
             {
                 // need to distinguish between public trades and user trades
                 url = (url + "?");
@@ -153,7 +153,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 throw new ExchangeError((this.id + " urls.api.ws is not set")) ;
             }
-            if (((Map<?, ?>)parameters).containsKey("signature"))
+            if (parameters.containsKey("signature"))
             {
                 // need to distinguish between public trades and user trades
                 url = (url + "?");

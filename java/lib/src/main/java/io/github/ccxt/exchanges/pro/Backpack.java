@@ -1251,7 +1251,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             String topic = "account.orderUpdate";
             String messageHash = "orders";
             if (!java.util.Objects.equals(market, null))
@@ -1265,7 +1265,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

@@ -672,7 +672,7 @@ func (this *Cex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash, request))))
 
-	ch <- this.FilterBySymbolSinceLimit(orders, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(orders, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Cex) HandleTransaction(client any, message map[string]any) {

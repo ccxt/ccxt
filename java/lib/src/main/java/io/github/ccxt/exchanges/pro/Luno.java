@@ -167,7 +167,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             symbol = null;
         } else
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = market.get("symbol");
         }
         return this.safeTrade(Helpers.newMap(
             "info", trade,

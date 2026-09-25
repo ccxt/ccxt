@@ -962,10 +962,10 @@ public class Btcturk extends BtcturkApi
             {
                 request.put("price", this.priceToPrecision(symbol, price));
             }
-            if (((Map<?, ?>)parameters).containsKey("clientOrderId"))
+            if (parameters.containsKey("clientOrderId"))
             {
                 request.put("newClientOrderId", ((Map<String, Object>)parameters).get("clientOrderId"));
-            } else if (!(((Map<?, ?>)parameters).containsKey("newClientOrderId")))
+            } else if (!(parameters.containsKey("newClientOrderId")))
             {
                 request.put("newClientOrderId", this.uuid());
             }

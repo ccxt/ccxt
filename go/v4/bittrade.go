@@ -1443,7 +1443,7 @@ func (this *Bittrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	result = this.SortBy(result, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(result, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(result, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Bittrade) ParseOHLCV(ohlcv any, optionalArgs ...any) any {

@@ -621,7 +621,7 @@ export default class lighter extends lighterRest {
         const request: Dict = {
             'channel': 'trade/' + market['id'],
         };
-        const messageHash = this.getMessageHash ('trade', market['symbol']);
+        const messageHash = this.getMessageHash ('trade', this.safeString (market, 'symbol'));
         const trades = await this.subscribePublic (messageHash, this.extend (request, params));
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -643,7 +643,7 @@ export default class lighter extends lighterRest {
         const request: Dict = {
             'channel': 'trade/' + market['id'],
         };
-        const subMessageHash = this.getMessageHash ('trade', market['symbol']);
+        const subMessageHash = this.getMessageHash ('trade', this.safeString (market, 'symbol'));
         const messageHash = 'unsubscribe:' + subMessageHash;
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
@@ -830,7 +830,7 @@ export default class lighter extends lighterRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash = this.getMessageHash ('myTrades', symbolResolved);
         }
         const request: Dict = {
@@ -1145,7 +1145,7 @@ export default class lighter extends lighterRest {
         const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            messageHash = this.getMessageHash ('orders', market['symbol']);
+            messageHash = this.getMessageHash ('orders', this.safeString (market, 'symbol'));
             request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString (accountIndex);
         } else {
             messageHash = this.getMessageHash ('orders');
@@ -1177,7 +1177,7 @@ export default class lighter extends lighterRest {
         const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            subMessageHash = this.getMessageHash ('orders', market['symbol']);
+            subMessageHash = this.getMessageHash ('orders', this.safeString (market, 'symbol'));
             request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString (accountIndex);
         } else {
             subMessageHash = this.getMessageHash ('orders');

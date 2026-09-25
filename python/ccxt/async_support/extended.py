@@ -1124,7 +1124,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(histories)):
             result.append(self.parse_funding_history(histories[i], market))
-        symbol = None if (market is None) else market['symbol']
+        symbol = None if (market is None) else self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:

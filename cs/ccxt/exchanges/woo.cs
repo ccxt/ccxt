@@ -1721,9 +1721,9 @@ public partial class woo : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", orderSide },
         };
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", paramsOmitted);
-        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted);
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         if ((marginMode != null))
         {
             request["marginMode"] = this.encodeMarginMode(marginMode);
@@ -2248,9 +2248,9 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, paramsPaginate, "page", 500));
@@ -2926,9 +2926,9 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500));
@@ -3182,12 +3182,12 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "token", (currency.ContainsKey("id") ? currency["id"] : null) },
-            { "network", this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)) },
+            { "network", this.networkCodeToId(networkCode, this.safeString(currency, "code")) },
         };
         Dictionary<string, object> response = await this.v3PrivateGetAssetWalletDeposit(this.extend(request, paramsNetworkCode));
         //
@@ -3206,9 +3206,9 @@ public partial class woo : Exchange
 
     public virtual List<object> getDedicatedNetworkId(Dictionary<string, object> currency, IDictionary<string, object> parameters)
     {
-        IList<object> networkCodeRawparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCodeRaw = (string)networkCodeRawparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeRawparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeRawparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCodeRaw = networkCodeRawparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeRawparamsNetworkCodeVariable.Item2);
         string? networkCode = this.networkIdToCode(networkCodeRaw, (currency != null && currency.ContainsKey("code") ? currency["code"] : null));
         IDictionary<string, object> networkEntry = ((networkCode == null)) ? null : this.safeDict((currency != null && currency.ContainsKey("networks") ? currency["networks"] : null), networkCode);
         if ((networkEntry == null))
@@ -3248,9 +3248,9 @@ public partial class woo : Exchange
             currency = this.currency(code);
             request["token"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode != null))
         {
             request["network"] = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
@@ -3773,7 +3773,7 @@ public partial class woo : Exchange
         }
         Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
         request["token"] = (currency.ContainsKey("id") ? currency["id"] : null);
-        request["network"] = this.networkCodeToId(network, (currency.ContainsKey("code") ? currency["code"] : null));
+        request["network"] = this.networkCodeToId(network, this.safeString(currency, "code"));
         Dictionary<string, object> response = await this.v3PrivatePostAssetWalletWithdraw(this.extend(request, paramsOmitted));
         //
         //     {
@@ -4038,9 +4038,9 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500));
@@ -4279,9 +4279,9 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "page", 25));
@@ -4408,9 +4408,9 @@ public partial class woo : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
-            IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
-            string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
+            string? marginMode = marginModeparamsMarginModeVariable.Item1;
+            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
             request["marginMode"] = this.encodeMarginMode(marginMode);
             response = await this.v3PrivateGetFuturesLeverage(this.extend(request, paramsMarginMode));
         } else
@@ -4494,9 +4494,9 @@ public partial class woo : Exchange
         } else if ((this.safeBool(market, "swap") == true))
         {
             request["symbol"] = this.safeString(market, "id");
-            IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters, "cross");
-            string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+            string? marginMode = marginModeparamsMarginModeVariable.Item1;
+            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
             request["marginMode"] = this.encodeMarginMode(marginMode);
             return ccxt.BaseExchange.ToDict(await this.v3PrivatePutFuturesLeverage(this.extend(request, paramsMarginMode)));
         } else

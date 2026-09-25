@@ -1006,7 +1006,7 @@ export default class backpack extends backpackRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
         let topic = 'account.orderUpdate';
         let messageHash = 'orders';
         if (market !== undefined) {

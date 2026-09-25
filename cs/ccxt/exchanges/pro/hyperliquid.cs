@@ -1512,7 +1512,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             market = this.market(symbol);
             messageHash = ((messageHash + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : symbol;
+        object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },

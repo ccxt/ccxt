@@ -209,7 +209,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_place");
             Object url = this.getUrlByMarket(market);
-            ((Map<String, Object>)parameters).put("textIsRequired", true);
+            parameters.put("textIsRequired", true);
             Map<String, Object> request = this.createOrderRequest(symbolValue, (String) (type), (String) (side), amount, price, parameters);
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrder = (this.requestPrivate((String) (url), (Map<String, Object>) (request), channel, (String) null)).join();
@@ -503,17 +503,17 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 if (!java.util.Objects.equals(market.get("swap"), true))
                 {
                     throw new NotSupported((this.id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets")) ;
                 }
             }
-            var requestrequestParamsVariable = this.prepareOrdersByStatusRequest((String) (status), Helpers.toStringArg(symbolResolved), since, limit, parameters);
+            var requestrequestParamsVariable = this.prepareOrdersByStatusRequest((String) (status), symbolResolved, since, limit, parameters);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             Object newRequest = this.omit(request, new ArrayList<Object>(Arrays.asList("settle")));
@@ -523,7 +523,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrders = (this.requestPrivate((String) (url), (Map<String, Object>) (this.extend(newRequest, requestParams)), channel, (String) null)).join();
             List<Object> orders = this.parseOrders(rawOrders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limit, false);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -949,7 +949,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchTicker");
+            parameters.put("callerMethodName", "watchTicker");
             Tickers result = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
             return this.safeValue(result, symbolValue);
         }).thenApply(Ticker::new);

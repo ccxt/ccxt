@@ -1621,7 +1621,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 market = this.market(symbol);
                 messageHash = ((messageHash + ":") + market.get("symbol"));
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Map<String, Object> request = Helpers.newMap(
                 "method", "subscribe",
@@ -1648,7 +1648,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

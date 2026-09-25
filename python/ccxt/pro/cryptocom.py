@@ -427,7 +427,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         messageHash = 'user.trade'
         messageHash = (messageHash + '.' + market['id']) if (market is not None) else messageHash
         trades = await self.watch_private_subscribe(messageHash, params)
@@ -768,7 +768,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         messageHash = 'user.order'
         messageHash = (messageHash + '.' + market['id']) if (market is not None) else messageHash
         orders = await self.watch_private_subscribe(messageHash, params)

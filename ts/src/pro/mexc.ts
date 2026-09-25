@@ -1116,7 +1116,7 @@ export default class mexc extends mexcRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
         if (symbol !== undefined) {
             messageHash = messageHash + ':' + symbolResolved;
         }
@@ -1305,7 +1305,7 @@ export default class mexc extends mexcRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
         if (symbol !== undefined) {
             messageHash = messageHash + ':' + symbolResolved;
         }

@@ -5958,12 +5958,12 @@ public class Hyperliquid extends HyperliquidApi
         );
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((Helpers.inOp(config, "byType")) && (Helpers.inOp(parameters, "type")))
+        if ((config.containsKey("byType")) && (Helpers.inOp(parameters, "type")))
         {
             Object type = Helpers.GetValue(parameters, "type");
-            Object byType = Helpers.GetValue(config, "byType");
+            Object byType = config.get("byType");
             if ((type != null && ((Map<?, ?>)byType).containsKey(type)))
             {
                 return Helpers.GetValue(byType, type);

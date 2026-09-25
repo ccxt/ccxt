@@ -753,7 +753,7 @@ class woofipro extends \ccxt\async\woofipro {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : null;
         if ($symbol !== null) {
             $messageHash .= ':' . $symbolResolved;
         }
@@ -802,7 +802,7 @@ class woofipro extends \ccxt\async\woofipro {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : null;
         if ($symbol !== null) {
             $messageHash .= ':' . $symbolResolved;
         }

@@ -3540,7 +3540,7 @@ export default class pacifica extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: any = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
         const cost = this.safeString (config, 'cost', '1');
         const costNumber = this.parseNumber (cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET

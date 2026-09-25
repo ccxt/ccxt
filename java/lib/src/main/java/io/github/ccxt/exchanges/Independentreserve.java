@@ -764,8 +764,8 @@ public class Independentreserve extends IndependentreserveApi
             }
         } else if (!java.util.Objects.equals(market, null))
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
-            base = ((Map<String, Object>)market).get("base");
+            symbol = market.get("symbol");
+            base = market.get("base");
             quote = this.safeString(market, "quote");
         }
         String orderType = this.safeString2(order, "Type", "OrderType");

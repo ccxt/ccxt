@@ -1783,9 +1783,9 @@ public partial class bigone : Exchange
             if (isBuy)
             {
                 bool? createMarketBuyOrderRequiresPrice = null;
-                IList<object> createMarketBuyOrderRequiresPricequeryVariable = (IList<object>)this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPricequeryVariable[0];
-                query = createMarketBuyOrderRequiresPricequeryVariable[1];
+                (bool?, object) createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryVariable.Item1;
+                query = createMarketBuyOrderRequiresPricequeryVariable.Item2;
                 double? cost = this.safeNumber(query, "cost");
                 query = this.omit(query, "cost");
                 if ((createMarketBuyOrderRequiresPrice == true))
@@ -2222,9 +2222,9 @@ public partial class bigone : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset_symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        IList<object> networkCodeparamsOmittedVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = (string)networkCodeparamsOmittedVariable[0];
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)networkCodeparamsOmittedVariable[1]);
+        (string?, object) networkCodeparamsOmittedVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = networkCodeparamsOmittedVariable.Item1;
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)networkCodeparamsOmittedVariable.Item2);
         Dictionary<string, object> response = await this.privateGetAssetsAssetSymbolAddress(this.extend(request, paramsOmitted));
         //
         // the actual response format is not the same as the documented one
@@ -2586,12 +2586,12 @@ public partial class bigone : Exchange
         {
             request["memo"] = tagWithdrawTag;
         }
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode != null))
         {
-            request["gateway_name"] = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
+            request["gateway_name"] = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
         }
         // requires write permission on the wallet
         Dictionary<string, object> response = await this.privatePostWithdrawals(this.extend(request, paramsNetworkCode));

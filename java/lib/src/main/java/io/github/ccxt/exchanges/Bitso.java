@@ -1338,7 +1338,7 @@ public class Bitso extends BitsoApi
             // the don't support fetching trades starting from a date yet
             // use the `marker` extra param for that
             // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-            Boolean markerInParams = (((Map<?, ?>)parameters).containsKey("marker"));
+            Boolean markerInParams = (parameters.containsKey("marker"));
             // warn the user with an exception if the user wants to filter
             // starting from since timestamp, but does not set the trade id with an extra 'marker' param
             if ((!java.util.Objects.equals(since, null)) && !Boolean.TRUE.equals(markerInParams))
@@ -1616,7 +1616,7 @@ public class Bitso extends BitsoApi
             // the don't support fetching trades starting from a date yet
             // use the `marker` extra param for that
             // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-            Boolean markerInParams = (((Map<?, ?>)parameters).containsKey("marker"));
+            Boolean markerInParams = (parameters.containsKey("marker"));
             // warn the user with an exception if the user wants to filter
             // starting from since timestamp, but does not set the trade id with an extra 'marker' param
             if ((!java.util.Objects.equals(since, null)) && !Boolean.TRUE.equals(markerInParams))
@@ -2251,7 +2251,7 @@ public class Bitso extends BitsoApi
         String networkId = this.safeString2(transaction, "network", "method");
         String status = this.safeString(transaction, "status");
         String withdrawId = this.safeString(transaction, "wid");
-        String networkCode = this.networkIdToCode(networkId, Helpers.toStringArg(currencyResolved.get("code")));
+        String networkCode = this.networkIdToCode(networkId, this.safeString(currencyResolved, "code"));
         String networkCodeUpper = (((!java.util.Objects.equals(networkCode, null)))) ? ((String)networkCode).toUpperCase() : null;
         return Helpers.newMap(
             "id", this.safeString2(transaction, "wid", "fid"),

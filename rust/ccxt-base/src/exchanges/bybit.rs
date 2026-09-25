@@ -5788,7 +5788,7 @@ impl BybitCore {
             marketType = (if (category.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
         }
         if (market != Value::Null) {
-            marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            marketType = self.safe_string_k(market.clone(), "type", &[]);
         }
         let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Null, marketType]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -6477,7 +6477,7 @@ impl BybitCore {
         let mut isContract: bool = matches!(&order, Value::Dict(__d) if __d.contains_key("tpslMode"));
         let mut marketType: Value = Value::Null;
         if (market != Value::Null) {
-            marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            marketType = self.safe_string_k(market.clone(), "type", &[]);
         }  else {
             marketType = (if isContract { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
         }
@@ -11174,7 +11174,7 @@ impl BybitCore {
         let mut marketId: Value = self.safe_string_k(fee.clone(), "symbol", &[]);
         let mut defaultType: Value = Value::Str("contract".into());
         if (market != Value::Null) {
-            defaultType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            defaultType = self.safe_string_k(market.clone(), "type", &[]);
         }
         let mut symbol: Value = self.safe_symbol(marketId, &[market, Value::Null, defaultType]);
         return Value::Map({
@@ -12238,7 +12238,7 @@ impl BybitCore {
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverageTiers() is not supported for spot market".into()))));
             }
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbol = self.safe_string_k(market, "symbol", &[]);
         }
         let __ws_arg_76 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -1701,7 +1701,7 @@ class bitget extends \ccxt\async\bitget {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $marketId = $this->safe_string($market, 'id');
             $messageHash = $messageHash . ':' . $symbolResolved;
         }
@@ -2234,7 +2234,7 @@ class bitget extends \ccxt\async\bitget {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash = $messageHash . ':' . $symbolResolved;
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);

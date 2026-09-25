@@ -3606,11 +3606,11 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		}
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if market == nil {
 			return symbol
 		}
-		return market["symbol"]
+		return this.SafeString(market, "symbol")
 	}()
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit)

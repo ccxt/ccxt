@@ -210,7 +210,7 @@ export default class hollaex extends hollaexRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash += ':' + market['id'];
         }
         const trades = await this.watchPrivate (messageHash, params);
@@ -301,7 +301,7 @@ export default class hollaex extends hollaexRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash += ':' + market['id'];
         }
         const orders = await this.watchPrivate (messageHash, params);

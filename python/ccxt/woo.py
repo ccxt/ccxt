@@ -2731,7 +2731,7 @@ class woo(Exchange, ImplicitAPI):
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         request = {
             'token': currency['id'],
-            'network': self.network_code_to_id(networkCode, currency['code']),
+            'network': self.network_code_to_id(networkCode, self.safe_string(currency, 'code')),
         }
         response = self.v3PrivateGetAssetWalletDeposit(self.extend(request, paramsNetworkCode))
         #
@@ -3228,7 +3228,7 @@ class woo(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter for ' + code)
         paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         request['token'] = currency['id']
-        request['network'] = self.network_code_to_id(network, currency['code'])
+        request['network'] = self.network_code_to_id(network, self.safe_string(currency, 'code'))
         response = self.v3PrivatePostAssetWalletWithdraw(self.extend(request, paramsOmitted))
         #
         #     {

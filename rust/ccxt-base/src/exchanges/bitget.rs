@@ -9433,7 +9433,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             marketType = Value::Str("contract".into());
         }
         if (market != Value::Null) {
-            marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            marketType = self.safe_string_k(market.clone(), "type", &[]);
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Null, marketType]);
@@ -13671,7 +13671,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
 
     Value::Null
 }
@@ -14110,7 +14110,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut sorted: Value = self.sort_by(result, Value::Str("timestamp".into()), &[]);
         let mut symbol: Value = Value::Null;
         if (market != Value::Null) {
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbol = self.safe_string_k(market, "symbol", &[]);
         }
         return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
 

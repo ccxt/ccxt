@@ -2195,9 +2195,9 @@ public partial class bitrue : Exchange
                 request["type"] = "IOC";
             }
             request["contractName"] = (market.ContainsKey("id") ? market["id"] : null);
-            IList<object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[0];
-            IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1]);
+            (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
+            IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
             bool isMarketBuyWithPrice = isMarket && ((side == "buy")) && (createMarketBuyOrderRequiresPrice == true);
             object paramsNoCost = paramsRequiresPrice;
             if (isMarketBuyWithPrice)
@@ -3126,12 +3126,12 @@ public partial class bitrue : Exchange
             { "amount", amount },
             { "addressTo", address },
         };
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode != null))
         {
-            request["chainName"] = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
+            request["chainName"] = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
         }
         if ((tagWithdrawTag != null))
         {
@@ -3695,7 +3695,7 @@ public partial class bitrue : Exchange
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
-            return getValue(config, "noSymbol");
+            return ((IDictionary<string,object>)config)["noSymbol"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
             object limit = getValue(parameters, "limit");

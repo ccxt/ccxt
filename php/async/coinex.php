@@ -4115,7 +4115,7 @@ class coinex extends Exchange {
         $paramsOmitted = $this->omit($params, 'network');
         $request = array(
             'ccy' => $currency['id'],
-            'chain' => $this->network_code_to_id($network, $currency['code']),
+            'chain' => $this->network_code_to_id($network, $this->safe_string($currency, 'code')),
         );
         $response = Async\await($this->v2PrivatePostAssetsRenewalDepositAddress($this->extend($request, $paramsOmitted)));
         //
@@ -4158,7 +4158,7 @@ class coinex extends Exchange {
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a "network" parameter');
         }
-        $request['chain'] = $this->network_code_to_id($networkCode, $currency['code']); // required for on-chain, not required for inter-user transfer
+        $request['chain'] = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')); // required for on-chain, not required for inter-user transfer
         $response = Async\await($this->v2PrivateGetAssetsDepositAddress($this->extend($request, $paramsNetworkCode)));
         //
         //     {
@@ -5180,7 +5180,7 @@ class coinex extends Exchange {
         }
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
-            $request['chain'] = $this->network_code_to_id($networkCode, $currency['code']); // required for on-chain, not required for inter-user transfer
+            $request['chain'] = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')); // required for on-chain, not required for inter-user transfer
         }
         $response = Async\await($this->v2PrivatePostAssetsWithdraw($this->extend($request, $paramsNetworkCode)));
         //
@@ -5302,7 +5302,7 @@ class coinex extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {

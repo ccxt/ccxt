@@ -2531,12 +2531,12 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(ticker, "s")
 	var marketType any = func() any {
 		if market != nil {
-			return GetValue(market, "type")
+			return this.SafeString(market, "type")
 		}
 		return nil
 	}()
 	var hasSpotKeys bool = (InOp(ticker, "cv")) || (InOp(ticker, "aq"))
-	if marketType == nil {
+	if IsEqual(marketType, nil) {
 		marketType = func() string {
 			if hasSpotKeys {
 				return "spot"
@@ -2915,12 +2915,12 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString2(trade, "s", "symbol")
 	var marketType any = func() any {
 		if market != nil {
-			return GetValue(market, "type")
+			return this.SafeString(market, "type")
 		}
 		return nil
 	}()
 	var hasSpotKeys bool = (InOp(trade, "b")) || (InOp(trade, "bizType")) || (InOp(trade, "oi"))
-	if marketType == nil {
+	if IsEqual(marketType, nil) {
 		marketType = func() string {
 			if hasSpotKeys {
 				return "spot"
@@ -5961,7 +5961,7 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) an
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 

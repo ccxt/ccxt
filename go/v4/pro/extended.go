@@ -237,7 +237,7 @@ func (this *Extended) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	}
 
@@ -381,7 +381,7 @@ func (this *Extended) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	}
 

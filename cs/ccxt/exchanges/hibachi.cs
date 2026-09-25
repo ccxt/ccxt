@@ -1698,9 +1698,9 @@ public partial class hibachi : Exchange
         {
             request["startTime"] = since;
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrdersByStatus", "until");
-        Int64? until = (Int64?)untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(parameters, "fetchOrdersByStatus", "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         if (!(until == null))
         {
             request["endTime"] = until;
@@ -1811,9 +1811,9 @@ public partial class hibachi : Exchange
         {
             request["fromMs"] = since;
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
-        Int64? until = (Int64?)untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         if (!(until == null))
         {
             request["toMs"] = until;
@@ -2427,12 +2427,12 @@ public partial class hibachi : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
         };
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
             request["contractId"] = (market.ContainsKey("numericId") ? market["numericId"] : null);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         if ((since != null))
         {
@@ -2442,9 +2442,9 @@ public partial class hibachi : Exchange
         {
             request["limit"] = limit;
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchMySettlementHistory", "until");
-        Int64? until = (Int64?)untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(parameters, "fetchMySettlementHistory", "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         if (!(until == null))
         {
             request["endTime"] = this.parseToInt(((double?)until / 1000));

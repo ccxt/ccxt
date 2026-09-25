@@ -2340,9 +2340,9 @@ public partial class coinex : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchBalance", paramsMarketType);
-        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMarketType);
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         bool isMargin = ((marginMode != null)) || ((marketType == "margin"));
         if ((marketType == "swap"))
         {
@@ -2773,9 +2773,9 @@ public partial class coinex : Exchange
             }
         } else
         {
-            IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
-            string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters);
+            string? marginMode = marginModeparamsMarginModeVariable.Item1;
+            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
             if ((marginMode != null))
             {
                 request["market_type"] = "MARGIN";
@@ -2784,17 +2784,17 @@ public partial class coinex : Exchange
                 request["market_type"] = "SPOT";
             }
             bool isMarketBuy = ((type == "market")) && ((side == "buy"));
-            List<object> requiresPriceAndParams = this.handleOptionBoolAndParams(paramsMarginMode, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            double? cost = this.safeNumber((requiresPriceAndParams != null && 1 < requiresPriceAndParams.Count ? requiresPriceAndParams[1] : null), "cost");
+            (bool?, object) requiresPriceAndParams = this.handleOptionBoolAndParams(paramsMarginMode, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            double? cost = this.safeNumber(requiresPriceAndParams.Item2, "cost");
             object paramsSpot = paramsMarginMode;
             if (isMarketBuy)
             {
-                paramsSpot = this.omit((requiresPriceAndParams != null && 1 < requiresPriceAndParams.Count ? requiresPriceAndParams[1] : null), "cost");
+                paramsSpot = this.omit(requiresPriceAndParams.Item2, "cost");
             }
             requestParams = this.omit(paramsSpot, omitKeys);
             if (isMarketBuy)
             {
-                bool? createMarketBuyOrderRequiresPrice = ((bool?)(requiresPriceAndParams != null && 0 < requiresPriceAndParams.Count ? requiresPriceAndParams[0] : null));
+                bool? createMarketBuyOrderRequiresPrice = requiresPriceAndParams.Item1;
                 if ((createMarketBuyOrderRequiresPrice == true))
                 {
                     if (((price == null)) && ((cost == null)))
@@ -3156,9 +3156,9 @@ public partial class coinex : Exchange
         {
             request["order_id"] = this.parseToNumeric(id);
         }
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("editOrder", paramsOmitted);
-        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("editOrder", paramsOmitted);
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             if ((marginMode != null))
@@ -3223,9 +3223,9 @@ public partial class coinex : Exchange
             double? price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             string? marginMode = null;
-            IList<object> marginModeorderParamsVariable = (IList<object>)this.handleMarginModeAndParams("editOrders", orderParams);
-            marginMode = (string)marginModeorderParamsVariable[0];
-            orderParams = marginModeorderParamsVariable[1];
+            (string?, object) marginModeorderParamsVariable = this.handleMarginModeAndParams("editOrders", orderParams);
+            marginMode = marginModeorderParamsVariable.Item1;
+            orderParams = marginModeorderParamsVariable.Item2;
             string market_type = "SPOT";
             if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
             {
@@ -3320,9 +3320,9 @@ public partial class coinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrder", parameters);
-        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         if ((swap == true))
         {
             request["market_type"] = "FUTURES";
@@ -3430,9 +3430,9 @@ public partial class coinex : Exchange
             response = await this.v2PrivatePostFuturesCancelAllOrder(this.extend(request, parameters));
         } else
         {
-            IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("cancelAllOrders", parameters);
-            string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
+            string? marginMode = marginModeparamsMarginModeVariable.Item1;
+            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
             if ((marginMode != null))
             {
                 request["market_type"] = "MARGIN";
@@ -3551,9 +3551,9 @@ public partial class coinex : Exchange
             }
         } else
         {
-            IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrdersByStatus", paramsMarketType);
-            string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", paramsMarketType);
+            string? marginMode = marginModeparamsMarginModeVariable.Item1;
+            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
             if ((marginMode != null))
             {
                 request["market_type"] = "MARGIN";
@@ -3660,7 +3660,7 @@ public partial class coinex : Exchange
         object paramsOmitted = this.omit(parameters, "network");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ccy", (currency.ContainsKey("id") ? currency["id"] : null) },
-            { "chain", this.networkCodeToId(network, (currency.ContainsKey("code") ? currency["code"] : null)) },
+            { "chain", this.networkCodeToId(network, this.safeString(currency, "code")) },
         };
         Dictionary<string, object> response = await this.v2PrivatePostAssetsRenewalDepositAddress(this.extend(request, paramsOmitted));
         //
@@ -3698,14 +3698,14 @@ public partial class coinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ccy", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddress() requires a \"network\" parameter")) ;
         }
-        request["chain"] = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)); // required for on-chain, not required for inter-user transfer
+        request["chain"] = this.networkCodeToId(networkCode, this.safeString(currency, "code")); // required for on-chain, not required for inter-user transfer
         Dictionary<string, object> response = await this.v2PrivateGetAssetsDepositAddress(this.extend(request, paramsNetworkCode));
         //
         //     {
@@ -3798,9 +3798,9 @@ public partial class coinex : Exchange
             response = await this.v2PrivateGetFuturesUserDeals(this.extend(requestUntil, paramsUntil));
         } else
         {
-            IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchMyTrades", paramsUntil);
-            string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsUntil);
+            string? marginMode = marginModeparamsMarginModeVariable.Item1;
+            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
             if ((marginMode != null))
             {
                 ((IDictionary<string,object>)requestUntil)["market_type"] = "MARGIN";
@@ -3832,9 +3832,9 @@ public partial class coinex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> defaultMethodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
-        string? defaultMethod = (string)defaultMethodparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)defaultMethodparamsMethodVariable[1]);
+        (string?, object) defaultMethodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
+        string? defaultMethod = defaultMethodparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)defaultMethodparamsMethodVariable.Item2);
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market_type", "FUTURES" },
@@ -4136,9 +4136,9 @@ public partial class coinex : Exchange
         {
             throw new BadSymbol ((this.id + " setLeverage() supports swap contracts only")) ;
         }
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters, "cross");
-        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         Int64? minLeverage = this.safeInteger(getValue((market.ContainsKey("limits") ? market["limits"] : null), "leverage"), "min", 1);
         Int64? maxLeverage = this.safeInteger(getValue((market.ContainsKey("limits") ? market["limits"] : null), "leverage"), "max", 100);
         if ((isLessThan(leverage, minLeverage)) || (isGreaterThan(leverage, maxLeverage)))
@@ -4704,12 +4704,12 @@ public partial class coinex : Exchange
         {
             request["memo"] = tagWithdrawTag;
         }
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode != null))
         {
-            request["chain"] = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)); // required for on-chain, not required for inter-user transfer
+            request["chain"] = this.networkCodeToId(networkCode, this.safeString(currency, "code")); // required for on-chain, not required for inter-user transfer
         }
         Dictionary<string, object> response = await this.v2PrivatePostAssetsWithdraw(this.extend(request, paramsNetworkCode));
         //
@@ -4783,9 +4783,9 @@ public partial class coinex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 1000));
@@ -4840,7 +4840,7 @@ public partial class coinex : Exchange
             });
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -5082,9 +5082,9 @@ public partial class coinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ccy", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchTransfers", parameters);
-        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchTransfers", parameters);
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         if ((marginMode != null))
         {
             request["transfer_type"] = "MARGIN";
@@ -5992,7 +5992,7 @@ public partial class coinex : Exchange
         return ((IDictionary<string, object>)((object)(this.parseOrder(data, market))));
     }
 
-    public override List<object> handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
+    public override (string?, object) handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
     {
         /**
         * @ignore
@@ -6004,10 +6004,10 @@ public partial class coinex : Exchange
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
         bool? isMargin = this.safeBool(parameters, "margin", false);
-        var marginModeValueparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
-        var marginModeValue = ((IList<object>) marginModeValueparamsMarginModeVariable)[0];
-        var paramsMarginMode = ((IList<object>) marginModeValueparamsMarginModeVariable)[1];
-        object marginMode = marginModeValue;
+        (string?, object) marginModeValueparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        string? marginModeValue = marginModeValueparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeValueparamsMarginModeVariable.Item2);
+        string? marginMode = marginModeValue;
         if ((marginMode == null))
         {
             if ((defaultType == "margin") || ((isMargin == true)))
@@ -6015,7 +6015,7 @@ public partial class coinex : Exchange
                 marginMode = "isolated";
             }
         }
-        return new List<object>() {marginMode, paramsMarginMode};
+        return (marginMode, paramsMarginMode);
     }
 
     public override Int64 nonce()

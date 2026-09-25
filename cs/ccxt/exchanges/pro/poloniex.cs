@@ -264,9 +264,9 @@ public partial class poloniex : ccxt.poloniex
         if (isMarketBuy)
         {
             string? quoteAmount = null;
-            IList<object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[0];
-            IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1]);
+            (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
+            IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
             double? cost = this.safeNumber(paramsRequiresPrice, "cost");
             paramsOmitted = this.omit(paramsRequiresPrice, "cost");
             if ((cost != null))
@@ -563,9 +563,9 @@ public partial class poloniex : ccxt.poloniex
         }
         IDictionary<string, object> watchOrderBookOptions = this.safeDict(this.options, "watchOrderBook");
         string? name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
-        IList<object> nameOptionparamsNameVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "name", name);
-        string? nameOption = (string)nameOptionparamsNameVariable[0];
-        IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameOptionparamsNameVariable[1]);
+        (string?, object) nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "name", name);
+        string? nameOption = nameOptionparamsNameVariable.Item1;
+        IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameOptionparamsNameVariable.Item2);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(nameOption, nameOption, false, new List<object>() {symbol}, paramsName));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }

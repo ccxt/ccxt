@@ -1359,7 +1359,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             subType = self.safe_string2(self.options.clone(), Value::Str("subType".into()), Value::Str("defaultSubType".into()), &[Value::Str("linear".into())]);
             subType = self.safe_string_k(params.clone(), "subType", &[subType.clone()]);
         }
-        let mut symbolResolved: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { symbol.clone() });
+        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "symbol", &[]) } else { symbol.clone() });
         let mut paramsRequest: Value = (if (symbol != Value::Null) { params.clone() } else { self.omit(params, Value::from(vec![Value::Str("type".into()), Value::Str("subType".into())]), &[]) });
         let mut linear: bool = subType.as_str() == Some("linear");
         let mut swap: bool = type_var.as_str() == Some("swap");

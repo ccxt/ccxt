@@ -2821,7 +2821,7 @@ class bydfi extends Exchange {
         if ($paginate === true) {
             $maxLimit = 50;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
-            $paginatedResponse = Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', $currency['code'], $since, $limit, $paramsPaginate, $maxLimit, true));
+            $paginatedResponse = Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', $this->safe_string($currency, 'code'), $since, $limit, $paramsPaginate, $maxLimit, true));
             return $this->sort_by($paginatedResponse, 'timestamp');
         }
         $request = array(
@@ -2968,7 +2968,7 @@ class bydfi extends Exchange {
         if ($paginate === true) {
             $maxLimit = 50;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
-            $paginatedResponse = Async\await($this->fetch_paginated_call_dynamic($methodName, $currency['code'], $since, $limit, $paramsPaginate, $maxLimit, true));
+            $paginatedResponse = Async\await($this->fetch_paginated_call_dynamic($methodName, $this->safe_string($currency, 'code'), $since, $limit, $paramsPaginate, $maxLimit, true));
             return $this->sort_by($paginatedResponse, 'timestamp');
         }
         $request = array(

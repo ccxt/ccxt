@@ -4089,7 +4089,7 @@ class coinbase(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        request, paramsValue = await self.prepare_account_request_with_currency_code(currency['code'], None, params)
+        request, paramsValue = await self.prepare_account_request_with_currency_code(self.safe_string(currency, 'code'), None, params)
         response = await self.v2PrivateGetAccountsAccountIdAddresses(self.extend(request, paramsValue))
         #
         #    {

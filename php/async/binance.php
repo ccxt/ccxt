@@ -10374,7 +10374,7 @@ class binance extends Exchange {
         );
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['network'] = $this->network_code_to_id($networkCode, $currency['code']);
+            $request['network'] = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         }
         // has support for the 'network' parameter
         $response = Async\await($this->sapiGetCapitalDepositAddress($this->extend($request, $paramsNetworkCode)));
@@ -10720,7 +10720,7 @@ class binance extends Exchange {
         }
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
-            $request['network'] = $this->network_code_to_id($networkCode, $currency['code']);
+            $request['network'] = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         }
         $request['amount'] = $this->currency_to_precision($currency['code'], $amount, $networkCode);
         $response = Async\await($this->sapiPostCapitalWithdrawApply($this->extend($request, $paramsNetworkCode)));
@@ -13630,7 +13630,7 @@ class binance extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noCoin' ?? '', $config)) && !(is_array($params) && array_key_exists('coin' ?? '', $params))) {
             return $config['noCoin'];
         } elseif ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
@@ -13651,11 +13651,11 @@ class binance extends Exchange {
         return $this->safe_number($config, 'cost', 1);
     }
 
-    public function request(string $path, $api = 'public', mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, mixed $config = array()) {
+    public function request(string $path, $api = 'public', mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
         return Async\async(self::do_request(...))($path, $api, $method, $params, $headers, $body, $config);
     }
 
-    private function do_request(string $path, $api = 'public', mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, mixed $config = array()) {
+    private function do_request(string $path, $api = 'public', mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
         $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if ($api === 'private') {

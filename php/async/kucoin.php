@@ -2544,7 +2544,7 @@ class kucoin extends Exchange {
         );
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $_netIdTmp = $this->network_code_to_id($networkCode, $currency['code']);
+            $_netIdTmp = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
             if ($_netIdTmp !== null) {
                 $request['chain'] = strtolower($_netIdTmp);
             }
@@ -2584,7 +2584,7 @@ class kucoin extends Exchange {
         );
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $_netIdTmp = $this->network_code_to_id($networkCode, $currency['code']);
+            $_netIdTmp = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
             if ($_netIdTmp !== null) {
                 $request['chain'] = strtolower($_netIdTmp);
             }
@@ -2678,7 +2678,7 @@ class kucoin extends Exchange {
         $networkId = $this->safe_string($fee, 'chain');
         $currencyId = $this->safe_string($fee, 'currency');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
-        $networkCode = $this->network_id_to_code($networkId, $currencyResolved['code']);
+        $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currencyResolved, 'code'));
         if ($networkCode !== null) {
             $result['networks'][$networkCode] = array(
                 'withdraw' => $minWithdrawFee,
@@ -3683,7 +3683,7 @@ class kucoin extends Exchange {
         );
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chain'] = $this->network_code_to_id($networkCode, $currency['code']); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+            $request['chain'] = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
         $response = Async\await($this->privatePostDepositAddressCreate($this->extend($request, $paramsNetworkCode)));
         // {"code":"260000","msg":"Deposit address already exists."}
@@ -3748,7 +3748,7 @@ class kucoin extends Exchange {
         $networkCode = null;
         list($networkCode, $paramsRequest) = $this->handle_network_code_and_params($paramsRequest);
         if ($networkCode !== null) {
-            $_netIdTmp = $this->network_code_to_id($networkCode, $currency['code']);
+            $_netIdTmp = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
             if ($_netIdTmp !== null) {
                 $request['chain'] = strtolower($_netIdTmp);
             }
@@ -4196,8 +4196,7 @@ class kucoin extends Exchange {
         list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($paramsSync);
         $tradeType = $this->safe_string($paramsSync, 'tradeType'); // keep it for backward compatibility
         $isTriggerOrder = ($triggerPrice !== null) || ($stopLossPrice !== null) || ($takeProfitPrice !== null);
-        $marginResult = $this->handle_margin_mode_and_params('createOrder', $paramsSync);
-        $marginMode = $this->safe_string($marginResult, 0);
+        $marginMode = $this->handle_margin_mode_and_params('createOrder', $paramsSync)[0];
         $isMarginOrder = $tradeType === 'MARGIN_TRADE' || $marginMode !== null;
         // don't omit anything before calling createOrderRequest
         $orderRequest = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $paramsSync);
@@ -7924,7 +7923,7 @@ class kucoin extends Exchange {
         }
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
-            $_netIdTmp = $this->network_code_to_id($networkCode, $currency['code']);
+            $_netIdTmp = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
             if ($_netIdTmp !== null) {
                 $request['chain'] = strtolower($_netIdTmp);
             }
@@ -9524,7 +9523,7 @@ class kucoin extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         $versions = $this->safe_dict($this->options, 'versions', array());
         $apiVersions = $this->safe_dict($versions, $api, array());
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
@@ -9806,8 +9805,7 @@ class kucoin extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $marginResult = $this->handle_margin_mode_and_params('fetchBorrowRateHistories', $params);
-        $marginMode = $this->safe_string($marginResult, 0, 'cross');
+        $marginMode = $this->handle_margin_mode_and_params('fetchBorrowRateHistories', $params, 'cross')[0];
         $isIsolated = ($marginMode === 'isolated'); // true-isolated, false-cross
         $request = array(
             'isIsolated' => $isIsolated,
@@ -9866,8 +9864,7 @@ class kucoin extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $marginResult = $this->handle_margin_mode_and_params('fetchBorrowRateHistories', $params);
-        $marginMode = $this->safe_string($marginResult, 0, 'cross');
+        $marginMode = $this->handle_margin_mode_and_params('fetchBorrowRateHistories', $params, 'cross')[0];
         $isIsolated = ($marginMode === 'isolated'); // true-isolated, false-cross
         $currency = $this->currency($code);
         $request = array(

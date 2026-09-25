@@ -492,7 +492,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $messageHash = 'user.trade';
         $messageHash = ($market !== null) ? ($messageHash . '.' . $market['id']) : $messageHash;
@@ -900,7 +900,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $messageHash = 'user.order';
         $messageHash = ($market !== null) ? ($messageHash . '.' . $market['id']) : $messageHash;

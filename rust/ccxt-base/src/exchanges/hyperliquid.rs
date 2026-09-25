@@ -6605,14 +6605,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (in_op(&config, &Value::Str("byType".into()))) && (in_op(&params, &Value::Str("type".into()))) {
+        let __config_empty = indexmap::IndexMap::new();
+        let config = config.as_map().unwrap_or(&__config_empty);
+        if (config.contains_key("byType")) && (in_op(&params, &Value::Str("type".into()))) {
             let mut type_var: Value = crate::value::get_value_k(&params, "type");
-            let mut byType: Value = config.as_map().and_then(|__m| __m.get("byType")).cloned().unwrap_or(Value::Null);
+            let mut byType: Value = config.get("byType").cloned().unwrap_or(Value::Null);
             if (in_op(&byType, &type_var)) {
                 return get_value(&byType, &type_var);
             }
         }
-        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
+        return (match config.get("cost") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Int(1) });
 
     Value::Null
 }

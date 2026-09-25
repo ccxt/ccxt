@@ -2398,7 +2398,7 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chainType", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))));
+                request.put("chainType", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             }
             Map<String, Object> response = (this.privatePostApiV1AccountWithdraw(this.extend(request, paramsNetworkCode))).join();
             //

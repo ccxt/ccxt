@@ -2857,7 +2857,7 @@ impl OkxCore {
         let mut type_var: Value = typeOption;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
             type_var = self.safe_string_k(market, "type", &[]);
         }
         if (type_var.as_str() == Some("future")) {

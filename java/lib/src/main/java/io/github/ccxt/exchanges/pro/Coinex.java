@@ -495,11 +495,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
             }
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
@@ -540,7 +540,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -842,7 +842,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchTrades");
+            parameters.put("callerMethodName", "watchTrades");
             return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1011,7 +1011,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOrderBook");
+            parameters.put("callerMethodName", "watchOrderBook");
             return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
         }).thenApply(OrderBook::new);
 
@@ -1129,11 +1129,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             String messageHash = "orders";
             Map<String, Object> market = null;
             List<Object> marketList = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
             }
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, "spot");
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
@@ -1181,7 +1181,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

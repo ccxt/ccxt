@@ -2518,7 +2518,7 @@ public class Gemini extends GeminiApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddresses() requires a network parameter")) ;
             }
-            Object networkId = this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")));
+            Object networkId = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "network", networkId );
             }};

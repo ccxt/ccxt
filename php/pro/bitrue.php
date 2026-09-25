@@ -219,7 +219,7 @@ class bitrue extends \ccxt\async\bitrue {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $url = Async\await($this->authenticate());
         $messageHash = 'orders';

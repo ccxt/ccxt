@@ -939,7 +939,7 @@ class aster extends \ccxt\async\aster {
         if ($market === null) {
             $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         } else {
-            $defaultType = $market['type'];
+            $defaultType = $this->safe_string($market, 'type');
         }
         $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
         $side = $this->safe_string_lower($trade, 'S');
@@ -1898,7 +1898,7 @@ class aster extends \ccxt\async\aster {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $messageHash = 'orders';
         $type = null;
@@ -1946,7 +1946,7 @@ class aster extends \ccxt\async\aster {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $messageHash = 'myTrades';
         $type = null;

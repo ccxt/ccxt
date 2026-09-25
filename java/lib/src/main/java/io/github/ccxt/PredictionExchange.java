@@ -150,7 +150,7 @@ public Object describe()
         for (var i = 0; (extraScopeParamsLength != null && i < extraScopeParamsLength); i++)
         {
             Object scopeKey = (extraScopeParams == null || i < 0 || i >= extraScopeParams.size() ? null : extraScopeParams.get(i));
-            if ((scopeKey != null && ((Map<?, ?>)parameters).containsKey(scopeKey)))
+            if ((scopeKey != null && parameters.containsKey(scopeKey)))
             {
                 return null;
             }

@@ -5576,7 +5576,7 @@ func (this *Mexc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 
@@ -6931,7 +6931,7 @@ func (this *Mexc) withdrawBody(ch chan any, code string, amount any, address any
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network any = DerefScalar(this.SafeString2(paramsWithdrawTag, "network", "netWork")) // this line allows the user to specify either ERC20 or ETH
 	network = DerefScalar(this.SafeString(networks, network, network))                       // handle ETH > ERC-20 alias
-	network = this.NetworkCodeToId(network, currency["code"])
+	network = this.NetworkCodeToId(network, this.SafeString(currency, "code"))
 	this.CheckAddress(address)
 	var request map[string]any = map[string]any{
 		"coin":    currency["id"],
@@ -7386,11 +7386,8 @@ func (this *Mexc) HandleMarginModeAndParams(methodName any, optionalArgs ...any)
 	_ = defaultValue
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)
-	var marginMode any = nil
-	var paramsMarginMode any = nil
-	marginModeparamsMarginModeVariable := TupleSlice(this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue))
-	marginMode = GetValue(marginModeparamsMarginModeVariable, 0)
-	paramsMarginMode = GetValue(marginModeparamsMarginModeVariable, 1)
+	marginModeValue, paramsMarginMode := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
+	var marginMode any = marginModeValue
 	if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true) {
 		marginMode = "isolated"
 	}

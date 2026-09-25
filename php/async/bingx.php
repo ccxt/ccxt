@@ -6494,7 +6494,7 @@ class bingx extends Exchange {
         );
         $network = $this->safe_string_upper($paramsWalletType, 'network');
         if ($network !== null) {
-            $request['network'] = $this->network_code_to_id($network, $currency['code']);
+            $request['network'] = $this->network_code_to_id($network, $this->safe_string($currency, 'code'));
         }
         if ($tagWithdrawTag !== null) {
             $request['addressTag'] = $tagWithdrawTag;

@@ -1505,7 +1505,7 @@ public class Phemex extends PhemexApi
             throw new ArgumentsRequired((this.id + " customParseBidAsk() requires a market argument")) ;
         }
         Object amount = this.safeString(bidask, java.util.Objects.requireNonNullElse(amountKey, 1));
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+        if (java.util.Objects.equals(market.get("spot"), true))
         {
             amount = this.fromEv(amount, market);
         }
@@ -1697,7 +1697,7 @@ public class Phemex extends PhemexApi
         //     ]
         //
         Double baseVolume = null;
-        if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))
+        if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("spot"), true)))
         {
             baseVolume = this.parseNumber(this.fromEv(this.safeString(ohlcv, 7), market));
         } else
@@ -4989,7 +4989,7 @@ public class Phemex extends PhemexApi
             return value;
         }
         // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
-        Boolean isStableSettled = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT") || java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC");
+        Boolean isStableSettled = java.util.Objects.equals(market.get("settle"), "USDT") || java.util.Objects.equals(market.get("settle"), "USDC");
         if (Boolean.TRUE.equals(isStableSettled))
         {
             return value;

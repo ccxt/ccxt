@@ -1078,7 +1078,7 @@ class bittrade extends Exchange {
             }
         }
         $result = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($result, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {

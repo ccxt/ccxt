@@ -3270,7 +3270,7 @@ class poloniex extends Exchange {
                     for ($j = 0; $j < count($childChains); $j++) {
                         $networkId = $childChains[$j];
                         $networkId = str_replace($code, '', $networkId);
-                        $networkCode = $this->network_id_to_code($networkId, $currency['code']);
+                        $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
                         $networkInfo = $this->safe_dict($response, $networkId);
                         $networkObject = array();
                         $withdrawFee = $this->safe_number($networkInfo, 'withdrawalFee');

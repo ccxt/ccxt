@@ -448,7 +448,7 @@ class coinex extends \ccxt\async\coinex {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params, 'spot');
         Async\await($this->authenticate($type));
@@ -1001,7 +1001,7 @@ class coinex extends \ccxt\async\coinex {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchOrders', $market, $paramsOmitted, 'spot');
         Async\await($this->authenticate($type));

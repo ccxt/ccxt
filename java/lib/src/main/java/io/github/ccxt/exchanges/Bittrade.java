@@ -1373,7 +1373,7 @@ public class Bittrade extends BittradeApi
                 }
             }
             result = this.sortBy(result, "timestamp");
-            return this.filterBySymbolSinceLimit(result, Helpers.toStringArg(market.get("symbol")), since, java.util.Objects.requireNonNullElse(limit, 1000L), false);
+            return this.filterBySymbolSinceLimit(result, this.safeString(market, "symbol"), since, java.util.Objects.requireNonNullElse(limit, 1000L), false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1998,7 +1998,7 @@ public class Bittrade extends BittradeApi
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 

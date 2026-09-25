@@ -669,7 +669,7 @@ class lighter extends \ccxt\async\lighter {
         $request = array(
             'channel' => 'trade/' . $market['id'],
         );
-        $messageHash = $this->get_message_hash('trade', $market['symbol']);
+        $messageHash = $this->get_message_hash('trade', $this->safe_string($market, 'symbol'));
         $trades = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
@@ -695,7 +695,7 @@ class lighter extends \ccxt\async\lighter {
         $request = array(
             'channel' => 'trade/' . $market['id'],
         );
-        $subMessageHash = $this->get_message_hash('trade', $market['symbol']);
+        $subMessageHash = $this->get_message_hash('trade', $this->safe_string($market, 'symbol'));
         $messageHash = 'unsubscribe:' . $subMessageHash;
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
@@ -886,7 +886,7 @@ class lighter extends \ccxt\async\lighter {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash = $this->get_message_hash('myTrades', $symbolResolved);
         }
         $request = array(
@@ -1218,7 +1218,7 @@ class lighter extends \ccxt\async\lighter {
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash = $this->get_message_hash('orders', $market['symbol']);
+            $messageHash = $this->get_message_hash('orders', $this->safe_string($market, 'symbol'));
             $request['channel'] = 'account_orders/' . $market['id'] . '/' . $this->number_to_string($accountIndex);
         } else {
             $messageHash = $this->get_message_hash('orders');
@@ -1254,7 +1254,7 @@ class lighter extends \ccxt\async\lighter {
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $subMessageHash = $this->get_message_hash('orders', $market['symbol']);
+            $subMessageHash = $this->get_message_hash('orders', $this->safe_string($market, 'symbol'));
             $request['channel'] = 'account_orders/' . $market['id'] . '/' . $this->number_to_string($accountIndex);
         } else {
             $subMessageHash = $this->get_message_hash('orders');

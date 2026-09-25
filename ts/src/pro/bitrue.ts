@@ -204,7 +204,7 @@ export default class bitrue extends bitrueRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         const url = await this.authenticate ();
         const messageHash = 'orders';

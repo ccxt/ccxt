@@ -3904,7 +3904,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 				for j := 0; j < GetArrayLength(childChains); j++ {
 					var networkId any = GetValue(childChains, j)
 					networkId = Replace(networkId, code, "")
-					var networkCode *string = this.NetworkIdToCode(networkId, currency["code"])
+					var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 					var networkInfo map[string]any = SafeMapTyped(response, networkId)
 					var networkObject map[string]any = map[string]any{}
 					var withdrawFee *float64 = this.SafeNumber(networkInfo, "withdrawalFee")

@@ -3085,7 +3085,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Object _netIdTmp = this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")));
+                Object _netIdTmp = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
                 if (!java.util.Objects.equals(_netIdTmp, null))
                 {
                     request.put("chain", ((String)_netIdTmp).toLowerCase());
@@ -3132,7 +3132,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Object _netIdTmp = this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")));
+                Object _netIdTmp = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
                 if (!java.util.Objects.equals(_netIdTmp, null))
                 {
                     request.put("chain", ((String)_netIdTmp).toLowerCase());
@@ -3233,7 +3233,7 @@ public class Kucoin extends KucoinApi
         String networkId = this.safeString(fee, "chain");
         String currencyId = this.safeString(fee, "currency");
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
-        String networkCode = this.networkIdToCode(networkId, Helpers.toStringArg(currencyResolved.get("code")));
+        String networkCode = this.networkIdToCode(networkId, this.safeString(currencyResolved, "code"));
         if (!java.util.Objects.equals(networkCode, null))
         {
             Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
@@ -4274,7 +4274,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chain", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")))); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+                request.put("chain", this.networkCodeToId(networkCode, this.safeString(currency, "code"))); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
             }
             Map<String, Object> response = (this.privatePostDepositAddressCreate(this.extend(request, paramsNetworkCode))).join();
             // {"code":"260000","msg":"Deposit address already exists."}
@@ -4350,7 +4350,7 @@ public class Kucoin extends KucoinApi
             paramsRequest = (Map<String, Object>) ((List<Object>) networkCodeparamsRequestVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Object _netIdTmp = this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")));
+                Object _netIdTmp = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
                 if (!java.util.Objects.equals(_netIdTmp, null))
                 {
                     request.put("chain", ((String)_netIdTmp).toLowerCase());
@@ -4434,7 +4434,7 @@ public class Kucoin extends KucoinApi
         String code = null;
         if (!java.util.Objects.equals(currency, null))
         {
-            code = this.safeCurrencyCode((String) (((Map<String, Object>)currency).get("id")), (Map<String, Object>) null);
+            code = this.safeCurrencyCode((String) (currency.get("id")), (Map<String, Object>) null);
             if (!java.util.Objects.equals(code, "NIM"))
             {
                 // contains spaces
@@ -4850,8 +4850,7 @@ public class Kucoin extends KucoinApi
             var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(2);
             String tradeType = this.safeString(paramsSync, "tradeType"); // keep it for backward compatibility
             Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null));
-            Object marginResult = this.handleMarginModeAndParams("createOrder", paramsSync, (String) null);
-            String marginMode = this.safeString(marginResult, 0);
+            String marginMode = (String) ((List<Object>)this.handleMarginModeAndParams("createOrder", paramsSync, (String) null)).get(0);
             Boolean isMarginOrder = java.util.Objects.equals(tradeType, "MARGIN_TRADE") || !java.util.Objects.equals(marginMode, null);
             // don't omit anything before calling createOrderRequest
             Map<String, Object> orderRequest = this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsSync);
@@ -9075,7 +9074,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Object _netIdTmp = this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")));
+                Object _netIdTmp = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
                 if (!java.util.Objects.equals(_netIdTmp, null))
                 {
                     request.put("chain", ((String)_netIdTmp).toLowerCase());
@@ -10281,18 +10280,18 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsTransferType = (Map<String, Object>) ((List<Object>) transferTypeOptionparamsTransferTypeVariable).get(1);
             if (java.util.Objects.equals(transferTypeOption, "PARENT_TO_SUB"))
             {
-                if (!(Helpers.inOp(paramsTransferType, "toUserId")))
+                if (!(((Map<?, ?>)paramsTransferType).containsKey("toUserId")))
                 {
                     throw new ExchangeError((this.id + " transfer() requires a toUserId param for PARENT_TO_SUB transfers")) ;
                 }
             } else if (java.util.Objects.equals(transferTypeOption, "SUB_TO_PARENT"))
             {
-                if (!(Helpers.inOp(paramsTransferType, "fromUserId")))
+                if (!(((Map<?, ?>)paramsTransferType).containsKey("fromUserId")))
                 {
                     throw new ExchangeError((this.id + " transfer() requires a fromUserId param for SUB_TO_PARENT transfers")) ;
                 }
             }
-            if (!(Helpers.inOp(paramsTransferType, "clientOid")))
+            if (!(((Map<?, ?>)paramsTransferType).containsKey("clientOid")))
             {
                 request.put("clientOid", this.uuid());
             }
@@ -10883,22 +10882,22 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
         Map<String, Object> versions = (Map<String, Object>) this.safeDict(this.options, "versions", new HashMap<String, Object>() {{}});
         Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(versions, api, new HashMap<String, Object>() {{}});
         Map<String, Object> methodVersions = (Map<String, Object>) this.safeDict(apiVersions, method, new HashMap<String, Object>() {{}});
         String defaultVersion = this.safeString(methodVersions, path, this.options.get("version"));
         String version = this.safeString(parameters, "version", defaultVersion);
-        if (java.util.Objects.equals(version, "v3") && (Helpers.inOp(config, "v3")))
+        if (java.util.Objects.equals(version, "v3") && (config.containsKey("v3")))
         {
-            return Helpers.GetValue(config, "v3");
-        } else if (java.util.Objects.equals(version, "v2") && (Helpers.inOp(config, "v2")))
+            return config.get("v3");
+        } else if (java.util.Objects.equals(version, "v2") && (config.containsKey("v2")))
         {
-            return Helpers.GetValue(config, "v2");
-        } else if (java.util.Objects.equals(version, "v1") && (Helpers.inOp(config, "v1")))
+            return config.get("v2");
+        } else if (java.util.Objects.equals(version, "v1") && (config.containsKey("v1")))
         {
-            return Helpers.GetValue(config, "v1");
+            return config.get("v1");
         }
         return this.safeValue(config, "cost", 1);
     }
@@ -11189,8 +11188,7 @@ public class Kucoin extends KucoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object marginResult = this.handleMarginModeAndParams("fetchBorrowRateHistories", parameters, (String) null);
-            String marginMode = this.safeString(marginResult, 0, "cross");
+            String marginMode = (String) ((List<Object>)this.handleMarginModeAndParams("fetchBorrowRateHistories", parameters, "cross")).get(0);
             Boolean isIsolated = (java.util.Objects.equals(marginMode, "isolated")); // true-isolated, false-cross
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "isIsolated", isIsolated );
@@ -11256,8 +11254,7 @@ public class Kucoin extends KucoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object marginResult = this.handleMarginModeAndParams("fetchBorrowRateHistories", parameters, (String) null);
-            String marginMode = this.safeString(marginResult, 0, "cross");
+            String marginMode = (String) ((List<Object>)this.handleMarginModeAndParams("fetchBorrowRateHistories", parameters, "cross")).get(0);
             Boolean isIsolated = (java.util.Objects.equals(marginMode, "isolated")); // true-isolated, false-cross
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{

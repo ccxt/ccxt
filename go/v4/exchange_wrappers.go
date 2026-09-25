@@ -715,14 +715,14 @@ func (this *ExchangeTyped) FetchWebEndpoint(method string, endpointMethod any, r
 	}
 	return res.Value, nil
 }
-func (this *ExchangeTyped) Fetch2(path string, options ...Fetch2Options) (map[string]any, error) {
+func (this *ExchangeTyped) Fetch2(path string, config map[string]any, options ...Fetch2Options) (map[string]any, error) {
 
 	opts := Fetch2OptionsStruct{}
 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[map[string]any] = AwaitResult(AssertAs[map[string]any], this.Exchange.Fetch2Async(path, opts.Api, opts.Method, opts.Params, opts.Headers, opts.Body, opts.Config))
+	var res AsyncResult[map[string]any] = AwaitResult(AssertAs[map[string]any], this.Exchange.Fetch2Async(path, opts.Api, opts.Method, opts.Params, opts.Headers, opts.Body, config))
 	if res.Err != nil {
 		return map[string]any{}, res.Err
 	}
@@ -3837,14 +3837,14 @@ func (this *BaseExchangeTyped) FetchWebEndpoint(method string, endpointMethod an
 	}
 	return res.Value, nil
 }
-func (this *BaseExchangeTyped) Fetch2(path string, options ...Fetch2Options) (map[string]any, error) {
+func (this *BaseExchangeTyped) Fetch2(path string, config map[string]any, options ...Fetch2Options) (map[string]any, error) {
 
 	opts := Fetch2OptionsStruct{}
 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[map[string]any] = AwaitResult(AssertAs[map[string]any], this.BaseExchange.Fetch2Async(path, opts.Api, opts.Method, opts.Params, opts.Headers, opts.Body, opts.Config))
+	var res AsyncResult[map[string]any] = AwaitResult(AssertAs[map[string]any], this.BaseExchange.Fetch2Async(path, opts.Api, opts.Method, opts.Params, opts.Headers, opts.Body, config))
 	if res.Err != nil {
 		return map[string]any{}, res.Err
 	}

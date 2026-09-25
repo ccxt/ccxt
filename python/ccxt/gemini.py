@@ -1919,7 +1919,7 @@ class gemini(Exchange, ImplicitAPI):
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddresses() requires a network parameter')
-        networkId = self.network_code_to_id(networkCode, currency['code'])
+        networkId = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
         request = {
             'network': networkId,
         }
