@@ -3338,14 +3338,14 @@ func (this *Okx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var instType *string = this.SafeString(ticker, "instType")
-	var marketType any = nil
+	var marketType *string = nil
 	if instType != nil {
-		marketType = func() string {
+		marketType = SafeStringPtr(func() string {
 			if instType != nil && *instType == "SPOT" {
 				return "spot"
 			}
 			return "swap"
-		}()
+		}())
 	}
 	var timestamp *int64 = this.SafeInteger(ticker, "ts")
 	var marketId *string = this.SafeString(ticker, "instId")
@@ -6843,15 +6843,15 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	method = this.SafeString(params, "method", method)
 	params = MapTyped(this.Omit(params, "method"))
 	var request map[string]any = map[string]any{}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchLedger", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	if IsEqual(marginMode, nil) {
-		marginMode = DerefScalar(this.SafeString(params, "mgnMode"))
+	if marginMode == nil {
+		marginMode = this.SafeString(params, "mgnMode")
 	}
 	if method == nil || *method != "privateGetAssetBills" {
-		if !IsEqual(marginMode, nil) {
+		if marginMode != nil {
 			request["mgnMode"] = marginMode
 		}
 	}

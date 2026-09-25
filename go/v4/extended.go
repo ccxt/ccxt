@@ -3465,22 +3465,22 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		}())
 	}
 	var fee *string = this.SafeString(params, "fee", "0.0005")
-	var builderFeeRate any = nil
-	var builderId any = nil
+	var builderFeeRate *string = nil
+	var builderId *string = nil
 	if this.IsSandboxModeEnabled {
-		builderFeeRate = DerefScalar(this.SafeString2(params, "builderFeeRate", "defaultBuilderFeeRate"))
-		builderId = DerefScalar(this.SafeString2(params, "builderId", "defaultBuilderId"))
+		builderFeeRate = this.SafeString2(params, "builderFeeRate", "defaultBuilderFeeRate")
+		builderId = this.SafeString2(params, "builderId", "defaultBuilderId")
 		params = MapTyped(this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"}))
 	} else {
 		var builderFeeRateparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
-		builderFeeRate = GetValue(builderFeeRateparamsVariable, 0)
+		builderFeeRate = SafeStringPtr(GetValue(builderFeeRateparamsVariable, 0))
 		params = MapTyped(GetValue(builderFeeRateparamsVariable, 1))
 		var builderIdparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "builderId")
-		builderId = GetValue(builderIdparamsVariable, 0)
+		builderId = SafeStringPtr(GetValue(builderIdparamsVariable, 0))
 		params = MapTyped(GetValue(builderIdparamsVariable, 1))
 	}
 	var totalFee *string = fee
-	if !IsEqual(builderFeeRate, nil) {
+	if builderFeeRate != nil {
 		totalFee = Precise.StringAdd(fee, builderFeeRate)
 	}
 	var now int64 = this.Milliseconds()
@@ -3528,10 +3528,10 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		"reduceOnly":               reduceOnly,
 		"selfTradeProtectionLevel": "ACCOUNT",
 	}
-	if !IsEqual(builderFeeRate, nil) {
+	if builderFeeRate != nil {
 		request["builderFee"] = builderFeeRate
 	}
-	if !IsEqual(builderId, nil) {
+	if builderId != nil {
 		request["builderId"] = builderId
 	}
 	var cancelId *string = this.SafeString2(params, "cancelId", "previousOrderId")

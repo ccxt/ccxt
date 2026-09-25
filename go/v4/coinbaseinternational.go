@@ -855,9 +855,9 @@ func (this *Coinbaseinternational) fetchFundingHistoryBody(ch chan any, optional
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var portfolios any = nil
+	var portfolios *string = nil
 	var portfoliosparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchFundingHistory", "portfolios")
-	portfolios = GetValue(portfoliosparamsVariable, 0)
+	portfolios = SafeStringPtr(GetValue(portfoliosparamsVariable, 0))
 	params = MapTyped(GetValue(portfoliosparamsVariable, 1))
 	if portfolios != nil {
 		request["portfolios"] = portfolios
@@ -958,9 +958,9 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan any, optionalArgs 
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var portfolios any = nil
+	var portfolios *string = nil
 	var portfoliosparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchTransfers", "portfolios")
-	portfolios = GetValue(portfoliosparamsVariable, 0)
+	portfolios = SafeStringPtr(GetValue(portfoliosparamsVariable, 0))
 	params = MapTyped(GetValue(portfoliosparamsVariable, 1))
 	if portfolios != nil {
 		request["portfolios"] = portfolios
@@ -1075,9 +1075,9 @@ func (this *Coinbaseinternational) createDepositAddressBody(ch chan any, code an
 	if method != nil && *method == "v1PrivatePostTransfersAddress" {
 		var currency map[string]any = this.Currency(code)
 		request["asset"] = currency["id"]
-		var networkId any = nil
+		var networkId *string = nil
 		var networkIdparamsVariable []any = ListTyped(PanicOnError((<-this.HandleNetworkIdAndParamsAsync(code, "createDepositAddress", params))))
-		networkId = GetValue(networkIdparamsVariable, 0)
+		networkId = SafeStringPtr(GetValue(networkIdparamsVariable, 0))
 		params = GetValue(networkIdparamsVariable, 1)
 		request["network_arn_id"] = networkId
 	}
@@ -1342,9 +1342,9 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 		var newLimit any = mathMin(limit, 100)
 		request["result_limit"] = newLimit
 	}
-	var portfolios any = nil
+	var portfolios *string = nil
 	var portfoliosparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchDepositsWithdrawals", "portfolios")
-	portfolios = GetValue(portfoliosparamsVariable, 0)
+	portfolios = SafeStringPtr(GetValue(portfoliosparamsVariable, 0))
 	params = MapTyped(GetValue(portfoliosparamsVariable, 1))
 	if portfolios != nil {
 		request["portfolios"] = portfolios
@@ -2364,9 +2364,9 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 		}
 		request["price"] = price
 	}
-	var portfolio any = nil
+	var portfolio *string = nil
 	var portfolioparamsVariable []any = ListTyped(PanicOnError((<-this.HandlePortfolioAndParamsAsync("createOrder", params))))
-	portfolio = GetValue(portfolioparamsVariable, 0)
+	portfolio = SafeStringPtr(GetValue(portfolioparamsVariable, 0))
 	params = GetValue(portfolioparamsVariable, 1)
 	if portfolio != nil {
 		request["portfolio"] = portfolio
@@ -2654,9 +2654,9 @@ func (this *Coinbaseinternational) editOrderBody(ch chan any, id any, symbol any
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
-	var portfolio any = nil
+	var portfolio *string = nil
 	var portfolioparamsVariable []any = ListTyped(PanicOnError((<-this.HandlePortfolioAndParamsAsync("editOrder", params))))
-	portfolio = GetValue(portfolioparamsVariable, 0)
+	portfolio = SafeStringPtr(GetValue(portfolioparamsVariable, 0))
 	params = GetValue(portfolioparamsVariable, 1)
 	if portfolio != nil {
 		request["portfolio"] = portfolio

@@ -597,10 +597,10 @@ public partial class onetrading : Exchange
         string? state = this.safeString(market, "state");
         string? type = this.safeString(market, "type");
         bool isPerp = type == "PERP";
-        object symbol = ((bs + "/") + quote);
+        string symbol = ((bs + "/") + quote);
         if (isPerp)
         {
-            symbol = add(add(symbol, ":"), quote);
+            symbol = ((symbol + ":") + quote);
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },

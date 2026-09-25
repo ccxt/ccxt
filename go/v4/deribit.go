@@ -1887,13 +1887,13 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		"currency": currency["id"],
 	}
 	if typeVar != nil {
-		var requestType any = nil
+		var requestType *string = nil
 		if typeVar != nil && *typeVar == "spot" {
-			requestType = "spot"
+			requestType = SafeStringPtr("spot")
 		} else if (typeVar != nil && *typeVar == "future") || (typeVar != nil && *typeVar == "contract") {
-			requestType = "future"
+			requestType = SafeStringPtr("future")
 		} else if typeVar != nil && *typeVar == "option" {
-			requestType = "option"
+			requestType = SafeStringPtr("option")
 		}
 		if requestType != nil {
 			request["kind"] = requestType

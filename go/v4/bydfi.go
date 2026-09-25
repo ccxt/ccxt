@@ -3211,9 +3211,9 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var wallet any = nil
+	var wallet *string = nil
 	var walletparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchBalance", "wallet")
-	wallet = GetValue(walletparamsVariable, 0)
+	wallet = SafeStringPtr(GetValue(walletparamsVariable, 0))
 	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil

@@ -1588,9 +1588,9 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
-	var accountId any = nil
+	var accountId *string = nil
 	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "accountId")
-	accountId = GetValue(accountIdparamsVariable, 0)
+	accountId = SafeStringPtr(GetValue(accountIdparamsVariable, 0))
 	params = MapTyped(GetValue(accountIdparamsVariable, 1))
 	var response []any = nil
 	if IsEqual(marketType, "spot") {
@@ -3198,16 +3198,16 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, a
 		suffix = "_CLOSE"
 	}
 	request["side"] = ToUpper(side) + suffix
-	var timeInForce any = nil
+	var timeInForce *string = nil
 	var timeInForceparamsVariable []any = this.HandleParamString(params, "timeInForce")
-	timeInForce = GetValue(timeInForceparamsVariable, 0)
+	timeInForce = SafeStringPtr(GetValue(timeInForceparamsVariable, 0))
 	params = GetValue(timeInForceparamsVariable, 1)
 	var postOnly bool = false
-	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarketOrder, (IsEqual(timeInForce, "LIMIT_MAKER")), params)
+	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarketOrder, (timeInForce != nil && *timeInForce == "LIMIT_MAKER"), params)
 	postOnly = GetValueBool(postOnlyparamsVariable, 0, false)
 	params = GetValue(postOnlyparamsVariable, 1)
 	if postOnly {
-		timeInForce = "LIMIT_MAKER"
+		timeInForce = SafeStringPtr("LIMIT_MAKER")
 	}
 	if timeInForce != nil {
 		request["timeInForce"] = timeInForce
@@ -3581,9 +3581,9 @@ func (this *Hashkey) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var clientOrderId any = nil
+	var clientOrderId *string = nil
 	var clientOrderIdparamsVariable []any = this.HandleParamString(params, "clientOrderId")
-	clientOrderId = GetValue(clientOrderIdparamsVariable, 0)
+	clientOrderId = SafeStringPtr(GetValue(clientOrderIdparamsVariable, 0))
 	params = GetValue(clientOrderIdparamsVariable, 1)
 	if clientOrderId == nil {
 		request["orderId"] = id
@@ -3733,9 +3733,9 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan any, optionalArgs ...any) a
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	var response []any = nil
-	var accountId any = nil
+	var accountId *string = nil
 	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "accountId")
-	accountId = GetValue(accountIdparamsVariable, 0)
+	accountId = SafeStringPtr(GetValue(accountIdparamsVariable, 0))
 	params = GetValue(accountIdparamsVariable, 1)
 	if accountId != nil {
 		request["subAccountId"] = accountId
@@ -3814,9 +3814,9 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan any, optionalArgs ...any) a
 		request["limit"] = limit
 	}
 	var response []any = nil
-	var accountId any = nil
+	var accountId *string = nil
 	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "accountId")
-	accountId = GetValue(accountIdparamsVariable, 0)
+	accountId = SafeStringPtr(GetValue(accountIdparamsVariable, 0))
 	params = GetValue(accountIdparamsVariable, 1)
 	if accountId != nil {
 		request["subAccountId"] = accountId
@@ -3888,9 +3888,9 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
-	var accountId any = nil
+	var accountId *string = nil
 	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "accountId")
-	accountId = GetValue(accountIdparamsVariable, 0)
+	accountId = SafeStringPtr(GetValue(accountIdparamsVariable, 0))
 	params = GetValue(accountIdparamsVariable, 1)
 	var market map[string]any = nil
 	if symbol != nil {

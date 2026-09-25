@@ -3114,7 +3114,7 @@ public partial class bybit : Exchange
             {
                 settle = this.safeCurrencyCode(settleId);
             }
-            object symbol = ((bs + "/") + quote);
+            string symbol = ((bs + "/") + quote);
             IDictionary<string, object> lotSizeFilter = this.safeDict(market, "lotSizeFilter", new Dictionary<string, object>() {});
             IDictionary<string, object> priceFilter = this.safeDict(market, "priceFilter", new Dictionary<string, object>() {});
             IDictionary<string, object> leverage = this.safeDict(market, "leverageFilter", new Dictionary<string, object>() {});
@@ -3140,10 +3140,10 @@ public partial class bybit : Exchange
                 }
             }
             string? expiryDatetime = this.iso8601(expiry);
-            symbol = add(add(symbol, ":"), settle);
+            symbol = ((symbol + ":") + settle);
             if (!isEqual(expiry, null))
             {
-                symbol = add(add(symbol, "-"), this.yymmdd(expiry));
+                symbol = ((symbol + "-") + this.yymmdd(expiry));
             }
             double? contractSize = inverse ? this.safeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty") : this.parseNumber("1");
             Dictionary<string, object> parsedMarket = this.safeMarketStructure(new Dictionary<string, object>() {

@@ -1694,7 +1694,7 @@ public partial class xt : Exchange
             return ccxt.BaseExchange.ToDict(null);
         }
         string? state = this.safeString(market, "state");
-        object symbol = ((bs + "/") + quote);
+        string symbol = ((bs + "/") + quote);
         List<object> filters = this.safeList(market, "filters", new List<object>() {});
         double? minAmount = null;
         double? maxAmount = null;
@@ -1740,14 +1740,14 @@ public partial class xt : Exchange
         string type = "spot";
         if (underlyingType == "U_BASED")
         {
-            symbol = add(add(symbol, ":"), quote);
+            symbol = ((symbol + ":") + quote);
             settleId = baseId;
             settle = quote;
             linear = true;
             inverse = false;
         } else if (underlyingType == "COIN_BASED")
         {
-            symbol = add(add(symbol, ":"), bs);
+            symbol = ((symbol + ":") + bs);
             settleId = baseId;
             settle = bs;
             linear = false;
@@ -1759,7 +1759,7 @@ public partial class xt : Exchange
             string? productType = this.safeString(market, "productType");
             if (productType != "perpetual")
             {
-                symbol = add(add(symbol, "-"), this.yymmdd(expiry));
+                symbol = ((symbol + "-") + this.yymmdd(expiry));
                 type = "future";
                 future = true;
             } else

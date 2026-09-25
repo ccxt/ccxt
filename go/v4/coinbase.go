@@ -4935,7 +4935,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	params = MapTyped(this.Omit(params, []any{"until"}))
 	var duration int64 = this.ParseTimeframe(timeframe)
 	var requestedDuration any = Multiply(limit, duration)
-	var sinceString any = nil
+	var sinceString *string = nil
 	if since != nil {
 		sinceString = this.NumberToString(this.ParseToInt(Divide(since, 1000)))
 	} else {

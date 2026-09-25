@@ -2224,7 +2224,7 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar string, s
 	}
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "client-order-id"}))
 	if (typeVar == "market") && (side == "buy") {
-		var quoteAmount any = nil
+		var quoteAmount *string = nil
 		var createMarketBuyOrderRequiresPrice bool = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
@@ -2232,7 +2232,7 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar string, s
 		var cost *float64 = this.SafeNumber(params, "cost")
 		params = MapTyped(this.Omit(params, "cost"))
 		if cost != nil {
-			quoteAmount = DerefScalar(this.AmountToPrecision(symbol, cost))
+			quoteAmount = this.AmountToPrecision(symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
 			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -2245,10 +2245,10 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar string, s
 				// we use amountToPrecision here because the exchange requires cost in base precision
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
-				quoteAmount = DerefScalar(this.AmountToPrecision(symbol, Precise.StringMul(amountString, priceString)))
+				quoteAmount = this.AmountToPrecision(symbol, Precise.StringMul(amountString, priceString))
 			}
 		} else {
-			quoteAmount = DerefScalar(this.AmountToPrecision(symbol, amount))
+			quoteAmount = this.AmountToPrecision(symbol, amount)
 		}
 		request["amount"] = quoteAmount
 	} else {

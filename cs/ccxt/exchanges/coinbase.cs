@@ -2108,16 +2108,16 @@ public partial class coinbase : Exchange
             return ((Dictionary<string, object>)((object)(null)));
         }
         bool? tradingDisabled = this.safeBool(market, "is_disabled");
-        object symbol = ((bs + "/") + quote);
+        string symbol = ((bs + "/") + quote);
         string? type = null;
         if (isSwap)
         {
             type = "swap";
-            symbol = add(add(symbol, ":"), quote);
+            symbol = ((symbol + ":") + quote);
         } else
         {
             type = "future";
-            symbol = add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expireTimestamp));
+            symbol = ((((symbol + ":") + quote) + "-") + this.yymmdd(expireTimestamp));
         }
         double? takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate");
         double? makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");

@@ -6638,7 +6638,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 		request["source"] = "c2c-margin-api"
 	}
 	if (orderType == "market") && (IsEqual(side, "buy")) {
-		var quoteAmount any = nil
+		var quoteAmount *string = nil
 		var createMarketBuyOrderRequiresPrice bool = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
@@ -6646,7 +6646,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 		var cost *float64 = this.SafeNumber(params, "cost")
 		params = MapTyped(this.Omit(params, "cost"))
 		if cost != nil {
-			quoteAmount = DerefScalar(this.AmountToPrecision(symbol, cost))
+			quoteAmount = this.AmountToPrecision(symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
 			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -6659,10 +6659,10 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 				// we use amountToPrecision here because the exchange requires cost in base precision
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
-				quoteAmount = DerefScalar(this.AmountToPrecision(symbol, Precise.StringMul(amountString, priceString)))
+				quoteAmount = this.AmountToPrecision(symbol, Precise.StringMul(amountString, priceString))
 			}
 		} else {
-			quoteAmount = DerefScalar(this.AmountToPrecision(symbol, amount))
+			quoteAmount = this.AmountToPrecision(symbol, amount)
 		}
 		request["amount"] = quoteAmount
 	} else {
@@ -6733,9 +6733,9 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 	var hedged *bool = this.SafeBool(params, "hedged", false)
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force", "gtc")
 	if isLinear {
-		var marginMode any = nil
+		var marginMode *string = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params, "cross")
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		request["margin_mode"] = marginMode
 		request["side"] = side
@@ -11718,9 +11718,9 @@ func (this *Htx) closePositionBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var response any = nil
 	if GetValue(market, "linear") == true {
-		var marginMode any = nil
+		var marginMode *string = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("closePosition", params, "cross")
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		request["margin_mode"] = marginMode
 

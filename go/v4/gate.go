@@ -2839,7 +2839,7 @@ func (this *Gate) SpotOrderPrepareRequest(optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	marginModequeryVariable := this.GetMarginMode(trigger, params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	var query map[string]any = MapTyped(GetValue(marginModequeryVariable, 1))
 	var request map[string]any = map[string]any{}
 	if !(trigger == true) {

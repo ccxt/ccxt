@@ -3295,7 +3295,7 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, sid
 		"side":   ToUpper(side),
 		"type":   strings.ToUpper(typeVar),
 	}
-	var timeInForce any = nil
+	var timeInForce *string = nil
 	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params)
 	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
@@ -3340,11 +3340,11 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, sid
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var postOnly any = nil
-	var postOnlyparamsVariable []any = this.HandlePostOnly((typeVar == "market"), IsEqual(timeInForce, "GTX"), params)
+	var postOnlyparamsVariable []any = this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = MapTyped(GetValue(postOnlyparamsVariable, 1))
 	if postOnly == true {
-		timeInForce = "GTX"
+		timeInForce = SafeStringPtr("GTX")
 	}
 	params = MapTyped(this.Omit(params, []any{"timeInForce", "postOnly"}))
 	if (IsEqual(side, "sell")) || (typeVar == "limit") {

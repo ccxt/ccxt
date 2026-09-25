@@ -1812,9 +1812,9 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
-	var userAddress any = nil
+	var userAddress *string = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchMyTrades", params)
-	userAddress = GetValue(userAddressparamsVariable, 0)
+	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
 	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var defaultLimit int = 100 // Default max limit
 	if paginate {
@@ -4342,13 +4342,13 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var finalHeaders map[string]any = map[string]any{}
-	var agentAddress any = nil
+	var agentAddress *string = nil
 	var agentAddressparamsVariable []any = this.HandleOptionStringAndParams(params, "createSubAccount", "agentAddress")
-	agentAddress = GetValue(agentAddressparamsVariable, 0)
+	agentAddress = SafeStringPtr(GetValue(agentAddressparamsVariable, 0))
 	params = GetValue(agentAddressparamsVariable, 1)
-	var originAddress any = nil
+	var originAddress *string = nil
 	originAddressparamsVariable := this.HandleOriginAndSingleAddress("createSubAccount", params)
-	originAddress = GetValue(originAddressparamsVariable, 0)
+	originAddress = SafeStringPtr(GetValue(originAddressparamsVariable, 0))
 	params = GetValue(originAddressparamsVariable, 1)
 	if originAddress == nil {
 		panic(ArgumentsRequired(this.Id + " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials"))
@@ -4356,9 +4356,9 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
 	if agentAddress != nil {
 		finalHeaders["agent_wallet"] = agentAddress
 	}
-	var subAccountAddress any = nil
+	var subAccountAddress *string = nil
 	var subAccountAddressparamsVariable []any = this.HandleOptionStringAndParams(params, "createSubAccount", "subAccountAddress")
-	subAccountAddress = GetValue(subAccountAddressparamsVariable, 0)
+	subAccountAddress = SafeStringPtr(GetValue(subAccountAddressparamsVariable, 0))
 	params = GetValue(subAccountAddressparamsVariable, 1)
 	var subAccountPrivateKey any = nil
 	var subAccountPrivateKeyparamsVariable []any = this.HandleOptionStringAndParams(params, "createSubAccount", "subAccountPrivateKey")
@@ -4723,13 +4723,13 @@ func (this *Pacifica) PostActionRequest(operationType any, sigPayload any, param
 	}
 	var signature any = this.SignMessage(signatureHeader, sigPayload, this.PrivateKey)
 	var finalHeaders map[string]any = map[string]any{}
-	var agentAddress any = nil
+	var agentAddress *string = nil
 	var agentAddressparamsVariable []any = this.HandleOptionStringAndParams(params, "postActionRequest", "agentAddress")
-	agentAddress = GetValue(agentAddressparamsVariable, 0)
+	agentAddress = SafeStringPtr(GetValue(agentAddressparamsVariable, 0))
 	params = GetValue(agentAddressparamsVariable, 1)
-	var originAddress any = nil
+	var originAddress *string = nil
 	originAddressparamsVariable := this.HandleOriginAndSingleAddress("postActionRequest", params)
-	originAddress = GetValue(originAddressparamsVariable, 0)
+	originAddress = SafeStringPtr(GetValue(originAddressparamsVariable, 0))
 	params = GetValue(originAddressparamsVariable, 1)
 	if originAddress == nil {
 		panic(ArgumentsRequired(Add(Add(this.Id+" action: ", operationType), " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")))

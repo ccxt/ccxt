@@ -297,13 +297,13 @@ func (this *Sxbet) fetchRawMarketsPagedBody(ch chan any, optionalArgs ...any) an
 	var pageSize *int64 = this.SafeInteger(this.Options, "marketsPageSize", 100)
 	var maxPages *int64 = this.SafeInteger(this.Options, "maxMarketsPages", 50)
 	var rawMarkets []any = []any{}
-	var paginationKey any = nil
+	var paginationKey *string = nil
 	var page any = 0
 	for true {
 		var request map[string]any = map[string]any{
 			"pageSize": pageSize,
 		}
-		if !ccxt.IsEqual(paginationKey, nil) {
+		if paginationKey != nil {
 			request["paginationKey"] = paginationKey
 		}
 
@@ -319,10 +319,10 @@ func (this *Sxbet) fetchRawMarketsPagedBody(ch chan any, optionalArgs ...any) an
 				return nil
 			}())
 		}
-		paginationKey = ccxt.DerefScalar(this.SafeString(result, "nextKey"))
+		paginationKey = this.SafeString(result, "nextKey")
 		page = this.Sum(page, 1)
 		var collectedLength int = len(rawMarkets)
-		if (ccxt.IsLessThan(pageMarketsLength, pageSize)) || (ccxt.IsGreaterThanOrEqual(page, maxPages)) || (ccxt.IsEqual(paginationKey, nil)) || ((userLimit != nil) && (ccxt.IsGreaterThanOrEqual(collectedLength, userLimit))) {
+		if (ccxt.IsLessThan(pageMarketsLength, pageSize)) || (ccxt.IsGreaterThanOrEqual(page, maxPages)) || (paginationKey == nil) || ((userLimit != nil) && (ccxt.IsGreaterThanOrEqual(collectedLength, userLimit))) {
 			break
 		}
 	}

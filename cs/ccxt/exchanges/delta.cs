@@ -1005,13 +1005,13 @@ public partial class delta : Exchange
             }
             bool linear = ((settle == quote));
             string? optionType = null;
-            object symbol = ((bs + "/") + quote);
+            string symbol = ((bs + "/") + quote);
             if (swap || future || option)
             {
-                symbol = add(add(symbol, ":"), settle);
+                symbol = ((symbol + ":") + settle);
                 if (future || option)
                 {
-                    symbol = add(add(symbol, "-"), this.yymmdd(expiry));
+                    symbol = ((symbol + "-") + this.yymmdd(expiry));
                     if (option)
                     {
                         type = "option";
@@ -1026,7 +1026,7 @@ public partial class delta : Exchange
                             letter = "M";
                             optionType = "move";
                         }
-                        symbol = add(add(add(add(symbol, "-"), strike), "-"), letter);
+                        symbol = ((((symbol + "-") + strike) + "-") + letter);
                     } else
                     {
                         type = "future";

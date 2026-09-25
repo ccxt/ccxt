@@ -1052,7 +1052,7 @@ public partial class cryptocom : Exchange
             bool? marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
             string? expiryString = ((string)this.omitZero(this.safeString(market, "expiry_timestamp_ms")));
             Int64? expiry = ((expiryString != null)) ? parseInt(expiryString) : null;
-            object symbol = ((bs + "/") + quote);
+            string symbol = ((bs + "/") + quote);
             string? type = null;
             bool? contract = null;
             if (inst_type == "CCY_PAIR")
@@ -1062,18 +1062,18 @@ public partial class cryptocom : Exchange
             } else if (inst_type == "PERPETUAL_SWAP")
             {
                 type = "swap";
-                symbol = add(add(symbol, ":"), quote);
+                symbol = ((symbol + ":") + quote);
                 contract = true;
             } else if (inst_type == "FUTURE")
             {
                 type = "future";
-                symbol = add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry));
+                symbol = ((((symbol + ":") + quote) + "-") + this.yymmdd(expiry));
                 contract = true;
             } else if (inst_type == "WARRANT")
             {
                 type = "option";
                 string symbolOptionType = (optionType == "call") ? "C" : "P";
-                symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
+                symbol = ((((((((symbol + ":") + quote) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + symbolOptionType);
                 contract = true;
             }
             bool? isLinear = ((contract == true)) ? true : null;

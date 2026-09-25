@@ -5067,7 +5067,7 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol any, typeVar any, side any, am
 		"type":      typeVar,
 	}
 	var quoteAmount *float64 = this.SafeNumber2(params, "cost", "funds")
-	var amountString any = nil
+	var amountString *string = nil
 	var costString any = nil
 	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params)
@@ -5080,11 +5080,11 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol any, typeVar any, side any, am
 			costString = this.MarketOrderAmountToPrecision(symbol, quoteAmount)
 			request["funds"] = costString
 		} else {
-			amountString = DerefScalar(this.AmountToPrecision(symbol, amount))
+			amountString = this.AmountToPrecision(symbol, amount)
 			request["size"] = this.AmountToPrecision(symbol, amount)
 		}
 	} else {
-		amountString = DerefScalar(this.AmountToPrecision(symbol, amount))
+		amountString = this.AmountToPrecision(symbol, amount)
 		request["size"] = amountString
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
@@ -10359,12 +10359,12 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
 		requestedType = marginMode
 	}
 	var utaAccountsByType map[string]any = SafeMapTyped(this.Options, "utaAccountsByType")
-	var typeVar any = nil
-	typeVar = DerefScalar(this.SafeString(utaAccountsByType, requestedType, requestedType))
-	var isIsolated bool = (IsEqual(typeVar, "ISOLATED"))
+	var typeVar *string = nil
+	typeVar = this.SafeString(utaAccountsByType, requestedType, requestedType)
+	var isIsolated bool = (typeVar != nil && *typeVar == "ISOLATED")
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
-	if IsEqual(typeVar, "unified") {
+	if typeVar != nil && *typeVar == "unified" {
 		request["accountMode"] = typeVar
 		// uta
 		//     {
@@ -11151,17 +11151,17 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if uta == true {
 		accountsByType = this.SafeDict(this.Options, "utaAccountsByType")
 	}
-	var typeVar any = nil
-	typeVar = DerefScalar(this.SafeString(accountsByType, requestedType, requestedType))
+	var typeVar *string = nil
+	typeVar = this.SafeString(accountsByType, requestedType, requestedType)
 	var maxLimit int = 500 // for spot non-uta and margin
 	if hf == true {
 		maxLimit = 200
-	} else if IsEqual(typeVar, "contract") {
+	} else if typeVar != nil && *typeVar == "contract" {
 		maxLimit = 50
 	} else if uta == true {
-		if (IsEqual(typeVar, "UNIFIED")) || (IsEqual(typeVar, "SPOT")) {
+		if (typeVar != nil && *typeVar == "UNIFIED") || (typeVar != nil && *typeVar == "SPOT") {
 			maxLimit = 200
-		} else if IsEqual(typeVar, "FUTURES") {
+		} else if typeVar != nil && *typeVar == "FUTURES" {
 			maxLimit = 100
 		}
 	}
@@ -11189,7 +11189,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if limit != nil {
-		if IsEqual(typeVar, "contract") {
+		if typeVar != nil && *typeVar == "contract" {
 			request["maxCount"] = limit
 		} else if hf == true {
 			request["limit"] = limit
@@ -11210,7 +11210,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 			response = MapTyped(PanicOnError((<-this.PrivateGetHfAccountsLedgers(this.Extend(request, params))).Raw))
 		}
-	} else if IsEqual(typeVar, "contract") {
+	} else if typeVar != nil && *typeVar == "contract" {
 		//
 		//     {
 		//         "code": "200000",

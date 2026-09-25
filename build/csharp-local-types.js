@@ -7524,7 +7524,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         // U21: the same self-read shape where a sibling leaf is unnameable
                         // but the left spine still selects add(string, …) (see
                         // stringAccumulatorWriteType)
-                        const selfStringWrite = (csharpType === 'string') && isStringLiteralInit (declaration) && (stringAccumulatorWriteType (csharp, context, declaration, parent.right) === 'string');
+                        const selfStringWrite = (csharpType === 'string') && nonNullStringInit (csharp, context, declaration) && (stringAccumulatorWriteType (csharp, context, declaration, parent.right) === 'string');
                         const selfOmit = (csharpType === 'Dictionary<string, object>') && (selfOmitWriteType (csharp, context, declaration, parent.right) === 'Dictionary<string, object>');
 // the same arm as the join's: a write that reads this very declaration
                         // resolves the read to the candidate type it is being checked against
@@ -7867,7 +7867,7 @@ function stringWriteNodeIsProvable (csharp, context, declaration, node, state) {
 // value is a `+` tree / conditional over such a tree that reads the local: `string`
 // (non-null), or undefined (the declaration keeps `object`).
 function stringAccumulatorWriteType (csharp, context, declaration, value) {
-    if (!isStringLiteralInit (declaration)) {
+    if (!nonNullStringInit (csharp, context, declaration)) {
         return undefined;
     }
     const state = { selfRead: false };
@@ -11279,6 +11279,17 @@ function isNullInit (declaration) {
 // type comes from the literal. Kept separate from isNullInit so the nullable spelling stays
 // honest: the joined type keeps the init's non-null string and the destructured write adds the
 // nullable contribution (see typeFromValueOrWrites).
+// a string literal, or a `+` chain the module types `string`: it prints add(string, *) or a
+// native C# concatenation, and both are never null
+function nonNullStringInit (csharp, context, declaration) {
+    if (isStringLiteralInit (declaration)) {
+        return true;
+    }
+    const value = stripParens (declaration?.initializer);
+    return (value?.kind === ts.SyntaxKind.BinaryExpression) && (value.operatorToken.kind === ts.SyntaxKind.PlusToken)
+        && (csharpTypeOfValue (csharp, value, context) === 'string');
+}
+
 function isStringLiteralInit (declaration) {
     return declaration?.initializer?.kind === ts.SyntaxKind.StringLiteral;
 }
@@ -12352,7 +12363,7 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             // one, so the value is proven from the operands plus the running type.
             written = selfConcatWriteType (csharp, context, declaration, parent.right);
         }
-        if (written === undefined && type === 'string' && !sawNull && isStringLiteralInit (declaration)) {
+        if (written === undefined && type === 'string' && !sawNull && nonNullStringInit (csharp, context, declaration)) {
             // U21: the same self-read shape with a sibling leaf the module cannot name
             // (`x = x + ':' + symbol`), and the conditional over such values
             // (`x = cond ? 'a' + x : x`) — the left spine's own static type decides the

@@ -808,10 +808,10 @@ public partial class blofin : Exchange
         {
             return ccxt.BaseExchange.ToDict(null);
         }
-        object symbol = ((bs + "/") + quote);
+        string symbol = ((bs + "/") + quote);
         if (swap)
         {
-            symbol = add(add(symbol, ":"), settle);
+            symbol = ((symbol + ":") + settle);
         }
         object expiry = null;
         object strikePrice = null;

@@ -3862,7 +3862,7 @@ public partial class bitget : Exchange
                 settleId = this.safeString(supportMarginCoins, 0);
             }
             string? settle = this.safeCurrencyCode(settleId);
-            object symbol = ((bs + "/") + quote);
+            string symbol = ((bs + "/") + quote);
             string? type = null;
             bool swap = false;
             bool spot = false;
@@ -3896,7 +3896,7 @@ public partial class bitget : Exchange
                 {
                     type = "swap";
                     swap = true;
-                    symbol = add(add(symbol, ":"), settle);
+                    symbol = ((symbol + ":") + settle);
                 } else if (symbolType == "delivery")
                 {
                     expiry = this.safeInteger(market, "deliveryTime");
@@ -3910,7 +3910,7 @@ public partial class bitget : Exchange
                     string? expiryString = ((string)add(add(year, month), day));
                     type = "future";
                     future = true;
-                    symbol = add(add(add(add(symbol, ":"), settle), "-"), expiryString);
+                    symbol = ((((symbol + ":") + settle) + "-") + expiryString);
                 }
                 contract = true;
                 inverse = ((bs == settle));
@@ -4140,7 +4140,7 @@ public partial class bitget : Exchange
             {
                 settle = this.safeCurrencyCode(settleId);
             }
-            object symbol = ((bs + "/") + quote);
+            string symbol = ((bs + "/") + quote);
             string? type = null;
             bool swap = false;
             bool spot = false;
@@ -4179,7 +4179,7 @@ public partial class bitget : Exchange
                 {
                     type = "swap";
                     swap = true;
-                    symbol = add(add(symbol, ":"), settle);
+                    symbol = ((symbol + ":") + settle);
                 } else if (symbolType == "delivery")
                 {
                     expiry = this.safeInteger(market, "deliveryTime");
@@ -4193,7 +4193,7 @@ public partial class bitget : Exchange
                     string? expiryString = ((string)add(add(year, month), day));
                     type = "future";
                     future = true;
-                    symbol = add(add(add(add(symbol, ":"), settle), "-"), expiryString);
+                    symbol = ((((symbol + ":") + settle) + "-") + expiryString);
                 }
                 contract = true;
                 inverse = ((bs == settle));

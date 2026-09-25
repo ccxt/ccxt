@@ -1463,12 +1463,12 @@ func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response []any = nil
-	if IsEqual(marketType, "spot") {
+	if marketType != nil && *marketType == "spot" {
 
 		response = ListTyped(PanicOnError((<-this.PublicGetApiV3MarketTickerBookTicker(params)).Raw))
 	} else {

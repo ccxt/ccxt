@@ -6963,6 +6963,16 @@ function ccxtGoTupleStringReadIsSafe (goTranspiler, node) {
         if ((slots !== undefined) && (parent.arguments.indexOf (current) < slots)) {
             return true;
         }
+        // marketType slot: base GetArg derefs, every override binds GetArgStringPtr
+        const typeSlot = { 'this.SafeMarket': 3, 'this.SafeSymbol': 3 }[(callee ?? '').replace (/^ccxt\./, '')];
+        if ((typeSlot !== undefined) && (parent.arguments.indexOf (current) === typeSlot)) {
+            return true;
+        }
+    }
+    if ((current === node) && (parent.kind === ts.SyntaxKind.BinaryExpression) && (parent.right === current)
+        && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) && (parent.left?.kind === ts.SyntaxKind.ElementAccessExpression)) {
+        // typed-map element write `m["k"] = x`: stores the *string like any Safe*-declared local
+        return /^\w+\["\w+"\] = \w+$/.test ((goTranspiler.printNode (parent, 0) ?? '').trim ()) || nilDeclaredReadIsSafe (goTranspiler, node);
     }
     if ((parent.kind === ts.SyntaxKind.CallExpression) && (parent.expression !== current)
         && ((CCXT_GO_TUPLE_STRING_SAFE_ARG_INDEX[printedCalleeOfCall (goTranspiler, parent) ?? ''] ?? []).includes (parent.arguments.indexOf (current)))) {

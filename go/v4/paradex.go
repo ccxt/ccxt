@@ -2299,34 +2299,34 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		request["client_id"] = clientOrderId
 	}
 	var sizeString any = "0"
-	var stopPrice any = nil
+	var stopPrice *string = nil
 	if isStopOrder {
 		// flags: Reduce_Only must be provided for TPSL orders.
 		if isMarket {
 			if isStopLossOrder {
-				stopPrice = DerefScalar(this.PriceToPrecision(symbol, stopLossPrice))
+				stopPrice = this.PriceToPrecision(symbol, stopLossPrice)
 				reduceOnly = true
 				request["type"] = "STOP_LOSS_MARKET"
 			} else if isTakeProfitOrder {
-				stopPrice = DerefScalar(this.PriceToPrecision(symbol, takeProfitPrice))
+				stopPrice = this.PriceToPrecision(symbol, takeProfitPrice)
 				reduceOnly = true
 				request["type"] = "TAKE_PROFIT_MARKET"
 			} else {
-				stopPrice = DerefScalar(this.PriceToPrecision(symbol, triggerPrice))
+				stopPrice = this.PriceToPrecision(symbol, triggerPrice)
 				sizeString = DerefScalar(this.AmountToPrecision(symbol, amount))
 				request["type"] = "STOP_MARKET"
 			}
 		} else {
 			if isStopLossOrder {
-				stopPrice = DerefScalar(this.PriceToPrecision(symbol, stopLossPrice))
+				stopPrice = this.PriceToPrecision(symbol, stopLossPrice)
 				reduceOnly = true
 				request["type"] = "STOP_LOSS_LIMIT"
 			} else if isTakeProfitOrder {
-				stopPrice = DerefScalar(this.PriceToPrecision(symbol, takeProfitPrice))
+				stopPrice = this.PriceToPrecision(symbol, takeProfitPrice)
 				reduceOnly = true
 				request["type"] = "TAKE_PROFIT_LIMIT"
 			} else {
-				stopPrice = DerefScalar(this.PriceToPrecision(symbol, triggerPrice))
+				stopPrice = this.PriceToPrecision(symbol, triggerPrice)
 				sizeString = DerefScalar(this.AmountToPrecision(symbol, amount))
 				request["type"] = "STOP_LIMIT"
 			}

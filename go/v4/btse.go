@@ -4465,7 +4465,7 @@ func (this *Btse) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var longLeverage any = nil
 	var shortLeverage any = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	for i := 0; i < len(safeResponse); i++ {
 		var entrty map[string]any = SafeMapTyped(safeResponse, i)
 		var leverageValue *int64 = this.SafeInteger(entrty, "leverage")
