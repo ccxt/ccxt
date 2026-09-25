@@ -6309,7 +6309,8 @@ export default class mexc extends Exchange {
         let requestBody: Str = body;
         const section = this.safeString (api, 0);
         const access = this.safeString (api, 1);
-        const [ pathValue, paramsValue ] = this.resolvePath (path, params);
+        const pathValue = this.implodeParams (path, params);
+        const paramsValue = this.omit (params, this.extractParams (path));
         let url: Str = undefined;
         if (section === 'spot' || section === 'broker') {
             if (section === 'broker') {
