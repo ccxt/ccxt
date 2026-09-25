@@ -2502,7 +2502,7 @@ func (this *Htx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var paramsTypes map[string]any = map[string]any{}
 	var typesparamsTypesVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "types", map[string]any{})
 	types = GetValue(typesparamsTypesVariable, 0)
-	paramsTypes = MapTyped(GetValue(typesparamsTypesVariable, 1))
+	paramsTypes = MapTyped(typesparamsTypesVariable[1])
 	var allMarkets []any = []any{}
 	var promises any = []any{}
 	var keys []string = ObjectKeys(types)
@@ -6541,7 +6541,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((orderType == "market"), (orderType == "limit-maker"), paramsMarginMode)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	if postOnly == true {
 		orderType = "limit-maker"
 	}
@@ -6651,7 +6651,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), (IsEqual(typeVar, "post_only")), params)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	var orderType any = func() any {
 		if postOnly == true {
 			return "post_only"
@@ -8048,7 +8048,7 @@ func (this *Htx) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
 	var currency map[string]any = this.Currency(code)
 	var networkCodeparamsOmitedVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
-	var paramsOmited map[string]any = MapTyped(GetValue(networkCodeparamsOmitedVariable, 1))
+	var paramsOmited map[string]any = MapTyped(networkCodeparamsOmitedVariable[1])
 
 	indexedAddresses := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited))
 	PanicOnError(indexedAddresses)
@@ -8424,7 +8424,7 @@ func (this *Htx) withdrawBody(ch chan any, code string, amount any, address any,
 	_ = params
 	var tagValueparamsTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tagValue := GetValue(tagValueparamsTagVariable, 0)
-	var paramsTag map[string]any = MapTyped(GetValue(tagValueparamsTagVariable, 1))
+	var paramsTag map[string]any = MapTyped(tagValueparamsTagVariable[1])
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -8440,7 +8440,7 @@ func (this *Htx) withdrawBody(ch chan any, code string, amount any, address any,
 	}
 	var networkCodeparamsNetworkVariable []any = this.HandleNetworkCodeAndParams(paramsTag)
 	networkCode := GetValue(networkCodeparamsNetworkVariable, 0)
-	var paramsNetwork map[string]any = MapTyped(GetValue(networkCodeparamsNetworkVariable, 1))
+	var paramsNetwork map[string]any = MapTyped(networkCodeparamsNetworkVariable[1])
 	if !IsEqual(networkCode, nil) {
 		request["chain"] = this.NetworkCodeToId(networkCode, code)
 	}

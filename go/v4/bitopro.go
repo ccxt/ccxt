@@ -2210,8 +2210,8 @@ func (this *Bitopro) withdrawBody(ch chan any, code string, amount any, address 
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2223,7 +2223,7 @@ func (this *Bitopro) withdrawBody(ch chan any, code string, amount any, address 
 		"amount":   this.NumberToString(amount),
 		"address":  address,
 	}
-	var hasNetwork bool = (func() bool { _, ok := paramsWithdrawTag["network"]; return ok }())
+	var hasNetwork bool = (InOp(paramsWithdrawTag, "network"))
 	var paramsOmitted any = paramsWithdrawTag
 	if hasNetwork {
 		paramsOmitted = this.Omit(paramsWithdrawTag, []any{"network"})

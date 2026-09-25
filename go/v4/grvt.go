@@ -2594,8 +2594,8 @@ func (this *Grvt) withdrawBody(ch chan any, code string, amount any, address any
 		"signature":       this.DefaultSignature(),
 	}
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodequeryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(networkCodequeryVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodequeryVariable[0])
+	var query map[string]any = MapTyped(networkCodequeryVariable[1])
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))

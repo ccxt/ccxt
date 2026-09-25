@@ -2965,7 +2965,7 @@ func (this *Mexc) CreateSpotOrderRequest(market any, typeVar any, side any, amou
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), (IsEqual(typeVar, "LIMIT_MAKER")), paramsWithoutClientOrderId)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	if postOnly == true {
 		request["type"] = "LIMIT_MAKER"
 	}
@@ -3126,7 +3126,7 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), IsEqual(typeVar, 2), params)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	var orderType any = nil
 	if postOnly == true {
 		orderType = 2
@@ -6903,8 +6903,8 @@ func (this *Mexc) withdrawBody(ch chan any, code string, amount any, address any
 	}
 	var currency map[string]any = this.Currency(code)
 	var tagResolvedparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagResolved *string = SafeStringPtr(GetValue(tagResolvedparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagResolvedparamsWithdrawTagVariable, 1))
+	var tagResolved *string = SafeStringPtr(tagResolvedparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagResolvedparamsWithdrawTagVariable[1])
 	var internal *bool = this.SafeBool(paramsWithdrawTag, "internal", false)
 	if internal != nil && *internal == true {
 		var paramsInternal map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "internal"))

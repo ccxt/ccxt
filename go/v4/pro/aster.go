@@ -208,8 +208,8 @@ func (this *Aster) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbolsList)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "watchTickers")
-	var methodName *string = ccxt.SafeStringPtr(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 0))
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 1))
+	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
@@ -283,8 +283,8 @@ func (this *Aster) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbolsList)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "unWatchTickers")
-	var methodName *string = ccxt.SafeStringPtr(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 0))
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 1))
+	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
@@ -409,8 +409,8 @@ func (this *Aster) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbolsList)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "watchMarkPrices")
-	var methodName *string = ccxt.SafeStringPtr(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 0))
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 1))
+	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
@@ -488,8 +488,8 @@ func (this *Aster) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = ccxt.GetArrayLength(symbolsList)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "unWatchMarkPrices")
-	var methodName *string = ccxt.SafeStringPtr(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 0))
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 1))
+	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
@@ -876,8 +876,8 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "watchTradesForSymbols")
-	var methodName *string = ccxt.SafeStringPtr(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 0))
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 1))
+	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
@@ -945,8 +945,8 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "unWatchTradesForSymbols")
-	var methodName *string = ccxt.SafeStringPtr(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 0))
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 1))
+	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
@@ -1263,8 +1263,8 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
-	var methodName *string = ccxt.SafeStringPtr(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 0))
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 1))
+	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
@@ -1328,8 +1328,8 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "unWatchOrderBookForSymbols")
-	var methodName *string = ccxt.SafeStringPtr(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 0))
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 1))
+	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
@@ -1503,8 +1503,8 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	}
 	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "watchOHLCVForSymbols")
-	var methodName *string = ccxt.SafeStringPtr(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 0))
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 1))
+	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
@@ -1581,8 +1581,8 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	}
 	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
 	var methodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", "unWatchOHLCVForSymbols")
-	var methodName *string = ccxt.SafeStringPtr(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 0))
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(methodNameparamsCallerMethodNameVariable, 1))
+	var methodName *string = ccxt.SafeStringPtr(methodNameparamsCallerMethodNameVariable[0])
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(methodNameparamsCallerMethodNameVariable[1])
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))

@@ -3227,7 +3227,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol string, typeVar string, 
 			request["triggerType"] = triggerType
 			// set direction & exchange specific order type
 			var triggerDirectionparamsTriggerDirectionVariable []any = this.HandleParamString(orderParams, "triggerDirection")
-			var triggerDirection *string = SafeStringPtr(GetValue(triggerDirectionparamsTriggerDirectionVariable, 0))
+			var triggerDirection *string = SafeStringPtr(triggerDirectionparamsTriggerDirectionVariable[0])
 			paramsTriggerDirection := GetValue(triggerDirectionparamsTriggerDirectionVariable, 1)
 			orderParams = paramsTriggerDirection
 			if triggerDirection == nil {
@@ -6082,8 +6082,8 @@ func (this *Phemex) withdrawBody(ch chan any, code string, amount any, address a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -6091,8 +6091,8 @@ func (this *Phemex) withdrawBody(ch chan any, code string, amount any, address a
 	this.CheckAddress(address)
 	var currency map[string]any = this.Currency(code)
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	var networkId any = nil
 	if networkCode != nil {
 		networkId = this.NetworkCodeToId(networkCode, code)

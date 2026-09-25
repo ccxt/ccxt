@@ -2100,7 +2100,7 @@ func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) map[string]
 	}
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "operatorId")
 	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
-	var paramsOperatorId map[string]any = MapTyped(GetValue(operatorIdparamsOperatorIdVariable, 1))
+	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
 	if !IsEqual(operatorId, nil) {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
@@ -2182,7 +2182,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "operatorId")
 	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
-	var paramsOperatorId map[string]any = MapTyped(GetValue(operatorIdparamsOperatorIdVariable, 1))
+	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
 	if !IsEqual(operatorId, nil) {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
@@ -2911,7 +2911,7 @@ func (this *Bitvavo) withdrawBody(ch chan any, code string, amount any, address 
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address)
 	if this.Markets == nil {
 

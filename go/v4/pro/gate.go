@@ -1140,7 +1140,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 	}
 	var callerMethodNameOptionparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", callerMethodName)
 	callerMethodNameOption := ccxt.GetValue(callerMethodNameOptionparamsCallerMethodNameVariable, 0)
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(callerMethodNameOptionparamsCallerMethodNameVariable, 1))
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(callerMethodNameOptionparamsCallerMethodNameVariable[1])
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 	var messageType any = this.GetTypeByMarket(market)

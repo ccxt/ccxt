@@ -1580,7 +1580,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(paramsMarketType, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(GetValue(untilparamsUntilVariable, 1))
+	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -1795,7 +1795,7 @@ func (this *Hashkey) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(paramsPaginate, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(GetValue(untilparamsUntilVariable, 1))
+	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -2200,7 +2200,7 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan any, code string, optionalA
 	}
 	var networkCodeInParamsparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCodeInParams := GetValue(networkCodeInParamsparamsNetworkCodeVariable, 0)
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeInParamsparamsNetworkCodeVariable, 1))
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeInParamsparamsNetworkCodeVariable[1])
 	var networkCode any = func() any {
 		if IsEqual(networkCodeInParams, nil) {
 			return this.DefaultNetworkCode(code)
@@ -2306,7 +2306,7 @@ func (this *Hashkey) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(GetValue(untilparamsUntilVariable, 1))
+	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -2380,7 +2380,7 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(GetValue(untilparamsUntilVariable, 1))
+	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -2442,8 +2442,8 @@ func (this *Hashkey) withdrawBody(ch chan any, code string, amount any, address 
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2458,8 +2458,8 @@ func (this *Hashkey) withdrawBody(ch chan any, code string, amount any, address 
 		request["addressExt"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode != nil {
 		request["chainType"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	}
@@ -2780,7 +2780,7 @@ func (this *Hashkey) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(GetValue(untilparamsUntilVariable, 1))
+	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if IsEqual(until, nil) {
 		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires an until argument"))
 	}
@@ -3110,7 +3110,7 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, a
 	}
 	var costparamsCostVariable []any = this.HandleParamString(params, "cost")
 	cost := GetValue(costparamsCostVariable, 0)
-	var paramsCost map[string]any = MapTyped(GetValue(costparamsCostVariable, 1))
+	var paramsCost map[string]any = MapTyped(costparamsCostVariable[1])
 	if !IsEqual(cost, nil) {
 		request["quantity"] = this.CostToPrecision(symbol, cost)
 	}
@@ -3120,15 +3120,15 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, a
 	var isMarketOrder bool = (typeValue == "MARKET")
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (typeValue == "LIMIT_MAKER"), paramsCost)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	if postOnly && (typeValue == "LIMIT") {
 		request["type"] = "LIMIT_MAKER"
 	}
 	var clientOrderId *string = nil
 	var paramsClientOrderId map[string]any = map[string]any{}
 	var clientOrderIdparamsClientOrderIdVariable []any = this.HandleParamString(paramsPostOnly, "clientOrderId")
-	clientOrderId = SafeStringPtr(GetValue(clientOrderIdparamsClientOrderIdVariable, 0))
-	paramsClientOrderId = MapTyped(GetValue(clientOrderIdparamsClientOrderIdVariable, 1))
+	clientOrderId = SafeStringPtr(clientOrderIdparamsClientOrderIdVariable[0])
+	paramsClientOrderId = MapTyped(clientOrderIdparamsClientOrderIdVariable[1])
 	if clientOrderId != nil {
 		paramsClientOrderId["newClientOrderId"] = clientOrderId
 	}
@@ -3173,18 +3173,18 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, a
 	}
 	var reduceOnlyparamsReduceOnlyVariable []any = this.HandleParamBool(params, "reduceOnly", false)
 	reduceOnly := GetValue(reduceOnlyparamsReduceOnlyVariable, 0)
-	var paramsReduceOnly map[string]any = MapTyped(GetValue(reduceOnlyparamsReduceOnlyVariable, 1))
+	var paramsReduceOnly map[string]any = MapTyped(reduceOnlyparamsReduceOnlyVariable[1])
 	var suffix string = "_OPEN"
 	if IsEqual(reduceOnly, true) {
 		suffix = "_CLOSE"
 	}
 	request["side"] = ToUpper(side) + suffix
 	var timeInForceParamparamsTimeInForceVariable []any = this.HandleParamString(paramsReduceOnly, "timeInForce")
-	var timeInForceParam *string = SafeStringPtr(GetValue(timeInForceParamparamsTimeInForceVariable, 0))
-	var paramsTimeInForce map[string]any = MapTyped(GetValue(timeInForceParamparamsTimeInForceVariable, 1))
+	var timeInForceParam *string = SafeStringPtr(timeInForceParamparamsTimeInForceVariable[0])
+	var paramsTimeInForce map[string]any = MapTyped(timeInForceParamparamsTimeInForceVariable[1])
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (timeInForceParam != nil && *timeInForceParam == "LIMIT_MAKER"), paramsTimeInForce)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	var timeInForce *string = timeInForceParam
 	if postOnly {
 		timeInForce = SafeStringPtr("LIMIT_MAKER")
@@ -3561,8 +3561,8 @@ func (this *Hashkey) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderIdparamsClientOrderIdVariable []any = this.HandleParamString(params, "clientOrderId")
-	var clientOrderId *string = SafeStringPtr(GetValue(clientOrderIdparamsClientOrderIdVariable, 0))
-	var paramsClientOrderId map[string]any = MapTyped(GetValue(clientOrderIdparamsClientOrderIdVariable, 1))
+	var clientOrderId *string = SafeStringPtr(clientOrderIdparamsClientOrderIdVariable[0])
+	var paramsClientOrderId map[string]any = MapTyped(clientOrderIdparamsClientOrderIdVariable[1])
 	if clientOrderId == nil {
 		request["orderId"] = id
 	}
@@ -3701,7 +3701,7 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan any, optionalArgs ...any) a
 	var methodName string = "fetchOpenSpotOrders"
 	var methodNameOptionparamsMethodNameVariable []any = this.HandleParamString(params, "methodName", methodName)
 	methodNameOption := GetValue(methodNameOptionparamsMethodNameVariable, 0)
-	var paramsMethodName map[string]any = MapTyped(GetValue(methodNameOptionparamsMethodNameVariable, 1))
+	var paramsMethodName map[string]any = MapTyped(methodNameOptionparamsMethodNameVariable[1])
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	var response []any = nil
@@ -3762,7 +3762,7 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan any, optionalArgs ...any) a
 	var methodName string = "fetchOpenSwapOrders"
 	var methodNameOptionparamsMethodNameVariable []any = this.HandleParamString(params, "methodName", methodName)
 	methodNameOption := GetValue(methodNameOptionparamsMethodNameVariable, 0)
-	var paramsMethodName map[string]any = MapTyped(GetValue(methodNameOptionparamsMethodNameVariable, 1))
+	var paramsMethodName map[string]any = MapTyped(methodNameOptionparamsMethodNameVariable[1])
 	if symbol == nil {
 		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodNameOption), "() requires a symbol argument for swap market orders")))
 	}
@@ -3849,7 +3849,7 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(GetValue(untilparamsUntilVariable, 1))
+	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -3912,7 +3912,7 @@ func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, op
 	var isTrigger *bool = defaultValue
 	var isTriggerStopparamsStopVariable []any = this.HandleOptionBoolAndParams2Nullable(params, methodName, "stop", "trigger", isTrigger)
 	isTriggerStop := GetValue(isTriggerStopparamsStopVariable, 0)
-	var paramsStop map[string]any = MapTyped(GetValue(isTriggerStopparamsStopVariable, 1))
+	var paramsStop map[string]any = MapTyped(isTriggerStopparamsStopVariable[1])
 	return []any{isTriggerStop, paramsStop}
 }
 func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) any {
@@ -4415,8 +4415,8 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan any, symbol string, opt
 	var market map[string]any = this.Market(symbol)
 	var methodName string = "fetchPosition"
 	var methodNameOptionparamsMethodNameVariable []any = this.HandleParamString(params, "methodName", methodName)
-	var methodNameOption *string = SafeStringPtr(GetValue(methodNameOptionparamsMethodNameVariable, 0))
-	var paramsMethodName map[string]any = MapTyped(GetValue(methodNameOptionparamsMethodNameVariable, 1))
+	var methodNameOption *string = SafeStringPtr(methodNameOptionparamsMethodNameVariable[0])
+	var paramsMethodName map[string]any = MapTyped(methodNameOptionparamsMethodNameVariable[1])
 	if market["swap"] != true {
 		panic(NotSupported(this.Id + " " + *methodNameOption + "() supports swap markets only"))
 	}
@@ -4718,7 +4718,7 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan any, symbol string, amount a
 	}
 	var sideParamparamsSideVariable []any = this.HandleParamString(params, "side")
 	sideParam := GetValue(sideParamparamsSideVariable, 0)
-	var paramsSide map[string]any = MapTyped(GetValue(sideParamparamsSideVariable, 1))
+	var paramsSide map[string]any = MapTyped(sideParamparamsSideVariable[1])
 	if IsEqual(sideParam, nil) {
 		panic(ArgumentsRequired(this.Id + " " + typeVar + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\""))
 	}

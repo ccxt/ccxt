@@ -2314,7 +2314,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol string, typeVar string,
 	var isMarketOrder bool = ((typeVar == "market") || (typeVar == "MARKET"))
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (typeVar == "POST_ONLY"), params)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	var orderType string = typeVar
 	if postOnly {
 		orderType = "POST_ONLY"
@@ -2780,8 +2780,8 @@ func (this *Bullish) withdrawBody(ch chan any, code string, amount any, address 
 		},
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode != nil {
 		request["network"] = this.NetworkCodeToId(networkCode, code)
 	} else {

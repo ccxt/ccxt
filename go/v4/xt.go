@@ -3315,7 +3315,7 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, sid
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), paramsWithoutCost)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	if postOnly == true {
 		timeInForce = SafeStringPtr("GTX")
 	}
@@ -3366,7 +3366,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar string,
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), params)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	if postOnly == true {
 		timeInForce = SafeStringPtr("GTX")
 	}
@@ -5092,8 +5092,8 @@ func (this *Xt) fetchDepositAddressBody(ch chan any, code string, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	var currency map[string]any = this.Currency(code)
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	this.CheckRequiredArgument("fetchDepositAddress", networkId, "network")
@@ -5326,11 +5326,11 @@ func (this *Xt) withdrawBody(ch chan any, code string, amount any, address any, 
 	}
 	var currency map[string]any = this.Currency(code)
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
 	var networkId *string = this.SafeString2(networkIdsByCodes, networkCode, code, code)
 	var request map[string]any = map[string]any{

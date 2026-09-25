@@ -1312,7 +1312,7 @@ func (this *Lighter) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var defaultType *string = this.SafeString2(this.Options, "watchBalance", "defaultType", "spot")
 	var typeVarparamsTypeVariable []any = this.HandleParamString(params, "type", defaultType)
 	typeVar := ccxt.GetValue(typeVarparamsTypeVariable, 0)
-	var paramsType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsTypeVariable, 1))
+	var paramsType map[string]any = ccxt.MapTyped(typeVarparamsTypeVariable[1])
 	var accountIndexparamsAccountIndexVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.HandleAccountIndexAsync(paramsType, "watchBalance", "accountIndex", "account_index"))))
 	accountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 1)

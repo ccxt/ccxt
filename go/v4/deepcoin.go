@@ -2180,7 +2180,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar any, params any) any {
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), (IsEqual(typeVar, "post_only")), params)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	var typePostOnly any = typeVar
 	if postOnly {
 		typePostOnly = "post_only"
@@ -2462,7 +2462,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	var trigger *bool = this.SafeBool(paramsPaginate, "trigger", false)
 	var methodNameparamsMethodNameVariable []any = this.HandleParamString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders")
 	methodName := GetValue(methodNameparamsMethodNameVariable, 0)
-	var paramsMethodName map[string]any = MapTyped(GetValue(methodNameparamsMethodNameVariable, 1))
+	var paramsMethodName map[string]any = MapTyped(methodNameparamsMethodNameVariable[1])
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {

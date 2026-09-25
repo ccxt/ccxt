@@ -1982,8 +1982,8 @@ func (this *Backpack) withdrawBody(ch chan any, code string, amount any, address
 		request["clientId"] = tag // memo or tag
 	}
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodequeryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(networkCodequeryVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodequeryVariable[0])
+	var query map[string]any = MapTyped(networkCodequeryVariable[1])
 	var networkId any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))
@@ -2153,8 +2153,8 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code string, optional
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes"))
 	}
@@ -2335,7 +2335,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, this.Omit(params, omitKeys))
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	if postOnly {
 		AddElementToObject(paramsPostOnly, "postOnly", true)
 	}

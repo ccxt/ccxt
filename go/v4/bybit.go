@@ -7675,8 +7675,8 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan any, code string, 
 		"coin": currency["id"],
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodeparamsNetworkCodeVariable[0])
+	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 	if networkCode != nil {
 		request["chainType"] = this.NetworkCodeToId(networkCode, code)
 	}
@@ -7739,7 +7739,7 @@ func (this *Bybit) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	var currency map[string]any = this.Currency(code)
 	var networkCodeparamsOmitedVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
-	var paramsOmited map[string]any = MapTyped(GetValue(networkCodeparamsOmitedVariable, 1))
+	var paramsOmited map[string]any = MapTyped(networkCodeparamsOmitedVariable[1])
 
 	indexedAddresses := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited))
 	PanicOnError(indexedAddresses)
@@ -8370,8 +8370,8 @@ func (this *Bybit) withdrawBody(ch chan any, code string, amount any, address an
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
-	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
+	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 
 	var accounts []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	var isUta any = GetValue(accounts, 1)
@@ -8405,8 +8405,8 @@ func (this *Bybit) withdrawBody(ch chan any, code string, amount any, address an
 		request["tag"] = tagWithdrawTag
 	}
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(paramsAccountType)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodequeryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(networkCodequeryVariable, 1))
+	var networkCode *string = SafeStringPtr(networkCodequeryVariable[0])
+	var query map[string]any = MapTyped(networkCodequeryVariable[1])
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
 		request["chain"] = ToUpper(networkId)
