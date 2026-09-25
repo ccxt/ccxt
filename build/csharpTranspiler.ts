@@ -9,7 +9,7 @@ import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
-import { PARAMETERS_ARG_TYPED_METHODS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
+import { PARAMETERS_ARG_TYPED_METHODS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
@@ -3855,12 +3855,17 @@ class NewTranspiler {
     // PARSE_MARKET_PARAM_DICTS. Name-keyed and applied to every declaration of the name (C# overrides
     // are invariant on parameter types), so base / venue / ws / prediction stay in sync.
     retypeParseMarketParams (content: string): string {
-        if (!PARSE_MARKET_PARAM_DICTS.some (name => content.includes (name + '('))) {
+        const typed = Object.keys (PARSE_MARKET_IDICT_PARAMS);
+        if (!PARSE_MARKET_PARAM_DICTS.concat (typed).some (name => content.includes (name + '('))) {
             return content;
         }
         const lines = content.split ('\n');
         for (let i = 0; i < lines.length; i++) {
             const sig = PARSE_MARKET_SIG_RE.exec (lines[i]);
+            if (sig !== null && typed.indexOf (sig[5]) !== -1) {
+                i = this.retypeParseMarketParamShadowed (lines, i, sig[1]);
+                continue;
+            }
             if (sig === null || PARSE_MARKET_PARAM_DICTS.indexOf (sig[5]) === -1) {
                 continue;
             }
@@ -3868,6 +3873,32 @@ class NewTranspiler {
                                  .replace (PARSE_MARKET_PARAM_REQUIRED_RE, '$1IDictionary<string, object>$2');
         }
         return lines.join ('\n');
+    }
+
+    // PARSE_MARKET_IDICT_PARAMS: retype `object market`; a body writing anything but null or a
+    // market-row core keeps the object slot as `object marketVar = market;` (the printer's reads
+    // agree: build/csharp-local-types.js#parseMarketParamType). Returns the body's last line.
+    retypeParseMarketParamShadowed (lines: string[], i: number, indent: string): number {
+        let bodyStart = i + 1;
+        while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+            bodyStart++;
+        }
+        let bodyEnd = lines.length - 1;
+        for (let j = bodyStart + 1; j < lines.length; j++) {
+            if (lines[j] === indent + '}') { bodyEnd = j; break; }
+        }
+        lines[i] = lines[i].replace (PARSE_MARKET_PARAM_RE, '$1IDictionary<string, object>$2')
+                           .replace (PARSE_MARKET_PARAM_REQUIRED_RE, '$1IDictionary<string, object>$2');
+        const writes = lines.slice (bodyStart + 1, bodyEnd).join ('\n').match (/(?<![\w.])market\s*(?:\?\?)?=(?!=)[^;]*;|(?<![\w])(?:ref|out)\s+market(?![\w])/g) ?? [];
+        const rowWrite = /^market\s*=\s*(?:null|this\.(?:market|safeMarket)\([^;]*\));$/;
+        if (writes.every ((w) => rowWrite.test (w))) {
+            return bodyEnd;
+        }
+        for (let k = bodyStart + 1; k < bodyEnd; k++) {
+            lines[k] = this.renameLocalInBody (lines[k], 'market', 'marketVar');
+        }
+        lines[bodyStart] = lines[bodyStart] + '\n' + indent + '    object marketVar = market;';
+        return bodyEnd;
     }
 
     // True when every `name = ...` write inside a body is a producer whose C# type is a list the

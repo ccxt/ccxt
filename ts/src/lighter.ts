@@ -985,7 +985,8 @@ export default class lighter extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
-        const [ txType, txInfo, order, market ] = await this.signAndCreateOrder ('createOrder', symbol, type, side, amount, price, params);
+        const [ txType, txInfo, order ] = await this.signAndCreateOrder ('createOrder', symbol, type, side, amount, price, params);
+        const market = this.market (symbol);
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,
@@ -3196,7 +3197,8 @@ export default class lighter extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
-        const [ txType, txInfo, market ] = await this.signAndCancelOrder ('cancelOrder', id, symbol, params);
+        const [ txType, txInfo ] = await this.signAndCancelOrder ('cancelOrder', id, symbol, params);
+        const market = this.market (symbol);
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,
