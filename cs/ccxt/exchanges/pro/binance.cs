@@ -1005,7 +1005,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchOrderBookWs only supports swap markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), marketType);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), marketType);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrderBookWs", "returnRateLimits", false);
@@ -2207,7 +2211,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchTickerWs only supports swap markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -2261,7 +2269,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchOHLCVWs only supports spot or swap markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), marketType);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), marketType);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
@@ -3212,7 +3224,11 @@ public partial class binance : ccxt.binance
     {
         object marketTypeVar = marketType;
         marketTypeVar ??= "spot";
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), marketTypeVar);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), marketTypeVar);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         var client = this.client(url);
         IDictionary<string, object> subscriptions = client.subscriptions;
         List<object> subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
@@ -3299,7 +3315,11 @@ public partial class binance : ccxt.binance
         string? marketTypeVar = marketType;
         marketTypeVar ??= "margin";
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), "spot"));
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), "spot");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         IDictionary<string, object> options = this.safeDict(this.options, marketTypeVar, new Dictionary<string, object>() {});
         Int64? lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
         Int64? listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
@@ -3767,7 +3787,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchBalanceWs only supports spot or swap markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchBalanceWs", "returnRateLimits", false);
@@ -3921,7 +3945,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchPositionsWs only supports swap markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
@@ -4284,7 +4312,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " createOrderWs only supports spot or swap markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), marketType);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), marketType);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         bool? sor = this.safeBool2(parameters, "sor", "SOR", false);
@@ -4464,7 +4496,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " editOrderWs only supports spot or swap markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), marketType);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), marketType);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         bool isSwap = (marketType == "future" || marketType == "delivery");
@@ -4633,7 +4669,11 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> market = this.market(symbol);
         string? type = this.getMarketType("cancelOrderWs", market, parameters);
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
@@ -4707,7 +4747,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " cancelAllOrdersWs only supports spot markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
@@ -4757,7 +4801,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchOrderWs only supports spot or swap markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
@@ -4818,7 +4866,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchOrdersWs only supports spot markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrdersWs", "returnRateLimits", false);
@@ -4891,7 +4943,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((this.id + " fetchOpenOrdersWs only supports spot markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrdersWs", "returnRateLimits", false);
@@ -5982,7 +6038,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((((this.id + " fetchMyTradesWs does not support ") + type) + " markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
@@ -6044,7 +6104,11 @@ public partial class binance : ccxt.binance
         {
             throw new BadRequest ((((this.id + " fetchTradesWs does not support ") + type) + " markets")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);

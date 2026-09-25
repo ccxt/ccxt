@@ -174,7 +174,11 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -230,7 +234,11 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -320,7 +328,11 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -381,7 +393,11 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -520,7 +536,11 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -572,7 +592,11 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((this.id + " unWatchBidsAsks() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -708,7 +732,11 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -768,7 +796,11 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1057,7 +1089,11 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1112,7 +1148,11 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1258,7 +1298,11 @@ public partial class aster : ccxt.aster
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market((marketSymbols != null && 0 < marketSymbols.Count ? marketSymbols[0] : null));
         string? type = this.safeString(firstMarket, "type", "swap");
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1330,7 +1374,11 @@ public partial class aster : ccxt.aster
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market((marketSymbols != null && 0 < marketSymbols.Count ? marketSymbols[0] : null));
         string? type = this.safeString(firstMarket, "type", "swap");
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        string? url = this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {

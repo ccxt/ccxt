@@ -8753,7 +8753,7 @@ public partial class kucoin : Exchange
         }
         IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
         string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        var paramsNetworkCode = networkCodeparamsNetworkCodeVariable[1];
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
         if ((networkCode != null))
         {
             string? _netIdTmp = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
@@ -8769,7 +8769,7 @@ public partial class kucoin : Exchange
         }
         IList<object> includeFeeparamsIncludeFeeVariable = (IList<object>)this.handleOptionBoolAndParams(paramsNetworkCode, "withdraw", "includeFee", false);
         bool? includeFee = (bool?)includeFeeparamsIncludeFeeVariable[0];
-        var paramsIncludeFee = includeFeeparamsIncludeFeeVariable[1];
+        IDictionary<string, object> paramsIncludeFee = ((IDictionary<string, object>)includeFeeparamsIncludeFeeVariable[1]);
         if ((includeFee == true))
         {
             request["feeDeductType"] = "INTERNAL";

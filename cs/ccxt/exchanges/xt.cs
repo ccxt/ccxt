@@ -5095,7 +5095,7 @@ public partial class xt : Exchange
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
         string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        var paramsNetworkCode = networkCodeparamsNetworkCodeVariable[1];
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
         IDictionary<string, object> networkIdsByCodes = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         string? networkId = this.safeString2(networkIdsByCodes, networkCode, code, code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
