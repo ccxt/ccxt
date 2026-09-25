@@ -12509,8 +12509,6 @@ const DESTRUCTURED_DECLARATION_ELEMENT0 = {
     'handleOptionBoolAndParams': 'bool?', 'handleOptionBoolAndParams2': 'bool?',
     'handleOptionIntegerAndParams': 'Int64?', 'handleOptionIntegerAndParams2': 'Int64?',
 };
-// element 0 is not the last tuple read, so its line keeps the `;`
-const DESTRUCTURED_ELEMENT0_LINE_RE = /^([ \t]*)var ([A-Za-z_]\w*) = ([A-Za-z_]\w*\[0\])(?=;?$)/m;
 // the audited string helpers: a caller default that can flow out as element 0 must be a string literal or absent
 function destructuredStringHelperElement0 (call, helper) {
     if (!Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, helper)) {
@@ -12535,26 +12533,35 @@ function handleTupleElement0ReadType (initializer) {
 
 function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
     const helper = destructuredHandleCallName (declaration.initializer);
-    const target = declaration.name.elements?.[0]?.name;
-    if (helper === undefined || target?.kind !== ts.SyntaxKind.Identifier || scope === undefined) {
+    if (helper === undefined || scope === undefined) {
         return printed;
     }
     const type = DESTRUCTURED_DECLARATION_ELEMENT0[helper] ?? destructuredStringHelperElement0 (declaration.initializer, helper);
     if (type === undefined) {
         return printed;
     }
-    const match = DESTRUCTURED_ELEMENT0_LINE_RE.exec (printed);
-    // the element is the only binding of its printed name in the function
+    // slot 0, plus the other string slots an audited string helper carries (stringElementIndexes)
+    const slots = (DESTRUCTURED_DECLARATION_ELEMENT0[helper] === undefined) ? stringElementIndexes (helper) : [ 0 ];
     const index = indexScope (csharp, scope);
-    const bindingCount = (index.bindingCounts.get (match?.[2]) ?? 0) + (index.patternBindingCounts.get (match?.[2]) ?? 0);
-    if (match === null || match[2] !== csharp.printNode (target, 0) || bindingCount !== 1) {
-        return printed;
+    for (const slot of slots) {
+        const target = declaration.name.elements?.[slot]?.name;
+        if (target?.kind !== ts.SyntaxKind.Identifier) {
+            continue;
+        }
+        const re = new RegExp ('^([ \\t]*)var ([A-Za-z_]\\w*) = ([A-Za-z_]\\w*\\[' + slot + '\\])(?=;?$)', 'm');
+        const match = re.exec (printed);
+        // the element is the only binding of its printed name in the function
+        const bindingCount = (index.bindingCounts.get (match?.[2]) ?? 0) + (index.patternBindingCounts.get (match?.[2]) ?? 0);
+        if (match === null || match[2] !== csharp.printNode (target, 0) || bindingCount !== 1) {
+            continue;
+        }
+        if (!csharpLocalIsSafeToRetype (csharp, scope, target.parent, target.escapedText, type, { scope, stack: new Set (), depth: 0 })) {
+            continue;
+        }
+        const cast = (type === 'string?') ? 'string' : type;
+        printed = printed.replace (match[0], match[1] + type + ' ' + match[2] + ' = (' + cast + ')' + match[3]);
     }
-    if (!csharpLocalIsSafeToRetype (csharp, scope, target.parent, target.escapedText, type, { scope, stack: new Set (), depth: 0 })) {
-        return printed;
-    }
-    const cast = (type === 'string?') ? 'string' : type;
-    return printed.replace (match[0], match[1] + type + ' ' + match[2] + ' = (' + cast + ')' + match[3]);
+    return printed;
 }
 
 // Element 1 of the base params-tuple helpers (`const [ v, p ] = this.handleX (...)`): every
