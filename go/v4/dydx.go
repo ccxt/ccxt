@@ -639,7 +639,12 @@ func (this *Dydx) ParseMarket(market any) any {
 	if marketId == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing marketId"))
 	}
-	var parts []string = Split(marketId, "-")
+	var parts []string = func() []string {
+		if marketId == nil {
+			return nil
+		}
+		return strings.Split(*marketId, "-")
+	}()
 	var baseName *string = this.SafeString(parts, 0)
 	var baseId *string = this.SafeString(market, "baseId", baseName) // idk where 'baseId' comes from, but leaving as is
 	var base *string = this.SafeCurrencyCode(baseId)

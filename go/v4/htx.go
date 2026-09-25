@@ -2740,7 +2740,12 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 					if pair == nil {
 						panic(ExchangeError(this.Id + " method() missing pair"))
 					}
-					var parts []string = Split(pair, "-")
+					var parts []string = func() []string {
+						if pair == nil {
+							return nil
+						}
+						return strings.Split(*pair, "-")
+					}()
 					quoteId = this.SafeStringLower(parts, 1)
 					settleId = quoteId
 				}
@@ -6443,7 +6448,12 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 				}
 				return strings.Index(*rawType, "-")
 			}() >= 0 {
-				var orderType []string = Split(rawType, "-")
+				var orderType []string = func() []string {
+					if rawType == nil {
+						return nil
+					}
+					return strings.Split(*rawType, "-")
+				}()
 				side = GetValue(orderType, 0)
 				typeVar = GetValue(orderType, 1)
 			} else if IsEqual(typeVar, nil) {
@@ -7873,7 +7883,12 @@ func (this *Htx) ParseCancelOrders(orders any) []any {
 	var successes *string = this.SafeString(orders, "successes")
 	var success any = nil
 	if successes != nil {
-		success = Split(successes, ",")
+		success = func() []string {
+			if successes == nil {
+				return nil
+			}
+			return strings.Split(*successes, ",")
+		}()
 	} else {
 		success = this.SafeList(orders, "success", []any{})
 	}

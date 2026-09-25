@@ -328,7 +328,12 @@ func (this *Bydfi) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < ccxt.GetArrayLength(subHashes); i++ {
 			var subHash *string = this.SafeString(subHashes, i)
 			if subHash != nil {
-				var parts []string = ccxt.Split(subHash, "::")
+				var parts []string = func() []string {
+					if subHash == nil {
+						return nil
+					}
+					return strings.Split(*subHash, "::")
+				}()
 				var symbol *string = this.SafeString(parts, 1)
 				if symbol != nil && *symbol == "all" {
 					continue

@@ -298,7 +298,12 @@ func (this *Derive) HandleTicker(client any, message map[string]any) any {
 	if (topic != nil) && ccxt.StartsWith(topic, "ticker_slim") {
 		// the slim payload uses short keys and does not carry the instrument name,
 		// so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-		var parts []string = ccxt.Split(topic, ".")
+		var parts []string = func() []string {
+			if topic == nil {
+				return nil
+			}
+			return strings.Split(*topic, ".")
+		}()
 		var marketId *string = this.SafeString(parts, 1)
 		var market any = this.SafeMarket(marketId)
 		var stats map[string]any = ccxt.SafeMapTyped(data, "stats")
@@ -949,7 +954,12 @@ func (this *Derive) HandleMessage(client any, message any) {
 	if !ccxt.IsEqual(params, nil) {
 		var channel *string = this.SafeString(params, "channel")
 		if channel != nil {
-			var parsedChannel []string = ccxt.Split(channel, ".")
+			var parsedChannel []string = func() []string {
+				if channel == nil {
+					return nil
+				}
+				return strings.Split(*channel, ".")
+			}()
 			if (func() int {
 				if channel == nil {
 					return -1

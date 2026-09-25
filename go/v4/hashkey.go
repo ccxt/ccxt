@@ -1174,7 +1174,12 @@ func (this *Hashkey) ParseMarket(market any) any {
 	var isSpot bool = true
 	var isSwap bool = false
 	var suffix any = ""
-	var parts []string = Split(marketId, "-")
+	var parts []string = func() []string {
+		if marketId == nil {
+			return nil
+		}
+		return strings.Split(*marketId, "-")
+	}()
 	var secondPart *string = this.SafeString(parts, 1)
 	if secondPart != nil && *secondPart == "PERPETUAL" {
 		marketType = "swap"

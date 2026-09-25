@@ -227,7 +227,12 @@ func (this *Lighter) HandleOrderBook(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "order_book", map[string]any{})
 	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, ":")
+	}()
 	var marketId any = ccxt.GetValue(parts, 1)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol any = market["symbol"]
@@ -796,7 +801,12 @@ func (this *Lighter) HandleTrades(client any, message any) {
 	}
 	var data []any = ccxt.SafeListTyped(message, "trades")
 	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, ":")
+	}()
 	var marketId any = ccxt.GetValue(parts, 1)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -1042,7 +1052,12 @@ func (this *Lighter) HandleMyTrades(client any, message any) any {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, ":")
+	}()
 	var accountIndex any = ccxt.GetValue(parts, 1)
 	var data map[string]any = ccxt.SafeMapTyped(message, "trades")
 	var marketIds []string = ccxt.ObjectKeys(data)
@@ -1273,7 +1288,12 @@ func (this *Lighter) HandleLiquidation(client any, message any) {
 	//
 	var data []any = ccxt.SafeListTyped(message, "liquidation_trades")
 	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, ":")
+	}()
 	var marketId any = ccxt.GetValue(parts, 1)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -1985,7 +2005,12 @@ func (this *Lighter) HandleUnSubscription(client any, message any) {
 	// "account_orders:{marketId}", so parts[1] is the market id on every family below
 	//
 	var channel *string = this.SafeString(message, "channel", "")
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, ":")
+	}()
 	var name *string = this.SafeString(parts, 0, "")
 	var channelId *string = this.SafeString(parts, 1)
 	if name != nil && *name == "order_book" {

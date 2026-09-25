@@ -3113,7 +3113,12 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 				// eOptions tickers: group by underlying + expiry date (<underlying>@optionTicker@<YYMMDD>)
 				// market id format: BTC-240328-70000-C → expiry part is parts[1] = '240328'
 				var marketId *string = this.SafeString(market, "id", "")
-				var parts []string = ccxt.Split(marketId, "-")
+				var parts []string = func() []string {
+					if marketId == nil {
+						return nil
+					}
+					return strings.Split(*marketId, "-")
+				}()
 				var expiryDate *string = this.SafeString(parts, 1)
 				var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 				var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")

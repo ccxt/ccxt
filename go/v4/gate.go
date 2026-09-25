@@ -2255,7 +2255,12 @@ func (this *Gate) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		var id *string = this.SafeString(spotMarket, "id")
 		var marginMarket any = this.SafeDict(marginMarkets, id)
 		var market map[string]any = this.DeepExtend(marginMarket, spotMarket)
-		baseIdquoteIdVariable := Split(id, "_")
+		baseIdquoteIdVariable := func() []string {
+			if id == nil {
+				return nil
+			}
+			return strings.Split(*id, "_")
+		}()
 		baseId := GetValue(baseIdquoteIdVariable, 0)
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -2509,7 +2514,12 @@ func (this *Gate) ParseContractMarket(market any, settleId any) map[string]any {
 	//    }
 	//
 	var id *string = this.SafeString(market, "name")
-	var parts []string = Split(id, "_")
+	var parts []string = func() []string {
+		if id == nil {
+			return nil
+		}
+		return strings.Split(*id, "_")
+	}()
 	var baseId *string = this.SafeString(parts, 0)
 	var quoteId *string = this.SafeString(parts, 1)
 	var date *string = this.SafeString(parts, 2)
@@ -4354,7 +4364,12 @@ func (this *Gate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	} else if typeVar == "option" {
 		this.CheckRequiredArgument("fetchTickers", symbols, "symbols")
 		var marketId *string = this.SafeString(market, "id")
-		var optionParts []string = Split(marketId, "-")
+		var optionParts []string = func() []string {
+			if marketId == nil {
+				return nil
+			}
+			return strings.Split(*marketId, "-")
+		}()
 		AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))
 
 		response = (<-this.PublicOptionsGetTickers(this.Extend(request, requestParams)))
@@ -8586,7 +8601,12 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if IsEqual(typeVar, "option") {
 		if symbols != nil {
 			var marketId *string = this.SafeString(market, "id")
-			var optionParts []string = Split(marketId, "-")
+			var optionParts []string = func() []string {
+				if marketId == nil {
+					return nil
+				}
+				return strings.Split(*marketId, "-")
+			}()
 			AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))
 		}
 	} else {

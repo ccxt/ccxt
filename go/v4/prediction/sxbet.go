@@ -3057,7 +3057,12 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 	} else {
 		rows = []any{data}
 	}
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, ":")
+	}()
 	var channelType *string = this.SafeString(parts, 0)
 	if channelType != nil && *channelType == "orderbook_v3" {
 		this.HandleOrderBook(client, rows)

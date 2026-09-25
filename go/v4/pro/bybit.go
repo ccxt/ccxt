@@ -768,7 +768,12 @@ func (this *Bybit) HandleTicker(client any, message map[string]any) {
 		parsed = this.ParseTicker(data)
 		symbol = ccxt.GetValue(parsed, "symbol")
 	} else if updateType != nil && *updateType == "delta" {
-		var topicParts []string = ccxt.Split(topic, ".")
+		var topicParts []string = func() []string {
+			if topic == nil {
+				return nil
+			}
+			return strings.Split(*topic, ".")
+		}()
 		var topicLength int = len(topicParts)
 		var marketId *string = this.SafeString(topicParts, topicLength-1)
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, typeVar))
@@ -1070,7 +1075,12 @@ func (this *Bybit) HandleOHLCV(client any, message map[string]any) {
 	//
 	var data any = this.SafeValue(message, "data", map[string]any{})
 	var topic *string = this.SafeString(message, "topic", "")
-	var topicParts []string = ccxt.Split(topic, ".")
+	var topicParts []string = func() []string {
+		if topic == nil {
+			return nil
+		}
+		return strings.Split(*topic, ".")
+	}()
 	var topicLength int = len(topicParts)
 	var timeframeId *string = this.SafeString(topicParts, 1)
 	var timeframe any = this.FindTimeframe(timeframeId)
@@ -1355,7 +1365,12 @@ func (this *Bybit) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic", "")
-	var limit any = ccxt.GetValue(ccxt.Split(topic, "."), 1)
+	var limit any = ccxt.GetValue(func() []string {
+		if topic == nil {
+			return nil
+		}
+		return strings.Split(*topic, ".")
+	}(), 1)
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") >= 0)
 	var typeVar *string = this.SafeString(message, "type")
 	var isSnapshot bool = (typeVar != nil && *typeVar == "snapshot")
@@ -1596,7 +1611,12 @@ func (this *Bybit) HandleTrades(client any, message map[string]any) {
 	var data any = this.SafeValue(message, "data", map[string]any{})
 	var topic *string = this.SafeString(message, "topic", "")
 	var trades any = data
-	var parts []string = ccxt.Split(topic, ".")
+	var parts []string = func() []string {
+		if topic == nil {
+			return nil
+		}
+		return strings.Split(*topic, ".")
+	}()
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") >= 0)
 	var marketType string = func() string {
 		if isSpot {

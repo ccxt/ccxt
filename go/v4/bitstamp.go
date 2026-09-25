@@ -1448,14 +1448,24 @@ func (this *Bitstamp) ParseCurrencies(rawCurrencies any) any {
 		if description == nil {
 			panic(ExchangeError(this.Id + " parseCurrencies() missing description"))
 		}
-		baseDescriptionquoteDescriptionVariable := Split(description, " / ")
+		baseDescriptionquoteDescriptionVariable := func() []string {
+			if description == nil {
+				return nil
+			}
+			return strings.Split(*description, " / ")
+		}()
 		baseDescription := GetValue(baseDescriptionquoteDescriptionVariable, 0)
 		quoteDescription := GetValue(baseDescriptionquoteDescriptionVariable, 1)
 		var minimumOrder *string = this.SafeString(market, "minimum_order_value")
 		if minimumOrder == nil {
 			panic(ExchangeError(this.Id + " parseCurrencies() missing minimumOrder"))
 		}
-		var parts []string = Split(minimumOrder, " ")
+		var parts []string = func() []string {
+			if minimumOrder == nil {
+				return nil
+			}
+			return strings.Split(*minimumOrder, " ")
+		}()
 		var cost any = GetValue(parts, 0)
 		if (base != nil) && !(func() bool {
 			if base == nil {

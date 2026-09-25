@@ -924,7 +924,12 @@ func (this *Kucoin) HandleTicker(client any, message any) {
 	if ccxt.GetIndexOf(topic, "contractMarket") < 0 {
 		var market any = nil
 		if topic != nil {
-			var parts []string = ccxt.Split(topic, ":")
+			var parts []string = func() []string {
+				if topic == nil {
+					return nil
+				}
+				return strings.Split(*topic, ":")
+			}()
 			var first *string = this.SafeString(parts, 1)
 			var marketId any = nil
 			if first != nil && *first == "all" {
@@ -1190,7 +1195,12 @@ func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 	_ = market
 	var topic *string = this.SafeString(ticker, "topic")
 	if ccxt.GetIndexOf(topic, "contractMarket") < 0 {
-		var parts []string = ccxt.Split(topic, ":")
+		var parts []string = func() []string {
+			if topic == nil {
+				return nil
+			}
+			return strings.Split(*topic, ":")
+		}()
 		var marketId any = ccxt.GetValue(parts, 1)
 		market = this.SafeMarket(marketId, market)
 		var symbol *string = this.SafeString(market, "symbol")
@@ -1431,7 +1441,12 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "symbol")
 	var candles any = this.SafeList(data, "candles", []any{})
 	var topic *string = this.SafeString(message, "topic")
-	var parts []string = ccxt.Split(topic, "_")
+	var parts []string = func() []string {
+		if topic == nil {
+			return nil
+		}
+		return strings.Split(*topic, "_")
+	}()
 	var interval *string = this.SafeString(parts, 1)
 	// use a reverse lookup in a static map instead
 	var timeframe any = this.FindTimeframe(interval)
@@ -2233,7 +2248,12 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 	//
 	var data any = this.SafeDict(message, "data")
 	var topic *string = this.SafeString(message, "topic")
-	var topicParts []string = ccxt.Split(topic, ":")
+	var topicParts []string = func() []string {
+		if topic == nil {
+			return nil
+		}
+		return strings.Split(*topic, ":")
+	}()
 	var topicSymbol *string = this.SafeString(topicParts, 1)
 	var topicChannel *string = this.SafeString(topicParts, 0)
 	var marketId *string = this.SafeString(data, "symbol", topicSymbol)
@@ -2375,7 +2395,12 @@ func (this *Kucoin) HandleDelta(orderbook any, delta any) {
 	var storedAsks any = ccxt.GetValue(orderbook, "asks")
 	if change != nil {
 		// handling futures orderbook update
-		var splitChange []string = ccxt.Split(change, ",")
+		var splitChange []string = func() []string {
+			if change == nil {
+				return nil
+			}
+			return strings.Split(*change, ",")
+		}()
 		var price *float64 = this.SafeNumber(splitChange, 0)
 		var side *string = this.SafeString(splitChange, 1)
 		var quantity *float64 = this.SafeNumber(splitChange, 2)
@@ -3475,7 +3500,12 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 	var relationEvent *string = this.SafeString(data, "relationEvent")
 	var requestAccountType any = nil
 	if relationEvent != nil {
-		var relationEventParts []string = ccxt.Split(relationEvent, ".")
+		var relationEventParts []string = func() []string {
+			if relationEvent == nil {
+				return nil
+			}
+			return strings.Split(*relationEvent, ".")
+		}()
 		requestAccountType = ccxt.DerefScalar(this.SafeString(relationEventParts, 0))
 	}
 	var topic *string = this.SafeString(message, "topic")
@@ -3873,7 +3903,12 @@ func (this *Kucoin) HandlePosition(client any, message map[string]any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic", "")
-	var parts []string = ccxt.Split(topic, ":")
+	var parts []string = func() []string {
+		if topic == nil {
+			return nil
+		}
+		return strings.Split(*topic, ":")
+	}()
 	var marketId *string = this.SafeString(parts, 1)
 	var symbol *string = this.SafeSymbol(marketId, nil, "")
 	var cache any = this.Positions

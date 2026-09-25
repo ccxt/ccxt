@@ -645,7 +645,12 @@ func (this *Bingx) HandleTrades(client any, message any) {
 	//
 	var data any = this.SafeValue(message, "data", []any{})
 	var rawHash *string = this.SafeString(message, "dataType", "")
-	var marketId any = ccxt.GetValue(ccxt.Split(rawHash, "@"), 0)
+	var marketId any = ccxt.GetValue(func() []string {
+		if rawHash == nil {
+			return nil
+		}
+		return strings.Split(*rawHash, "@")
+	}(), 0)
 	var isSwap bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
 	var marketType string = func() string {
 		if isSwap {
@@ -868,7 +873,12 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var dataType *string = this.SafeString(message, "dataType", "")
-	var parts []string = ccxt.Split(dataType, "@")
+	var parts []string = func() []string {
+		if dataType == nil {
+			return nil
+		}
+		return strings.Split(*dataType, "@")
+	}()
 	var firstPart any = ccxt.GetValue(parts, 0)
 	var isAllEndpoint bool = (ccxt.IsEqual(firstPart, "all"))
 	var marketId *string = this.SafeString(data, "symbol", firstPart)
@@ -1012,7 +1022,12 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 	//
 	var isSwap bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
 	var dataType *string = this.SafeString(message, "dataType", "")
-	var parts []string = ccxt.Split(dataType, "@")
+	var parts []string = func() []string {
+		if dataType == nil {
+			return nil
+		}
+		return strings.Split(*dataType, "@")
+	}()
 	var firstPart any = ccxt.GetValue(parts, 0)
 	var isAllEndpoint bool = (ccxt.IsEqual(firstPart, "all"))
 	var marketId *string = this.SafeString(message, "s", firstPart)
@@ -1036,7 +1051,12 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 	}
 	var symbol any = ccxt.GetValue(market, "symbol")
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
-	var rawTimeframe any = ccxt.GetValue(ccxt.Split(dataType, "_"), 1)
+	var rawTimeframe any = ccxt.GetValue(func() []string {
+		if dataType == nil {
+			return nil
+		}
+		return strings.Split(*dataType, "_")
+	}(), 1)
 	var marketOptions map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
 	var timeframes any = this.SafeDict(marketOptions, "timeframes", map[string]any{})
 	var unifiedTimeframe any = this.FindTimeframe(rawTimeframe, timeframes)

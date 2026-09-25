@@ -4333,7 +4333,12 @@ func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {
 	}
 	var pub map[string]any = ccxt.SafeMapTyped(push, "pub")
 	var data any = this.SafeDict(pub, "data", map[string]any{})
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, ":")
+	}()
 	var channelType *string = this.SafeString(parts, 0)
 	if channelType != nil && *channelType == "orderbook" {
 		this.HandleOrderBook(client, data)

@@ -927,7 +927,12 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var baseId any = nil
 		var quoteId any = nil
 		if GetIndexOf(id, ":") >= 0 {
-			var parts []string = Split(id, ":")
+			var parts []string = func() []string {
+				if id == nil {
+					return nil
+				}
+				return strings.Split(*id, ":")
+			}()
 			baseId = GetValue(parts, 0)
 			quoteId = GetValue(parts, 1)
 		} else {
@@ -948,8 +953,18 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var splitBase []string = Split(base, "F0")
-		var splitQuote []string = Split(quote, "F0")
+		var splitBase []string = func() []string {
+			if base == nil {
+				return nil
+			}
+			return strings.Split(*base, "F0")
+		}()
+		var splitQuote []string = func() []string {
+			if quote == nil {
+				return nil
+			}
+			return strings.Split(*quote, "F0")
+		}()
 		base = this.SafeString(splitBase, 0)
 		quote = this.SafeString(splitQuote, 0)
 		var symbol any = Add(Add(base, "/"), quote)
@@ -2121,7 +2136,12 @@ func (this *Bitfinex) ParseOrderStatus(status *string) *string {
 	if status == nil {
 		return nil
 	}
-	var parts []string = Split(status, " ")
+	var parts []string = func() []string {
+		if status == nil {
+			return nil
+		}
+		return strings.Split(*status, " ")
+	}()
 	var state *string = this.SafeString(parts, 0)
 	var statuses map[string]any = map[string]any{
 		"ACTIVE":              "open",
@@ -2199,7 +2219,12 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 	var status any = nil
 	var statusString *string = this.SafeString(orderList, 13)
 	if statusString != nil {
-		var parts []string = Split(statusString, " @ ")
+		var parts []string = func() []string {
+			if statusString == nil {
+				return nil
+			}
+			return strings.Split(*statusString, " @ ")
+		}()
 		status = this.ParseOrderStatus(this.SafeString(parts, 0))
 	}
 	var average *string = this.SafeString(orderList, 17)
@@ -4099,7 +4124,12 @@ func (this *Bitfinex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var after *float64 = this.SafeNumber(itemList, 6)
 	var description *string = this.SafeString(itemList, 8)
 	if description != nil {
-		var parts []string = Split(description, " @ ")
+		var parts []string = func() []string {
+			if description == nil {
+				return nil
+			}
+			return strings.Split(*description, " @ ")
+		}()
 		var first *string = this.SafeStringLower(parts, 0)
 		typeVar = this.ParseLedgerEntryType(first)
 	}

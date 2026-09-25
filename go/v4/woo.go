@@ -1068,7 +1068,12 @@ func (this *Woo) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Woo) ParseMarket(market any) any {
 	var marketId *string = this.SafeString(market, "symbol", "")
-	var parts []string = Split(marketId, "_")
+	var parts []string = func() []string {
+		if marketId == nil {
+			return nil
+		}
+		return strings.Split(*marketId, "_")
+	}()
 	var first *string = this.SafeString(parts, 0)
 	var marketType any = nil
 	var spot bool = false

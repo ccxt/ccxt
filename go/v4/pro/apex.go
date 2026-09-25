@@ -179,7 +179,12 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	var data any = this.SafeList(message, "data", []any{})
 	var topic *string = this.SafeString(message, "topic")
 	var trades any = data
-	var parts []string = ccxt.Split(topic, ".")
+	var parts []string = func() []string {
+		if topic == nil {
+			return nil
+		}
+		return strings.Split(*topic, ".")
+	}()
 	var marketId *string = this.SafeString(parts, 2)
 	var market any = this.SafeMarket(marketId, nil, nil)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -571,7 +576,12 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 		parsed = this.ParseTicker(data)
 		symbol = ccxt.GetValue(parsed, "symbol")
 	} else if updateType != nil && *updateType == "delta" {
-		var topicParts []string = ccxt.Split(topic, ".")
+		var topicParts []string = func() []string {
+			if topic == nil {
+				return nil
+			}
+			return strings.Split(*topic, ".")
+		}()
 		var topicLength int = len(topicParts)
 		var marketId *string = this.SafeString(topicParts, topicLength-1)
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil))
@@ -706,7 +716,12 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	//
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var topic *string = this.SafeString(message, "topic")
-	var topicParts []string = ccxt.Split(topic, ".")
+	var topicParts []string = func() []string {
+		if topic == nil {
+			return nil
+		}
+		return strings.Split(*topic, ".")
+	}()
 	var topicLength int = len(topicParts)
 	var timeframeId *string = this.SafeString(topicParts, 1)
 	var timeframe any = this.FindTimeframe(timeframeId)

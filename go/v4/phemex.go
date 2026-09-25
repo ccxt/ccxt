@@ -967,7 +967,12 @@ func (this *Phemex) ParseSwapMarket(market any) any {
 	}() != OpNeg(1) {
 		// "1 USD"
 		// "0.005 ETH"
-		var parts []string = Split(contractSizeString, " ")
+		var parts []string = func() []string {
+			if contractSizeString == nil {
+				return nil
+			}
+			return strings.Split(*contractSizeString, " ")
+		}()
 		contractSize = this.ParseNumber(GetValue(parts, 0))
 	} else {
 		// "1.0"

@@ -214,7 +214,12 @@ func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
 	if channel == nil {
 		return
 	}
-	var parts []string = ccxt.Split(channel, "_")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, "_")
+	}()
 	var marketId *string = this.SafeString(parts, 3)
 	var symbol *string = this.SafeSymbol(marketId)
 	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol)
@@ -440,7 +445,12 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	if channel == nil {
 		return
 	}
-	var parts []string = ccxt.Split(channel, "_")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, "_")
+	}()
 	var marketId *string = this.SafeString(parts, 2)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -518,7 +528,12 @@ func (this *Bitstamp) HandleFundingRate(client any, message map[string]any) {
 	if channel == nil {
 		return
 	}
-	var parts []string = ccxt.Split(channel, "_")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, "_")
+	}()
 	var marketId *string = this.SafeString(parts, 2)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -968,7 +983,12 @@ func (this *Bitstamp) HandleOrderBookSubscription(client any, message any) {
 	if channel == nil {
 		return
 	}
-	var parts []string = ccxt.Split(channel, "_")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, "_")
+	}()
 	var marketId *string = this.SafeString(parts, 3)
 	var symbol *string = this.SafeSymbol(marketId)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())

@@ -220,7 +220,12 @@ func (this *Hyperliquid) ParseOutcomeDescription(description *string) map[string
 	if (description == nil) || (description != nil && *description == "") {
 		return map[string]any{}
 	}
-	var parts []string = ccxt.Split(description, "|")
+	var parts []string = func() []string {
+		if description == nil {
+			return nil
+		}
+		return strings.Split(*description, "|")
+	}()
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(parts); i++ {
 		var part string = ccxt.GetValue(parts, i).(string)
@@ -251,7 +256,12 @@ func (this *Hyperliquid) BuildOutcomeSymbol(desc any, side any, outcomeId any) a
 	// Parse expiry: "20260503-0600" → "20260503"
 	var expiryDate any = func() any {
 		if expiry == nil || *expiry != "" {
-			return ccxt.GetValue(ccxt.Split(expiry, "-"), 0)
+			return ccxt.GetValue(func() []string {
+				if expiry == nil {
+					return nil
+				}
+				return strings.Split(*expiry, "-")
+			}(), 0)
 		}
 		return ""
 	}()
@@ -293,7 +303,12 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc any, outcomeId any, optio
 		var expiry *string = this.SafeString(desc, "expiry", "")
 		var expiryDate any = func() any {
 			if expiry == nil || *expiry != "" {
-				return ccxt.GetValue(ccxt.Split(expiry, "-"), 0)
+				return ccxt.GetValue(func() []string {
+					if expiry == nil {
+						return nil
+					}
+					return strings.Split(*expiry, "-")
+				}(), 0)
 			}
 			return ""
 		}()
@@ -315,7 +330,12 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc any, outcomeId any, optio
 			var questionExpiry *string = this.SafeString(questionDesc, "expiry", "")
 			var expiryDate any = func() any {
 				if questionExpiry == nil || *questionExpiry != "" {
-					return ccxt.GetValue(ccxt.Split(questionExpiry, "-"), 0)
+					return ccxt.GetValue(func() []string {
+						if questionExpiry == nil {
+							return nil
+						}
+						return strings.Split(*questionExpiry, "-")
+					}(), 0)
 				}
 				return ""
 			}()
@@ -324,7 +344,12 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc any, outcomeId any, optio
 			var rawDescription *string = this.SafeStringLower(desc, "description", "")
 			var nameLower string = ccxt.ToLower(name)
 			if ((questionUnderlying != nil) && (questionUnderlying == nil || *questionUnderlying != "")) && (thresholdsRaw == nil || *thresholdsRaw != "") && (indexStr != nil) {
-				var thresholdParts []string = ccxt.Split(thresholdsRaw, ",")
+				var thresholdParts []string = func() []string {
+					if thresholdsRaw == nil {
+						return nil
+					}
+					return strings.Split(*thresholdsRaw, ",")
+				}()
 				var thresholds []any = []any{}
 				for i := 0; i < len(thresholdParts); i++ {
 					var trimmed string = ccxt.Trim(ccxt.GetValue(thresholdParts, i))
@@ -528,7 +553,12 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo any, outcomeId any, opti
 	var expiryDatetime any = nil
 	if (expiry != nil) && (expiry == nil || *expiry != "") {
 		// e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
-		var expParts []string = ccxt.Split(expiry, "-")
+		var expParts []string = func() []string {
+			if expiry == nil {
+				return nil
+			}
+			return strings.Split(*expiry, "-")
+		}()
 		var expPartsLength int = len(expParts)
 		if (expPartsLength >= 1) && (ccxt.GetLength(ccxt.GetValue(expParts, 0)) == 8) {
 			var ymd any = ccxt.GetValue(expParts, 0)
@@ -671,7 +701,12 @@ func (this *Hyperliquid) CalculatePricePrecision(midPx any, szDecimals any) any 
 		return 0.0001
 	}
 	var midStr *string = this.NumberToString(midPx)
-	var parts []string = ccxt.Split(midStr, ".")
+	var parts []string = func() []string {
+		if midStr == nil {
+			return nil
+		}
+		return strings.Split(*midStr, ".")
+	}()
 	var intPart any = ccxt.GetValue(parts, 0)
 	var significantDigits any = ccxt.MathMax(5, ccxt.GetLength(intPart))
 	var maxDecimals any = ccxt.Subtract(8, szDecimals)
@@ -2571,7 +2606,12 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) any {
 	var expiryMs any = nil
 	var expiryDatetime any = nil
 	if (expiryRaw != nil) && (expiryRaw == nil || *expiryRaw != "") {
-		var parts []string = ccxt.Split(expiryRaw, "-")
+		var parts []string = func() []string {
+			if expiryRaw == nil {
+				return nil
+			}
+			return strings.Split(*expiryRaw, "-")
+		}()
 		var partsLength int = len(parts)
 		if (partsLength >= 1) && (ccxt.GetLength(ccxt.GetValue(parts, 0)) == 8) {
 			var ymd any = ccxt.GetValue(parts, 0)

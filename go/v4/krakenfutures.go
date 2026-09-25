@@ -580,7 +580,12 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var swap bool = (typeVar == "swap")
 		var future bool = (typeVar == "future")
 		var symbol any = id
-		var split []string = Split(id, "_")
+		var split []string = func() []string {
+			if id == nil {
+				return nil
+			}
+			return strings.Split(*id, "_")
+		}()
 		var splitMarket *string = this.SafeString(split, 1)
 		var baseId string = Slice(splitMarket, 0, GetLength(splitMarket)-3)
 		var quoteId string = "usd" // always USD
@@ -3631,7 +3636,12 @@ func (this *Krakenfutures) ParseBalance(response any) any {
 		if code == nil {
 			continue
 		}
-		var splitCode []string = Split(code, "_")
+		var splitCode []string = func() []string {
+			if code == nil {
+				return nil
+			}
+			return strings.Split(*code, "_")
+		}()
 		var codeLength int = len(splitCode)
 		if codeLength > 1 {
 			continue

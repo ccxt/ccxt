@@ -1336,7 +1336,12 @@ func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 	if pair == nil {
 		return
 	}
-	var parts []string = ccxt.Split(pair, ":")
+	var parts []string = func() []string {
+		if pair == nil {
+			return nil
+		}
+		return strings.Split(*pair, ":")
+	}()
 	var baseId *string = this.SafeString(parts, 0)
 	var quoteId *string = this.SafeString(parts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)

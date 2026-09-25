@@ -611,7 +611,12 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var base any = nil
 			var quote any = nil
 			if marketId != nil {
-				var parts []string = Split(marketId, "-")
+				var parts []string = func() []string {
+					if marketId == nil {
+						return nil
+					}
+					return strings.Split(*marketId, "-")
+				}()
 				// to match gen 1, the quoteId is the first currency derived from the market id
 				baseId = GetValue(parts, 1)
 				quoteId = GetValue(parts, 0)
@@ -1690,7 +1695,12 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any {
 	var isGenerationTwo bool = (!IsEqual(timestamp, nil))
 	var transactionDatetime *string = this.SafeString(trade, "transaction_date")
 	if transactionDatetime != nil {
-		var parts []string = Split(transactionDatetime, " ")
+		var parts []string = func() []string {
+			if transactionDatetime == nil {
+				return nil
+			}
+			return strings.Split(*transactionDatetime, " ")
+		}()
 		var numParts int = len(parts)
 		if numParts > 1 {
 			var transactionDate any = GetValue(parts, 0)

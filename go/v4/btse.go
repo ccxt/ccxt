@@ -4131,7 +4131,12 @@ func (this *Btse) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "positionId")
 	if marketId != nil {
-		var parts []string = Split(marketId, "|")
+		var parts []string = func() []string {
+			if marketId == nil {
+				return nil
+			}
+			return strings.Split(*marketId, "|")
+		}()
 		marketId = this.SafeString(parts, 0)
 	} else {
 		marketId = this.SafeString(position, "symbol")

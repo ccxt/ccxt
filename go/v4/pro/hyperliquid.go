@@ -1720,7 +1720,12 @@ func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 		if symbolsString == nil {
 			continue
 		}
-		var symbols []string = ccxt.Split(symbolsString, ",")
+		var symbols []string = func() []string {
+			if symbolsString == nil {
+				return nil
+			}
+			return strings.Split(*symbolsString, ",")
+		}()
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)

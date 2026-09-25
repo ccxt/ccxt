@@ -4351,7 +4351,12 @@ func (this *Grvt) HandleErrors(code any, reason any, url any, method any, header
 		this.Options.Store("AuthAccountId", accountId)
 		var cookie *string = this.SafeString2(headers, "Set-Cookie", "set-cookie")
 		if cookie != nil {
-			var cookieValue any = GetValue(Split(cookie, ";"), 0)
+			var cookieValue any = GetValue(func() []string {
+				if cookie == nil {
+					return nil
+				}
+				return strings.Split(*cookie, ";")
+			}(), 0)
 			this.Options.Store("AuthCookieValue", cookieValue)
 		}
 		if IsEqual(GetValue(this.Options, "AuthCookieValue"), nil) || IsEqual(GetValue(this.Options, "AuthAccountId"), nil) {

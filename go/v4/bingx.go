@@ -1518,7 +1518,12 @@ func (this *Bingx) fetchInverseSwapMarketsBody(ch chan any, params any) any {
 }
 func (this *Bingx) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "symbol")
-	var symbolParts []string = Split(id, "-")
+	var symbolParts []string = func() []string {
+		if id == nil {
+			return nil
+		}
+		return strings.Split(*id, "-")
+	}()
 	var baseId any = GetValue(symbolParts, 0)
 	var quoteId any = GetValue(symbolParts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -8015,7 +8020,12 @@ func (this *Bingx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(info); i++ {
 		var tier any = this.SafeDict(info, i)
 		var tierString *string = this.SafeString(tier, "tier")
-		var tierParts []string = Split(tierString, " ")
+		var tierParts []string = func() []string {
+			if tierString == nil {
+				return nil
+			}
+			return strings.Split(*tierString, " ")
+		}()
 		var marketId *string = this.SafeString(tier, "symbol")
 		market = this.SafeMarket(marketId, market, nil, "swap")
 		tiers = append(tiers, map[string]any{

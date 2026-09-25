@@ -5305,7 +5305,12 @@ func (this *Binance) ParseMarket(market any) any {
 	if id == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing id"))
 	}
-	var optionParts []string = Split(id, "-")
+	var optionParts []string = func() []string {
+		if id == nil {
+			return nil
+		}
+		return strings.Split(*id, "-")
+	}()
 	var optionBase *string = this.SafeString(optionParts, 0)
 	var lowercaseId *string = this.SafeStringLower(market, "symbol")
 	var baseId *string = this.SafeString(market, "baseAsset", optionBase)
@@ -12370,7 +12375,12 @@ func (this *Binance) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var toAccount any = nil
 	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
 	if typeVar != nil {
-		var parts []string = Split(typeVar, "_")
+		var parts []string = func() []string {
+			if typeVar == nil {
+				return nil
+			}
+			return strings.Split(*typeVar, "_")
+		}()
 		fromAccount = DerefScalar(this.SafeString(parts, 0))
 		toAccount = DerefScalar(this.SafeString(parts, 1))
 		fromAccount = DerefScalar(this.SafeString(accountsById, fromAccount, fromAccount))

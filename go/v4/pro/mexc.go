@@ -948,7 +948,12 @@ func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any
 	//     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
 	//
 	var msg *string = this.SafeString(message, "msg", "")
-	var parts []string = ccxt.Split(msg, "@")
+	var parts []string = func() []string {
+		if msg == nil {
+			return nil
+		}
+		return strings.Split(*msg, "@")
+	}()
 	var marketId *string = this.SafeString(parts, 2)
 	var symbol *string = this.SafeSymbol(marketId)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
@@ -2519,7 +2524,12 @@ func (this *Mexc) HandleSubscriptionStatus(client any, message any) {
 		}
 		return strings.Index(*msg, "@")
 	}() > -1 {
-		var parts []string = ccxt.Split(msg, "@")
+		var parts []string = func() []string {
+			if msg == nil {
+				return nil
+			}
+			return strings.Split(*msg, "@")
+		}()
 		var channel *string = this.SafeString(parts, 1)
 		var methods map[string]any = map[string]any{
 			"public.increase.depth.v3.api": this.HandleOrderBookSubscription,
@@ -2551,7 +2561,12 @@ func (this *Mexc) HandleProtobufMessage(client any, message any) any {
 	//    }
 	// }
 	var channel *string = this.SafeString(message, "channel", "")
-	var channelParts []string = ccxt.Split(channel, "@")
+	var channelParts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, "@")
+	}()
 	var channelId *string = this.SafeString(channelParts, 1)
 	if channelId != nil && *channelId == "public.kline.v3.api.pb" {
 		this.HandleOHLCV(client, message)
@@ -2592,7 +2607,12 @@ func (this *Mexc) HandleMessage(client any, message any) {
 	if c == nil {
 		channel = this.SafeString(message, "channel")
 	} else {
-		var parts []string = ccxt.Split(c, "@")
+		var parts []string = func() []string {
+			if c == nil {
+				return nil
+			}
+			return strings.Split(*c, "@")
+		}()
 		channel = this.SafeString(parts, 1, "")
 	}
 	var methods map[string]any = map[string]any{

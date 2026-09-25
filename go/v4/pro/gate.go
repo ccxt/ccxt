@@ -837,7 +837,12 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message any) {
 	if marketIdWithPrefix == nil {
 		return
 	}
-	var marketIdParts []string = ccxt.Split(marketIdWithPrefix, ".")
+	var marketIdParts []string = func() []string {
+		if marketIdWithPrefix == nil {
+			return nil
+		}
+		return strings.Split(*marketIdWithPrefix, ".")
+	}()
 	var marketId *string = this.SafeString(marketIdParts, 1)
 	var symbol *string = this.SafeSymbol(marketId, nil, "_", "spot")
 	var messageHash any = "orderbook:" + *symbol
@@ -919,7 +924,12 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 		this.HandleNewSpotOrderBook(client, message)
 		return
 	}
-	var channelParts []string = ccxt.Split(channel, ".")
+	var channelParts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, ".")
+	}()
 	var rawMarketType *string = this.SafeString(channelParts, 0)
 	var isSpot bool = (rawMarketType != nil && *rawMarketType == "spot")
 	var marketType string = func() string {
@@ -1223,7 +1233,12 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 }
 func (this *Gate) HandleTickerAndBidAsk(objectName any, client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "channel")
-	var parts []string = ccxt.Split(channel, ".")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, ".")
+	}()
 	var rawMarketType *string = this.SafeString(parts, 0)
 	var marketType string = func() string {
 		if rawMarketType != nil && *rawMarketType == "futures" {
@@ -1531,7 +1546,12 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 	//   }
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var channelParts []string = ccxt.Split(channel, ".")
+	var channelParts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, ".")
+	}()
 	var rawMarketType *string = this.SafeString(channelParts, 0)
 	var marketType string = func() string {
 		if rawMarketType != nil && *rawMarketType == "spot" {
@@ -1547,7 +1567,12 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 	for i := 0; i < ccxt.GetArrayLength(result); i++ {
 		var ohlcv any = ccxt.GetValue(result, i)
 		var subscription *string = this.SafeString(ohlcv, "n", "")
-		var parts []string = ccxt.Split(subscription, "_")
+		var parts []string = func() []string {
+			if subscription == nil {
+				return nil
+			}
+			return strings.Split(*subscription, "_")
+		}()
 		var timeframeId *string = this.SafeString(parts, 0)
 		var timeframe any = this.FindTimeframe(timeframeId)
 		var prefix any = ccxt.Add(timeframe, "_")
@@ -1840,7 +1865,12 @@ func (this *Gate) HandleBalance(client any, message map[string]any) {
 		}
 	}
 	var channel *string = this.SafeString(message, "channel")
-	var parts []string = ccxt.Split(channel, ".")
+	var parts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, ".")
+	}()
 	var rawType *string = this.SafeString(parts, 0)
 	var channelType any = this.GetSupportedMapping(rawType, map[string]any{
 		"spot":    "spot",
@@ -2603,7 +2633,12 @@ func (this *Gate) HandleErrorMessage(client any, message any) any {
 								}
 								return strings.Index(*channel, ".")
 							}() > 0) {
-								var parsedChannel []string = ccxt.Split(channel, ".")
+								var parsedChannel []string = func() []string {
+									if channel == nil {
+										return nil
+									}
+									return strings.Split(*channel, ".")
+								}()
 								var payload []any = ccxt.SafeListTyped(message, "payload")
 								for i := 0; i < len(payload); i++ {
 									var marketType any = func() any {
@@ -2846,7 +2881,12 @@ func (this *Gate) HandleMessage(client any, message any) {
 		this.HandleOrderBook(client, message)
 		return
 	}
-	var channelParts []string = ccxt.Split(channel, ".")
+	var channelParts []string = func() []string {
+		if channel == nil {
+			return nil
+		}
+		return strings.Split(*channel, ".")
+	}()
 	var channelType *string = this.SafeString(channelParts, 1)
 	var v4Methods map[string]any = map[string]any{
 		"usertrades":        this.HandleMyTrades,

@@ -1850,7 +1850,12 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 					if networkId == nil {
 						panic(ExchangeError(this.Id + " fetchDepositAddresses() missing networkId"))
 					}
-					var networkIds []string = Split(networkId, ",")
+					var networkIds []string = func() []string {
+						if networkId == nil {
+							return nil
+						}
+						return strings.Split(*networkId, ",")
+					}()
 					for j := 0; j < len(networkIds); j++ {
 						var _netIdTmp any = this.NetworkIdToCode(GetValue(networkIds, j), code)
 						if _netIdTmp != nil {

@@ -585,7 +585,12 @@ func (this *Kalshi) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
 		// the common case) and re-check the cache for the exact handle
 		var handleParts []string = ccxt.Split(outcomeSymbol, ":")
 		var marketPart *string = this.SafeString(handleParts, 0, "")
-		var parts []string = ccxt.Split(marketPart, "_")
+		var parts []string = func() []string {
+			if marketPart == nil {
+				return nil
+			}
+			return strings.Split(*marketPart, "_")
+		}()
 		var seriesTicker *string = this.SafeString(parts, 0)
 		if (seriesTicker != nil) && (seriesTicker == nil || *seriesTicker != "") {
 
@@ -832,7 +837,12 @@ func (this *Kalshi) ParseMarket(raw any) any {
 	// Derive series ticker: drop last hyphen-segment from event_ticker
 	var eventParts any = []any{}
 	if (eventTicker != nil) && (eventTicker == nil || *eventTicker != "") {
-		eventParts = ccxt.Split(eventTicker, "-")
+		eventParts = func() []string {
+			if eventTicker == nil {
+				return nil
+			}
+			return strings.Split(*eventTicker, "-")
+		}()
 	}
 	var seriesTicker any = eventTicker
 	var eventPartsLength int = ccxt.GetArrayLength(eventParts)
@@ -3370,7 +3380,12 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan any, optionalArgs ...a
 	// explicit series_ticker(s) — comma-separated accepted, used verbatim
 	var seriesParam *string = this.SafeString(params, "series_ticker")
 	if seriesParam != nil {
-		var parts []string = ccxt.Split(seriesParam, ",")
+		var parts []string = func() []string {
+			if seriesParam == nil {
+				return nil
+			}
+			return strings.Split(*seriesParam, ",")
+		}()
 		var partsLength int = len(parts)
 		for pi := 0; pi < partsLength; pi++ {
 			collected = append(collected, ccxt.GetValue(parts, pi))

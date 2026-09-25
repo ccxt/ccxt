@@ -554,7 +554,12 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) any {
 	if (fullName != nil) && (name != nil) {
 		var isWrapped bool = StartsWith(fullName, "Unit ") && StartsWith(name, "U")
 		if isWrapped {
-			var parts []string = Split(name, "U")
+			var parts []string = func() []string {
+				if name == nil {
+					return nil
+				}
+				return strings.Split(*name, "U")
+			}()
 			var nameWithoutU any = ""
 			for j := 0; j < len(parts); j++ {
 				nameWithoutU = Add(nameWithoutU, GetValue(parts, j))
@@ -870,7 +875,12 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any,
 	if priceStr == nil {
 		return 0
 	}
-	var priceSplitted []string = Split(priceStr, ".")
+	var priceSplitted []string = func() []string {
+		if priceStr == nil {
+			return nil
+		}
+		return strings.Split(*priceStr, ".")
+	}()
 	if Precise.StringEq(priceStr, "0") {
 		// Significant digits is always 5 in this case
 		var significantDigits int = 5
@@ -1908,7 +1918,12 @@ func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) any {
 func (this *Hyperliquid) PriceToPrecision(symbol any, price any) any {
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var priceStr *string = this.NumberToString(price)
-	var integerPart any = GetValue(Split(priceStr, "."), 0)
+	var integerPart any = GetValue(func() []string {
+		if priceStr == nil {
+			return nil
+		}
+		return strings.Split(*priceStr, ".")
+	}(), 0)
 	var significantDigits any = mathMax(5, GetLength(integerPart))
 	var result string = this.DecimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.PaddingMode)
 	var maxDecimals int = func() int {
@@ -3920,7 +3935,12 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 }
 func (this *Hyperliquid) GetDexFromHip3Symbol(market any) any {
 	var baseName *string = this.SafeString(market, "baseName", "")
-	var part []string = Split(baseName, ":")
+	var part []string = func() []string {
+		if baseName == nil {
+			return nil
+		}
+		return strings.Split(*baseName, ":")
+	}()
 	var partsLength int = len(part)
 	if partsLength > 1 {
 		return this.SafeString(part, 0)

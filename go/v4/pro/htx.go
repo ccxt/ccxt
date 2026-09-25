@@ -273,7 +273,12 @@ func (this *Htx) HandleTicker(client any, message map[string]any) any {
 	if ch == nil {
 		return message
 	}
-	var parts []string = ccxt.Split(ch, ".")
+	var parts []string = func() []string {
+		if ch == nil {
+			return nil
+		}
+		return strings.Split(*ch, ".")
+	}()
 	var marketId *string = this.SafeString(parts, 1)
 	var market any = this.SafeMarket(marketId)
 	var ticker any = this.ParseTicker(tick, market)
@@ -401,7 +406,12 @@ func (this *Htx) HandleTrades(client any, message map[string]any) any {
 	if ch == nil {
 		return message
 	}
-	var parts []string = ccxt.Split(ch, ".")
+	var parts []string = func() []string {
+		if ch == nil {
+			return nil
+		}
+		return strings.Split(*ch, ".")
+	}()
 	var marketId *string = this.SafeString(parts, 1)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -537,7 +547,12 @@ func (this *Htx) HandleOHLCV(client any, message map[string]any) {
 	if ch == nil {
 		return
 	}
-	var parts []string = ccxt.Split(ch, ".")
+	var parts []string = func() []string {
+		if ch == nil {
+			return nil
+		}
+		return strings.Split(*ch, ".")
+	}()
 	var marketId *string = this.SafeString(parts, 1)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -1013,7 +1028,12 @@ func (this *Htx) HandleOrderBook(client any, message map[string]any) {
 	if ch == nil {
 		return
 	}
-	var parts []string = ccxt.Split(ch, ".")
+	var parts []string = func() []string {
+		if ch == nil {
+			return nil
+		}
+		return strings.Split(*ch, ".")
+	}()
 	var marketId *string = this.SafeString(parts, 1)
 	var symbol *string = this.SafeSymbol(marketId)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
@@ -1021,7 +1041,12 @@ func (this *Htx) HandleOrderBook(client any, message map[string]any) {
 		if size == nil {
 			return
 		}
-		var sizeParts []string = ccxt.Split(size, "_")
+		var sizeParts []string = func() []string {
+			if size == nil {
+				return nil
+			}
+			return strings.Split(*size, "_")
+		}()
 		var limit *int64 = this.SafeInteger(sizeParts, 1)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	}
@@ -1754,7 +1779,12 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) any {
 			}
 			return strings.Index(*typeSide, "-")
 		}() >= 0 {
-			typeSideParts = ccxt.Split(typeSide, "-")
+			typeSideParts = func() []string {
+				if typeSide == nil {
+					return nil
+				}
+				return strings.Split(*typeSide, "-")
+			}()
 			typeVar = this.SafeStringLower(typeSideParts, 1)
 		} else {
 			typeVar = typeSide
@@ -2429,7 +2459,12 @@ func (this *Htx) HandleBalance(client any, message any) {
 			return
 		}
 		var first map[string]any = ccxt.SafeMapTyped(data, 0)
-		var splitTopic []string = ccxt.Split(topic, ".")
+		var splitTopic []string = func() []string {
+			if topic == nil {
+				return nil
+			}
+			return strings.Split(*topic, ".")
+		}()
 		var messageHash any = ccxt.DerefScalar(this.SafeString(splitTopic, 0))
 		var subscription any = this.SafeDict2(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, ccxt.Add(messageHash, ".*"))
 		if ccxt.IsEqual(subscription, nil) {
@@ -2670,7 +2705,12 @@ func (this *Htx) HandleSubject(client any, message any) {
 	//     }
 	//
 	var ch *string = this.SafeString(message, "ch", "")
-	var parts []string = ccxt.Split(ch, ".")
+	var parts []string = func() []string {
+		if ch == nil {
+			return nil
+		}
+		return strings.Split(*ch, ".")
+	}()
 	var typeVar *string = this.SafeString(parts, 0)
 	if typeVar != nil && *typeVar == "market" {
 		var methodName *string = this.SafeString(parts, 2)
@@ -2690,7 +2730,12 @@ func (this *Htx) HandleSubject(client any, message any) {
 		}
 	}
 	// private spot subjects
-	var privateParts []string = ccxt.Split(ch, "#")
+	var privateParts []string = func() []string {
+		if ch == nil {
+			return nil
+		}
+		return strings.Split(*ch, "#")
+	}()
 	var privateType *string = this.SafeString(privateParts, 0, "")
 	if privateType != nil && *privateType == "trade.clearing" {
 		this.HandleMyTrade(client, message)
@@ -3277,7 +3322,12 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var orderTypeParts any = []any{}
 	if orderType != nil {
-		orderTypeParts = ccxt.Split(orderType, "-")
+		orderTypeParts = func() []string {
+			if orderType == nil {
+				return nil
+			}
+			return strings.Split(*orderType, "-")
+		}()
 		typeVar = ccxt.DerefScalar(this.SafeString(orderTypeParts, 1, orderType))
 	}
 	var fee any = nil
