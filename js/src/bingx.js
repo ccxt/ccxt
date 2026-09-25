@@ -5139,6 +5139,14 @@ export default class bingx extends Exchange {
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, params));
         }
         else if (type === 'spot') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            const until = this.safeInteger2(params, 'until', 'till');
+            if (until !== undefined) {
+                request['endTime'] = until;
+            }
+            params = this.omit(params, ['until', 'till']);
             if (limit !== undefined) {
                 request['pageSize'] = limit;
             }
