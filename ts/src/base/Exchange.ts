@@ -5983,7 +5983,7 @@ export class BaseExchange {
         return preferredChain;
     }
 
-    handleNetworkCodeAndParams (params: any): [Str, Dict] {
+    handleNetworkCodeAndParams (params: Dict): [Str, Dict] {
         const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
         const paramsOmitted = (networkCodeInParams !== undefined) ? this.omit (params, [ 'networkCode', 'network' ]) : params;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
@@ -7474,7 +7474,7 @@ export class BaseExchange {
         return false;
     }
 
-    handleWithdrawTagAndParams (tag: any, params: any): any {
+    handleWithdrawTagAndParams (tag: any, params: Dict): [Str, Dict] {
         let paramsExtended = params;
         let tagValue = tag;
         if (this.isDictionary (tag)) {
@@ -7974,7 +7974,7 @@ export class BaseExchange {
         }
     }
 
-    handlePostOnly (isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params: any = {}): [boolean, Dict] {
+    handlePostOnly (isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params: Dict = {}): [boolean, Dict] {
         /**
          * @ignore
          * @method
