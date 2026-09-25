@@ -3537,6 +3537,10 @@ class NewTranspiler {
         if (postl.trim () === ';' && /[\}\]]\s*=\s*$/.test (pre) && /I?Dictionary<string,\s*object>/.test (pre)) {
             return 'read';
         }
+        // the initializer of a new `object` local boxes the same value (Nullable<T> boxes as T)
+        if (postl.trim () === ';' && /^\s*object\s+[A-Za-z_]\w*\s*=\s*$/.test (pre)) {
+            return 'read';
+        }
         // the same object-slot write with the cast already dropped, which the [AST] dict-write
         // rule does for a `request` receiver: the cast named the slot, so its absence proves
         // the declaration is a dictionary and the value is boxed into an `object` entry
