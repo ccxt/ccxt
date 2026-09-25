@@ -159,7 +159,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'public': {
                     'post': {
                         'info': {
-                            'cost': 20,
+                            'cost': 10,
                             'byType': {
                                 'l2Book': 2,
                                 'allMids': 2,
