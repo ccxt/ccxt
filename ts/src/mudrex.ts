@@ -179,7 +179,7 @@ export default class mudrex extends Exchange {
         });
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const apiUrls = this.safeDict (this.urls, 'api', {});
         const base = this.safeString (apiUrls, api);
         if (base === undefined) {

@@ -3115,7 +3115,7 @@ export default class nado extends Exchange {
         return marketId;
     }
 
-    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let requestBody: Str = undefined;
         let endpoint = api[0];
         if (typeof api === 'string') {

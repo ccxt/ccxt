@@ -3259,7 +3259,7 @@ export default class bitrue extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
         const type = this.safeString (api, 0);

@@ -1868,7 +1868,7 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let requestHeaders: NullableDict = headers;
         let requestBody: Str = body;
         const request = '/' + this.version + '/' + this.implodeParams (path, params);

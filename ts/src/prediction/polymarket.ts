@@ -2714,7 +2714,7 @@ export default class polymarket extends Exchange {
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: any, api: any = 'gamma', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: string, api: any = 'gamma', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
         // api is either a string ('gamma') or array (['gamma', 'public'])
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];

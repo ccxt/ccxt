@@ -3227,7 +3227,7 @@ export default class toobit extends Exchange {
         });
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const baseUrl: string = this.urls['api'][api];
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const isPost = method === 'POST';

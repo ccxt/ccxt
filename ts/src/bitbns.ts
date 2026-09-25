@@ -1290,7 +1290,7 @@ export default class bitbns extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api = 'www', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'www', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const urls = this.urls;
         if (!(api in urls['api'])) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');

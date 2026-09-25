@@ -3087,7 +3087,7 @@ export default class deepcoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let requestPath: string = path;
         if (method === 'GET') {
             const query = this.urlencode (params);

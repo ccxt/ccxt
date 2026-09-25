@@ -1936,7 +1936,7 @@ export default class binance extends Exchange {
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: any, api: any = 'sapi', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: string, api: any = 'sapi', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['sapi'] as string);

@@ -1356,7 +1356,7 @@ export default class p2b extends Exchange {
         }, marketResolved);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const baseUrl: string = this.urls['api'][api];
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));

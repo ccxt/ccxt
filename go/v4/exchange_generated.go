@@ -6834,11 +6834,6 @@ func (this *BaseExchange) loadTimeDifferenceBody(ch chan any, optionalArgs ...an
 	ch <- GetValue(this.Options, "timeDifference")
 	return nil
 }
-func (this *BaseExchange) ImplodeHostname(url any) any {
-	return this.ImplodeParams(url, map[string]any{
-		"hostname": this.Hostname,
-	})
-}
 func (this *BaseExchange) FetchMarketLeverageTiersAsync(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchMarketLeverageTiersBody(ch, symbol, optionalArgs...)

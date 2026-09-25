@@ -29,7 +29,7 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'createStopMarketOrder': [ 1 ], 'createStopMarketOrderWs': [ 1 ], 'createStopOrder': [ 1, 2 ], 'createStopOrderWs': [ 1, 2 ],
     'createTakeProfitOrder': [ 1, 2 ], 'createTakeProfitOrderWs': [ 1, 2 ], 'createTrailingAmountOrder': [ 1, 2 ], 'createTrailingAmountOrderWs': [ 1, 2 ],
     'createTrailingPercentOrder': [ 1, 2 ], 'createTrailingPercentOrderWs': [ 1, 2 ], 'createTriggerOrder': [ 1, 2 ], 'createTriggerOrderWs': [ 1, 2 ],
-    'createTwapOrder': [ 1 ], 'editLimitOrder': [ 2 ], 'editOrderWithClientOrderId': [ 2, 3 ], 'editOrderWs': [ 2, 3 ],
+    'createTwapOrder': [ 1 ], 'sign': [ 0 ], 'editLimitOrder': [ 2 ], 'editOrderWithClientOrderId': [ 2, 3 ], 'editOrderWs': [ 2, 3 ],
     'setTakeProfitAndStopLossParams': [ 1, 2 ],
 };
 
@@ -4526,6 +4526,8 @@ ${constStatements.join('\n')}
             // redeclaration — same shape as the loadOrderBook drop above. The classifier in
             // build/go-local-types.js types locals from the hand-written signature.
             [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+SafeNumber(?:2|N|OmitZero)?\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
+            // implodeHostname is hand-written in go/v4/exchange_misc.go with its `string` return
+            [new RegExp('func\\s+\\(this \\*BaseExchange\\)\\s+ImplodeHostname\\([^{]*\\{[\\s\\S]*?\\n\\}\\n', 'g'), ''],
         ]);
 
         // SafeCurrencyCode / SafeSymbol carry the `*string` shape the hand-written Safe*

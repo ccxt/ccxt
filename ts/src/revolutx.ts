@@ -212,7 +212,7 @@ export default class revolutx extends Exchange {
         });
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const implodedPath = this.implodeParams (path, params);
