@@ -1762,12 +1762,12 @@ func (this *Coinsph) ParseBalance(response any) any {
  * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinsph) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Coinsph) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// todo: add test order low priority
@@ -1796,7 +1796,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	// if limit order
 	if IsEqual(orderType, "LIMIT") || IsEqual(orderType, "STOP_LOSS_LIMIT") || IsEqual(orderType, "TAKE_PROFIT_LIMIT") || IsEqual(orderType, "LIMIT_MAKER") {
 		if price == nil {
-			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
+			panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for a " + typeVar + " order"))
 		}
 		newOrderRespType = DerefScalar(this.SafeString(newOrderRespType, "limit", "FULL"))
 		request["price"] = this.PriceToPrecision(symbol, price)

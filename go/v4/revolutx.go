@@ -1187,12 +1187,12 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) any {
  * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Revolutx) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1209,7 +1209,7 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
 	var executionInstructions any = this.SafeList(params, "executionInstructions", this.SafeList(params, "execution_instructions"))
 	var orderConfiguration map[string]any = map[string]any{}
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		var limitConfig map[string]any = map[string]any{}
 		if cost != nil {
 			limitConfig["quote_size"] = this.CostToPrecision(symbol, cost)
@@ -1224,7 +1224,7 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 			limitConfig["execution_instructions"] = executionInstructions
 		}
 		orderConfiguration["limit"] = limitConfig
-	} else if IsEqual(typeVar, "market") {
+	} else if typeVar == "market" {
 		if timeInForce != nil {
 			panic(InvalidOrder(this.Id + " createOrder() timeInForce is only supported for limit orders"))
 		}
@@ -1239,7 +1239,7 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 		}
 		orderConfiguration["market"] = marketConfig
 	} else {
-		panic(InvalidOrder(Add(this.Id+" createOrder() does not support order type ", typeVar)))
+		panic(InvalidOrder(this.Id + " createOrder() does not support order type " + typeVar))
 	}
 	var request map[string]any = map[string]any{
 		"client_order_id":     clientOrderId,

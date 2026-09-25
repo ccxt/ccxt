@@ -1140,12 +1140,12 @@ func (this *Myriad) ensureErc20AllowanceBody(ch chan any, rpcUrl any, networkId 
  * @param {string} [params.expiration] unix-seconds expiration for a GTD order
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CreateOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Myriad) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Myriad) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Myriad) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)

@@ -20,6 +20,19 @@ import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RE
 
 type dict = { [key: string]: string };
 
+const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
+    'createOrder': [ 1, 2 ], 'createOrderWs': [ 1 ], 'createLimitOrder': [ 1 ], 'createLimitOrderWs': [ 1 ],
+    'createMarketOrder': [ 1 ], 'createMarketOrderWs': [ 1 ], 'createMarketOrderWithCost': [ 1 ], 'createMarketOrderWithCostWs': [ 1 ],
+    'createOrderWithTakeProfitAndStopLoss': [ 1, 2 ], 'createOrderWithTakeProfitAndStopLossWs': [ 1, 2 ],
+    'createPostOnlyOrder': [ 1, 2 ], 'createPostOnlyOrderWs': [ 1, 2 ], 'createReduceOnlyOrder': [ 1, 2 ], 'createReduceOnlyOrderWs': [ 1, 2 ],
+    'createStopLimitOrder': [ 1 ], 'createStopLimitOrderWs': [ 1 ], 'createStopLossOrder': [ 1, 2 ], 'createStopLossOrderWs': [ 1, 2 ],
+    'createStopMarketOrder': [ 1 ], 'createStopMarketOrderWs': [ 1 ], 'createStopOrder': [ 1, 2 ], 'createStopOrderWs': [ 1, 2 ],
+    'createTakeProfitOrder': [ 1, 2 ], 'createTakeProfitOrderWs': [ 1, 2 ], 'createTrailingAmountOrder': [ 1, 2 ], 'createTrailingAmountOrderWs': [ 1, 2 ],
+    'createTrailingPercentOrder': [ 1, 2 ], 'createTrailingPercentOrderWs': [ 1, 2 ], 'createTriggerOrder': [ 1, 2 ], 'createTriggerOrderWs': [ 1, 2 ],
+    'createTwapOrder': [ 1 ], 'editLimitOrder': [ 2 ], 'editOrderWithClientOrderId': [ 2, 3 ], 'editOrderWs': [ 2, 3 ],
+    'setTakeProfitAndStopLossParams': [ 1, 2 ],
+};
+
 ansi.nice;
 
 // const allExchanges: {ids: string[], ws: string[]} = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
@@ -3139,6 +3152,9 @@ class NewTranspiler {
                 // channel-returning async methods carry the suffix so the plain name is
                 // free for the typed sync method emitted into the same core file
                 "asyncMethodSuffix": GO_ASYNC_SUFFIX,
+                // required OrderType/OrderSide params of the unified order methods print `string` on the
+                // base, every override and go/v4/exchange_interface.go (audit: no override nil-compares them)
+                "unifiedStringParams": GO_UNIFIED_STRING_PARAMS,
             //     "parser": {
             //         "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
             //         "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",

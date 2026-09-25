@@ -3694,12 +3694,12 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
  * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Extended) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Extended) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Extended) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Extended) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

@@ -2410,12 +2410,12 @@ func (this *Bitstamp) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitstamp) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitstamp) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2438,7 +2438,7 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}
 	var response map[string]any = nil
 	var capitalizedSide string = this.Capitalize(side)
-	if IsEqual(typeVar, "market") {
+	if typeVar == "market" {
 		if capitalizedSide == "Buy" {
 
 			response = MapTyped(PanicOnError((<-this.PrivatePostBuyMarketPair(this.Extend(request, params))).Raw))
@@ -2446,7 +2446,7 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar any, side
 
 			response = MapTyped(PanicOnError((<-this.PrivatePostSellMarketPair(this.Extend(request, params))).Raw))
 		}
-	} else if IsEqual(typeVar, "instant") {
+	} else if typeVar == "instant" {
 		if capitalizedSide == "Buy" {
 
 			response = MapTyped(PanicOnError((<-this.PrivatePostBuyInstantPair(this.Extend(request, params))).Raw))

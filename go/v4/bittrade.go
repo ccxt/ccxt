@@ -2190,12 +2190,12 @@ func (this *Bittrade) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bittrade) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bittrade) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2212,7 +2212,7 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var request map[string]any = map[string]any{
 		"account-id": GetValue(GetValue(this.Accounts, 0), "id"),
 		"symbol":     market["id"],
-		"type":       Add(Add(side, "-"), typeVar),
+		"type":       side + "-" + typeVar,
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client-order-id") // must be 64 chars max and unique within 24 hours
 	if clientOrderId == nil {
@@ -2223,7 +2223,7 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar any, side
 		request["client-order-id"] = clientOrderId
 	}
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "client-order-id"}))
-	if (IsEqual(typeVar, "market")) && (IsEqual(side, "buy")) {
+	if (typeVar == "market") && (side == "buy") {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice bool = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
@@ -2254,7 +2254,7 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar any, side
 	} else {
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 	}
-	if (IsEqual(typeVar, "limit")) || (IsEqual(typeVar, "ioc")) || (IsEqual(typeVar, "limit-maker")) || (IsEqual(typeVar, "stop-limit")) || (IsEqual(typeVar, "stop-limit-fok")) {
+	if (typeVar == "limit") || (typeVar == "ioc") || (typeVar == "limit-maker") || (typeVar == "stop-limit") || (typeVar == "stop-limit-fok") {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var method any = this.HandleOption("createOrder", "method", "privatePostOrderOrdersPlace")

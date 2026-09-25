@@ -1664,7 +1664,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(IList<object> outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.walletAddress == null))
@@ -1675,7 +1675,7 @@ public partial class opinion : PredictionExchange
         int outcomesLength = 0;
         if ((outcomes != null))
         {
-            outcomesLength = getArrayLength(outcomes);
+            outcomesLength = outcomes?.Count ?? 0;
             await this.loadOutcomes(outcomes);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

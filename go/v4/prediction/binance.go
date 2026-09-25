@@ -2116,12 +2116,12 @@ func (this *Binance) AmountToPrecision(outcome any, amount any) *string {
  * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Binance) CreateOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Binance) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2135,8 +2135,8 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 	// is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
 	var market map[string]any = this.Market(marketSymbol)
-	var typeUpper string = ccxt.ToUpper(typeVar)
-	var sideUpper string = ccxt.ToUpper(side)
+	var typeUpper string = strings.ToUpper(typeVar)
+	var sideUpper string = strings.ToUpper(side)
 
 	wallet := (<-this.FetchWalletAsync("createOrder", params))
 	ccxt.PanicOnError(wallet)
@@ -2169,7 +2169,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 				feeRateBps = ccxt.SafeStringPtr("0")
 			} else {
 				if price == nil {
-					panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" createOrder requires price for ", side), " order")))
+					panic(ccxt.ArgumentsRequired(this.Id + " createOrder requires price for " + side + " order"))
 				}
 			}
 			var feeRate *string = ccxt.Precise.StringDiv(feeRateBps, "10000")
@@ -2238,12 +2238,12 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) CreateMarketOrderWithCostAsync(symbol any, side any, cost any, optionalArgs ...any) <-chan any {
+func (this *Binance) CreateMarketOrderWithCostAsync(symbol any, side string, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
 }
-func (this *Binance) createMarketOrderWithCostBody(ch chan any, symbol any, side any, cost any, optionalArgs ...any) any {
+func (this *Binance) createMarketOrderWithCostBody(ch chan any, symbol any, side string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

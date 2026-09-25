@@ -1876,13 +1876,13 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(IList<object> outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int outcomesLength = 0;
         if ((outcomes != null))
         {
-            outcomesLength = getArrayLength(outcomes);
+            outcomesLength = outcomes?.Count ?? 0;
         }
         if (outcomesLength > 0)
         {
@@ -1904,9 +1904,9 @@ public partial class kalshi : PredictionExchange
         {
             throw new ExchangeError ((this.id + " fetchPositions() missing outcomes")) ;
         }
-        for (int i = 0; i < getArrayLength(outcomes); i++)
+        for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
+            IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             IDictionary<string, object> outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             string? marketTicker = this.safeString(outcomeInfo, "ticker");
             if ((marketTicker != null))

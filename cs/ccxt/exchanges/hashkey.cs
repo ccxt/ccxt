@@ -3262,7 +3262,7 @@ public partial class hashkey : Exchange
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string methodName = "cancelOrders";
@@ -3271,7 +3271,7 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        string orderIds = String.Join(",", ((IList<object>)ids).ToArray());
+        string orderIds = String.Join(",", ids.ToArray());
         request["ids"] = orderIds;
         IDictionary<string, object> market = null;
         if ((symbol != null))
@@ -4079,7 +4079,7 @@ public partial class hashkey : Exchange
      * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string methodName = "fetchPositions";
@@ -4088,7 +4088,7 @@ public partial class hashkey : Exchange
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a symbol argument with one single market symbol")) ;
         } else
         {
-            int symbolsLength = getArrayLength(symbols);
+            int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength != 1))
             {
                 throw new NotSupported ((((this.id + " ") + methodName) + "() is supported for a symbol argument with one single market symbol only")) ;
@@ -4098,7 +4098,7 @@ public partial class hashkey : Exchange
         {
             await this.loadMarkets();
         }
-        return await this.FetchPositionsForSymbol(((string)getValue(symbols, 0)), this.extend(new Dictionary<string, object>() {
+        return await this.FetchPositionsForSymbol(((string)(symbols != null && 0 < symbols.Count ? symbols[0] : null)), this.extend(new Dictionary<string, object>() {
             { "methodName", "fetchPositions" },
         }, parameters));
     }

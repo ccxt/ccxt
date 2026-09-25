@@ -839,12 +839,12 @@ func (this *Bitbns) ParseOrder(order any, optionalArgs ...any) any {
  * @param {float} [params.trail_rate] *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitbns) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitbns) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -862,11 +862,11 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"}))
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
-		"side":     ToUpper(side),
+		"side":     strings.ToUpper(side),
 		"symbol":   market["uppercaseId"],
 		"quantity": this.AmountToPrecision(symbol, amount),
 	}
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		request["rate"] = this.PriceToPrecision(symbol, price)
 	} else {
 		request["market"] = market["quoteId"]
@@ -881,7 +881,7 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		request["trail_rate"] = this.PriceToPrecision(symbol, trailRate)
 	}
 	var response map[string]any = nil
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 
 		response = MapTyped(PanicOnError((<-this.V2PostOrders(this.Extend(request, params))).Raw))
 	} else {

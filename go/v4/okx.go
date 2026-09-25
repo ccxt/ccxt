@@ -4856,12 +4856,12 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
  * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Okx) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Okx) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Okx) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Okx) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4876,7 +4876,7 @@ func (this *Okx) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var method *string = this.SafeString(this.Options, "createOrder", "privatePostTradeBatchOrders")
 	var requestOrdType *string = this.SafeString(request, "ordType")
-	if (requestOrdType != nil && *requestOrdType == "trigger") || (requestOrdType != nil && *requestOrdType == "conditional") || (requestOrdType != nil && *requestOrdType == "move_order_stop") || (IsEqual(typeVar, "move_order_stop")) || (IsEqual(typeVar, "oco")) || (IsEqual(typeVar, "iceberg")) || (IsEqual(typeVar, "twap")) {
+	if (requestOrdType != nil && *requestOrdType == "trigger") || (requestOrdType != nil && *requestOrdType == "conditional") || (requestOrdType != nil && *requestOrdType == "move_order_stop") || (typeVar == "move_order_stop") || (typeVar == "oco") || (typeVar == "iceberg") || (typeVar == "twap") {
 		method = SafeStringPtr("privatePostTradeOrderAlgo")
 	}
 	if (method == nil || *method != "privatePostTradeOrder") && (method == nil || *method != "privatePostTradeOrderAlgo") && (method == nil || *method != "privatePostTradeBatchOrders") {

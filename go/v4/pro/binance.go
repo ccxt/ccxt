@@ -4698,12 +4698,12 @@ func (this *Binance) GetMarketType(method any, market any, optionalArgs ...any) 
  * @param {boolean} params.returnRateLimits set to true to return rate limit information, default false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) CreateOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Binance) CreateOrderWsAsync(symbol any, typeVar string, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Binance) createOrderWsBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Binance) createOrderWsBody(ch chan any, symbol any, typeVar string, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4880,12 +4880,12 @@ func (this *Binance) HandleOrdersWs(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) EditOrderWsAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Binance) EditOrderWsAsync(id any, symbol any, typeVar string, side string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Binance) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Binance) editOrderWsBody(ch chan any, id any, symbol any, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	amount := ccxt.GetArg(optionalArgs, 0, nil)

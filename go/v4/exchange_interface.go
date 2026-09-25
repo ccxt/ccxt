@@ -24,7 +24,7 @@ type IEditOrder interface {
 	EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any
 }
 type IEditOrderWithClientOrderId interface {
-	EditOrderWithClientOrderIdAsync(clientOrderId any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any
+	EditOrderWithClientOrderIdAsync(clientOrderId any, symbol any, typeVar string, side string, optionalArgs ...any) <-chan any
 }
 type ICancelOrderWithClientOrderId interface {
 	CancelOrderWithClientOrderIdAsync(clientOrderId any, optionalArgs ...any) <-chan any
@@ -54,7 +54,7 @@ type ICancelOrderWs interface {
 	CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any
 }
 type ICreateOrderWs interface {
-	CreateOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
+	CreateOrderWsAsync(symbol any, typeVar string, side any, amount any, optionalArgs ...any) <-chan any
 }
 type IFetchOrdersWs interface {
 	FetchOrdersWsAsync(optionalArgs ...any) <-chan any
@@ -183,7 +183,7 @@ type ICoreExchange interface {
 	Json(object any) any
 	FilterBy(aa any, key any, value any) []any
 	IndexBy(array any, key any) map[string]any
-	CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
+	CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any
 	Sum(args ...any) any
 	NumberToString(num any) *string
 	ParseToNumeric(value any) any
@@ -405,7 +405,7 @@ type IDerivedExchange interface {
 	ParseBorrowInterest(info any, optionalArgs ...any) any
 	ParseOption(chain any, optionalArgs ...any) any
 	ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
-	CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
+	CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any
 	ParseMarketLeverageTiers(info any, optionalArgs ...any) any
 	FetchMarginModesAsync(optionalArgs ...any) <-chan any
 	FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any

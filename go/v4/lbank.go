@@ -2042,12 +2042,12 @@ func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cos
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Lbank) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Lbank) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2069,26 +2069,26 @@ func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
 	var maker bool = ((postOnly != nil && *postOnly == true) || (timeInForce != nil && *timeInForce == "PO"))
-	if (IsEqual(typeVar, "market")) && (ioc || fok || maker) {
+	if (typeVar == "market") && (ioc || fok || maker) {
 		panic(InvalidOrder(this.Id + " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed"))
 	}
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		request["type"] = side
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 		if ioc {
-			request["type"] = Add(Add(side, "_"), "ioc")
+			request["type"] = side + "_" + "ioc"
 		} else if fok {
-			request["type"] = Add(Add(side, "_"), "fok")
+			request["type"] = side + "_" + "fok"
 		} else if maker {
-			request["type"] = Add(Add(side, "_"), "maker")
+			request["type"] = side + "_" + "maker"
 		}
-	} else if IsEqual(typeVar, "market") {
-		if IsEqual(side, "sell") {
-			request["type"] = Add(Add(side, "_"), "market")
+	} else if typeVar == "market" {
+		if side == "sell" {
+			request["type"] = side + "_" + "market"
 			request["amount"] = this.AmountToPrecision(symbol, amount)
-		} else if IsEqual(side, "buy") {
-			request["type"] = Add(Add(side, "_"), "market")
+		} else if side == "buy" {
+			request["type"] = side + "_" + "market"
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice bool = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)

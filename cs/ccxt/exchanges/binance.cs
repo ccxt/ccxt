@@ -10978,7 +10978,7 @@ public partial class binance : Exchange
      * @param {int[]} [params.recvWindow]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -14191,7 +14191,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async virtual Task<List<ccxt.Position>> FetchOptionPositions(object symbols = null, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> FetchOptionPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -14206,12 +14206,12 @@ public partial class binance : Exchange
             object symbol = null;
             if (((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                int symbolsLength = getArrayLength(symbols);
+                int symbolsLength = symbols?.Count ?? 0;
                 if (symbolsLength > 1)
                 {
                     throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                 }
-                symbol = getValue(symbols, 0);
+                symbol = (symbols != null && 0 < symbols.Count ? symbols[0] : null);
             } else
             {
                 symbol = symbols;
@@ -14328,7 +14328,7 @@ public partial class binance : Exchange
      * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? defaultMethod = null;
@@ -14382,7 +14382,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.useV2] set to true if you want to use obsolete endpoint, where some more additional fields were provided
      * @returns {object} data on account positions
      */
-    public async virtual Task<List<ccxt.Position>> FetchAccountPositions(object symbols = null, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> FetchAccountPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbols != null))
@@ -14467,7 +14467,7 @@ public partial class binance : Exchange
      * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
      * @returns {object} data on the positions risk
      */
-    public async override Task<List<ccxt.Position>> FetchPositionsRisk(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositionsRisk(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbols != null))

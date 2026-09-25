@@ -2440,7 +2440,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2448,10 +2448,10 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         List<object> numericIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); i++)
+        for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
             // numericIds[i] = this.parseToNumeric (ids[i]);
-            numericIds.Add(this.parseToNumeric(getValue(ids, i)));
+            numericIds.Add(this.parseToNumeric((ids != null && i < ids.Count ? ids[i] : null)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", numericIds },
@@ -3401,7 +3401,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

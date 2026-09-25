@@ -317,7 +317,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -329,7 +329,7 @@ public partial class toobit : ccxt.toobit
         IDictionary<string, object> timeframes = this.safeDict((this.options.ContainsKey("ws") ? this.options["ws"] : null), "timeframes", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>() {};
         string? selectedTimeframe = null;
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
+        for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
             List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolStr = this.safeString(data, 0);
@@ -1154,7 +1154,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1171,7 +1171,7 @@ public partial class toobit : ccxt.toobit
             {
                 throw new ArgumentsRequired ((this.id + " watchPositions() symbols is required")) ;
             }
-            messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
+            messageHash = ("::" + String.Join(",", symbols.ToArray()));
         }
         messageHash = ((type + ":positions") + messageHash);
         string? url = this.getUserStreamUrl();
@@ -1191,7 +1191,7 @@ public partial class toobit : ccxt.toobit
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null, object isPortfolioMargin = null)
+    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object> symbols = null, object isPortfolioMargin = null)
     {
         isPortfolioMargin ??= false;
         if ((this.positions == null))

@@ -2278,12 +2278,12 @@ func (this *Bitrue) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
  * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitrue) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitrue) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2297,7 +2297,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
 	var data any = map[string]any{}
-	var uppercaseType string = ToUpper(typeVar)
+	var uppercaseType string = strings.ToUpper(typeVar)
 	var request map[string]any = map[string]any{
 		"side": ToUpper(side),
 		"type": uppercaseType,
@@ -2324,7 +2324,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 		params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
-		if isMarket && (IsEqual(side, "buy")) && (createMarketBuyOrderRequiresPrice == true) {
+		if isMarket && (side == "buy") && (createMarketBuyOrderRequiresPrice == true) {
 			var cost *string = this.SafeString(params, "cost")
 			params = MapTyped(this.Omit(params, "cost"))
 			if (price == nil) && (cost == nil) {
@@ -2368,7 +2368,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 		var validOrderTypes any = this.SafeValue(market["info"], "orderTypes")
 		if !this.InArray(uppercaseType, validOrderTypes) {
-			panic(InvalidOrder(Add(Add(Add(this.Id+" ", typeVar), " is not a valid order type in market "), symbol)))
+			panic(InvalidOrder(Add(this.Id+" "+typeVar+" is not a valid order type in market ", symbol)))
 		}
 		var clientOrderId *string = this.SafeString2(params, "newClientOrderId", "clientOrderId")
 		if clientOrderId != nil {

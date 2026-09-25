@@ -1171,7 +1171,7 @@ public partial class btcmarkets : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1179,10 +1179,10 @@ public partial class btcmarkets : Exchange
             await this.loadMarkets();
         }
         List<object> numericIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); i++)
+        for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
             // numericIds[i] = parseInt (ids[i]);
-            numericIds.Add(parseInt(getValue(ids, i)));
+            numericIds.Add(parseInt((ids != null && i < ids.Count ? ids[i] : null)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ids", numericIds },

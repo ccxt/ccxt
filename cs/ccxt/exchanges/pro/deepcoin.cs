@@ -1206,7 +1206,7 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1219,9 +1219,9 @@ public partial class deepcoin : ccxt.deepcoin
         List<object> messageHashes = new List<object>() {};
         if ((symbols != null))
         {
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 string symbolMessageHash = ((messageHash + "::") + symbol);
                 messageHashes.Add(symbolMessageHash);
             }

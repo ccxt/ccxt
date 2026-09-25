@@ -932,12 +932,12 @@ func (this *Mudrex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
  * @param {string} [params.trade_currency] the settlement currency for the order
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -979,7 +979,7 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		return nil
 	}
 	var lev *int64 = this.SafeInteger(params, "leverage", 1)
-	if (IsEqual(typeVar, "market")) && (price == nil) {
+	if (typeVar == "market") && (price == nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for market orders"))
 	}
 	var request map[string]any = map[string]any{
@@ -989,13 +989,13 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"quantity":    this.AmountToPrecision(symbol, amount),
 		"order_price": this.PriceToPrecision(symbol, price),
 		"order_type": func() string {
-			if IsEqual(side, "buy") {
+			if side == "buy" {
 				return "LONG"
 			}
 			return "SHORT"
 		}(),
 		"trigger_type": func() string {
-			if IsEqual(typeVar, "market") {
+			if typeVar == "market" {
 				return "MARKET"
 			}
 			return "LIMIT"

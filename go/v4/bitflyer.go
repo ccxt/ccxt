@@ -908,12 +908,12 @@ func (this *Bitflyer) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitflyer) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitflyer) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitflyer) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bitflyer) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -926,7 +926,7 @@ func (this *Bitflyer) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}
 	var request map[string]any = map[string]any{
 		"product_code":     this.MarketId(symbol),
-		"child_order_type": ToUpper(typeVar),
+		"child_order_type": strings.ToUpper(typeVar),
 		"side":             ToUpper(side),
 		"price":            price,
 		"size":             amount,

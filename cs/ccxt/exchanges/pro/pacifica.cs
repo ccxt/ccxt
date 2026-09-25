@@ -265,7 +265,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrdersWs(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrdersWs(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string batchOperationType = "batch_orders";

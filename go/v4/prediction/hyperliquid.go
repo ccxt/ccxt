@@ -1470,12 +1470,12 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
  * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Hyperliquid) CreateOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) CreateOrderAsync(outcome any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1493,8 +1493,8 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 	var market map[string]any = this.Market(marketSymbol)
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var nonce any = this.IncrementingNonce()
-	var isBuy bool = (ccxt.ToUpper(side) == "BUY")
-	var isMarket bool = (ccxt.ToUpper(typeVar) == "MARKET")
+	var isBuy bool = (strings.ToUpper(side) == "BUY")
+	var isMarket bool = (strings.ToUpper(typeVar) == "MARKET")
 	var assetId *int64 = this.SafeInteger(outcomeInfo, "assetId")
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
@@ -2645,8 +2645,8 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 func (this *Hyperliquid) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
-func (this *Hyperliquid) SignHash(hash any, privateKey string) any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
+func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
 	// padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
 	var rRaw *string = ccxt.SafeStringPtr(signature["r"])

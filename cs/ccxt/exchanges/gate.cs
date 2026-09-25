@@ -7268,7 +7268,7 @@ public partial class gate : Exchange
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7302,9 +7302,9 @@ public partial class gate : Exchange
         if (isSpot)
         {
             List<object> ordersRequests = new List<object>() {};
-            for (int i = 0; i < getArrayLength(ids); i++)
+            for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
-                object id = getValue(ids, i);
+                string? id = ((string)(ids != null && i < ids.Count ? ids[i] : null));
                 Dictionary<string, object> orderItem = new Dictionary<string, object>() {
                     { "id", id },
                     { "symbol", symbol },
@@ -7317,9 +7317,9 @@ public partial class gate : Exchange
             { "settle", settle },
         };
         List<object> finalList = new List<object>() {request}; // hacky but needs to be done here
-        for (int i = 0; i < getArrayLength(ids); i++)
+        for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            finalList.Add(getValue(ids, i));
+            finalList.Add((ids != null && i < ids.Count ? ids[i] : null));
         }
         List<object> response = await this.privateFuturesPostSettleBatchCancelOrders(finalList);
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
@@ -7929,7 +7929,7 @@ public partial class gate : Exchange
      * @param {string} [params.type] swap, future or option, if not provided this.options['defaultType'] is used
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7940,10 +7940,10 @@ public partial class gate : Exchange
         symbols = this.marketSymbols(symbols, null, true, true, true);
         if ((symbols != null))
         {
-            int symbolsLength = getArrayLength(symbols);
+            int symbolsLength = symbols?.Count ?? 0;
             if (symbolsLength > 0)
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
             }
         }
         string? type = null;

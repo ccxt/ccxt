@@ -12028,7 +12028,7 @@ public partial class kucoin : Exchange
      * @param {integer} [params.pageNumber] *uta only* page number for the uta endpoint (default 1)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -12406,7 +12406,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -12447,9 +12447,9 @@ public partial class kucoin : Exchange
                 { "clientOid", this.safeString(clientOrderIds, i) },
             });
         }
-        for (int i = 0; i < getArrayLength(ids); i++)
+        for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            object orderId = getValue(ids, i);
+            string? orderId = ((string)(ids != null && i < ids.Count ? ids[i] : null));
             if ((uta == true))
             {
                 ordersRequests.Add(new Dictionary<string, object>() {
@@ -12458,7 +12458,7 @@ public partial class kucoin : Exchange
                 });
             } else
             {
-                ordersRequests.Add(getValue(ids, i));
+                ordersRequests.Add((ids != null && i < ids.Count ? ids[i] : null));
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};

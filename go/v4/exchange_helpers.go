@@ -1489,6 +1489,20 @@ func Contains(v any, substr any) bool {
 	return false
 }
 
+// StringArg converts a dynamically passed required string argument; nil or any
+// other type panics (ArgumentsRequired) instead of coercing
+func StringArg(v any) string {
+	switch value := v.(type) {
+	case string:
+		return value
+	case *string:
+		if value != nil {
+			return *value
+		}
+	}
+	panic(ArgumentsRequired(fmt.Sprintf("expected a string argument, got %T: %v", v, v)))
+}
+
 func ToString(v any) string {
 	v = derefScalar(v)
 	switch v := v.(type) {
@@ -2918,15 +2932,17 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 		var in []reflect.Value
 		// Fixed argument handling for both regular and variadic functions
 		for k := 0; k < numIn-1; k++ {
-			if k < len(args) {
-				if args[k] == nil {
-					paramType := methodType.In(k + 1) // Account for receiver not being part of args
-					in = append(in, reflect.Zero(paramType))
-				} else {
-					in = append(in, reflect.ValueOf(args[k]))
+			paramType := methodType.In(k + 1) // Account for receiver not being part of args
+			if paramType.Kind() == reflect.String {
+				// a required string parameter: no zero-value default, a wrong type panics
+				var arg any = nil
+				if k < len(args) {
+					arg = args[k]
 				}
+				in = append(in, reflect.ValueOf(StringArg(arg)).Convert(paramType))
+			} else if k < len(args) && args[k] != nil {
+				in = append(in, reflect.ValueOf(args[k]))
 			} else {
-				paramType := methodType.In(k + 1) // Account for receiver not being part of args
 				in = append(in, reflect.Zero(paramType))
 			}
 		}

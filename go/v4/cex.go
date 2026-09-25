@@ -4,6 +4,7 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
+import "strings"
 
 type Cex struct {
 	Exchange
@@ -1595,12 +1596,12 @@ func (this *Cex) ParseOrder(order any, optionalArgs ...any) any {
  * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cex) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Cex) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1625,8 +1626,8 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		"currency1":     market["baseId"],
 		"currency2":     market["quoteId"],
 		"accountId":     accountId,
-		"orderType":     this.Capitalize(ToLower(typeVar)),
-		"side":          ToUpper(side),
+		"orderType":     this.Capitalize(strings.ToLower(typeVar)),
+		"side":          strings.ToUpper(side),
 		"timestamp":     this.Milliseconds(),
 		"amountCcy1":    this.AmountToPrecision(symbol, amount),
 	}
@@ -1634,7 +1635,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	var timeInForceparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce", "GTC")
 	timeInForce = GetValue(timeInForceparamsVariable, 0)
 	params = GetValue(timeInForceparamsVariable, 1)
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["timeInForce"] = timeInForce
 	}

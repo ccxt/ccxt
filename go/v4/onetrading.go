@@ -1639,12 +1639,12 @@ func (this *Onetrading) ParseTimeInForce(timeInForce *string) *string {
  * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Onetrading) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Onetrading) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1656,12 +1656,12 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar any, si
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var uppercaseType string = ToUpper(typeVar)
+	var uppercaseType string = strings.ToUpper(typeVar)
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"instrument_code": market["id"],
 		"type":            uppercaseType,
-		"side":            ToUpper(side),
+		"side":            strings.ToUpper(side),
 		"amount":          this.AmountToPrecision(symbol, amount),
 	}
 	var priceIsRequired bool = false
@@ -1677,7 +1677,7 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar any, si
 		request["type"] = "STOP"
 		params = MapTyped(this.Omit(params, []any{"triggerPrice", "trigger_price", "stopPrice"}))
 	} else if uppercaseType == "STOP" {
-		panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a triggerPrice param for ", typeVar), " orders")))
+		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice param for " + typeVar + " orders"))
 	}
 	if priceIsRequired {
 		request["price"] = this.PriceToPrecision(symbol, price)

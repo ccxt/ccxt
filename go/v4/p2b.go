@@ -1026,12 +1026,12 @@ func (this *P2b) ParseBalance(response any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *P2b) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *P2b) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *P2b) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *P2b) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1042,7 +1042,7 @@ func (this *P2b) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if IsEqual(typeVar, "market") {
+	if typeVar == "market" {
 		panic(BadRequest(this.Id + " createOrder () can only accept orders with type \"limit\""))
 	}
 	var market map[string]any = this.Market(symbol)
