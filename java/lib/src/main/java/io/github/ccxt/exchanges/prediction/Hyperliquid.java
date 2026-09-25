@@ -179,7 +179,7 @@ public class Hyperliquid extends HyperliquidApi
     {
         // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
         // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     /**

@@ -1067,7 +1067,7 @@ public class Coinmate extends CoinmateApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000L : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "limit", limitResolved );
             }};
@@ -1082,7 +1082,7 @@ public class Coinmate extends CoinmateApi
             }
             Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, (Map<String, Object>) null, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, (Map<String, Object>) null, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1568,7 +1568,7 @@ public class Coinmate extends CoinmateApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

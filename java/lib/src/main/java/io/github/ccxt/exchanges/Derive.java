@@ -1331,10 +1331,10 @@ public class Derive extends DeriveApi
                 market = this.market(symbol);
                 request.put("instrument_name", market.get("id"));
             }
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (!java.util.Objects.equals(limit, null) && (limit > 1000))
             {
-                limitResolved = 1000;
+                limitResolved = 1000L;
             }
             if (!java.util.Objects.equals(limitResolved, null))
             {
@@ -1385,7 +1385,7 @@ public class Derive extends DeriveApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3365,7 +3365,7 @@ public class Derive extends DeriveApi
     {
         // the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
         // incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

@@ -787,7 +787,7 @@ public class Paymium extends PaymiumApi
     public Long nonce()
     {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

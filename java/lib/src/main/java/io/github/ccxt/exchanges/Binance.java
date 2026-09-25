@@ -9939,7 +9939,7 @@ public class Binance extends BinanceApi
                 request.put("startTime", since);
             }
             // max 100
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (!java.util.Objects.equals(limit, null) && java.util.Objects.equals(stock, true))
             {
                 limitResolved = Math.min(limit, 100);
@@ -10240,9 +10240,9 @@ public class Binance extends BinanceApi
             if (java.util.Objects.equals(stock, true))
             {
                 List<Object> result = (List<Object>) this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
-                return this.parseOrders(result, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+                return this.parseOrders(result, market, since, limitResolved, new HashMap<String, Object>() {{}});
             }
-            return this.parseOrders(response, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

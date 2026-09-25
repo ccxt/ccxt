@@ -1594,8 +1594,8 @@ public class Dydx extends DydxApi
             throw new ArgumentsRequired((this.id + " createOrderRequest() requires a side argument")) ;
         }
         String orderSide = ((String)side).toUpperCase();
-        Integer subaccountId = 0;
-        List<Object> subaccountIdOptionparamsSubAccountIdVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrder", "subAccountId", Helpers.toLongOrNull(subaccountId));
+        Long subaccountId = 0L;
+        List<Object> subaccountIdOptionparamsSubAccountIdVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrder", "subAccountId", subaccountId);
         Long subaccountIdOption = (Long) ((List<Object>) subaccountIdOptionparamsSubAccountIdVariable).get(0);
         Map<String, Object> paramsSubAccountId = (Map<String, Object>) ((List<Object>) subaccountIdOptionparamsSubAccountIdVariable).get(1);
         String triggerPrice = this.safeString2(paramsSubAccountId, "triggerPrice", "stopPrice");
@@ -1676,8 +1676,8 @@ public class Dydx extends DydxApi
         Long latestBlockHeight = this.safeInteger(paramsSubAccountId, "latestBlockHeight");
         Object goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");
         Object goodTillBlockTime = null;
-        Integer goodTillBlockTimeInSeconds = 2592000;
-        List<Object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", Helpers.toLongOrNull(goodTillBlockTimeInSeconds));
+        Long goodTillBlockTimeInSeconds = 2592000L;
+        List<Object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         Long goodTillBlockTimeInSecondsOption = (Long) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(0);
         Map<String, Object> paramsGoodTillBlockTimeInSeconds = (Map<String, Object>) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(1); // default is 30 days
         if (Helpers.isEqual(orderFlag, 0))
@@ -1896,15 +1896,15 @@ public class Dydx extends DydxApi
                 throw new NotSupported((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
             }
             Object goodTillBlock = this.safeInteger(paramsOmitted, "goodTillBlock");
-            Integer goodTillBlockTimeInSeconds = 2592000;
-            List<Object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", Helpers.toLongOrNull(goodTillBlockTimeInSeconds));
+            Long goodTillBlockTimeInSeconds = 2592000L;
+            List<Object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
             Long goodTillBlockTimeInSecondsOption = (Long) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(0);
             Map<String, Object> paramsGoodTillBlockTimeInSeconds = (Map<String, Object>) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(1); // default is 30 days
             Object goodTillBlockTime = null;
             Integer defaultOrderFlags = (((java.util.Objects.equals(isTrigger, true)))) ? 32 : 64;
             Long orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags);
-            Integer subAccountId = 0;
-            Long subAccountIdOption = (Long) ((List<Object>)this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", Helpers.toLongOrNull(subAccountId))).get(0);
+            Long subAccountId = 0L;
+            Long subAccountIdOption = (Long) ((List<Object>)this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId)).get(0);
             if ((orderFlags == null || orderFlags != 0) && (orderFlags == null || orderFlags != 64) && (orderFlags == null || orderFlags != 32))
             {
                 throw new InvalidOrder((this.id + " invalid orderFlags, allowed values are (0, 64, 32).")) ;
@@ -2001,8 +2001,8 @@ public class Dydx extends DydxApi
             {
                 throw new NotSupported((this.id + " cancelOrders only support clientOrderIds.")) ;
             }
-            Integer subAccountId = 0;
-            List<Object> subAccountIdOptionparamsSubAccountIdVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", Helpers.toLongOrNull(subAccountId));
+            Long subAccountId = 0L;
+            List<Object> subAccountIdOptionparamsSubAccountIdVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
             Long subAccountIdOption = (Long) ((List<Object>) subAccountIdOptionparamsSubAccountIdVariable).get(0);
             Map<String, Object> paramsSubAccountId = (Map<String, Object>) ((List<Object>) subAccountIdOptionparamsSubAccountIdVariable).get(1);
             Object goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");

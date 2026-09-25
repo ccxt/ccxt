@@ -724,8 +724,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            Integer maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchFundingRateHistory", "maxEntriesPerRequest", Helpers.toLongOrNull(maxEntriesPerRequest));
+            Long maxEntriesPerRequest = 100L;
+            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
             Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
             String pageKey = "ccxtPageKey";
@@ -1253,8 +1253,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDepositsWithdrawals", "paginate", (Object) null);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            Integer maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchDepositsWithdrawals", "maxEntriesPerRequest", Helpers.toLongOrNull(maxEntriesPerRequest));
+            Long maxEntriesPerRequest = 100L;
+            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
             Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
             String pageKey = "ccxtPageKey";
@@ -2600,8 +2600,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsPortfolio, "fetchOpenOrders", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            Integer maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", Helpers.toLongOrNull(maxEntriesPerRequest));
+            Long maxEntriesPerRequest = 100L;
+            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
             Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
             String pageKey = "ccxtPageKey";

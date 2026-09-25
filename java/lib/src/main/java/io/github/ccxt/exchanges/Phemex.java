@@ -4013,7 +4013,7 @@ public class Phemex extends PhemexApi
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(200, limit);
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(200, limit);
             if (!java.util.Objects.equals(limitResolved, null))
             {
                 request.put("limit", limitResolved);
@@ -4160,7 +4160,7 @@ public class Phemex extends PhemexApi
                 data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
                 data = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             }
-            return this.parseTrades(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

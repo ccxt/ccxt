@@ -3995,7 +3995,7 @@ public class Deribit extends DeribitApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            Integer maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
+            Long maxEntriesPerRequest = 744L; // seems exchange returns max 744 items per request
             String eachItemDuration = "1h";
             if (Boolean.TRUE.equals(paginate))
             {
@@ -4003,7 +4003,7 @@ public class Deribit extends DeribitApi
                 Map<String, Object> paginationParams = this.extend(paramsPaginate, new HashMap<String, Object>() {{
                     put( "isDeribitPaginationCall", true );
                 }});
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, paginationParams, Helpers.toLongOrNull(maxEntriesPerRequest))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest)).join();
             }
             Long duration = (((long) this.parseTimeframe(eachItemDuration)) * 1000L);
             Long now = this.milliseconds();
@@ -4744,7 +4744,7 @@ public class Deribit extends DeribitApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(this.milliseconds());
+        return this.milliseconds();
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

@@ -2515,13 +2515,13 @@ public class Weex extends WeexApi
             {
                 currency = this.currency((String) (code));
             }
-            Integer maxLimit = 100;
+            Long maxLimit = 100L;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPaginate, maxLimit, true)).join();
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3317,14 +3317,14 @@ public class Weex extends WeexApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsMarketType, "fetchOpenOrders", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            Integer maxLimit = 100;
+            Long maxLimit = 100L;
             if (Boolean.TRUE.equals(paginate))
             {
                 if (Boolean.TRUE.equals(isSpot))
                 {
                     throw new NotSupported((this.id + " fetchOpenOrders() pagination is not supported for spot markets")) ;
                 }
-                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, paramsPaginate, maxLimit, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
@@ -3570,13 +3570,13 @@ public class Weex extends WeexApi
             {
                 throw new NotSupported((this.id + " fetchOrders() supports spot markets only")) ;
             }
-            Integer maxLimit = 1000;
+            Long maxLimit = 1000L;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPaginate, maxLimit, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -3657,10 +3657,10 @@ public class Weex extends WeexApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsMarketType, "fetchCanceledAndClosedOrders", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            Integer maxLimit = 1000;
+            Long maxLimit = 1000L;
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, maxLimit, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
@@ -4004,10 +4004,10 @@ public class Weex extends WeexApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsMarketType, "fetchMyTrades", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            Integer maxLimit = 100;
+            Long maxLimit = 100L;
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, maxLimit, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
@@ -4106,10 +4106,10 @@ public class Weex extends WeexApi
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            Integer maxLimit = 100;
+            Long maxLimit = 100L;
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, maxLimit, true)).join();
             }
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsPaginate, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);

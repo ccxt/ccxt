@@ -6880,13 +6880,13 @@ public class Kucoin extends KucoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Integer maxLimit = 200;
+            Long maxLimit = 200L;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrdersByStatus", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, paramsPaginate, maxLimit, true)).join();
             }
             String accountMode = "unified";
             List<Object> accountModeOptionparamsAccountModeVariable = (List<Object>) this.handleOptionStringAndParams(paramsPaginate, "fetchUtaOrdersByStatus", "accountMode", accountMode);
@@ -9478,14 +9478,14 @@ public class Kucoin extends KucoinApi
             {
                 return (this.fetchContractWithdrawals(code, since, limit, paramsRequest)).join();
             }
-            Integer maxLimit = 500;
+            Long maxLimit = 500L;
             Boolean paginate = false;
             List<Object> paginateparamsRequestVariable = (List<Object>) this.handleOptionBoolAndParams(paramsRequest, "fetchWithdrawals", "paginate", false);
             paginate = (Boolean) ((List<Object>) paginateparamsRequestVariable).get(0);
             paramsRequest = (Map<String, Object>) ((List<Object>) paginateparamsRequestVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, paramsRequest, Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, paramsRequest, maxLimit, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -10739,21 +10739,21 @@ public class Kucoin extends KucoinApi
             }
             String type = null;
             type = this.safeString(accountsByType, requestedType, requestedType);
-            Integer maxLimit = 500; // for spot non-uta and margin
+            Long maxLimit = 500L; // for spot non-uta and margin
             if (java.util.Objects.equals(hf, true))
             {
-                maxLimit = 200;
+                maxLimit = 200L;
             } else if (java.util.Objects.equals(type, "contract"))
             {
-                maxLimit = 50;
+                maxLimit = 50L;
             } else if (Helpers.isTrue(uta))
             {
                 if ((java.util.Objects.equals(type, "UNIFIED")) || (java.util.Objects.equals(type, "SPOT")))
                 {
-                    maxLimit = 200;
+                    maxLimit = 200L;
                 } else if (java.util.Objects.equals(type, "FUTURES"))
                 {
-                    maxLimit = 100;
+                    maxLimit = 100L;
                 }
             }
             Boolean paginate = false;
@@ -10762,7 +10762,7 @@ public class Kucoin extends KucoinApi
             paramsRequest = (Map<String, Object>) ((List<Object>) paginateparamsRequestVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsRequest, Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsRequest, maxLimit, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
@@ -13671,14 +13671,14 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Integer maxLimit = 200;
+            Long maxLimit = 200L;
             Boolean paginate = false;
             List<Object> paginateOptionparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", paginate);
             Boolean paginateOption = (Boolean) ((List<Object>) paginateOptionparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateOptionparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginateOption))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "5m")), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "5m")), paramsPaginate, maxLimit)).join();
             }
             Map<String, Object> request = Helpers.newMap(
                 "symbol", market.get("id"),

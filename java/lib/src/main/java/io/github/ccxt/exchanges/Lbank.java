@@ -1429,7 +1429,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : Math.min(limit, 2000);
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : Math.min(limit, 2000);
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? (Helpers.subtract(this.milliseconds(), (Helpers.multiply((((long) duration) * 1000L), limitResolved)))) : since;
             Long parsedSince = this.parseToInt(Helpers.divide(sinceResolved, 1000));
@@ -1463,7 +1463,7 @@ public class Lbank extends LbankApi
             //   ]
             // ]
             //
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -2444,7 +2444,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "current_page", 1 );
@@ -2480,7 +2480,7 @@ public class Lbank extends LbankApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2510,7 +2510,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "current_page", 1 );
@@ -2546,7 +2546,7 @@ public class Lbank extends LbankApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
