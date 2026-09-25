@@ -1127,7 +1127,7 @@ export default class hyperliquid extends hyperliquidRest {
         let rawBalances: any[] = [];
         let account: Str = undefined;
         let timestamp: Int = undefined;
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeDict (message, 'data', {});
         if (topic === 'spotState') {
             const spotState = this.safeDict (data, 'spotState');
             rawBalances = this.safeList (spotState, 'balances', []);
