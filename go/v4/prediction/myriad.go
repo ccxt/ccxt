@@ -1031,14 +1031,14 @@ func (this *Myriad) SignEvmTransaction(tx any, privateKey any) any {
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
 	var rHex any = ccxt.DerefScalar(this.SafeString(signature, "r"))
 	var sHex any = ccxt.DerefScalar(this.SafeString(signature, "s"))
-	if ccxt.IsEqual(rHex, nil) {
+	if rHex == nil {
 		panic(ccxt.ExchangeError(this.Id + " signEvmTransaction() missing rHex"))
 	}
 	var rHexLength int = ccxt.GetLength(rHex)
 	if (rHexLength % 2) != 0 {
 		rHex = ccxt.Add("0", rHex)
 	}
-	if ccxt.IsEqual(sHex, nil) {
+	if sHex == nil {
 		panic(ccxt.ExchangeError(this.Id + " signEvmTransaction() missing sHex"))
 	}
 	var sHexLength int = ccxt.GetLength(sHex)
@@ -1500,7 +1500,7 @@ func (this *Myriad) createAmmOrderBody(ch chan any, outcome string, typeVar any,
 	var networkId *string = this.SafeString(info, "networkId")
 	var chains map[string]any = ccxt.SafeMapTyped(this.Options, "chains")
 	var chainConfig any = this.SafeDict(chains, networkId)
-	if ccxt.IsEqual(chainConfig, nil) {
+	if chainConfig == nil {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id+" createOrder() has no on-chain config for network ", networkId)))
 	}
 	var rpcUrl *string = this.SafeString2(params, "rpcUrl", "rpc", this.SafeString(chainConfig, "rpcUrl"))
@@ -1828,7 +1828,7 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) any {
 		outcome = ccxt.DerefScalar(this.SafeString(market, "outcome"))
 	}
 	var outcomeObj any = market
-	if ccxt.IsEqual(outcome, nil) {
+	if outcome == nil {
 		// the REST order has no top-level networkId; order book lives on the default network
 		var networkId *string = this.SafeString2(order, "networkId", "network_id", this.SafeString(this.Options, "defaultNetworkId", "56"))
 		var marketId *string = this.SafeString(inner, "marketId")
@@ -3270,9 +3270,9 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	// percentage from it — setting percentage = the absolute change (as before) was wrong
 	var previousClose any = nil
 	var percentage any = nil
-	if (!ccxt.IsEqual(price, nil)) && (!ccxt.IsEqual(change, nil)) {
+	if ((price != nil)) && ((change != nil)) {
 		previousClose = ccxt.Subtract(price, change)
-		if ccxt.IsEqual(previousClose, nil) {
+		if previousClose == nil {
 			panic(ccxt.ExchangeError(this.Id + " method() missing previousClose"))
 		}
 		if !ccxt.IsEqual(previousClose, 0) {
@@ -3444,7 +3444,7 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome string, optionalArgs
 	// AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
 	var bid any = nil
 	var ask any = nil
-	if !ccxt.IsEqual(price, nil) {
+	if price != nil {
 		if ccxt.IsGreaterThan(price, 0.001) {
 			bid = this.ParseNumber(ccxt.Precise.StringSub(this.NumberToString(price), "0.001"))
 		}
@@ -3612,7 +3612,7 @@ func (this *Myriad) fetchOHLCVBody(ch chan any, outcome string, optionalArgs ...
 	// price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
 	var chart any = nil
 	var chartsList any = this.SafeList(selectedOutcome, "price_charts")
-	if !ccxt.IsEqual(chartsList, nil) {
+	if chartsList != nil {
 		for i := 0; i < ccxt.GetArrayLength(chartsList); i++ {
 			var chartObj any = ccxt.GetValue(chartsList, i)
 			if this.SafeString(chartObj, "timeframe") == bucketKey || (this.SafeString(chartObj, "timeframe") != nil && bucketKey != nil && *this.SafeString(chartObj, "timeframe") == *bucketKey) {

@@ -731,7 +731,7 @@ func (this *Kalshi) HandleErrors(code any, reason any, url any, method any, head
 	// errors (e.g. not_found -> ccxt.BadSymbol) so callers can distinguish them from a transport
 	// outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
 	// through to the base http-status handling.
-	if (ccxt.IsEqual(response, nil)) || (ccxt.IsEqual(response, nil)) {
+	if ccxt.IsEqual(response, nil) {
 		return nil
 	}
 	var error map[string]any = ccxt.SafeMapTyped(response, "error")
@@ -2052,7 +2052,7 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 	var price any = nil
 	if sideLeg != nil && *sideLeg == "no" {
 		price = ccxt.DerefScalar(this.SafeNumber(fill, "no_price_dollars"))
-		if ccxt.IsEqual(price, nil) {
+		if price == nil {
 			var noCents *float64 = this.SafeNumber(fill, "no_price")
 			if noCents != nil {
 				price = ccxt.Divide(noCents, 100)
@@ -2060,7 +2060,7 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 		}
 	} else {
 		price = ccxt.DerefScalar(this.SafeNumber(fill, "yes_price_dollars"))
-		if ccxt.IsEqual(price, nil) {
+		if price == nil {
 			var yesCents *float64 = this.SafeNumber(fill, "yes_price")
 			if yesCents != nil {
 				price = ccxt.Divide(yesCents, 100)
@@ -2069,7 +2069,7 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 	}
 	var amount *float64 = this.SafeNumber2(fill, "count_fp", "count")
 	var cost any = nil
-	if (!ccxt.IsEqual(price, nil)) && (amount != nil) {
+	if ((price != nil)) && (amount != nil) {
 		cost = ccxt.Multiply(price, amount)
 	}
 	var isTaker *bool = this.SafeBool(fill, "is_taker", true)
@@ -2334,7 +2334,7 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) any {
 	var won bool = (marketResult != nil && *marketResult == heldLabel)
 	// kalshi reports money as dollar keys on V2, else cents
 	var payout any = ccxt.DerefScalar(this.SafeNumber(settlement, "revenue_dollars"))
-	if ccxt.IsEqual(payout, nil) {
+	if payout == nil {
 		var revenueCents *float64 = this.SafeNumber(settlement, "revenue")
 		if revenueCents != nil {
 			payout = ccxt.Divide(revenueCents, 100)
@@ -2349,14 +2349,14 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) any {
 		costDollarsKey = "yes_total_cost_dollars"
 	}
 	var cost any = ccxt.DerefScalar(this.SafeNumber(settlement, costDollarsKey))
-	if ccxt.IsEqual(cost, nil) {
+	if cost == nil {
 		var costCents *float64 = this.SafeNumber(settlement, costKey)
 		if costCents != nil {
 			cost = ccxt.Divide(costCents, 100)
 		}
 	}
 	var pnl any = nil
-	if (!ccxt.IsEqual(payout, nil)) && (!ccxt.IsEqual(cost, nil)) {
+	if ((payout != nil)) && ((cost != nil)) {
 		pnl = ccxt.Subtract(payout, cost)
 	}
 	var ts *int64 = this.Parse8601(this.SafeString(settlement, "settled_time"))
@@ -2672,7 +2672,7 @@ func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) any {
 		centsKey = "no_price"
 	}
 	var price any = ccxt.DerefScalar(this.SafeNumber(order, dollarsKey))
-	if ccxt.IsEqual(price, nil) {
+	if price == nil {
 		var priceCents *float64 = this.SafeNumber(order, centsKey)
 		if priceCents != nil {
 			price = ccxt.Divide(priceCents, 100)
@@ -2682,7 +2682,7 @@ func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	var amount *float64 = this.SafeNumber2(order, "initial_count_fp", "count")
 	var filled *float64 = this.SafeNumber2(order, "fill_count_fp", "filled_count", 0)
 	var remaining any = ccxt.DerefScalar(this.SafeNumber(order, "remaining_count_fp"))
-	if (ccxt.IsEqual(remaining, nil)) && (amount != nil) && (filled != nil) {
+	if ((remaining == nil)) && (amount != nil) && (filled != nil) {
 		remaining = ccxt.Subtract(amount, filled)
 	}
 	var ts *int64 = this.Parse8601(this.SafeString(order, "created_time"))
@@ -3583,7 +3583,7 @@ func (this *Kalshi) ParseEvent(rawEvent any) any {
 		active = anyActive
 	}
 	var resolved any = ccxt.DerefScalar(this.SafeBool(rawEvent, "resolved"))
-	if (ccxt.IsEqual(resolved, nil)) && (marketsCount > 0) {
+	if ((resolved == nil)) && (marketsCount > 0) {
 		resolved = allResolved
 	}
 	var end any = ccxt.DerefScalar(this.Parse8601(this.SafeString(rawEvent, "end_date_iso")))

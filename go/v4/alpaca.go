@@ -931,7 +931,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		panic(NotSupported(this.Id + " fetchTrades() does not support " + *method + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported"))
 	}
 	var symbolTradesList []any = []any{}
-	if !IsEqual(symbolTrades, nil) {
+	if symbolTrades != nil {
 		symbolTradesList = ArrayTyped(symbolTrades)
 	}
 

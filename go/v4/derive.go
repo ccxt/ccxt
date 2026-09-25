@@ -1880,7 +1880,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol string, typeVar string, 
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var rawOrder any = this.SafeDict(result, "raw_data")
-	if IsEqual(rawOrder, nil) {
+	if rawOrder == nil {
 		rawOrder = this.SafeDict(result, "order", map[string]any{})
 	}
 	var order map[string]any = MapTyped(this.ParseOrder(rawOrder, market))
@@ -3244,7 +3244,7 @@ func (this *Derive) ParseBalance(response any) any {
 			var balance map[string]any = SafeMapTyped(collaterals, j)
 			var code *string = this.SafeCurrencyCode(this.SafeString(balance, "currency"))
 			var account any = this.SafeDict(result, code)
-			if IsEqual(account, nil) {
+			if account == nil {
 				account = this.Account()
 				AddElementToObject(account, "total", this.SafeString(balance, "amount"))
 			} else {

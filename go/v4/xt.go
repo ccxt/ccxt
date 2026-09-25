@@ -6078,7 +6078,7 @@ func (this *Xt) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market, "_", "swap")
 	var timestamp *int64 = this.SafeInteger(contract, "nextCollectionTime")
 	var interval any = DerefScalar(this.SafeString(contract, "collectionInternal"))
-	if !IsEqual(interval, nil) {
+	if interval != nil {
 		interval = Add(interval, "h")
 	}
 	return map[string]any{

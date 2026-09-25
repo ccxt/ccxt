@@ -2304,7 +2304,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome string, typeVar str
 	var defaultExpiration *int64 = this.SafeInteger(this.Options, "defaultExpiration", 3600) // 1 hour
 	var expirationDelta *int64 = defaultExpiration
 	var expiration any = ccxt.DerefScalar(this.SafeInteger(paramsWarnOnMarketOrderWithoutPrice, "expiration"))
-	if ccxt.IsEqual(expiration, nil) {
+	if expiration == nil {
 		if isMarket {
 			expirationDelta = this.SafeInteger(this.Options, "marketOrderExpiration", defaultExpiration)
 		}
@@ -2682,7 +2682,7 @@ func (this *Predictfun) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 
 	var orders []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.CancelOrdersAsync([]any{id}, outcome, params))))
 	var order any = this.SafeDict(orders, 0)
-	if ccxt.IsEqual(order, nil) {
+	if order == nil {
 		panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" cancelOrder() could not remove ", id)))
 	}
 

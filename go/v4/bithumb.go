@@ -2765,12 +2765,12 @@ func (this *Bithumb) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		clientOrderIds = this.SafeList2(paramsOmitted, "client_order_ids", "clientOrderIds")
 	}
 	var paramsRequest any = func() any {
-		if !IsEqual(clientOrderIds, nil) {
+		if clientOrderIds != nil {
 			return this.Omit(paramsOmitted, []any{"clientOrderIds"})
 		}
 		return paramsOmitted
 	}()
-	if !IsEqual(clientOrderIds, nil) {
+	if clientOrderIds != nil {
 		request["client_order_ids"] = clientOrderIds
 	}
 	var market map[string]any = nil
@@ -3065,12 +3065,12 @@ func (this *Bithumb) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	var request map[string]any = map[string]any{}
 	var clientOrderIds any = this.SafeList2(paramsGeneration, "client_order_ids", "clientOrderIds")
 	var paramsRequest any = func() any {
-		if !IsEqual(clientOrderIds, nil) {
+		if clientOrderIds != nil {
 			return this.Omit(paramsGeneration, []any{"clientOrderIds"})
 		}
 		return paramsGeneration
 	}()
-	if !IsEqual(clientOrderIds, nil) {
+	if clientOrderIds != nil {
 		request["client_order_ids"] = clientOrderIds
 	} else {
 		request["order_ids"] = ids

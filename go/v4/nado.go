@@ -2917,9 +2917,9 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeTimestamp(trade, "timestamp")
 	var rawOrder any = this.SafeDict(trade, "order")
-	var isArchiveMatch bool = !IsEqual(rawOrder, nil)
+	var isArchiveMatch bool = (rawOrder != nil)
 	var order any = func() any {
-		if IsEqual(rawOrder, nil) {
+		if rawOrder == nil {
 			return map[string]any{}
 		}
 		return rawOrder
@@ -3482,7 +3482,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		lastTradeTimestamp = this.SafeTimestamp(order, "last_fill_timestamp")
 		price = this.ParseX18(this.SafeString(order, "price_x18"))
 		status = DerefScalar(this.SafeString(order, "status"))
-		if IsEqual(status, nil) {
+		if status == nil {
 			if EvalTruthy(this.IsArchiveOrderClosed(order)) {
 				status = "closed"
 			}
@@ -3683,7 +3683,7 @@ func (this *Nado) queryContractsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var cachedContracts any = this.SafeDict(this.Options, "gatewayContracts")
-	if !IsEqual(cachedContracts, nil) {
+	if cachedContracts != nil {
 
 		ch <- cachedContracts
 		return nil
@@ -3892,7 +3892,7 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Nado) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
 	//

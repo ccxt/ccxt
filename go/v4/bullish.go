@@ -1749,12 +1749,12 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	var maxDelta any = Multiply(1000*duration, maxLimit)
 	var startTime any = since
 	// both of since and until are required
-	if IsEqual(startTime, nil) && IsEqual(until, nil) {
+	if IsEqual(startTime, nil) && (until == nil) {
 		until = this.Milliseconds()
 		startTime = Subtract(until, maxDelta)
 	} else if IsEqual(startTime, nil) {
 		startTime = Subtract(until, maxDelta)
-	} else if IsEqual(until, nil) {
+	} else if until == nil {
 		until = this.Sum(startTime, maxDelta)
 	}
 	AddElementToObject(requestUntil, "createdAtDatetime[gte]", this.Iso8601(startTime))
@@ -2021,18 +2021,18 @@ func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) any {
 	var untilKey string = GetArgString(optionalArgs, 3, "createdAtDatetime[lte]")
 	_ = untilKey
 	var until any = DerefScalar(this.SafeInteger(params, "until"))
-	var sinceFromUntil bool = (since == nil) && (!IsEqual(until, nil))
+	var sinceFromUntil bool = (since == nil) && ((until != nil))
 	var paramsResult any = params
 	if sinceFromUntil {
 		paramsResult = this.Omit(params, "until")
 	}
-	if (since != nil) || (!IsEqual(until, nil)) {
+	if (since != nil) || ((until != nil)) {
 		var timeDelta int64 = (7 * 24) * 60 * 60 * 1000 // 7 days
 		var sinceResolved any = since
 		if since == nil {
 			sinceResolved = Subtract(until, timeDelta)
 		}
-		if (since != nil) && (IsEqual(until, nil)) {
+		if (since != nil) && ((until == nil)) {
 			until = this.Sum(since, timeDelta)
 			var now int64 = this.Milliseconds()
 			if IsGreaterThan(until, now) {
@@ -3592,7 +3592,7 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	if IsEqual(startTimestamp, nil) {
 		startTimestamp = now - (1000*60)*60*24*90 // Only the last 90 days of data is available for querying
 	}
-	if IsEqual(until, nil) {
+	if until == nil {
 		until = now
 	}
 	AddElementToObject(requestUntil, "createdAtDatetime[gte]", this.Iso8601(startTimestamp))

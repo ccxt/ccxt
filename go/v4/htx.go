@@ -2693,7 +2693,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 		// check if parsed market is contract
 		if contract {
 			id = DerefScalar(this.SafeString(market, "contract_code"))
-			if IsEqual(id, nil) {
+			if id == nil {
 				panic(ExchangeError(this.Id + " method() missing id"))
 			}
 			lowercaseId = ToLower(id)
@@ -2705,7 +2705,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 			inverse = !(linear == true)
 			if swap {
 				marketType = SafeStringPtr("swap")
-				if IsEqual(id, nil) {
+				if id == nil {
 					panic(ExchangeError(this.Id + " method() missing id"))
 				}
 				var parts []string = Split(id, "-")
@@ -7078,7 +7078,7 @@ func (this *Htx) createOrderBody(ch chan any, symbol string, typeVar string, sid
 		} else {
 			result = this.SafeDict(response, "data", map[string]any{})
 		}
-		if IsEqual(result, nil) {
+		if result == nil {
 			panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 		}
 
@@ -7098,7 +7098,7 @@ func (this *Htx) createOrderBody(ch chan any, symbol string, typeVar string, sid
 	} else {
 		result = this.SafeDict(response, "data", map[string]any{})
 	}
-	if IsEqual(result, nil) {
+	if result == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -8382,7 +8382,7 @@ func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	}
 	var networkId *string = this.SafeString(transaction, "chain")
 	var txHash any = DerefScalar(this.SafeString(transaction, "tx-hash"))
-	if IsEqual(txHash, nil) {
+	if txHash == nil {
 		panic(ExchangeError(this.Id + " parseTransaction() missing txHash"))
 	}
 	if (networkId != nil && *networkId == "ETH") && (GetIndexOf(txHash, "0x") < 0) {

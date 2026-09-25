@@ -4235,7 +4235,7 @@ func (this *Bingx) createOrderBody(ch chan any, symbol string, typeVar string, s
 	var stopLoss *string = this.SafeString(result, "stopLoss")
 	// for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
 	// so we need trick to check if it's non-parsed string yet
-	if (IsEqual(stopLossDict, nil)) && (stopLoss != nil) && (func() int {
+	if ((stopLossDict == nil)) && (stopLoss != nil) && (func() int {
 		if stopLoss == nil {
 			return -1
 		}
@@ -4691,7 +4691,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 	var info any = order
 	var newOrder any = this.SafeDict2(order, "newOrderResponse", "orderOpenResponse")
 	var orderData any = func() any {
-		if !IsEqual(newOrder, nil) {
+		if newOrder != nil {
 			return newOrder
 		}
 		return order
@@ -5097,7 +5097,7 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "clientOrderIds"))
 	var idsToParse any = ids
-	var areClientOrderIds bool = (!IsEqual(clientOrderIds, nil))
+	var areClientOrderIds bool = ((clientOrderIds != nil))
 	if areClientOrderIds {
 		idsToParse = clientOrderIds
 	}
@@ -6111,7 +6111,7 @@ func (this *Bingx) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	var networkCode *string = this.NetworkIdToCode(networkId, code)
 	// despite its name the addressWithPrefix field sometimes arrives without
 	// the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
-	if !IsEqual(address, nil) {
+	if address != nil {
 		var isPrefixed bool = StartsWith(address, "0x") || StartsWith(address, "0X")
 		var evmNetworks []any = []any{"BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"}
 		if !isPrefixed && this.InArray(networkCode, evmNetworks) {

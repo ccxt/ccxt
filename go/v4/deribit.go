@@ -821,7 +821,7 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 		settle = base
 	}
 	var splitBase any = base
-	if IsEqual(base, nil) {
+	if base == nil {
 		panic(ExchangeError(this.Id + " createExpiredOptionMarket() missing base"))
 	}
 	if GetIndexOf(base, "_") > -1 {
@@ -5100,7 +5100,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Deribit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
 	//

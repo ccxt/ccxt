@@ -980,7 +980,7 @@ func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any)
 				latestTimestamp = mathMax(latestTimestamp, newTimestamp)
 			}
 		}
-		if IsEqual(nonce, nil) {
+		if nonce == nil {
 			nonce = DerefScalar(this.SafeInteger(level, 0))
 		} else {
 			var newNonce *int64 = this.SafeInteger(level, 0)
@@ -1686,7 +1686,7 @@ func (this *Ndax) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadAccountsAsync()))
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId")
 	var accountId any = DerefScalar(this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId))
-	if IsEqual(accountId, nil) {
+	if accountId == nil {
 		accountId = this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id"))
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"accountId", "AccountId"}))

@@ -1571,7 +1571,7 @@ func (this *Dydx) fetchDydxAccountBody(ch chan any) any {
 
 	PanicOnError((<-this.LoadDydxProtosAsync()))
 	var dydxAccount any = this.SafeDict(this.Options, "dydxAccount")
-	if !IsEqual(dydxAccount, nil) {
+	if dydxAccount != nil {
 
 		ch <- dydxAccount
 		return nil
@@ -1710,7 +1710,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar string, side string, am
 	goodTillBlockTimeInSecondsOption := GetValue(goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable, 0)
 	paramsGoodTillBlockTimeInSeconds := GetValue(goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable, 1) // default is 30 days
 	if IsEqual(orderFlag, 0) {
-		if IsEqual(goodTillBlock, nil) {
+		if goodTillBlock == nil {
 			// short term order
 			if latestBlockHeight == nil {
 				panic(ExchangeError(this.Id + " method() missing latestBlockHeight"))
@@ -1775,7 +1775,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar string, side string, am
 		return *clientOrderId
 	}()
 	var orderFlagValue any = func() any {
-		if IsEqual(orderFlag, nil) {
+		if orderFlag == nil {
 			return 0
 		}
 		return orderFlag
@@ -1993,12 +1993,12 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		if IsEqual(goodTillBlockTimeInSecondsOption, nil) {
 			panic(ArgumentsRequired(this.Id + " goodTillBlockTimeInSeconds is required in params for long term or conditional order."))
 		}
-		if !IsEqual(goodTillBlock, nil) && IsGreaterThan(goodTillBlock, 0) {
+		if (goodTillBlock != nil) && IsGreaterThan(goodTillBlock, 0) {
 			panic(InvalidOrder(this.Id + " goodTillBlock should be 0 for long term or conditional order."))
 		}
 		goodTillBlockTime = Add(this.Seconds(), goodTillBlockTimeInSecondsOption)
 	} else {
-		if IsEqual(goodTillBlock, nil) {
+		if goodTillBlock == nil {
 
 			latestBlockHeight := (<-this.FetchLatestBlockHeightAsync())
 			PanicOnError(latestBlockHeight)
@@ -2092,7 +2092,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	subAccountIdOption := GetValue(subAccountIdOptionparamsSubAccountIdVariable, 0)
 	paramsSubAccountId := GetValue(subAccountIdOptionparamsSubAccountIdVariable, 1)
 	var goodTillBlock any = DerefScalar(this.SafeInteger(paramsSubAccountId, "goodTillBlock"))
-	if IsEqual(goodTillBlock, nil) {
+	if goodTillBlock == nil {
 
 		latestBlockHeight := (<-this.FetchLatestBlockHeightAsync())
 		PanicOnError(latestBlockHeight)
@@ -3139,7 +3139,7 @@ func (this *Dydx) GetWalletAddress() any {
 		return this.WalletAddress
 	}
 	var dydxAccount any = this.SafeDict(this.Options, "dydxAccount")
-	if !IsEqual(dydxAccount, nil) {
+	if dydxAccount != nil {
 		// return dydxAccount;
 		var wallet *string = this.SafeString(dydxAccount, "address")
 		if wallet != nil {
@@ -3200,7 +3200,7 @@ func (this *Dydx) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Dydx) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
 	//

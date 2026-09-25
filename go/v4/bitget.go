@@ -3757,7 +3757,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 	var types []any = nil
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
 	var defaultMarkets []any = []any{"spot", "swap"}
-	if !IsEqual(fetchMarketsOptions, nil) {
+	if fetchMarketsOptions != nil {
 		types = ListTyped(this.SafeList(fetchMarketsOptions, "types", defaultMarkets))
 	} else {
 		// for backward-compatibility
@@ -9223,7 +9223,7 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var resultList any = this.SafeListN(data, []any{"resultList", "successList", "list"})
 	var failureList []any = SafeList2Typed(data, "failure", "failureList")
 	var responseList any = nil
-	if (!IsEqual(resultList, nil)) && ((failureList != nil)) {
+	if ((resultList != nil)) && ((failureList != nil)) {
 		responseList = this.ArrayConcat(resultList, failureList)
 	} else {
 		responseList = resultList
@@ -9419,7 +9419,7 @@ func (this *Bitget) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		response = JsonParse(response)
 	}
 	var data any = this.SafeDict(response, "data")
-	if !IsEqual(data, nil) {
+	if data != nil {
 		if !IsArray(data) {
 
 			ch <- this.ParseOrder(data, market)
@@ -14986,7 +14986,7 @@ func (this *Bitget) ParseLongShortRatio(info any, optionalArgs ...any) any {
 	}
 }
 func (this *Bitget) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
 	//

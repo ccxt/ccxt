@@ -2842,7 +2842,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 	if IsEqual(details, nil) {
 		details = order
 	}
-	if IsEqual(statusId, nil) {
+	if statusId == nil {
 		statusId = DerefScalar(this.SafeString(details, "status"))
 	}
 	// This may be incorrectly marked as "open" if only execution report is given,

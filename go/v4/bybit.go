@@ -2847,7 +2847,7 @@ func (this *Bybit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var types []any = nil
 	var defaultTypes []any = []any{"spot", "linear", "inverse", "option"}
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
-	if !IsEqual(fetchMarketsOptions, nil) {
+	if fetchMarketsOptions != nil {
 		types = ListTyped(this.SafeList(fetchMarketsOptions, "types", defaultTypes))
 	} else {
 		// for backward-compatibility
@@ -4798,7 +4798,7 @@ func (this *Bybit) ParseBalance(response any) any {
 	}
 	var responseResult map[string]any = SafeMapTyped(response, "result")
 	var currencyList any = this.SafeListN(responseResult, []any{"loanAccountList", "list", "balance"})
-	if IsEqual(currencyList, nil) {
+	if currencyList == nil {
 		// usdc wallet
 		var code string = "USDC"
 		var account map[string]any = this.Account()
@@ -11790,7 +11790,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	var result map[string]any = SafeMapTyped(response, "result")
 	var rawPositions any = this.SafeList(result, "list")
 	var rawPositionsList []any = []any{}
-	if !IsEqual(rawPositions, nil) {
+	if rawPositions != nil {
 		rawPositionsList = ArrayTyped(rawPositions)
 	}
 	var positions any = this.ParsePositions(rawPositionsList, symbols, paramsOmitted)

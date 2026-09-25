@@ -1228,7 +1228,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	if since == nil {
 		var duration int64 = this.ParseTimeframe(timeframe)
 		var endTime any = func() any {
-			if !IsEqual(until, nil) && !IsEqual(until, nil) && !IsEqual(until, 0) {
+			if !IsEqual(until, nil) && !IsEqual(until, 0) {
 				return this.ParseToInt(Divide(until, 1000))
 			}
 			return this.Seconds()

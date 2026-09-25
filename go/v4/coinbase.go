@@ -4173,17 +4173,17 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 	var stopLimitGTC any = this.SafeDict(orderConfiguration, "stop_limit_stop_limit_gtc")
 	var stopLimitGTD any = this.SafeDict(orderConfiguration, "stop_limit_stop_limit_gtd")
 	var marketIOC map[string]any = SafeMapTyped(orderConfiguration, "market_market_ioc")
-	var isLimit bool = ((!IsEqual(limitGTC, nil)) || (!IsEqual(limitGTD, nil)) || (!IsEqual(limitIOC, nil)))
-	var isStop bool = ((!IsEqual(stopLimitGTC, nil)) || (!IsEqual(stopLimitGTD, nil)))
+	var isLimit bool = (((limitGTC != nil)) || ((limitGTD != nil)) || ((limitIOC != nil)))
+	var isStop bool = (((stopLimitGTC != nil)) || ((stopLimitGTD != nil)))
 	var price *string = nil
 	var amount *string = nil
 	var postOnly *bool = nil
 	var triggerPrice *string = nil
 	if isLimit {
 		var target any = nil
-		if !IsEqual(limitGTC, nil) {
+		if limitGTC != nil {
 			target = limitGTC
-		} else if !IsEqual(limitGTD, nil) {
+		} else if limitGTD != nil {
 			target = limitGTD
 		} else {
 			target = limitIOC
@@ -4193,7 +4193,7 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 		postOnly = this.SafeBool(target, "post_only")
 	} else if isStop {
 		var stopTarget any = func() any {
-			if !IsEqual(stopLimitGTC, nil) {
+			if stopLimitGTC != nil {
 				return stopLimitGTC
 			}
 			return stopLimitGTD
@@ -6860,7 +6860,7 @@ func (this *Coinbase) HandleErrors(code any, reason any, url any, method any, he
 		panic(ExchangeError(feedback))
 	}
 	var errors any = this.SafeList(response, "errors")
-	if !IsEqual(errors, nil) {
+	if errors != nil {
 		if IsArray(errors) {
 			var numErrors int = GetArrayLength(errors)
 			if numErrors > 0 {
