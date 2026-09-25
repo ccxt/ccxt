@@ -10694,6 +10694,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // (`const keys = this.sort (…)` -> `List<string> keys = …`): the element box is that scalar or
         // null, so the declaration names it behind the exact cast back
         const typedListElement = (elementType === undefined) ? typedListElementReadType (csharp, declaration.initializer) : undefined;
+        const tupleElement0 = (elementType === undefined && typedListElement === undefined) ? handleTupleElement0ReadType (declaration.initializer) : undefined;
         // `this.handleOption (method, key, <literal>)` / `this.safeValue (this.options, key,
         // <literal>)` whose option key's writer census is the default literal's own kind
         const optionsDefaultType = optionsLiteralDefaultCastType (declaration.initializer);
@@ -10733,6 +10734,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // numeric / bool arms cast to the nullable box the same way
             csharpType = (typedListElement === 'string') ? 'string?' : (typedListElement + '?');
             cast = (typedListElement === 'string') ? 'string' : (typedListElement + '?');
+        } else if (tupleElement0 !== undefined) {
+            csharpType = tupleElement0;
+            cast = (tupleElement0 === 'string?') ? 'string' : tupleElement0;
         } else if (wsCacheElement !== undefined) {
             csharpType = wsCacheElement;
             cast = wsCacheElement;
@@ -12515,6 +12519,18 @@ function destructuredStringHelperElement0 (call, helper) {
     const position = DESTRUCTURED_STRING_HELPERS[helper];
     const argument = position > 0 ? call.arguments?.[position - 1] : undefined;
     return (argument === undefined || isUndefinedLiteral (argument) || isStringLiteral (argument)) ? 'string?' : undefined;
+}
+
+// `this.<helper> (...)[0]`: the same element-0 box the destructured form names
+function handleTupleElement0ReadType (initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.argumentExpression?.kind !== ts.SyntaxKind.NumericLiteral || initializer.argumentExpression.text !== '0') {
+        return undefined;
+    }
+    const helper = destructuredHandleCallName (initializer.expression);
+    if (helper === undefined) {
+        return undefined;
+    }
+    return DESTRUCTURED_DECLARATION_ELEMENT0[helper] ?? destructuredStringHelperElement0 (initializer.expression, helper);
 }
 
 function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
