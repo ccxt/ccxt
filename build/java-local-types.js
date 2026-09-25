@@ -3648,7 +3648,7 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
                 // a raw `+=` on these locals): the same non-null String right operand the
                 // direct-add rule needs; the read of x in this statement is this very node,
                 // so addChainRights has no first entry for it
-                if (!isProvablyNonNullStringExpression (printer, parent.right, sourceName)) {
+                if (!isProvablyNonNullStringExpression (printer, parent.right, sourceName) && info?.plusEqualsOk?.(parent.right) !== true) {
                     return false;
                 }
             } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
@@ -13821,4 +13821,145 @@ export function patchJavaMapArgIdentity (transpiler) {
         }
         return out;
     };
+}
+
+// ===== 36. non-null String locals (native `+` on their reads) =====
+// An `Object` local whose initializer and every write is a provably non-null String becomes
+// `String`: the printer's concat rule then anchors on it. The `+` chains it heads take no
+// right operand that can be a Double (Helpers.add would sum numerically where `+` concatenates).
+const JAVA_NON_NULL_STRING_MAX_DEPTH = 32;
+
+function javaNonNullStringDeclarationOf (printer, node) {
+    if (node === undefined || !ts.isIdentifier (node) || printer.printNode (node, 0) !== node.text) {
+        return undefined;
+    }
+    const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+    return (declaration !== undefined && ts.isVariableDeclaration (declaration)) ? declaration : undefined;
+}
+
+// the printed value is statically String and never null: a literal, a `+` whose printed form
+// is a native concat or add(String, *) (JLS 15.18.1: never null), a conditional over two such
+// arms, a read of the declaration being classified, or another local this section retyped
+function javaNonNullStringValue (printer, declaration, retyped, node, depth) {
+    const value = unwrapParens (node);
+    if (value === undefined || depth > JAVA_NON_NULL_STRING_MAX_DEPTH) {
+        return false;
+    }
+    switch (value.kind) {
+    case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        return true;
+    case ts.SyntaxKind.ConditionalExpression:
+        return javaNonNullStringValue (printer, declaration, retyped, value.whenTrue, depth + 1)
+            && javaNonNullStringValue (printer, declaration, retyped, value.whenFalse, depth + 1);
+    case ts.SyntaxKind.Identifier: {
+        const target = javaNonNullStringDeclarationOf (printer, value);
+        return target !== undefined && (target === declaration || retyped.has (target));
+    }
+    case ts.SyntaxKind.BinaryExpression:
+        if (value.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+            return false;
+        }
+        return javaNonNullStringValue (printer, declaration, retyped, value.left, depth + 1)
+            || printedJavaIsString (printer, value.left) || printedConcatIsNative (printer, value.left, value.right);
+    }
+    return false;
+}
+
+// Helpers.add takes its Double branch before the String ones; a right operand that can hold a
+// Double would move the printed result from a number to a concatenation
+function javaConcatRightCannotBeDouble (printer, node) {
+    if (!isPossiblyNumericDeep (printer, node)) {
+        return true;
+    }
+    try {
+        return typeof printer.javaConcatOperandCanBeDouble === 'function' && printer.javaConcatOperandCanBeDouble (unwrapParens (node)) === false;
+    } catch (e) {
+        return false;
+    }
+}
+
+function javaNonNullStringLocal (printer, declaration, retyped) {
+    if (!ts.isIdentifier (declaration.name) || declaration.initializer === undefined
+        || !javaNonNullStringValue (printer, declaration, retyped, declaration.initializer, 0)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    const name = declaration.name.text;
+    const uses = (identifierIndex (scope).get (name) ?? []).filter ((n) => n !== declaration.name
+        && !(ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)
+        && !(ts.isVariableDeclaration (n.parent) && n.parent.name === n));
+    for (const n of uses) {
+        if (javaNonNullStringDeclarationOf (printer, n) !== declaration) {
+            return false; // a shadowing binding or a renamed capture
+        }
+        const parent = n.parent;
+        if (ts.isBinaryExpression (parent) && parent.left === n) {
+            const op = parent.operatorToken.kind;
+            if (op === ts.SyntaxKind.EqualsToken && !javaNonNullStringValue (printer, declaration, retyped, parent.right, 0)) {
+                return false;
+            }
+            if (op === ts.SyntaxKind.PlusEqualsToken && !javaConcatRightCannotBeDouble (printer, parent.right)) {
+                return false;
+            }
+        }
+        if (!addChainRights (n).every ((right) => javaConcatRightCannotBeDouble (printer, right))) {
+            return false;
+        }
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    return isSafeToNarrow (printer, declaration, name, 'String', isProFile, {
+        nonNull: true,
+        writeOk: (rhs) => javaNonNullStringValue (printer, declaration, retyped, rhs, 0),
+        plusEqualsOk: (rhs) => javaConcatRightCannotBeDouble (printer, rhs),
+    });
+}
+
+export function patchJavaNonNullStringLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaNonNullStringLocalsPatched) {
+        return;
+    }
+    printer._javaNonNullStringLocalsPatched = true;
+    const retyped = new WeakSet ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || (at !== 0 && printed.charAt (at - 1) !== '\n')) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = javaNonNullStringLocal (printer, declaration, retyped);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        retyped.add (declaration);
+        return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'String ') + printed.slice (at + marker.length);
+    };
+    const upstreamResolver = printer.javaExpressionTypeResolver;
+    printer.javaExpressionTypeResolver = function (node) {
+        const target = unwrapParens (node);
+        if (target !== undefined && ts.isIdentifier (target)) {
+            const declaration = javaNonNullStringDeclarationOf (printer, target);
+            if (declaration !== undefined && retyped.has (declaration)) {
+                return 'String';
+            }
+        }
+        return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (retyped.has (declaration) ? 'String' : undefined));
 }
