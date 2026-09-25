@@ -15013,6 +15013,14 @@ export function patchJavaUntilOmitMapWrites (transpiler) {
         return;
     }
     printer._javaUntilOmitMapWritesPatched = true;
+    // a key identifier declared String (local or parameter) needs no checkcast in the typed put
+    if (typeof printer.elementWriteKeyText === 'function') {
+        const upstreamKey = printer.elementWriteKeyText.bind (printer);
+        printer.elementWriteKeyText = function (key, keyText) {
+            const bare = key !== undefined && ts.isIdentifier (key) && keyText === key.text;
+            return bare && printer.javaDeclaredStringType (key) ? keyText : upstreamKey (key, keyText);
+        };
+    }
     const upstream = printer.printCustomBinaryExpressionIfAny.bind (printer);
     printer.printCustomBinaryExpressionIfAny = function (node, identation) {
         const printed = upstream (node, identation);
