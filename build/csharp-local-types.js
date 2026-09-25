@@ -12642,7 +12642,7 @@ function destructuredHandleCallName (node) {
         return undefined;
     }
     const callee = node.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || (callee.expression?.kind !== ts.SyntaxKind.ThisKeyword && callee.expression?.kind !== ts.SyntaxKind.SuperKeyword)) {
         return undefined;
     }
     const name = callee.name?.text;
@@ -17165,6 +17165,173 @@ export function installCsharpOrderBookSideReads (transpiler) {
         return csharp.printNode (node.expression, 0) + '?.' + read.property;
     };
     csharp._orderBookSideReadsPatched = true;
+}
+
+// ===== value-tuple returns of the checkOption*-backed [value, params] helpers =====
+// Element 0 is the checkOption* result (or safeString2 for the network code) on every path, so the
+// signature names it; element 1 stays `object` (the caller's params box). Post-print text pass over
+// a whole generated file: signatures, `return [a, b]`, and every consumer shape; anything else throws.
+export const CSHARP_TUPLE_RETURN_ELEMENT0 = {
+    'handleOptionStringAndParams': 'string?', 'handleOptionStringAndParams2': 'string?',
+    'handleMarginModeAndParams': 'string?', 'handleNetworkCodeAndParams': 'string?',
+    'handleOptionBoolAndParams': 'bool?', 'handleOptionBoolAndParams2': 'bool?',
+    'handleOptionIntegerAndParams': 'Int64?', 'handleOptionIntegerAndParams2': 'Int64?',
+};
+const TUPLE_NAMES = Object.keys (CSHARP_TUPLE_RETURN_ELEMENT0).sort ((a, b) => b.length - a.length).join ('|');
+const TUPLE_CALL_RE = new RegExp ('\\b(?:this|base|exchange)\\.(' + TUPLE_NAMES + ')\\(', 'g');
+const TUPLE_SIG_RE = new RegExp ('^(\\s*public (?:virtual|override) )List<object> (' + TUPLE_NAMES + ')\\(');
+const TUPLE_HOLDER_RE = new RegExp ('^(\\s*)(?:IList<object>|List<object>|var) (\\w+) = (?:\\(IList<object>\\))?((?:this|base|exchange)\\.(' + TUPLE_NAMES + ')\\()');
+const TUPLE_MEMBER_RE = /^\s*(?:public|private|protected|internal) /;
+
+// index just past the paren closing the one opening at `open` (string literals skipped)
+function tupleCloseParen (text, open) {
+    let depth = 0;
+    for (let i = open; i < text.length; i++) {
+        const c = text[i];
+        if (c === '"') {
+            for (i++; i < text.length && text[i] !== '"'; i++) {
+                if (text[i] === '\\') {
+                    i++;
+                }
+            }
+        } else if (c === '(') {
+            depth++;
+        } else if (c === ')' && --depth === 0) {
+            return i + 1;
+        }
+    }
+    return -1;
+}
+
+function tupleFail (file, line, why) {
+    throw new Error ('[csharp tuple returns] ' + file + ': ' + why + ': ' + line.trim ().slice (0, 160));
+}
+
+// `(T)X` / `((T)(X))` around an element read: drop only an identity cast, fail on any other
+function tupleElementRead (cast, element, type, file, line) {
+    if (cast === undefined || cast.replace (/\s/g, '') === '') {
+        return element;
+    }
+    const target = cast.replace (/[()\s]/g, '');
+    if (target === type || (target === 'string' && type === 'string?')) {
+        return element;
+    }
+    if (target === 'IDictionary<string,object>' && element.endsWith ('.Item2')) {
+        return null;
+    }
+    return tupleFail (file, line, 'cast ' + target + ' on ' + type);
+}
+
+export function csharpTupleReturns (content, file = '') {
+    if (typeof content !== 'string' || !new RegExp ('\\.(?:' + TUPLE_NAMES + ')\\(').test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    let holders = new Map ();
+    let method;
+    for (let n = 0; n < lines.length; n++) {
+        let line = lines[n];
+        if (TUPLE_MEMBER_RE.test (line)) {
+            holders = new Map ();
+            const sig = TUPLE_SIG_RE.exec (line);
+            method = (sig === null) ? undefined : sig[2];
+            if (sig !== null) {
+                line = line.replace (TUPLE_SIG_RE, (all, pre, name) => pre + '(' + CSHARP_TUPLE_RETURN_ELEMENT0[name] + ', object) ' + name + '(');
+            }
+        }
+        if (method !== undefined && /^\s*return\b/.test (line)) {
+            const lit = /^(\s*return )new List<object>(?:\(\))? ?\{(.*)\};(.*)$/.exec (line);
+            if (lit !== null) {
+                line = lit[1] + '(' + lit[2].trim () + ');' + lit[3];
+            } else if (!new RegExp ('^\\s*return (?:this|base)\\.(?:' + TUPLE_NAMES + ')\\(').test (line)) {
+                tupleFail (file, line, 'return shape in ' + method);
+            }
+        }
+        const holder = TUPLE_HOLDER_RE.exec (line);
+        if (holder !== null) {
+            holders.set (holder[2], CSHARP_TUPLE_RETURN_ELEMENT0[holder[4]]);
+            line = holder[1] + '(' + CSHARP_TUPLE_RETURN_ELEMENT0[holder[4]] + ', object) ' + holder[2] + ' = ' + holder[3] + line.slice (holder[0].length);
+        } else {
+            for (const [ name, type ] of holders) {
+                if (!new RegExp ('\\b' + name + '\\b').test (line)) {
+                    continue;
+                }
+                const item = (i) => name + '.Item' + (Number (i) + 1);
+                const typeOf = (i) => (i === '0') ? type : 'object';
+                // `(T)H[i]`, `((T)(H != null && i < H.Count ? H[i] : null))`, `((IList<object>) H)[i]`, bare `H[i]`
+                const guarded = (group) => '\\(' + name + ' != null && (\\d) < ' + name + '\\.Count \\? ' + name + '\\[\\' + group + '\\] : null\\)';
+                line = line.replace (new RegExp ('\\(\\(([\\w<>?, ]+)\\)' + guarded (2) + '\\)', 'g'), (all, cast, i) => tupleElementRead (cast, item (i), typeOf (i), file, line) ?? ('((' + cast + ')' + item (i) + ')'));
+                line = line.replace (new RegExp (guarded (1), 'g'), (all, i) => item (i));
+                line = line.replace (new RegExp ('\\(\\(IList<object>\\) ?' + name + '\\)\\[(\\d)\\]', 'g'), (all, i) => name + '[' + i + ']');
+                line = line.replace (new RegExp ('\\(([\\w<>?, ]+)\\)' + name + '\\[(\\d)\\]', 'g'), (all, cast, i) => {
+                    const read = tupleElementRead (cast, item (i), typeOf (i), file, line);
+                    return (read === null) ? '(' + cast + ')' + item (i) : read;
+                });
+                line = line.replace (new RegExp ('\\b' + name + '\\[(\\d)\\]', 'g'), (all, i) => item (i));
+                // an untyped `var x = H.Item1` keeps its object static type
+                line = line.replace (new RegExp ('^(\\s*)var (\\w+) = (' + name + '\\.Item\\d;)'), '$1object $2 = $3');
+                const rest = line.replace (new RegExp ('\\b' + name + '\\.Item[12]\\b', 'g'), '');
+                if (new RegExp ('\\b' + name + '\\b').test (rest)) {
+                    tupleFail (file, line, 'holder use ' + name);
+                }
+            }
+        }
+        lines[n] = line;
+    }
+    let out = lines.join ('\n');
+    // `getValue(this.X(...), i)` with an optional identity cast around it
+    for (let guard = 0; guard < 10000; guard++) {
+        TUPLE_CALL_RE.lastIndex = 0;
+        let changed = false;
+        let m;
+        while ((m = TUPLE_CALL_RE.exec (out)) !== null) {
+            const start = m.index;
+            const before = out.slice (Math.max (0, start - 40), start);
+            const gv = /(\(\(([\w<>?, ]+)\))?getValue\($/.exec (before);
+            if (gv === null) {
+                continue;
+            }
+            const end = tupleCloseParen (out, start + m[0].length - 1);
+            const tail = /^, (\d)\)/.exec (out.slice (end));
+            if (end < 0 || tail === null) {
+                tupleFail (file, out.slice (start, start + 120), 'getValue shape');
+            }
+            const call = out.slice (start, end);
+            const type = (tail[1] === '0') ? CSHARP_TUPLE_RETURN_ELEMENT0[m[1]] : 'object';
+            let from = start - 'getValue('.length;
+            let to = end + tail[0].length;
+            let cast;
+            if (gv[1] !== undefined) {
+                from -= gv[1].length;
+                if (out[to] !== ')') {
+                    tupleFail (file, out.slice (from, to + 20), 'cast shape');
+                }
+                to += 1;
+                cast = gv[2];
+            }
+            const read = tupleElementRead (cast, call + '.Item' + (Number (tail[1]) + 1), type, file, out.slice (from, to));
+            out = out.slice (0, from) + (read ?? ('((' + cast + ')' + call + '.Item' + (Number (tail[1]) + 1) + ')')) + out.slice (to);
+            changed = true;
+            break;
+        }
+        if (!changed) {
+            break;
+        }
+    }
+    // closed consumer set: every remaining call is a holder, an element read, a return or a declaration
+    TUPLE_CALL_RE.lastIndex = 0;
+    let m;
+    while ((m = TUPLE_CALL_RE.exec (out)) !== null) {
+        const lineStart = out.lastIndexOf ('\n', m.index) + 1;
+        const head = out.slice (lineStart, m.index);
+        const end = tupleCloseParen (out, m.index + m[0].length - 1);
+        const after = out.slice (end, end + 6);
+        const ok = /^\s*\((?:string|bool|Int64)\?, object\) \w+ = $/.test (head) || /^\s*return $/.test (head) || after.startsWith ('.Item') || /=> $/.test (head);
+        if (!ok) {
+            tupleFail (file, out.slice (lineStart, lineStart + 160), 'consumer shape');
+        }
+    }
+    return out;
 }
 
 // ===== int x int-literal products =====

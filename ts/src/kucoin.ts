@@ -4086,8 +4086,7 @@ export default class kucoin extends Exchange {
         const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (paramsSync);
         const tradeType = this.safeString (paramsSync, 'tradeType'); // keep it for backward compatibility
         const isTriggerOrder = (triggerPrice !== undefined) || (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
-        const marginResult = this.handleMarginModeAndParams ('createOrder', paramsSync);
-        const marginMode = this.safeString (marginResult, 0);
+        const marginMode = this.handleMarginModeAndParams ('createOrder', paramsSync)[0];
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
         // don't omit anything before calling createOrderRequest
         const orderRequest = this.createSpotOrderRequest (symbol, type, side, amount, price, paramsSync);
@@ -9508,8 +9507,7 @@ export default class kucoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const marginResult = this.handleMarginModeAndParams ('fetchBorrowRateHistories', params);
-        const marginMode = this.safeString (marginResult, 0, 'cross');
+        const marginMode = this.handleMarginModeAndParams ('fetchBorrowRateHistories', params, 'cross')[0];
         const isIsolated = (marginMode === 'isolated'); // true-isolated, false-cross
         const request: Dict = {
             'isIsolated': isIsolated,
@@ -9564,8 +9562,7 @@ export default class kucoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const marginResult = this.handleMarginModeAndParams ('fetchBorrowRateHistories', params);
-        const marginMode = this.safeString (marginResult, 0, 'cross');
+        const marginMode = this.handleMarginModeAndParams ('fetchBorrowRateHistories', params, 'cross')[0];
         const isIsolated = (marginMode === 'isolated'); // true-isolated, false-cross
         const currency = this.currency (code);
         const request: Dict = {
