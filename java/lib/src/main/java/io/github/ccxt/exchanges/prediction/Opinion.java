@@ -1179,7 +1179,7 @@ public class Opinion extends OpinionApi
         return ((("0x" + this.remove0xPrefix(sig.get("r"))) + this.remove0xPrefix(sig.get("s"))) + this.intToBase16(sig.get("v")));
     }
 
-    public Map<String, Object> opinionOrderRawAmounts(Object isMarket, Object side, Object amount, Object price, Object decimals)
+    public Map<String, Object> opinionOrderRawAmounts(Boolean isMarket, Object side, Object amount, Object price, Object decimals)
     {
         String decimalsStr = "1";
         for (var i = 0; Helpers.isLessThan(i, decimals); i++)
@@ -1187,7 +1187,7 @@ public class Opinion extends OpinionApi
             decimalsStr = (decimalsStr + "0");
         }
         String amountStr = this.numberToString(amount);
-        if (Helpers.isTrue(isMarket) && (java.util.Objects.equals(side, "BUY")))
+        if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "BUY")))
         {
             String marketMakerAmountWei = this.decimalToPrecision(Precise.stringMul(amountStr, decimalsStr), TRUNCATE, 0, DECIMAL_PLACES);
             return new HashMap<String, Object>() {{

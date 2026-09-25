@@ -1979,7 +1979,7 @@ public class Gate extends GateApi
         }});
     }
 
-    public void setSandboxMode(Object enable)
+    public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
@@ -4299,7 +4299,7 @@ public class Gate extends GateApi
             var requestrequestParamsVariable = this.prepareRequest((Map<String, Object>) null, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
-            var marginModerequestQueryVariable = this.getMarginMode((Boolean) (false), (Map<String, Object>) (requestParams));
+            var marginModerequestQueryVariable = this.getMarginMode(false, (Map<String, Object>) (requestParams));
             String marginMode = (String) ((List<Object>) marginModerequestQueryVariable).get(0);
             Map<String, Object> requestQuery = (Map<String, Object>) ((List<Object>) marginModerequestQueryVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
@@ -5076,7 +5076,7 @@ public class Gate extends GateApi
                 {
                     Helpers.addElementToObject(request, "currency_pair", market.get("id")); // Should always be set for non-trigger
                 }
-                var marginModequeryVariable = this.getMarginMode((Boolean) (false), (Map<String, Object>) (paramsMarketType));
+                var marginModequeryVariable = this.getMarginMode(false, (Map<String, Object>) (paramsMarketType));
                 marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
                 query = ((List<Object>) marginModequeryVariable).get(1);
                 Helpers.addElementToObject(request, "account", marginMode);
@@ -6022,7 +6022,7 @@ public class Gate extends GateApi
             } else
             {
                 String marginMode = null;
-                var marginModequeryVariable = this.getMarginMode((Boolean) (false), (Map<String, Object>) (query));
+                var marginModequeryVariable = this.getMarginMode(false, (Map<String, Object>) (query));
                 marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
                 query = ((List<Object>) marginModequeryVariable).get(1);
                 // spot order
@@ -6166,7 +6166,7 @@ public class Gate extends GateApi
                 // spot conditional order
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
                 String marginMode = null;
-                var marginModequeryVariable = this.getMarginMode((Boolean) (true), (Map<String, Object>) (query));
+                var marginModequeryVariable = this.getMarginMode(true, (Map<String, Object>) (query));
                 marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
                 query = ((List<Object>) marginModequeryVariable).get(1);
                 if (java.util.Objects.equals(timeInForce, null))
@@ -9764,7 +9764,7 @@ public class Gate extends GateApi
      * @param {string} params.settle settle currency
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

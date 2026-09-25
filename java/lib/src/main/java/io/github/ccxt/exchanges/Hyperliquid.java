@@ -391,7 +391,7 @@ public class Hyperliquid extends HyperliquidApi
         }});
     }
 
-    public void setSandboxMode(Object enabled)
+    public void setSandboxMode(Boolean enabled)
     {
         super.setSandboxMode(enabled);
         Helpers.addElementToObject(this.options, "sandboxMode", enabled);

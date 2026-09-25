@@ -4733,45 +4733,45 @@ public Object describe()
         Object httpsProxy = null;
         Object socksProxy = null;
         // httpProxy
-        Object isHttpProxyDefined = this.valueIsDefined(this.httpProxy);
-        Object isHttp_proxy_defined = this.valueIsDefined(this.http_proxy);
+        Boolean isHttpProxyDefined = this.valueIsDefined(this.httpProxy);
+        Boolean isHttp_proxy_defined = this.valueIsDefined(this.http_proxy);
         if (Boolean.TRUE.equals(isHttpProxyDefined) || Boolean.TRUE.equals(isHttp_proxy_defined))
         {
             usedProxies.add("httpProxy");
             httpProxy = ((Boolean.TRUE.equals(isHttpProxyDefined))) ? this.httpProxy : this.http_proxy;
         }
-        Object ishttpProxyCallbackDefined = this.valueIsDefined(this.httpProxyCallback);
-        Object ishttp_proxy_callback_defined = this.valueIsDefined(this.http_proxy_callback);
+        Boolean ishttpProxyCallbackDefined = this.valueIsDefined(this.httpProxyCallback);
+        Boolean ishttp_proxy_callback_defined = this.valueIsDefined(this.http_proxy_callback);
         if (Boolean.TRUE.equals(ishttpProxyCallbackDefined) || Boolean.TRUE.equals(ishttp_proxy_callback_defined))
         {
             usedProxies.add("httpProxyCallback");
             httpProxy = ((Boolean.TRUE.equals(ishttpProxyCallbackDefined))) ? Helpers.callDynamically(this, "httpProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "http_proxy_callback", new Object[] { url, method, headers, body });
         }
         // httpsProxy
-        Object isHttpsProxyDefined = this.valueIsDefined(this.httpsProxy);
-        Object isHttps_proxy_defined = this.valueIsDefined(this.https_proxy);
+        Boolean isHttpsProxyDefined = this.valueIsDefined(this.httpsProxy);
+        Boolean isHttps_proxy_defined = this.valueIsDefined(this.https_proxy);
         if (Boolean.TRUE.equals(isHttpsProxyDefined) || Boolean.TRUE.equals(isHttps_proxy_defined))
         {
             usedProxies.add("httpsProxy");
             httpsProxy = ((Boolean.TRUE.equals(isHttpsProxyDefined))) ? this.httpsProxy : this.https_proxy;
         }
-        Object ishttpsProxyCallbackDefined = this.valueIsDefined(this.httpsProxyCallback);
-        Object ishttps_proxy_callback_defined = this.valueIsDefined(this.https_proxy_callback);
+        Boolean ishttpsProxyCallbackDefined = this.valueIsDefined(this.httpsProxyCallback);
+        Boolean ishttps_proxy_callback_defined = this.valueIsDefined(this.https_proxy_callback);
         if (Boolean.TRUE.equals(ishttpsProxyCallbackDefined) || Boolean.TRUE.equals(ishttps_proxy_callback_defined))
         {
             usedProxies.add("httpsProxyCallback");
             httpsProxy = ((Boolean.TRUE.equals(ishttpsProxyCallbackDefined))) ? Helpers.callDynamically(this, "httpsProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "https_proxy_callback", new Object[] { url, method, headers, body });
         }
         // socksProxy
-        Object isSocksProxyDefined = this.valueIsDefined(this.socksProxy);
-        Object isSocks_proxy_defined = this.valueIsDefined(this.socks_proxy);
+        Boolean isSocksProxyDefined = this.valueIsDefined(this.socksProxy);
+        Boolean isSocks_proxy_defined = this.valueIsDefined(this.socks_proxy);
         if (Boolean.TRUE.equals(isSocksProxyDefined) || Boolean.TRUE.equals(isSocks_proxy_defined))
         {
             usedProxies.add("socksProxy");
             socksProxy = ((Boolean.TRUE.equals(isSocksProxyDefined))) ? this.socksProxy : this.socks_proxy;
         }
-        Object issocksProxyCallbackDefined = this.valueIsDefined(this.socksProxyCallback);
-        Object issocks_proxy_callback_defined = this.valueIsDefined(this.socks_proxy_callback);
+        Boolean issocksProxyCallbackDefined = this.valueIsDefined(this.socksProxyCallback);
+        Boolean issocks_proxy_callback_defined = this.valueIsDefined(this.socks_proxy_callback);
         if (Boolean.TRUE.equals(issocksProxyCallbackDefined) || Boolean.TRUE.equals(issocks_proxy_callback_defined))
         {
             usedProxies.add("socksProxyCallback");
@@ -4794,24 +4794,24 @@ public Object describe()
         Object wssProxy = null;
         Object wsSocksProxy = null;
         // ws proxy
-        Object isWsProxyDefined = this.valueIsDefined(this.wsProxy);
-        Object is_ws_proxy_defined = this.valueIsDefined(this.ws_proxy);
+        Boolean isWsProxyDefined = this.valueIsDefined(this.wsProxy);
+        Boolean is_ws_proxy_defined = this.valueIsDefined(this.ws_proxy);
         if (Boolean.TRUE.equals(isWsProxyDefined) || Boolean.TRUE.equals(is_ws_proxy_defined))
         {
             usedProxies.add("wsProxy");
             wsProxy = ((Boolean.TRUE.equals(isWsProxyDefined))) ? this.wsProxy : this.ws_proxy;
         }
         // wss proxy
-        Object isWssProxyDefined = this.valueIsDefined(this.wssProxy);
-        Object is_wss_proxy_defined = this.valueIsDefined(this.wss_proxy);
+        Boolean isWssProxyDefined = this.valueIsDefined(this.wssProxy);
+        Boolean is_wss_proxy_defined = this.valueIsDefined(this.wss_proxy);
         if (Boolean.TRUE.equals(isWssProxyDefined) || Boolean.TRUE.equals(is_wss_proxy_defined))
         {
             usedProxies.add("wssProxy");
             wssProxy = ((Boolean.TRUE.equals(isWssProxyDefined))) ? this.wssProxy : this.wss_proxy;
         }
         // ws socks proxy
-        Object isWsSocksProxyDefined = this.valueIsDefined(this.wsSocksProxy);
-        Object is_ws_socks_proxy_defined = this.valueIsDefined(this.ws_socks_proxy);
+        Boolean isWsSocksProxyDefined = this.valueIsDefined(this.wsSocksProxy);
+        Boolean is_ws_socks_proxy_defined = this.valueIsDefined(this.ws_socks_proxy);
         if (Boolean.TRUE.equals(isWsSocksProxyDefined) || Boolean.TRUE.equals(is_ws_socks_proxy_defined))
         {
             usedProxies.add("wsSocksProxy");
@@ -4910,7 +4910,7 @@ public Object describe()
         {
             return new ArrayList<Object>(Arrays.asList());
         }
-        Object sinceIsDefined = this.valueIsDefined(since);
+        Boolean sinceIsDefined = this.valueIsDefined(since);
         Object parsedArray = ((Object)this.toArray(array));
         Object result = parsedArray;
         if (Boolean.TRUE.equals(sinceIsDefined))
@@ -4938,8 +4938,8 @@ public Object describe()
 
     public List<Object> filterByValueSinceLimit(Object array, Object field, Object value, Long since, Long limit, Object key, Boolean tail)
     {
-        Object valueIsDefined = this.valueIsDefined(value);
-        Object sinceIsDefined = this.valueIsDefined(since);
+        Boolean valueIsDefined = this.valueIsDefined(value);
+        Boolean sinceIsDefined = this.valueIsDefined(since);
         Object parsedArray = ((Object)this.toArray(array));
         Object result = parsedArray;
         // single-pass filter for both symbol and since
@@ -4951,7 +4951,7 @@ public Object describe()
                 Object entry = Helpers.GetValue(parsedArray, i);
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
-                Object entryFiledEqualValue = Helpers.isEqual(this.safeValue(entry, field), value);
+                Boolean entryFiledEqualValue = Helpers.isEqual(this.safeValue(entry, field), value);
                 Object firstCondition = ((Boolean.TRUE.equals(valueIsDefined))) ? entryFiledEqualValue : true;
                 Object entryKeyValue = this.safeValue(entry, java.util.Objects.requireNonNullElse(key, "timestamp"));
                 Object entryKeyGESince = (!java.util.Objects.equals(entryKeyValue, null)) && (!java.util.Objects.equals(entryKeyValue, null)) && (!Helpers.isEqual(entryKeyValue, 0)) && (!java.util.Objects.equals(since, null)) && (Helpers.isGreaterThanOrEqual(entryKeyValue, since));
@@ -4975,9 +4975,9 @@ public Object describe()
      * @description set the sandbox mode for the exchange
      * @param {boolean} enabled true to enable sandbox mode, false to disable it
      */
-    public void setSandboxMode(Object enabled)
+    public void setSandboxMode(Boolean enabled)
     {
-        if (Helpers.isTrue(enabled))
+        if (Boolean.TRUE.equals(enabled))
         {
             if (((Map<?, ?>)this.urls).containsKey("test"))
             {
@@ -5018,13 +5018,13 @@ public Object describe()
      * @description enables or disables demo trading mode
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
-    public void enableDemoTrading(Object enable)
+    public void enableDemoTrading(Boolean enable)
     {
         if (this.isSandboxModeEnabled)
         {
             throw new NotSupported((this.id + " demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
         }
-        if (Helpers.isTrue(enable))
+        if (Boolean.TRUE.equals(enable))
         {
             Helpers.addElementToObject(this.urls, "apiBackupDemoTrading", this.urls.get("api"));
             Helpers.addElementToObject(this.urls, "api", this.urls.get("demo"));
@@ -5560,7 +5560,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

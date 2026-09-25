@@ -3590,7 +3590,7 @@ public class Bitget extends BitgetApi
      * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
      * @param enabled
      */
-    public void setSandboxMode(Object enabled)
+    public void setSandboxMode(Boolean enabled)
     {
         Helpers.addElementToObject(this.options, "sandboxMode", enabled);
     }
@@ -3601,7 +3601,7 @@ public class Bitget extends BitgetApi
      * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
      * @param enabled
      */
-    public void enableDemoTrading(Object enabled)
+    public void enableDemoTrading(Boolean enabled)
     {
         this.setSandboxMode(enabled);
     }
@@ -4419,8 +4419,8 @@ public class Bitget extends BitgetApi
                 throw new ArgumentsRequired((this.id + " requires a network argument")) ;
             }
             network = ((String)network).toUpperCase();
-            Object withdrawable = (java.util.Objects.equals(this.safeString(chain, "withdrawable"), "true"));
-            Object rechargeable = (java.util.Objects.equals(this.safeString(chain, "rechargeable"), "true"));
+            Boolean withdrawable = (java.util.Objects.equals(this.safeString(chain, "withdrawable"), "true"));
+            Boolean rechargeable = (java.util.Objects.equals(this.safeString(chain, "rechargeable"), "true"));
             withdraw = (((java.util.Objects.equals(withdraw, null)))) ? withdrawable : (Boolean.TRUE.equals(withdraw) || Boolean.TRUE.equals(withdrawable));
             deposit = (((java.util.Objects.equals(deposit, null)))) ? rechargeable : (Boolean.TRUE.equals(deposit) || Boolean.TRUE.equals(rechargeable));
             networks.put((String)network, Helpers.newMap(
@@ -12714,7 +12714,7 @@ public class Bitget extends BitgetApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -12724,7 +12724,7 @@ public class Bitget extends BitgetApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String posMode = "one_way_mode";
-            if (Helpers.isTrue(hedged))
+            if (Boolean.TRUE.equals(hedged))
             {
                 posMode = "hedge_mode";
             }

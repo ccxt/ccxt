@@ -4325,7 +4325,7 @@ public class Binance extends BinanceApi
         }
     }
 
-    public void setSandboxMode(Object enable)
+    public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
@@ -4660,13 +4660,13 @@ public class Binance extends BinanceApi
      * @see https://demo.binance.com/en/my/settings/api-management
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
-    public void enableDemoTrading(Object enable)
+    public void enableDemoTrading(Boolean enable)
     {
         if (this.isSandboxModeEnabled)
         {
             throw new NotSupported((this.id + " demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
         }
-        if (Helpers.isTrue(enable))
+        if (Boolean.TRUE.equals(enable))
         {
             Helpers.addElementToObject(this.urls, "apiBackupDemoTrading", this.urls.get("api"));
             Helpers.addElementToObject(this.urls, "api", this.urls.get("demo"));
@@ -15182,7 +15182,7 @@ public class Binance extends BinanceApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -15202,7 +15202,7 @@ public class Binance extends BinanceApi
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
             String dualSidePosition = null;
-            if (Helpers.isTrue(hedged))
+            if (Boolean.TRUE.equals(hedged))
             {
                 dualSidePosition = "true";
             } else

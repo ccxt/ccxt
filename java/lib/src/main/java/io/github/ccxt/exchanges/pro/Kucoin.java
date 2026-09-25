@@ -3082,7 +3082,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> paramsOmitted = this.omit(paramsUta, "type");
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String uniformType = this.safeString(accountsByType, type, type);
-            Object isClassicFuturesMethod = (java.util.Objects.equals(uniformType, "contract"));
+            Boolean isClassicFuturesMethod = (java.util.Objects.equals(uniformType, "contract"));
             Object subscriptionHash = "/account/balance";
             if (Boolean.TRUE.equals(isClassicFuturesMethod))
             {

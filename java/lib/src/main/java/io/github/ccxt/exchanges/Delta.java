@@ -1066,7 +1066,7 @@ public class Delta extends DeltaApi
                     // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                     amountPrecision = this.parseNumber("1");
                 }
-                Object linear = (java.util.Objects.equals(settle, quote));
+                Boolean linear = (java.util.Objects.equals(settle, quote));
                 String optionType = null;
                 String symbol = ((base + "/") + quote);
                 if (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future) || Boolean.TRUE.equals(option))

@@ -1896,7 +1896,7 @@ public class Predictfun extends PredictfunApi
      * @param {bool} enable whether to use the testnet
      * @returns {undefined}
      */
-    public void setSandboxMode(Object enable)
+    public void setSandboxMode(Boolean enable)
     {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
@@ -1905,14 +1905,14 @@ public class Predictfun extends PredictfunApi
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
-        Helpers.addElementToObject(this.options, "chainId", ((Helpers.isTrue((enable)))) ? 97 : 56);
-        Helpers.addElementToObject(this.requiredCredentials, "apiKey", !Helpers.isTrue(enable));
+        Helpers.addElementToObject(this.options, "chainId", ((Boolean.TRUE.equals(enable))) ? 97 : 56);
+        Helpers.addElementToObject(this.requiredCredentials, "apiKey", !Boolean.TRUE.equals(enable));
         if (!java.util.Objects.equals(wasSandbox, enable))
         {
             // a token minted for one host is not valid on the other, so the live one is set aside
             // on the way in and taken back on the way out - a round trip through the sandbox then
             // costs no re-authentication. the sandbox token is not kept: it dies with the switch
-            if (Helpers.isTrue(enable))
+            if (Boolean.TRUE.equals(enable))
             {
                 Helpers.addElementToObject(this.options, "backupJwtToken", this.safeString(this.options, "jwtToken"));
                 Helpers.addElementToObject(this.options, "backupJwtTokenExpiresAt", this.safeInteger(this.options, "jwtTokenExpiresAt", 0));
