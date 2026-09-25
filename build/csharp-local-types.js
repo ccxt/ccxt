@@ -16467,6 +16467,20 @@ const CORE_LIST_ARGS_LENGTH_READS = {
     'separateBidsOrAsks': 0,
     'handleBooksideDelta': 1,
     'handleDeltas': 1,
+    'watchTradesForSymbols': 0,
+    'watchOrderBookForSymbols': 0,
+    'cancelOrdersForSymbols': 0,
+    'fetchEventsByQuery': 0,
+    'fetchDepositAddresses': 0,
+    'createSpotOrders': 0,
+    'createContractOrders': 0,
+    'createUtaOrders': 0,
+    'fetchRawMarketsBySearch': 0,
+    'fetchRawQuestionsBySearch': 0,
+    'fetchRawEventsBySearch': 0,
+    'fetchOrdersByIds': 0,
+    'fetchRawMarketsByTags': 0,
+    'fetchSeriesEvents': 0,
 };
 for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_LENGTH_READS)) {
     CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
