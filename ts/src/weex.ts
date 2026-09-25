@@ -1600,17 +1600,13 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const maxHistoricalLimit = 100;
-        let paginate = false;
-        let paramsPaginate: Dict = {};
-        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             const paramsExtended: Dict = this.extend (paramsPaginate, { 'historical': true });
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsExtended, maxHistoricalLimit) as OHLCV[];
         }
         const until = this.safeInteger (paramsPaginate, 'until');
-        let historical = false;
-        let paramsHistorical: Dict = {};
-        [ historical, paramsHistorical ] = this.handleOptionBoolAndParams (paramsPaginate, 'fetchOHLCV', 'historical', false);
+        const [ historical, paramsHistorical ] = this.handleOptionBoolAndParams (paramsPaginate, 'fetchOHLCV', 'historical', false);
         const timeframeOption = this.safeDict (this.options, 'timeframes', {});
         const contractTimeframes = this.safeDict (timeframeOption, 'contract', {});
         const market = this.market (symbol);
