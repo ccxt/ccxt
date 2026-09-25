@@ -1614,7 +1614,7 @@ public class Coinone extends CoinoneApi
         if (Boolean.TRUE.equals(isPublic))
         {
             url = (url + request);
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

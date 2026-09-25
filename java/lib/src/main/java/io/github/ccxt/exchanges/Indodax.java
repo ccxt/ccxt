@@ -1770,7 +1770,7 @@ public class Indodax extends IndodaxApi
             Object query = this.omit(parameters, this.extractParams(path));
             String requestPath = ("/" + this.implodeParams(path, parameters));
             url = (url + requestPath);
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));
             }

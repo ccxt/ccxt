@@ -4302,7 +4302,7 @@ public class Woofipro extends WoofiproApi
         if (java.util.Objects.equals(access, "public"))
         {
             url = (url + pathWithParams);
-            if (((List<?>)new ArrayList<Object>(requestParams.keySet())).size() > 0)
+            if (requestParams.size() > 0)
             {
                 url = (url + ("?" + this.urlencode(requestParams)));
             }
@@ -4350,7 +4350,7 @@ public class Woofipro extends WoofiproApi
                 requestHeaders.put("content-type", "application/json");
             } else
             {
-                if (((List<?>)new ArrayList<Object>(requestParams.keySet())).size() > 0)
+                if (requestParams.size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(requestParams)));
                     auth = (auth + ("?" + this.rawencode(requestParams)));

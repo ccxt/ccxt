@@ -3610,7 +3610,7 @@ public class Toobit extends ToobitApi
             // Public endpoints
             if (!Boolean.TRUE.equals(isPost))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

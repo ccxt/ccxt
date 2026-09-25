@@ -14795,7 +14795,7 @@ public class Bitget extends BitgetApi
                 auth = (auth + requestBody);
             } else
             {
-                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+                if (((Map<String, Object>)parameters).size() > 0)
                 {
                     Map<String,Object> sortedParams = this.keysort(parameters);
                     String queryInner = ("?" + this.urlencode(sortedParams, true));

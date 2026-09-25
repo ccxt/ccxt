@@ -1249,7 +1249,7 @@ public class Mercado extends MercadoApi
         if (Boolean.TRUE.equals(isPublic))
         {
             url = Helpers.add(url, this.implodeParams(path, parameters));
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

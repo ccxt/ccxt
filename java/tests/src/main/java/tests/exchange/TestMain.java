@@ -136,7 +136,7 @@ public class TestMain extends BaseTest
             }
             (this.importFiles(exchange)).join();
             // ensure test files are found & filled
-            Assert(((List<?>)Helpers.objectKeys(this.testFiles)).size() > 0, "Test files were not loaded");
+            Assert(Helpers.objectKeys(this.testFiles).size() > 0, "Test files were not loaded");
             this.expandSettings(exchange);
             this.checkIfSpecificTestIsChosen(methodArgv);
             (this.startTest(exchange, symbolArgv)).join();

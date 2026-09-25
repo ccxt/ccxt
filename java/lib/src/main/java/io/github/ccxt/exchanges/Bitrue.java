@@ -3734,7 +3734,7 @@ public class Bitrue extends BitrueApi
             }
         } else
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsOmitted).keySet())).size() > 0)
+            if (((Map<String, Object>)paramsOmitted).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(paramsOmitted)));
             }

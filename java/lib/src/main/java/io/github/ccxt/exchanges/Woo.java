@@ -4080,14 +4080,14 @@ public class Woo extends WooApi
         if (java.util.Objects.equals(access, "public"))
         {
             url = (url + ((access + "/") + pathWithParams));
-            if (((List<?>)new ArrayList<Object>(paramsSorted.keySet())).size() > 0)
+            if (paramsSorted.size() > 0)
             {
                 url = (url + ("?" + this.urlencode(paramsSorted)));
             }
         } else if (java.util.Objects.equals(access, "pub"))
         {
             url = (url + pathWithParams);
-            if (((List<?>)new ArrayList<Object>(paramsSorted.keySet())).size() > 0)
+            if (paramsSorted.size() > 0)
             {
                 url = (url + ("?" + this.urlencode(paramsSorted)));
             }
@@ -4129,7 +4129,7 @@ public class Woo extends WooApi
                     requestHeaders.put("content-type", "application/json");
                 } else
                 {
-                    if (((List<?>)new ArrayList<Object>(paramsSigned.keySet())).size() > 0)
+                    if (paramsSigned.size() > 0)
                     {
                         String query = this.urlencode(paramsSigned);
                         url = (url + ("?" + query));
@@ -4144,7 +4144,7 @@ public class Woo extends WooApi
                     requestBody = auth;
                 } else
                 {
-                    if (((List<?>)new ArrayList<Object>(paramsSigned.keySet())).size() > 0)
+                    if (paramsSigned.size() > 0)
                     {
                         url = (url + ("?" + auth));
                     }

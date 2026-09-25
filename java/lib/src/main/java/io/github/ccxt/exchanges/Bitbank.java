@@ -1293,7 +1293,7 @@ public class Bitbank extends BitbankApi
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "markets")))
         {
             url = Helpers.add(url, this.implodeParams(path, parameters));
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -1325,7 +1325,7 @@ public class Bitbank extends BitbankApi
             } else
             {
                 auth = (auth + ((("/" + this.version) + "/") + path));
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     query = this.urlencode(query);
                     url = Helpers.add(url, Helpers.add("?", query));

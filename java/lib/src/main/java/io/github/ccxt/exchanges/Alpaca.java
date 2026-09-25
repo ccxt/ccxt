@@ -2711,7 +2711,7 @@ public class Alpaca extends AlpacaApi
         }
         Object query = this.omit(parameters, this.extractParams(path));
         String bodyJson = null;
-        if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+        if (Helpers.objectKeys(query).size() > 0)
         {
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
             {
