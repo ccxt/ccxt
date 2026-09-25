@@ -176,9 +176,9 @@ public partial class BaseExchange
 
     // WS options
 
-    public object tickers = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public object fundingRates = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public object bidsasks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public IDictionary<string, object> tickers = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public IDictionary<string, object> fundingRates = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public IDictionary<string, object> bidsasks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
     public object transactions = new dict();
     // ws caches: always an ArrayCache subclass or null (every writer in cs/**, bitstamp's
@@ -187,17 +187,17 @@ public partial class BaseExchange
     public ccxt.pro.ArrayCache myTrades;
     public ccxt.pro.ArrayCache orders;
     public object triggerOrders;
-    public object balance = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public IDictionary<string, object> balance = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
     public bool newUpdates;
 
     public object positions;
     public ccxt.pro.ArrayCache liquidations;
     public object myLiquidations;
-    public object trades = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public object orderbooks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public IDictionary<string, object> trades = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public IDictionary<string, object> orderbooks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
-    public object ohlcvs = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public IDictionary<string, object> ohlcvs = new ccxt.pro.CustomConcurrentDictionary<string, object>();
     public object wssProxy { get; set; } = null;
     public object wss_proxy { get; set; } = null;
 
