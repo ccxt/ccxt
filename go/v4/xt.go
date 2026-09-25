@@ -2285,7 +2285,7 @@ func (this *Xt) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !IsEqual(symbolsNormalized, nil) {
 		market = this.Market(GetValue(symbolsNormalized, 0))
 	}
@@ -2396,7 +2396,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	var market any = nil
 	if !IsEqual(symbolsNormalized, nil) {
@@ -5716,7 +5716,7 @@ func (this *Xt) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data []any = SafeListTypedDefault(response, "result", []any{})
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- this.ParseLeverageTiers(data, symbolsNormalized, "symbol")
 	return nil
@@ -6704,11 +6704,11 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
 			request["symbol"] = GetValue(market, "id")

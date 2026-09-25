@@ -585,7 +585,7 @@ func (this *Poloniex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var name string = "ticker"
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	newTickers := (<-this.SubscribeAsync(name, name, false, symbolsNormalized, params))
 	ccxt.PanicOnError(newTickers)
@@ -658,7 +658,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var name string = "trades"
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var marketIds any = this.MarketIds(symbolsNormalized)
@@ -670,7 +670,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	var request map[string]any = this.Extend(subscribe, params)
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
-		for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+		for i := 0; i < len(symbolsNormalized); i++ {
 			messageHashes = append(messageHashes, ccxt.Add(name+"::", ccxt.GetValue(symbolsNormalized, i)))
 		}
 	}

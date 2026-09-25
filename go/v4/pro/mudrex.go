@@ -132,11 +132,11 @@ func (this *Mudrex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHashes []any = []any{}
 	var assets []any = []any{}
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
-		for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+		for i := 0; i < len(symbolsNormalized); i++ {
 			var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 			messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
 			var baseIdString any = func() any {

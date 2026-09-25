@@ -575,89 +575,89 @@ func (this *Gate) Describe() any {
 				"unified": map[string]any{
 					"get": map[string]any{
 						"accounts": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"borrowable": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"transferable": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"transferables": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"batch_borrowable": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"loans": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"loan_records": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"interest_records": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"risk_units": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"unified_mode": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"estimate_rate": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"currency_discount_tiers": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"loan_margin_tiers": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"leverage/user_currency_config": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"leverage/user_currency_setting": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"delta_neutral": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"estimated_quick_repayment": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"account_mode": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"post": map[string]any{
 						"loans": map[string]any{
-							"cost": 200 / 15,
+							"cost": float64(200) / 15,
 						},
 						"portfolio_calculator": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"leverage/user_currency_setting": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"collateral_currencies": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"delta_neutral": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"leverage/user_setting": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"quick_repayment": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"account_mode": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"put": map[string]any{
 						"unified_mode": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 				},
@@ -711,10 +711,10 @@ func (this *Gate) Describe() any {
 							"cost": 0.4,
 						},
 						"cancel_batch_orders": map[string]any{
-							"cost": 20 / 75,
+							"cost": float64(20) / 75,
 						},
 						"countdown_cancel_all": map[string]any{
-							"cost": 20 / 75,
+							"cost": float64(20) / 75,
 						},
 						"amend_batch_orders": map[string]any{
 							"cost": 0.4,
@@ -728,22 +728,22 @@ func (this *Gate) Describe() any {
 					},
 					"delete": map[string]any{
 						"orders": map[string]any{
-							"cost": 20 / 75,
+							"cost": float64(20) / 75,
 						},
 						"orders/{order_id}": map[string]any{
-							"cost": 20 / 75,
+							"cost": float64(20) / 75,
 						},
 						"price_orders": map[string]any{
-							"cost": 20 / 75,
+							"cost": float64(20) / 75,
 						},
 						"price_orders/{order_id}": map[string]any{
-							"cost": 20 / 75,
+							"cost": float64(20) / 75,
 						},
 						"pov_orders": map[string]any{
-							"cost": 20 / 75,
+							"cost": float64(20) / 75,
 						},
 						"pov_orders/{order_id}": map[string]any{
-							"cost": 20 / 75,
+							"cost": float64(20) / 75,
 						},
 					},
 					"patch": map[string]any{
@@ -755,124 +755,124 @@ func (this *Gate) Describe() any {
 				"margin": map[string]any{
 					"get": map[string]any{
 						"accounts": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"account_book": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"funding_accounts": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"auto_repay": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"transferable": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/estimate_rate": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/loans": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/loan_records": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/interest_records": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/borrowable": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"user/loan_margin_tiers": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"user/account": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"loans": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"loans/{loan_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"loans/{loan_id}/repayment": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"loan_records": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"loan_records/{loan_record_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"borrowable": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"cross/accounts": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"cross/account_book": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"cross/loans": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"cross/loans/{loan_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"cross/repayments": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"cross/interest_records": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"cross/transferable": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"cross/estimate_rate": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"cross/borrowable": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"post": map[string]any{
 						"auto_repay": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/loans": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"leverage/user_market_setting": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"loans": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"merged_loans": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"loans/{loan_id}/repayment": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"cross/loans": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"cross/repayments": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"patch": map[string]any{
 						"loans/{loan_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"loan_records/{loan_record_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"delete": map[string]any{
 						"loans/{loan_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 				},
@@ -1053,431 +1053,431 @@ func (this *Gate) Describe() any {
 					},
 					"delete": map[string]any{
 						"{settle}/orders": map[string]any{
-							"cost": 20 / 75,
+							"cost": float64(20) / 75,
 						},
 						"{settle}/orders/{order_id}": map[string]any{
-							"cost": 20 / 75,
+							"cost": float64(20) / 75,
 						},
 						"{settle}/price_orders": map[string]any{
-							"cost": 20 / 75,
+							"cost": float64(20) / 75,
 						},
 						"{settle}/price_orders/{order_id}": map[string]any{
-							"cost": 20 / 75,
+							"cost": float64(20) / 75,
 						},
 					},
 				},
 				"delivery": map[string]any{
 					"get": map[string]any{
 						"{settle}/accounts": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/account_book": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/positions": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/positions/{contract}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/orders/{order_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/my_trades": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/position_close": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/liquidates": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/settlements": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/price_orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/price_orders/{order_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"post": map[string]any{
 						"{settle}/positions/{contract}/margin": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/positions/{contract}/leverage": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/positions/{contract}/risk_limit": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/price_orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"delete": map[string]any{
 						"{settle}/orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/orders/{order_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/price_orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"{settle}/price_orders/{order_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 				},
 				"options": map[string]any{
 					"get": map[string]any{
 						"my_settlements": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"accounts": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"account_book": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"positions": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"positions/{contract}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"position_close": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"orders/{order_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"my_trades": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"mmp": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"post": map[string]any{
 						"orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"countdown_cancel_all": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"mmp": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"mmp/reset": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"put": map[string]any{
 						"orders/{order_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"delete": map[string]any{
 						"orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"orders/{order_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 				},
 				"earn": map[string]any{
 					"get": map[string]any{
 						"uni/lends": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/lend_records": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/interests/{currency}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/interest_records": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/interest_status/{currency}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/chart": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/rate": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"staking/eth2/rate_records": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"dual/orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"dual/balance": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"structured/orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"staking/coins": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"staking/order_list": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"staking/award_list": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"staking/assets": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"dual/order-refund-preview": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"fixed-term/user/lend": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"fixed-term/user/history": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"autoinvest/coins": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"autoinvest/config": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"autoinvest/orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"autoinvest/plans/detail": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"autoinvest/plans/list_info": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"autoinvest/plans/records": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/currencies": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"uni/currencies/{currency}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"post": map[string]any{
 						"uni/lends": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"staking/eth2/swap": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"dual/orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"structured/orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"staking/swap": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"dual/order-refund": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"dual/modify-order-reinvest": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"fixed-term/user/lend": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"fixed-term/user/pre-redeem": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"autoinvest/min_invest_amount": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"autoinvest/plans/add_position": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"autoinvest/plans/create": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"autoinvest/plans/stop": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"autoinvest/plans/update": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"put": map[string]any{
 						"uni/interest_reinvest": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"patch": map[string]any{
 						"uni/lends": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 				},
 				"loan": map[string]any{
 					"get": map[string]any{
 						"collateral/orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"collateral/orders/{order_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"collateral/repay_records": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"collateral/collaterals": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"collateral/total_amount": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"collateral/ltv": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"multi_collateral/orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"multi_collateral/orders/{order_id}": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"multi_collateral/repay": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"multi_collateral/mortgage": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"multi_collateral/currency_quota": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"collateral/currencies": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"multi_collateral/currencies": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"multi_collateral/ltv": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"multi_collateral/fixed_rate": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"multi_collateral/current_rate": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"post": map[string]any{
 						"collateral/orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"collateral/repay": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"collateral/collaterals": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"multi_collateral/orders": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"multi_collateral/repay": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"multi_collateral/mortgage": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 				},
 				"account": map[string]any{
 					"get": map[string]any{
 						"detail": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"main_keys": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"rate_limit": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"stp_groups": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"stp_groups/{stp_id}/users": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"stp_groups/debit_fee": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"debit_fee": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"post": map[string]any{
 						"stp_groups": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"stp_groups/{stp_id}/users": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"debit_fee": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 					"delete": map[string]any{
 						"stp_groups/{stp_id}/users": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 				},
 				"rebate": map[string]any{
 					"get": map[string]any{
 						"agency/transaction_history": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"agency/commission_history": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"partner/transaction_history": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"partner/commission_history": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"partner/sub_list": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"broker/commission_history": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"broker/transaction_history": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"user/info": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"user/sub_relation": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 						"partner/data/aggregated": map[string]any{
-							"cost": 20 / 15,
+							"cost": float64(20) / 15,
 						},
 					},
 				},
@@ -3165,7 +3165,7 @@ func (this *Gate) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
@@ -4287,7 +4287,7 @@ func (this *Gate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var first *string = this.SafeString(symbolsNormalized, 0)
 	var market map[string]any = nil
 	if first != nil {
@@ -6045,13 +6045,8 @@ func (this *Gate) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	var symbols []any = ArrayTyped(this.MarketSymbols(orderSymbols, nil, false, true, true))
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbols) {
-			return DerefScalar(symbols[0])
-		}
-		return nil
-	}())
+	var symbols []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
+	var market map[string]any = this.Market(GetValue(symbols, 0))
 	if (GetValue(market, "future") == true) || (GetValue(market, "option") == true) {
 		panic(NotSupported(this.Id + " createOrders() does not support futures or options markets"))
 	}
@@ -8459,9 +8454,9 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
 		}
@@ -10766,7 +10761,7 @@ func (this *Gate) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var response []any = nil
 	var isUnified *bool = this.SafeBool(params, "unified")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "unified"))

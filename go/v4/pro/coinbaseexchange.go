@@ -134,16 +134,11 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name string, op
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols))
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHashes []any = []any{}
 	var productIds []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		market = this.Market(symbol)
 		productIds = append(productIds, ccxt.GetValue(market, "id"))
 		messageHashes = append(messageHashes, ccxt.Add(*messageHashStart+":", ccxt.GetValue(market, "symbol")))
@@ -312,7 +307,7 @@ func (this *Coinbaseexchange) watchTradesForSymbolsBody(ch chan any, symbols any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var name string = "matches"
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeMultipleAsync(name, symbolsNormalized, name, params))))
@@ -399,7 +394,7 @@ func (this *Coinbaseexchange) watchMyTradesForSymbolsBody(ch chan any, symbols a
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -448,7 +443,7 @@ func (this *Coinbaseexchange) watchOrdersForSymbolsBody(ch chan any, symbols any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "user"
 	var messageHash string = "orders"
 	var authentication any = this.Authenticate()
@@ -543,7 +538,7 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan any, symbols 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {

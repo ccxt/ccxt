@@ -445,7 +445,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var symbolsList any = symbolsNormalized
 	var firstMarket map[string]any = this.Market(ccxt.GetValue(symbolsList, 0))
 	var channel string = "tickers"

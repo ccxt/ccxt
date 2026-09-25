@@ -515,7 +515,7 @@ func fetchOrderBody(ch chan any, exchange ccxt.ICoreExchange, symbol any, orderI
 	var fetchedOrder any = nil
 	var originalId any = orderId
 	// set 'since' to 5 minute ago for optimal results
-	var sinceTime any = Subtract(exchange.Milliseconds(), Multiply(Multiply(1000, 60), 5))
+	var sinceTime int64 = exchange.Milliseconds() - (1000*60)*5
 	// iterate
 	var methods_singular []any = []any{"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"}
 	for i := 0; i < len(methods_singular); i++ {

@@ -1221,7 +1221,7 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
 	var rawTickers []any = SafeListTyped(response, "tickers")
@@ -1476,8 +1476,8 @@ func (this *Luno) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	if since != nil {
 		request["since"] = this.ParseToInt(since)
 	} else {
-		var duration any = Multiply(Multiply(1000, 1000), this.ParseTimeframe(timeframe))
-		request["since"] = Subtract(this.Milliseconds(), duration)
+		var duration int64 = (1000 * 1000) * this.ParseTimeframe(timeframe)
+		request["since"] = this.Milliseconds() - duration
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.ExchangePrivateGetCandles(this.Extend(request, params))).Raw))

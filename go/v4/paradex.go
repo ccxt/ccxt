@@ -1292,7 +1292,7 @@ func (this *Paradex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"market": "ALL",
 	}
@@ -1460,13 +1460,13 @@ func (this *Paradex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	// the endpoint takes one market id, and ALL answers for every product on
 	// the venue: a single symbol is asked for by name, which is 544 bytes
 	// against 1.6 MB
 	var target any = "ALL"
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			target = this.Market(GetValue(symbolsNormalized, 0))["id"]
 		}
@@ -3359,7 +3359,7 @@ func (this *Paradex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPositions()).Raw))
 	//
@@ -4244,7 +4244,7 @@ func (this *Paradex) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var request map[string]any = map[string]any{
 		"market": "ALL",
 	}

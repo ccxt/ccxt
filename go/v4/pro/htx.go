@@ -1926,7 +1926,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		subType = ccxt.GetValue(subTypeparamsSubTypeVariable, 0)
 		paramsSubType = ccxt.MapTyped(ccxt.GetValue(subTypeparamsSubTypeVariable, 1))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var paramsPositions map[string]any = func() map[string]any {
 		if !ccxt.IsEqual(market, nil) {
 			return params
@@ -1950,7 +1950,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if isV5Linear {
 		var v5Market any = nil
-		if (!ccxt.IsEqual(symbolsNormalized, nil)) && (ccxt.GetArrayLength(symbolsNormalized) == 1) {
+		if (!ccxt.IsEqual(symbolsNormalized, nil)) && (len(symbolsNormalized) == 1) {
 			v5Market = market
 		}
 		var channelAndMessageHashAndParams any = this.GetV5LinearChannelAndMessageHash("positions", v5Market, paramsRequest)

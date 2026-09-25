@@ -1559,7 +1559,7 @@ func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) any {
 	var oraclePx *float64 = this.SafeNumber(info, "oracle")
 	var nextFundingRate *float64 = this.SafeNumber(info, "next_funding")
 	var timestamp *int64 = this.SafeInteger(info, "timestamp")
-	var fundingTimestamp any = Multiply(Multiply(Multiply((Add(MathFloor((this.Milliseconds()/60)/60/1000), 1)), 60), 60), 1000)
+	var fundingTimestamp any = Multiply(Multiply(Multiply((Add(MathFloor(Divide(Divide(float64(this.Milliseconds())/60, 60), 1000)), 1)), 60), 60), 1000)
 	return map[string]any{
 		"info":                     info,
 		"symbol":                   symbol,
@@ -2798,7 +2798,7 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetInfoPrices(params)).Raw))
 	//
@@ -3516,7 +3516,7 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchPositions", params)
 	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
 	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
@@ -3881,7 +3881,7 @@ func (this *Pacifica) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetInfoPrices(params)).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})

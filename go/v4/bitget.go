@@ -11660,7 +11660,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}(), market))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)
 	return nil
@@ -12188,7 +12188,7 @@ func (this *Bitget) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 
 		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketCurrentFundRate(this.Extend(request, paramsMethod))).Raw))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseFundingRates(data, symbolsNormalized)

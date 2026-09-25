@@ -343,13 +343,13 @@ func (this *Poloniex) Describe() any {
 			"swapPublic": map[string]any{
 				"get": map[string]any{
 					"v3/market/allInstruments": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/instruments": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/orderBook": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/candles": map[string]any{
 						"cost": 10,
@@ -364,40 +364,40 @@ func (this *Poloniex) Describe() any {
 						"cost": 10,
 					},
 					"v3/market/trades": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/liquidationOrder": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/tickers": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/markPrice": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/indexPrice": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/indexPriceComponents": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/fundingRate": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/fundingRate/history": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/openInterest": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/insurance": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/riskLimit": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"v3/market/limitPrice": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 				},
 			},
@@ -624,7 +624,7 @@ func (this *Poloniex) Describe() any {
 					"marginMode":       false,
 					"limit":            100,
 					"daysBack":         nil,
-					"daysBackCanceled": 1 / 6,
+					"daysBackCanceled": float64(1) / 6,
 					"untilDays":        nil,
 					"trigger":          false,
 					"trailing":         false,
@@ -1433,9 +1433,9 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, false)
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
 			if symbolsLength == 1 {
@@ -4401,7 +4401,7 @@ func (this *Poloniex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateGetV3TradePositionOpens(params)).Raw))
 	//
