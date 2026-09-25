@@ -366,10 +366,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         let interval: Str = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchPositions', 'interval', 'raw');
         const channels: string[] = [];
-        if (symbols === undefined) {
-            symbols = [];
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
         }
-        const symbolsLength = symbols.length;
         if ((symbols !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
                 channels.push ('user.changes.' + this.marketId (symbols[i]) + '.' + interval);
@@ -401,10 +401,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         let interval: Str = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchPositions', 'interval', 'raw');
         const channels: string[] = [];
-        if (symbols === undefined) {
-            symbols = [];
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
         }
-        const symbolsLength = symbols.length;
         if ((symbols !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
                 channels.push ('user.changes.' + this.marketId (symbols[i]) + '.' + interval);
