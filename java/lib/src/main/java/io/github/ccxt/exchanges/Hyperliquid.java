@@ -187,7 +187,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "public", new HashMap<String, Object>() {{
                     put( "post", new HashMap<String, Object>() {{
                         put( "info", new HashMap<String, Object>() {{
-                            put( "cost", 20 );
+                            put( "cost", 10 );
                             put( "byType", new HashMap<String, Object>() {{
                                 put( "l2Book", 2 );
                                 put( "allMids", 2 );
