@@ -866,7 +866,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 		var previousOrders map[string]any = ccxt.SafeMapTyped(orders.(*ccxt.ArrayCache).Hashmap, symbol)
 		var previousOrder any = this.SafeDict(previousOrders, orderId)
 		if ccxt.IsEqual(previousOrder, nil) {
-			previousOrder = this.SafeValue2(previousOrders, makerOrderId, takerOrderId)
+			previousOrder = this.SafeDictN(previousOrders, []any{makerOrderId, takerOrderId})
 		}
 		if ccxt.IsEqual(previousOrder, nil) {
 			var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))

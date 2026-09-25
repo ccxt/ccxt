@@ -2171,12 +2171,12 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 	if realizedPnl != nil {
 		tradeMarketType = "swap"
 	}
-	var marketResolved any = func() any {
+	var marketResolved map[string]any = this.SafeMarket(func() any {
 		if market == nil {
-			return this.SafeMarket(tradeMarketId, nil, nil, tradeMarketType)
+			return tradeMarketId
 		}
-		return market
-	}()
+		return nil
+	}(), market, nil, tradeMarketType)
 	var isSpot any = nil
 	if market == nil {
 		isSpot = (tradeMarketType == "spot")
@@ -2218,7 +2218,7 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 		"order":        this.SafeString(trade, "orderId"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(marketResolved, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"type":         nil,
 		"takerOrMaker": takerOrMaker,
 		"side":         side,
@@ -3914,12 +3914,12 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) any {
 	if positionSide == nil {
 		orderMarketType = "spot"
 	}
-	var marketResolved any = func() any {
+	var marketResolved map[string]any = this.SafeMarket(func() any {
 		if market == nil {
-			return this.SafeMarket(orderMarketId, nil, nil, orderMarketType)
+			return orderMarketId
 		}
-		return market
-	}()
+		return nil
+	}(), market, nil, orderMarketType)
 	var timestamp *int64 = this.SafeIntegerN(order, []any{"transactTime", "time", "createTime"})
 	var rawStatus *string = this.SafeStringLower2(order, "status", "algoStatus") // algo (trigger) order payloads carry algoStatus instead of status
 	var triggerPrice any = this.OmitZero(this.SafeString2(order, "triggerPrice", "stopPrice"))
