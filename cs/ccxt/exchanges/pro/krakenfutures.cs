@@ -651,7 +651,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             {
                 List<object> trades = this.safeList(message, "trades", new List<object>() {});
                 int length = trades.Count;
-                for (Int64 i = 0; i < length; postFixIncrement(ref i))
+                for (Int64 i = 0; i < length; i++)
                 {
                     Int64 index = ((length - 1) - i); // need reverse to correct chronology
                     object item = getValue(trades, index);

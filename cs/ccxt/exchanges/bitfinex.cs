@@ -3915,7 +3915,7 @@ public partial class bitfinex : Exchange
         List<object> reversedArray = new List<object>() {};
         IList<object> rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
         int ratesLength = (rawRates?.Count ?? 0);
-        for (Int64 i = 0; i < ratesLength; postFixIncrement(ref i))
+        for (Int64 i = 0; i < ratesLength; i++)
         {
             Int64 index = ((ratesLength - i) - 1);
             object valueAtIndex = getValue(rawRates, index);

@@ -7250,7 +7250,7 @@ public partial class BaseExchange
                 IDictionary<string, object> last = this.safeDict(response, (responseLength - 1));
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = null; // search for the cursor
-                for (Int64 j = 0; j < responseLength; postFixIncrement(ref j))
+                for (Int64 j = 0; j < responseLength; j++)
                 {
                     Int64 index = ((responseLength - j) - 1);
                     IDictionary<string, object> entry = this.safeDict(response, index);

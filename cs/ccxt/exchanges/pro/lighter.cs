@@ -658,7 +658,7 @@ public partial class lighter : ccxt.lighter
             this.trades[(string)symbol] = stored;
         }
         int dataLength = data.Count;
-        for (Int64 i = 0; i < dataLength; postFixIncrement(ref i))
+        for (Int64 i = 0; i < dataLength; i++)
         {
             Int64 iReversed = ((dataLength - 1) - i);
             Dictionary<string, object> trade = this.parseWsTrade(getValue(data, iReversed), market);
@@ -877,7 +877,7 @@ public partial class lighter : ccxt.lighter
             Dictionary<string, object> market = this.safeMarket(marketId);
             List<object> trades = this.safeList(data, marketId, new List<object>() {});
             int tradesLength = trades.Count;
-            for (Int64 j = 0; j < tradesLength; postFixIncrement(ref j))
+            for (Int64 j = 0; j < tradesLength; j++)
             {
                 Int64 jReversed = ((tradesLength - 1) - j);
                 object tradeRaw = getValue(trades, jReversed);
@@ -1077,7 +1077,7 @@ public partial class lighter : ccxt.lighter
             stored = this.liquidations;
         }
         int dataLength = data.Count;
-        for (Int64 i = 0; i < dataLength; postFixIncrement(ref i))
+        for (Int64 i = 0; i < dataLength; i++)
         {
             Int64 iReversed = ((dataLength - 1) - i);
             Dictionary<string, object> liquidation = this.parseWsLiquidation(getValue(data, iReversed), market);

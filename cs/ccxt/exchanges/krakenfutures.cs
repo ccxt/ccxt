@@ -1215,7 +1215,7 @@ public partial class krakenfutures : Exchange
             // we need to reverse the list to fix chronology
             rawTrades = new List<object>() {};
             int length = elements.Count;
-            for (Int64 i = 0; i < length; postFixIncrement(ref i))
+            for (Int64 i = 0; i < length; i++)
             {
                 Int64 index = ((length - 1) - i);
                 IDictionary<string, object> element = this.safeDict(elements, index);

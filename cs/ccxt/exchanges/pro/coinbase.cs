@@ -850,7 +850,7 @@ public partial class coinbase : ccxt.coinbase
             }
             // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
             int tradesLength = currentTrades.Count;
-            for (Int64 j = 0; j < tradesLength; postFixIncrement(ref j))
+            for (Int64 j = 0; j < tradesLength; j++)
             {
                 object item = getValue(currentTrades, ((tradesLength - j) - 1));
                 tradesArray.append(this.parseTrade(item));

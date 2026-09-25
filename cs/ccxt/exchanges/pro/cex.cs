@@ -262,7 +262,7 @@ public partial class cex : ccxt.cex
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
         Dictionary<string, object> market = this.market(symbol);
         int dataLength = data.Count;
-        for (Int64 i = 0; i < dataLength; postFixIncrement(ref i))
+        for (Int64 i = 0; i < dataLength; i++)
         {
             Int64 index = ((dataLength - 1) - i);
             IDictionary<string, object> rawTrade = ((IDictionary<string, object>)getValue(data, index));
