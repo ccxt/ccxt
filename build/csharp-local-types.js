@@ -16450,6 +16450,7 @@ const CORE_LIST_ARGS_LENGTH_READS = {
     'getAccountTypeFromSubscriptions': 0,
     'separateBidsOrAsks': 0,
     'handleBooksideDelta': 1,
+    'handleDeltas': 1,
 };
 for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_LENGTH_READS)) {
     CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
