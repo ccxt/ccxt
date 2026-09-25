@@ -1480,7 +1480,7 @@ public partial class bigone : Exchange
         {
             defaultLimit = 500;
         }
-        object limitResolved = ((limit == null)) ? defaultLimit : limit;
+        Int64? limitResolved = ((limit == null)) ? defaultLimit : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
@@ -1490,7 +1490,7 @@ public partial class bigone : Exchange
         {
             // const start = this.parseToInt (since / 1000);
             int duration = this.parseTimeframe(timeframeVar);
-            object endByLimit = this.sum(since, multiply(multiply(limitResolved, duration), 1000));
+            object endByLimit = this.sum(since, ((limitResolved * duration) * 1000));
             if (untilIsDefined)
             {
                 request["time"] = this.iso8601(mathMin(endByLimit, (until + 1)));

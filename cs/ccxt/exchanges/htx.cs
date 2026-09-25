@@ -3970,7 +3970,7 @@ public partial class htx : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         Int64? untilSeconds = (!(until == null)) ? this.parseToInt(((double?)until / 1000)) : null;
         bool isContract = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true));
-        object contractLimit = ((limit != null)) ? limit : 2000; // only used for from/to calculation
+        Int64? contractLimit = ((limit != null)) ? limit : 2000; // only used for from/to calculation
         object rangeLimit = limit;
         if (isContract)
         {

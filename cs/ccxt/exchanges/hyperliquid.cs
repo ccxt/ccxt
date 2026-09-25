@@ -1591,7 +1591,7 @@ public partial class hyperliquid : Exchange
             if ((limit != null))
             {
                 // optimization if limit is provided
-                Int64 timeframeInMilliseconds = multiply(this.parseTimeframe(timeframeVar), 1000);
+                Int64 timeframeInMilliseconds = (this.parseTimeframe(timeframeVar) * 1000L);
                 startTime = this.sum(until, ((timeframeInMilliseconds * limit) * -1));
                 if (isLessThan(startTime, 0))
                 {
@@ -3397,8 +3397,8 @@ public partial class hyperliquid : Exchange
             request["startTime"] = since;
         } else
         {
-            object maxLimit = ((limit == null)) ? 500 : limit;
-            request["startTime"] = subtract(this.milliseconds(), multiply(multiply(multiply(maxLimit, 60), 60), 1000));
+            Int64? maxLimit = ((limit == null)) ? 500 : limit;
+            request["startTime"] = subtract(this.milliseconds(), (((maxLimit * 60) * 60) * 1000));
         }
         Int64? until = this.safeInteger(parameters, "until");
         object paramsOmitted = this.omit(parameters, "until");

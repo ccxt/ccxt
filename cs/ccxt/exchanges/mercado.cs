@@ -1020,16 +1020,16 @@ public partial class mercado : Exchange
             { "symbol", add(add((market.ContainsKey("base") ? market["base"] : null), "-"), (market.ContainsKey("quote") ? market["quote"] : null)) },
         };
         // set some default limit, as it's required if user doesn't provide it
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         if ((since != null))
         {
             request["from"] = this.parseToInt(((double?)since / 1000));
-            request["to"] = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), multiply(limitResolved, this.parseTimeframe(timeframeVar)));
+            request["to"] = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), (limitResolved * this.parseTimeframe(timeframeVar)));
         } else
         {
             Int64 to = this.seconds();
             request["to"] = to;
-            request["from"] = subtract(to, (multiply(limitResolved, this.parseTimeframe(timeframeVar))));
+            request["from"] = subtract(to, ((limitResolved * this.parseTimeframe(timeframeVar))));
         }
         Dictionary<string, object> response = await this.v4PublicNetGetCandles(this.extend(request, parameters));
         // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and

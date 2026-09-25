@@ -509,7 +509,7 @@ public partial class htx : ccxt.htx
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
-        object limitResolved = ((limit == null)) ? this.safeInteger(options, "depth", 150) : limit;
+        Int64? limitResolved = ((limit == null)) ? this.safeInteger(options, "depth", 150) : limit;
         if (!this.inArray(limitResolved, allowedLimits))
         {
             throw new ExchangeError ((this.id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;

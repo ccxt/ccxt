@@ -774,7 +774,7 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitResolved = ((limit == null)) ? 400 : limit;
+        Int64? limitResolved = ((limit == null)) ? 400 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
             { "sz", limitResolved },
@@ -863,8 +863,8 @@ public partial class deepcoin : Exchange
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
                 int duration = this.parseTimeframe(timeframeVar);
-                object numberOfCandles = ((limit == null)) ? maxLimit : limit;
-                object endTime = add(since, multiply((multiply(duration, numberOfCandles)), 1000));
+                Int64? numberOfCandles = ((limit == null)) ? maxLimit : limit;
+                object endTime = add(since, (((duration * numberOfCandles)) * 1000));
                 if ((until != null))
                 {
                     endTime = mathMin(endTime, until);

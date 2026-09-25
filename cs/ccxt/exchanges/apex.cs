@@ -1040,7 +1040,7 @@ public partial class apex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id2") },
         };
-        object limitResolved = ((limit == null)) ? 500 : limit; // default is 50
+        Int64? limitResolved = ((limit == null)) ? 500 : limit; // default is 50
         request["limit"] = limitResolved;
         Dictionary<string, object> response = await this.publicGetV3Trades(this.extend(request, parameters));
         //

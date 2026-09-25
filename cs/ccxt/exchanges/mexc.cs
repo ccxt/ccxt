@@ -2200,7 +2200,7 @@ public partial class mexc : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         IDictionary<string, object> timeframes = this.safeDict(options, (market.ContainsKey("type") ? market["type"] : null), new Dictionary<string, object>() {});
         string? timeframeValue = this.safeString(timeframes, timeframeVar);
-        Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+        Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", timeframeValue },
@@ -2216,8 +2216,8 @@ public partial class mexc : Exchange
         object start = since;
         if (omitUntil)
         {
-            object usedLimit = ((limit != null) && (limit != null) && (limit != 0)) ? limit : maxLimit;
-            start = subtract(until, (multiply(usedLimit, duration)));
+            Int64? usedLimit = ((limit != null) && (limit != null) && (limit != 0)) ? limit : maxLimit;
+            start = subtract(until, ((usedLimit * duration)));
         }
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {

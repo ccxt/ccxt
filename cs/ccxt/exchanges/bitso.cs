@@ -982,7 +982,7 @@ public partial class bitso : Exchange
         {
             Int64 now = this.milliseconds();
             request["end"] = now;
-            request["start"] = subtract(now, (multiply(this.parseTimeframe(timeframeVar), 1000) * limit));
+            request["start"] = subtract(now, ((this.parseTimeframe(timeframeVar) * 1000L) * limit));
         }
         Dictionary<string, object> response = await this.publicGetOhlc(this.extend(request, parameters));
         //
@@ -1830,7 +1830,7 @@ public partial class bitso : Exchange
                 };
             }
         }
-        object withdrawalFees = this.safeValue(payload, "withdrawal_fees", new List<object>() {});
+        IDictionary<string, object> withdrawalFees = this.safeDict(payload, "withdrawal_fees", new Dictionary<string, object>() {});
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
@@ -1963,7 +1963,7 @@ public partial class bitso : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> depositResponse = this.safeList(response, "deposit_fees", new List<object>() {});
-        object withdrawalResponse = this.safeValue(response, "withdrawal_fees", new List<object>() {});
+        IDictionary<string, object> withdrawalResponse = this.safeDict(response, "withdrawal_fees", new Dictionary<string, object>() {});
         for (int i = 0; i < depositResponse.Count; i++)
         {
             object entry = depositResponse[i];

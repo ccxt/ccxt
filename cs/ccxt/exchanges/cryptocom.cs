@@ -1432,7 +1432,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         if ((since != null))
         {
-            request["start_ts"] = subtract(since, multiply(duration, 1000));
+            request["start_ts"] = (since - (duration * 1000L));
             if (!(limitResolved == null))
             {
                 request["end_ts"] = this.sum(since, multiply(multiply(duration, limitResolved), 1000));

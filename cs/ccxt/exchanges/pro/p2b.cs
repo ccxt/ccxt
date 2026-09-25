@@ -279,7 +279,7 @@ public partial class p2b : ccxt.p2b
         string name = "depth.subscribe";
         string messageHash = ("orderbook::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string? interval = this.safeString(parameters, "interval", "0.001");
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         List<object> request = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), limitResolved, interval};
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(name, messageHash, request, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());

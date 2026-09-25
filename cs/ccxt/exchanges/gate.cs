@@ -4405,7 +4405,7 @@ public partial class gate : Exchange
         if (inOp(data, "balances"))
         {
             List<object> flatBalances = new List<object>() {};
-            object balances = this.safeValue(data, "balances", new List<object>() {});
+            IDictionary<string, object> balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);

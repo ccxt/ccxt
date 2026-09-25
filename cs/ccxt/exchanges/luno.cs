@@ -1510,7 +1510,7 @@ public partial class luno : Exchange
         // by default without entry number or limit number, return most recent entry
         parameters ??= new Dictionary<string, object>();
         object entryValue = ((entry == null)) ? -1 : entry;
-        object limitValue = ((limit == null)) ? 1 : limit;
+        Int64? limitValue = ((limit == null)) ? 1 : limit;
         object since = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "min_row", entryValue },

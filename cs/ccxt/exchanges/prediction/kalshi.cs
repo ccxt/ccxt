@@ -1448,9 +1448,9 @@ public partial class kalshi : PredictionExchange
         } else
         {
             Int64? defaultLimit = this.safeInteger(this.options, "defaultFetchOHLCVLimit", 200);
-            object candlesCount = ((limit != null)) ? limit : defaultLimit;
+            Int64? candlesCount = ((limit != null)) ? limit : defaultLimit;
             request["end_ts"] = now;
-            request["start_ts"] = subtract(now, (multiply(candlesCount, tf)));
+            request["start_ts"] = subtract(now, ((candlesCount * tf)));
         }
         Dictionary<string, object> response = await this.kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(this.extend(request, parameters));
         //

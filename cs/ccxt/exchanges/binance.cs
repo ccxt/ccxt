@@ -16202,7 +16202,7 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object limitResolved = ((limit == null)) ? 93 : limit;
+        Int64? limitResolved = ((limit == null)) ? 93 : limit;
         if ((limit != null) && (limit > 93))
         {
             throw new BadRequest ((this.id + " fetchBorrowRateHistory() limit parameter cannot exceed 92")) ;
@@ -16215,7 +16215,7 @@ public partial class binance : Exchange
         if ((since != null))
         {
             request["startTime"] = since;
-            object endTime = subtract(this.sum(since, multiply(limitResolved, 86400000)), 1); // required when startTime is further than 93 days in the past
+            object endTime = subtract(this.sum(since, (limitResolved * 86400000)), 1); // required when startTime is further than 93 days in the past
             Int64 now = this.milliseconds();
             request["endTime"] = mathMin(endTime, now); // cannot have an endTime later than current time
         }
@@ -16779,9 +16779,9 @@ public partial class binance : Exchange
         } else if (((since != null)) && ((since != 0)))
         {
             // exchange default
-            object limitDefault = ((limit == null)) ? 30 : limit;
+            Int64? limitDefault = ((limit == null)) ? 30 : limit;
             int duration = this.parseTimeframe(timeframeVar);
-            request["endTime"] = this.sum(since, multiply(multiply(duration, limitDefault), 1000));
+            request["endTime"] = this.sum(since, ((duration * limitDefault) * 1000));
         }
         List<object> response = null;
         if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))

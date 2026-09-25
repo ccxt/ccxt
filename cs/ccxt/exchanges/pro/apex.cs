@@ -245,12 +245,12 @@ public partial class apex : ccxt.apex
         string? url = this.getWsPublicUrl();
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        object limitValue = ((limit == null)) ? 25 : limit;
+        Int64? limitValue = ((limit == null)) ? 25 : limit;
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
             Dictionary<string, object> market = this.market(symbol);
-            string topic = ((("orderBook" + limitValue.ToString()) + ".H.") + this.safeString(market, "id2"));
+            string topic = ((("orderBook" + ((object)limitValue).ToString()) + ".H.") + this.safeString(market, "id2"));
             topics.Add(topic);
             string messageHash = ("orderbook:" + symbol);
             messageHashes.Add(messageHash);

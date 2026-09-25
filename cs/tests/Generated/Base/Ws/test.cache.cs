@@ -427,14 +427,14 @@ public partial class BaseTest
             initialLength = 5;
             for (int i = 0; i < initialLength; i++)
             {
-                timestampCache2.append(new List<object>() {multiply(i, 10), multiply(i, 10), multiply(i, 10), multiply(i, 10)});
+                timestampCache2.append(new List<object>() {(i * 10L), (i * 10L), (i * 10L), (i * 10L)});
             }
             limited = timestampCache2.getLimit(null, null);
             Assert(isEqual(initialLength, limited));
             appendItemsLength = 3;
             for (int i = 0; i < appendItemsLength; i++)
             {
-                timestampCache2.append(new List<object>() {multiply(i, 4), multiply(i, 4), multiply(i, 4), multiply(i, 4)});
+                timestampCache2.append(new List<object>() {(i * 4L), (i * 4L), (i * 4L), (i * 4L)});
             }
             outsideLimit = 5;
             limited = timestampCache2.getLimit(null, outsideLimit);
@@ -832,7 +832,7 @@ public partial class BaseTest
             var cacheTimestampLimited = new ArrayCacheByTimestamp(3);
             for (int i = 1; i < 7; i++)
             {
-                cacheTimestampLimited.append(new List<object>() {multiply(i, 100), i, i, i});
+                cacheTimestampLimited.append(new List<object>() {(i * 100L), i, i, i});
             }
             Assert(equals(cacheTimestampLimited, new List<object>() {new List<object>() {400, 4, 4, 4}, new List<object>() {500, 5, 5, 5}, new List<object>() {600, 6, 6, 6}}));
             cacheTimestampLimited.append(new List<object>() {100, 9, 9, 9});

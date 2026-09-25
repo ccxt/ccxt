@@ -1076,10 +1076,10 @@ public partial class btse : Exchange
             {
                 object age = (this.milliseconds() - since);
                 int day = 86400000;
-                if (isGreaterThan(age, multiply(14, day)))
+                if (isGreaterThan(age, (14L * day)))
                 {
                     period = "1M";
-                } else if (isGreaterThan(age, multiply(7, day)))
+                } else if (isGreaterThan(age, (7L * day)))
                 {
                     period = "2W";
                 }

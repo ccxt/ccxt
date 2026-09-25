@@ -1926,7 +1926,7 @@ public partial class bitstamp : Exchange
         int duration = this.parseTimeframe(timeframeVar);
         Int64? until = this.safeInteger(parameters, "until");
         bool untilIsDefined = ((until != null));
-        object limitResolved = ((limit == null)) ? 1000 : limit;
+        Int64? limitResolved = ((limit == null)) ? 1000 : limit;
         if ((limit == null))
         {
             if ((since == null))
@@ -1935,7 +1935,7 @@ public partial class bitstamp : Exchange
                 if (untilIsDefined)
                 {
                     Int64? end = this.parseToInt(((double?)until / 1000));
-                    request["start"] = subtract(subtract(end, (multiply(duration, limitResolved))), 1);
+                    request["start"] = subtract(subtract(end, ((duration * limitResolved))), 1);
                     request["end"] = end;
                 }
             } else
@@ -1947,7 +1947,7 @@ public partial class bitstamp : Exchange
                     request["end"] = this.parseToInt(((double?)until / 1000));
                 } else
                 {
-                    request["end"] = this.sum(start, subtract(multiply(duration, limitResolved), 1));
+                    request["end"] = this.sum(start, subtract((duration * limitResolved), 1));
                 }
                 request["limit"] = limitResolved;
             }
@@ -1957,7 +1957,7 @@ public partial class bitstamp : Exchange
             {
                 Int64? start = this.parseToInt(((double?)since / 1000));
                 request["start"] = start;
-                object end = this.sum(start, subtract(multiply(duration, limitResolved), 1));
+                object end = this.sum(start, subtract((duration * limitResolved), 1));
                 if (untilIsDefined)
                 {
                     end = mathMin(end, this.parseToInt(((double?)until / 1000)));
@@ -1967,7 +1967,7 @@ public partial class bitstamp : Exchange
             {
                 Int64? end = this.parseToInt(((double?)until / 1000));
                 request["end"] = end;
-                request["start"] = subtract(subtract(end, (multiply(duration, limitResolved))), 1);
+                request["start"] = subtract(subtract(end, ((duration * limitResolved))), 1);
             }
             request["limit"] = mathMin(limitResolved, 1000); // min 1, max 1000
         }

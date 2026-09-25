@@ -1843,7 +1843,7 @@ public partial class weex : Exchange
             if (((since == null)) || ((until == null)))
             {
                 Int64 now = this.milliseconds();
-                Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+                Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
                 object numberOfCandles = maxHistoricalLimit;
                 if (!(limitResolved == null) && !(limitResolved == null) && !isEqual(limitResolved, 0))
                 {

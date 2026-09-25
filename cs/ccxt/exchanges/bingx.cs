@@ -1672,7 +1672,7 @@ public partial class bingx : Exchange
             request["endTime"] = until;
         } else if (((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) && ((since != null)))
         {
-            Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+            Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
             request["endTime"] = this.sum(since, multiply(duration, requestLimit));
         }
         Dictionary<string, object> response = null;

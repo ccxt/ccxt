@@ -3784,7 +3784,7 @@ public partial class bybit : Exchange
             // https://github.com/ccxt/ccxt/issues/26736 - align the requested
             // start up to the interval boundary so that the exchange returns
             // candles from the first bucket at or after `since`
-            Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+            Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
             request["start"] = (this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)since / duration)))) * duration);
         }
         request["limit"] = limitResolved; // max 1000, default 1000
@@ -4054,7 +4054,7 @@ public partial class bybit : Exchange
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 200));
         }
-        object limitResolved = ((limit == null)) ? 200 : limit;
+        Int64? limitResolved = ((limit == null)) ? 200 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "limit", limitResolved },
         };
@@ -4090,7 +4090,7 @@ public partial class bybit : Exchange
                 {
                     fundingInterval = ((fundingTimeFrameMins * 60) * 1000);
                 }
-                request["endTime"] = this.sum(since, multiply(limitResolved, fundingInterval));
+                request["endTime"] = this.sum(since, (limitResolved * fundingInterval));
             }
         }
         Dictionary<string, object> response = await this.publicGetV5MarketFundingHistory(this.extend(request, paramsOmitted));
@@ -8809,8 +8809,8 @@ public partial class bybit : Exchange
         {
             // the endpoint walks backwards from endTime and ignores a lone startTime
             int duration = this.parseTimeframe(timeframeVar);
-            object requestedLimit = ((limit == null)) ? 50 : limit; // exchange default
-            request["endTime"] = this.sum(since, multiply(multiply(duration, requestedLimit), 1000));
+            Int64? requestedLimit = ((limit == null)) ? 50 : limit; // exchange default
+            request["endTime"] = this.sum(since, ((duration * requestedLimit) * 1000));
         }
         if ((limit != null))
         {
@@ -9164,13 +9164,13 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        object sinceResolved = ((since == null)) ? (this.milliseconds() - (86400000L * 30L)) : since; // last 30 days
+        Int64? sinceResolved = ((since == null)) ? (this.milliseconds() - (86400000L * 30L)) : since; // last 30 days
         request["startTime"] = sinceResolved;
-        object endTime = this.safeInteger2(parameters, "until", "endTime");
+        Int64? endTime = this.safeInteger2(parameters, "until", "endTime");
         object paramsOmitted = this.omit(parameters, new List<object>() {"until"});
         if ((endTime == null))
         {
-            endTime = add(sinceResolved, (86400000L * 30L)); // since + 30 days
+            endTime = (sinceResolved + (86400000L * 30L)); // since + 30 days
         }
         request["endTime"] = endTime;
         Dictionary<string, object> response = await this.privateGetV5SpotMarginTradeInterestRateHistory(this.extend(request, paramsOmitted));

@@ -1383,7 +1383,7 @@ public partial class limitless : PredictionExchange
         for (int i = 0; i < (slugs?.Count ?? 0); i++)
         {
             string? slug = ((string)slugs[i]);
-            Int64 detailIndex = multiply(i, 2);
+            Int64 detailIndex = (i * 2L);
             object detail = getValue(responses, detailIndex);
             object book = getValue(responses, this.sum(detailIndex, 1));
             Dictionary<string, object> tickerInput = new Dictionary<string, object>() {
@@ -1688,7 +1688,7 @@ public partial class limitless : PredictionExchange
         // — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
         // timestamps keep their relative order consistently across languages
         List<object> sorted = this.sortBy(pseudoTrades, "timestamp");
-        Int64 ms = multiply(this.parseTimeframe(timeframeVar), 1000);
+        Int64 ms = (this.parseTimeframe(timeframeVar) * 1000L);
         Dictionary<string, object> candles = new Dictionary<string, object>() {};
         List<object> bucketOrder = new List<object>() {};
         for (int i = 0; i < (sorted?.Count ?? 0); i++)

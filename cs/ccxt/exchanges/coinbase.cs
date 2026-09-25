@@ -4203,7 +4203,7 @@ public partial class coinbase : Exchange
         {
             request["product_id"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         request["limit"] = limitResolved;
         if ((since != null))
         {

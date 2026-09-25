@@ -901,8 +901,8 @@ public partial class blofin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object limitValue = ((limit == null)) ? 50 : limit;
-        if (!(limitValue == null))
+        Int64? limitValue = ((limit == null)) ? 50 : limit;
+        if ((limitValue != null))
         {
             request["size"] = limitValue; // max 100
         }
@@ -1281,7 +1281,7 @@ public partial class blofin : Exchange
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, query, 100));
         }
-        object limitResolved = ((limit == null)) ? 100 : limit; // default 100, max 100
+        Int64? limitResolved = ((limit == null)) ? 100 : limit; // default 100, max 100
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
             { "bar", this.safeString(this.timeframes, timeframeVar, timeframeVar) },

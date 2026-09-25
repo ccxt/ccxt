@@ -88,7 +88,7 @@ public partial class derive : ccxt.derive
         {
             await this.loadMarkets();
         }
-        object limitResolved = ((limit == null)) ? 10 : limit;
+        Int64? limitResolved = ((limit == null)) ? 10 : limit;
         Dictionary<string, object> market = this.market(symbol);
         string topic = ((("orderbook." + ((market.ContainsKey("id") ? market["id"] : null))) + ".10.") + this.numberToString(limitResolved));
         Dictionary<string, object> request = new Dictionary<string, object>() {
