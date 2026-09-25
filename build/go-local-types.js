@@ -708,9 +708,6 @@ export function ccxtGoTernaryDeclaration (node) {
 //       the float path, but the difference of two integral finite float64s is
 //       integral -> IsInteger -> ParseInt(res) -> int64 (no nil path: ToFloat64 of
 //       an int-kind value is always a number)
-//   Divide(int|int64, NONZERO INTEGER LITERAL)
-//       bVal is `int`, `bVal.Int() == 0` is decidable on the literal, so the int
-//       path runs: `aValConverted.Int() / bVal.Int()` -> int64
 //   Mod(int|int64, NONZERO INTEGER LITERAL)
 //       math.Mod of two integral finite float64s is integral -> IsInteger ->
 //       ParseInt(res) -> int64 (a zero divisor would give NaN, a float64 box)
@@ -961,8 +958,11 @@ function ccxtGoArithmeticCallIsInt64 (goTranspiler, node, callee, argsText, dept
     if ((leftKind === undefined) || (rightKind === undefined)) {
         return false;
     }
-    if ((name === 'Divide') || (name === 'Mod')) {
-        // a zero divisor is the only nil (Divide) / NaN-float64 (Mod) path, and a
+    if (name === 'Divide') {
+        return false; // JS division: a non-integral quotient boxes float64
+    }
+    if (name === 'Mod') {
+        // a zero divisor is the only NaN-float64 path, and a
         // literal divisor is the one divisor whose zero-ness is decidable here
         if ((rightKind !== 'intlit') || /^0+$/.test (args[1])) {
             return false;

@@ -4190,7 +4190,7 @@ func (this *Deribit) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 	var time int64 = this.Milliseconds()
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
-		"start_timestamp": Subtract(time, ((8 * 60) * 60 * 1000)),
+		"start_timestamp": time - ((8 * 60) * 60 * 1000),
 		"end_timestamp":   time,
 	}
 
@@ -4261,7 +4261,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var duration int64 = this.ParseTimeframe(eachItemDuration) * 1000
 	var now int64 = this.Milliseconds()
-	var month int64 = Multiply(Multiply(Multiply(Multiply(30, 24), 60), 60), 1000).(int64)
+	var month int64 = (30 * 24) * 60 * 60 * 1000
 	var sinceResolved any = func() any {
 		if since == nil {
 			return now - month

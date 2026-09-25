@@ -9879,7 +9879,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["endTime"] = until
 		}
 		if since == nil {
-			var oneWeek int64 = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000).(int64)
+			var oneWeek int64 = (7 * 24) * 60 * 60 * 1000
 			request["startTime"] = Subtract(until, oneWeek)
 		}
 	}
@@ -11334,7 +11334,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		// The time between startTime and endTime cannot be longer than 7 days.
 		// The parameter fromId cannot be sent with startTime or endTime.
 		var currentTimestamp int64 = this.Milliseconds()
-		var oneWeek int64 = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000).(int64)
+		var oneWeek int64 = (7 * 24) * 60 * 60 * 1000
 		if IsGreaterThanOrEqual((Subtract(currentTimestamp, startTime)), oneWeek) {
 			if (IsEqual(endTime, nil)) && (IsEqual(this.SafeBool(market, "linear"), true)) {
 				endTime = this.Sum(startTime, oneWeek)
@@ -11388,7 +11388,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 				request["endTime"] = endTime
 			}
 			if since == nil {
-				var oneWeek int64 = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000).(int64)
+				var oneWeek int64 = (7 * 24) * 60 * 60 * 1000
 				request["startTime"] = Subtract(endTime, oneWeek)
 			}
 

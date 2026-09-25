@@ -1522,7 +1522,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["to"] = this.Iso8601(this.Sum(since, Multiply(Multiply(timeframePeriod, limitResolved), 1000)))
 	}
 	if timeframeValue != nil && *timeframeValue == "minutes" {
-		var numMinutes float64 = MathRound(timeframePeriod / 60)
+		var numMinutes float64 = MathRound(float64(timeframePeriod) / 60)
 		request["unit"] = numMinutes
 
 		response = ListTyped(PanicOnError((<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))).Raw))

@@ -3366,7 +3366,7 @@ func (this *Extended) CreateWithdrawalSettlementData(address any, amountString a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var now int64 = this.Milliseconds()
-	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", (this.ParseToInt((now+999)/1000)+1209600)+60)
+	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", (this.ParseToInt(float64(now+999) / 1000)+1209600)+60)
 	var nonce *int64 = this.SafeInteger(params, "nonce", this.Nonce())
 	var positionId *string = this.SafeString2(params, "positionId", "l2Vault", this.SafeString(account, "l2Vault"))
 	var recipient *string = this.SafeString(params, "recipient", address)
@@ -3400,7 +3400,7 @@ func (this *Extended) CreateTransferSettlementData(amountString any, currency an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var now int64 = this.Milliseconds()
-	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", this.ParseToInt((now+999)/1000)+1814400)
+	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", this.ParseToInt(float64(now+999)/1000)+1814400)
 	var nonce *int64 = this.SafeInteger(params, "nonce", this.Nonce())
 	var fromVault *string = this.SafeString2(params, "fromVault", "senderPositionId", this.SafeString(account, "l2Vault"))
 	var fromL2Key *string = this.SafeString2(params, "fromL2Key", "senderPublicKey", this.SafeString(account, "l2Key"))

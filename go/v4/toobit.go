@@ -179,22 +179,22 @@ func (this *Toobit) Describe() any {
 						"cost": 1,
 					},
 					"api/v1/spot/order": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v1/spot/openOrders": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v1/futures/openOrders": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v1/spot/tradeOrders": map[string]any{
-						"cost": Multiply(5, 1.67),
+						"cost": 5 * 1.67,
 					},
 					"api/v1/futures/historyOrders": map[string]any{
-						"cost": Multiply(5, 1.67),
+						"cost": 5 * 1.67,
 					},
 					"api/v1/account/trades": map[string]any{
-						"cost": Multiply(5, 1.67),
+						"cost": 5 * 1.67,
 					},
 					"api/v1/account/balanceFlow": map[string]any{
 						"cost": 5,
@@ -221,10 +221,10 @@ func (this *Toobit) Describe() any {
 						"cost": 1,
 					},
 					"api/v1/futures/order": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v1/futures/positions": map[string]any{
-						"cost": Multiply(5, 1.67),
+						"cost": 5 * 1.67,
 					},
 					"api/v1/futures/historyPositions": map[string]any{
 						"cost": 5,
@@ -233,7 +233,7 @@ func (this *Toobit) Describe() any {
 						"cost": 5,
 					},
 					"api/v1/futures/userTrades": map[string]any{
-						"cost": Multiply(5, 1.67),
+						"cost": 5 * 1.67,
 					},
 					"api/v1/futures/balanceFlow": map[string]any{
 						"cost": 5,
@@ -290,25 +290,25 @@ func (this *Toobit) Describe() any {
 						"cost": 5,
 					},
 					"api/v2/futures/order": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v2/futures/open-orders": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v2/futures/history-orders": map[string]any{
-						"cost": Multiply(5, 1.67),
+						"cost": 5 * 1.67,
 					},
 					"api/v2/futures/user-trades": map[string]any{
-						"cost": Multiply(5, 1.67),
+						"cost": 5 * 1.67,
 					},
 					"api/v2/futures/algo-order": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v2/futures/open-algo-orders": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v2/futures/history-algo-orders": map[string]any{
-						"cost": Multiply(5, 1.67),
+						"cost": 5 * 1.67,
 					},
 					"api/v2/futures/voucher/list": map[string]any{
 						"cost": 5,
@@ -316,16 +316,16 @@ func (this *Toobit) Describe() any {
 				},
 				"post": map[string]any{
 					"api/v1/spot/orderTest": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v1/spot/order": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v1/futures/order": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v1/spot/batchOrders": map[string]any{
-						"cost": Multiply(2, 1.67),
+						"cost": 2 * 1.67,
 					},
 					"api/v1/subAccount/transfer": map[string]any{
 						"cost": 1,
@@ -340,16 +340,16 @@ func (this *Toobit) Describe() any {
 						"cost": 1,
 					},
 					"api/v1/futures/batchOrders": map[string]any{
-						"cost": Multiply(2, 1.67),
+						"cost": 2 * 1.67,
 					},
 					"api/v1/futures/position/trading-stop": map[string]any{
-						"cost": Multiply(3, 1.67),
+						"cost": 3 * 1.67,
 					},
 					"api/v1/futures/positionMargin": map[string]any{
 						"cost": 1,
 					},
 					"api/v1/futures/order/update": map[string]any{
-						"cost": Multiply(2, 1.67),
+						"cost": 2 * 1.67,
 					},
 					"api/v1/futures/autoAddMargin": map[string]any{
 						"cost": 1,
@@ -372,22 +372,22 @@ func (this *Toobit) Describe() any {
 				},
 				"delete": map[string]any{
 					"api/v1/spot/order": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v1/futures/order": map[string]any{
-						"cost": Multiply(1, 1.67),
+						"cost": 1 * 1.67,
 					},
 					"api/v1/spot/openOrders": map[string]any{
-						"cost": Multiply(5, 1.67),
+						"cost": 5 * 1.67,
 					},
 					"api/v1/futures/batchOrders": map[string]any{
-						"cost": Multiply(3, 1.67),
+						"cost": 3 * 1.67,
 					},
 					"api/v1/spot/cancelOrderByIds": map[string]any{
-						"cost": Multiply(5, 1.67),
+						"cost": 5 * 1.67,
 					},
 					"api/v1/futures/cancelOrderByIds": map[string]any{
-						"cost": Multiply(3, 1.67),
+						"cost": 3 * 1.67,
 					},
 					"api/v1/userDataStream": map[string]any{
 						"cost": 1,
