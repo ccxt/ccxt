@@ -5,6 +5,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCach
 import { Balances, Bool, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { AuthenticationError, NotSupported } from '../base/errors.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -531,7 +532,7 @@ export default class xt extends xtRest {
         if (levels !== undefined) {
             name = 'depth@' + market['id'] + ',' + levels;
         }
-        const orderbook = await this.subscribe (name, 'public', 'watchOrderBook', market, undefined, params);
+        const orderbook: Ob = await this.subscribe (name, 'public', 'watchOrderBook', market, undefined, params);
         return orderbook.limit ();
     }
 
@@ -656,7 +657,7 @@ export default class xt extends xtRest {
         this.setPositionsCache (client);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && this.isEmpty (cache)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
@@ -761,7 +762,7 @@ export default class xt extends xtRest {
     async loadPositionsSnapshot (client: Client, messageHash: any) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
@@ -811,7 +812,7 @@ export default class xt extends xtRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const data = this.safeDict (message, 'data', {});
         const position = this.parsePosition (data);
         cache.append (position);

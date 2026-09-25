@@ -4,6 +4,7 @@ import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -172,7 +173,7 @@ export default class luno extends lunoRest {
             'api_key_secret': this.secret,
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, subscriptionHash, subscription);
+        const orderbook: Ob = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         return orderbook.limit ();
     }
 

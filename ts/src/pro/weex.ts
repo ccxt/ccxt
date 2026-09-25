@@ -7,6 +7,7 @@ import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -851,7 +852,7 @@ export default class weex extends weexRest {
         const subscription: Dict = {
             'limit': limit,
         };
-        const orderbook = await this.subscribePublic (messageHashes, channels, isContract, params, subscription);
+        const orderbook: Ob = await this.subscribePublic (messageHashes, channels, isContract, params, subscription);
         return orderbook.limit ();
     }
 
@@ -1822,7 +1823,7 @@ export default class weex extends weexRest {
     async loadPositionsSnapshot (client: Client, messageHash: string, params: any) {
         const positions = await this.fetchPositions (undefined, params);
         this.positions = new ArrayCacheBySymbolById ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolById = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             cache.append (position);
@@ -1901,7 +1902,7 @@ export default class weex extends weexRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolById ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolById = this.positions;
         const newPositions: Position[] = [];
         const data = this.safeList (message, 'd', []);
         for (let i = 0; i < data.length; i++) {

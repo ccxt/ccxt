@@ -7,6 +7,7 @@ import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, MarketInterface, FeeString } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -985,7 +986,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth' + limit.toString ());
             messageHashes.push ('orderbook:' + market['symbol']);
         }
-        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const orderbook: Ob = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         return orderbook.limit ();
     }
 
@@ -1568,7 +1569,7 @@ export default class aster extends asterRest {
         }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
@@ -1599,7 +1600,7 @@ export default class aster extends asterRest {
     async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
@@ -1651,7 +1652,7 @@ export default class aster extends asterRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const data = this.safeDict (message, 'a', {});
         const rawPositions: Dict[] = this.safeList (data, 'P', []);
         const newPositions: Dict[] = [];

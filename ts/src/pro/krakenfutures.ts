@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '..
 import { Precise } from '../base/Precise.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -102,7 +103,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        const orderbook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, params);
+        const orderbook: Ob = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, params);
         return orderbook.limit ();
     }
 
@@ -340,7 +341,7 @@ export default class krakenfutures extends krakenfuturesRest {
             // https://github.com/ccxt/ccxt/issues/29709
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const rawPositions = this.safeList (message, 'positions');
         if (rawPositions === undefined) {
             // an open_positions frame without the positions key is malformed;

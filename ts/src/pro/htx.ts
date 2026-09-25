@@ -7,6 +7,7 @@ import { ExchangeError, InvalidNonce, ChecksumError, ArgumentsRequired, BadReque
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, SubType, Ticker, Trade, NullableDict, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -483,7 +484,7 @@ export default class htx extends htxRest {
             params['data_type'] = 'incremental';
             method = undefined;
         }
-        const orderbook = await this.subscribePublic (url, symbol, messageHash, method, params);
+        const orderbook: Ob = await this.subscribePublic (url, symbol, messageHash, method, params);
         return orderbook.limit ();
     }
 
@@ -636,7 +637,7 @@ export default class htx extends htxRest {
             'method': this.handleOrderBookSnapshot,
         };
         try {
-            const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
+            const orderbook: Ob = await this.watch (url, requestId, request, requestId, snapshotSubscription);
             return orderbook.limit ();
         } catch (e) {
             if (messageHash !== undefined) {

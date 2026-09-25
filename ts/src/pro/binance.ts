@@ -11,6 +11,7 @@ import type { Balances, Bool, Dict, Int, Liquidation, Market, Num, FeeString, Nu
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 // -----------------------------------------------------------------------------
 
@@ -485,7 +486,7 @@ export default class binance extends binanceRest {
             const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
             this.liquidations = new ArrayCache (limit);
         }
-        const cache = this.liquidations;
+        const cache: ArrayCache = this.liquidations;
         cache.append (liquidation);
         client.resolve ([ liquidation ], 'liquidations');
         client.resolve ([ liquidation ], 'liquidations::' + symbol);
@@ -807,7 +808,7 @@ export default class binance extends binanceRest {
             'type': type,
             'params': params,
         };
-        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
+        const orderbook: Ob = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
         return orderbook.limit ();
     }
 

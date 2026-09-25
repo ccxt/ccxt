@@ -6,6 +6,7 @@ import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.j
 import type { Dict, FeeString, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -693,7 +694,7 @@ export default class deepcoin extends deepcoinRest {
         const messageHash = 'orderbook' + '::' + market['symbol'];
         let suffix: Str = undefined;
         [ suffix, params ] = this.orderBookSuffix (market, 'watchOrderBook', params);
-        const orderbook = await this.watchPublic (market, messageHash, '25', params, suffix);
+        const orderbook: Ob = await this.watchPublic (market, messageHash, '25', params, suffix);
         return orderbook.limit ();
     }
 

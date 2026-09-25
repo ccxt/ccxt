@@ -7,6 +7,7 @@ import { AuthenticationError, ArgumentsRequired, ChecksumError, ExchangeError, N
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -149,7 +150,7 @@ export default class cryptocom extends cryptocomRest {
             messageHashes.push (messageHash);
             topics.push (currentTopic);
         }
-        const orderbook = await this.watchPublicMultiple (messageHashes, topics, params);
+        const orderbook: Ob = await this.watchPublicMultiple (messageHashes, topics, params);
         return orderbook.limit ();
     }
 
@@ -966,7 +967,7 @@ export default class cryptocom extends cryptocomRest {
     async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
@@ -1015,7 +1016,7 @@ export default class cryptocom extends cryptocomRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];

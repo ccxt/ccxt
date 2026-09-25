@@ -8,6 +8,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBy
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, List, OrderType, OrderSide, Num, Market, OrderRequest, Bool, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -482,7 +483,7 @@ export default class gate extends gateRest {
             'symbol': symbol,
             'limit': limit,
         };
-        const orderbook = await this.subscribePublic (url, messageHash, payload, channel, query, subscription);
+        const orderbook: Ob = await this.subscribePublic (url, messageHash, payload, channel, query, subscription);
         return orderbook.limit ();
     }
 
@@ -1848,7 +1849,7 @@ export default class gate extends gateRest {
             const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
             this.liquidations = new ArrayCache (limit);
         }
-        const cache = this.liquidations;
+        const cache: ArrayCache = this.liquidations;
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation (rawLiquidation);

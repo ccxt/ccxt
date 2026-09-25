@@ -7,6 +7,7 @@ import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, List, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -347,7 +348,7 @@ export default class onetrading extends onetradingRest {
                 },
             ],
         };
-        const orderbook = await this.watchMany (messageHash, request, subscriptionHash, [ symbol ], params);
+        const orderbook: Ob = await this.watchMany (messageHash, request, subscriptionHash, [ symbol ], params);
         return orderbook.limit ();
     }
 
