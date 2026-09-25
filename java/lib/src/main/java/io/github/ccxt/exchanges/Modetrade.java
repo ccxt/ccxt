@@ -2685,7 +2685,7 @@ public class Modetrade extends ModetradeApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("size", Helpers.mathMin(limit, maxLimit));
+                request.put("size", Math.min(limit, maxLimit));
             } else
             {
                 request.put("size", maxLimit);

@@ -1715,19 +1715,19 @@ public class Bingx extends BingxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Integer maxLimit = (((java.util.Objects.equals(market.get("inverse"), true)))) ? 1000 : 1440;
+            Long maxLimit = (((java.util.Objects.equals(market.get("inverse"), true)))) ? 1000L : 1440L;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
             request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
-            Object requestLimit = (((java.util.Objects.equals(limit, null)))) ? 500 : Helpers.mathMin(limit, maxLimit);
+            Long requestLimit = (((java.util.Objects.equals(limit, null)))) ? 500L : Math.min(limit, maxLimit);
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", Math.max((since - 1L), 0));
@@ -1899,8 +1899,8 @@ public class Bingx extends BingxApi
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             if (!java.util.Objects.equals(limit, null))
             {
-                Integer maxLimit = (((java.util.Objects.equals(marketType, "spot")))) ? 500 : 1000;
-                request.put("limit", Helpers.mathMin(limit, maxLimit));
+                Long maxLimit = (((java.util.Objects.equals(marketType, "spot")))) ? 500L : 1000L;
+                request.put("limit", Math.min(limit, maxLimit));
             }
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -5782,7 +5782,7 @@ public class Bingx extends BingxApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("pageSize", Helpers.mathMin(limit, maxLimit));
+                request.put("pageSize", Math.min(limit, maxLimit));
             }
             io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();

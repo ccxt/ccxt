@@ -7468,8 +7468,8 @@ public class Binance extends BinanceApi
             {
                 Boolean isFutureOrSwap = (java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true));
                 Boolean isHistoricalEndpoint = (!java.util.Objects.equals(method, null)) && (((String)method).indexOf("GetHistoricalTrades") >= 0);
-                Integer maxLimitForContractHistorical = ((Boolean.TRUE.equals(isHistoricalEndpoint))) ? 500 : 1000;
-                request.put("limit", (((java.util.Objects.equals(isFutureOrSwap, true)))) ? Helpers.mathMin(limit, maxLimitForContractHistorical) : limit); // default = 500, maximum = 1000
+                Long maxLimitForContractHistorical = ((Boolean.TRUE.equals(isHistoricalEndpoint))) ? 500L : 1000L;
+                request.put("limit", (((java.util.Objects.equals(isFutureOrSwap, true)))) ? Math.min(limit, maxLimitForContractHistorical) : limit); // default = 500, maximum = 1000
             }
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until", "fetchTradesMethod")));
             if (java.util.Objects.equals(method, null))
@@ -11381,15 +11381,15 @@ public class Binance extends BinanceApi
             }
             Boolean isContractLimit = (java.util.Objects.equals(type, "option")) || Boolean.TRUE.equals((this.safeBool(market, "contract", false)));
             // above 1000, returns error
-            Object limitContract = limit;
+            Long limitContract = limit;
             if (!java.util.Objects.equals(limit, null) && Boolean.TRUE.equals(isContractLimit))
             {
                 limitContract = Math.min(limit, 1000);
             }
-            Object limitResolved = limitContract;
+            Long limitResolved = limitContract;
             if (!java.util.Objects.equals(limitContract, null) && java.util.Objects.equals(stock, true))
             {
-                limitResolved = Helpers.mathMin(limitContract, 100);
+                limitResolved = Math.min(limitContract, 100L);
             }
             if (!java.util.Objects.equals(limitResolved, null))
             {
@@ -11626,7 +11626,7 @@ public class Binance extends BinanceApi
                     responseList = this.toArray(response);
                 }
             }
-            return this.parseTrades(responseList, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(responseList, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

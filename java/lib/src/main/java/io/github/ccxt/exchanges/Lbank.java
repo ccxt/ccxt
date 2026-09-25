@@ -1431,7 +1431,7 @@ public class Lbank extends LbankApi
             Map<String, Object> market = this.market(symbol);
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : Math.min(limit, 2000);
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? (Helpers.subtract(this.milliseconds(), (Helpers.multiply((((long) duration) * 1000L), limitResolved)))) : since;
+            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? (Helpers.subtract(this.milliseconds(), (((((long) duration) * 1000L) * limitResolved)))) : since;
             Long parsedSince = this.parseToInt(Helpers.divide(sinceResolved, 1000));
             Object parsedLimit = Helpers.mathMin(Helpers.add(limitResolved, 1), 2000); // max 2000;
             Map<String, Object> request = new HashMap<String, Object>() {{

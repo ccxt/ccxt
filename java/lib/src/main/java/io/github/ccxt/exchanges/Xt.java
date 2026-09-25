@@ -1945,11 +1945,11 @@ public class Xt extends XtApi
                 Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
                 request.put("startTime", Helpers.multiply(Math.ceil(Double.parseDouble(String.valueOf((((double) since) / ((double) duration))))), duration));
             }
-            Object limitResolved = limit;
+            Long limitResolved = limit;
             if (!java.util.Objects.equals(limit, null))
             {
-                Integer maxLimit = (((java.util.Objects.equals(market.get("spot"), true)))) ? 1000 : 1500; // spot : derivatives max limit
-                limitResolved = Helpers.mathMin(limit, maxLimit);
+                Long maxLimit = (((java.util.Objects.equals(market.get("spot"), true)))) ? 1000L : 1500L; // spot : derivatives max limit
+                limitResolved = Math.min(limit, maxLimit);
                 request.put("limit", limitResolved);
             } else
             {
@@ -2014,7 +2014,7 @@ public class Xt extends XtApi
             //     }
             //
             List<Object> ohlcvs = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

@@ -4560,14 +4560,14 @@ public class Coinbase extends CoinbaseApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Integer maxLimit = 300;
-            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Helpers.mathMin(limit, maxLimit);
+            Long maxLimit = 300L;
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Math.min(limit, maxLimit);
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, Helpers.toLongOrNull(limitValue), java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, Helpers.toLongOrNull((((long) maxLimit) - 1L)))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitValue, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, Helpers.toLongOrNull((((long) maxLimit) - 1L)))).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4577,7 +4577,7 @@ public class Coinbase extends CoinbaseApi
             Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end");
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object requestedDuration = Helpers.multiply(limitValue, duration);
+            Object requestedDuration = (limitValue * duration);
             String sinceString = null;
             if (!java.util.Objects.equals(since, null))
             {
@@ -4622,7 +4622,7 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             List<Object> candles = (List<Object>) this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitValue), false);
+            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitValue, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

@@ -972,7 +972,7 @@ public class Btse extends BtseApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, maxLimit));
+                request.put("limit", Math.min(limit, maxLimit));
             } else
             {
                 // the endpoint returns only 10 candles when the limit is omitted

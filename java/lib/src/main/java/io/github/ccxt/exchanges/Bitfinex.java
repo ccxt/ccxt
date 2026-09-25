@@ -1985,7 +1985,7 @@ public class Bitfinex extends BitfinexApi
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 10000L)).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object limitResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(limit, 100L), null)))) ? 10000 : Helpers.mathMin(java.util.Objects.requireNonNullElse(limit, 100L), 10000);
+            Long limitResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(limit, 100L), null)))) ? 10000L : Math.min(java.util.Objects.requireNonNullElse(limit, 100L), 10000L);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "timeframe", Bitfinex.this.safeString(Bitfinex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
@@ -2007,7 +2007,7 @@ public class Bitfinex extends BitfinexApi
             //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
             //     ]
             //
-            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

@@ -3819,15 +3819,15 @@ public class Okx extends OkxApi
             String timezone = this.safeString(options, "timezone", "UTC");
             Boolean limitIsUndefined = (java.util.Objects.equals(limit, null));
             // default 100, max 300, only 100 if 'mark' or 'index'
-            Integer requestMaxLimit = 300;
+            Long requestMaxLimit = 300L;
             if (isMarkOrIndex)
             {
-                requestMaxLimit = 100;
+                requestMaxLimit = 100L;
             }
-            Object limitResolved = 100;
+            Long limitResolved = 100L;
             if (!java.util.Objects.equals(limit, null))
             {
-                limitResolved = Helpers.mathMin(limit, requestMaxLimit);
+                limitResolved = Math.min(limit, requestMaxLimit);
             }
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String bar = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -3850,12 +3850,12 @@ public class Okx extends OkxApi
                 if ((historyBorder != null && since < historyBorder))
                 {
                     defaultType = "HistoryCandles";
-                    Integer maxLimit = ((isMarkOrIndex)) ? 100 : 300;
-                    limitResolved = Helpers.mathMin(limitResolved, maxLimit);
+                    Long maxLimit = ((isMarkOrIndex)) ? 100L : 300L;
+                    limitResolved = Math.min(limitResolved, maxLimit);
                 }
                 Object startTime = Math.max((since - 1L), 0);
                 request.put("before", startTime);
-                request.put("after", this.sum(since, Helpers.multiply(durationInMilliseconds, limitResolved)));
+                request.put("after", this.sum(since, (durationInMilliseconds * limitResolved)));
             }
             Long until = this.safeInteger(paramsPrice, "until");
             if (!java.util.Objects.equals(until, null))
@@ -3893,7 +3893,7 @@ public class Okx extends OkxApi
                 {
                     if (Boolean.TRUE.equals(limitIsUndefined) && (Helpers.isEqual(limitResolved, 100)))
                     {
-                        limitResolved = 300;
+                        limitResolved = 300L;
                         request.put("limit", 300); // reassign to 300, but this whole logic needs to be simplified...
                     }
                     response = (this.publicGetMarketHistoryCandles(this.extend(request, paramsType))).join();
@@ -3914,7 +3914,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -5965,7 +5965,7 @@ public class Okx extends OkxApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
+                request.put("limit", Math.min(limit, maxLimit)); // default 100, max 100
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOpenOrders", new HashMap<String, Object>() {{}});
             Map<String, Object> algoOrderTypes = (Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});
@@ -6346,7 +6346,7 @@ public class Okx extends OkxApi
             request.put("instType", this.convertToInstrumentType(type));
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
+                request.put("limit", Math.min(limit, maxLimit)); // default 100, max 100
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchClosedOrders", new HashMap<String, Object>() {{}});
             Map<String, Object> algoOrderTypes = (Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});

@@ -2954,7 +2954,7 @@ public class Limitless extends LimitlessApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, maxLimit));
+                request.put("limit", Math.min(limit, maxLimit));
             }
             Map<String, Object> response = (this.limitlessPrivateGetPortfolioHistory(this.extend(request, paramsValue))).join();
             //

@@ -2033,7 +2033,7 @@ public class Bitstamp extends BitstampApi
                     request.put("end", end);
                     request.put("start", Helpers.subtract(Helpers.subtract(end, ((duration * limitResolved))), 1));
                 }
-                request.put("limit", Helpers.mathMin(limitResolved, 1000)); // min 1, max 1000
+                request.put("limit", Math.min(limitResolved, 1000L)); // min 1, max 1000
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             Map<String, Object> response = (this.publicGetOhlcPair(this.extend(request, paramsOmitted))).join();

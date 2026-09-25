@@ -4626,8 +4626,8 @@ public class Gate extends GateApi
             var request = ((List<Object>) requestparamsRequestVariable).get(0);
             var paramsRequest = ((List<Object>) requestparamsRequestVariable).get(1);
             ((Map<String, Object>)request).put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
-            Integer maxLimit = (((java.util.Objects.equals(market.get("contract"), true)))) ? 1999 : 1000;
-            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Helpers.mathMin(limit, maxLimit);
+            Long maxLimit = (((java.util.Objects.equals(market.get("contract"), true)))) ? 1999L : 1000L;
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Math.min(limit, maxLimit);
             Long until = this.safeInteger(paramsRequest, "until");
             if (!java.util.Objects.equals(until, null))
             {
@@ -4682,7 +4682,7 @@ public class Gate extends GateApi
             {
                 response = (this.publicSpotGetCandlesticks(this.extend(request, paramsOmitted))).join();
             }
-            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitValue), false);
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitValue, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

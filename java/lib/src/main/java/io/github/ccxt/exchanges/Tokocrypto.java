@@ -1643,12 +1643,12 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> market = this.market(symbol);
             // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
             // the reality is that the time range wider than 500 candles won't work right
-            Integer defaultLimit = 500;
-            Integer maxLimit = 1500;
+            Long defaultLimit = 500L;
+            Long maxLimit = 1500L;
             String price = this.safeString(parameters, "price");
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
-            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : Helpers.mathMin(limit, maxLimit);
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : Math.min(limit, maxLimit);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "interval", Tokocrypto.this.safeString(Tokocrypto.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
                 put( "limit", limitValue );
@@ -1726,7 +1726,7 @@ public class Tokocrypto extends TokocryptoApi
                     data = this.safeList(dataDict, "list", new ArrayList<Object>(Arrays.asList()));
                 }
             }
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitValue), false);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitValue, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

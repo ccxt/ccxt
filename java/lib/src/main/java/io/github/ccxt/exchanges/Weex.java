@@ -3587,7 +3587,7 @@ public class Weex extends WeexApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, maxLimit));
+                request.put("limit", Math.min(limit, maxLimit));
             }
             io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();

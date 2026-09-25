@@ -1289,19 +1289,19 @@ public class Bitvavo extends BitvavoApi
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             request.put("start", since);
             Long sinceLimit = (((java.util.Objects.equals(limit, null)))) ? 1440L : Math.min(limit, 1440);
-            request.put("end", this.sum(since, Helpers.multiply(Helpers.multiply(sinceLimit, duration), 1000)));
+            request.put("end", this.sum(since, ((sinceLimit * duration) * 1000L)));
         }
         io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-        Object limitResolved = limit;
+        Long limitResolved = limit;
         if ((!java.util.Objects.equals(since, null)) && (java.util.Objects.equals(limit, null)))
         {
-            limitResolved = 1440;
+            limitResolved = 1440L;
         }
         if (!java.util.Objects.equals(limitResolved, null))
         {
-            ((Map<String, Object>)requestUntil).put("limit", Helpers.mathMin(limitResolved, 1440)); // default 1440, max 1440
+            ((Map<String, Object>)requestUntil).put("limit", Math.min(limitResolved, 1440L)); // default 1440, max 1440
         }
         return this.extend(requestUntil, paramsUntil);
     }

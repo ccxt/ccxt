@@ -2374,9 +2374,9 @@ public class Whitebit extends WhitebitApi
                 put( "market", market.get("id") );
                 put( "interval", Whitebit.this.safeString(Whitebit.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
-            Integer maxLimit = 1440;
-            Object sinceLimit = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Helpers.mathMin(limit, maxLimit);
-            Object limitResolved = (((!java.util.Objects.equals(since, null)))) ? sinceLimit : limit;
+            Long maxLimit = 1440L;
+            Long sinceLimit = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Math.min(limit, maxLimit);
+            Long limitResolved = (((!java.util.Objects.equals(since, null)))) ? sinceLimit : limit;
             if (!java.util.Objects.equals(since, null))
             {
                 Long start = this.parseToInt((((double) since) / ((double) 1000)));
@@ -2384,7 +2384,7 @@ public class Whitebit extends WhitebitApi
             }
             if (!java.util.Objects.equals(limitResolved, null))
             {
-                request.put("limit", Helpers.mathMin(limitResolved, 1440));
+                request.put("limit", Math.min(limitResolved, 1440L));
             }
             Map<String, Object> response = (this.v1PublicGetKline(this.extend(request, parameters))).join();
             //
@@ -2399,7 +2399,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(result, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(result, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

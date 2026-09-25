@@ -3951,7 +3951,7 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(limit, 1000L), null))
             {
-                request.put("size", Helpers.mathMin(java.util.Objects.requireNonNullElse(limit, 1000L), 2000)); // max 2000
+                request.put("size", Math.min(java.util.Objects.requireNonNullElse(limit, 1000L), 2000L)); // max 2000
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("future"), true))
