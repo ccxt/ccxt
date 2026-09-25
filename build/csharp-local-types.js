@@ -14768,6 +14768,14 @@ export function installCsharpNumericComparisons (transpiler) {
 // at every listed position, 0 exceptions over 3220 declarations + the non-table ones).
 // Answering the same (method, position) pair here is therefore the declaration's own type, and the
 // existing operators / helpers can replace their runtime call with the native one.
+// `sign()` / `handleErrors()` positions every declaration prints narrowed (retypeSignatureArgs in
+// build/csharpTranspiler.ts, no shadow: every body write is a literal or a same-typed producer).
+// `sign` headers (4) stay object: prediction overrides write an `object existingHeaders` into it.
+export const SIGNATURE_ARG_TYPES = {
+    'sign': { 2: 'string' },
+    'handleErrors': { 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
+};
+
 function coreArgParamType (csharp, node) {
     if (node === undefined || node.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
@@ -14789,6 +14797,13 @@ function coreArgParamType (csharp, node) {
         return undefined;
     }
     const name = owner.name?.escapedText;
+    const signature = SIGNATURE_ARG_TYPES[name];
+    if (signature !== undefined) {
+        const at = owner.parameters.indexOf (declaration);
+        if ((at >= 0) && (signature[at] !== undefined)) {
+            return signature[at];
+        }
+    }
     const strings = CORE_STRING_ARGS[name];
     const numerics = CORE_NUMERIC_ARGS[name];
     if (strings === undefined && numerics === undefined) {

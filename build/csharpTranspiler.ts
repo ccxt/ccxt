@@ -9,7 +9,7 @@ import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
-import { PARAMETERS_ARG_TYPED_METHODS } from './csharp-local-types.js'
+import { PARAMETERS_ARG_TYPED_METHODS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
@@ -1986,10 +1986,8 @@ const WS_HANDLER_IDICT_MESSAGE: Record<string, string[]> = {
 // No `object <name>Var` shadow (unlike typeCoreArgs): every write in the 202 bodies is a literal
 // or a `Dictionary<string, object>` producer, so the narrowed declaration keeps the bodies
 // byte-identical, and the 8 `add (method, …)` sites pass a static string or a literal.
-const SIGNATURE_ARG_TYPES: Record<string, Record<number, string>> = {
-    'sign': { 2: 'string', 4: 'Dictionary<string, object>' },
-    'handleErrors': { 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
-};
+// the table lives in build/csharp-local-types.js so the printer reads these positions typed too
+
 
 // S43 pilot: method names whose trailing `parameters` argument is retyped to
 // `Dictionary<string, object> parameters = null`. C# overrides are invariant on parameter types,
@@ -5134,17 +5132,18 @@ class NewTranspiler {
     // declaration because every write is a literal or a `Dictionary<string, object>` producer.
     retypeSignatureArgs (content: string): string {
         const names = Object.keys (SIGNATURE_ARG_TYPES);
-        if (!names.some (name => content.includes (' object ' + name + '('))) {
+        if (!names.some (name => content.includes (' ' + name + '('))) {
             return content;
         }
-        const sigRe = /^(\s*)public (virtual|override) object (sign|handleErrors)\((.*)\)\s*$/;
+        // any return type: sign() returns the request dictionary (CSHARP_METHOD_RETURN_TYPES)
+        const sigRe = /^(\s*)public (virtual|override) ([\w<>., ?]+) (sign|handleErrors)\((.*)\)\s*$/;
         const lines = content.split ('\n');
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);
             if (sig === null) {
                 continue;
             }
-            const [ , indent, modifier, methodName, plist ] = sig;
+            const [ , indent, modifier, returnType, methodName, plist ] = sig;
             const positions = SIGNATURE_ARG_TYPES[methodName];
             const params = this.splitCsharpParams (plist);
             let changed = false;
@@ -5159,7 +5158,7 @@ class NewTranspiler {
                 changed = true;
             }
             if (changed) {
-                lines[i] = `${indent}public ${modifier} object ${methodName}(${params.join (',')})`;
+                lines[i] = `${indent}public ${modifier} ${returnType} ${methodName}(${params.join (',')})`;
             }
         }
         return lines.join ('\n');
