@@ -11990,6 +11990,7 @@ export function installJavaNullScalarLocalTypes (transpiler) {
         return;
     }
     printer._javaNullScalarPatched = true;
+    const retyped = new WeakMap ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = upstream (node, identation);
@@ -12010,8 +12011,14 @@ export function installJavaNullScalarLocalTypes (transpiler) {
         } catch (e) {
             return printed;
         }
-        return type === undefined ? printed : printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
+        if (type === undefined) {
+            return printed;
+        }
+        retyped.set (declaration, type);
+        return printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
     };
+    // this section retypes after the declared-local observer: publish so core-argument conversions see it
+    publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
 }
 
 // ===== 25. omit of a Map =====
