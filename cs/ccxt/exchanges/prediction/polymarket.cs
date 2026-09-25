@@ -2756,7 +2756,7 @@ public partial class polymarket : PredictionExchange
         };
     }
 
-    public virtual string signClobOrder(object message, object exchangeAddress, object domainVersion, object sigType)
+    public virtual string signClobOrder(IDictionary<string, object> message, object exchangeAddress, object domainVersion, object sigType)
     {
         // param is sigType, not signatureType: the php regex transpiler would rewrite the
         // substring "signatureType" inside the orderTypeString literal below into the local
@@ -2825,7 +2825,7 @@ public partial class polymarket : PredictionExchange
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         byte[] orderTypeHash = ((byte[])this.hash(this.encode(orderTypeString), keccak, "binary"));
-        object contentsData = this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32"}, new List<object>() {orderTypeHash, this.convertToBigInt(getValue(message, "salt")), getValue(message, "maker"), getValue(message, "signer"), this.convertToBigInt(getValue(message, "tokenId")), this.convertToBigInt(getValue(message, "makerAmount")), this.convertToBigInt(getValue(message, "takerAmount")), getValue(message, "side"), getValue(message, "signatureType"), this.convertToBigInt(getValue(message, "timestamp")), this.base16ToBinary(this.remove0xPrefix(getValue(message, "metadata"))), this.base16ToBinary(this.remove0xPrefix(getValue(message, "builder")))});
+        object contentsData = this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32"}, new List<object>() {orderTypeHash, this.convertToBigInt((message != null && message.ContainsKey("salt") ? message["salt"] : null)), (message != null && message.ContainsKey("maker") ? message["maker"] : null), (message != null && message.ContainsKey("signer") ? message["signer"] : null), this.convertToBigInt((message != null && message.ContainsKey("tokenId") ? message["tokenId"] : null)), this.convertToBigInt((message != null && message.ContainsKey("makerAmount") ? message["makerAmount"] : null)), this.convertToBigInt((message != null && message.ContainsKey("takerAmount") ? message["takerAmount"] : null)), (message != null && message.ContainsKey("side") ? message["side"] : null), (message != null && message.ContainsKey("signatureType") ? message["signatureType"] : null), this.convertToBigInt((message != null && message.ContainsKey("timestamp") ? message["timestamp"] : null)), this.base16ToBinary(this.remove0xPrefix((message != null && message.ContainsKey("metadata") ? message["metadata"] : null))), this.base16ToBinary(this.remove0xPrefix((message != null && message.ContainsKey("builder") ? message["builder"] : null)))});
         string contentsHash = ("0x" + (this.hash(contentsData, keccak, "hex")));
         byte[] domainTypeHash = ((byte[])this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak, "binary"));
         byte[] nameHash = ((byte[])this.hash(this.encode(domainName), keccak, "binary"));
@@ -2857,7 +2857,7 @@ public partial class polymarket : PredictionExchange
             { "name", "DepositWallet" },
             { "version", "1" },
             { "chainId", chainIdValue },
-            { "verifyingContract", getValue(message, "signer") },
+            { "verifyingContract", (message != null && message.ContainsKey("signer") ? message["signer"] : null) },
             { "salt", bytes32Zero },
         };
         byte[] innerEncoded = this.ethEncodeStructuredData(orderDomain, new Dictionary<string, object>() {
@@ -3552,7 +3552,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [params.nonce] the nonce used to derive the credentials, defaults to 0
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public async virtual Task<Dictionary<string, object>> deriveApiKey(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> deriveApiKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.clobPrivateGetAuthDeriveApiKey(parameters);
@@ -3568,7 +3568,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [params.nonce] the nonce used to create the credentials, defaults to 0
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public async virtual Task<Dictionary<string, object>> CreateApiKey(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateApiKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.clobPrivatePostAuthApiKey(parameters);
@@ -3583,7 +3583,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public async virtual Task<Dictionary<string, object>> CreateOrDeriveApiKey(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateOrDeriveApiKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object creds = null;
@@ -3601,7 +3601,7 @@ public partial class polymarket : PredictionExchange
         return ccxt.BaseExchange.ToDict(creds);
     }
 
-    public virtual Dictionary<string, object> setApiCredentials(object response)
+    public virtual Dictionary<string, object> setApiCredentials(IDictionary<string, object> response)
     {
         //
         //     { "apiKey": "...", "secret": "...", "passphrase": "..." }

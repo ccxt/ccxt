@@ -1274,7 +1274,7 @@ public partial class zebpay : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual List<object> orderRequest(string? symbol, string? type, object amount, object request, object price = null, object parameters = null)
+    public virtual List<object> orderRequest(string? symbol, string? type, object amount, IDictionary<string, object> request, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string upperCaseType = type.ToUpper();
@@ -1283,24 +1283,24 @@ public partial class zebpay : Exchange
         string? timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         string? clientOrderId = this.safeString(parameters, "clientOrderId", this.uuid());
         object paramsOmitted = this.omit(parameters, new List<object>() {"stopLossPrice", "cost", "timeInForce", "clientOrderId"});
-        ((IDictionary<string,object>)request)["type"] = upperCaseType;
-        ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
-        ((IDictionary<string,object>)request)["timeInForce"] = timeInForce;
+        request["type"] = upperCaseType;
+        request["clientOrderId"] = clientOrderId;
+        request["timeInForce"] = timeInForce;
         if (upperCaseType == "MARKET")
         {
             if ((quoteOrderQty == null))
             {
                 throw new ExchangeError ((this.id + " spot market orders require cost in params")) ;
             }
-            ((IDictionary<string,object>)request)["quoteOrderAmount"] = this.costToPrecision(symbol, quoteOrderQty);
+            request["quoteOrderAmount"] = this.costToPrecision(symbol, quoteOrderQty);
         } else
         {
             if ((triggerPrice != null))
             {
-                ((IDictionary<string,object>)request)["stopLossPrice"] = this.priceToPrecision(symbol, triggerPrice);
+                request["stopLossPrice"] = this.priceToPrecision(symbol, triggerPrice);
             }
-            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            request["amount"] = this.amountToPrecision(symbol, amount);
+            request["price"] = this.priceToPrecision(symbol, price);
         }
         return new List<object>() {request, paramsOmitted};
     }

@@ -1085,7 +1085,7 @@ public partial class onetrading : ccxt.onetrading
         return this.safeString(statuses, status, status);
     }
 
-    public virtual void updateBalance(object balance)
+    public virtual void updateBalance(IDictionary<string, object> balance)
     {
         //
         //     {
@@ -1397,7 +1397,7 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public async virtual Task<object> watchMany(object messageHash, object request, object subscriptionHash, object symbols = null, object parameters = null)
+    public async virtual Task<object> watchMany(object messageHash, IDictionary<string, object> request, object subscriptionHash, object symbols = null, object parameters = null)
     {
         symbols ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
@@ -1444,8 +1444,8 @@ public partial class onetrading : ccxt.onetrading
             object marketId = marketIds[i];
             subscription[(string)marketId] = true;
         }
-        ((IDictionary<string,object>)request)["type"] = type;
-        ((IDictionary<string,object>)getValue(getValue(request, "channels"), 0))["instrument_codes"] = new List<object>(((IDictionary<string,object>)subscription).Keys);
+        request["type"] = type;
+        ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("channels") ? request["channels"] : null), 0))["instrument_codes"] = new List<object>(((IDictionary<string,object>)subscription).Keys);
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription);
     }
 

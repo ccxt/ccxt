@@ -694,7 +694,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(IDictionary<string, object> ticker, object market = null)
     {
         //
         //     {
@@ -801,7 +801,7 @@ public partial class cryptocom : ccxt.cryptocom
         client.resolve(parsedTicker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "i");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -1438,7 +1438,7 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public async virtual Task<object> unWatchPublicMultiple(object topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, IList<object> topics, object parameters = null, object subExtend = null)
+    public async virtual Task<object> unWatchPublicMultiple(object topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, IList<object> topics, object parameters = null, IDictionary<string, object>? subExtend = null)
     {
         parameters ??= new Dictionary<string, object>();
         subExtend ??= new Dictionary<string, object>();
@@ -1463,7 +1463,7 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtend));
     }
 
-    public async virtual Task<object> watchPrivateRequest(object nonce, object parameters = null)
+    public async virtual Task<object> watchPrivateRequest(object nonce, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -1628,7 +1628,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

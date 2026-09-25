@@ -1728,7 +1728,7 @@ public partial class phemex : ccxt.phemex
         return await this.watch(url, messageHash, request, channel);
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

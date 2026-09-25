@@ -888,7 +888,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public async virtual Task<object> watchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public async virtual Task<object> watchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, IDictionary<string, object> subscription)
     {
         IDictionary<string, object> parameters = this.safeDict(subscription, "params");
         // multi-symbol watches share one subscription object without a marketId,
@@ -1007,7 +1007,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public async virtual Task<object> unWatchChannels(object topic, IList<object> channels, object subMessageHashes, object subscriptionArgs, object parameters = null)
+    public async virtual Task<object> unWatchChannels(object topic, IList<object> channels, object subMessageHashes, IDictionary<string, object> subscriptionArgs, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -1973,7 +1973,7 @@ public partial class bitvavo : ccxt.bitvavo
         return message;
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));

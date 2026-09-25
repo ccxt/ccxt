@@ -809,7 +809,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] the outcome the quote belongs to
      * @returns {object} a quote object
      */
-    public virtual Dictionary<string, object> parseTradeQuote(Dictionary<string, object> quote, object market = null)
+    public virtual Dictionary<string, object> parseTradeQuote(IDictionary<string, object> quote, object market = null)
     {
         //
         //     {
@@ -1301,7 +1301,7 @@ public partial class myriad : PredictionExchange
      * @description EIP-712 signs an order-book typed-data message with the wallet private key (returns a 65-byte 0x signature)
      * @returns {string} the hex signature
      */
-    public virtual string signOrderbookTypedData(object types, object message, object networkId)
+    public virtual string signOrderbookTypedData(IDictionary<string, object> types, IDictionary<string, object> message, object networkId)
     {
         IDictionary<string, object> chains = this.safeDict(this.options, "chains", new Dictionary<string, object>() {});
         IDictionary<string, object> chainConfig = this.safeDict(chains, networkId, new Dictionary<string, object>() {});
@@ -1337,7 +1337,7 @@ public partial class myriad : PredictionExchange
      * @description EIP-712 signs the order-book Order struct
      * @returns {string} the hex signature
      */
-    public virtual string signClobOrder(object message, object networkId)
+    public virtual string signClobOrder(IDictionary<string, object> message, object networkId)
     {
         List<object> orderStruct = new List<object>() {new Dictionary<string, object>() {
     { "name", "trader" },
@@ -1379,7 +1379,7 @@ public partial class myriad : PredictionExchange
      * @description EIP-712 signs the order-book CancelAll struct
      * @returns {string} the hex signature
      */
-    public virtual string signCancelAll(object message, object networkId)
+    public virtual string signCancelAll(IDictionary<string, object> message, object networkId)
     {
         List<object> cancelStruct = new List<object>() {new Dictionary<string, object>() {
     { "name", "trader" },
@@ -1403,7 +1403,7 @@ public partial class myriad : PredictionExchange
      * @description normalises a fetched order-book order into a typed-data message (uint256 fields as strings, uint8 fields as ints)
      * @returns {object} the typed-data message
      */
-    public virtual Dictionary<string, object> clobOrderMessage(object rawOrder)
+    public virtual Dictionary<string, object> clobOrderMessage(IDictionary<string, object> rawOrder)
     {
         string? signer = this.safeString2(rawOrder, "trader", "user");
         if ((this.privateKey != null))
@@ -2220,7 +2220,7 @@ public partial class myriad : PredictionExchange
         return ccxt.BaseExchange.ToPredictionTradeList(this.filterByValueSinceLimit(trades, "outcome", outcome, since, limit, "timestamp", true));
     }
 
-    public virtual object orderToTrade(object order)
+    public virtual object orderToTrade(IDictionary<string, object> order)
     {
         Int64? timestamp = this.safeInteger(order, "timestamp");
         string? orderType = this.safeString(order, "type");
@@ -3016,7 +3016,7 @@ public partial class myriad : PredictionExchange
      * @param {string} outcome the unified outcome of the order book
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public virtual object parseWeiOrderBook(Dictionary<string, object> response, object outcome)
+    public virtual object parseWeiOrderBook(IDictionary<string, object> response, object outcome)
     {
         IList<object> rawBids = (IList<object>)(this.safeList(response, "bids", new List<object>() {}));
         IList<object> rawAsks = (IList<object>)(this.safeList(response, "asks", new List<object>() {}));

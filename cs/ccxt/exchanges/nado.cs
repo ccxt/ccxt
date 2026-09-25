@@ -3254,7 +3254,7 @@ public partial class nado : Exchange
         return slice(padded, 0, length);
     }
 
-    public virtual string? signOrder(object order, object productId, object chainId)
+    public virtual string? signOrder(IDictionary<string, object> order, object productId, object chainId)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3288,7 +3288,7 @@ public partial class nado : Exchange
         return ((string?)((object)(this.signHash(hash, this.privateKey))));
     }
 
-    public virtual object signCancellation(object cancellation, object chainId, object endpointAddress)
+    public virtual object signCancellation(IDictionary<string, object> cancellation, object chainId, object endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3316,7 +3316,7 @@ public partial class nado : Exchange
         return this.signHash(hash, this.privateKey);
     }
 
-    public virtual object signCancellationProducts(object cancellation, object chainId, object endpointAddress)
+    public virtual object signCancellationProducts(IDictionary<string, object> cancellation, object chainId, object endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3341,7 +3341,7 @@ public partial class nado : Exchange
         return this.signHash(hash, this.privateKey);
     }
 
-    public virtual object signFetchTriggerOrders(object tx, object chainId, object endpointAddress)
+    public virtual object signFetchTriggerOrders(IDictionary<string, object> tx, object chainId, object endpointAddress)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },

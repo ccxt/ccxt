@@ -1109,7 +1109,7 @@ public partial class bitfinex : Exchange
         return ((IDictionary<string, object>)((object)(this.parseCurrenciesCustom(ids, indexed, indexedNetworks))));
     }
 
-    public virtual Dictionary<string, object> parseCurrenciesCustom(object ids, object indexed, object indexedNetworks)
+    public virtual Dictionary<string, object> parseCurrenciesCustom(object ids, IDictionary<string, object> indexed, IDictionary<string, object> indexedNetworks)
     {
         List<object> allowedIds = new List<object>() {};
         for (int i = 0; i < getArrayLength(ids); i++)
@@ -1132,19 +1132,19 @@ public partial class bitfinex : Exchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseCurrencyCustom(object id, object indexed, object indexedNetworks)
+    public virtual Dictionary<string, object> parseCurrencyCustom(object id, IDictionary<string, object> indexed, IDictionary<string, object> indexedNetworks)
     {
         string? code = this.safeCurrencyCode(id);
-        List<object> label = this.safeList(getValue(indexed, "label"), id, new List<object>() {});
+        List<object> label = this.safeList((indexed != null && indexed.ContainsKey("label") ? indexed["label"] : null), id, new List<object>() {});
         string? name = this.safeString(label, 1);
-        List<object> pool = this.safeList(getValue(indexed, "pool"), id, new List<object>() {});
+        List<object> pool = this.safeList((indexed != null && indexed.ContainsKey("pool") ? indexed["pool"] : null), id, new List<object>() {});
         string? rawType = this.safeString(pool, 1);
-        bool isCryptoCoin = ((rawType != null)) || (inOp(getValue(indexed, "explorer"), id)); // "hacky" solution
+        bool isCryptoCoin = ((rawType != null)) || (inOp((indexed != null && indexed.ContainsKey("explorer") ? indexed["explorer"] : null), id)); // "hacky" solution
         string? type = isCryptoCoin ? "crypto" : null;
-        List<object> feeValues = this.safeList(getValue(indexed, "fees"), id, new List<object>() {});
+        List<object> feeValues = this.safeList((indexed != null && indexed.ContainsKey("fees") ? indexed["fees"] : null), id, new List<object>() {});
         List<object> fees = this.safeList(feeValues, 1, new List<object>() {});
         double? fee = this.safeNumber(fees, 1);
-        List<object> undl = this.safeList(getValue(indexed, "undl"), id, new List<object>() {});
+        List<object> undl = this.safeList((indexed != null && indexed.ContainsKey("undl") ? indexed["undl"] : null), id, new List<object>() {});
         string? defaultCurrencyPrecision = this.safeString(this.options, "defaultCurrencyPrecision", "8"); // kept here for backward-compatibility
         // numberToString instead of an `as string` cast: the describe() default for this option is the
         // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
@@ -1163,7 +1163,7 @@ public partial class bitfinex : Exchange
                 continue;
             }
             string? network = this.networkIdToCode(networkId, code);
-            List<object> dwStatuses = this.safeList(getValue(indexed, "statuses"), networkId, new List<object>() {});
+            List<object> dwStatuses = this.safeList((indexed != null && indexed.ContainsKey("statuses") ? indexed["statuses"] : null), networkId, new List<object>() {});
             if ((network != null))
             {
                 networks[(string)network] = new Dictionary<string, object>() {
@@ -1206,7 +1206,7 @@ public partial class bitfinex : Exchange
                 } },
             } },
             { "networks", networks },
-            { "margin", this.inArray(id, getValue(indexed, "marginables")) },
+            { "margin", this.inArray(id, (indexed != null && indexed.ContainsKey("marginables") ? indexed["marginables"] : null)) },
         });
     }
 
@@ -1405,7 +1405,7 @@ public partial class bitfinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? convertDerivativesId(Dictionary<string, object> currency, string? type)
+    public virtual string? convertDerivativesId(IDictionary<string, object> currency, string? type)
     {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
@@ -2530,7 +2530,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2556,7 +2556,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> FetchClosedOrder(string id, string symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchClosedOrder(string id, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {

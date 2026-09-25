@@ -1087,7 +1087,7 @@ public partial class whitebit : ccxt.whitebit
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<int> authenticate(object parameters = null)
+    public async virtual Task<int> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

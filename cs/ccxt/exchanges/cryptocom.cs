@@ -1944,7 +1944,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(result));
     }
 
-    public virtual Dictionary<string, object> createAdvancedOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createAdvancedOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -3546,7 +3546,7 @@ public partial class cryptocom : Exchange
      * @param {int} [params.type] 'future', 'option'
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4158,7 +4158,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(result));
     }
 
-    public virtual Dictionary<string, object> parseTradingFees(object response)
+    public virtual Dictionary<string, object> parseTradingFees(IDictionary<string, object> response)
     {
         //
         // {
@@ -4200,7 +4200,7 @@ public partial class cryptocom : Exchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
     {
         //
         // {

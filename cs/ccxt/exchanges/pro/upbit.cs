@@ -33,7 +33,7 @@ public partial class upbit : ccxt.upbit
         });
     }
 
-    public async virtual Task<object> watchPublicMultiple(object symbols, object channel, object parameters = null)
+    public async virtual Task<object> watchPublicMultiple(object symbols, object channel, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -370,7 +370,7 @@ public partial class upbit : ccxt.upbit
         client.resolve(ohlcv, messageHash);
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -396,7 +396,7 @@ public partial class upbit : ccxt.upbit
         return client;
     }
 
-    public async virtual Task<object> watchPrivate(object symbol, object channel, object messageHash, object parameters = null)
+    public async virtual Task<object> watchPrivate(object symbol, object channel, object messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();

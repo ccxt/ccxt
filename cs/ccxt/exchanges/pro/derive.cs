@@ -57,7 +57,7 @@ public partial class derive : ccxt.derive
         return newValue;
     }
 
-    public async virtual Task<object> watchPublic(object messageHash, object message, object subscription)
+    public async virtual Task<object> watchPublic(object messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = this.requestId(url);
@@ -351,7 +351,7 @@ public partial class derive : ccxt.derive
         return await this.unWatchPublic(messageHah, request, subscription);
     }
 
-    public async virtual Task<object> unWatchPublic(object messageHash, object message, object subscription)
+    public async virtual Task<object> unWatchPublic(object messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = this.requestId(url);
@@ -500,7 +500,7 @@ public partial class derive : ccxt.derive
         client.resolve(tradesArray, topic);
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -535,7 +535,7 @@ public partial class derive : ccxt.derive
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, object message, object subscription)
+    public async virtual Task<object> watchPrivate(object messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         await this.authenticate();
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));

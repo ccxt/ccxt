@@ -6480,11 +6480,11 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(data));
     }
 
-    public virtual object parseParams(object parameters)
+    public virtual object parseParams(IDictionary<string, object> parameters)
     {
         // const sortedParams = this.keysort (params);
         object copied = this.clone(parameters);
-        List<object> rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+        List<object> rawKeys = new List<object>(parameters.Keys);
         List<string> keys = this.sort(rawKeys);
         for (int i = 0; i < (keys?.Count ?? 0); i++)
         {
@@ -7041,7 +7041,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(commission, market));
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -7060,10 +7060,10 @@ public partial class bingx : Exchange
         };
     }
 
-    public virtual string? customEncode(object parameters)
+    public virtual string? customEncode(IDictionary<string, object> parameters)
     {
         // const sortedParams = this.keysort (params);
-        List<object> rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+        List<object> rawKeys = new List<object>(parameters.Keys);
         List<string> keys = this.sort(rawKeys);
         string? adjustedValue = null;
         object result = null;
