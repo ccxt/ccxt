@@ -961,7 +961,9 @@ class htx extends \ccxt\async\htx {
             $orderMessageHash = $this->safe_string($channelAndMessageHash, 1);
             // we will take advantage of the order messageHash because already handles stuff
             // like symbol/margin/subtype/type variations
-            $messageHash = $orderMessageHash . ':' . 'trade';
+            if ($orderMessageHash !== null) {
+                $messageHash = $orderMessageHash . ':' . 'trade';
+            }
         }
         $subscriptionParams = array(
             'isV5' => $isV5Linear,
@@ -1350,9 +1352,11 @@ class htx extends \ccxt\async\htx {
         $cachedOrders = $this->orders;
         $cachedOrders->append($parsedOrder);
         $client->resolve($this->orders, $messageHash);
-        if (($messageHash === 'orders') && ($marketId !== null)) {
-            $specificMessageHash = $messageHash . '.' . strtolower($marketId);
-            $client->resolve($this->orders, $specificMessageHash);
+        if (($messageHash !== null) && ($marketId !== null)) {
+            if ($messageHash === 'orders') {
+                $specificMessageHash = $messageHash . '.' . strtolower($marketId);
+                $client->resolve($this->orders, $specificMessageHash);
+            }
         }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here

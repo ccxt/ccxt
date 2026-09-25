@@ -463,11 +463,13 @@ class paradex extends \ccxt\async\paradex {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $channel = $this->safe_string($params, 'channel');
-        $messageHash = $channel . '.' . $symbol;
         $ticker = $this->parse_ticker($data, $market);
         $this->tickers[$symbol] = $ticker;
         $client->resolve($ticker, $channel);
-        $client->resolve($ticker, $messageHash);
+        if ($channel !== null) {
+            $messageHash = $channel . '.' . $symbol;
+            $client->resolve($ticker, $messageHash);
+        }
         return $message;
     }
 
@@ -577,8 +579,10 @@ class paradex extends \ccxt\async\paradex {
         $symbol = $fundingRate['symbol'];
         $this->fundingRates[$symbol] = $fundingRate;
         $channel = $this->safe_string($params, 'channel');
-        $messageHash = $channel . '.' . $symbol;
-        $client->resolve($fundingRate, $messageHash);
+        if ($channel !== null) {
+            $messageHash = $channel . '.' . $symbol;
+            $client->resolve($fundingRate, $messageHash);
+        }
     }
 
     public function parse_funding_rate_ws(array $contract, ?array $market = null): array {

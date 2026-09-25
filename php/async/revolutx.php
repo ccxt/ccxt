@@ -388,6 +388,9 @@ class revolutx extends Exchange {
             $market = $this->safe_dict($markets, $key, array());
             $base = $this->safe_string($market, 'base');
             $quote = $this->safe_string($market, 'quote');
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $marketId = $base . '-' . $quote;
             $marketData = $this->extend($market, array( 'id' => $marketId ));
             $result[] = $this->parse_market($marketData);

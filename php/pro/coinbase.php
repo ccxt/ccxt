@@ -518,9 +518,11 @@ class coinbase extends \ccxt\async\coinbase {
                     $this->tickers[$symbol] = $result;
                 }
                 $newTickers[] = $result;
-                $messageHash = $channel . '::' . $symbol;
-                $client->resolve($result, $messageHash);
-                $this->try_resolve_usdc($client, $messageHash, $result);
+                if ($channel !== null) {
+                    $messageHash = $channel . '::' . $symbol;
+                    $client->resolve($result, $messageHash);
+                    $this->try_resolve_usdc($client, $messageHash, $result);
+                }
             }
         }
     }

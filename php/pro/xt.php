@@ -826,8 +826,10 @@ class xt extends \ccxt\async\xt {
             $symbol = $fundingRate['symbol'];
             $this->fundingRates[$symbol] = $fundingRate;
             $event = $this->safe_string($message, 'event');
-            $messageHash = $event . '::contract';
-            $client->resolve($fundingRate, $messageHash);
+            if ($event !== null) {
+                $messageHash = $event . '::contract';
+                $client->resolve($fundingRate, $messageHash);
+            }
         }
         return $message;
     }
@@ -997,8 +999,10 @@ class xt extends \ccxt\async\xt {
             if ($isSpot) {
                 $messageHashTail = 'spot';
             }
-            $messageHash = $event . '::' . $messageHashTail;
-            $client->resolve($ticker, $messageHash);
+            if ($event !== null) {
+                $messageHash = $event . '::' . $messageHashTail;
+                $client->resolve($ticker, $messageHash);
+            }
         }
         return $message;
     }
@@ -1164,8 +1168,10 @@ class xt extends \ccxt\async\xt {
             }
             $stored->append($parsed);
             $event = $this->safe_string($message, 'event');
-            $messageHash = $event . '::' . $tradeType;
-            $client->resolve($stored, $messageHash);
+            if ($event !== null) {
+                $messageHash = $event . '::' . $tradeType;
+                $client->resolve($stored, $messageHash);
+            }
         }
         return $message;
     }
@@ -1220,8 +1226,10 @@ class xt extends \ccxt\async\xt {
                 $this->trades[$symbol] = $tradesArray;
             }
             $tradesArray->append($trade);
-            $messageHash = $event . '::' . $tradeType;
-            $client->resolve($tradesArray, $messageHash);
+            if ($event !== null) {
+                $messageHash = $event . '::' . $tradeType;
+                $client->resolve($tradesArray, $messageHash);
+            }
         }
         return $message;
     }

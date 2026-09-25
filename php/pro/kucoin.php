@@ -163,6 +163,9 @@ class kucoin extends \ccxt\async\kucoin {
             $firstInstanceServer = $this->safe_dict($instanceServers, 0);
             $pingInterval = $this->safe_integer($firstInstanceServer, 'pingInterval');
             $endpoint = $this->safe_string($firstInstanceServer, 'endpoint');
+            if ($endpoint === null) {
+                throw new ExchangeError($this->id . ' negotiate() $response has no websocket endpoint');
+            }
             $token = $this->safe_string($data, 'token');
             $result = $endpoint . '?' . $this->urlencode(array(
                 'token' => $token,

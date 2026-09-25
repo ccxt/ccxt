@@ -126,8 +126,10 @@ class hollaex extends \ccxt\async\hollaex {
             }
             $orderbook->reset($snapshot);
         }
-        $messageHash = $channel . ':' . $marketId;
-        $client->resolve($orderbook, $messageHash);
+        if ($channel !== null) {
+            $messageHash = $channel . ':' . $marketId;
+            $client->resolve($orderbook, $messageHash);
+        }
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -191,8 +193,10 @@ class hollaex extends \ccxt\async\hollaex {
         for ($j = 0; $j < count($parsedTrades); $j++) {
             $stored->append($parsedTrades[$j]);
         }
-        $messageHash = $channel . ':' . $marketId;
-        $client->resolve($stored, $messageHash);
+        if ($channel !== null) {
+            $messageHash = $channel . ':' . $marketId;
+            $client->resolve($stored, $messageHash);
+        }
         $client->resolve($stored, $channel);
     }
 
@@ -284,8 +288,10 @@ class hollaex extends \ccxt\async\hollaex {
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $marketId = $keys[$i];
-            $messageHash = $channel . ':' . $marketId;
-            $client->resolve($this->myTrades, $messageHash);
+            if ($channel !== null) {
+                $messageHash = $channel . ':' . $marketId;
+                $client->resolve($this->myTrades, $messageHash);
+            }
         }
     }
 
@@ -417,8 +423,10 @@ class hollaex extends \ccxt\async\hollaex {
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $marketId = $keys[$i];
-            $messageHash = $channel . ':' . $marketId;
-            $client->resolve($this->orders, $messageHash);
+            if ($channel !== null) {
+                $messageHash = $channel . ':' . $marketId;
+                $client->resolve($this->orders, $messageHash);
+            }
         }
     }
 

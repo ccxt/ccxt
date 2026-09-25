@@ -1603,6 +1603,9 @@ class gate extends \ccxt\async\gate {
             $side = $this->safe_string($position, 'side');
             // Control when position is closed no side is returned
             if ($side === null) {
+                if ($symbol === null) {
+                    continue;
+                }
                 $prevLongPosition = $this->safe_dict($cache, $symbol . 'long');
                 if ($prevLongPosition !== null) {
                     $position['side'] = $prevLongPosition['side'];

@@ -289,7 +289,7 @@ class bitbns extends Exchange {
             $quoteId = $this->safe_string($market, 'quote');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            if (($base === null) || ($quote === null)) {
+            if (($baseId === null) || ($base === null) || ($quote === null)) {
                 continue;
             }
             $marketPrecision = $this->safe_dict($market, 'precision', array());
