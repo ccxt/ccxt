@@ -1467,12 +1467,12 @@ func (this *Cex) HandleOHLCV(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cex) FetchOrderWsAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Cex) FetchOrderWsAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Cex) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Cex) fetchOrderWsBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1490,7 +1490,7 @@ func (this *Cex) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 	}
 	var data map[string]any = this.Extend(map[string]any{
-		"order_id": ccxt.ToString(id),
+		"order_id": id,
 	}, params)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash string = this.RequestId()
@@ -1633,12 +1633,12 @@ func (this *Cex) createOrderWsBody(ch chan any, symbol string, typeVar string, s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *Cex) EditOrderWsAsync(id any, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any {
+func (this *Cex) EditOrderWsAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Cex) editOrderWsBody(ch chan any, id any, symbol string, typeVar string, side string, optionalArgs ...any) any {
+func (this *Cex) editOrderWsBody(ch chan any, id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1692,12 +1692,12 @@ func (this *Cex) editOrderWsBody(ch chan any, id any, symbol string, typeVar str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cex) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Cex) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Cex) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Cex) cancelOrderWsBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)

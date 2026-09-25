@@ -2202,12 +2202,12 @@ func (this *Cex) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @param {string} [params.accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Cex) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Cex) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Cex) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

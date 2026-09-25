@@ -1686,12 +1686,12 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan any, ids any, optionalAr
 	ch <- this.ParseLedger(items)
 	return nil
 }
-func (this *Kraken) FetchLedgerEntryAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Kraken) FetchLedgerEntryAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchLedgerEntryBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchLedgerEntryBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Kraken) fetchLedgerEntryBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4041,12 +4041,12 @@ func (this *Kraken) AddPaginationCursorToResult(result any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Kraken) CreateDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Kraken) CreateDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kraken) createDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Kraken) createDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4069,12 +4069,12 @@ func (this *Kraken) createDepositAddressBody(ch chan any, code any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} of deposit methods
  */
-func (this *Kraken) FetchDepositMethodsAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Kraken) FetchDepositMethodsAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositMethodsBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchDepositMethodsBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Kraken) fetchDepositMethodsBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4126,12 +4126,12 @@ func (this *Kraken) fetchDepositMethodsBody(ch chan any, code any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Kraken) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Kraken) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Kraken) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4145,9 +4145,9 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	network = this.SafeString(networks, network, network) // support ETH > ERC20 aliases
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
-	var codeResolved any = code
-	if (IsEqual(code, "USDT")) && (network != nil && *network == "TRC20") {
-		codeResolved = Add(Add(code, "-"), network)
+	var codeResolved string = code
+	if (code == "USDT") && (network != nil && *network == "TRC20") {
+		codeResolved = code + "-" + *network
 	}
 	var defaultDepositMethods map[string]any = SafeMapTyped(this.Options, "depositMethods")
 	var defaultDepositMethod *string = this.SafeString(defaultDepositMethods, codeResolved)
@@ -4193,7 +4193,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	var result []any = SafeListTyped(response, "result")
 	var firstResult map[string]any = MapTyped(this.SafeDict(result, 0, map[string]any{}))
 	if firstResult == nil {
-		panic(InvalidAddress(Add(this.Id+" privatePostDepositAddresses() returned no addresses for ", codeResolved)))
+		panic(InvalidAddress(this.Id + " privatePostDepositAddresses() returned no addresses for " + codeResolved))
 	}
 
 	ch <- this.ParseDepositAddress(firstResult, currency)

@@ -7117,12 +7117,12 @@ func (this *Okx) ParseDepositAddress(depositAddress any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Okx) FetchDepositAddressesByNetworkAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Okx) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchDepositAddressesByNetworkBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Okx) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7177,12 +7177,12 @@ func (this *Okx) fetchDepositAddressesByNetworkBody(ch chan any, code any, optio
  * @param {string} [params.network] the network name for the deposit address
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Okx) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Okx) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Okx) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7196,7 +7196,7 @@ func (this *Okx) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	var codeValue *string = this.SafeCurrencyCode(code)
 	var network *string = this.NetworkIdToCode(rawNetwork, codeValue)
 
-	responseRaw := (<-this.FetchDepositAddressesByNetworkAsync(codeValue, paramsOmitted))
+	responseRaw := (<-this.FetchDepositAddressesByNetworkAsync(StringArg(codeValue), paramsOmitted))
 	PanicOnError(responseRaw)
 	var response any = responseRaw
 	if network != nil {
@@ -8460,12 +8460,12 @@ func (this *Okx) ParseTransferStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Okx) FetchTransferAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Okx) FetchTransferAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTransferBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchTransferBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Okx) fetchTransferBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -9347,12 +9347,12 @@ func (this *Okx) fetchCrossBorrowRatesBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func (this *Okx) FetchCrossBorrowRateAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Okx) FetchCrossBorrowRateAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchCrossBorrowRateBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Okx) fetchCrossBorrowRateBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10012,12 +10012,12 @@ func (this *Okx) ParseBorrowInterest(info any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Okx) BorrowCrossMarginAsync(code any, amount any, optionalArgs ...any) <-chan any {
+func (this *Okx) BorrowCrossMarginAsync(code string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.borrowCrossMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Okx) borrowCrossMarginBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+func (this *Okx) borrowCrossMarginBody(ch chan any, code string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10068,12 +10068,12 @@ func (this *Okx) borrowCrossMarginBody(ch chan any, code any, amount any, option
  * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Okx) RepayCrossMarginAsync(code any, amount any, optionalArgs ...any) <-chan any {
+func (this *Okx) RepayCrossMarginAsync(code string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.repayCrossMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Okx) repayCrossMarginBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+func (this *Okx) repayCrossMarginBody(ch chan any, code string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11176,12 +11176,12 @@ func (this *Okx) fetchOptionBody(ch chan any, symbol string, optionalArgs ...any
  * @param {string} [params.uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
  * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
-func (this *Okx) FetchOptionChainAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Okx) FetchOptionChainAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOptionChainBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchOptionChainBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Okx) fetchOptionChainBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11288,12 +11288,12 @@ func (this *Okx) ParseOption(chain any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func (this *Okx) FetchConvertQuoteAsync(fromCode any, toCode any, optionalArgs ...any) <-chan any {
+func (this *Okx) FetchConvertQuoteAsync(fromCode string, toCode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchConvertQuoteBody(ch, fromCode, toCode, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, optionalArgs ...any) any {
+func (this *Okx) fetchConvertQuoteBody(ch chan any, fromCode string, toCode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -11305,9 +11305,9 @@ func (this *Okx) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, op
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
-		"baseCcy":  ToUpper(fromCode),
-		"quoteCcy": ToUpper(toCode),
-		"rfqSzCcy": ToUpper(fromCode),
+		"baseCcy":  strings.ToUpper(fromCode),
+		"quoteCcy": strings.ToUpper(toCode),
+		"rfqSzCcy": strings.ToUpper(fromCode),
 		"rfqSz":    this.NumberToString(amount),
 		"side":     "sell",
 	}
@@ -11359,12 +11359,12 @@ func (this *Okx) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, op
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func (this *Okx) CreateConvertTradeAsync(id any, fromCode any, toCode any, optionalArgs ...any) <-chan any {
+func (this *Okx) CreateConvertTradeAsync(id string, fromCode string, toCode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createConvertTradeBody(ch, id, fromCode, toCode, optionalArgs...)
 	return ch
 }
-func (this *Okx) createConvertTradeBody(ch chan any, id any, fromCode any, toCode any, optionalArgs ...any) any {
+func (this *Okx) createConvertTradeBody(ch chan any, id string, fromCode string, toCode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -11428,12 +11428,12 @@ func (this *Okx) createConvertTradeBody(ch chan any, id any, fromCode any, toCod
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func (this *Okx) FetchConvertTradeAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Okx) FetchConvertTradeAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchConvertTradeBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Okx) fetchConvertTradeBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)

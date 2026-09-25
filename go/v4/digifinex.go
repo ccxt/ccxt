@@ -3544,12 +3544,12 @@ func (this *Digifinex) ParseDepositAddress(depositAddress any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Digifinex) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Digifinex) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3581,7 +3581,7 @@ func (this *Digifinex) fetchDepositAddressBody(ch chan any, code any, optionalAr
 	var addresses any = this.ParseDepositAddresses(data, []any{currency["code"]})
 	var address map[string]any = SafeMapTyped(addresses, code)
 	if address == nil {
-		panic(InvalidAddress(Add(Add(this.Id+" fetchDepositAddress() did not return an address for ", code), " - create the deposit address in the user settings on the exchange website first.")))
+		panic(InvalidAddress(this.Id + " fetchDepositAddress() did not return an address for " + code + " - create the deposit address in the user settings on the exchange website first."))
 	}
 
 	ch <- address
@@ -4100,12 +4100,12 @@ func (this *Digifinex) ParseBorrowInterest(info any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
  */
-func (this *Digifinex) FetchCrossBorrowRateAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) FetchCrossBorrowRateAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchCrossBorrowRateBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Digifinex) fetchCrossBorrowRateBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4143,7 +4143,7 @@ func (this *Digifinex) fetchCrossBorrowRateBody(ch chan any, code any, optionalA
 			}
 			return nil
 		}()
-		if IsEqual(this.SafeString(entry, "currency"), code) {
+		if this.SafeString(entry, "currency") != nil && *this.SafeString(entry, "currency") == code {
 			result = entry
 		}
 	}

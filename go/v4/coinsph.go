@@ -2759,12 +2759,12 @@ func (this *Coinsph) ParseTransactionStatus(status *string) *string {
  * @param {string} [params.network] network for fetch deposit address
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Coinsph) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Coinsph) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Coinsph) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Coinsph) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

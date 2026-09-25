@@ -699,12 +699,12 @@ func (this *Lighter) handleAccountIndexBody(ch chan any, params any, methodName1
 	ch <- []any{this.ParseToInt(accountIndex), paramsAccountIndex}
 	return nil
 }
-func (this *Lighter) CreateSubAccountAsync(name any, optionalArgs ...any) <-chan any {
+func (this *Lighter) CreateSubAccountAsync(name string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createSubAccountBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Lighter) createSubAccountBody(ch chan any, name any, optionalArgs ...any) any {
+func (this *Lighter) createSubAccountBody(ch chan any, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

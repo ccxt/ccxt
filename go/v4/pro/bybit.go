@@ -351,12 +351,12 @@ func (this *Bybit) createOrderWsBody(ch chan any, symbol string, typeVar string,
  * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'ccxt.LastPrice', default is 'ccxt.LastPrice', required if no initial value for takeProfit
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bybit) EditOrderWsAsync(id any, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any {
+func (this *Bybit) EditOrderWsAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bybit) editOrderWsBody(ch chan any, id any, symbol string, typeVar string, side string, optionalArgs ...any) any {
+func (this *Bybit) editOrderWsBody(ch chan any, id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -401,12 +401,12 @@ func (this *Bybit) editOrderWsBody(ch chan any, id any, symbol string, typeVar s
  * @param {string} [params.orderFilter] *spot only* 'ccxt.Order' or 'StopOrder' or 'tpslOrder'
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bybit) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Bybit) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bybit) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Bybit) cancelOrderWsBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)

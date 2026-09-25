@@ -1365,12 +1365,12 @@ func (this *Indodax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Indodax) FetchTransactionFeeAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Indodax) FetchTransactionFeeAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTransactionFeeBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Indodax) fetchTransactionFeeBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Indodax) fetchTransactionFeeBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1416,12 +1416,12 @@ func (this *Indodax) fetchTransactionFeeBody(ch chan any, code any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Indodax) FetchDepositWithdrawFeeAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Indodax) FetchDepositWithdrawFeeAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositWithdrawFeeBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Indodax) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Indodax) fetchDepositWithdrawFeeBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

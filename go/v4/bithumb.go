@@ -3697,12 +3697,12 @@ func (this *Bithumb) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.network] the blockchain network to create a deposit address on
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Bithumb) CreateDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Bithumb) CreateDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) createDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Bithumb) createDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3724,7 +3724,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan any, code any, optionalArg
 	var network *string = this.SafeString2(paramsGeneration, "network", "net_type")
 	var paramsOmitted any = this.Omit(paramsGeneration, "network")
 	if network == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", code), " createDepositAddress() requires a network parameter")))
+		panic(ArgumentsRequired(this.Id + " " + code + " createDepositAddress() requires a network parameter"))
 	}
 	request["net_type"] = network
 
@@ -3753,12 +3753,12 @@ func (this *Bithumb) createDepositAddressBody(ch chan any, code any, optionalArg
  * @param {string} [params.network] network for fetch deposit address
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Bithumb) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Bithumb) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Bithumb) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3780,7 +3780,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	var network *string = this.SafeString2(paramsGeneration, "network", "net_type")
 	var paramsOmitted any = this.Omit(paramsGeneration, "network")
 	if network == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", code), " fetchDepositAddress() requires a network parameter")))
+		panic(ArgumentsRequired(this.Id + " " + code + " fetchDepositAddress() requires a network parameter"))
 	}
 	request["net_type"] = network
 

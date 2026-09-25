@@ -2844,12 +2844,12 @@ func (this *Lbank) GetNetworkCodeForCurrency(currencyCode any, params any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Lbank) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Lbank) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Lbank) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2876,12 +2876,12 @@ func (this *Lbank) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 	ch <- response
 	return nil
 }
-func (this *Lbank) FetchDepositAddressDefaultAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Lbank) FetchDepositAddressDefaultAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressDefaultBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchDepositAddressDefaultBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Lbank) fetchDepositAddressDefaultBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2933,12 +2933,12 @@ func (this *Lbank) fetchDepositAddressDefaultBody(ch chan any, code any, optiona
 	}
 	return nil
 }
-func (this *Lbank) FetchDepositAddressSupplementAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Lbank) FetchDepositAddressSupplementAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressSupplementBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchDepositAddressSupplementBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Lbank) fetchDepositAddressSupplementBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// returns the address for whatever the default network is...

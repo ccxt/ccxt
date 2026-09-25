@@ -359,12 +359,12 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol string, typeVar stri
  * @param {string} [params.clientOrderId] client order id
  * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-func (this *Poloniex) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Poloniex) cancelOrderWsBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
