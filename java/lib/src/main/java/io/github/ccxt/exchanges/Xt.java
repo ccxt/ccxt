@@ -2017,7 +2017,7 @@ public class Xt extends XtApi
                 // window start return one pre-since candle, shifting paginated windows and
                 // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
                 Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
-                request.put("startTime", Helpers.multiply(Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(since, duration)))), duration));
+                request.put("startTime", Helpers.multiply(Math.ceil(Double.parseDouble(String.valueOf((((double) since) / ((double) duration))))), duration));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2187,14 +2187,14 @@ public class Xt extends XtApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("limit", Helpers.mathMin(limit, 500));
+                    request.put("limit", Math.min(limit, 500));
                 }
                 response = (this.publicSpotGetDepth(this.extend(request, parameters))).join();
             } else
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("level", Helpers.mathMin(limit, 50));
+                    request.put("level", Math.min(limit, 50));
                 } else
                 {
                     request.put("level", 50);
@@ -2760,14 +2760,14 @@ public class Xt extends XtApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("limit", Helpers.mathMin(limit, 1000));
+                    request.put("limit", Math.min(limit, 1000));
                 }
                 response = (this.publicSpotGetTradeRecent(this.extend(request, parameters))).join();
             } else
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("num", Helpers.mathMin(limit, 1000));
+                    request.put("num", Math.min(limit, 1000));
                 }
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
@@ -6452,7 +6452,7 @@ public class Xt extends XtApi
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(brackets, i);
             String marketId = this.safeString(info, "symbol");
             market = (Map<String, Object>) (this.safeMarket(marketId, market, "_", "contract"));
-            Double minNotional = this.safeNumber(Helpers.GetValue(brackets, Helpers.subtract(i, 1)), "maxNominalValue", 0);
+            Double minNotional = this.safeNumber(Helpers.GetValue(brackets, (((long) i) - 1L)), "maxNominalValue", 0);
 final Map<String, Object> finalMarket = market;
                         ((List<Object>)tiers).add(new HashMap<String, Object>() {{
                 put( "tier", Xt.this.safeInteger(tier, "bracket") );
@@ -8031,7 +8031,7 @@ final Map<String, Object> finalMarket = market;
                 {
                     throw new NullResponse((this.id + " sign() returned empty body")) ;
                 }
-                if (Helpers.isGreaterThan(Helpers.getIndexOf(payload, "future"), -1))
+                if (Helpers.getIndexOf(payload, "future") > -1)
                 {
                     Helpers.addElementToObject(body, "clientMedia", id);
                     if (java.util.Objects.equals(body, null))

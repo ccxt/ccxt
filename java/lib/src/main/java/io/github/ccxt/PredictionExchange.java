@@ -2185,7 +2185,7 @@ public Object describe()
             return "";
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        Long byteLength = this.parseToInt(Helpers.divide(((String)hex).length(), 2));
+        Long byteLength = this.parseToInt((((double) ((String)hex).length()) / ((double) 2)));
         if ((byteLength != null && byteLength == 0))
         {
             return "80";
@@ -2200,7 +2200,7 @@ public Object describe()
         }
         Object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven((String) (lengthHex));
-        Long lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
+        Long lengthOfLength = this.parseToInt((((double) ((String)lengthHex).length()) / ((double) 2)));
         return Helpers.add(Helpers.add(this.intToBase16((183L + lengthOfLength)), lengthHex), hex);
     }
 
@@ -2211,14 +2211,14 @@ public Object describe()
         {
             concatenated = Helpers.add(concatenated, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)));
         }
-        Long byteLength = this.parseToInt(Helpers.divide(((String)concatenated).length(), 2));
+        Long byteLength = this.parseToInt((((double) ((String)concatenated).length()) / ((double) 2)));
         if (((byteLength == null || byteLength < 56)))
         {
             return Helpers.add(this.intToBase16((192L + byteLength)), concatenated);
         }
         Object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven((String) (lengthHex));
-        Long lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
+        Long lengthOfLength = this.parseToInt((((double) ((String)lengthHex).length()) / ((double) 2)));
         return Helpers.add(Helpers.add(this.intToBase16((247L + lengthOfLength)), lengthHex), concatenated);
     }
 

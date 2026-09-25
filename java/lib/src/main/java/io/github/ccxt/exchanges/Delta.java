@@ -468,7 +468,7 @@ public class Delta extends DeltaApi
         String base = null;
         Object expiry = null;
         String optionType = null;
-        if (Helpers.isGreaterThan(((String)symbol).indexOf("/"), -1))
+        if (((String)symbol).indexOf("/") > -1)
         {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
@@ -2033,7 +2033,7 @@ public class Delta extends DeltaApi
                 request.put("start", Helpers.subtract(end, Helpers.multiply(limit, duration)));
             } else
             {
-                Long start = this.parseToInt(Helpers.divide(since, 1000));
+                Long start = this.parseToInt((((double) since) / ((double) 1000)));
                 request.put("start", start);
                 request.put("end", ((Boolean.TRUE.equals(untilIsDefined))) ? until : this.sum(start, Helpers.multiply(limit, duration)));
             }

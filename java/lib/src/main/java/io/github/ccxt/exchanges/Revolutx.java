@@ -1091,7 +1091,7 @@ public class Revolutx extends RevolutxApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1900));
+                request.put("limit", Math.min(limit, 1900));
             }
             String cursor = this.safeString(parameters, "cursor");
             if (!java.util.Objects.equals(cursor, null))
@@ -1739,7 +1739,7 @@ public class Revolutx extends RevolutxApi
             } else if (!java.util.Objects.equals(since, null))
             {
                 Long now = this.milliseconds();
-                Object defaultEnd = Helpers.add(since, thirtyDays);
+                Object defaultEnd = (since + thirtyDays);
                 request.put("end_date", (((Helpers.isLessThan(defaultEnd, now)))) ? defaultEnd : now);
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1941,7 +1941,7 @@ public class Revolutx extends RevolutxApi
             } else if (!java.util.Objects.equals(since, null))
             {
                 Long now = this.milliseconds();
-                Object defaultEnd = Helpers.add(since, thirtyDays);
+                Object defaultEnd = (since + thirtyDays);
                 request.put("end_date", (((Helpers.isLessThan(defaultEnd, now)))) ? defaultEnd : now);
             }
             if (!java.util.Objects.equals(limit, null))

@@ -1218,7 +1218,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             return;
         }
         String marketId = this.safeString(topicParts, (((long) topicLength) - 1L));
-        Boolean isSpot = Helpers.isGreaterThan(((String)client.url).indexOf("spot"), -1);
+        Boolean isSpot = ((String)client.url).indexOf("spot") > -1;
         String marketType = "contract";
         if (Boolean.TRUE.equals(isSpot))
         {

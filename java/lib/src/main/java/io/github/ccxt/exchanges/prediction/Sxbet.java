@@ -337,7 +337,7 @@ public class Sxbet extends SxbetApi
                 paginationKey = this.safeString(result, "nextKey");
                 page = this.sum(page, 1);
                 Integer collectedLength = ((List<?>)rawMarkets).size();
-                if (((pageSize != null && (pageMarketsLength == null || pageMarketsLength < pageSize))) || (Helpers.isGreaterThanOrEqual(page, maxPages)) || (java.util.Objects.equals(paginationKey, null)) || ((!java.util.Objects.equals(userLimit, null)) && (Helpers.isGreaterThanOrEqual(collectedLength, userLimit))))
+                if (((pageSize != null && (pageMarketsLength == null || pageMarketsLength < pageSize))) || (Helpers.isGreaterThanOrEqual(page, maxPages)) || (java.util.Objects.equals(paginationKey, null)) || ((!java.util.Objects.equals(userLimit, null)) && (((collectedLength != null && collectedLength >= userLimit)))))
                 {
                     break;
                 }
@@ -1540,8 +1540,8 @@ final Object finalI = i;
             Object result = new ArrayList<Object>(Arrays.asList());
             for (var c = 0; (chunkCount != null && c < chunkCount); c++)
             {
-                Object start = Helpers.multiply(c, chunkSize);
-                Object end = Helpers.add(start, chunkSize);
+                Long start = (((long) c) * chunkSize);
+                Object end = (start + chunkSize);
                 if (Helpers.isGreaterThan(end, idsLength))
                 {
                     end = idsLength;
@@ -2709,8 +2709,8 @@ final Object finalI = i;
             Long chunkCount = this.parseToInt(Helpers.divide(this.sum(hashesLength, (chunkSize - 1L)), chunkSize));
             for (var c = 0; (chunkCount != null && c < chunkCount); c++)
             {
-                Object start = Helpers.multiply(c, chunkSize);
-                Object end = Helpers.add(start, chunkSize);
+                Long start = (((long) c) * chunkSize);
+                Object end = (start + chunkSize);
                 if (Helpers.isGreaterThan(end, hashesLength))
                 {
                     end = hashesLength;

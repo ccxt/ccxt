@@ -1786,7 +1786,7 @@ public class Bingx extends BingxApi
             Object requestLimit = (((java.util.Objects.equals(limit, null)))) ? 500 : Helpers.mathMin(limit, maxLimit);
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("startTime", Helpers.mathMax(Helpers.subtract(since, 1), 0));
+                request.put("startTime", Math.max((since - 1L), 0));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2285,7 +2285,7 @@ public class Bingx extends BingxApi
             {
                 if (java.util.Objects.equals(marketType, "spot"))
                 {
-                    request.put("limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
+                    request.put("limit", Math.min(limit, 1000)); // api maximum 1000
                 } else
                 {
                     request.put("limit", this.findNearestCeiling(new ArrayList<Object>(Arrays.asList(5, 10, 20, 50, 100, 500, 1000)), limit));
@@ -2643,7 +2643,7 @@ public class Bingx extends BingxApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
+                request.put("limit", Math.min(limit, 1000)); // api maximum 1000
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -5173,12 +5173,12 @@ public class Bingx extends BingxApi
         String triggerPrice = stopPrice;
         if (!java.util.Objects.equals(stopPrice, null))
         {
-            if ((Helpers.isGreaterThan(((String)rawType).indexOf("stop"), -1)) && (java.util.Objects.equals(stopLossPrice, null)))
+            if ((((String)rawType).indexOf("stop") > -1) && (java.util.Objects.equals(stopLossPrice, null)))
             {
                 stopLossPrice = stopPrice;
                 triggerPrice = null;
             }
-            if ((Helpers.isGreaterThan(((String)rawType).indexOf("take"), -1)) && (java.util.Objects.equals(takeProfitPrice, null)))
+            if ((((String)rawType).indexOf("take") > -1) && (java.util.Objects.equals(takeProfitPrice, null)))
             {
                 takeProfitPrice = stopPrice;
                 triggerPrice = null;
@@ -6825,7 +6825,7 @@ public class Bingx extends BingxApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
+                request.put("limit", Math.min(limit, 1000)); // api maximum 1000
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -6909,7 +6909,7 @@ public class Bingx extends BingxApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
+                request.put("limit", Math.min(limit, 1000)); // api maximum 1000
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -7782,7 +7782,7 @@ public class Bingx extends BingxApi
                 for (var j = 0; j < ((List<?>)value).size(); j++)
                 {
                     Object arrayElement = (value == null || j < 0 || j >= ((List<?>)value).size() ? null : ((List<?>)value).get(j));
-                    if (Helpers.isGreaterThan(j, 0))
+                    if (j > 0)
                     {
                         arrStr = (arrStr + ",");
                     }
@@ -7841,7 +7841,7 @@ public class Bingx extends BingxApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 100)); // api maximum 100
+                request.put("limit", Math.min(limit, 100)); // api maximum 100
             }
             String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMyLiquidations", market, parameters);
@@ -8572,7 +8572,7 @@ public class Bingx extends BingxApi
                     Boolean isString = ((arrayElement instanceof String));
                     if (Boolean.TRUE.equals(isString))
                     {
-                        if (Helpers.isGreaterThan(j, 0))
+                        if (j > 0)
                         {
                             arrStr = (arrStr + ((("," + "\"") + String.valueOf(arrayElement)) + "\""));
                         } else
@@ -8581,7 +8581,7 @@ public class Bingx extends BingxApi
                         }
                     } else
                     {
-                        if (Helpers.isGreaterThan(j, 0))
+                        if (j > 0)
                         {
                             arrStr = Helpers.add(arrStr, Helpers.add(",", String.valueOf(arrayElement)));
                         } else

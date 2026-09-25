@@ -1342,7 +1342,7 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 500));
+                request.put("limit", Math.min(limit, 500));
             }
             Map<String, Object> contracts = (this.queryContracts()).join();
             String chainId = this.safeString(contracts, "chain_id");
@@ -1564,7 +1564,7 @@ public class Nado extends NadoApi
             parameters = (Map<String, Object>) ((List<Object>) ordersRequestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
-                ordersRequest.put("limit", Helpers.mathMin(limit, 500));
+                ordersRequest.put("limit", Math.min(limit, 500));
             }
             final Map<String, Object> finalOrdersRequest = ordersRequest;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1753,7 +1753,7 @@ public class Nado extends NadoApi
             parameters = (Map<String, Object>) ((List<Object>) matchesRequestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
-                matchesRequest.put("limit", Helpers.mathMin(limit, 500));
+                matchesRequest.put("limit", Math.min(limit, 500));
             }
             final Map<String, Object> finalMatchesRequest = matchesRequest;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3064,7 +3064,7 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 500));
+                request.put("limit", Math.min(limit, 500));
             }
             List<Object> response = (this.archiveV2PublicGetTrades(this.extend(request, parameters))).join();
             //
@@ -3134,7 +3134,7 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request.get("candlesticks"), "limit", Helpers.mathMin(limit, 500));
+                Helpers.addElementToObject(request.get("candlesticks"), "limit", Math.min(limit, 500));
             }
             if (!java.util.Objects.equals(until, null))
             {

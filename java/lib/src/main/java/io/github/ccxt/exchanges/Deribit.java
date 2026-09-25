@@ -837,11 +837,11 @@ public class Deribit extends DeribitApi
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         Object base = null;
         Object expiry = null;
-        if (Helpers.isGreaterThan(((String)symbol).indexOf("/"), -1))
+        if (((String)symbol).indexOf("/") > -1)
         {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
-            if (Helpers.isGreaterThan(((String)symbol).indexOf("USDC"), -1))
+            if (((String)symbol).indexOf("USDC") > -1)
             {
                 base = (base + "_USDC");
             }
@@ -850,7 +850,7 @@ public class Deribit extends DeribitApi
             base = this.safeString(optionParts, 0);
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
         }
-        if (Helpers.isGreaterThan(((String)symbol).indexOf("USDC"), -1))
+        if (((String)symbol).indexOf("USDC") > -1)
         {
             quote = "USDC";
             settle = "USDC";
@@ -863,7 +863,7 @@ public class Deribit extends DeribitApi
         {
             throw new ExchangeError((this.id + " createExpiredOptionMarket() missing base")) ;
         }
-        if (Helpers.isGreaterThan(((String)base).indexOf("_"), -1))
+        if (((String)base).indexOf("_") > -1)
         {
             List<Object> splitSymbol = new ArrayList<Object>(Arrays.asList(((String)base).split(java.util.regex.Pattern.quote("_"))));
             splitBase = this.safeString(splitSymbol, 0);
@@ -2317,7 +2317,7 @@ public class Deribit extends DeribitApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("count", Helpers.mathMin(limit, 1000)); // default 10
+                request.put("count", Math.min(limit, 1000)); // default 10
             }
             Long until = (Long) this.safeInteger2(parameters, "until", "end_timestamp");
             if (!java.util.Objects.equals(until, null))
@@ -4633,7 +4633,7 @@ public class Deribit extends DeribitApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a limit argument")) ;
                 }
-                Object maxUntil = this.sum(since, Helpers.multiply(limit, duration));
+                Object maxUntil = this.sum(since, (limit * duration));
                 request.put("end_timestamp", Helpers.mathMin(((Map<String, Object>)request).get("end_timestamp"), maxUntil));
             }
             Map<String, Object> response = (this.publicGetGetFundingRateHistory(this.extend(request, parameters))).join();

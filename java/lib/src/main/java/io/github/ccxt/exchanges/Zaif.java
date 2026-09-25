@@ -1017,11 +1017,11 @@ public class Zaif extends ZaifApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("since", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("since", this.parseToInt((((double) since) / ((double) 1000))));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("count", Helpers.mathMin(limit, 1000));
+                request.put("count", Math.min(limit, 1000));
             }
             Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});

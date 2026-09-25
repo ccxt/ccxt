@@ -1051,7 +1051,7 @@ final String finalBase = base;
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000));
+                request.put("limit", Math.min(limit, 1000));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3113,7 +3113,7 @@ final String finalBase = base;
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("maxItems", Helpers.mathMin(limit, 100));
+                request.put("maxItems", Math.min(limit, 100));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("toDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);

@@ -1156,7 +1156,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             String errorMessage = this.safeString(message, "message");
             throw new ExchangeError((String)((String)errorMessage)) ;
         }
-        if (Helpers.isGreaterThan(((String)channel).indexOf("CANDLES"), -1))
+        if (((String)channel).indexOf("CANDLES") > -1)
         {
             this.handleOHLCV(client, (Map<String, Object>) (message));
         }

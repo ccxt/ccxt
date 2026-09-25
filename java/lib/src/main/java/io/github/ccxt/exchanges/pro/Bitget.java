@@ -1349,12 +1349,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Object payloadArray = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < 25; i++)
                 {
-                    if (Helpers.isLessThan(i, bidsLength))
+                    if ((bidsLength != null && i < bidsLength))
                     {
                         ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 2), 0));
                         ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 2), 1));
                     }
-                    if (Helpers.isLessThan(i, asksLength))
+                    if ((asksLength != null && i < asksLength))
                     {
                         ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 2), 0));
                         ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 2), 1));
@@ -1683,7 +1683,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         // fix chronological order by reversing
         for (var i = 0; (length != null && i < length); i++)
         {
-            Object index = Helpers.subtract(Helpers.subtract(length, i), 1);
+            Long index = ((((long) length) - ((long) i)) - 1L);
             Object rawTrade = Helpers.GetValue(data, index);
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade), market);
             stored.append(parsed);

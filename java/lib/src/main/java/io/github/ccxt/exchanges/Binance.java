@@ -4346,7 +4346,7 @@ public class Binance extends BinanceApi
         List<Object> optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         String base = null;
-        if (Helpers.isGreaterThan(((String)symbol).indexOf("/"), -1))
+        if (((String)symbol).indexOf("/") > -1)
         {
             base = this.safeString(symbolBase, 0);
         } else
@@ -4465,7 +4465,7 @@ public class Binance extends BinanceApi
                     }
                 }
                 return Helpers.GetValue(markets, 0);
-            } else if ((Helpers.isGreaterThan(((String)symbol).indexOf("/"), -1)) && (((String)symbol).indexOf(":") < 0))
+            } else if ((((String)symbol).indexOf("/") > -1) && (((String)symbol).indexOf(":") < 0))
             {
                 if ((!java.util.Objects.equals(defaultType, null)) && (!java.util.Objects.equals(defaultType, "spot")))
                 {
@@ -4484,7 +4484,7 @@ public class Binance extends BinanceApi
                         return (this.markets == null ? null : ((Map<?, ?>)this.markets).get(futuresSymbol));
                     }
                 }
-            } else if ((Helpers.isGreaterThan(((String)symbol).indexOf("-C"), -1)) || (Helpers.isGreaterThan(((String)symbol).indexOf("-P"), -1)))
+            } else if ((((String)symbol).indexOf("-C") > -1) || (((String)symbol).indexOf("-P") > -1))
             {
                 return this.createExpiredOptionMarket(symbol);
             }
@@ -4494,7 +4494,7 @@ public class Binance extends BinanceApi
 
     public Object safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
     {
-        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(((String)marketId).indexOf("-C"), -1)) || (Helpers.isGreaterThan(((String)marketId).indexOf("-P"), -1)));
+        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((((String)marketId).indexOf("-C") > -1) || (((String)marketId).indexOf("-P") > -1));
         if (Boolean.TRUE.equals(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
@@ -7357,7 +7357,7 @@ public class Binance extends BinanceApi
                 //
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
                 {
-                    if (Helpers.isGreaterThan(since, 0))
+                    if ((since > 0))
                     {
                         int duration = this.parseTimeframe(timeframe);
                         Object endTime = this.sum(since, Helpers.subtract(Helpers.multiply(Helpers.multiply(limit, duration), 1000), 1));
@@ -17637,7 +17637,7 @@ final Map<String, Object> finalMarket = market;
         } else if ((java.util.Objects.equals(api, "private")) || (java.util.Objects.equals(api, "eapiPrivate")) || (java.util.Objects.equals(api, "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(api, "sapiV2")) || (java.util.Objects.equals(api, "sapiV3")) || (java.util.Objects.equals(api, "sapiV4")) || (java.util.Objects.equals(api, "dapiPrivate")) || (java.util.Objects.equals(api, "dapiPrivateV2")) || (java.util.Objects.equals(api, "fapiPrivate")) || (java.util.Objects.equals(api, "fapiPrivateV2")) || (java.util.Objects.equals(api, "fapiPrivateV3")) || (java.util.Objects.equals(api, "papiV2") || java.util.Objects.equals(api, "papi") && !java.util.Objects.equals(path, "ping")))
         {
             this.checkRequiredCredentials();
-            if ((Helpers.isGreaterThan(Helpers.getIndexOf(url, "testnet.binancefuture.com"), -1)) && this.isSandboxModeEnabled && (!java.util.Objects.equals(this.safeBool(this.options, "disableFuturesSandboxWarning"), true)))
+            if ((Helpers.getIndexOf(url, "testnet.binancefuture.com") > -1) && this.isSandboxModeEnabled && (!java.util.Objects.equals(this.safeBool(this.options, "disableFuturesSandboxWarning"), true)))
             {
                 throw new NotSupported((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
@@ -17647,7 +17647,7 @@ final Map<String, Object> finalMarket = market;
                 Object newClientOrderId = this.safeString(parameters, "newClientOrderId");
                 if (java.util.Objects.equals(newClientOrderId, null))
                 {
-                    Boolean isSpotOrMargin = (Helpers.isGreaterThan(Helpers.getIndexOf(api, "sapi"), -1) || java.util.Objects.equals(api, "private"));
+                    Boolean isSpotOrMargin = (Helpers.getIndexOf(api, "sapi") > -1 || java.util.Objects.equals(api, "private"));
                     String marketType = "future";
                     if (Boolean.TRUE.equals(isSpotOrMargin))
                     {
@@ -17744,7 +17744,7 @@ final Map<String, Object> finalMarket = market;
                 query = this.urlencode(extendedParams);
             }
             Object signature = null;
-            if (Helpers.isGreaterThan(((String)this.secret).indexOf("PRIVATE KEY"), -1))
+            if (((String)this.secret).indexOf("PRIVATE KEY") > -1)
             {
                 if (this.secret.length() > 120)
                 {

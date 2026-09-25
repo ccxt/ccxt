@@ -205,22 +205,22 @@ public class Toobit extends ToobitApi
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/spot/order", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v1/spot/openOrders", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v1/futures/openOrders", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v1/spot/tradeOrders", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(5, 1.67) );
+                            put( "cost", (5 * 1.67) );
                         }} );
                         put( "api/v1/futures/historyOrders", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(5, 1.67) );
+                            put( "cost", (5 * 1.67) );
                         }} );
                         put( "api/v1/account/trades", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(5, 1.67) );
+                            put( "cost", (5 * 1.67) );
                         }} );
                         put( "api/v1/account/balanceFlow", new HashMap<String, Object>() {{
                             put( "cost", 5 );
@@ -247,10 +247,10 @@ public class Toobit extends ToobitApi
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/futures/order", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v1/futures/positions", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(5, 1.67) );
+                            put( "cost", (5 * 1.67) );
                         }} );
                         put( "api/v1/futures/historyPositions", new HashMap<String, Object>() {{
                             put( "cost", 5 );
@@ -259,7 +259,7 @@ public class Toobit extends ToobitApi
                             put( "cost", 5 );
                         }} );
                         put( "api/v1/futures/userTrades", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(5, 1.67) );
+                            put( "cost", (5 * 1.67) );
                         }} );
                         put( "api/v1/futures/balanceFlow", new HashMap<String, Object>() {{
                             put( "cost", 5 );
@@ -316,25 +316,25 @@ public class Toobit extends ToobitApi
                             put( "cost", 5 );
                         }} );
                         put( "api/v2/futures/order", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v2/futures/open-orders", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v2/futures/history-orders", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(5, 1.67) );
+                            put( "cost", (5 * 1.67) );
                         }} );
                         put( "api/v2/futures/user-trades", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(5, 1.67) );
+                            put( "cost", (5 * 1.67) );
                         }} );
                         put( "api/v2/futures/algo-order", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v2/futures/open-algo-orders", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v2/futures/history-algo-orders", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(5, 1.67) );
+                            put( "cost", (5 * 1.67) );
                         }} );
                         put( "api/v2/futures/voucher/list", new HashMap<String, Object>() {{
                             put( "cost", 5 );
@@ -342,16 +342,16 @@ public class Toobit extends ToobitApi
                     }} );
                     put( "post", new HashMap<String, Object>() {{
                         put( "api/v1/spot/orderTest", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v1/spot/order", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v1/futures/order", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v1/spot/batchOrders", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(2, 1.67) );
+                            put( "cost", (2 * 1.67) );
                         }} );
                         put( "api/v1/subAccount/transfer", new HashMap<String, Object>() {{
                             put( "cost", 1 );
@@ -366,16 +366,16 @@ public class Toobit extends ToobitApi
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/futures/batchOrders", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(2, 1.67) );
+                            put( "cost", (2 * 1.67) );
                         }} );
                         put( "api/v1/futures/position/trading-stop", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(3, 1.67) );
+                            put( "cost", (3 * 1.67) );
                         }} );
                         put( "api/v1/futures/positionMargin", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/futures/order/update", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(2, 1.67) );
+                            put( "cost", (2 * 1.67) );
                         }} );
                         put( "api/v1/futures/autoAddMargin", new HashMap<String, Object>() {{
                             put( "cost", 1 );
@@ -398,22 +398,22 @@ public class Toobit extends ToobitApi
                     }} );
                     put( "delete", new HashMap<String, Object>() {{
                         put( "api/v1/spot/order", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v1/futures/order", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(1, 1.67) );
+                            put( "cost", (1 * 1.67) );
                         }} );
                         put( "api/v1/spot/openOrders", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(5, 1.67) );
+                            put( "cost", (5 * 1.67) );
                         }} );
                         put( "api/v1/futures/batchOrders", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(3, 1.67) );
+                            put( "cost", (3 * 1.67) );
                         }} );
                         put( "api/v1/spot/cancelOrderByIds", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(5, 1.67) );
+                            put( "cost", (5 * 1.67) );
                         }} );
                         put( "api/v1/futures/cancelOrderByIds", new HashMap<String, Object>() {{
-                            put( "cost", Helpers.multiply(3, 1.67) );
+                            put( "cost", (3 * 1.67) );
                         }} );
                         put( "api/v1/userDataStream", new HashMap<String, Object>() {{
                             put( "cost", 1 );

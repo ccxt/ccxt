@@ -595,7 +595,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 String symbol = id;
                 List<Object> split = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 String splitMarket = this.safeString(split, 1);
-                String baseId = Helpers.slice(splitMarket, 0, Helpers.subtract(splitMarket.length(), 3));
+                String baseId = Helpers.slice(splitMarket, 0, (((long) splitMarket.length()) - 3L));
                 String quoteId = "usd"; // always USD
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
@@ -1208,7 +1208,7 @@ public class Krakenfutures extends KrakenfuturesApi
             if (!java.util.Objects.equals(since, null))
             {
                 int duration = this.parseTimeframe(timeframe);
-                request.put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
                 if (java.util.Objects.equals(limit, null))
                 {
                     limit = 2000;
@@ -1399,7 +1399,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 Integer length = ((List<?>)elements).size();
                 for (var i = 0; (length != null && i < length); i++)
                 {
-                    Object index = Helpers.subtract((((long) length) - 1L), i);
+                    Long index = ((((long) length) - 1L) - ((long) i));
                     Map<String, Object> element = (Map<String, Object>) this.safeDict(elements, index);
                     Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(element, "event", new HashMap<String, Object>() {{}});
                     Map<String, Object> executionContainer = (Map<String, Object>) this.safeDict(eventVar, "Execution", new HashMap<String, Object>() {{}});
@@ -3381,7 +3381,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 // each trade execution emits two rows and the position-size legs are
                 // filtered out below, so ask for twice the limit to compensate,
                 // parseLedger re-applies the limit on the filtered entries
-                request.put("count", Helpers.multiply(limit, 2));
+                request.put("count", (limit * 2L));
             }
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))

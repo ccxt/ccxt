@@ -2607,7 +2607,7 @@ public class Whitebit extends WhitebitApi
                     limit = maxLimit;
                 }
                 limit = Helpers.mathMin(limit, maxLimit);
-                Long start = this.parseToInt(Helpers.divide(since, 1000));
+                Long start = this.parseToInt((((double) since) / ((double) 1000)));
                 request.put("start", start);
             }
             if (!java.util.Objects.equals(limit, null))
@@ -3279,7 +3279,7 @@ public class Whitebit extends WhitebitApi
     {
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object limit = limit3;
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3292,7 +3292,7 @@ public class Whitebit extends WhitebitApi
             // Sort by timestamp (most recent first)
             List<Object> sortedOrders = this.sortBy(allOrders, "timestamp", true);
             // Apply limit if specified (since and symbol filtering already handled by individual methods)
-            if (!java.util.Objects.equals(limit, null) && Helpers.isGreaterThan(((List<?>)sortedOrders).size(), limit))
+            if (!java.util.Objects.equals(limit, null) && (((List<?>)sortedOrders).size() > limit))
             {
                 return Helpers.slice(sortedOrders, 0, limit);
             }
@@ -3533,7 +3533,7 @@ public class Whitebit extends WhitebitApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 100));
+                request.put("limit", Math.min(limit, 100));
             }
             List<Object> response = (this.v4PrivatePostOrders(this.extend(request, parameters))).join();
             //
@@ -3610,7 +3610,7 @@ public class Whitebit extends WhitebitApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 100)); // default 50 max 100
+                request.put("limit", Math.min(limit, 100)); // default 50 max 100
             }
             Map<String, Object> response = (this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters))).join();
             //
@@ -3853,7 +3853,7 @@ public class Whitebit extends WhitebitApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 100));
+                request.put("limit", Math.min(limit, 100));
             }
             Map<String, Object> response = (this.v4PrivatePostTradeAccountOrder(this.extend(request, parameters))).join();
             //
@@ -3931,7 +3931,7 @@ public class Whitebit extends WhitebitApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("startDate", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("startDate", this.parseToInt((((double) since) / ((double) 1000))));
             }
             if (java.util.Objects.equals(limit, null) || Helpers.isGreaterThan(limit, 100))
             {
@@ -4017,7 +4017,7 @@ public class Whitebit extends WhitebitApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("startDate", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("startDate", this.parseToInt((((double) since) / ((double) 1000))));
             }
             if (java.util.Objects.equals(limit, null) || Helpers.isGreaterThan(limit, 100))
             {
@@ -4764,7 +4764,7 @@ public class Whitebit extends WhitebitApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 100));
+                request.put("limit", Math.min(limit, 100));
             }
             Map<String, Object> response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
             //
@@ -5527,7 +5527,7 @@ public class Whitebit extends WhitebitApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                Long start = this.parseToInt(Helpers.divide(since, 1000));
+                Long start = this.parseToInt((((double) since) / ((double) 1000)));
                 request.put("from", this.numberToString(start));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -5997,7 +5997,7 @@ public class Whitebit extends WhitebitApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("startDate", Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000)))));
+                request.put("startDate", Math.round(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000))))));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until_timestamp", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);

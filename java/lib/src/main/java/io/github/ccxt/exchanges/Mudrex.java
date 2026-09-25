@@ -432,7 +432,7 @@ public class Mudrex extends MudrexApi
             Object startTime = null;
             if (!java.util.Objects.equals(since, null))
             {
-                startTime = this.parseToInt(Helpers.divide(since, 1000));
+                startTime = this.parseToInt((((double) since) / ((double) 1000)));
             } else
             {
                 startTime = Helpers.subtract(now, Helpers.multiply(duration, requestLimit));
@@ -2036,7 +2036,7 @@ public class Mudrex extends MudrexApi
             if (!java.util.Objects.equals(limit, null))
             {
                 // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-                pageSize = Helpers.multiply(limit, 2);
+                pageSize = (limit * 2L);
             }
             List<Object> allRows = new ArrayList<Object>(Arrays.asList());
             Object transactionsCount = 0;

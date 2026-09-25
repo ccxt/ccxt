@@ -1176,7 +1176,7 @@ public class Predictfun extends PredictfunApi
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                Boolean prevIsDigit = (Helpers.isGreaterThan(i, 0)) && (Helpers.getIndexOf(digits, Helpers.GetValue(chars, Helpers.subtract(i, 1))) >= 0);
+                Boolean prevIsDigit = (i > 0) && (Helpers.getIndexOf(digits, Helpers.GetValue(chars, (((long) i) - 1L))) >= 0);
                 Boolean nextIsDigit = (Helpers.isLessThan(((((long) i) + 1L)), charsLength)) && (Helpers.getIndexOf(digits, Helpers.GetValue(chars, (((long) i) + 1L))) >= 0);
                 keep = !(Boolean.TRUE.equals(prevIsDigit) && Boolean.TRUE.equals(nextIsDigit));
             }

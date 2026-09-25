@@ -2492,7 +2492,7 @@ public class Bybit extends BybitApi
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         String base = null;
         Object expiry = null;
-        if (Helpers.isGreaterThan(((String)symbol).indexOf("/"), -1))
+        if (((String)symbol).indexOf("/") > -1)
         {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
@@ -2596,7 +2596,7 @@ public class Bybit extends BybitApi
 
     public Object safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
     {
-        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(((String)marketId).indexOf("-C"), -1)) || (Helpers.isGreaterThan(((String)marketId).indexOf("-P"), -1)));
+        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((((String)marketId).indexOf("-C") > -1) || (((String)marketId).indexOf("-P") > -1));
         if (Boolean.TRUE.equals(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
@@ -4064,7 +4064,7 @@ public class Bybit extends BybitApi
                 // start up to the interval boundary so that the exchange returns
                 // candles from the first bucket at or after `since`
                 Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
-                request.put("start", Helpers.multiply(this.parseToInt(Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(since, duration))))), duration));
+                request.put("start", Helpers.multiply(this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) since) / ((double) duration)))))), duration));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -10128,7 +10128,7 @@ public class Bybit extends BybitApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
-            Object limit = limit3;
+            Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -12441,7 +12441,7 @@ public class Bybit extends BybitApi
             Double minNotional = this.parseNumber("0");
             if ((i != 0))
             {
-                minNotional = this.safeNumber(Helpers.GetValue(info, Helpers.subtract(i, 1)), "riskLimitValue");
+                minNotional = this.safeNumber(Helpers.GetValue(info, (((long) i) - 1L)), "riskLimitValue");
             }
 final Map<String, Object> finalMarket = market;
             final Double finalMinNotional = minNotional;
@@ -13926,7 +13926,7 @@ final Map<String, Object> finalMarket = market;
                     url = (url + ("?" + queryEncoded));
                 }
                 Object signature = null;
-                if (Helpers.isGreaterThan(((String)this.secret).indexOf("PRIVATE KEY"), -1))
+                if (((String)this.secret).indexOf("PRIVATE KEY") > -1)
                 {
                     signature = rsa(authFull, this.secret, sha256());
                 } else
@@ -13945,7 +13945,7 @@ final Map<String, Object> finalMarket = market;
                 Map<String,Object> sortedQuery = this.keysort(query);
                 String auth = this.rawencode(sortedQuery, true);
                 Object signature = null;
-                if (Helpers.isGreaterThan(((String)this.secret).indexOf("PRIVATE KEY"), -1))
+                if (((String)this.secret).indexOf("PRIVATE KEY") > -1)
                 {
                     signature = rsa(auth, this.secret, sha256());
                 } else
@@ -14045,7 +14045,7 @@ final Map<String, Object> finalMarket = market;
             {
                 feedback = ((this.id + " ") + body);
             }
-            if (Helpers.isGreaterThan(((String)body).indexOf("Withdraw address chain or destination tag are not equal"), -1))
+            if (((String)body).indexOf("Withdraw address chain or destination tag are not equal") > -1)
             {
                 feedback = (feedback + "; You might also need to ensure the address is whitelisted");
             }

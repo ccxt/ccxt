@@ -246,7 +246,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public Object isSpotUrl(Client client)
     {
-        return (Helpers.isGreaterThan(((String)client.url).indexOf("/stream"), -1)) || (Helpers.isGreaterThan(((String)client.url).indexOf("demo-stream"), -1));
+        return (((String)client.url).indexOf("/stream") > -1) || (((String)client.url).indexOf("demo-stream") > -1);
     }
 
     public Object stream(String type, String subscriptionHash, Long numSubscriptions)
@@ -313,7 +313,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
             if (Helpers.isTrue(((String)baseUrl).endsWith("/ws")))
             {
-                String prefix = Helpers.slice(baseUrl, 0, Helpers.subtract(((String)baseUrl).length(), 3));
+                String prefix = Helpers.slice(baseUrl, 0, (((long) ((String)baseUrl).length()) - 3L));
                 return (((prefix + "/") + category) + "/ws");
             }
             return baseUrl;
@@ -1548,11 +1548,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         if (java.util.Objects.equals(timestamp, null))
                         {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = (Helpers.isLessThanOrEqual(((U - 1L)), nonce)) && (Helpers.isGreaterThanOrEqual(((u - 1L)), nonce));
+                            conditional = (((nonce != null && ((U - 1L)) <= nonce))) && ((nonce == null || ((u - 1L)) >= nonce));
                         } else
                         {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                            conditional = (Helpers.isEqual(((U - 1L)), nonce));
+                            conditional = ((nonce != null && ((U - 1L)) == nonce));
                         }
                         if (Boolean.TRUE.equals(conditional))
                         {
@@ -4012,7 +4012,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         extendedParams = this.keysort(extendedParams);
         String query = this.rawencode(extendedParams);
         Object signature = null;
-        if (Helpers.isGreaterThan(((String)this.secret).indexOf("PRIVATE KEY"), -1))
+        if (((String)this.secret).indexOf("PRIVATE KEY") > -1)
         {
             if (this.secret.length() > 120)
             {

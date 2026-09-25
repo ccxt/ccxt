@@ -1590,7 +1590,7 @@ public class TestMain extends BaseTest
                 } catch(Exception e)
                 {
                     exceptionMessageString = exceptionMessage(e);
-                    (exchange.sleep(Helpers.multiply(j, 1000))).join();
+                    (exchange.sleep((((long) j) * 1000L))).join();
                 }
             }
             // if exception was set, then throw it
@@ -1818,10 +1818,10 @@ public class TestMain extends BaseTest
         Object res = "";
         for (var i = 0; i < ((List<?>)urlParts).size(); i++)
         {
-            if (Helpers.isGreaterThan(i, 2))
+            if (i > 2)
             {
                 String current = (String) Helpers.GetValue(urlParts, i);
-                if (Helpers.isGreaterThan(((String)current).indexOf("?"), -1))
+                if (((String)current).indexOf("?") > -1)
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
                     List<Object> currentParts = new ArrayList<Object>(Arrays.asList(((String)current).split(java.util.regex.Pattern.quote("?"))));

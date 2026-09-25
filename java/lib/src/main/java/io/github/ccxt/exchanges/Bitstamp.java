@@ -1386,7 +1386,7 @@ public class Bitstamp extends BitstampApi
             Long timestamp = this.safeInteger(options, "timestamp");
             Long expires = this.safeInteger(options, "expires", 1000);
             Long now = this.milliseconds();
-            if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isGreaterThan(((now - timestamp)), expires)))
+            if ((java.util.Objects.equals(timestamp, null)) || (((expires == null || ((now - timestamp)) > expires))))
             {
                 List<Object> response = (this.publicGetMarkets(parameters)).join();
                 //
@@ -2117,7 +2117,7 @@ public class Bitstamp extends BitstampApi
                     }
                 } else
                 {
-                    Long start = this.parseToInt(Helpers.divide(since, 1000));
+                    Long start = this.parseToInt((((double) since) / ((double) 1000)));
                     request.put("start", start);
                     if (Boolean.TRUE.equals(untilIsDefined))
                     {
@@ -2132,7 +2132,7 @@ public class Bitstamp extends BitstampApi
             {
                 if (!java.util.Objects.equals(since, null))
                 {
-                    Long start = this.parseToInt(Helpers.divide(since, 1000));
+                    Long start = this.parseToInt((((double) since) / ((double) 1000)));
                     request.put("start", start);
                     Object end = this.sum(start, Helpers.subtract(Helpers.multiply(duration, limit), 1));
                     if (Boolean.TRUE.equals(untilIsDefined))
@@ -3082,7 +3082,7 @@ public class Bitstamp extends BitstampApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("since_timestamp", Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000)))));
+                request.put("since_timestamp", Math.round(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000))))));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until_timestamp", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -3252,7 +3252,7 @@ public class Bitstamp extends BitstampApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("timedelta", Helpers.subtract(this.milliseconds(), since));
+                request.put("timedelta", (this.milliseconds() - since));
             } else
             {
                 request.put("timedelta", 50000000); // use max bitstamp approved value

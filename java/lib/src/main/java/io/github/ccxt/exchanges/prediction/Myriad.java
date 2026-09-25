@@ -2162,7 +2162,7 @@ public class Myriad extends MyriadApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("since", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("since", this.parseToInt((((double) since) / ((double) 1000))));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2991,7 +2991,7 @@ public class Myriad extends MyriadApi
         for (var i = 0; (n != null && i < n); i++)
         {
             Integer v = Helpers.getIndexOf(digits, (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i)));
-            if (Helpers.isGreaterThan(v, -1))
+            if ((v != null && v > -1))
             {
                 String mul = Precise.stringMul(result, "16");
                 String digit = this.numberToString(v);
@@ -4287,7 +4287,7 @@ final Object finalNetworkId = networkId;
                 rawQuestions = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
             } else if (!java.util.Objects.equals(eventId, null))
             {
-                if (Helpers.isGreaterThan(((String)eventId).indexOf(":"), -1))
+                if (((String)eventId).indexOf(":") > -1)
                 {
                     Object rawMarket = (this.fetchRawMarketById(eventId, rest)).join();
                     rawMarkets = new ArrayList<Object>(Arrays.asList(rawMarket));

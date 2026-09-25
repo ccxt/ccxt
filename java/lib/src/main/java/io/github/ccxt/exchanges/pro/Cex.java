@@ -330,7 +330,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Integer dataLength = ((List<?>)data).size();
         for (var i = 0; (dataLength != null && i < dataLength); i++)
         {
-            Object index = Helpers.subtract((((long) dataLength) - 1L), i);
+            Long index = ((((long) dataLength) - 1L) - ((long) i));
             Object rawTrade = Helpers.GetValue(data, index);
             Object parsed = this.parseWsOldTrade(rawTrade, market);
             stored.append(parsed);
@@ -1250,7 +1250,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object limit = limit3;
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();

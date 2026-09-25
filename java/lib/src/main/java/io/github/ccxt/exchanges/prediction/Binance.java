@@ -2623,7 +2623,7 @@ final Object finalMarketSymbol = marketSymbol;
                     Map<String, Object> failedOrder = (Map<String, Object>) this.safeDict(failedOrders, i);
                     String failedOrderId = this.safeString(failedOrder, "orderId");
                     String failedReason = this.safeString(failedOrder, "reason");
-                    if (Helpers.isGreaterThan(i, 0))
+                    if (i > 0)
                     {
                         failedDetails = (failedDetails + ", ");
                     }

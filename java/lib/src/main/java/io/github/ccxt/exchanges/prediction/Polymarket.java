@@ -957,7 +957,7 @@ public class Polymarket extends PolymarketApi
                 List<Object> offsets = new ArrayList<Object>(Arrays.asList());
                 for (var p = 1; Helpers.isLessThan(p, maxPages); p++)
                 {
-                    ((List<Object>)offsets).add(Helpers.multiply(p, pageSize));
+                    ((List<Object>)offsets).add((((long) p) * pageSize));
                 }
                 List<Object> restPromises = new ArrayList<Object>(Arrays.asList());
                 for (var oi = 0; oi < ((List<?>)offsets).size(); oi++)
@@ -1832,7 +1832,7 @@ final Object finalClobTokenId = clobTokenId;
         return BaseExchange.supplyAsync(() -> {
             Object timeframe = timeframe3;
             Long since = since3;
-            Object limit = limit3;
+            Long limit = limit3;
             if (!(((Map<?, ?>)this.timeframes).containsKey(timeframe)))
             {
                 // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
@@ -1847,10 +1847,10 @@ final Object finalClobTokenId = clobTokenId;
             Object endS = nowS;
             if (!java.util.Objects.equals(since, null))
             {
-                startS = this.parseToInt(Helpers.divide(since, 1000));
+                startS = this.parseToInt((((double) since) / ((double) 1000)));
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    Object endBound = this.sum(startS, Helpers.multiply(Helpers.multiply(limit, fidelityMin), 60));
+                    Object endBound = this.sum(startS, ((limit * fidelityMin) * 60L));
                     endS = (((Helpers.isLessThan(endBound, nowS)))) ? endBound : nowS;
                 }
             } else
@@ -1939,7 +1939,7 @@ final Object finalClobTokenId = clobTokenId;
             }
             List<Object> candles = this.sortBy(unsortedCandles, 0);
             Integer candlesLength = ((List<?>)candles).size();
-            if ((!java.util.Objects.equals(limit, null)) && (Helpers.isGreaterThan(candlesLength, limit)))
+            if ((!java.util.Objects.equals(limit, null)) && ((candlesLength != null && candlesLength > limit)))
             {
                 return this.arraySlice(candles, Helpers.opNeg(limit));
             }

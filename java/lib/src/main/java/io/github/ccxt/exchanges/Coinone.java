@@ -1144,7 +1144,7 @@ public class Coinone extends CoinoneApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("size", Helpers.mathMin(limit, 200));
+                request.put("size", Math.min(limit, 200));
             }
             Map<String, Object> response = (this.v2PublicGetTradesQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
             //

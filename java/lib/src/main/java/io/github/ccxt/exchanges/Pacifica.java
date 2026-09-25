@@ -1726,11 +1726,11 @@ public class Pacifica extends PacificaApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    until = Helpers.subtract(Helpers.add(since, (Helpers.multiply(limit, ((((long) this.parseTimeframe(tf)) * 1000L))))), 1);
+                    until = Helpers.subtract((since + ((limit * ((((long) this.parseTimeframe(tf)) * 1000L))))), 1);
                 }
                 if (java.util.Objects.equals(until, null))
                 {
-                    until = Helpers.subtract(Helpers.add(since, ((((long) defaultMaxLimit) * ((((long) this.parseTimeframe(tf)) * 1000L))))), 1);
+                    until = Helpers.subtract((since + ((((long) defaultMaxLimit) * ((((long) this.parseTimeframe(tf)) * 1000L))))), 1);
                 }
                 if (Helpers.isGreaterThan(until, nowMillis))
                 {

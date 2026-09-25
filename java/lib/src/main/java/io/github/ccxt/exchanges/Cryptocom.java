@@ -1604,7 +1604,7 @@ public class Cryptocom extends CryptocomApi
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("start_ts", Helpers.subtract(since, (((long) duration) * 1000L)));
+                request.put("start_ts", (since - (((long) duration) * 1000L)));
                 if (!java.util.Objects.equals(limit, null))
                 {
                     request.put("end_ts", this.sum(since, Helpers.multiply(Helpers.multiply(duration, limit), 1000)));
@@ -1688,7 +1688,7 @@ public class Cryptocom extends CryptocomApi
             }};
             if ((!java.util.Objects.equals(limit, null)) && (!Helpers.isEqual(limit, 0)))
             {
-                request.put("depth", Helpers.mathMin(limit, 50)); // max 50
+                request.put("depth", Math.min(limit, 50)); // max 50
             }
             Map<String, Object> response = (this.v1PublicGetPublicGetBook(this.extend(request, parameters))).join();
             //

@@ -1071,16 +1071,16 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         if (((Map<?, ?>)message).containsKey("channel"))
         {
             String channel = this.safeString(message, "channel");
-            if (Helpers.isGreaterThan(((String)channel).indexOf("_depth_step"), -1))
+            if (((String)channel).indexOf("_depth_step") > -1)
             {
                 this.handleOrderBook(client, (Map<String, Object>) (message));
-            } else if (Helpers.isGreaterThan(((String)channel).indexOf("_trade_ticker"), -1))
+            } else if (((String)channel).indexOf("_trade_ticker") > -1)
             {
                 this.handleTrades(client, (Map<String, Object>) (message));
-            } else if (Helpers.isGreaterThan(((String)channel).indexOf("_kline_"), -1))
+            } else if (((String)channel).indexOf("_kline_") > -1)
             {
                 this.handleOHLCV(client, (Map<String, Object>) (message));
-            } else if (Helpers.isGreaterThan(((String)channel).indexOf("_ticker"), -1))
+            } else if (((String)channel).indexOf("_ticker") > -1)
             {
                 this.handleTicker(client, (Map<String, Object>) (message));
             }

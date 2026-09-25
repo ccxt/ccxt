@@ -1266,7 +1266,7 @@ public class Bithumb extends BithumbApi
                     {
                         ((List<Object>)marketIdsChunk).add((marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i)));
                         Integer marketIdsChunkLength = ((List<?>)marketIdsChunk).size();
-                        Boolean isLastMarketId = (Helpers.isEqual(i, ((((long) marketIdsLength) - 1L))));
+                        Boolean isLastMarketId = ((i == ((((long) marketIdsLength) - 1L))));
                         if (((maxMarketIdsPerRequest == null || (marketIdsChunkLength != null && marketIdsChunkLength >= maxMarketIdsPerRequest))) || Boolean.TRUE.equals(isLastMarketId))
                         {
                             ((List<Object>)marketIdsChunks).add(marketIdsChunk);
@@ -2779,7 +2779,7 @@ public class Bithumb extends BithumbApi
         Object timestamp = null;
         if (!java.util.Objects.equals(datetime, null))
         {
-            if (Helpers.isGreaterThan(((String)datetime).indexOf("+09:00"), -1))
+            if (((String)datetime).indexOf("+09:00") > -1)
             {
                 String normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
                 Long normalizedTimestamp = this.parse8601(normalized);
@@ -3659,7 +3659,7 @@ public class Bithumb extends BithumbApi
         currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
         String datetime = this.safeString(transaction, "created_at");
         Object timestamp = this.parse8601(datetime);
-        if ((!java.util.Objects.equals(datetime, null)) && (Helpers.isGreaterThan(((String)datetime).indexOf("+09:00"), -1)))
+        if ((!java.util.Objects.equals(datetime, null)) && (((String)datetime).indexOf("+09:00") > -1))
         {
             String normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
             Long normalizedTimestamp = this.parse8601(normalized);
@@ -4399,7 +4399,7 @@ public class Bithumb extends BithumbApi
             return null;
         }
         Object finalNumberStr = numberStr;
-        while (Helpers.isGreaterThan(((String)finalNumberStr).indexOf(","), -1))
+        while (((String)finalNumberStr).indexOf(",") > -1)
         {
             finalNumberStr = Helpers.replace(((String)finalNumberStr), ",", "");
         }

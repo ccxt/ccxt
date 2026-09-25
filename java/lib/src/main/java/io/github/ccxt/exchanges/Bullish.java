@@ -2114,7 +2114,7 @@ public class Bullish extends BullishApi
         Long ninetyDays = ((((90L * 24L) * 60L) * 60L) * 1000L);
         Long now = this.milliseconds();
         Long allowedSince = (now - ninetyDays);
-        if ((!java.util.Objects.equals(since, null)) && (Helpers.isLessThan(since, allowedSince)))
+        if ((!java.util.Objects.equals(since, null)) && ((allowedSince != null && since < allowedSince)))
         {
             throw new BadRequest((((this.id + " ") + method) + "() only allows fetching entries up to 90 days in the past")) ;
         }

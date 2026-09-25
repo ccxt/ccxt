@@ -668,7 +668,7 @@ public class Mercado extends MercadoApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
             }
             Long to = this.safeInteger(parameters, "to");
             List<Object> response = null;
@@ -1248,7 +1248,7 @@ public class Mercado extends MercadoApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
                 request.put("to", this.sum(((Map<String, Object>)request).get("from"), Helpers.multiply(limit, this.parseTimeframe(timeframe))));
             } else
             {

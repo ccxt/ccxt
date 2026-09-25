@@ -1271,7 +1271,7 @@ public class Paradex extends ParadexApi
                 request.put("start_at", since);
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("end_at", Helpers.subtract(Helpers.add(since, Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limit, 1))), 1000)), 1));
+                    request.put("end_at", Helpers.subtract(Helpers.add(since, Helpers.multiply(Helpers.multiply(duration, ((limit + 1L))), 1000)), 1));
                 } else
                 {
                     request.put("end_at", until);
@@ -1281,7 +1281,7 @@ public class Paradex extends ParadexApi
                 request.put("end_at", until);
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("start_at", Helpers.add(Helpers.subtract(until, Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limit, 1))), 1000)), 1));
+                    request.put("start_at", Helpers.add(Helpers.subtract(until, Helpers.multiply(Helpers.multiply(duration, ((limit + 1L))), 1000)), 1));
                 } else
                 {
                     request.put("start_at", ((until - ((((long) duration) * 101L) * 1000L)) + 1L));
@@ -1803,7 +1803,7 @@ public class Paradex extends ParadexApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("page_size", Helpers.mathMin(limit, 1000));
+                request.put("page_size", Math.min(limit, 1000));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -4779,7 +4779,7 @@ public class Paradex extends ParadexApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("page_size", Helpers.mathMin(limit, 5000));
+                request.put("page_size", Math.min(limit, 5000));
             } else
             {
                 request.put("page_size", 100);
@@ -4902,7 +4902,7 @@ public class Paradex extends ParadexApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("page_size", Helpers.mathMin(limit, 5000)); // api maximum 5000
+                request.put("page_size", Math.min(limit, 5000)); // api maximum 5000
             } else
             {
                 request.put("page_size", 1000); // max is 5000

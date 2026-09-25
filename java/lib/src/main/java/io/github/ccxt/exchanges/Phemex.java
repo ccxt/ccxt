@@ -1615,7 +1615,7 @@ public class Phemex extends PhemexApi
                 response = (this.v2GetMdV2Orderbook(this.extend(request, parameters))).join();
             } else
             {
-                if ((!java.util.Objects.equals(limit, null)) && (Helpers.isLessThanOrEqual(limit, 30)))
+                if ((!java.util.Objects.equals(limit, null)) && ((limit <= 30)))
                 {
                     response = (this.v1GetMdOrderbook(this.extend(request, parameters))).join();
                 } else
@@ -1853,7 +1853,7 @@ public class Phemex extends PhemexApi
                     } else
                     {
                         // when 'to' is defined since is mandatory
-                        since = Helpers.subtract(Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(until, 1000)))), ((((long) maxLimit) * ((long) candleDuration))));
+                        since = (Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(until, 1000)))) - ((((long) maxLimit) * ((long) candleDuration))));
                         request.put("from", since);
                     }
                     if (!java.util.Objects.equals(until, null))
@@ -5149,7 +5149,7 @@ public class Phemex extends PhemexApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(200, limit));
+                request.put("limit", Math.min(200, limit));
             }
             Map<String, Object> response = (this.privateGetApiDataGFuturesClosedPosition(this.extend(request, parameters))).join();
             //
@@ -5424,7 +5424,7 @@ public class Phemex extends PhemexApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isGreaterThan(limit, 200))
+                if ((limit > 200))
                 {
                     throw new BadRequest((this.id + " fetchFundingHistory() limit argument cannot exceed 200")) ;
                 }

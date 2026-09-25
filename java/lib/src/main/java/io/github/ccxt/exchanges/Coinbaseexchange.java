@@ -1728,7 +1728,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object since = since3;
+            Long since = since3;
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))

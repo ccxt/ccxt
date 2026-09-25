@@ -136,7 +136,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                message.put("start", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000)))))));
+                message.put("start", this.parseToInt((Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000))))))));
             }
             if (!java.util.Objects.equals(limit, null))
             {

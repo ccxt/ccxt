@@ -921,7 +921,7 @@ public class Deepcoin extends DeepcoinApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
-            Object limit = limit3;
+            Long limit = limit3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1186,7 +1186,7 @@ public class Deepcoin extends DeepcoinApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 500));
+                request.put("limit", Math.min(limit, 500));
             }
             String productGroup = this.getProductGroupFromMarket((Map<String, Object>) (market));
             request.put("productGroup", productGroup);

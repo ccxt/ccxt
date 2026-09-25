@@ -1254,7 +1254,7 @@ public class Bitbank extends BitbankApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("since", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("since", this.parseToInt((((double) since) / ((double) 1000))));
             }
             Map<String, Object> response = (this.privateGetUserSpotActiveOrders(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -1316,7 +1316,7 @@ public class Bitbank extends BitbankApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("since", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("since", this.parseToInt((((double) since) / ((double) 1000))));
             }
             Map<String, Object> response = (this.privateGetUserSpotTradeHistory(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});

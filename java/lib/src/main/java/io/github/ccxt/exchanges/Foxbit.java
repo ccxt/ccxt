@@ -945,7 +945,7 @@ public class Foxbit extends FoxbitApi
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("page_size", limit);
-                if (Helpers.isGreaterThan(limit, 200))
+                if ((limit > 200))
                 {
                     request.put("page_size", 200);
                 }
@@ -1017,7 +1017,7 @@ public class Foxbit extends FoxbitApi
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
-                if (Helpers.isGreaterThan(limit, 500))
+                if ((limit > 500))
                 {
                     request.put("limit", 500);
                 }
@@ -1241,7 +1241,7 @@ public class Foxbit extends FoxbitApi
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("page_size", limit);
-                if (Helpers.isGreaterThan(limit, 100))
+                if ((limit > 100))
                 {
                     request.put("page_size", 100);
                 }
@@ -1703,7 +1703,7 @@ public class Foxbit extends FoxbitApi
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("page_size", limit);
-                if (Helpers.isGreaterThan(limit, 100))
+                if ((limit > 100))
                 {
                     request.put("page_size", 100);
                 }
@@ -1794,7 +1794,7 @@ public class Foxbit extends FoxbitApi
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("page_size", limit);
-                if (Helpers.isGreaterThan(limit, 100))
+                if ((limit > 100))
                 {
                     request.put("page_size", 100);
                 }
@@ -1928,7 +1928,7 @@ public class Foxbit extends FoxbitApi
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("page_size", limit);
-                if (Helpers.isGreaterThan(limit, 100))
+                if ((limit > 100))
                 {
                     request.put("page_size", 100);
                 }
@@ -2008,7 +2008,7 @@ public class Foxbit extends FoxbitApi
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("page_size", limit);
-                if (Helpers.isGreaterThan(limit, 100))
+                if ((limit > 100))
                 {
                     request.put("page_size", 100);
                 }
@@ -2370,7 +2370,7 @@ public class Foxbit extends FoxbitApi
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("page_size", limit);
-                if (Helpers.isGreaterThan(limit, 100))
+                if ((limit > 100))
                 {
                     request.put("page_size", 100);
                 }
@@ -2889,7 +2889,7 @@ public class Foxbit extends FoxbitApi
                 {
                     signatureQuery = (signatureQuery + ((key + "=") + value));
                 }
-                if (Helpers.isLessThan(i, (((long) paramKeysLength) - 1L)))
+                if (i < (((long) paramKeysLength) - 1L))
                 {
                     signatureQuery = (signatureQuery + "&");
                 }

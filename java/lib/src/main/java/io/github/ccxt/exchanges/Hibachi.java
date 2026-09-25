@@ -3111,7 +3111,7 @@ public class Hibachi extends HibachiApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("startTime", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("startTime", this.parseToInt((((double) since) / ((double) 1000))));
             }
             if (!java.util.Objects.equals(limit, null))
             {

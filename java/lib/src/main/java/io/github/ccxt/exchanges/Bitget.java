@@ -6518,10 +6518,10 @@ final Object finalMinNotional = minNotional;
             {
                 if (java.util.Objects.equals(uta, true))
                 {
-                    request.put("limit", Helpers.mathMin(limit, 100));
+                    request.put("limit", Math.min(limit, 100));
                 } else if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
                 {
-                    request.put("limit", Helpers.mathMin(limit, 1000));
+                    request.put("limit", Math.min(limit, 1000));
                 } else
                 {
                     request.put("limit", limit);
@@ -7067,7 +7067,7 @@ final Object finalMinNotional = minNotional;
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object since = since3;
+            Long since = since3;
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -16476,7 +16476,7 @@ final Object finalMinNotional = minNotional;
                     Map<String,Object> sortedParams = this.keysort(parameters);
                     Object queryInner = ("?" + this.urlencode(sortedParams, true));
                     // check #21169 pr
-                    if (Helpers.isGreaterThan(((String)queryInner).indexOf("%24"), -1))
+                    if (((String)queryInner).indexOf("%24") > -1)
                     {
                         queryInner = Helpers.replace(((String)queryInner), "%24", "$");
                     }

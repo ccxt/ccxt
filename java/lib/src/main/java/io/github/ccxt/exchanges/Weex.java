@@ -1919,7 +1919,7 @@ public class Weex extends WeexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            if ((!java.util.Objects.equals(limit, null)) && (Helpers.isGreaterThan(limit, 15)))
+            if ((!java.util.Objects.equals(limit, null)) && ((limit > 15)))
             {
                 request.put("limit", 200); // default is 15, max is 200
             }
@@ -2256,7 +2256,7 @@ public class Weex extends WeexApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000));
+                request.put("limit", Math.min(limit, 1000));
             }
             List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -6301,7 +6301,7 @@ public class Weex extends WeexApi
         }
         if (Helpers.isTrue(((String)marketId).endsWith("SUSDT")))
         {
-            Object baseLength = Helpers.subtract(((String)marketId).length(), 5);
+            Long baseLength = (((long) ((String)marketId).length()) - 5L);
             return (Helpers.slice(marketId, 0, baseLength) + "USDT");
         }
         return marketId;

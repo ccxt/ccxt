@@ -1261,7 +1261,7 @@ public class Latoken extends LatokenApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 100)); // default 100, limit 100
+                request.put("limit", Math.min(limit, 100)); // default 100, limit 100
             }
             List<Object> response = (this.publicGetTradeHistoryCurrencyQuote(this.extend(request, parameters))).join();
             //

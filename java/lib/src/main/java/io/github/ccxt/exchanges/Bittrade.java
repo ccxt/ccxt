@@ -1463,7 +1463,7 @@ public class Bittrade extends BittradeApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("size", Helpers.mathMin(limit, 2000));
+                request.put("size", Math.min(limit, 2000));
             }
             Map<String, Object> response = (this.marketGetHistoryTrade(this.extend(request, parameters))).join();
             //
@@ -1569,7 +1569,7 @@ public class Bittrade extends BittradeApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("size", Helpers.mathMin(limit, 2000));
+                request.put("size", Math.min(limit, 2000));
             }
             Map<String, Object> response = (this.marketGetHistoryKline(this.extend(request, parameters))).join();
             //
