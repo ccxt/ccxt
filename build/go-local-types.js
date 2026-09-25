@@ -6637,7 +6637,8 @@ function ccxtGoTupleOverridesAgree (declaration, name, index, goType) {
     if (at < 0) {
         return false;
     }
-    const key = fileName.substring (0, at) + '#' + name + '#' + index;
+    // the scanned file set depends on the declaring file, so it is part of the key
+    const key = fileName + '#' + name + '#' + index;
     if (CCXT_GO_TUPLE_OVERRIDE_CACHE.has (key)) {
         return CCXT_GO_TUPLE_OVERRIDE_CACHE.get (key) === goType;
     }
