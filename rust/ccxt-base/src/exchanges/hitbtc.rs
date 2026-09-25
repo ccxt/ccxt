@@ -1647,7 +1647,7 @@ impl HitbtcCore {
         m.insert("id".to_string(), currencyId);
         m.insert("precision".to_string(), self.safe_number_k(entry.clone(), "precision_transfer", &[]));
         m.insert("name".to_string(), self.safe_string_k(entry.clone(), "full_name", &[]));
-        m.insert("active".to_string(), Value::Bool(self.safe_bool_k(entry.clone(), "delisted", &[]).as_bool() != Some(true)));
+        m.insert("active".to_string(), Value::Bool(!is_true(&self.safe_bool_k(entry.clone(), "delisted", &[Value::Bool(false)]))));
         m.insert("deposit".to_string(), self.safe_bool_k(entry.clone(), "payin_enabled", &[]));
         m.insert("withdraw".to_string(), self.safe_bool_k(entry, "payout_enabled", &[]));
         m.insert("networks".to_string(), networks);

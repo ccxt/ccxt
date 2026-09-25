@@ -1880,7 +1880,7 @@ impl BitrueCore {
         let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("lastPrice".into()), Value::Str("last".into()), &[]);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "time", &[]);
         let mut percentage: Value = Value::Null;
-        if (self.safe_bool_k(market.clone(), "swap", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             percentage = crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "rose", &[]), &Value::Str("100".into()));
         }  else {
             percentage = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]);

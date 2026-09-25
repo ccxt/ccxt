@@ -2463,7 +2463,7 @@ impl BitsoCore {
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.safe_number_k(entry.clone(), "fee", &[]));
-        m.insert("percentage".to_string(), (Value::Bool(self.safe_bool_k(entry.clone(), "is_fixed", &[]).as_bool() != Some(true))));
+        m.insert("percentage".to_string(), Value::Bool((!is_true(&self.safe_bool_k(entry.clone(), "is_fixed", &[Value::Bool(false)])))));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({

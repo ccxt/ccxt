@@ -3467,7 +3467,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
         if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
@@ -3658,7 +3658,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut result: Value = Value::from(vec![]);
         let mut swapSettlementCurrencies: Value = self.get_settlement_currencies(Value::Str("swap".into()), Value::Str("fetchMarkets".into()));
-        if (self.safe_bool_k(self.options.clone(), "sandboxMode", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]), Value::Bool(true)) {
             swapSettlementCurrencies = Value::from(vec![Value::Str("usdt".into())]); // gate sandbox only has usdt-margined swaps
         }
         {
@@ -3699,7 +3699,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.safe_bool_k(self.options.clone(), "sandboxMode", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::from(vec![]);
         }
         let mut result: Value = Value::from(vec![]);
@@ -4338,8 +4338,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), networkId);
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), Value::Bool(self.safe_bool_k(chain.clone(), "deposit_disabled", &[]).as_bool() != Some(true)));
-        m.insert("withdraw".to_string(), Value::Bool(self.safe_bool_k(chain, "withdraw_disabled", &[]).as_bool() != Some(true)));
+        m.insert("deposit".to_string(), Value::Bool(!is_true(&self.safe_bool_k(chain.clone(), "deposit_disabled", &[Value::Bool(false)]))));
+        m.insert("withdraw".to_string(), Value::Bool(!is_true(&self.safe_bool_k(chain, "withdraw_disabled", &[Value::Bool(false)]))));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.0001".into()), &[]));
         m.insert("limits".to_string(), Value::Map({
@@ -4369,9 +4369,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("code".to_string(), code);
         m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "name", &[]));
         m.insert("type".to_string(), type_var);
-        m.insert("active".to_string(), Value::Bool(self.safe_bool_k(rawCurrency.clone(), "delisted", &[]).as_bool() != Some(true)));
-        m.insert("deposit".to_string(), Value::Bool(self.safe_bool_k(rawCurrency.clone(), "deposit_disabled", &[]).as_bool() != Some(true)));
-        m.insert("withdraw".to_string(), Value::Bool(self.safe_bool_k(rawCurrency.clone(), "withdraw_disabled", &[]).as_bool() != Some(true)));
+        m.insert("active".to_string(), Value::Bool(!is_true(&self.safe_bool_k(rawCurrency.clone(), "delisted", &[Value::Bool(false)]))));
+        m.insert("deposit".to_string(), Value::Bool(!is_true(&self.safe_bool_k(rawCurrency.clone(), "deposit_disabled", &[Value::Bool(false)]))));
+        m.insert("withdraw".to_string(), Value::Bool(!is_true(&self.safe_bool_k(rawCurrency.clone(), "withdraw_disabled", &[Value::Bool(false)]))));
         m.insert("fee".to_string(), Value::Null);
         m.insert("networks".to_string(), networks);
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.0001".into()), &[]));
@@ -10898,7 +10898,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut response: Value = Value::Null;
         let mut isUnified: Value = self.safe_bool_k(params.clone(), "unified", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("unified".into()), &[]);
-        if (self.safe_bool_k(market.clone(), "spot", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency_pair".into(), self.safe_string_k(market.clone(), "id", &[])); }
             if (isUnified.as_bool() == Some(true)) {
                 let __ws_arg_111 = self.extend(request.clone(), &[paramsOmitted.clone()]);

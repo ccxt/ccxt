@@ -1513,9 +1513,9 @@ impl ToobitCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "s", &[]);
         let mut ts: Value = self.safe_string_k(trade.clone(), "t", &[]);
-        let mut isMaker: bool = self.safe_bool_k(trade.clone(), "m", &[]).as_bool() == Some(true);
+        let mut isMaker: Value = self.safe_bool_k(trade.clone(), "m", &[Value::Bool(false)]);
         let mut takerOrMaker: Value = Value::Str("taker".into());
-        if isMaker {
+        if isMaker.as_bool() == Some(true) {
             takerOrMaker = Value::Str("maker".into());
         }
         return self.safe_trade(Value::Map({

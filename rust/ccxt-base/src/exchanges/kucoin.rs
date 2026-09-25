@@ -3622,7 +3622,7 @@ impl KucoinCore {
             let mut contractMarkets: Value = self.safe_list(responses, contractIndex, &[Value::from(vec![])]);
             result = self.array_concat(result.clone(), contractMarkets);
         }
-        if (self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
         return result;
@@ -4034,7 +4034,7 @@ impl KucoinCore {
             }));
         }
         }
-        if (self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
         return result;

@@ -974,7 +974,7 @@ impl BigoneCore {
         }
         let mut chainLength: f64 = ((chains.len() as i64) as f64);
         let mut type_var: Value = Value::Null;
-        if (self.safe_bool_k(rawCurrency.clone(), "is_fiat", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(rawCurrency.clone(), "is_fiat", &[Value::Bool(false)]), Value::Bool(true)) {
             type_var = Value::Str("fiat".into());
         }  else if (chainLength == 0.0) {
             if self.is_leveraged_currency(id.clone(), &[]).as_bool() == Some(true) {

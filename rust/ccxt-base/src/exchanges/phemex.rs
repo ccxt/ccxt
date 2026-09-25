@@ -3798,7 +3798,7 @@ impl PhemexCore {
             if (qtyType.as_str() == Some("ByQuote")) {
                 let mut cost: Value = self.safe_number_k(orderParams.clone(), "cost", &[]);
                 orderParams = self.omit(orderParams.clone(), Value::Str("cost".into()), &[]);
-                if (self.safe_bool_k(self.options.clone(), "createOrderByQuoteRequiresPrice", &[]).as_bool() == Some(true)) {
+                if matches!(self.safe_bool_k(self.options.clone(), "createOrderByQuoteRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (price != Value::Null) {
                         let mut amountString: Value = self.number_to_string(amount.clone());
                         let mut priceString: Value = self.number_to_string(price.clone());
@@ -3820,7 +3820,7 @@ impl PhemexCore {
             orderParams = self.omit(orderParams.clone(), Value::Str("hedged".into()), &[]);
             let mut posSide: Value = self.safe_string_lower_k(orderParams.clone(), "posSide", &[]);
             // a hedged reduceOnly order without posSide closes the opposite side
-            let mut flipSide: bool = (posSide == Value::Null) && (hedged.as_bool() == Some(true)) && (self.safe_bool_k(orderParams.clone(), "reduceOnly", &[]).as_bool() == Some(true));
+            let mut flipSide: bool = (posSide == Value::Null) && (hedged.as_bool() == Some(true)) && is_true(&(self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)])));
             let mut oppositeSide: Value = (if (side.as_str() == Some("buy")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
             let mut sideResolved: Value = side;
             if flipSide {

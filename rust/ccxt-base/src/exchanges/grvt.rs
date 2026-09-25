@@ -1993,10 +1993,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             side = (if isTakerBuyer.as_bool() == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
             takerOrMaker = Value::Str("taker".into());
         }  else {
-            let mut isTaker: bool = self.safe_bool_k(trade.clone(), "is_taker", &[]).as_bool() == Some(true);
-            let mut isBuyer: bool = self.safe_bool_k(trade.clone(), "is_buyer", &[]).as_bool() == Some(true);
-            takerOrMaker = (if isTaker { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
-            side = (if isBuyer { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            let mut isTaker: Value = self.safe_bool_k(trade.clone(), "is_taker", &[Value::Bool(false)]);
+            let mut isBuyer: Value = self.safe_bool_k(trade.clone(), "is_buyer", &[Value::Bool(false)]);
+            takerOrMaker = (if isTaker.as_bool() == Some(true) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+            side = (if isBuyer.as_bool() == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut fee: Value = Value::Null;
         let mut feeString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
@@ -4258,8 +4258,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut marketResolved: Value = (if (firstLeg != Value::Null) { self.safe_market(&[legMarketId, market.clone()]) } else { market });
         if (firstLeg != Value::Null) {
             size = self.safe_string_k(firstLeg.clone(), "size", &[]);
-            let mut isBuyingAsset: bool = self.safe_bool_k(firstLeg.clone(), "is_buying_asset", &[]).as_bool() == Some(true);
-            side = (if isBuyingAsset { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            let mut isBuyingAsset: Value = self.safe_bool_k(firstLeg.clone(), "is_buying_asset", &[Value::Bool(false)]);
+            side = (if isBuyingAsset.as_bool() == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
             price = self.safe_string_k(firstLeg, "limit_price", &[]);
             filled = self.safe_string(filledAmounts, primaryOrderIndex.clone(), &[]);
             avgPrice = self.safe_string(avgPrices, primaryOrderIndex, &[]);

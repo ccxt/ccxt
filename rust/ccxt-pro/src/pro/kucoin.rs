@@ -966,9 +966,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subscription = get_arg(optional_args, 1, Value::Null);
         let mut requestId: Value = to_string_val(&self.request_id());
         let mut market: Value = self.get_market_from_symbols(&[symbols.clone()]);
-        let mut isContract: bool = self.safe_bool_k(market, "contract", &[]).as_bool() == Some(true);
+        let mut isContract: Value = self.safe_bool_k(market, "contract", &[Value::Bool(false)]);
         let mut urlType: Value = Value::Str("spot".into());
-        if isContract {
+        if isContract.as_bool() == Some(true) {
             urlType = Value::Str("futures".into());
         }
         let mut tradeType: Value = to_upper(&urlType);
@@ -1283,9 +1283,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
-        let mut isFuturesMethod: Value = (Value::Bool(self.safe_bool_k(firstMarket, "contract", &[]).as_bool() == Some(true)));
+        let mut isFuturesMethod: Value = self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]);
         let mut channelName: Value = Value::Str("/spotMarket/level1:".into());
-        if matches!(&isFuturesMethod, Value::Bool(true)) {
+        if isFuturesMethod.as_bool() == Some(true) {
             channelName = Value::Str("/contractMarket/tickerV2:".into());
         }
         let mut ticker: Value = self.watch_multi_helper(Value::Str("watchBidsAsks".into()), channelName, isFuturesMethod, &[symbolsNormalized.clone(), params]).await;
@@ -1765,13 +1765,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
-        let mut isFuturesMethod: Value = (Value::Bool(self.safe_bool_k(firstMarket, "contract", &[]).as_bool() == Some(true)));
+        let mut isFuturesMethod: Value = self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]);
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
         let mut url: Value = self.negotiate(Value::Bool(false), &[isFuturesMethod.clone()]).await;
         let mut messageHashes: Value = Value::from(vec![]);
         let mut subscriptionHashes: Value = Value::from(vec![]);
         let mut channelName: Value = Value::Str("/market/match:".into());
-        if matches!(&isFuturesMethod, Value::Bool(true)) {
+        if isFuturesMethod.as_bool() == Some(true) {
             channelName = Value::Str("/contractMarket/execution:".into());
         }
         let mut topic: Value = Value::Str(format!("{}{}", channelName, join(&marketIds, &Value::Str(",".into()))).into());
@@ -1818,12 +1818,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
-        let mut isFuturesMethod: Value = (Value::Bool(self.safe_bool_k(firstMarket, "contract", &[]).as_bool() == Some(true)));
+        let mut isFuturesMethod: Value = self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]);
         let mut url: Value = self.negotiate(Value::Bool(false), &[isFuturesMethod.clone()]).await;
         let mut messageHashes: Value = Value::from(vec![]);
         let mut subscriptionHashes: Value = Value::from(vec![]);
         let mut channelName: Value = Value::Str("/market/match:".into());
-        if matches!(&isFuturesMethod, Value::Bool(true)) {
+        if isFuturesMethod.as_bool() == Some(true) {
             channelName = Value::Str("/contractMarket/execution:".into());
         }
         let mut topic: Value = Value::Str(format!("{}{}", channelName, join(&marketIds, &Value::Str(",".into()))).into());
@@ -2201,14 +2201,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
-        let mut isFuturesMethod: Value = (Value::Bool(self.safe_bool_k(firstMarket, "contract", &[]).as_bool() == Some(true)));
+        let mut isFuturesMethod: Value = self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]);
         let mut url: Value = self.negotiate(Value::Bool(false), &[isFuturesMethod.clone()]).await;
         let mut defaultMethod: Value = Value::Str("/market/level2".into());
-        if matches!(&isFuturesMethod, Value::Bool(true)) {
+        if isFuturesMethod.as_bool() == Some(true) {
             defaultMethod = Value::Str("/contractMarket/level2".into());
         }
         let mut optionName: Value = Value::Str("spotMethod".into());
-        if matches!(&isFuturesMethod, Value::Bool(true)) {
+        if isFuturesMethod.as_bool() == Some(true) {
             optionName = Value::Str("contractMethod".into());
         }
         let mut methodOptionparamsMethodVariable = self.handle_option_string_and_params2(params, Value::Str("watchOrderBook".into()), optionName, Value::Str("method".into()), &[defaultMethod]);
@@ -2217,7 +2217,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut method: Value = methodOption;
         if Value::Int(method.as_str().and_then(|__s| __s.find("Depth")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
             if (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(50.0)) {
-                if !(matches!(&isFuturesMethod, Value::Bool(true))) {
+                if !(isFuturesMethod.as_bool() == Some(true)) {
                     method = Value::Str("/spotMarket/level2".into());
                 }
                 method = Value::Str(format!("{}{}", method, Value::Str(format!("{}{}", Value::Str("Depth".into()), to_string_val(&limit)).into())).into());
@@ -2283,14 +2283,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
-        let mut isFuturesMethod: Value = (Value::Bool(self.safe_bool_k(firstMarket, "contract", &[]).as_bool() == Some(true)));
+        let mut isFuturesMethod: Value = self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]);
         let mut url: Value = self.negotiate(Value::Bool(false), &[isFuturesMethod.clone()]).await;
         let mut defaultMethod: Value = Value::Str("/market/level2".into());
-        if matches!(&isFuturesMethod, Value::Bool(true)) {
+        if isFuturesMethod.as_bool() == Some(true) {
             defaultMethod = Value::Str("/contractMarket/level2".into());
         }
         let mut optionName: Value = Value::Str("spotMethod".into());
-        if matches!(&isFuturesMethod, Value::Bool(true)) {
+        if isFuturesMethod.as_bool() == Some(true) {
             optionName = Value::Str("contractMethod".into());
         }
         let mut methodOptionparamsMethodVariable = self.handle_option_string_and_params2(paramsOmitted, Value::Str("watchOrderBook".into()), optionName, Value::Str("method".into()), &[defaultMethod]);
@@ -2299,7 +2299,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut method: Value = methodOption;
         if Value::Int(method.as_str().and_then(|__s| __s.find("Depth")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
             if (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(50.0)) {
-                if !(matches!(&isFuturesMethod, Value::Bool(true))) {
+                if !(isFuturesMethod.as_bool() == Some(true)) {
                     method = Value::Str("/spotMarket/level2".into());
                 }
                 method = Value::Str(format!("{}{}", method, Value::Str(format!("{}{}", Value::Str("Depth".into()), to_string_val(&limit)).into())).into());

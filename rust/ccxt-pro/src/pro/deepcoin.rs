@@ -702,7 +702,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ask: Value = self.safe_number_k(ticker.clone(), "AP1", &[]);
         let mut baseVolume: Value = self.safe_number_k(ticker.clone(), "V", &[]);
         let mut quoteVolume: Value = self.safe_number_k(ticker.clone(), "T", &[]);
-        if (self.safe_bool_k(market.clone(), "inverse", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut temp: Value = baseVolume.clone();
             baseVolume = quoteVolume.clone();
             quoteVolume = temp;

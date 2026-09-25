@@ -2211,7 +2211,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
         let mut promisesUnresolved: Value = Value::from(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_and_future_markets(&[params]).await]);
@@ -2587,7 +2587,7 @@ impl XtCore {
         if contract.as_bool() == Some(true) {
             isActive = self.safe_bool_k(market.clone(), "isOpenApi", &[Value::Bool(false)]);
         }  else {
-            if (state.as_deref() == Some("ONLINE")) && (self.safe_bool_k(market.clone(), "tradingEnabled", &[]).as_bool() == Some(true)) && (self.safe_bool_k(market.clone(), "openapiEnabled", &[]).as_bool() == Some(true)) {
+            if (state.as_deref() == Some("ONLINE")) && matches!((self.safe_bool_k(market.clone(), "tradingEnabled", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k(market.clone(), "openapiEnabled", &[Value::Bool(false)])), Value::Bool(true)) {
                 isActive = Value::Bool(true);
             }
         }

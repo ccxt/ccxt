@@ -1176,7 +1176,7 @@ impl NdaxCore {
         m.insert("type".to_string(), type_var);
         m.insert("precision".to_string(), self.safe_number_k(rawCurrency.clone(), "TickSize", &[]));
         m.insert("info".to_string(), rawCurrency.clone());
-        m.insert("active".to_string(), (Value::Bool(self.safe_bool_k(rawCurrency.clone(), "IsDisabled", &[]).as_bool() != Some(true))));
+        m.insert("active".to_string(), Value::Bool((!is_true(&self.safe_bool_k(rawCurrency.clone(), "IsDisabled", &[Value::Bool(false)])))));
         m.insert("deposit".to_string(), self.safe_bool_k(rawCurrency.clone(), "DepositEnabled", &[]));
         m.insert("withdraw".to_string(), self.safe_bool_k(rawCurrency.clone(), "WithdrawEnabled", &[]));
         m.insert("fee".to_string(), Value::Null);

@@ -3009,8 +3009,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn get_url_by_market(&self, mut market: Value) -> Value {
         let mut baseUrl: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &crate::value::get_value_k(&market, "type"));
-        if (self.safe_bool_k(market.clone(), "contract", &[]).as_bool() == Some(true)) {
-            return (if (self.safe_bool_k(market, "linear", &[]).as_bool() == Some(true)) { crate::value::get_value_k(&baseUrl, "usdt") } else { crate::value::get_value_k(&baseUrl, "btc") });
+        if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+            return (if matches!((self.safe_bool_k(market, "linear", &[Value::Bool(false)])), Value::Bool(true)) { crate::value::get_value_k(&baseUrl, "usdt") } else { crate::value::get_value_k(&baseUrl, "btc") });
         }  else {
             return baseUrl;
         }

@@ -694,9 +694,9 @@ impl CexCore {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-        let mut isFiat: bool = self.safe_bool_k(rawCurrency.clone(), "fiat", &[]).as_bool() == Some(true);
+        let mut isFiat: Value = self.safe_bool_k(rawCurrency.clone(), "fiat", &[Value::Bool(false)]);
         let mut type_var: Value = Value::Str("crypto".into());
-        if isFiat {
+        if isFiat.as_bool() == Some(true) {
             type_var = Value::Str("fiat".into());
         }
         let mut currencyPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]);

@@ -2495,7 +2495,7 @@ impl BingxCore {
         let mut isActive: Value = Value::Bool(false);
         if (self.safe_string_k(market.clone(), "apiStateOpen", &[]).as_str() == Some("true")) && (self.safe_string_k(market.clone(), "apiStateClose", &[]).as_str() == Some("true")) {
             isActive = Value::Bool(true); // swap active
-        }  else if (self.safe_bool_k(market.clone(), "apiStateSell", &[]).as_bool() == Some(true)) && (self.safe_bool_k(market.clone(), "apiStateBuy", &[]).as_bool() == Some(true)) && (self.safe_string_k(market.clone(), "status", &[]).as_str() == Some("1")) {
+        }  else if matches!((self.safe_bool_k(market.clone(), "apiStateSell", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k(market.clone(), "apiStateBuy", &[Value::Bool(false)])), Value::Bool(true)) && (self.safe_string_k(market.clone(), "status", &[]).as_str() == Some("1")) {
             isActive = Value::Bool(true); // spot active
         }  else if checkIsInverse.as_bool() == Some(true) && (self.safe_string_k(market.clone(), "status", &[]).as_str() == Some("1")) {
             isActive = Value::Bool(true); // inverse swap active

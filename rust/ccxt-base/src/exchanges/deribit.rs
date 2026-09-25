@@ -3076,7 +3076,7 @@ impl DeribitCore {
         let mut filledString: Value = self.safe_string_k(order.clone(), "filled_amount", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "amount", &[]);
         let mut cost: Value = crate::precise::Precise::stringMul(&filledString, &averageString);
-        if (self.safe_bool_k(marketResolved.clone(), "inverse", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             if (averageString.as_str() != Some("0")) {
                 cost = crate::precise::Precise::stringDiv(&amount, &averageString);
             }

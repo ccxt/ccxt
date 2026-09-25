@@ -2361,10 +2361,10 @@ impl GeminiCore {
         let mut remaining: Value = self.safe_string_k(order.clone(), "remaining_amount", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "executed_amount", &[]);
         let mut status: Value = Value::Str("closed".into());
-        if (self.safe_bool_k(order.clone(), "is_live", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(order.clone(), "is_live", &[Value::Bool(false)]), Value::Bool(true)) {
             status = Value::Str("open".into());
         }
-        if (self.safe_bool_k(order.clone(), "is_cancelled", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(order.clone(), "is_cancelled", &[Value::Bool(false)]), Value::Bool(true)) {
             status = Value::Str("canceled".into());
         }
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
