@@ -199,16 +199,16 @@ public partial class bitstamp : ccxt.bitstamp
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         Int64? timestamp = this.safeTimestamp(delta, "timestamp");
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "microtimestamp");
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
+        orderbook["nonce"] = this.safeInteger(delta, "microtimestamp");
         List<object> bids = this.safeList(delta, "bids", new List<object>() {});
         List<object> asks = this.safeList(delta, "asks", new List<object>() {});
-        object storedBids = getValue(orderbook, "bids");
-        object storedAsks = getValue(orderbook, "asks");
+        ccxt.pro.IBids storedBids = orderbook?.bids;
+        ccxt.pro.IAsks storedAsks = orderbook?.asks;
         this.handleBidAsks(storedBids, bids);
         this.handleBidAsks(storedAsks, asks);
     }

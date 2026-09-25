@@ -710,11 +710,11 @@ public partial class bybit : ccxt.bybit
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsValue));
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object orderbook, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(ccxt.pro.IOrderBook orderbook, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(orderbook, "timestamp");
-        List<object> bids = this.sortBy(this.aggregate(getValue(orderbook, "bids")), 0);
-        List<object> asks = this.sortBy(this.aggregate(getValue(orderbook, "asks")), 0);
+        List<object> bids = this.sortBy(this.aggregate(orderbook?.bids), 0);
+        List<object> asks = this.sortBy(this.aggregate(orderbook?.asks), 0);
         List<object> bestBid = this.safeList(bids, 0, new List<object>() {});
         List<object> bestAsk = this.safeList(asks, 0, new List<object>() {});
         return this.safeTicker(new Dictionary<string, object>() {

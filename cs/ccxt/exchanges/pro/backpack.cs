@@ -1051,16 +1051,16 @@ public partial class backpack : ccxt.backpack
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         Int64? timestamp = this.parseToInt(((double?)this.safeInteger(delta, "T", 0) / 1000));
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "u");
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
+        orderbook["nonce"] = this.safeInteger(delta, "u");
         List<object> bids = this.safeList(delta, "b", new List<object>() {});
         List<object> asks = this.safeList(delta, "a", new List<object>() {});
-        object storedBids = getValue(orderbook, "bids");
-        object storedAsks = getValue(orderbook, "asks");
+        ccxt.pro.IBids storedBids = orderbook?.bids;
+        ccxt.pro.IAsks storedAsks = orderbook?.asks;
         this.handleBidAsks(storedBids, bids);
         this.handleBidAsks(storedAsks, asks);
     }

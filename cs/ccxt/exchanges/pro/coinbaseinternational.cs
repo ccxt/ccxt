@@ -789,7 +789,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         string? rawSide = this.safeStringLower(delta, 0);
         string side = "asks";
@@ -803,7 +803,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleBookDeltas(object orderbook, object deltas)
+    public override void handleBookDeltas(ccxt.pro.IOrderBook orderbook, object deltas)
     {
         for (int i = 0; i < getArrayLength(deltas); i++)
         {

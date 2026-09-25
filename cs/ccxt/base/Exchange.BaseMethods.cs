@@ -599,7 +599,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " handleDelta not supported yet")) ;
     }
 
-    public virtual void handleBookDeltas(object orderbook, object deltas)
+    public virtual void handleBookDeltas(ccxt.pro.IOrderBook orderbook, object deltas)
     {
         for (int i = 0; i < getArrayLength(deltas); i++)
         {
@@ -607,7 +607,7 @@ public partial class BaseExchange
         }
     }
 
-    public virtual void handleBookDelta(object orderbook, object delta)
+    public virtual void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         throw new NotSupported ((this.id + " handleBookDelta not supported yet")) ;
     }

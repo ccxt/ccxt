@@ -310,7 +310,7 @@ public partial class luno : ccxt.luno
         return result;
     }
 
-    public override void handleBookDelta(object orderbook, object message)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object message)
     {
         //
         //  create
@@ -356,8 +356,8 @@ public partial class luno : ccxt.luno
         //     }
         //
         IDictionary<string, object> createUpdate = this.safeDict(message, "create_update");
-        object asksOrderSide = getValue(orderbook, "asks");
-        object bidsOrderSide = getValue(orderbook, "bids");
+        ccxt.pro.IAsks asksOrderSide = orderbook?.asks;
+        ccxt.pro.IBids bidsOrderSide = orderbook?.bids;
         if ((createUpdate != null))
         {
             List<object> bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");

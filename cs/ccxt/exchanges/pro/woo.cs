@@ -360,14 +360,14 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook)
     {
         IDictionary<string, object> data = this.safeDict(message, "data");
-        this.handleDeltas(getValue(orderbook, "asks"), this.safeList(data, "asks", new List<object>() {}));
-        this.handleDeltas(getValue(orderbook, "bids"), this.safeList(data, "bids", new List<object>() {}));
+        this.handleDeltas(orderbook?.asks, this.safeList(data, "asks", new List<object>() {}));
+        this.handleDeltas(orderbook?.bids, this.safeList(data, "bids", new List<object>() {}));
         Int64? timestamp = this.safeInteger(message, "ts");
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         return orderbook;
     }
 

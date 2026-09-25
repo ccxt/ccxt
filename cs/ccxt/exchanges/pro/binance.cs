@@ -1150,15 +1150,15 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook)
     {
         Int64? u = this.safeInteger(message, "u");
-        this.handleDeltas(getValue(orderbook, "asks"), this.safeList(message, "a", new List<object>() {}));
-        this.handleDeltas(getValue(orderbook, "bids"), this.safeList(message, "b", new List<object>() {}));
-        ((IDictionary<string,object>)orderbook)["nonce"] = u;
+        this.handleDeltas(orderbook?.asks, this.safeList(message, "a", new List<object>() {}));
+        this.handleDeltas(orderbook?.bids, this.safeList(message, "b", new List<object>() {}));
+        orderbook["nonce"] = u;
         Int64? timestamp = this.safeInteger(message, "E");
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         return orderbook;
     }
 

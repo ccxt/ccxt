@@ -2003,20 +2003,20 @@ public partial class kucoin : ccxt.kucoin
         return cache?.Count ?? 0;
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         Int64? timestamp = this.safeIntegerProduct(delta, "M", 0.000001);
         if ((timestamp == null))
         {
             timestamp = this.safeInteger2(delta, "time", "timestamp");
         }
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeIntegerN(delta, new List<object>() {"sequenceEnd", "sequence", "C"}, timestamp);
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["nonce"] = this.safeIntegerN(delta, new List<object>() {"sequenceEnd", "sequence", "C"}, timestamp);
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         string? change = this.safeString(delta, "change");
         IDictionary<string, object> changes = this.safeDict(delta, "changes", delta);
-        object storedBids = getValue(orderbook, "bids");
-        object storedAsks = getValue(orderbook, "asks");
+        ccxt.pro.IBids storedBids = orderbook?.bids;
+        ccxt.pro.IAsks storedAsks = orderbook?.asks;
         if ((change != null))
         {
             // handling futures orderbook update

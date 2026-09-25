@@ -1012,7 +1012,7 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         Int64? existingNonce = this.safeInteger(orderbook, "nonce");
         Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
@@ -1022,11 +1022,11 @@ public partial class mexc : ccxt.mexc
             // so, we just skip old updates
             return;
         }
-        ((IDictionary<string,object>)orderbook)["nonce"] = deltaNonce;
+        orderbook["nonce"] = deltaNonce;
         List<object> asks = this.safeList(delta, "asks", new List<object>() {});
         List<object> bids = this.safeList(delta, "bids", new List<object>() {});
-        object asksOrderSide = getValue(orderbook, "asks");
-        object bidsOrderSide = getValue(orderbook, "bids");
+        ccxt.pro.IAsks asksOrderSide = orderbook?.asks;
+        ccxt.pro.IBids bidsOrderSide = orderbook?.bids;
         this.handleBooksideDelta(asksOrderSide, asks);
         this.handleBooksideDelta(bidsOrderSide, bids);
     }

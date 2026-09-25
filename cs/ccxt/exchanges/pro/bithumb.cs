@@ -564,7 +564,7 @@ public partial class bithumb : ccxt.bithumb
         client.resolve(orderbook, messageHash);
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         //
         //    {
@@ -586,7 +586,7 @@ public partial class bithumb : ccxt.bithumb
         (orderbookSide as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleBookDeltas(object orderbook, object deltas)
+    public override void handleBookDeltas(ccxt.pro.IOrderBook orderbook, object deltas)
     {
         for (int i = 0; i < getArrayLength(deltas); i++)
         {

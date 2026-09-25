@@ -174,13 +174,13 @@ public partial class xt : ccxt.xt
         return cache?.Count ?? 0;
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger2(delta, "i", "u");
+        orderbook["nonce"] = this.safeInteger2(delta, "i", "u");
         List<object> obAsks = this.safeList(delta, "a", new List<object>() {});
         List<object> obBids = this.safeList(delta, "b", new List<object>() {});
-        object bids = getValue(orderbook, "bids");
-        object asks = getValue(orderbook, "asks");
+        ccxt.pro.IBids bids = orderbook?.bids;
+        ccxt.pro.IAsks asks = orderbook?.asks;
         for (int i = 0; i < obBids.Count; i++)
         {
             List<object> bid = this.safeList(obBids, i);

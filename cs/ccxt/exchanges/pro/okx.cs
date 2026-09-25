@@ -1574,7 +1574,7 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook, object messageHash, IDictionary<string, object> market = null)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook, object messageHash, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1597,8 +1597,8 @@ public partial class okx : ccxt.okx
         //
         List<object> asks = this.safeList(message, "asks", new List<object>() {});
         List<object> bids = this.safeList(message, "bids", new List<object>() {});
-        object storedAsks = getValue(orderbook, "asks");
-        object storedBids = getValue(orderbook, "bids");
+        ccxt.pro.IAsks storedAsks = orderbook?.asks;
+        ccxt.pro.IBids storedBids = orderbook?.bids;
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
         string? marketId = this.safeString(message, "instId");
@@ -1622,9 +1622,9 @@ public partial class okx : ccxt.okx
             return orderbook;
         }
         Int64? timestamp = this.safeInteger(message, "ts");
-        ((IDictionary<string,object>)orderbook)["nonce"] = seqId;
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["nonce"] = seqId;
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         return orderbook;
     }
 

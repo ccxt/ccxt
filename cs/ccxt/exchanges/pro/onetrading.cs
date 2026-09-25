@@ -418,7 +418,7 @@ public partial class onetrading : ccxt.onetrading
         client.resolve(orderbook, channel);
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         //
         //   [ 'BUY', "0.053595", "0" ]
@@ -427,11 +427,11 @@ public partial class onetrading : ccxt.onetrading
         string? type = this.safeString(delta, 0);
         if (type == "BUY")
         {
-            object bids = getValue(orderbook, "bids");
+            ccxt.pro.IBids bids = orderbook?.bids;
             (bids as IOrderBookSide).storeArray(bidAsk);
         } else if (type == "SELL")
         {
-            object asks = getValue(orderbook, "asks");
+            ccxt.pro.IAsks asks = orderbook?.asks;
             (asks as IOrderBookSide).storeArray(bidAsk);
         } else
         {
@@ -439,7 +439,7 @@ public partial class onetrading : ccxt.onetrading
         }
     }
 
-    public override void handleBookDeltas(object orderbook, object deltas)
+    public override void handleBookDeltas(ccxt.pro.IOrderBook orderbook, object deltas)
     {
         //
         //    [

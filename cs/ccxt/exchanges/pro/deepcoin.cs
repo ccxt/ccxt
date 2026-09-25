@@ -903,7 +903,7 @@ public partial class deepcoin : ccxt.deepcoin
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
+    public virtual void handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook)
     {
         //     {
         //         "a": "PMO",
@@ -926,16 +926,16 @@ public partial class deepcoin : ccxt.deepcoin
         {
             List<object> response = this.safeList(message, "r", new List<object>() {});
             this.handleBookDeltas(orderbook, response);
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
         }
     }
 
-    public override void handleBookDelta(object orderbook, object entry)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object entry)
     {
         IDictionary<string, object> data = this.safeDict(entry, "d", new Dictionary<string, object>() {});
-        object bids = getValue(orderbook, "bids");
-        object asks = getValue(orderbook, "asks");
+        ccxt.pro.IBids bids = orderbook?.bids;
+        ccxt.pro.IAsks asks = orderbook?.asks;
         string? side = this.safeString(data, "D");
         double? price = this.safeNumber(data, "P");
         double? volume = this.safeNumber(data, "V");

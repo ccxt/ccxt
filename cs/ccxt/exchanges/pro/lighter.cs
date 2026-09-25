@@ -141,15 +141,15 @@ public partial class lighter : ccxt.lighter
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, Dictionary<string, object> message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, Dictionary<string, object> message, ccxt.pro.IOrderBook orderbook)
     {
         IDictionary<string, object> data = this.safeDict(message, "order_book", new Dictionary<string, object>() {});
-        this.handleDeltas(getValue(orderbook, "asks"), this.safeList(data, "asks", new List<object>() {}));
-        this.handleDeltas(getValue(orderbook, "bids"), this.safeList(data, "bids", new List<object>() {}));
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "offset");
+        this.handleDeltas(orderbook?.asks, this.safeList(data, "asks", new List<object>() {}));
+        this.handleDeltas(orderbook?.bids, this.safeList(data, "bids", new List<object>() {}));
+        orderbook["nonce"] = this.safeInteger(data, "offset");
         Int64? timestamp = this.safeInteger(message, "timestamp");
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         return orderbook;
     }
 
