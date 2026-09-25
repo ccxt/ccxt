@@ -2219,7 +2219,7 @@ public partial class derive : Exchange
         {
             IDictionary<string, object> pagination = this.safeDict(data, "pagination");
             Int64? currentPage = this.safeInteger(pagination, "num_pages", 0);
-            if (isGreaterThan(page, currentPage))
+            if ((page != null && (currentPage == null || page > currentPage)))
             {
                 return ccxt.BaseExchange.ToOrderList(new List<object>() {});
             }
@@ -2634,7 +2634,7 @@ public partial class derive : Exchange
         {
             IDictionary<string, object> pagination = this.safeDict(result, "pagination");
             Int64? currentPage = this.safeInteger(pagination, "num_pages", 0);
-            if (isGreaterThan(page, currentPage))
+            if ((page != null && (currentPage == null || page > currentPage)))
             {
                 return ccxt.BaseExchange.ToTradeList(new List<object>() {});
             }
@@ -2875,7 +2875,7 @@ public partial class derive : Exchange
         {
             IDictionary<string, object> pagination = this.safeDict(result, "pagination");
             Int64? currentPage = this.safeInteger(pagination, "num_pages", 0);
-            if (isGreaterThan(page, currentPage))
+            if ((page != null && (currentPage == null || page > currentPage)))
             {
                 return ccxt.BaseExchange.ToFundingHistoryList(new List<object>() {});
             }

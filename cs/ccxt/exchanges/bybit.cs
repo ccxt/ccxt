@@ -4767,7 +4767,7 @@ public partial class bybit : Exchange
         if (isUnifiedAccount)
         {
             Int64? unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
-            if (isLessThan(unifiedMarginStatus, 5))
+            if (((unifiedMarginStatus == null || unifiedMarginStatus < 5)))
             {
                 // it's not uta.20 where inverse are unified
                 if (isInverse)
@@ -5751,7 +5751,7 @@ public partial class bybit : Exchange
         var categoryparamsValueVariable = this.getBybitType("createOrders", market, parameters);
         string? category = (string)categoryparamsValueVariable[0];
         IDictionary<string, object> paramsValue = ((IDictionary<string, object>)categoryparamsValueVariable[1]);
-        if (((category == "inverse")) && (isLessThan(unifiedMarginStatus, 5)))
+        if (((category == "inverse")) && (((unifiedMarginStatus == null || unifiedMarginStatus < 5))))
         {
             throw new NotSupported ((this.id + " createOrders does not allow inverse orders for non UTA2.0 account")) ;
         }
@@ -5990,7 +5990,7 @@ public partial class bybit : Exchange
         var categoryparamsValueVariable = this.getBybitType("editOrders", market, parameters);
         string? category = (string)categoryparamsValueVariable[0];
         IDictionary<string, object> paramsValue = ((IDictionary<string, object>)categoryparamsValueVariable[1]);
-        if (((category == "inverse")) && (isLessThan(unifiedMarginStatus, 5)))
+        if (((category == "inverse")) && (((unifiedMarginStatus == null || unifiedMarginStatus < 5))))
         {
             throw new NotSupported ((this.id + " editOrders does not allow inverse orders for non UTA2.0 account")) ;
         }
@@ -7718,7 +7718,7 @@ public partial class bybit : Exchange
         if (isEqual((enableUnified != null && 1 < enableUnified.Count ? enableUnified[1] : null), true))
         {
             Int64? unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 5); // 3/4 uta 1.0, 5/6 uta 2.0
-            if ((subType == "inverse") && (isLessThan(unifiedMarginStatus, 5)))
+            if ((subType == "inverse") && (((unifiedMarginStatus == null || unifiedMarginStatus < 5))))
             {
                 response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, paramsSubType));
             } else

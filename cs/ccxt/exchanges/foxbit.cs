@@ -2278,7 +2278,7 @@ public partial class foxbit : Exchange
                 {
                     signatureQuery = add(signatureQuery, add(add(key, "="), value));
                 }
-                if (isLessThan(i, (paramKeysLength - 1)))
+                if ((i < (paramKeysLength - 1)))
                 {
                     signatureQuery = add(signatureQuery, "&");
                 }

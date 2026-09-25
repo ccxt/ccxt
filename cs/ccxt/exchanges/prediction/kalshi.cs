@@ -448,14 +448,14 @@ public partial class kalshi : PredictionExchange
             }
             cursor = this.safeString(response, "cursor");
             int collectedLength = (flatMarkets?.Count ?? 0);
-            if (((cursor == null) || cursor == "") || isLessThan(rawMarketsLength, limit) || isGreaterThanOrEqual(collectedLength, maxMarkets))
+            if (((cursor == null) || cursor == "") || (rawMarketsLength < limit) || (maxMarkets == null || collectedLength >= maxMarkets))
             {
                 break;
             }
         }
         this.events = eventsDict;
         int flatMarketsLength = (flatMarkets?.Count ?? 0);
-        if (isGreaterThan(flatMarketsLength, maxMarkets))
+        if (((maxMarkets == null || flatMarketsLength > maxMarkets)))
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arraySlice(flatMarkets, 0, maxMarkets));
         }
@@ -2888,17 +2888,17 @@ public partial class kalshi : PredictionExchange
                 break;
             }
             string? cursor = null;
-            for (int page = 0; isLessThan(page, maxPages); page++)
+            for (int page = 0; (page < maxPages); page++)
             {
                 Int64? reqLimit = pageLimit;
                 if (!isEqual(limit, null))
                 {
                     Int64 remaining = (limit - (rawEvents?.Count ?? 0));
-                    if (isLessThan(remaining, reqLimit))
+                    if ((remaining < reqLimit))
                     {
                         reqLimit = remaining;
                     }
-                    if (isLessThanOrEqual(reqLimit, 0))
+                    if ((reqLimit == null || reqLimit <= 0))
                     {
                         break;
                     }
@@ -2926,7 +2926,7 @@ public partial class kalshi : PredictionExchange
                 {
                     break;
                 }
-                if (((cursor == null)) || (cursor == "") || (isLessThan(pageEventsLength, reqLimit)))
+                if (((cursor == null)) || (cursor == "") || ((pageEventsLength < reqLimit)))
                 {
                     break;
                 }
@@ -3046,7 +3046,7 @@ public partial class kalshi : PredictionExchange
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));
             totalLiquidity = this.sum(totalLiquidity, this.safeNumber2(rawMarket, "liquidity_dollars", "liquidity", 0));
             Int64? marketCreated = this.parse8601(this.safeString(rawMarket, "open_time"));
-            if (((marketCreated != null)) && (((earliestCreated == null)) || (isLessThan(marketCreated, earliestCreated))))
+            if (((marketCreated != null)) && (((earliestCreated == null)) || ((earliestCreated != null && (marketCreated == null || marketCreated < earliestCreated)))))
             {
                 earliestCreated = marketCreated;
             }
@@ -3062,7 +3062,7 @@ public partial class kalshi : PredictionExchange
                 allResolved = false;
             }
             Int64? marketClose = this.parse8601(this.safeString(rawMarket, "close_time"));
-            if (((marketClose != null)) && (((latestClose == null)) || (isGreaterThan(marketClose, latestClose))))
+            if (((marketClose != null)) && (((latestClose == null)) || ((marketClose != null && (latestClose == null || marketClose > latestClose)))))
             {
                 latestClose = marketClose;
             }

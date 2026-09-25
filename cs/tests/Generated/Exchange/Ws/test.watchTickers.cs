@@ -81,7 +81,7 @@ public partial class testMainClass : BaseTest
                         testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }
                 }
-                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                if ((((now - startTime)) > maxIdleTime))
                 {
                     idle = true;
                 }

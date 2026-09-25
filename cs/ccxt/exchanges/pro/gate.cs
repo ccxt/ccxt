@@ -674,7 +674,7 @@ public partial class gate : ccxt.gate
         {
             Int64? nonce = this.safeInteger(orderbook, "nonce");
             Int64? deltaStart = this.safeInteger(result, "u");
-            if (((nonce == null)) || (((deltaStart != null)) && (isGreaterThanOrEqual(nonce, deltaStart))))
+            if (((nonce == null)) || (((deltaStart != null)) && ((deltaStart == null || nonce >= deltaStart))))
             {
                 return;
             }
@@ -782,10 +782,10 @@ public partial class gate : ccxt.gate
             }
             (storedOrderBook as ccxt.pro.OrderBook).cache.Add(delta);
             return;
-        } else if (((deltaEnd != null)) && (isGreaterThanOrEqual(nonce, deltaEnd)))
+        } else if (((deltaEnd != null)) && ((deltaEnd == null || nonce >= deltaEnd)))
         {
             return;
-        } else if (((deltaStart != null)) && (isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))))
+        } else if (((deltaStart != null)) && (isGreaterThanOrEqual(nonce, (deltaStart - 1))))
         {
             this.handleBookDelta(storedOrderBook, delta);
         } else
@@ -807,7 +807,7 @@ public partial class gate : ccxt.gate
         Int64? nonce = this.safeInteger(orderBook, "nonce");
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? firstDeltaStart = this.safeInteger(firstDelta, "U");
-        if (((nonce != null)) && ((firstDeltaStart != null)) && (isLessThan(nonce, firstDeltaStart)))
+        if (((nonce != null)) && ((firstDeltaStart != null)) && ((firstDeltaStart != null && (nonce == null || nonce < firstDeltaStart))))
         {
             return -1;
         }
@@ -816,7 +816,7 @@ public partial class gate : ccxt.gate
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
             Int64? deltaEnd = this.safeInteger(delta, "u");
-            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && (isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))) && (isLessThan(nonce, deltaEnd)))
+            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && (isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
             {
                 return i;
             }

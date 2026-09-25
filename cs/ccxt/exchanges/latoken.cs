@@ -464,7 +464,7 @@ public partial class latoken : Exchange
         {
             throw new ExchangeError ((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
+        return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
     /**

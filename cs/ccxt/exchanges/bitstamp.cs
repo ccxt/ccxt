@@ -2764,7 +2764,7 @@ public partial class bitstamp : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((since != null))
         {
-            request["timedelta"] = subtract(this.milliseconds(), since);
+            request["timedelta"] = (this.milliseconds() - since);
         } else
         {
             request["timedelta"] = 50000000; // use max bitstamp approved value

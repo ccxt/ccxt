@@ -403,7 +403,7 @@ public partial class myriad : PredictionExchange
                 }
             }
             page = this.sum(page, 1);
-            if (isLessThan(rawMarketsLength, limit) || isGreaterThanOrEqual(collected, maxMarkets))
+            if ((rawMarketsLength < limit) || isGreaterThanOrEqual(collected, maxMarkets))
             {
                 break;
             }
@@ -612,7 +612,7 @@ public partial class myriad : PredictionExchange
                 }
             }
             page = this.sum(page, 1);
-            if ((isLessThan(rawQuestionsLength, limit)) || (isGreaterThanOrEqual(collected, maxQuestions)))
+            if (((rawQuestionsLength < limit)) || (isGreaterThanOrEqual(collected, maxQuestions)))
             {
                 break;
             }

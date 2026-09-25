@@ -244,7 +244,7 @@ public partial class sxbet : PredictionExchange
             markets.Add(this.parseSxbetMarket((rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null)));
         }
         int marketsLength = (markets?.Count ?? 0);
-        if (((userLimit != null)) && (isGreaterThan(marketsLength, userLimit)))
+        if (((userLimit != null)) && (((userLimit == null || marketsLength > userLimit))))
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arraySlice(markets, 0, userLimit));
         }
@@ -288,7 +288,7 @@ public partial class sxbet : PredictionExchange
             paginationKey = this.safeString(result, "nextKey");
             page = this.sum(page, 1);
             int collectedLength = (rawMarkets?.Count ?? 0);
-            if ((isLessThan(pageMarketsLength, pageSize)) || (isGreaterThanOrEqual(page, maxPages)) || ((paginationKey == null)) || (((userLimit != null)) && (isGreaterThanOrEqual(collectedLength, userLimit))))
+            if (((pageMarketsLength < pageSize)) || (isGreaterThanOrEqual(page, maxPages)) || ((paginationKey == null)) || (((userLimit != null)) && (isGreaterThanOrEqual(collectedLength, userLimit))))
             {
                 break;
             }
@@ -1295,7 +1295,7 @@ public partial class sxbet : PredictionExchange
         Int64? chunkSize = this.safeInteger(this.options, "cancelOrdersBatchSize", 100);
         Int64? chunkCount = this.parseToInt(divide(this.sum(idsLength, subtract(chunkSize, 1)), chunkSize));
         List<object> result = new List<object>() {};
-        for (int c = 0; isLessThan(c, chunkCount); c++)
+        for (int c = 0; (c < chunkCount); c++)
         {
             Int64? start = (c * chunkSize);
             object end = add(start, chunkSize);
@@ -2174,7 +2174,7 @@ public partial class sxbet : PredictionExchange
         }
         Int64? chunkSize = this.safeInteger(this.options, "bestOddsBatchSize", 100);
         Int64? chunkCount = this.parseToInt(divide(this.sum(hashesLength, subtract(chunkSize, 1)), chunkSize));
-        for (int c = 0; isLessThan(c, chunkCount); c++)
+        for (int c = 0; (c < chunkCount); c++)
         {
             Int64? start = (c * chunkSize);
             object end = add(start, chunkSize);

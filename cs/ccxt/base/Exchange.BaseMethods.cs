@@ -2252,7 +2252,7 @@ public partial class BaseExchange
                         {
                             highestPrecisionCurrency = currentCurrency;
                         }
-                    } else if (isGreaterThan(currentPrecision, highestPrecision))
+                    } else if ((currentPrecision != null && (highestPrecision == null || currentPrecision > highestPrecision)))
                     {
                         highestPrecisionCurrency = currentCurrency;
                     }
@@ -4229,7 +4229,7 @@ public partial class BaseExchange
         Int64 currentNonce = this.nonce();
         this.lockLastNonce();
         Int64? lastNonce = this.safeInteger(this.options, "lastNonce", 0);
-        Int64? result = (isGreaterThan(currentNonce, lastNonce)) ? currentNonce : (lastNonce + 1);
+        Int64? result = (((lastNonce == null || currentNonce > lastNonce))) ? currentNonce : (lastNonce + 1);
         this.options["lastNonce"] = result;
         this.unlockLastNonce();
         return result;
@@ -4519,7 +4519,7 @@ public partial class BaseExchange
                 }
                 if (e is OperationFailed)
                 {
-                    if (isLessThan(i, retriesMaxRetriesOnFailure))
+                    if ((i < retriesMaxRetriesOnFailure))
                     {
                         if (this.verbose)
                         {
@@ -7037,7 +7037,7 @@ public partial class BaseExchange
                     }
                     Int64? nextPaginationTimestamp = (lastTimestamp + 1);
                     paginationTimestamp = nextPaginationTimestamp;
-                    if (((until != null)) && (isGreaterThanOrEqual(nextPaginationTimestamp, until)))
+                    if (((until != null)) && ((until == null || nextPaginationTimestamp >= until)))
                     {
                         break;
                     }
@@ -7141,12 +7141,12 @@ public partial class BaseExchange
                 throw new ArgumentsRequired ((this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
             }
             double requiredCalls = Math.Ceiling(Convert.ToDouble(divide((subtract(until, since)), step)));
-            if (isGreaterThan(requiredCalls, maxCallsPaginationCalls))
+            if (((maxCallsPaginationCalls == null || requiredCalls > maxCallsPaginationCalls)))
             {
                 throw new BadRequest (((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + ((object)maxCallsPaginationCalls).ToString()) + " required calls is ") + ((object)requiredCalls).ToString())) ;
             }
         }
-        for (int i = 0; isLessThan(i, maxCallsPaginationCalls); i++)
+        for (int i = 0; (i < maxCallsPaginationCalls); i++)
         {
             if (((until != null)) && (isGreaterThanOrEqual(currentSince, until)))
             {

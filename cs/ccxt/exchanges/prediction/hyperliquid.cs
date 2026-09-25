@@ -344,7 +344,7 @@ public partial class hyperliquid : PredictionExchange
                     if (thresholdsLength > 0)
                     {
                         string? bucketLabel = null;
-                        if (isLessThanOrEqual(index, 0))
+                        if ((index == null || index <= 0))
                         {
                             bucketLabel = ("BELOW_" + ((thresholds != null && 0 < thresholds.Count ? thresholds[0] : null)));
                         } else if ((index >= thresholdsLength))
@@ -1284,7 +1284,7 @@ public partial class hyperliquid : PredictionExchange
             return null;
         }
         int colonIndex = outcomeInput.IndexOf(":", StringComparison.Ordinal);
-        if (colonIndex > -1 && isLessThan(colonIndex, (outcomeInput.Length - 1)))
+        if (colonIndex > -1 && (colonIndex < (outcomeInput.Length - 1)))
         {
             string side = ((string)slice(outcomeInput, add(colonIndex, 1), null)).ToUpper();
             if (side == "YES" || side == "NO")
@@ -1747,7 +1747,7 @@ public partial class hyperliquid : PredictionExchange
                 {
                     Int64? existingTs = this.safeInteger(getValue(deduped, oid), "statusTimestamp");
                     Int64? currentTs = this.safeInteger(raw, "statusTimestamp");
-                    if ((currentTs != null) && ((existingTs == null) || isGreaterThan(currentTs, existingTs)))
+                    if ((currentTs != null) && ((existingTs == null) || (currentTs != null && (existingTs == null || currentTs > existingTs))))
                     {
                         deduped[(string)oid] = raw;
                     }

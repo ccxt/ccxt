@@ -628,7 +628,7 @@ public partial class htx : ccxt.htx
             Int64? snapshotLimit = this.safeInteger(subscription, "limit");
             ccxt.pro.OrderBook snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
             client.resolve(snapshotOrderBook, id);
-            if (((sequence == null)) || (isLessThan(nonce, sequence)))
+            if (((sequence == null)) || ((sequence != null && (nonce == null || nonce < sequence))))
             {
                 object maxAttempts = this.handleOption("watchOrderBook", "maxRetries", 3);
                 object numAttempts = this.safeInteger(subscription, "numAttempts", 0);
@@ -642,7 +642,7 @@ public partial class htx : ccxt.htx
                         object delayTime = 1000;
                         if (((lastTimestamp != null)) && ((snapshotTimestamp != null)))
                         {
-                            delayTime = this.sum(1000, subtract(lastTimestamp, snapshotTimestamp));
+                            delayTime = this.sum(1000, (lastTimestamp - snapshotTimestamp));
                         }
                         ((IDictionary<string,object>)subscription)["numAttempts"] = numAttempts;
                         ((IDictionary<string,object>)client.subscriptions)[(string)messageHash] = subscription;
@@ -833,7 +833,7 @@ public partial class htx : ccxt.htx
             }
         }
         bool spotConditon = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && (isEqual(prevSeqNum, getValue(orderbook, "nonce")));
-        bool nonSpotCondition = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && ((version != null)) && (isEqual(subtract(version, 1), getValue(orderbook, "nonce")));
+        bool nonSpotCondition = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && ((version != null)) && (isEqual((version - 1), getValue(orderbook, "nonce")));
         if (((spotConditon == true)) || ((nonSpotCondition == true)))
         {
             List<object> asks = this.safeList(tick, "asks", new List<object>() {});

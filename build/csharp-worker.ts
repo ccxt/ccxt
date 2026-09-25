@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
+import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpNativeComparisons, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
 
 // task payload posted by csharpTranspiler.ts#webworkerTranspile (structured clone)
@@ -135,6 +135,8 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // both operands' C# static types are proven (see the native-arithmetic section of
     // build/csharp-local-types.js); installed last so it sees every other hook's proof
     installCsharpNativeArithmetic (transpiler);
+    // `<`/`>`/`<=`/`>=` and null-guarded `-` on proven numeric operands (same section)
+    installCsharpNativeComparisons (transpiler);
     // concrete return types for generated non-async dict/list-returning methods (see
     // the dict/list-returns section of build/csharp-local-types.js) — their returns carry
     // the same boundary cast and the locals map registers the same types

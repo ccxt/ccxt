@@ -1113,7 +1113,7 @@ public partial class binance : ccxt.binance
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if ((isLessThanOrEqual((subtract(U, 1)), getValue(orderbook, "nonce"))) && (isGreaterThanOrEqual((subtract(u, 1)), getValue(orderbook, "nonce"))))
+                    if ((isLessThanOrEqual(((U - 1)), getValue(orderbook, "nonce"))) && (isGreaterThanOrEqual(((u - 1)), getValue(orderbook, "nonce"))))
                     {
                         this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
@@ -1230,18 +1230,18 @@ public partial class binance : ccxt.binance
                 {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (isGreaterThan(u, nonce))
+                    if ((u != null && (nonce == null || u > nonce)))
                     {
                         Int64? timestamp = this.safeInteger(orderbook, "timestamp");
                         bool? conditional = null;
                         if ((timestamp == null))
                         {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = (isLessThanOrEqual((subtract(U, 1)), nonce)) && (isGreaterThanOrEqual((subtract(u, 1)), nonce));
+                            conditional = (isLessThanOrEqual(((U - 1)), nonce)) && (isGreaterThanOrEqual(((u - 1)), nonce));
                         } else
                         {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                            conditional = (isEqual((subtract(U, 1)), nonce));
+                            conditional = (isEqual(((U - 1)), nonce));
                         }
                         if ((conditional == true))
                         {
@@ -1263,11 +1263,11 @@ public partial class binance : ccxt.binance
                 {
                     // future
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (isGreaterThanOrEqual(u, nonce))
+                    if ((nonce == null || u >= nonce))
                     {
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
-                        if ((isLessThanOrEqual(U, nonce)) || ((pu == nonce)))
+                        if (((U == null || U <= nonce)) || ((pu == nonce)))
                         {
                             this.handleOrderBookMessage(client, message, orderbook);
                             if (isLessThanOrEqual(nonce, this.safeInteger(orderbook, "nonce", 0)))
@@ -3374,7 +3374,7 @@ public partial class binance : ccxt.binance
                 // Schedule token renewal before expiration
                 if ((expirationTime != null))
                 {
-                    object renewalTime = subtract(subtract(expirationTime, time), 60000); // Renew 1 minute before expiration
+                    object renewalTime = subtract((expirationTime - time), 60000); // Renew 1 minute before expiration
                     if (isGreaterThan(renewalTime, 0))
                     {
                         Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {

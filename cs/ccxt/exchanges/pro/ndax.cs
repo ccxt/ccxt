@@ -349,7 +349,7 @@ public partial class ndax : ccxt.ndax
                     {
                         ((IList<object>)stored).Add(parsed);
                         Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                        if (isGreaterThanOrEqual(length, limit))
+                        if ((limit == null || length >= limit))
                         {
                             ((IList<object>)stored).First();
                         }

@@ -740,7 +740,7 @@ public partial class lighter : Exchange
     {
         string? r = Precise.stringMul(n, "1");
         Int64? c = this.parseToInt(m);
-        if (isLessThan(c, 0))
+        if (((c == null || c < 0)))
         {
             throw new BadRequest ((this.id + " pow() requires m > 0.")) ;
         }
@@ -752,7 +752,7 @@ public partial class lighter : Exchange
         {
             throw new BadRequest ((this.id + " pow() requires m < 100.")) ;
         }
-        for (int i = 1; isLessThan(i, c); i++)
+        for (int i = 1; (i < c); i++)
         {
             r = Precise.stringMul(r, n);
         }

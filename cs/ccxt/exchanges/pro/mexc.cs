@@ -857,7 +857,7 @@ public partial class mexc : ccxt.mexc
         {
             return -1;
         }
-        if (isLessThan(nonce, subtract(firstDeltaNonce, 1)))
+        if (isLessThan(nonce, (firstDeltaNonce - 1)))
         {
             return -1;
         }
@@ -869,7 +869,7 @@ public partial class mexc : ccxt.mexc
             {
                 continue;
             }
-            if (isGreaterThanOrEqual(deltaNonce, nonce))
+            if ((nonce == null || deltaNonce >= nonce))
             {
                 return i;
             }
@@ -1016,7 +1016,7 @@ public partial class mexc : ccxt.mexc
     {
         Int64? existingNonce = this.safeInteger(orderbook, "nonce");
         Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
-        if (((deltaNonce != null)) && ((existingNonce != null)) && (isLessThan(deltaNonce, existingNonce)))
+        if (((deltaNonce != null)) && ((existingNonce != null)) && ((existingNonce != null && (deltaNonce == null || deltaNonce < existingNonce))))
         {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates

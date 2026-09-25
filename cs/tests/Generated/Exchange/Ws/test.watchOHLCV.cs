@@ -54,7 +54,7 @@ public partial class testMainClass : BaseTest
                 {
                     testOHLCV(exchange, skippedProperties, method, getValue(response, i), symbol, now);
                 }
-                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                if ((((now - startTime)) > maxIdleTime))
                 {
                     idle = true;
                 }

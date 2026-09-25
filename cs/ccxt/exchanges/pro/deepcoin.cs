@@ -922,7 +922,7 @@ public partial class deepcoin : ccxt.deepcoin
         //
         Int64? timestamp = this.safeInteger(message, "mt", 0);
         Int64? currentTimestamp = this.safeInteger(orderbook, "timestamp");
-        if (((currentTimestamp != null)) && (isGreaterThan(timestamp, currentTimestamp)))
+        if (((currentTimestamp != null)) && ((timestamp != null && (currentTimestamp == null || timestamp > currentTimestamp))))
         {
             List<object> response = this.safeList(message, "r", new List<object>() {});
             this.handleBookDeltas(orderbook, response);

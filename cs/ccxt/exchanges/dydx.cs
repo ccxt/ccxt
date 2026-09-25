@@ -1491,7 +1491,7 @@ public partial class dydx : Exchange
         string? r = Precise.stringMul(n, "1");
         Int64? c = this.parseToInt(m);
         // TODO: cap
-        for (int i = 1; isLessThan(i, c); i++)
+        for (int i = 1; (i < c); i++)
         {
             r = Precise.stringMul(r, n);
         }
@@ -2784,7 +2784,7 @@ public partial class dydx : Exchange
         {
             throw new ExchangeError ((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
+        return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
     public virtual string? getWalletAddress()

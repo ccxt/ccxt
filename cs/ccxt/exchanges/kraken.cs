@@ -788,7 +788,7 @@ public partial class kraken : Exchange
                 {
                     throw new ExchangeError ((this.id + " method() missing currencyPrecision")) ;
                 }
-                if (isGreaterThan(currencyPrecision, precisionAmount))
+                if ((currencyPrecision != null && (precisionAmount == null || currencyPrecision > precisionAmount)))
                 {
                     precisionAmount = currencyPrecision;
                 }
@@ -2797,7 +2797,7 @@ public partial class kraken : Exchange
         for (int j = 0; isLessThan(j, numBatches); j++)
         {
             List<object> requestIds = new List<object>() {};
-            for (int k = 0; isLessThan(k, batchSize); k++)
+            for (int k = 0; (k < batchSize); k++)
             {
                 Int64 index = this.sum((j * batchSize), k);
                 if (index < numTradeIds)
