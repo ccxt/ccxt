@@ -11770,6 +11770,7 @@ export default class kucoin extends Exchange {
                 headersBase['Content-Type'] = 'application/json';
             }
         }
+        let headersResult: NullableDict = headersBase;
         const isFuturePrivate = (api === 'futuresPrivate');
         const isPrivate = (api === 'private');
         const isBroker = (api === 'broker');
@@ -11811,9 +11812,9 @@ export default class kucoin extends Exchange {
                     headersSigned['KC-BROKER-NAME'] = brokerName;
                 }
             }
-            return { 'url': apiUrl + endpoint, 'method': method, 'body': bodyJson, 'headers': headersSigned };
+            headersResult = headersSigned;
         }
-        return { 'url': apiUrl + endpoint, 'method': method, 'body': bodyJson, 'headers': headersBase };
+        return { 'url': apiUrl + endpoint, 'method': method, 'body': bodyJson, 'headers': headersResult };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
