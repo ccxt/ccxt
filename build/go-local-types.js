@@ -3110,6 +3110,12 @@ function ccxtGoProveReturnPaths (goTranspiler, node, allowed) {
     let valueType;
     let sawAbsent = false;
     for (const statement of returns) {
+        // try/catch prints as a `func (ret_ any)` closure: its returns stay any/nil
+        for (let up = statement.parent; (up !== undefined) && (up !== node.body); up = up.parent) {
+            if (up.kind === ts.SyntaxKind.TryStatement) {
+                return undefined;
+            }
+        }
         const expression = statement.expression;
         if (expression === undefined) {
             return undefined; // bare `return;` prints a bare `return`, not a typed value
