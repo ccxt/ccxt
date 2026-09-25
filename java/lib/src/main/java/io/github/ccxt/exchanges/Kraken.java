@@ -2737,7 +2737,7 @@ public class Kraken extends KrakenApi
             }
             Boolean isMarket = (java.util.Objects.equals(type, "market"));
             Boolean postOnly = null;
-            List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarket, false, paramsOmitted);
+            List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarket, false, Helpers.toMapArg(paramsOmitted));
             postOnly = (Boolean) ((List<Object>) postOnlyparamsOmittedVariable).get(0);
             paramsOmitted = ((List<Object>) postOnlyparamsOmittedVariable).get(1);
             if (java.util.Objects.equals(postOnly, true))
@@ -4005,8 +4005,8 @@ public class Kraken extends KrakenApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagAndParams = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) (tagAndParams == null || 1 >= tagAndParams.size() ? null : tagAndParams.get(1));
+            List<Object> tagAndParams = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>)tagAndParams).get(1);
             if (paramsWithdrawTag.containsKey("key"))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();

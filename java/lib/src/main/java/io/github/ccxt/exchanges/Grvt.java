@@ -2443,7 +2443,7 @@ public class Grvt extends GrvtApi
                 put( "num_tokens", Grvt.this.currencyToPrecision((String) (code), amount, (String) null) );
                 put( "signature", Grvt.this.defaultSignature() );
             }};
-            List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
             Object networkId = this.networkCodeToId(networkCode, code);

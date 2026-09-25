@@ -3267,7 +3267,7 @@ public class Toobit extends ToobitApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", currency.get("id") );
             }};
-            List<Object> networkCodeparamsOmittedVariable = (List<Object>) this.handleNetworkCodeAndParams(this.extend(request, parameters));
+            List<Object> networkCodeparamsOmittedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (this.extend(request, parameters)));
             String networkCode = (String) ((List<Object>) networkCodeparamsOmittedVariable).get(0);
             var paramsOmitted = ((List<Object>) networkCodeparamsOmittedVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))
@@ -3324,7 +3324,7 @@ public class Toobit extends ToobitApi
         return BaseExchange.supplyAsync(() -> {
 
             this.checkAddress(address);
-            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))

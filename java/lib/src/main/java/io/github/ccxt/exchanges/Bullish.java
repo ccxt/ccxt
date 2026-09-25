@@ -2570,7 +2570,7 @@ public class Bullish extends BullishApi
                     put( "quantity", Bullish.this.currencyToPrecision((String) (code), amount, (String) null) );
                 }} );
             }};
-            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
@@ -2871,7 +2871,7 @@ public class Bullish extends BullishApi
             Integer length = ((List<?>)safeResponse).size();
             Object data = this.safeDict(safeResponse, 0, new HashMap<String, Object>() {{}});
             Object network = null;
-            network = ((List<Object>)this.handleNetworkCodeAndParams(parameters)).get(0);
+            network = ((List<Object>)this.handleNetworkCodeAndParams((Map<String, Object>) (parameters))).get(0);
             Boolean networkDefinedByUser = !java.util.Objects.equals(network, null);
             if (((length != null && length > 1)) || Boolean.TRUE.equals(networkDefinedByUser))
             {

@@ -4486,7 +4486,7 @@ public class Okx extends OkxApi
             ((Map<String, Object>)request).put("tdMode", marginMode);
         }
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), paramsReduceOnly);
+        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), Helpers.toMapArg(paramsReduceOnly));
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         Object orderParams = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent")));
@@ -7042,7 +7042,7 @@ public class Okx extends OkxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
             var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
@@ -7051,11 +7051,11 @@ public class Okx extends OkxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Boolean hasTag = (!java.util.Objects.equals(tagWithdrawTag, null)) && (Helpers.getArrayLength(tagWithdrawTag) > 0);
+            Boolean hasTag = (!java.util.Objects.equals(tagWithdrawTag, null)) && (((String)tagWithdrawTag).length() > 0);
             String addressWithTag = address;
             if (Boolean.TRUE.equals(hasTag))
             {
-                addressWithTag = Helpers.add((address + ":"), tagWithdrawTag);
+                addressWithTag = ((address + ":") + tagWithdrawTag);
             }
             Map<String, Object> request = Helpers.newMap(
                 "ccy", currency.get("id"),

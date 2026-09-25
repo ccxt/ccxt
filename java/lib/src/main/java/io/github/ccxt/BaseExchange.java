@@ -7949,10 +7949,10 @@ public Object describe()
         return (String) (preferredChain);
     }
 
-    public Object handleNetworkCodeAndParams(Object parameters)
+    public Object handleNetworkCodeAndParams(Map<String, Object> parameters)
     {
         String networkCodeInParams = this.safeString2(parameters, "networkCode", "network");
-        Object paramsOmitted = (((!java.util.Objects.equals(networkCodeInParams, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("networkCode", "network"))) : parameters;
+        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(networkCodeInParams, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("networkCode", "network"))) : parameters;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
         return new ArrayList<Object>(Arrays.asList(networkCodeInParams, paramsOmitted));
     }
@@ -8429,7 +8429,7 @@ public Object describe()
      */
     public Object handleRequestNetwork(Map<String, Object> parameters, Map<String, Object> request, Object exchangeSpecificKey, String currencyCode, Object isRequired)
     {
-        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
         if (!java.util.Objects.equals(networkCode, null))
@@ -10047,7 +10047,7 @@ public Object describe()
         return false;
     }
 
-    public Object handleWithdrawTagAndParams(Object tag, Object parameters)
+    public Object handleWithdrawTagAndParams(Object tag, Map<String, Object> parameters)
     {
         Object paramsExtended = parameters;
         Object tagValue = tag;
@@ -10668,7 +10668,7 @@ public Object describe()
         }
     }
 
-    public Object handlePostOnly(Object isMarketOrder, Object exchangeSpecificPostOnlyOption, Object parameters)
+    public Object handlePostOnly(Object isMarketOrder, Object exchangeSpecificPostOnlyOption, Map<String, Object> parameters)
     {
         /**
          * @ignore

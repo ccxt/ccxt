@@ -1607,7 +1607,7 @@ public class Bydfi extends BydfiApi
         }
         String timeInForce = this.handleTimeInForce(Helpers.toMapArg(query));
         Boolean postOnly = false;
-        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "POST_ONLY"), query);
+        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "POST_ONLY"), Helpers.toMapArg(query));
         postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
         query = ((List<Object>) postOnlyqueryVariable).get(1);
         if (Boolean.TRUE.equals(postOnly))

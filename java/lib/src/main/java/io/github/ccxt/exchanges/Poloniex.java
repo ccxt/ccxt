@@ -3298,7 +3298,7 @@ public class Poloniex extends PoloniexApi
         Map<String, Object> currency = this.currency((String) (code));
         Object networkCode = null;
         Map<String, Object> query = null;
-        List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+        List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
         networkCode = ((List<Object>) networkCodequeryVariable).get(0);
         query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
         if (java.util.Objects.equals(networkCode, null))
@@ -3424,7 +3424,7 @@ public class Poloniex extends PoloniexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
             var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
@@ -3434,7 +3434,7 @@ public class Poloniex extends PoloniexApi
                 put( "amount", Poloniex.this.currencyToPrecision((String) (code), amount, (String) null) );
                 put( "address", address );
             }};
-            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
+            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsWithdrawTag));
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))

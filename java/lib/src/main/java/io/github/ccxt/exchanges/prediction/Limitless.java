@@ -2507,7 +2507,7 @@ public class Limitless extends LimitlessApi
             Object takerAmount = null;
             Boolean isMarket = java.util.Objects.equals(type, "market");
             Boolean postOnly = false;
-            List<Object> postOnlyparamsValueVariable = (List<Object>) this.handlePostOnly(isMarket, false, paramsValue);
+            List<Object> postOnlyparamsValueVariable = (List<Object>) this.handlePostOnly(isMarket, false, Helpers.toMapArg(paramsValue));
             postOnly = (Boolean) ((List<Object>) postOnlyparamsValueVariable).get(0);
             paramsValue = ((List<Object>) postOnlyparamsValueVariable).get(1);
             String timeInForce = this.safeString(paramsValue, "timeInForce");

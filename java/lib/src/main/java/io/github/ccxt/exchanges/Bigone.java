@@ -2321,7 +2321,7 @@ public class Bigone extends BigoneApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset_symbol", currency.get("id") );
             }};
-            List<Object> networkCodeparamsOmittedVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            List<Object> networkCodeparamsOmittedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodeparamsOmittedVariable).get(0);
             Map<String, Object> paramsOmitted = (Map<String, Object>) ((List<Object>) networkCodeparamsOmittedVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetsAssetSymbolAddress(this.extend(request, paramsOmitted))).join();
@@ -2690,7 +2690,7 @@ public class Bigone extends BigoneApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
             var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
@@ -2707,7 +2707,7 @@ public class Bigone extends BigoneApi
             {
                 request.put("memo", tagWithdrawTag);
             }
-            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
+            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsWithdrawTag));
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
