@@ -2667,7 +2667,7 @@ public class Opinion extends OpinionApi
                 // wallet-signature scheme: no apiKey involved, the signature itself is the credential
                 if ((java.util.Objects.equals(this.walletAddress, null)) || (java.util.Objects.equals(this.privateKey, null)))
                 {
-                    throw new ArgumentsRequired((Helpers.add((this.id + " "), path) + " requires a walletAddress and privateKey")) ;
+                    throw new ArgumentsRequired((((this.id + " ") + path) + " requires a walletAddress and privateKey")) ;
                 }
                 Map<String, Object> actionByMethod = new HashMap<String, Object>() {{
                     put( "POST", "create" );
@@ -2687,7 +2687,7 @@ public class Opinion extends OpinionApi
                 Object apiKey = ((Boolean.TRUE.equals(hasDirectApiKey))) ? this.apiKey : this.safeString(this.options, "apiKey");
                 if (java.util.Objects.equals(apiKey, null))
                 {
-                    throw new AuthenticationError((Helpers.add((this.id + " "), path) + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
+                    throw new AuthenticationError((((this.id + " ") + path) + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
                 }
                 headersExtended.put("apikey", apiKey);
             }

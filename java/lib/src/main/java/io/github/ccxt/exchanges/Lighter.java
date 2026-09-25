@@ -4083,7 +4083,7 @@ public class Lighter extends LighterApi
             url = this.implodeHostname(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("public"));
         } else
         {
-            url = Helpers.add((((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"))) + "/api/") + this.version) + "/"), path);
+            url = ((((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"))) + "/api/") + this.version) + "/") + path);
         }
         Map<String, Object> authHeaders = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))

@@ -3381,7 +3381,7 @@ public class Derive extends DeriveApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = Helpers.add((apiUrl + "/"), path);
+        String url = ((apiUrl + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
             Map<String, Object> postHeaders = new HashMap<String, Object>() {{

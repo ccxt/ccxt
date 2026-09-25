@@ -12166,7 +12166,7 @@ public class Bybit extends BybitApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = Helpers.add((this.implodeHostname(apiUrl) + "/"), path);
+        String url = ((this.implodeHostname(apiUrl) + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)

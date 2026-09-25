@@ -2183,7 +2183,7 @@ public class Cex extends CexApi
             this.checkRequiredCredentials(true);
             String seconds = String.valueOf(this.seconds());
             String bodySigned = this.json(query);
-            String auth = (Helpers.add(path, seconds) + bodySigned);
+            String auth = ((path + seconds) + bodySigned);
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             Map<String, Object> headersSigned = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );

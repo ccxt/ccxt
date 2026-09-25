@@ -4257,11 +4257,11 @@ public class Paradex extends ParadexApi
     {
         Object version = this.version;
         Object pathValue = path;
-        if ((Helpers.getIndexOf(path, "v2/") == 0))
+        if ((((String)path).indexOf("v2/") == 0))
         {
             pathValue = Helpers.replace(((String)path), "v2/", "");
         }
-        if ((Helpers.getIndexOf(path, "v2/") == 0))
+        if ((((String)path).indexOf("v2/") == 0))
         {
             version = "v2";
         }

@@ -3549,7 +3549,7 @@ public class Bydfi extends BydfiApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         Object url = apiUrl;
-        String endpoint = Helpers.add("/", path);
+        String endpoint = ("/" + path);
         String query = "";
         Map<String,Object> sortedParams = this.keysort(parameters);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))

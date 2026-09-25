@@ -5938,7 +5938,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = Helpers.add((this.implodeHostname(apiUrl) + "/"), path);
+        String url = ((this.implodeHostname(apiUrl) + "/") + path);
         Boolean isPost = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"));
         Map<String, Object> postHeaders = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );

@@ -1324,7 +1324,7 @@ public class Bitbank extends BitbankApi
                 auth = (auth + requestBody);
             } else
             {
-                auth = Helpers.add(auth, Helpers.add((("/" + this.version) + "/"), path));
+                auth = (auth + ((("/" + this.version) + "/") + path));
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                 {
                     query = this.urlencode(query);

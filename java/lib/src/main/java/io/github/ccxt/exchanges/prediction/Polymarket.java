@@ -3556,7 +3556,7 @@ public class Polymarket extends PolymarketApi
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if (java.util.Objects.equals(this.privateKey, null))
                 {
-                    throw new ArgumentsRequired((Helpers.add((this.id + " "), path) + " requires a privateKey")) ;
+                    throw new ArgumentsRequired((((this.id + " ") + path) + " requires a privateKey")) ;
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 Object address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));

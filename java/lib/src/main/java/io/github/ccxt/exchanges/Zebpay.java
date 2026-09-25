@@ -2337,7 +2337,7 @@ public class Zebpay extends ZebpayApi
         Object bodySigned = null;
         Map<String, Object> headersSigned = null;
         Object paramsOmitted = this.omit(parameters, "defaultType");
-        Boolean isV1 = Helpers.getIndexOf(path, "v1/") > -1;
+        Boolean isV1 = ((String)path).indexOf("v1/") > -1;
         String marketType = "spot";
         if (Boolean.TRUE.equals(isV1))
         {

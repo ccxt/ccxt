@@ -7169,9 +7169,8 @@ public class Mexc extends MexcApi
         Object requestBody = body;
         String section = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
         String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
-        var pathValueparamsValueVariable = this.resolvePath(path, parameters);
-        var pathValue = ((List<Object>) pathValueparamsValueVariable).get(0);
-        var paramsValue = ((List<Object>) pathValueparamsValueVariable).get(1);
+        String pathValue = (String) this.implodeParams(path, parameters);
+        Object paramsValue = this.omit(parameters, this.extractParams(path));
         String url = null;
         if (java.util.Objects.equals(section, "spot") || java.util.Objects.equals(section, "broker"))
         {
@@ -7182,7 +7181,7 @@ public class Mexc extends MexcApi
                 {
                     throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
                 }
-                url = Helpers.add((apiUrl + "/"), pathValue);
+                url = ((apiUrl + "/") + pathValue);
             } else
             {
                 String apiUrl = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), section), access);
@@ -7190,7 +7189,7 @@ public class Mexc extends MexcApi
                 {
                     throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
                 }
-                url = Helpers.add((((apiUrl + "/api/") + this.version) + "/"), pathValue);
+                url = ((((apiUrl + "/api/") + this.version) + "/") + pathValue);
             }
             Object urlParams = paramsValue;
             if (java.util.Objects.equals(access, "private"))

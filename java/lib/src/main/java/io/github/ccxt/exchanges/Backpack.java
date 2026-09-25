@@ -2819,7 +2819,7 @@ public class Backpack extends BackpackApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String endpoint = Helpers.add("/", path);
+        String endpoint = ("/" + path);
         String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {

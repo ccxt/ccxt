@@ -4283,7 +4283,7 @@ public class Kraken extends KrakenApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add((((("/" + this.version) + "/") + java.util.Objects.requireNonNullElse(api, "public")) + "/"), path);
+        Object url = ((((("/" + this.version) + "/") + java.util.Objects.requireNonNullElse(api, "public")) + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
@@ -4344,7 +4344,7 @@ public class Kraken extends KrakenApi
             );
         } else
         {
-            url = Helpers.add("/", path);
+            url = ("/" + path);
         }
         String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
