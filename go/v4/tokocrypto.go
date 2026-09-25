@@ -3034,7 +3034,7 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code string, amount any, addre
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
@@ -3047,7 +3047,7 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code string, amount any, addre
 		"address": address,
 		"amount":  this.NumberToString(amount),
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["addressTag"] = tagWithdrawTag
 	}
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)

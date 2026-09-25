@@ -2627,7 +2627,7 @@ func (this *Bitstamp) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var response map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["pair"] = GetValue(market, "id")
+		request["pair"] = market["id"]
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostCancelAllOrdersPair(this.Extend(request, params))).Raw))
 	} else {
@@ -2804,7 +2804,7 @@ func (this *Bitstamp) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["pair"] = GetValue(market, "id")
+		request["pair"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -2868,7 +2868,7 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["pair"] = GetValue(market, "id")
+		request["pair"] = market["id"]
 	}
 	if since != nil {
 		request["since_timestamp"] = MathRound(Divide(since, 1000))
@@ -3689,7 +3689,7 @@ func (this *Bitstamp) withdrawBody(ch chan any, code string, amount any, address
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
@@ -3704,11 +3704,11 @@ func (this *Bitstamp) withdrawBody(ch chan any, code string, amount any, address
 	if !EvalTruthy(this.IsFiat(code)) {
 		var name any = this.GetCurrencyName(code)
 		if code == "XRP" {
-			if !IsEqual(tagWithdrawTag, nil) {
+			if tagWithdrawTag != nil {
 				request["destination_tag"] = tagWithdrawTag
 			}
 		} else if (code == "XLM") || (code == "HBAR") {
-			if !IsEqual(tagWithdrawTag, nil) {
+			if tagWithdrawTag != nil {
 				request["memo_id"] = tagWithdrawTag
 			}
 		}

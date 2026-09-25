@@ -91,8 +91,8 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name string, optionalAr
 	var productIds []any = []any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
-		productIds = append(productIds, ccxt.GetValue(market, "id"))
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
+		productIds = append(productIds, market["id"])
 	}
 	var url any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"))
 	if ccxt.IsEqual(url, nil) {
@@ -140,8 +140,8 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name string, op
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		market = this.Market(symbol)
-		productIds = append(productIds, ccxt.GetValue(market, "id"))
-		messageHashes = append(messageHashes, ccxt.Add(*messageHashStart+":", ccxt.GetValue(market, "symbol")))
+		productIds = append(productIds, market["id"])
+		messageHashes = append(messageHashes, ccxt.Add(*messageHashStart+":", market["symbol"]))
 	}
 	var url any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"))
 	if ccxt.IsEqual(url, nil) {

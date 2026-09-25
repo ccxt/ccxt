@@ -911,7 +911,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	var paramsSinceUntil any = this.HandleSinceAndUntil("fetchMyTrades", since, paramsContractType)
 	if limit != nil {
@@ -1079,7 +1079,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	}
 	var until any = nil
 	var paramsUntil any = nil
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchOHLCV", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchOHLCV", "until")
 	until = GetValue(untilparamsUntilVariable, 0)
 	paramsUntil = GetValue(untilparamsUntilVariable, 1)
 	var now int64 = this.Milliseconds()
@@ -1407,7 +1407,7 @@ func (this *Bydfi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(params, "fetchFundingRateHistory", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchFundingRateHistory", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
@@ -2149,7 +2149,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	var paramsSinceUntil any = this.HandleSinceAndUntil("fetchCanceledAndClosedOrders", since, paramsContractType)
 	if limit != nil {
@@ -2214,7 +2214,7 @@ func (this *Bydfi) HandleSinceAndUntil(methodName string, optionalArgs ...any) a
 	_ = params
 	var until any = nil
 	var paramsUntil any = nil
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2(params, methodName, "until", "endTime")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2Nullable(params, methodName, "until", "endTime")
 	until = GetValue(untilparamsUntilVariable, 0)
 	paramsUntil = GetValue(untilparamsUntilVariable, 1)
 	var now int64 = this.Milliseconds()
@@ -3351,7 +3351,7 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"asset": currency["id"],
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2(params, "fetchTransfers", "until", "endTime")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2Nullable(params, "fetchTransfers", "until", "endTime")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	// exchange requires endTime, and startTime but allows any value
@@ -3549,7 +3549,7 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar string, code
 	}
 	var until any = nil
 	var paramsUntil any = nil
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2(params, "fetchTransfers", "until", "endTime")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2Nullable(params, "fetchTransfers", "until", "endTime")
 	until = GetValue(untilparamsUntilVariable, 0)
 	paramsUntil = GetValue(untilparamsUntilVariable, 1)
 	var now int64 = this.Milliseconds()

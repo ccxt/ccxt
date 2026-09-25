@@ -6862,7 +6862,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        bool hasTag = ((tagWithdrawTag != null)) && (getArrayLength(tagWithdrawTag) > 0);
+        bool hasTag = ((tagWithdrawTag != null)) && (((string)tagWithdrawTag).Length > 0);
         object addressWithTag = address;
         if (hasTag)
         {

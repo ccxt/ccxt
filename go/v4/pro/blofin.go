@@ -1034,10 +1034,10 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 			}
 			var topic map[string]any = map[string]any{
 				"channel": channel,
-				"instId":  ccxt.GetValue(market, "id"),
+				"instId":  market["id"],
 			}
 			rawSubscriptions = append(rawSubscriptions, topic)
-			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(channel, ":"), ccxt.GetValue(market, "symbol")))
+			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(channel, ":"), market["symbol"]))
 		}
 	} else {
 		rawSubscriptions = append(rawSubscriptions, map[string]any{

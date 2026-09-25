@@ -2706,7 +2706,7 @@ func (this *Xt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -3315,11 +3315,11 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, sid
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), paramsWithoutCost)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	paramsPostOnly := GetValue(postOnlyparamsPostOnlyVariable, 1)
+	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
 	if postOnly == true {
 		timeInForce = SafeStringPtr("GTX")
 	}
-	var paramsOmitted any = this.Omit(paramsPostOnly, []any{"timeInForce", "postOnly"})
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPostOnly, []any{"timeInForce", "postOnly"}))
 	if (side == "sell") || (typeVar == "limit") {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
@@ -3766,7 +3766,7 @@ func (this *Xt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -3959,7 +3959,7 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status string, optionalArgs
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		AddElementToObject(request, "symbol", market["id"])
 	}
 	if limit != nil {
 		AddElementToObject(request, "size", limit)
@@ -4563,7 +4563,7 @@ func (this *Xt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	var response map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
@@ -5326,7 +5326,7 @@ func (this *Xt) withdrawBody(ch chan any, code string, amount any, address any, 
 	}
 	var currency map[string]any = this.Currency(code)
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
@@ -5339,7 +5339,7 @@ func (this *Xt) withdrawBody(ch chan any, code string, amount any, address any, 
 		"amount":   this.CurrencyToPrecision(code, amount),
 		"address":  address,
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["memo"] = tagWithdrawTag
 	}
 
@@ -6695,7 +6695,7 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any 
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 	if since != nil {

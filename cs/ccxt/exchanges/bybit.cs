@@ -7977,7 +7977,7 @@ public partial class bybit : Exchange
         object isUta = (accounts != null && 1 < accounts.Count ? accounts[1] : null);
         IList<object> accountTypeOptionparamsAccountTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsWithdrawTag, "withdraw", "accountType");
         string? accountTypeOption = (string)accountTypeOptionparamsAccountTypeVariable[0];
-        var paramsAccountType = accountTypeOptionparamsAccountTypeVariable[1];
+        IDictionary<string, object> paramsAccountType = ((IDictionary<string, object>)accountTypeOptionparamsAccountTypeVariable[1]);
         string defaultAccountType = (isEqual(isUta, true)) ? "UTA" : "SPOT";
         string? accountType = ((accountTypeOption == null)) ? defaultAccountType : accountTypeOption;
         if ((this.markets == null))
@@ -7999,7 +7999,7 @@ public partial class bybit : Exchange
         }
         IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsAccountType);
         string? networkCode = (string)networkCodequeryVariable[0];
-        var query = networkCodequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)networkCodequeryVariable[1]);
         string? networkId = this.networkCodeToId(networkCode, code);
         if ((networkId != null))
         {

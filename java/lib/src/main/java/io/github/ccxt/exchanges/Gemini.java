@@ -2283,8 +2283,8 @@ public class Gemini extends GeminiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagAndParams = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) (tagAndParams == null || 1 >= tagAndParams.size() ? null : tagAndParams.get(1));
+            List<Object> tagAndParams = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>)tagAndParams).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2484,7 +2484,7 @@ public class Gemini extends GeminiApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object indexedByNetwork = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
-            String networkCode = (String) ((List<Object>)this.handleNetworkCodeAndParams(parameters)).get(0);
+            String networkCode = (String) ((List<Object>)this.handleNetworkCodeAndParams((Map<String, Object>) (parameters))).get(0);
             return this.safeValue(indexedByNetwork, networkCode);
         }).thenApply(DepositAddress::new);
 
@@ -2511,7 +2511,7 @@ public class Gemini extends GeminiApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             String codeValue = (String) currency.get("code");
-            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))

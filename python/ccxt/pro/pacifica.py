@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.types import Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 
@@ -111,7 +112,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(operationType, request)
         requestId = self.safe_string(wsRequest, 'id')
         if operationType == 'create_stop_order':
@@ -188,7 +191,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(batchOperationType, request)
         requestId = self.safe_string(wsRequest, 'id')
         response = await self.watch(url, requestId, wsRequest, requestId)
@@ -243,7 +248,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(batchOperationType, request)
         requestId = self.safe_string(wsRequest, 'id')
         response = await self.watch(url, requestId, wsRequest, requestId)
@@ -315,7 +322,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(operationType, request)
         requestId = self.safe_string(wsRequest, 'id')
         response = await self.watch(url, requestId, wsRequest, requestId)
@@ -368,7 +377,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(operationType, request)
         requestId = self.safe_string(wsRequest, 'id')
         response = await self.watch(url, requestId, wsRequest, requestId)
@@ -410,7 +421,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'subscribe',
             'params': {
@@ -444,7 +457,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'unsubscribe',
             'params': {
@@ -544,7 +559,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'subscribe',
             'params': {
@@ -575,7 +592,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'unsubscribe',
             'params': {
@@ -609,7 +628,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'subscribe',
             'params': {
@@ -645,7 +666,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'unsubscribe',
             'params': {
@@ -764,7 +787,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'subscribe',
             'params': {
@@ -799,7 +824,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'unsubscribe',
             'params': {
@@ -943,7 +970,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'subscribe',
             'params': {
@@ -979,7 +1008,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'unsubscribe',
             'params': {
@@ -1058,7 +1089,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
             'method': 'subscribe',
             'params': {
@@ -1093,7 +1126,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.urls[urlKey]['ws']['public']
+        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         userAddress, paramsOriginAndSingleAddress = self.handleOriginAndSingleAddress('unWatchOrders', params)
         request = {
             'method': 'unsubscribe',

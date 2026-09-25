@@ -1550,7 +1550,7 @@ func (this *Bitvavo) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = ccxt.GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 
 	ch <- ccxt.PanicOnError((<-this.WatchRequestAsync("privateCancelOrders", this.Extend(request, paramsOperatorId))))
@@ -1721,7 +1721,7 @@ func (this *Bitvavo) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = ccxt.GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchRequestAsync("privateGetOrdersOpen", this.Extend(request, params)))))

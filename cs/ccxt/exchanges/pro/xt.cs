@@ -1383,7 +1383,7 @@ public partial class xt : ccxt.xt
             }
             if ((obAsks != null))
             {
-                object asks = getValue(orderbook, "asks");
+                ccxt.pro.IAsks asks = orderbook?.asks;
                 for (int i = 0; i < obAsks.Count; i++)
                 {
                     List<object> ask = this.safeList(obAsks, i);
@@ -1394,7 +1394,7 @@ public partial class xt : ccxt.xt
             }
             if ((obBids != null))
             {
-                object bids = getValue(orderbook, "bids");
+                ccxt.pro.IBids bids = orderbook?.bids;
                 for (int i = 0; i < obBids.Count; i++)
                 {
                     List<object> bid = this.safeList(obBids, i);

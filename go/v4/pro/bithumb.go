@@ -103,9 +103,7 @@ func (this *Bithumb) watchTickerBody(ch chan any, symbol string, optionalArgs ..
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "watchTicker", "generation", 2)
-	generation := ccxt.GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := ccxt.GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchTicker", "generation", 2)
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
 	var url any = func() any {
 		if isGenerationTwo {
@@ -167,9 +165,7 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "watchTickers", "generation", 2)
-	generation := ccxt.GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := ccxt.GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchTickers", "generation", 2)
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var symbolsLength int = func() int {
@@ -491,9 +487,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan any, symbol string, optionalArgs
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "generation", 2)
-	generation := ccxt.GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := ccxt.GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchOrderBook", "generation", 2)
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
 	var url any = func() any {
 		if isGenerationTwo {
@@ -709,9 +703,7 @@ func (this *Bithumb) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "watchTrades", "generation", 2)
-	generation := ccxt.GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := ccxt.GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchTrades", "generation", 2)
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
 	var url any = func() any {
 		if isGenerationTwo {
@@ -970,7 +962,7 @@ func (this *Bithumb) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generation any = ccxt.GetValue(this.HandleOptionIntegerAndParams(params, "watchBalance", "generation", 2), 0)
+	var generation any = ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionIntegerAndParams(params, "watchBalance", "generation", 2)), 0)
 	if !ccxt.IsEqual(generation, 2) {
 		panic(ccxt.BadRequest(this.Id + " watchBalance() is only supported for the generation 2 API"))
 	}
@@ -1123,7 +1115,7 @@ func (this *Bithumb) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generation any = ccxt.GetValue(this.HandleOptionIntegerAndParams(params, "watchOrders", "generation", 2), 0)
+	var generation any = ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionIntegerAndParams(params, "watchOrders", "generation", 2)), 0)
 	if !ccxt.IsEqual(generation, 2) {
 		panic(ccxt.BadRequest(this.Id + " watchOrders() is only supported for the generation 2 API"))
 	}

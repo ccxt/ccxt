@@ -1942,7 +1942,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 	if since != nil {
 		request["startTime"] = since
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrdersByStatus", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOrdersByStatus", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
@@ -2099,7 +2099,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	if since != nil {
 		request["fromMs"] = since
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOHLCV", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
@@ -2819,8 +2819,8 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["contractId"] = GetValue(market, "numericId")
-		symbolResolved = GetValue(market, "symbol")
+		request["contractId"] = market["numericId"]
+		symbolResolved = market["symbol"]
 	}
 	if since != nil {
 		request["startTime"] = this.ParseToInt(Divide(since, 1000))
@@ -2828,7 +2828,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(params, "fetchMySettlementHistory", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchMySettlementHistory", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {

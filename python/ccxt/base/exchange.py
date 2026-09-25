@@ -5387,7 +5387,7 @@ class BaseExchange(object):
                 return networkCode
         return preferredChain
 
-    def handle_network_code_and_params(self, params: object):
+    def handle_network_code_and_params(self, params: dict):
         networkCodeInParams = self.safe_string_2(params, 'networkCode', 'network')
         paramsOmitted = self.omit(params, ['networkCode', 'network']) if (networkCodeInParams is not None) else params
         # if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
@@ -6528,7 +6528,7 @@ class BaseExchange(object):
                         return True
         return False
 
-    def handle_withdraw_tag_and_params(self, tag: object, params: object):
+    def handle_withdraw_tag_and_params(self, tag: object, params: dict):
         paramsExtended = params
         tagValue = tag
         if self.is_dictionary(tag):
@@ -6930,7 +6930,7 @@ class BaseExchange(object):
         else:
             return False
 
-    def handle_post_only(self, isMarketOrder: bool, exchangeSpecificPostOnlyOption: bool, params: object = {}):
+    def handle_post_only(self, isMarketOrder: bool, exchangeSpecificPostOnlyOption: bool, params: dict = {}):
         """
  @ignore
         :param str type: Order type

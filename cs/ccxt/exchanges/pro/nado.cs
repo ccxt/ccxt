@@ -1921,8 +1921,8 @@ public partial class nado : ccxt.nado
         }
         List<object> asks = this.safeList(message, "asks", new List<object>() {});
         List<object> bids = this.safeList(message, "bids", new List<object>() {});
-        this.handleDeltas(getValue(orderbook, "asks"), asks);
-        this.handleDeltas(getValue(orderbook, "bids"), bids);
+        this.handleDeltas(orderbook?.asks, asks);
+        this.handleDeltas(orderbook?.bids, bids);
         Int64? timestamp = this.parseWsTimestamp(message, "max_timestamp");
         orderbook["symbol"] = symbol;
         orderbook["timestamp"] = timestamp;

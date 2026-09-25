@@ -496,7 +496,7 @@ public partial class p2b : ccxt.p2b
                 List<object> bid = this.safeList(bids, i);
                 double? price = this.safeNumber(bid, 0);
                 double? amount = this.safeNumber(bid, 1);
-                object bookSide = getValue(orderbook, "bids");
+                ccxt.pro.IBids bookSide = orderbook?.bids;
                 (bookSide as IOrderBookSide).store(price, amount);
             }
         }
@@ -507,7 +507,7 @@ public partial class p2b : ccxt.p2b
                 List<object> ask = this.safeList(asks, i);
                 double? price = this.safeNumber(ask, 0);
                 double? amount = this.safeNumber(ask, 1);
-                object bookside = getValue(orderbook, "asks");
+                ccxt.pro.IAsks bookside = orderbook?.asks;
                 (bookside as IOrderBookSide).store(price, amount);
             }
         }

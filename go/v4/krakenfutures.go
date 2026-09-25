@@ -3891,7 +3891,7 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan any, optionalArgs .
 		"closed": true,
 	}
 	if market != nil {
-		request["tradeable"] = GetValue(market, "id")
+		request["tradeable"] = market["id"]
 	}
 	if since != nil {
 		request["since"] = since

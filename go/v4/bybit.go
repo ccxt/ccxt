@@ -2531,9 +2531,9 @@ func (this *Bybit) SafeMarket(optionalArgs ...any) map[string]any {
 	var isOption bool = (marketId != nil) && ((GetIndexOf(marketId, "-C") > -1) || (GetIndexOf(marketId, "-P") > -1))
 	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
 		// handle expired option contracts
-		return MapTyped(this.CreateExpiredOptionMarket(marketId))
+		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}
-	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
+	return MarketTyped(this.Exchange.SafeMarket(marketId, market, delimiter, marketType))
 }
 func (this *Bybit) GetBybitType(method any, market any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4066,7 +4066,7 @@ func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(GetValue(symbolsNormalized, 0))
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchFundingRates", market, params)
@@ -8370,7 +8370,7 @@ func (this *Bybit) withdrawBody(ch chan any, code string, amount any, address an
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 
 	var accounts []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
@@ -8401,7 +8401,7 @@ func (this *Bybit) withdrawBody(ch chan any, code string, amount any, address an
 		"timestamp":   this.Milliseconds(),
 		"accountType": accountType,
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["tag"] = tagWithdrawTag
 	}
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(paramsAccountType)
@@ -9063,7 +9063,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode string, optionalArg
 			}
 			var request map[string]any = map[string]any{
 				"category":     typeVar,
-				"symbol":       GetValue(market, "id"),
+				"symbol":       market["id"],
 				"tradeMode":    tradeMode,
 				"buyLeverage":  buyLeverage,
 				"sellLeverage": sellLeverage,
@@ -10169,10 +10169,10 @@ func (this *Bybit) fetchMarketLeverageTiersBody(ch chan any, symbol string, opti
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	market = this.Market(symbol)
-	if (GetValue(market, "spot") == true) || (GetValue(market, "option") == true) {
+	if (market["spot"] == true) || (market["option"] == true) {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers() symbol does not support market " + symbol))
 	}
-	request["symbol"] = GetValue(market, "id")
+	request["symbol"] = market["id"]
 
 	var retRes808515 []any = ListTyped(PanicOnError((<-this.FetchDerivativesMarketLeverageTiersAsync(symbol, params))))
 	ch <- BoxAbsent(retRes808515)
@@ -10881,7 +10881,7 @@ func (this *Bybit) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 
@@ -11225,10 +11225,10 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any 
 	var symbol any = nil
 	if symbols != nil {
 		market = this.Market(GetValue(symbols, 0))
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
-		symbol = GetValue(market, "symbol")
+		symbol = market["symbol"]
 	}
 
 	data := (<-this.GetLeverageTiersPaginatedAsync(symbol, this.Extend(map[string]any{

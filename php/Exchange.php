@@ -6262,7 +6262,7 @@ class BaseExchange {
         return $preferredChain;
     }
 
-    public function handle_network_code_and_params(mixed $params) {
+    public function handle_network_code_and_params(array $params) {
         $networkCodeInParams = $this->safe_string_2($params, 'networkCode', 'network');
         $paramsOmitted = ($networkCodeInParams !== null) ? $this->omit($params, array( 'networkCode', 'network' )) : $params;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
@@ -7701,7 +7701,7 @@ class BaseExchange {
         return false;
     }
 
-    public function handle_withdraw_tag_and_params(mixed $tag, mixed $params) {
+    public function handle_withdraw_tag_and_params(mixed $tag, array $params) {
         $paramsExtended = $params;
         $tagValue = $tag;
         if ($this->is_dictionary($tag)) {

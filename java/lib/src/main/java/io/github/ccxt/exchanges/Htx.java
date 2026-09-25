@@ -8005,7 +8005,7 @@ public class Htx extends HtxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
             Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
@@ -8355,7 +8355,7 @@ public class Htx extends HtxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagValueparamsTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            List<Object> tagValueparamsTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
             var tagValue = ((List<Object>) tagValueparamsTagVariable).get(0);
             Map<String, Object> paramsTag = (Map<String, Object>) ((List<Object>) tagValueparamsTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
@@ -8372,7 +8372,7 @@ public class Htx extends HtxApi
             {
                 request.put("addr-tag", tagValue); // only for XRP?
             }
-            List<Object> networkCodeparamsNetworkVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsTag);
+            List<Object> networkCodeparamsNetworkVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsTag));
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkVariable).get(0);
             Map<String, Object> paramsNetwork = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))

@@ -660,8 +660,8 @@ public partial class gemini : ccxt.gemini
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        object bids = getValue(orderbook, "bids");
-        object asks = getValue(orderbook, "asks");
+        ccxt.pro.IBids bids = orderbook?.bids;
+        ccxt.pro.IAsks asks = orderbook?.asks;
         for (int i = 0; i < getArrayLength(rawOrderBookChanges); i++)
         {
             IDictionary<string, object> entry = this.safeDict(rawOrderBookChanges, i);

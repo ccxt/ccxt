@@ -2976,10 +2976,10 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["base"] = []any{}
 		retRes229412 := request["base"]
-		AppendToArray(&retRes229412, GetValue(market, "baseId"))
+		AppendToArray(&retRes229412, market["baseId"])
 		request["quote"] = []any{}
 		retRes229612 := request["quote"]
-		AppendToArray(&retRes229612, GetValue(market, "quoteId"))
+		AppendToArray(&retRes229612, market["quoteId"])
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3399,10 +3399,10 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["base"] = []any{}
 		retRes262612 := request["base"]
-		AppendToArray(&retRes262612, GetValue(market, "baseId"))
+		AppendToArray(&retRes262612, market["baseId"])
 		request["quote"] = []any{}
 		retRes262812 := request["quote"]
-		AppendToArray(&retRes262812, GetValue(market, "quoteId"))
+		AppendToArray(&retRes262812, market["quoteId"])
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3502,10 +3502,10 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["base"] = []any{}
 		retRes270512 := request["base"]
-		AppendToArray(&retRes270512, GetValue(market, "baseId"))
+		AppendToArray(&retRes270512, market["baseId"])
 		request["quote"] = []any{}
 		retRes270712 := request["quote"]
-		AppendToArray(&retRes270712, GetValue(market, "quoteId"))
+		AppendToArray(&retRes270712, market["quoteId"])
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)

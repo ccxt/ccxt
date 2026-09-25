@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, MarketInterface
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.precise import Precise
@@ -159,7 +160,9 @@ class aster(ccxt.async_support.aster):
         paramsOmitted = self.omit(paramsCallerMethodName, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
-        url = self.urls['api']['ws']['public'][type]
+        url = self.safe_string(self.urls['api']['ws']['public'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
         request = {
@@ -202,7 +205,9 @@ class aster(ccxt.async_support.aster):
         paramsOmitted = self.omit(paramsCallerMethodName, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
-        url = self.urls['api']['ws']['public'][type]
+        url = self.safe_string(self.urls['api']['ws']['public'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
         request = {
@@ -273,7 +278,9 @@ class aster(ccxt.async_support.aster):
         paramsOmitted = self.omit(paramsCallerMethodName, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
-        url = self.urls['api']['ws']['public'][type]
+        url = self.safe_string(self.urls['api']['ws']['public'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
         request = {
@@ -319,7 +326,9 @@ class aster(ccxt.async_support.aster):
         paramsOmitted = self.omit(paramsCallerMethodName, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
-        url = self.urls['api']['ws']['public'][type]
+        url = self.safe_string(self.urls['api']['ws']['public'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
         request = {
@@ -439,7 +448,9 @@ class aster(ccxt.async_support.aster):
         symbolsLength = len(symbolsList)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchBidsAsks() requires a non-empty array of symbols')
-        url = self.urls['api']['ws']['public'][type]
+        url = self.safe_string(self.urls['api']['ws']['public'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
         request = {
@@ -480,7 +491,9 @@ class aster(ccxt.async_support.aster):
         symbolsLength = len(symbolsList)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' unWatchBidsAsks() requires a non-empty array of symbols')
-        url = self.urls['api']['ws']['public'][type]
+        url = self.safe_string(self.urls['api']['ws']['public'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
         request = {
@@ -591,7 +604,9 @@ class aster(ccxt.async_support.aster):
         paramsOmitted = self.omit(paramsCallerMethodName, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
-        url = self.urls['api']['ws']['public'][type]
+        url = self.safe_string(self.urls['api']['ws']['public'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
         request = {
@@ -636,7 +651,9 @@ class aster(ccxt.async_support.aster):
         paramsOmitted = self.omit(paramsCallerMethodName, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
-        url = self.urls['api']['ws']['public'][type]
+        url = self.safe_string(self.urls['api']['ws']['public'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
         request = {
@@ -884,7 +901,9 @@ class aster(ccxt.async_support.aster):
         paramsOmitted = self.omit(paramsCallerMethodName, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
-        url = self.urls['api']['ws']['public'][type]
+        url = self.safe_string(self.urls['api']['ws']['public'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
         request = {
@@ -926,7 +945,9 @@ class aster(ccxt.async_support.aster):
         paramsOmitted = self.omit(paramsCallerMethodName, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
-        url = self.urls['api']['ws']['public'][type]
+        url = self.safe_string(self.urls['api']['ws']['public'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
         request = {
@@ -1043,7 +1064,9 @@ class aster(ccxt.async_support.aster):
         marketSymbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(marketSymbols[0])
         type = self.safe_string(firstMarket, 'type', 'swap')
-        url = self.urls['api']['ws']['public'][type]
+        url = self.safe_string(self.urls['api']['ws']['public'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
         request = {
@@ -1094,7 +1117,9 @@ class aster(ccxt.async_support.aster):
         marketSymbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(marketSymbols[0])
         type = self.safe_string(firstMarket, 'type', 'swap')
-        url = self.urls['api']['ws']['public'][type]
+        url = self.safe_string(self.urls['api']['ws']['public'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
         request = {

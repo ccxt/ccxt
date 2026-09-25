@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
@@ -123,7 +124,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $wsRequest = $this->wrap_as_post_action($operationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
         if ($operationType === 'create_stop_order') {
@@ -210,7 +214,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $wsRequest = $this->wrap_as_post_action($batchOperationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
@@ -275,7 +282,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $wsRequest = $this->wrap_as_post_action($batchOperationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
@@ -357,7 +367,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $wsRequest = $this->wrap_as_post_action($operationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
@@ -419,7 +432,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $wsRequest = $this->wrap_as_post_action($operationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
@@ -468,7 +484,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -509,7 +528,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'unsubscribe',
             'params' => array(
@@ -624,7 +646,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -663,7 +688,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'unsubscribe',
             'params' => array(
@@ -705,7 +733,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -750,7 +781,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'unsubscribe',
             'params' => array(
@@ -885,7 +919,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -928,7 +965,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'unsubscribe',
             'params' => array(
@@ -1086,7 +1126,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -1130,7 +1173,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'unsubscribe',
             'params' => array(
@@ -1221,7 +1267,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -1265,7 +1314,10 @@ class pacifica extends \ccxt\async\pacifica {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         list($userAddress, $paramsOriginAndSingleAddress) = $this->handleOriginAndSingleAddress('unWatchOrders', $params);
         $request = array(
             'method' => 'unsubscribe',

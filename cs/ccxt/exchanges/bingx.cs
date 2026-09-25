@@ -6453,7 +6453,7 @@ public partial class bingx : Exchange
         int defaultWalletType = 15; // spot
         IList<object> walletTypeOptionparamsWalletTypeVariable = (IList<object>)this.handleOptionAndParams2(paramsWithdrawTag, "withdraw", "type", "walletType", defaultWalletType);
         var walletTypeOption = walletTypeOptionparamsWalletTypeVariable[0];
-        var paramsWalletType = walletTypeOptionparamsWalletTypeVariable[1];
+        IDictionary<string, object> paramsWalletType = ((IDictionary<string, object>)walletTypeOptionparamsWalletTypeVariable[1]);
         Dictionary<string, object> walletTypes = new Dictionary<string, object>() {
             { "funding", 1 },
             { "fund", 1 },
@@ -6477,7 +6477,7 @@ public partial class bingx : Exchange
         {
             request["addressTag"] = tagWithdrawTag;
         }
-        object paramsOmitted = this.omit(paramsWalletType, new List<object>() {"walletType", "network"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsWalletType, new List<object>() {"walletType", "network"});
         Dictionary<string, object> response = await this.walletsV1PrivatePostCapitalWithdrawApply(this.extend(request, paramsOmitted));
         IDictionary<string, object> data = this.safeDict(response, "data");
         //    {

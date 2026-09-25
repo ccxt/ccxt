@@ -1350,7 +1350,7 @@ func (this *Derive) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var market map[string]any = nil
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 	}
 	var limitResolved any = limit
 	if (limit != nil) && (*limit > 1000) {
@@ -2218,7 +2218,7 @@ func (this *Derive) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var response map[string]any = nil
 	if market != nil {
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostCancelByInstrument(this.Extend(request, paramsDeriveSubaccountId))).Raw))
 	} else {
@@ -2297,7 +2297,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 	}
 	if limit != nil {
 		request["page_size"] = limit
@@ -2688,7 +2688,7 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id string, optionalArgs ..
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 	}
 	if limit != nil {
 		request["page_size"] = limit
@@ -2790,7 +2790,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 	}
 	if limit != nil {
 		request["page_size"] = limit
@@ -3059,7 +3059,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 	}
 	if since != nil {
 		request["start_timestamp"] = since

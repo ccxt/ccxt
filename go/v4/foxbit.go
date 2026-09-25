@@ -1167,7 +1167,7 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market_symbol"] = GetValue(market, "id")
+		request["market_symbol"] = market["id"]
 	}
 	if since != nil {
 		request["start_time"] = this.Iso8601(since)
@@ -1565,7 +1565,7 @@ func (this *Foxbit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market_symbol"] = GetValue(market, "id")
+		request["market_symbol"] = market["id"]
 	}
 	if since != nil {
 		request["start_time"] = this.Iso8601(since)
@@ -2079,7 +2079,7 @@ func (this *Foxbit) withdrawBody(ch chan any, code string, amount any, address a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
@@ -2091,7 +2091,7 @@ func (this *Foxbit) withdrawBody(ch chan any, code string, amount any, address a
 		"amount":              this.NumberToString(amount),
 		"destination_address": address,
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["destination_tag"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)

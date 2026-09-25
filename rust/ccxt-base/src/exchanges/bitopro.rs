@@ -2185,7 +2185,7 @@ impl BitoproCore {
                 m.insert("address".to_string(), address);
             m
         });
-        let mut hasNetwork: bool = in_op(&paramsWithdrawTag, &Value::Str("network".into()));
+        let mut hasNetwork: bool = matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("network"));
         let mut paramsOmitted: Value = paramsWithdrawTag.clone();
         if hasNetwork {
             paramsOmitted = self.omit(paramsWithdrawTag.clone(), Value::from(vec![Value::Str("network".into())]), &[]);

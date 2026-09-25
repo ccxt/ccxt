@@ -1020,7 +1020,7 @@ func (this *Bitteam) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["pair"] = GetValue(market, "id")
+		request["pair"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -2178,7 +2178,7 @@ func (this *Bitteam) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["pairId"] = GetValue(market, "numericId")
+		request["pairId"] = market["numericId"]
 	}
 	if limit != nil {
 		request["limit"] = limit

@@ -334,8 +334,8 @@ public partial class cryptocom : ccxt.cryptocom
                 }
             }
         }
-        this.handleDeltas(getValue(orderbook, "asks"), this.safeList(books, "asks", new List<object>() {}));
-        this.handleDeltas(getValue(orderbook, "bids"), this.safeList(books, "bids", new List<object>() {}));
+        this.handleDeltas(orderbook?.asks, this.safeList(books, "asks", new List<object>() {}));
+        this.handleDeltas(orderbook?.bids, this.safeList(books, "bids", new List<object>() {}));
         orderbook["nonce"] = nonce;
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         string messageHash = ("orderbook:" + symbol);

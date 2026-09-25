@@ -3731,7 +3731,7 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status string, optional
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -4120,7 +4120,7 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			symbol = symbolsNormalized
 		}
 		market = this.Market(symbol)
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 	var response map[string]any = nil
 	if defaultMethod != nil && *defaultMethod == "v2PrivateGetFuturesPendingPosition" {
@@ -5017,7 +5017,7 @@ func (this *Coinex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	if !IsEqual(symbolsNormalized, nil) {
 		var symbol *string = this.SafeString(symbolsNormalized, 0)
 		market = this.Market(symbol)
-		if GetValue(market, "swap") != true {
+		if market["swap"] != true {
 			panic(BadSymbol(this.Id + " fetchFundingRates() supports swap contracts only"))
 		}
 		var marketIds any = this.MarketIds(symbolsNormalized)
@@ -5075,7 +5075,7 @@ func (this *Coinex) withdrawBody(ch chan any, code string, amount any, address a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
@@ -5088,7 +5088,7 @@ func (this *Coinex) withdrawBody(ch chan any, code string, amount any, address a
 		"to_address": address,
 		"amount":     this.CurrencyToPrecision(code, amount),
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["memo"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
@@ -5824,7 +5824,7 @@ func (this *Coinex) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit

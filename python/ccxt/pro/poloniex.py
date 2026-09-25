@@ -152,7 +152,9 @@ class poloniex(ccxt.async_support.poloniex):
         publicOrPrivate = 'public'
         if isPrivate:
             publicOrPrivate = 'private'
-        url = self.urls['api']['ws'][publicOrPrivate]
+        url = self.safe_string(self.urls['api']['ws'], publicOrPrivate)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscribe = {
             'event': 'subscribe',
             'channel': [

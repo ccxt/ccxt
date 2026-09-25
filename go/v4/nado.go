@@ -473,9 +473,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "createOrder", "subaccount", "default")
 	expiration, paramsExpiration := this.HandleOptionStringAndParams(paramsSubaccount, "createOrder", "expiration", "4294967295")
-	var recvWindowparamsRecvWindowVariable []any = this.HandleOptionIntegerAndParams(paramsExpiration, "createOrder", "recvWindow", 5000)
-	recvWindow := GetValue(recvWindowparamsRecvWindowVariable, 0)
-	paramsRecvWindow := GetValue(recvWindowparamsRecvWindowVariable, 1)
+	recvWindow, paramsRecvWindow := this.HandleOptionIntegerAndParams(paramsExpiration, "createOrder", "recvWindow", 5000)
 	var nonce any = this.CreateOrderNonce(recvWindow)
 	var requestId *int64 = this.SafeInteger(paramsRecvWindow, "id")
 	var spotLeverage *bool = this.SafeBool2(paramsRecvWindow, "spotLeverage", "spot_leverage")
@@ -693,9 +691,7 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
 	var editOrderOptions map[string]any = SafeMapTyped(this.Options, "editOrder")
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "editOrder", "subaccount", "default")
 	expiration, paramsExpiration := this.HandleOptionStringAndParams(paramsSubaccount, "editOrder", "expiration", "4294967295")
-	var recvWindowparamsRecvWindowVariable []any = this.HandleOptionIntegerAndParams(paramsExpiration, "editOrder", "recvWindow", 5000)
-	recvWindow := GetValue(recvWindowparamsRecvWindowVariable, 0)
-	paramsRecvWindow := GetValue(recvWindowparamsRecvWindowVariable, 1)
+	recvWindow, paramsRecvWindow := this.HandleOptionIntegerAndParams(paramsExpiration, "editOrder", "recvWindow", 5000)
 	var cancelNonce any = this.CreateOrderNonce(recvWindow)
 	var orderNonce *string = Precise.StringAdd(cancelNonce, "1")
 	var appendix any = DerefScalar(this.SafeString(paramsRecvWindow, "appendix"))
@@ -877,9 +873,7 @@ func (this *Nado) cancelAllOrdersRequestBody(ch chan any, optionalArgs ...any) a
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "cancelAllOrders", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
-	var recvWindowparamsRecvWindowVariable []any = this.HandleOptionIntegerAndParams(paramsSubaccount, "cancelAllOrders", "recvWindow", 5000)
-	recvWindow := GetValue(recvWindowparamsRecvWindowVariable, 0)
-	paramsRecvWindow := GetValue(recvWindowparamsRecvWindowVariable, 1)
+	recvWindow, paramsRecvWindow := this.HandleOptionIntegerAndParams(paramsSubaccount, "cancelAllOrders", "recvWindow", 5000)
 	var nonce any = this.CreateOrderNonce(recvWindow)
 	var tx map[string]any = map[string]any{
 		"sender":     sender,
@@ -1005,9 +999,7 @@ func (this *Nado) cancelOrdersRequestBody(ch chan any, ids any, optionalArgs ...
 	for i := 0; i < GetArrayLength(ids); i++ {
 		productIds = append(productIds, productId)
 	}
-	var recvWindowparamsRecvWindowVariable []any = this.HandleOptionIntegerAndParams(paramsSubaccount, "cancelOrders", "recvWindow", 5000)
-	recvWindow := GetValue(recvWindowparamsRecvWindowVariable, 0)
-	paramsRecvWindow := GetValue(recvWindowparamsRecvWindowVariable, 1)
+	recvWindow, paramsRecvWindow := this.HandleOptionIntegerAndParams(paramsSubaccount, "cancelOrders", "recvWindow", 5000)
 	var nonce any = this.CreateOrderNonce(recvWindow)
 	var tx map[string]any = map[string]any{
 		"sender":     sender,
@@ -1142,7 +1134,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		productIds = append(productIds, this.ParseToInt(GetValue(market, "id")))
+		productIds = append(productIds, this.ParseToInt(market["id"]))
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "fetchOrders", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1151,9 +1143,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if trigger == nil || *trigger != true {
 		panic(NotSupported(this.Id + " fetchOrders only support trigger"))
 	}
-	var recvWindowparamsRecvWindowVariable []any = this.HandleOptionIntegerAndParams(paramsOmitted, "fetchOrders", "recvWindow", 5000)
-	recvWindow := GetValue(recvWindowparamsRecvWindowVariable, 0)
-	paramsRecvWindow := GetValue(recvWindowparamsRecvWindowVariable, 1)
+	recvWindow, paramsRecvWindow := this.HandleOptionIntegerAndParams(paramsOmitted, "fetchOrders", "recvWindow", 5000)
 	var tx map[string]any = map[string]any{
 		"sender":   sender,
 		"recvTime": this.NumberToString(Add(this.Milliseconds(), recvWindow)),
@@ -1358,7 +1348,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		"subaccounts": []any{sender},
 	}
 	if market != nil {
-		ordersRequest["product_ids"] = []any{this.ParseToInt(GetValue(market, "id"))}
+		ordersRequest["product_ids"] = []any{this.ParseToInt(market["id"])}
 	}
 	ordersRequestUntil, paramsUntil := this.HandleUntilOption("max_time", ordersRequest, paramsSubaccount, 0.001)
 	if limit != nil {
@@ -1523,7 +1513,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"subaccounts": []any{this.CreateSubaccount(this.WalletAddress, subaccount)},
 	}
 	if market != nil {
-		matchesRequest["product_ids"] = []any{this.ParseToInt(GetValue(market, "id"))}
+		matchesRequest["product_ids"] = []any{this.ParseToInt(market["id"])}
 	}
 	matchesRequestUntil, paramsUntil := this.HandleUntilOption("max_time", matchesRequest, paramsSubaccount, 0.001)
 	if limit != nil {

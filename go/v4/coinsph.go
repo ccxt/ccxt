@@ -1969,7 +1969,7 @@ func (this *Coinsph) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOpenapiV1OpenOrders(this.Extend(request, params))).Raw))
@@ -2103,7 +2103,7 @@ func (this *Coinsph) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateDeleteOpenapiV1OpenOrders(this.Extend(request, params))).Raw))

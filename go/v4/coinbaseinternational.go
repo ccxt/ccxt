@@ -729,7 +729,7 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan any, opti
 	}
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	var maxEntriesPerRequest int = 100
-	var maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest)
+	var maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
 	var pageKey string = "ccxtPageKey"
@@ -1303,7 +1303,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 	paginate := GetValue(paginateparamsPaginateVariable, 0)
 	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	var maxEntriesPerRequest int = 100
-	var maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest)
+	var maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
 	var pageKey string = "ccxtPageKey"
@@ -1329,7 +1329,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 	if portfolios != nil {
 		request["portfolios"] = portfolios
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(paramsPortfolios, "fetchDepositsWithdrawals", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPortfolios, "fetchDepositsWithdrawals", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
@@ -2584,7 +2584,7 @@ func (this *Coinbaseinternational) cancelAllOrdersBody(ch chan any, optionalArgs
 	var market map[string]any = nil
 	if (symbol != nil) && (symbol == nil || *symbol != "") {
 		market = this.Market(symbol)
-		request["instrument"] = GetValue(market, "id")
+		request["instrument"] = market["id"]
 	}
 
 	var orders []any = ListTyped(PanicOnError((<-this.V1PrivateDeleteOrders(this.Extend(request, paramsPortfolio))).Raw))
@@ -2766,7 +2766,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs
 	var paramsPortfolio map[string]any = MapTyped(GetValue(portfolioparamsPortfolioVariable, 1))
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsPortfolio, "fetchOpenOrders", "paginate", false)
 	var maxEntriesPerRequest int = 100
-	var maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest)
+	var maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
 	var pageKey string = "ccxtPageKey"
@@ -2873,9 +2873,7 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 	}
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	var pageKey string = "ccxtPageKey"
-	var maxEntriesPerRequestparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100)
-	maxEntriesPerRequest := GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 0)
-	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 1)
+	maxEntriesPerRequest, paramsMaxEntriesPerRequest := this.HandleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100)
 	if paginate {
 
 		var retRes225419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest))))
