@@ -678,7 +678,10 @@ func (this *Nado) watchTickersBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}
 		var tickers map[string]any = map[string]any{}
-		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(tickers, tickerSymbol, ticker)
+		}
 
 		ch <- tickers
 		return nil
@@ -773,7 +776,10 @@ func (this *Nado) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}
 		var tickers map[string]any = map[string]any{}
-		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(tickers, tickerSymbol, ticker)
+		}
 
 		ch <- tickers
 		return nil

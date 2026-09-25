@@ -150,10 +150,14 @@ func (this *Upbit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	var newTickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchPublicMultipleAsync(symbols, "ticker"))))
+	newTickers := (<-this.WatchPublicMultipleAsync(symbols, "ticker"))
+	ccxt.PanicOnError(newTickers)
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
-		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
+		var newTickersSymbol *string = this.SafeString(newTickers, "symbol")
+		if newTickersSymbol != nil {
+			ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
+		}
 
 		ch <- tickers
 		return nil

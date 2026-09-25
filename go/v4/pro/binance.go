@@ -3141,7 +3141,10 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName string, 
 		return nil
 	} else {
 		var newDict map[string]any = map[string]any{}
-		ccxt.AddElementToObject(newDict, ccxt.GetValue(result, "symbol"), result)
+		var resultSymbol *string = this.SafeString(result, "symbol")
+		if resultSymbol != nil {
+			ccxt.AddElementToObject(newDict, resultSymbol, result)
+		}
 
 		ch <- newDict
 		return nil
@@ -4243,8 +4246,8 @@ func (this *Binance) fetchPositionWsBody(ch chan any, symbol string, optionalArg
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes340915 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPositionsWsAsync([]any{symbol}, params))))
-	ch <- ccxt.BoxAbsent(retRes340915)
+	var retRes341215 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPositionsWsAsync([]any{symbol}, params))))
+	ch <- ccxt.BoxAbsent(retRes341215)
 	return nil
 }
 
@@ -6718,8 +6721,8 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes553832 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes553832, tradeFee)
+							retRes554132 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes554132, tradeFee)
 						}
 					} else if !ccxt.IsEqual(fee, nil) {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

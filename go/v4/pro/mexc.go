@@ -270,10 +270,14 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, "ticker")
 	}
 
-	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsMarketType), messageHashes))))
+	ticker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsMarketType), messageHashes))
+	ccxt.PanicOnError(ticker)
 	if isSpot && this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+		}
 
 		ch <- result
 		return nil
@@ -497,10 +501,14 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		"params": topics,
 	}
 
-	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsMarketType), messageHashes))))
+	ticker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsMarketType), messageHashes))
+	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
-		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(tickers, tickerSymbol, ticker)
+		}
 
 		ch <- tickers
 		return nil

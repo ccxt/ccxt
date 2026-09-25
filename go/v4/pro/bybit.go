@@ -527,10 +527,14 @@ func (this *Bybit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(symbolsValue, i)))
 	}
 
-	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchTopicsAsync(url, messageHashes, topics, paramsValue))))
+	ticker := (<-this.WatchTopicsAsync(url, messageHashes, topics, paramsValue))
+	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+		}
 
 		ch <- result
 		return nil

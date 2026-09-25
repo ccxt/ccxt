@@ -272,7 +272,10 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(tickers)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(tickers, "symbol"), tickers)
+		var tickersSymbol *string = this.SafeString(tickers, "symbol")
+		if tickersSymbol != nil {
+			ccxt.AddElementToObject(result, tickersSymbol, tickers)
+		}
 
 		ch <- result
 		return nil
@@ -544,10 +547,14 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, "bidask:"+*symbol)
 	}
 
-	var tickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchPublicMultipleAsync(uta, messageHashes, topics, paramsValue))))
+	tickers := (<-this.WatchPublicMultipleAsync(uta, messageHashes, topics, paramsValue))
+	ccxt.PanicOnError(tickers)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(tickers, "symbol"), tickers)
+		var tickersSymbol *string = this.SafeString(tickers, "symbol")
+		if tickersSymbol != nil {
+			ccxt.AddElementToObject(result, tickersSymbol, tickers)
+		}
 
 		ch <- result
 		return nil

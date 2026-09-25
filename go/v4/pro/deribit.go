@@ -285,10 +285,14 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(message, paramsOmitted)
 
-	var newTickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, channels, request, channels, request))))
+	newTickers := (<-this.WatchMultiple(url, channels, request, channels, request))
+	ccxt.PanicOnError(newTickers)
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
-		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
+		var newTickersSymbol *string = this.SafeString(newTickers, "symbol")
+		if newTickersSymbol != nil {
+			ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
+		}
 
 		ch <- tickers
 		return nil
@@ -379,10 +383,14 @@ func (this *Deribit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	var newTickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, channels, request, channels, request))))
+	newTickers := (<-this.WatchMultiple(url, channels, request, channels, request))
+	ccxt.PanicOnError(newTickers)
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
-		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
+		var newTickersSymbol *string = this.SafeString(newTickers, "symbol")
+		if newTickersSymbol != nil {
+			ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
+		}
 
 		ch <- tickers
 		return nil

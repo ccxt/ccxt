@@ -296,10 +296,14 @@ func (this *Krakenfutures) watchTickersBody(ch chan any, optionalArgs ...any) an
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 
-	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("ticker", "ticker", symbolsNormalized, nil, params))))
+	ticker := (<-this.WatchMultiHelperAsync("ticker", "ticker", symbolsNormalized, nil, params))
+	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+		}
 
 		ch <- result
 		return nil
@@ -331,10 +335,14 @@ func (this *Krakenfutures) watchBidsAsksBody(ch chan any, optionalArgs ...any) a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("bidask", "ticker_lite", symbols, nil, params))))
+	ticker := (<-this.WatchMultiHelperAsync("bidask", "ticker_lite", symbols, nil, params))
+	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+		}
 
 		ch <- result
 		return nil
@@ -1035,8 +1043,8 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 			if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 				ccxt.AddElementToObject(previousOrder, "trades", []any{})
 			}
-			retRes79516 := ccxt.GetValue(previousOrder, "trades")
-			ccxt.AppendToArray(&retRes79516, trade)
+			retRes80116 := ccxt.GetValue(previousOrder, "trades")
+			ccxt.AppendToArray(&retRes80116, trade)
 			ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 			var totalCost any = "0"
 			var totalAmount any = "0"

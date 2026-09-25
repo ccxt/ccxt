@@ -358,10 +358,14 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan any, optionalArgs ..
 	}
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchTickers", "channel", "LEVEL1")
 
-	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribeAsync(channel, symbols, paramsChannel))))
+	ticker := (<-this.SubscribeAsync(channel, symbols, paramsChannel))
+	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+		}
 
 		ch <- result
 		return nil

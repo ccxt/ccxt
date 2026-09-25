@@ -1067,8 +1067,9 @@ func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) 
 			market = this.SafeMarket(key)
 		}
 		var parsed any = this.ParseTradingFee(response[key], market)
-		if !IsEqual(GetValue(parsed, "symbol"), nil) {
-			AddElementToObject(result, GetValue(parsed, "symbol"), parsed)
+		var parsedSymbol *string = this.SafeString(parsed, "symbol")
+		if parsedSymbol != nil {
+			AddElementToObject(result, parsedSymbol, parsed)
 		}
 	}
 	var symbols []string = this.Symbols
@@ -1368,8 +1369,8 @@ func (this *Cex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes112415 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("closed", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes112415)
+	var retRes112515 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("closed", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes112515)
 	return nil
 }
 
@@ -1401,8 +1402,8 @@ func (this *Cex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes113915 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("open", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes113915)
+	var retRes114015 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("open", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes114015)
 	return nil
 }
 

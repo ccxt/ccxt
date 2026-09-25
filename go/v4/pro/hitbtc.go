@@ -468,7 +468,10 @@ func (this *Hitbtc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	if this.NewUpdates {
 		if !ccxt.IsArray(newTickers) {
 			var tickers map[string]any = map[string]any{}
-			ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
+			var newTickersSymbol *string = this.SafeString(newTickers, "symbol")
+			if newTickersSymbol != nil {
+				ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
+			}
 
 			ch <- tickers
 			return nil
@@ -639,7 +642,10 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	if this.NewUpdates {
 		if !ccxt.IsArray(newTickers) {
 			var tickers map[string]any = map[string]any{}
-			ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
+			var newTickersSymbol *string = this.SafeString(newTickers, "symbol")
+			if newTickersSymbol != nil {
+				ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
+			}
 
 			ch <- tickers
 			return nil
