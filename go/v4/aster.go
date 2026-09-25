@@ -1822,7 +1822,7 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	if since != nil {
@@ -2575,7 +2575,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -3275,7 +3275,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if symbol == nil {
 		if IsEqual(this.SafeBool(GetValue(this.Options, "fetchOpenOrders"), "warnIfNoSymbol"), true) {
@@ -3283,7 +3283,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 	} else {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType)
@@ -4343,7 +4343,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if since != nil {

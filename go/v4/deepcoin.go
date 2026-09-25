@@ -2180,13 +2180,13 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar any, params any) any {
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), (IsEqual(typeVar, "post_only")), params)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	paramsPostOnly := GetValue(postOnlyparamsPostOnlyVariable, 1)
+	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
 	var typePostOnly any = typeVar
 	if postOnly {
 		typePostOnly = "post_only"
 	}
 	var timeInForce any = this.HandleTimeInForce(paramsPostOnly)
-	var paramsOmitted any = this.Omit(paramsPostOnly, "timeInForce")
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPostOnly, "timeInForce"))
 	var typeValue any = typePostOnly
 	if (timeInForce != nil) && (IsEqual(timeInForce, "IOC")) {
 		typeValue = "ioc"
@@ -2467,7 +2467,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instId"] = GetValue(market, "id")
+		request["instId"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, paramsMethodName, "spot")
 	request["instType"] = this.ConvertToInstrumentType(marketType)
@@ -2958,10 +2958,10 @@ func (this *Deepcoin) editOrderBody(ch chan any, id string, symbol any, typeVar 
 	var symbolResolved any = nil
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			panic(NotSupported(this.Id + " editOrder() is not supported for spot markets"))
 		}
-		symbolResolved = GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 	}
 	var stopLossPrice *float64 = this.SafeNumber(params, "stopLossPrice")
 	var takeProfitPrice *float64 = this.SafeNumber(params, "takeProfitPrice")
@@ -3042,7 +3042,7 @@ func (this *Deepcoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			panic(NotSupported(this.Id + " cancelOrders() is not supported for spot markets"))
 		}
 	}
@@ -3748,7 +3748,7 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
 	if market != nil {
-		request["instId"] = GetValue(market, "id")
+		request["instId"] = market["id"]
 	}
 	if since != nil {
 		request["begin"] = since

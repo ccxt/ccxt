@@ -1718,9 +1718,7 @@ func (this *Blofin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountTypeparamsAccountTypeVariable []any = this.HandleOptionStringAndParams2(params, "fetchBalance", "accountType", "type")
-	accountType := GetValue(accountTypeparamsAccountTypeVariable, 0)
-	var paramsAccountType map[string]any = MapTyped(GetValue(accountTypeparamsAccountTypeVariable, 1))
+	accountType, paramsAccountType := this.HandleOptionStringAndParams2(params, "fetchBalance", "accountType", "type")
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	if !IsEqual(accountType, nil) && !IsEqual(accountType, "swap") {
@@ -2290,7 +2288,7 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instId"] = GetValue(market, "id")
+		request["instId"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -2366,7 +2364,7 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instId"] = GetValue(market, "id")
+		request["instId"] = market["id"]
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 	if limit != nil {
@@ -2615,10 +2613,10 @@ func (this *Blofin) withdrawBody(ch chan any, code string, amount any, address a
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var tagValue any = nil
+	var tagValue *string = nil
 	var query any = nil
 	var tagValuequeryVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagValue = GetValue(tagValuequeryVariable, 0)
+	tagValue = SafeStringPtr(GetValue(tagValuequeryVariable, 0))
 	query = GetValue(tagValuequeryVariable, 1)
 
 	PanicOnError((<-this.LoadMarketsAsync()))
@@ -3175,7 +3173,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		var symbolsLength int = len(symbols)
 		if symbolsLength == 0 {
 			market = this.Market(GetValue(symbols, 0))
-			request["instId"] = GetValue(market, "id")
+			request["instId"] = market["id"]
 		}
 	}
 	if limit != nil {
@@ -3657,7 +3655,7 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instId"] = GetValue(market, "id")
+		request["instId"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100

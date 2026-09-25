@@ -3922,7 +3922,7 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var request map[string]any = map[string]any{}
 	if market != nil {
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["start"] = since
@@ -3935,7 +3935,7 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["currency"] = this.SafeString(params, "settle", "USDT")
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params))).Raw))
-	} else if (market != nil) && (GetValue(market, "swap") == true) {
+	} else if (market != nil) && (market["swap"] == true) {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrderList(this.Extend(request, params))).Raw))
 	} else {
@@ -4047,7 +4047,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			request["limit"] = 200
 		}
 	} else if (symbol != nil) && (market != nil) {
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["start"] = since
@@ -4554,7 +4554,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if firstSymbol != nil {
 		market = this.Market(firstSymbol)
 		settle = this.SafeString(market, "settle")
-		code = GetValue(market, "settle")
+		code = market["settle"]
 	} else {
 		settle, paramsSettle = this.HandleOptionStringAndParams(paramsOmitted, "fetchPositions", "settle", code)
 	}
@@ -6082,7 +6082,7 @@ func (this *Phemex) withdrawBody(ch chan any, code string, amount any, address a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
@@ -6111,7 +6111,7 @@ func (this *Phemex) withdrawBody(ch chan any, code string, amount any, address a
 		"amount":    amount,
 		"chainName": ToUpper(networkId),
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["addressTag"] = tagWithdrawTag
 	}
 
@@ -6560,7 +6560,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	if firstSymbol != nil {
 		market = this.Market(firstSymbol)
 		settle = this.SafeString(market, "settle")
-		code = GetValue(market, "settle")
+		code = market["settle"]
 	} else {
 		settle, paramsSettle = this.HandleOptionStringAndParams(paramsOmitted, "fetchPositionsADLRank", "settle", code)
 	}

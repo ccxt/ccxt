@@ -1178,7 +1178,7 @@ func (this *Bingx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return ccxt.GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return symbol
 	}()
@@ -1277,7 +1277,7 @@ func (this *Bingx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return ccxt.GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return symbol
 	}()

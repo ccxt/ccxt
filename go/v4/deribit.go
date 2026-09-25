@@ -896,9 +896,9 @@ func (this *Deribit) SafeMarket(optionalArgs ...any) map[string]any {
 	var isOption bool = (marketId != nil) && ((EndsWith(marketId, "-C")) || (EndsWith(marketId, "-P")))
 	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
 		// handle expired option contracts
-		return MapTyped(this.CreateExpiredOptionMarket(marketId))
+		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}
-	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
+	return MarketTyped(this.Exchange.SafeMarket(marketId, market, delimiter, marketType))
 }
 
 /**
@@ -3051,7 +3051,7 @@ func (this *Deribit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = MapTyped(PanicOnError((<-this.PrivateGetGetOpenOrdersByCurrency(this.Extend(request, params))).Raw))
 	} else {
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetGetOpenOrdersByInstrument(this.Extend(request, params))).Raw))
 	}
@@ -3109,7 +3109,7 @@ func (this *Deribit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		response = MapTyped(PanicOnError((<-this.PrivateGetGetOrderHistoryByCurrency(this.Extend(request, params))).Raw))
 	} else {
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetGetOrderHistoryByInstrument(this.Extend(request, params))).Raw))
 	}
@@ -3251,7 +3251,7 @@ func (this *Deribit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 	} else {
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 		if since == nil {
 
 			response = MapTyped(PanicOnError((<-this.PrivateGetGetUserTradesByInstrument(this.Extend(request, params))).Raw))

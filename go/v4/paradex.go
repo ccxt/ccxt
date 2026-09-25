@@ -3002,7 +3002,7 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 	if since != nil {
 		request["start_at"] = since
@@ -3097,7 +3097,7 @@ func (this *Paradex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
@@ -3244,7 +3244,7 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 	if limit != nil {
 		request["page_size"] = limit

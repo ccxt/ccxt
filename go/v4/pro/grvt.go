@@ -211,7 +211,7 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchTickers", "channel", "v1.ticker.s")
 	var interval int = 500
-	var intervalOptionparamsIntervalVariable []any = this.HandleOptionIntegerAndParams(paramsChannel, "watchTickers", "interval", interval)
+	var intervalOptionparamsIntervalVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsChannel, "watchTickers", "interval", interval)
 	intervalOption := ccxt.GetValue(intervalOptionparamsIntervalVariable, 0)
 	paramsInterval := ccxt.GetValue(intervalOptionparamsIntervalVariable, 1)
 	if this.Markets == nil {
@@ -685,18 +685,14 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
-	var limitOptionparamsLimitOptionVariable []any = this.HandleOptionIntegerAndParams(paramsChannel, "watchOrderBook", "limit", 100)
-	limitOption := ccxt.GetValue(limitOptionparamsLimitOptionVariable, 0)
-	paramsLimitOption := ccxt.GetValue(limitOptionparamsLimitOptionVariable, 1)
+	limitOption, paramsLimitOption := this.HandleOptionIntegerAndParams(paramsChannel, "watchOrderBook", "limit", 100)
 	var limitResolved any = limitOption
 	var paramsLimit any = paramsLimitOption
 	if limit != nil {
 		limitResolved = limit
 		paramsLimit = paramsChannel
 	}
-	var intervalparamsIntervalVariable []any = this.HandleOptionIntegerAndParams(paramsLimit, "watchOrderBook", "interval", 500)
-	interval := ccxt.GetValue(intervalparamsIntervalVariable, 0)
-	paramsInterval := ccxt.GetValue(intervalparamsIntervalVariable, 1)
+	interval, paramsInterval := this.HandleOptionIntegerAndParams(paramsLimit, "watchOrderBook", "interval", 500)
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var extraPart string
 	if isSnapshot {

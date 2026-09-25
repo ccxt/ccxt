@@ -1495,7 +1495,7 @@ func (this *Hollaex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)
@@ -1781,7 +1781,7 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	market = this.Market(symbol)
-	request["symbol"] = GetValue(market, "id")
+	request["symbol"] = market["id"]
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateDeleteOrderAll(this.Extend(request, params))).Raw))
 
@@ -1839,7 +1839,7 @@ func (this *Hollaex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit // default 50, max 100
@@ -2327,7 +2327,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address 
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
@@ -2336,7 +2336,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address 
 	}
 	var currency map[string]any = this.Currency(code)
 	var addressWithTag any = address
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		addressWithTag = Add(Add(address, ":"), tagWithdrawTag)
 	}
 	var network *string = this.SafeString(paramsWithdrawTag, "network")

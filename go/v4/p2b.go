@@ -1464,7 +1464,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		"endTime":   untilSec,
 	}
 	if market != nil {
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit

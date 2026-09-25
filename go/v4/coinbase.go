@@ -4546,7 +4546,7 @@ func (this *Coinbase) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if market != nil {
-		request["product_id"] = GetValue(market, "id")
+		request["product_id"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -4647,7 +4647,7 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan any, status any, optionalA
 		"order_status": status,
 	}
 	if market != nil {
-		request["product_id"] = GetValue(market, "id")
+		request["product_id"] = market["id"]
 	}
 	var limitResolved any = func() any {
 		if limit == nil {
@@ -5010,7 +5010,7 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(params, "fetchTrades", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchTrades", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
@@ -5095,7 +5095,7 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if market != nil {
-		request["product_id"] = GetValue(market, "id")
+		request["product_id"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -5309,7 +5309,7 @@ func (this *Coinbase) withdrawBody(ch chan any, code string, amount any, address
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
@@ -5339,7 +5339,7 @@ func (this *Coinbase) withdrawBody(ch chan any, code string, amount any, address
 	} else {
 		request["account_id"] = accountId
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["destination_tag"] = tagWithdrawTag
 	}
 

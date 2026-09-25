@@ -1768,9 +1768,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	if GetValue(market, "spot") == true {
 		// bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
 		// the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
-		var timeZoneparamsTimeZoneVariable []any = this.HandleOptionIntegerAndParams(paramsUntil, "fetchOHLCV", "timeZone", 0)
-		timeZone := GetValue(timeZoneparamsTimeZoneVariable, 0)
-		paramsTimeZone := GetValue(timeZoneparamsTimeZoneVariable, 1)
+		timeZone, paramsTimeZone := this.HandleOptionIntegerAndParams(paramsUntil, "fetchOHLCV", "timeZone", 0)
 		if !IsEqual(timeZone, nil) {
 			request["timeZone"] = timeZone
 		}
@@ -2598,7 +2596,7 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchFundingHistory", market, params)
 	var isInverse any = func() any {
 		if market != nil {
-			return (GetValue(market, "inverse") == true)
+			return (market["inverse"] == true)
 		}
 		return (subType != nil && *subType == "inverse")
 	}()
@@ -2616,7 +2614,7 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 		"incomeType": "FUNDING_FEE",
 	}
 	if market != nil {
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -4858,7 +4856,7 @@ func (this *Bingx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		}
 		market = this.Market(symbol)
 		var request map[string]any = map[string]any{
-			"symbol": GetValue(market, "id"),
+			"symbol": market["id"],
 		}
 		var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "clientOrderID")
 		var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"clientOrderId"}))
@@ -5020,7 +5018,7 @@ func (this *Bingx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("cancelAllOrders", market, paramsMarketType)
@@ -5240,7 +5238,7 @@ func (this *Bingx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		}
 		market = this.Market(symbol)
 		var request map[string]any = map[string]any{
-			"symbol":  GetValue(market, "id"),
+			"symbol":  market["id"],
 			"orderId": id,
 		}
 		typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrder", market, paramsOmitted)
@@ -5303,7 +5301,7 @@ func (this *Bingx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrders", market, params)
 	if typeVar == nil || *typeVar != "swap" {
@@ -5416,7 +5414,7 @@ func (this *Bingx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	var response map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
@@ -5712,7 +5710,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	var response map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params)
@@ -6910,7 +6908,7 @@ func (this *Bingx) withdrawBody(ch chan any, code string, amount any, address an
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
@@ -6940,7 +6938,7 @@ func (this *Bingx) withdrawBody(ch chan any, code string, amount any, address an
 	if network != nil {
 		request["network"] = this.NetworkCodeToId(network, currency["code"])
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["addressTag"] = tagWithdrawTag
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWalletType, []any{"walletType", "network"}))
@@ -7027,7 +7025,7 @@ func (this *Bingx) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(requestUntil, "symbol", GetValue(market, "id"))
+		AddElementToObject(requestUntil, "symbol", market["id"])
 	}
 	if since != nil {
 		AddElementToObject(requestUntil, "startTime", since)
@@ -7296,7 +7294,7 @@ func (this *Bingx) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPositionMode", market, params)
-	if (subType != nil && *subType == "inverse") || (((market != nil)) && (GetValue(market, "inverse") == true)) {
+	if (subType != nil && *subType == "inverse") || (((market != nil)) && (market["inverse"] == true)) {
 		panic(NotSupported(this.Id + " fetchPositionMode() is not supported for inverse swap markets"))
 	}
 
@@ -7351,7 +7349,7 @@ func (this *Bingx) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 		market = this.Market(symbol)
 	}
 	subType, paramsSubType := this.HandleSubTypeAndParams("setPositionMode", market, params)
-	if (subType != nil && *subType == "inverse") || (((market != nil)) && (GetValue(market, "inverse") == true)) {
+	if (subType != nil && *subType == "inverse") || (((market != nil)) && (market["inverse"] == true)) {
 		panic(NotSupported(this.Id + " setPositionMode() is not supported for inverse swap markets"))
 	}
 	var dualSidePosition string

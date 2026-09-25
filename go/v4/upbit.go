@@ -2493,7 +2493,7 @@ func (this *Upbit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -2567,7 +2567,7 @@ func (this *Upbit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 	if since != nil {
 		request["start_time"] = since
@@ -2646,7 +2646,7 @@ func (this *Upbit) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 	if since != nil {
 		request["start_time"] = since
@@ -2978,7 +2978,7 @@ func (this *Upbit) withdrawBody(ch chan any, code string, amount any, address an
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagResolvedparamsTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagResolved := GetValue(tagResolvedparamsTagVariable, 0)
+	var tagResolved *string = SafeStringPtr(GetValue(tagResolvedparamsTagVariable, 0))
 	var paramsTag map[string]any = MapTyped(GetValue(tagResolvedparamsTagVariable, 1))
 	if this.Markets == nil {
 
@@ -3000,7 +3000,7 @@ func (this *Upbit) withdrawBody(ch chan any, code string, amount any, address an
 		request["net_type"] = network
 		request["currency"] = currency["id"]
 		request["address"] = address
-		if !IsEqual(tagResolved, nil) {
+		if tagResolved != nil {
 			request["secondary_address"] = tagResolved
 		}
 

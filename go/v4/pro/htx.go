@@ -1077,12 +1077,12 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		typeVar = ccxt.DerefScalar(this.SafeString(market, "type"))
 		subType = func() string {
-			if ccxt.GetValue(market, "linear") == true {
+			if market["linear"] == true {
 				return "linear"
 			}
 			return "inverse"
 		}()
-		marketId = ccxt.GetValue(market, "lowercaseId")
+		marketId = market["lowercaseId"]
 	} else {
 		typeVar = ccxt.DerefScalar(this.SafeString(this.Options, "defaultType", "spot"))
 		typeVar = ccxt.DerefScalar(this.SafeString(params, "type", typeVar))
@@ -1091,7 +1091,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return ccxt.GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return symbol
 	}()
@@ -1261,9 +1261,9 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 		typeVar = ccxt.DerefScalar(this.SafeString(market, "type"))
-		suffix = ccxt.GetValue(market, "lowercaseId")
+		suffix = market["lowercaseId"]
 		subType = func() string {
-			if ccxt.GetValue(market, "linear") == true {
+			if market["linear"] == true {
 				return "linear"
 			}
 			return "inverse"
@@ -1276,7 +1276,7 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return ccxt.GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return symbol
 	}()

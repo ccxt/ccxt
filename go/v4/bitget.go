@@ -9461,11 +9461,11 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	paramsMarginMode = GetValue(utaparamsMarginModeVariable, 1)
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 		var defaultType *string = this.SafeString2(this.Options, "fetchOpenOrders", "defaultType", "spot")
 		var marketType any = defaultType
 		if InOp(market, "type") {
-			marketType = GetValue(market, "type")
+			marketType = market["type"]
 		}
 		typeVar = this.SafeString(paramsMarginMode, "type", marketType)
 	} else {
@@ -10021,7 +10021,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	var marketType *string = nil
 	marketType, paramsUTA = this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, paramsUTA)
@@ -11444,7 +11444,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else if method != nil && *method == "privateMixGetV2MixPositionAllPosition" {
 		var marginCoin any = DerefScalar(this.SafeString(paramsPaginate, "marginCoin", "USDT"))
 		if market != nil {
-			marginCoin = GetValue(market, "settleId")
+			marginCoin = market["settleId"]
 		} else if productType != nil && *productType == "USDT-FUTURES" {
 			marginCoin = "USDT"
 		} else if productType != nil && *productType == "USDC-FUTURES" {
@@ -11465,7 +11465,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		isHistory = true
 		if market != nil {
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 		request["productType"] = productType
 
@@ -13073,7 +13073,7 @@ func (this *Bitget) transferBody(ch chan any, code string, amount any, fromAccou
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	var response map[string]any = nil
 	if IsEqual(uta, true) {
@@ -14411,7 +14411,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		var symbolsLength int = len(symbols)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbols, 0))
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 	if since != nil {

@@ -813,7 +813,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	var priceType any = "LAST_PRICE"
 	var paramsPriceType any = paramsOmitted
 	if isContract != nil && *isContract == true {
-		var priceTypeparamsPriceTypeVariable []any = this.HandleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType)
+		priceTypeparamsPriceTypeVariable := ccxt.TupleSlice(this.HandleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType))
 		priceType = ccxt.GetValue(priceTypeparamsPriceTypeVariable, 0)
 		paramsPriceType = ccxt.GetValue(priceTypeparamsPriceTypeVariable, 1)
 	}
@@ -911,7 +911,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	var priceType any = "LAST_PRICE"
 	var paramsPriceType any = paramsOmitted
 	if isContract != nil && *isContract == true {
-		var priceTypeparamsPriceTypeVariable []any = this.HandleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType)
+		priceTypeparamsPriceTypeVariable := ccxt.TupleSlice(this.HandleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType))
 		priceType = ccxt.GetValue(priceTypeparamsPriceTypeVariable, 0)
 		paramsPriceType = ccxt.GetValue(priceTypeparamsPriceTypeVariable, 1)
 	}

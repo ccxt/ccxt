@@ -1184,9 +1184,9 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName string, c
 			market = this.Market(current)
 			currentDescriptor = channelDescriptor
 		}
-		var message *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(channelName+".", ccxt.GetValue(market, "id")), "."), currentDescriptor))
+		var message *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(channelName+".", market["id"]), "."), currentDescriptor))
 		rawSubscriptions = append(rawSubscriptions, message)
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(channelName+"|", ccxt.GetValue(market, "symbol")), "|"), currentDescriptor))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(channelName+"|", market["symbol"]), "|"), currentDescriptor))
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",

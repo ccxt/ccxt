@@ -1327,9 +1327,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paramsPaginate map[string]any = map[string]any{}
 	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
-	var maxEntriesPerRequestparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", 100)
-	maxEntriesPerRequest := ccxt.GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 0)
-	paramsMaxEntriesPerRequest := ccxt.GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 1)
+	maxEntriesPerRequest, paramsMaxEntriesPerRequest := this.HandleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", 100)
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
@@ -1436,9 +1434,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paramsPaginate map[string]any = map[string]any{}
 	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
-	var maxEntriesPerRequestparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100)
-	maxEntriesPerRequest := ccxt.GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 0)
-	paramsMaxEntriesPerRequest := ccxt.GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 1)
+	maxEntriesPerRequest, paramsMaxEntriesPerRequest := this.HandleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100)
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
@@ -1770,9 +1766,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paramsPaginate map[string]any = map[string]any{}
 	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	var maxEntriesPerRequestparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100)
-	maxEntriesPerRequest := ccxt.GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 0)
-	paramsMaxEntriesPerRequest := ccxt.GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 1)
+	maxEntriesPerRequest, paramsMaxEntriesPerRequest := this.HandleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100)
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 

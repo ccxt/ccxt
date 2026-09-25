@@ -2300,7 +2300,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = typeOption
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 		typeVar = this.SafeString(market, "type")
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbolResolved)
 	}
@@ -2557,7 +2557,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = typeOption
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 		typeVar = this.SafeString(market, "type")
 	}
 	if ccxt.IsEqual(typeVar, "future") {

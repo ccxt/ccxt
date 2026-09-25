@@ -2138,9 +2138,9 @@ func (this *Gate) SafeMarket(optionalArgs ...any) map[string]any {
 	var isOption bool = (marketId != nil) && ((GetIndexOf(marketId, "-C") > -1) || (GetIndexOf(marketId, "-P") > -1))
 	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
 		// handle expired option contracts
-		return MapTyped(this.CreateExpiredOptionMarket(marketId))
+		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}
-	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
+	return MarketTyped(this.Exchange.SafeMarket(marketId, market, delimiter, marketType))
 }
 
 /**
@@ -3830,7 +3830,7 @@ func (this *Gate) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	}
 	var symbolResolved any = func() any {
 		if market != nil {
-			return GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return nil
 	}()
@@ -5645,7 +5645,7 @@ func (this *Gate) withdrawBody(ch chan any, code string, amount any, address any
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
@@ -5658,7 +5658,7 @@ func (this *Gate) withdrawBody(ch chan any, code string, amount any, address any
 		"address":  address,
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["memo"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
@@ -7167,7 +7167,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if market != nil {
-			return GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return symbol
 	}()
@@ -7283,7 +7283,7 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs 
 	}
 	var symbolResolved any = func() any {
 		if market != nil {
-			return GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return symbol
 	}()
@@ -7718,7 +7718,7 @@ func (this *Gate) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	if market == nil {
 		defaultSettle = "usdt"
 	} else {
-		defaultSettle = GetValue(market, "settle")
+		defaultSettle = market["settle"]
 	}
 	var settle *string = this.SafeStringLower(params, "settle", defaultSettle)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrders", market, params)
@@ -9127,7 +9127,7 @@ func (this *Gate) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(response)
 	} else if marginMode != nil && *marginMode == "isolated" {
 		if market != nil {
-			AddElementToObject(requestUntil, "currency_pair", GetValue(market, "id"))
+			AddElementToObject(requestUntil, "currency_pair", market["id"])
 		}
 
 		response = (<-this.PrivateMarginGetUniInterestRecords(this.Extend(requestUntil, paramsMarginMode)))
@@ -9681,7 +9681,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 	}
 	var symbolResolved any = func() any {
 		if market != nil {
-			return GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return symbol
 	}()

@@ -3160,7 +3160,7 @@ func (this *Weex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	var trigger *bool = this.SafeBool(paramsMarketType, "trigger", false)
@@ -4427,10 +4427,10 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
-		if GetValue(market, "swap") != true {
+		if market["swap"] != true {
 			panic(NotSupported(this.Id + " fetchFundingHistory() supports swap contracts only"))
 		}
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["startTime"] = since

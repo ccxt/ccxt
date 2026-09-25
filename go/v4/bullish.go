@@ -1278,7 +1278,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var response []any = nil
@@ -1624,9 +1624,7 @@ func (this *Bullish) safeDeterministicCallBody(ch chan any, method any, optional
 	_ = timeframe
 	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
-	var maxRetriesparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParams(params, method, "maxRetries", 3)
-	maxRetries := GetValue(maxRetriesparamsMaxRetriesVariable, 0)
-	paramsMaxRetries := GetValue(maxRetriesparamsMaxRetriesVariable, 1)
+	maxRetries, paramsMaxRetries := this.HandleOptionIntegerAndParams(params, method, "maxRetries", 3)
 	if (!IsEqual(method, "fetchOHLCV")) && (!IsEqual(method, "fetchFundingRateHistory")) && (!IsEqual(method, "fetchTrades")) {
 		panic(NotSupported(Add(Add(this.Id+" safeDeterministicCall() does not support the ", method), " method")))
 	}
@@ -1924,7 +1922,7 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	var paramsSinceAndUntil any = this.HandleSinceAndUntil(since, params)
 	if limit != nil {
@@ -2512,7 +2510,7 @@ func (this *Bullish) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 		request["commandType"] = "V1CancelAllOrdersByMarket"
 	} else {
 		request["commandType"] = "V1CancelAllOrders"

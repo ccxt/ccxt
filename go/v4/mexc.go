@@ -2965,14 +2965,14 @@ func (this *Mexc) CreateSpotOrderRequest(market any, typeVar any, side any, amou
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), (IsEqual(typeVar, "LIMIT_MAKER")), paramsWithoutClientOrderId)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	paramsPostOnly := GetValue(postOnlyparamsPostOnlyVariable, 1)
+	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
 	if postOnly == true {
 		request["type"] = "LIMIT_MAKER"
 	}
 	var tif *string = this.SafeString(paramsPostOnly, "timeInForce")
-	var paramsWithoutTif any = func() any {
+	var paramsWithoutTif map[string]any = func() map[string]any {
 		if tif != nil {
-			return this.Omit(paramsPostOnly, "timeInForce")
+			return MapTyped(this.Omit(paramsPostOnly, "timeInForce"))
 		}
 		return paramsPostOnly
 	}()
@@ -3467,7 +3467,7 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
@@ -3680,7 +3680,7 @@ func (this *Mexc) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...any
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, query := this.HandleMarketTypeAndParams("fetchOrdersByIds", market, params)
 	if marketType != nil && *marketType == "spot" {
@@ -3989,7 +3989,7 @@ func (this *Mexc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("cancelOrder", paramsMarketType)
@@ -5293,7 +5293,7 @@ func (this *Mexc) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if limit != nil {
 		request["page_size"] = limit
@@ -6903,7 +6903,7 @@ func (this *Mexc) withdrawBody(ch chan any, code string, amount any, address any
 	}
 	var currency map[string]any = this.Currency(code)
 	var tagResolvedparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagResolved := GetValue(tagResolvedparamsWithdrawTagVariable, 0)
+	var tagResolved *string = SafeStringPtr(GetValue(tagResolvedparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagResolvedparamsWithdrawTagVariable, 1))
 	var internal *bool = this.SafeBool(paramsWithdrawTag, "internal", false)
 	if internal != nil && *internal == true {
@@ -6938,7 +6938,7 @@ func (this *Mexc) withdrawBody(ch chan any, code string, amount any, address any
 		"address": address,
 		"amount":  amount,
 	}
-	if !IsEqual(tagResolved, nil) {
+	if tagResolved != nil {
 		request["memo"] = tagResolved
 	}
 	if !IsEqual(network, nil) {

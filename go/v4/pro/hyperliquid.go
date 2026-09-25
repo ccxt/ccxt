@@ -1790,11 +1790,11 @@ func (this *Hyperliquid) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "order"
 	if symbol != nil {
 		market = this.Market(symbol)
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "symbol"))
+		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), market["symbol"])
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return ccxt.GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return symbol
 	}()

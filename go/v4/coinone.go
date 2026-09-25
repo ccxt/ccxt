@@ -782,8 +782,8 @@ func (this *Coinone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(symbolsNormalized, nil) {
 		var first *string = this.SafeString(symbolsNormalized, 0)
 		market = this.Market(first)
-		request["quote_currency"] = GetValue(market, "quote")
-		request["target_currency"] = GetValue(market, "base")
+		request["quote_currency"] = market["quote"]
+		request["target_currency"] = market["base"]
 
 		response = MapTyped(PanicOnError((<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw))
 	} else {

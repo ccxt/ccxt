@@ -1505,7 +1505,7 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = ccxt.GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrdersWs", market, params)
 	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleMarginModeAndParams("fetchOpenOrdersWs", paramsMarketType)), 0))

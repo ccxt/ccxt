@@ -609,12 +609,12 @@ func (this *Cryptocom) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 	}
 	var messageHash any = "user.trade"
 	messageHash = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return (ccxt.Add(ccxt.Add(messageHash, "."), ccxt.GetValue(market, "id")))
+			return (ccxt.Add(ccxt.Add(messageHash, "."), market["id"]))
 		}
 		return messageHash
 	}()
@@ -1123,12 +1123,12 @@ func (this *Cryptocom) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 	}
 	var messageHash any = "user.order"
 	messageHash = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return (ccxt.Add(ccxt.Add(messageHash, "."), ccxt.GetValue(market, "id")))
+			return (ccxt.Add(ccxt.Add(messageHash, "."), market["id"]))
 		}
 		return messageHash
 	}()
@@ -1645,7 +1645,7 @@ func (this *Cryptocom) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) a
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
-		ccxt.AddElementToObject(request["params"], "instrument_name", ccxt.GetValue(market, "id"))
+		ccxt.AddElementToObject(request["params"], "instrument_name", market["id"])
 	}
 	var messageHash any = this.IncrementingNonce()
 

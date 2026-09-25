@@ -1588,7 +1588,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 		if market != nil {
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 		if accountId != nil {
 			request["accountId"] = accountId
@@ -2442,7 +2442,7 @@ func (this *Hashkey) withdrawBody(ch chan any, code string, amount any, address 
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
@@ -2454,7 +2454,7 @@ func (this *Hashkey) withdrawBody(ch chan any, code string, amount any, address 
 		"address":  address,
 		"quantity": amount,
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["addressExt"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
@@ -3394,7 +3394,7 @@ func (this *Hashkey) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 			request["type"] = "LIMIT"
 		}
 		if market != nil {
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 
 		response = MapTyped(PanicOnError((<-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, paramsTrigger))).Raw))
@@ -3708,7 +3708,7 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan any, optionalArgs ...any) a
 	} else {
 		if symbol != nil {
 			market = this.Market(symbol)
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 		if limit != nil {
 			request["limit"] = limit
@@ -3857,7 +3857,7 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 		if market != nil {
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 		if accountId != nil {
 			request["accountId"] = accountId
