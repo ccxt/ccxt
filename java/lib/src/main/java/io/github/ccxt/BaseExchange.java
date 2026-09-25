@@ -188,7 +188,7 @@ public class BaseExchange {
 
     public volatile Map<String, Object> markets_by_id = null;
 
-    public volatile List<Object> symbols = new ArrayList<>();
+    public volatile List<String> symbols = new ArrayList<>();
     public volatile List<Object> codes = new ArrayList<>();
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public volatile List ids = new ArrayList<>();
@@ -4391,7 +4391,7 @@ public Object describe()
         this.ids = null;
         this.markets = null;
         this.markets_by_id = null;
-        this.symbols = new ArrayList<Object>(Arrays.asList());
+        this.symbols = new ArrayList<String>(Arrays.asList());
         this.codes = null;
         this.currencies = this.createSafeDictionary();
         this.currencies_by_id = null;
@@ -6385,7 +6385,7 @@ public Object describe()
         this.markets = this.mapToSafeMap(this.indexBy(values, "symbol"));
         Map<String,Object> marketsSortedBySymbol = this.keysort(this.markets);
         Map<String,Object> marketsSortedById = this.keysort(this.markets_by_id);
-        this.symbols = new ArrayList<Object>(marketsSortedBySymbol.keySet());
+        this.symbols = new ArrayList<String>(marketsSortedBySymbol.keySet());
         this.ids = new ArrayList<Object>(marketsSortedById.keySet());
         Integer numCurrencies = 0;
         if (!java.util.Objects.equals(currencies, null))

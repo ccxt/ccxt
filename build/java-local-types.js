@@ -12752,7 +12752,7 @@ function stringListWriteOk (printer, node, seen, depth = 0) {
             && resolvesToMethodNamed (printer, value, name) && !value.arguments.some ((a) => ts.isSpreadElement (a));
     }
     if (stringListBaseSymbolsRead (printer, value)) {
-        return true; // printed through Helpers.toStringListArg (stringListRetypeValue)
+        return true; // the base field is declared List<String>
     }
     if (ts.isIdentifier (value)) {
         const declaration = stringListLocalDeclaration (printer, value);
@@ -12923,8 +12923,7 @@ function stringListLocalType (printer, declaration, seen = undefined) {
 
 function stringListRetypeValue (text) {
     return text.split (STRING_LIST_ARRAY_OPEN).join ('new java.util.ArrayList<String>(java.util.Arrays.asList(')
-        .replace (/^(\s*)\(java\.util\.List<Object>\)\s*/, '$1')
-        .replace (/(?<![\w.$(])this\.symbols(?![\w$(])/g, 'Helpers.toStringListArg(this.symbols)');
+        .replace (/^(\s*)\(java\.util\.List<Object>\)\s*/, '$1');
 }
 
 export function patchJavaStringListReturnLocals (transpiler) {
@@ -14685,5 +14684,115 @@ export function installJavaTuplePairReturns (transpiler) {
         const names = elements.map ((e) => printer.printNode (e, 0));
         const targets = elements.map ((e) => (ts.isIdentifier (e) ? { binding: undefined } : undefined));
         return pairRewriteBlock (printer, printed, names.join ('') + 'Variable', types, targets);
+    };
+}
+
+// ===== 47. List<String> core arguments that already print a List<String> =====
+// Helpers.toStringListArg only re-labels a List: a `[a, b]` literal of proven String elements prints
+// `new ArrayList<String>(...)` instead, and the base `symbols` field is declared List<String>.
+const STRLIST_OBJECT_OPEN = 'new java.util.ArrayList<Object>(';
+const STRLIST_STRING_OPEN = 'new java.util.ArrayList<String>(';
+
+function strListArgElementIsString (printer, element) {
+    const e = unwrapParens (element);
+    if (e === undefined) {
+        return false;
+    }
+    if (ts.isStringLiteral (e) || ts.isNoSubstitutionTemplateLiteral (e)) {
+        return true;
+    }
+    if (!ts.isIdentifier (e) || e.text === 'undefined' || printer.printNode (e, 0) !== e.text) {
+        return false;
+    }
+    try {
+        const declared = printer.javaDeclaredTypeOf (e);
+        if (typeof declared === 'string') {
+            return declared.trim () === 'String';
+        }
+        return printer.javaArgumentHasType (e, 'String');
+    } catch (err) {
+        return false;
+    }
+}
+
+// the printed List<String> form of a value, or undefined when it is not provably one
+function strListArgNative (printer, node, printed) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (stringListBaseSymbolsRead (printer, value)) {
+        return printed === 'this.symbols' ? printed : undefined;
+    }
+    if (!ts.isArrayLiteralExpression (value) || value.elements.length === 0
+        || !value.elements.every ((e) => !ts.isSpreadElement (e) && strListArgElementIsString (printer, e))
+        || !printed.startsWith (STRLIST_OBJECT_OPEN + 'java.util.Arrays.asList(')) {
+        return undefined;
+    }
+    return STRLIST_STRING_OPEN + printed.slice (STRLIST_OBJECT_OPEN.length);
+}
+
+// the right side of a `this.symbols = ...` write in the base tier, printed as a List<String>
+function strListSymbolsFieldWrite (printer, right, printed) {
+    const value = unwrapParens (right);
+    if (ts.isArrayLiteralExpression (value) && value.elements.length === 0
+        && printed === STRLIST_OBJECT_OPEN + 'java.util.Arrays.asList())') {
+        return STRLIST_STRING_OPEN + printed.slice (STRLIST_OBJECT_OPEN.length);
+    }
+    if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)
+        && ts.isIdentifier (value.expression.expression) && value.expression.expression.text === 'Object'
+        && value.expression.name.text === 'keys' && value.arguments.length === 1
+        && ts.isIdentifier (value.arguments[0]) && printer.javaDeclaredMapReceiver (value.arguments[0])
+        && printed === `${STRLIST_OBJECT_OPEN}${value.arguments[0].text}.keySet())`) {
+        return STRLIST_STRING_OPEN + printed.slice (STRLIST_OBJECT_OPEN.length);
+    }
+    if (ts.isPropertyAccessExpression (value) && value.name.text === 'symbols' && /^\w+\.symbols$/.test (printed)) {
+        return printed; // another exchange's List<String> field
+    }
+    return undefined;
+}
+
+export function installJavaStringListArgs (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaConvertToCoreType !== 'function' || printer._javaStringListArgsPatched) {
+        return;
+    }
+    printer._javaStringListArgsPatched = true;
+    const upstream = printer.javaConvertToCoreType.bind (printer);
+    printer.javaConvertToCoreType = function (type, printed, node) {
+        const out = upstream (type, printed, node);
+        if (type !== JAVA_STRING_LIST_TYPE || node === undefined || out !== `Helpers.toStringListArg(${printed})`) {
+            return out;
+        }
+        return strListArgNative (printer, node, printed) ?? out;
+    };
+    if (typeof printer.javaParameterAssignmentCast === 'function') {
+        const upstreamWrite = printer.javaParameterAssignmentCast.bind (printer);
+        printer.javaParameterAssignmentCast = function (left, right, identation) {
+            const out = upstreamWrite (left, right, identation);
+            if (typeof out !== 'string') {
+                return out;
+            }
+            const head = `${printer.printNode (left, 0)} = Helpers.toStringListArg(`;
+            if (!out.startsWith (head) || !out.endsWith (')')) {
+                return out;
+            }
+            const native = strListArgNative (printer, right, out.slice (head.length, -1));
+            return native === undefined ? out : head.slice (0, -'Helpers.toStringListArg('.length) + native;
+        };
+    }
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !stringListBaseSymbolsRead (printer, node.left)) {
+            return printed;
+        }
+        const head = 'this.symbols = ';
+        const at = printed.indexOf (head);
+        const rhs = at === -1 ? undefined : strListSymbolsFieldWrite (printer, node.right, printed.slice (at + head.length));
+        if (rhs === undefined) {
+            throw new Error ('installJavaStringListArgs: unproven List<String> write to this.symbols; type it in ts/src');
+        }
+        return printed.slice (0, at + head.length) + rhs;
     };
 }
