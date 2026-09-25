@@ -1410,7 +1410,7 @@ function goAccessInsideNilGuard (masked: string[], k: number, name: string): boo
 }
 
 function nativeTypedContainerAccess (content: string): string {
-    if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|InOp)\(/.test (content)) {
+    if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|InOp|ObjectKeys)\(/.test (content)) {
         return content;
     }
     const lines = content.split ('\n');
@@ -1477,6 +1477,13 @@ function retypeSliceProducerLocals (lines: string[], masked: string[], start: nu
     }
 }
 
+// len(ObjectKeys(m)) -> len(m) on a map[string]any local/param: the helper derefs nothing
+// for a plain map and counts every key, a nil map answers 0 either way
+function goNativeObjectKeysLength (line: string, masked: string, typeAt: (name: string, k: number) => string | undefined, k: number): string {
+    return line.replace (/(?<![\w.])len\((?:ccxt\.)?ObjectKeys\((\w+)\)\)/g, (all: string, name: string, at: number) =>
+        (((masked.substr (at, all.length) === all) && (typeAt (name, k) === 'map[string]any')) ? 'len(' + name + ')' : all));
+}
+
 function rewriteTypedContainerFunc (lines: string[], masked: string[], start: number, end: number) {
     retypeSliceProducerLocals (lines, masked, start, end);
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
@@ -1505,11 +1512,12 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
     const consumers = GO_ACCESS_DEREF_CONSUMERS.join ('|');
     for (let k = start + 1; k < end; k++) {
         let line = lines[k];
+        const original = line;
         const m = masked[k];
         if (goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt)) {
             continue;
         }
-        if (!/\b(?:GetArrayLength|GetValue|AddElementToObject)\(/.test (m)) {
+        if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|ObjectKeys)\(/.test (m)) {
             continue;
         }
         const isCode = (text: string, at: number) => m.substr (at, text.length) === text;
@@ -1525,6 +1533,9 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
             goNativeMapWrite (lines, masked, start, end, k, maskedFunc, declOf, typeAt, notRebound);
         } else {
             lines[k] = line;
+        }
+        if ((lines[k] === original) && /\bObjectKeys\(/.test (m)) {
+            lines[k] = goNativeObjectKeysLength (lines[k], m, typeAt, k);
         }
     }
 }
