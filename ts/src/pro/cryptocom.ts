@@ -542,7 +542,10 @@ export default class cryptocom extends cryptocomRest {
         const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
@@ -696,7 +699,10 @@ export default class cryptocom extends cryptocomRest {
         const newTickers = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const tickers: Dict = {};
-            tickers[newTickers['symbol']] = newTickers;
+            const newTickersSymbol = this.safeString (newTickers, 'symbol');
+            if (newTickersSymbol !== undefined) {
+                tickers[newTickersSymbol] = newTickers;
+            }
             return tickers;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);

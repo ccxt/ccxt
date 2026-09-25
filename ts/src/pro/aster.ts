@@ -184,7 +184,10 @@ export default class aster extends asterRest {
         const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbolsList);
@@ -321,7 +324,10 @@ export default class aster extends asterRest {
         const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbolsList);
@@ -503,7 +509,10 @@ export default class aster extends asterRest {
         const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbolsList);

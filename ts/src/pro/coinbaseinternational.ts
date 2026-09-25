@@ -265,7 +265,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const ticker = await this.subscribe (channel, symbols, paramsChannel);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);

@@ -14855,3 +14855,64 @@ export function installJavaStringListArgs (transpiler) {
         return printed.slice (0, at + head.length) + rhs;
     };
 }
+
+// ===== 49. element writes on handleUntilOption slot 0 and omit-of-Map locals =====
+// Base handleUntilOption returns its `request` argument as slot 0, and omit of a declared Map binds
+// Functions.omitMap (a fresh LinkedHashMap, or null); slot 0 of the hand-written Pair<Map, Map> prints Map.
+function javaMapWriteSlotFresh (printer, receiver) {
+    const symbol = printer.getChecker ().getSymbolAtLocation (receiver);
+    const declaration = symbol?.declarations?.length === 1 ? (symbol.declarations[0].resolve?.() ?? symbol.declarations[0]) : undefined;
+    if (declaration === undefined) {
+        return false;
+    }
+    const baseOnly = (call, name) => {
+        const found = javaFreshMapDispatch (call.getSourceFile ().fileName, name);
+        return found !== undefined && found.length > 0 && found.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
+    };
+    const thisCall = (node, name) => node !== undefined && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
+        && node.expression.expression.kind === ts.SyntaxKind.ThisKeyword && node.expression.name.text === name
+        && !node.arguments.some ((a) => ts.isSpreadElement (a)) && baseOnly (node, name);
+    if (ts.isBindingElement (declaration) && ts.isArrayBindingPattern (declaration.parent) && declaration.parent.elements.indexOf (declaration) === 0
+        && ts.isVariableDeclaration (declaration.parent.parent) && (ts.getCombinedNodeFlags (declaration.parent.parent) & ts.NodeFlags.Const) !== 0) {
+        const call = javaFreshMapUnwrap (declaration.parent.parent.initializer);
+        if (!thisCall (call, 'handleUntilOption') || call.arguments.length < 2) {
+            return false;
+        }
+        const request = javaFreshMapUnwrap (call.arguments[1]);
+        if (!ts.isIdentifier (request)) {
+            return javaFreshMapValue (request, new Set ());
+        }
+        const source = printer.javaDeclarationOfIdentifier (request);
+        const init = source !== undefined && ts.isVariableDeclaration (source) ? javaFreshMapUnwrap (source.initializer) : undefined;
+        return init !== undefined && javaFreshMapValue (init, new Set ()) && javaFreshMapStable (printer, request, source);
+    }
+    if (ts.isVariableDeclaration (declaration)) {
+        const init = javaFreshMapUnwrap (declaration.initializer);
+        return printer.javaDeclaredMapReceiver (receiver) && thisCall (init, 'omit') && javaFreshMapStable (printer, receiver, declaration);
+    }
+    return false;
+}
+
+export function patchJavaUntilOmitMapWrites (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printCustomBinaryExpressionIfAny !== 'function'
+        || typeof printer.javaDeclaredMapReceiver !== 'function' || printer._javaUntilOmitMapWritesPatched) {
+        return;
+    }
+    printer._javaUntilOmitMapWritesPatched = true;
+    const upstream = printer.printCustomBinaryExpressionIfAny.bind (printer);
+    printer.printCustomBinaryExpressionIfAny = function (node, identation) {
+        const printed = upstream (node, identation);
+        if (typeof printed !== 'string' || node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isElementAccessExpression (node.left)) {
+            return printed;
+        }
+        const receiver = node.left.expression;
+        const key = javaFreshMapUnwrap (node.left.argumentExpression);
+        const head = `Helpers.addElementToObject(${receiver.getText?.() ?? ''}, `;
+        if (!ts.isIdentifier (receiver) || !printed.startsWith (head) || !printed.endsWith (')')
+            || !(ts.isStringLiteralLike (key) || printer.javaDeclaredStringType (key)) || !javaMapWriteSlotFresh (printer, receiver)) {
+            return printed;
+        }
+        return `${receiver.text}.put(${printed.slice (head.length)}`;
+    };
+}

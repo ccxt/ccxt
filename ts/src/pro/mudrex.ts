@@ -115,7 +115,10 @@ export default class mudrex extends mudrexRest {
         const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
         return this.filterByArrayTickers (this.tickers, 'symbol', symbolsNormalized);

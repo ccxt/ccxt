@@ -888,8 +888,9 @@ export default class cex extends Exchange {
                 market = this.safeMarket (key);
             }
             const parsed = this.parseTradingFee (response[key], market);
-            if (parsed['symbol'] !== undefined) {
-                result[parsed['symbol']] = parsed;
+            const parsedSymbol = this.safeString (parsed, 'symbol');
+            if (parsedSymbol !== undefined) {
+                result[parsedSymbol] = parsed;
             }
         }
         const symbols = this.symbols;

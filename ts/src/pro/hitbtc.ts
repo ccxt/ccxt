@@ -388,7 +388,10 @@ export default class hitbtc extends hitbtcRest {
         if (this.newUpdates) {
             if (!Array.isArray (newTickers)) {
                 const tickers: Dict = {};
-                tickers[newTickers['symbol']] = newTickers;
+                const newTickersSymbol = this.safeString (newTickers, 'symbol');
+                if (newTickersSymbol !== undefined) {
+                    tickers[newTickersSymbol] = newTickers;
+                }
                 return tickers;
             }
         }
@@ -539,7 +542,10 @@ export default class hitbtc extends hitbtcRest {
         if (this.newUpdates) {
             if (!Array.isArray (newTickers)) {
                 const tickers: Dict = {};
-                tickers[newTickers['symbol']] = newTickers;
+                const newTickersSymbol = this.safeString (newTickers, 'symbol');
+                if (newTickersSymbol !== undefined) {
+                    tickers[newTickersSymbol] = newTickers;
+                }
                 return tickers;
             }
         }

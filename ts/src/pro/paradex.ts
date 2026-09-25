@@ -313,7 +313,10 @@ export default class paradex extends paradexRest {
         const newTicker = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
@@ -514,7 +517,10 @@ export default class paradex extends paradexRest {
         const newFundingRates = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newFundingRates['symbol']] = newFundingRates;
+            const newFundingRatesSymbol = this.safeString (newFundingRates, 'symbol');
+            if (newFundingRatesSymbol !== undefined) {
+                result[newFundingRatesSymbol] = newFundingRates;
+            }
             return result;
         }
         return this.filterByArray (this.fundingRates, 'symbol', symbolsNormalized);
