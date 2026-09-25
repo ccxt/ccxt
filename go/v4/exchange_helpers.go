@@ -1534,6 +1534,28 @@ func StringArg(v any) string {
 	panic(ArgumentsRequired(fmt.Sprintf("expected a string argument, got %T: %v", v, v)))
 }
 
+// Int64Arg converts a dynamically passed required integer argument; nil, a fraction or any
+// other type panics (ArgumentsRequired) instead of coercing
+func Int64Arg(v any) int64 {
+	switch value := derefScalar(v).(type) {
+	case int:
+		return int64(value)
+	case int32:
+		return int64(value)
+	case int64:
+		return value
+	case float64:
+		if (value == math.Trunc(value)) && (math.Abs(value) < 9.2e18) {
+			return int64(value)
+		}
+	case string:
+		if i, err := strconv.ParseInt(value, 10, 64); err == nil {
+			return i
+		}
+	}
+	panic(ArgumentsRequired(fmt.Sprintf("expected an integer argument, got %T: %v", v, v)))
+}
+
 func ToString(v any) string {
 	v = derefScalar(v)
 	switch v := v.(type) {
@@ -2975,6 +2997,13 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 					arg = args[k]
 				}
 				in = append(in, reflect.ValueOf(StringArg(arg)).Convert(paramType))
+			} else if paramType.Kind() == reflect.Int64 {
+				// a required int parameter: decoded JSON numbers arrive as float64, nil panics
+				var arg any = nil
+				if k < len(args) {
+					arg = args[k]
+				}
+				in = append(in, reflect.ValueOf(Int64Arg(arg)).Convert(paramType))
 			} else if k < len(args) && args[k] != nil {
 				in = append(in, reflect.ValueOf(args[k]))
 			} else {
