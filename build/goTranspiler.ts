@@ -1118,6 +1118,28 @@ function goSafeBoolLiteralSelfTest (): string[] {
     return problems;
 }
 
+function goSliceIndexSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const f = (decl: string, body: string, bound = 'len(s)'): string => nativeLoopBoundedSliceReads ('func (this *X) f(p any) any {\n' + decl + '\tfor i := 0; i < ' + bound + '; i++ {\n' + body + '\t}\n\treturn nil\n}\n');
+    const sd = '\tvar s []string = ObjectKeys(p)\n';
+    ok (f (sd, '\t\tvar a string = GetValue(s, i).(string)\n').indexOf ('var a string = s[i]\n') >= 0, 'asserted read goes native');
+    ok (f (sd, '\t\tr = Add(r, GetValue(s, i))\n').indexOf ('Add(r, s[i])') >= 0, 'bare read goes native');
+    ok (f ('\tvar s []string = ObjectKeys(p)\n\tvar n int = len(s)\n', '\t\tr = Add(r, GetValue(s, i))\n', 'n').indexOf ('s[i]') >= 0, 'unwritten len local bound');
+    const keep: string[][] = [
+        [ sd, '\t\ts = append(s, \"x\")\n\t\tr = GetValue(s, i)\n' ],
+        [ sd, '\t\ti = i + 1\n\t\tr = GetValue(s, i)\n' ],
+        [ sd, '\t\tgo func() {\n\t\t\tr = GetValue(s, i)\n\t\t}()\n' ],
+        [ '\tvar s []any = GetValue(p, \"a\")\n', '\t\tr = GetValue(s, i)\n' ],
+        [ sd + '\tvar s []string = nil\n', '\t\tr = GetValue(s, i)\n' ],
+        [ sd, '\t\tif GetValue(s, i) == nil {\n\t\t}\n' ],
+        [ sd, '\t\tr = GetValue(s, j)\n' ],
+    ];
+    keep.forEach ((c, index) => ok (f (c[0], c[1]).indexOf ('GetValue(s, ') >= 0, 'unproven read must keep GetValue #' + index));
+    ok (f (sd, '\t\tr = GetValue(s, i)\n', 'len(t)').indexOf ('GetValue(s, i)') >= 0, 'other bound keeps GetValue');
+    return problems;
+}
+
 function goStringLiteralSelfTest (): string[] {
     const problems: string[] = [];
     const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
@@ -2261,41 +2283,8 @@ function retagLoopBoundedElementReads (content: string): string {
         if (sliceWritten) {
             continue;
         }
-        // the bound: len(slice), GetArrayLength(slice), or an int local `= len(slice)` that
-        // is declared before the loop and never written
-        const bound = header[4].trim ();
-        if ((bound !== 'len(' + slice + ')') && (bound !== 'GetArrayLength(' + slice + ')')) {
-            if (!/^[A-Za-z_]\w*$/.test (bound) || (bound === name) || (bound === counter) || (bound === slice)) {
-                continue;
-            }
-            const boundRx = new RegExp ('^[ \\t]*(?:var ' + bound + ' int = |' + bound + ' := )len\\(' + slice + '\\)[ \\t]*$');
-            let boundLine = -1;
-            for (let k = fn.open + 1; k < body.open; k++) {
-                if (boundRx.test (maskedLines[k])) {
-                    if ((boundLine >= 0) || (depth[k] > depth[body.open])) {
-                        boundLine = -2; // ambiguous or declared inside the loop
-                        break;
-                    }
-                    boundLine = k;
-                }
-            }
-            if (boundLine < 0) {
-                continue;
-            }
-            const boundBlock = goTextEnclosingBlock (blocks, boundLine);
-            if ((boundBlock !== undefined) && (boundBlock.close < body.open)) {
-                continue;
-            }
-            let boundWritten = false;
-            for (let k = fn.open + 1; k < fn.close; k++) {
-                if ((k !== boundLine) && goTextWritesName (maskedLines[k], bound)) {
-                    boundWritten = true;
-                    break;
-                }
-            }
-            if (boundWritten) {
-                continue;
-            }
+        if (!goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, body, header[4].trim (), slice, [ name, counter ])) {
+            continue;
         }
         // the body: no write to the counter or the slice, and every read of the local a
         // value position
@@ -2320,6 +2309,120 @@ function retagLoopBoundedElementReads (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 
+// the loop bound is len(slice), GetArrayLength(slice), or an int local `= len(slice)` that
+// is declared once before the loop, in a scope still open at it, and never written
+function goTextLoopBoundIsLen (maskedLines: string[], blocks: any[], depth: number[], fn: any, body: any, bound: string, slice: string, reserved: string[]): boolean {
+    if ((bound === 'len(' + slice + ')') || (bound === 'GetArrayLength(' + slice + ')')) {
+        return true;
+    }
+    if (!/^[A-Za-z_]\w*$/.test (bound) || (bound === slice) || reserved.includes (bound)) {
+        return false;
+    }
+    const boundRx = new RegExp ('^[ \\t]*(?:var ' + bound + ' int = |' + bound + ' := )len\\(' + slice + '\\)[ \\t]*$');
+    let boundLine = -1;
+    for (let k = fn.open + 1; k < body.open; k++) {
+        if (boundRx.test (maskedLines[k])) {
+            if ((boundLine >= 0) || (depth[k] > depth[body.open])) {
+                return false; // ambiguous or declared inside the loop
+            }
+            boundLine = k;
+        }
+    }
+    if (boundLine < 0) {
+        return false;
+    }
+    const boundBlock = goTextEnclosingBlock (blocks, boundLine);
+    if ((boundBlock !== undefined) && (boundBlock.close < body.open)) {
+        return false;
+    }
+    for (let k = fn.open + 1; k < fn.close; k++) {
+        if ((k !== boundLine) && goTextWritesName (maskedLines[k], bound)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// `[ccxt.]GetValue(s, i)[.(string)]` -> `s[i]` anywhere in the body of `for i := 0; i < len(s); i++ {`
+// when `s` is declared once in the func as `[]string` and never written, `i` is not written in
+// the body and no func literal opens between the loop and the read (derefScalar of a string is itself).
+function nativeLoopBoundedSliceReads (content: string): string {
+    if (content.indexOf ('GetValue(') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const maskedLines = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== maskedLines.length) {
+        return content;
+    }
+    const { 'blocks': blocks, 'depth': depth } = goTextBlocks (maskedLines);
+    const readRx = /\b(?:ccxt\.)?GetValue\(([A-Za-z_]\w*), ([A-Za-z_]\w*)\)(\.\(string\))?/g;
+    let changed = false;
+    for (let index = 0; index < lines.length; index++) {
+        if (maskedLines[index].indexOf ('GetValue(') < 0) {
+            continue;
+        }
+        const replaced = lines[index].replace (readRx, (match: string, slice: string, counter: string, assertion: string | undefined, offset: number) => {
+            if ((maskedLines[index].substr (offset, match.length) !== match) || (slice === counter)) {
+                return match; // inside a literal/comment
+            }
+            const after = maskedLines[index].substring (offset + match.length);
+            const before = maskedLines[index].substring (0, offset);
+            if (/^\s*(?:[!=]=\s*nil\b|\.\()/.test (after) || /\bnil\s*[!=]=\s*$/.test (before) || /(?:^|[^\w.])[A-Za-z_]\w*\s*:=\s*$/.test (before)) {
+                return match; // nil comparison, further assertion, or a := that would take the element type
+            }
+            // innermost enclosing counting loop over `counter`, with no func literal in between
+            const enclosing = blocks.filter ((b: any) => (b.open < index) && (index <= b.close)).sort ((a: any, b: any) => b.depth - a.depth);
+            let body: any = undefined;
+            let header: RegExpExecArray | null = null;
+            for (const b of enclosing) {
+                if (/\bfunc\b/.test (maskedLines[b.open])) {
+                    break;
+                }
+                const h = /^[ \t]*for ([A-Za-z_]\w*) := 0; ([A-Za-z_]\w*) < (.+); ([A-Za-z_]\w*)\+\+ \{$/.exec (maskedLines[b.open]);
+                if ((h !== null) && (h[1] === counter)) {
+                    body = b;
+                    header = h;
+                    break;
+                }
+            }
+            if ((body === undefined) || (header === null) || (header[2] !== counter) || (header[4] !== counter) || (index === body.open)) {
+                return match;
+            }
+            const fn = blocks.find ((b: any) => (b.depth === 1) && (b.open < index) && (index <= b.close));
+            if ((fn === undefined) || (maskedLines[fn.open].indexOf ('func ') !== 0)) {
+                return match;
+            }
+            const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
+            const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], slice);
+            if ((decl === undefined) || (decl.type !== '[]string')) {
+                return match;
+            }
+            for (let k = fn.open + 1; k < fn.close; k++) {
+                const line = (decl.line !== undefined) ? maskedLines[k].replace (new RegExp ('^\\s*var ' + slice + ' \\[\\]string\\b'), '') : maskedLines[k];
+                if (goTextWritesName (line, slice)) {
+                    return match;
+                }
+            }
+            if ((decl.line !== undefined) && !(maskedLines.slice (fn.open + 1, body.open).some ((l: string) => new RegExp ('^[ \\t]*var ' + slice + ' \\[\\]string\\b').test (l)))) {
+                return match; // declared after the loop header
+            }
+            for (let k = body.open + 1; k < body.close; k++) {
+                if (goTextWritesName (maskedLines[k], counter)) {
+                    return match;
+                }
+            }
+            if (!goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, body, header[3].trim (), slice, [ counter ])) {
+                return match;
+            }
+            changed = true;
+            return slice + '[' + counter + ']';
+        });
+        lines[index] = replaced;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
 // Semantic post-passes over the printer text: a leaked body goroutine, a missing type
 // assertion and an unbounded element read are fixed here; layout is the printer's job and
 // is gofmt-clean except where an emitter splices operand text into a call it prints.
@@ -2330,6 +2433,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = guardMultiSendCores (content);
     content = assertTypedElementAccess (content);
     content = retagLoopBoundedElementReads (content);
+    content = nativeLoopBoundedSliceReads (content);
     content = nativeTypedContainerAccess (content);
     content = nativeOrderBookSideReads (content);
     return goGofmtSplicedText (content);
@@ -8193,7 +8297,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
