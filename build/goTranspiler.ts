@@ -8372,15 +8372,15 @@ async function runMain () {
     }
 }
 
-if (isMainEntry (import.meta.url)) {
-    await runMain ();
-}
-
 // (method, parameter) pairs whose every caller passes untyped nil or a value that is never a typed
 // nil (decoded JSON, literals, non-nil maps), so IsEqual(p, nil) is `p == nil`; proof in the campaign notes.
 const GO_UNTYPED_NIL_PARAMS: { [method: string]: string[] } = {
     'HandleErrors': [ 'response' ],
 };
+
+if (isMainEntry (import.meta.url)) {
+    await runMain ();
+}
 
 function goProvenParamNilCompareText (fn: string, isEqualFn: string): string {
     const sig = fn.match (/^\nfunc \(this \*[\w.]+\) (\w+)\(([^)\n]*)\)/);
