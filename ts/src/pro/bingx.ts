@@ -1057,11 +1057,11 @@ export default class bingx extends bingxRest {
                 'dataType': 'spot.executionReport',
             };
         }
-        const listenKey = this.safeString (this.options, 'listenKey');
-        if (baseUrl === undefined || listenKey === undefined) {
-            throw new AuthenticationError (this.id + ' watchOrders() has no websocket url or listenKey');
+        const userStreamKey = this.safeString (this.options, 'listenKey');
+        if (baseUrl === undefined || userStreamKey === undefined) {
+            throw new AuthenticationError (this.id + ' watchOrders() requires a websocket URL and a listen key');
         }
-        const url = baseUrl + '?listenKey=' + listenKey;
+        const url = baseUrl + '?listenKey=' + userStreamKey;
         const subscription: Dict = {
             'unsubscribe': false,
             'id': uuid,
@@ -1132,11 +1132,11 @@ export default class bingx extends bingxRest {
                 'dataType': 'spot.executionReport',
             };
         }
-        const listenKey = this.safeString (this.options, 'listenKey');
-        if (baseUrl === undefined || listenKey === undefined) {
-            throw new AuthenticationError (this.id + ' watchMyTrades() has no websocket url or listenKey');
+        const userStreamKey = this.safeString (this.options, 'listenKey');
+        if (baseUrl === undefined || userStreamKey === undefined) {
+            throw new AuthenticationError (this.id + ' watchMyTrades() requires a websocket URL and a listen key');
         }
-        const url = baseUrl + '?listenKey=' + listenKey;
+        const url = baseUrl + '?listenKey=' + userStreamKey;
         const subscription: Dict = {
             'unsubscribe': false,
             'id': uuid,
@@ -1197,11 +1197,11 @@ export default class bingx extends bingxRest {
                 'dataType': 'ACCOUNT_UPDATE',
             };
         }
-        const listenKey = this.safeString (this.options, 'listenKey');
-        if (baseUrl === undefined || listenKey === undefined) {
-            throw new AuthenticationError (this.id + ' watchBalance() has no websocket url or listenKey');
+        const userStreamKey = this.safeString (this.options, 'listenKey');
+        if (baseUrl === undefined || userStreamKey === undefined) {
+            throw new AuthenticationError (this.id + ' watchBalance() requires a websocket URL and a listen key');
         }
-        const url = baseUrl + '?listenKey=' + listenKey;
+        const url = baseUrl + '?listenKey=' + userStreamKey;
         const client = this.client (url);
         this.setBalanceCache (client, type, subType, subscriptionHash, params);
         let fetchBalanceSnapshot: Bool = undefined;
@@ -1282,11 +1282,11 @@ export default class bingx extends bingxRest {
         const subscriptionHash = 'swap:private';
         messageHash = 'swap:positions' + messageHash;
         const baseUrl = this.safeString (this.urls['api']['ws'], subType);
-        const listenKey = this.safeString (this.options, 'listenKey');
-        if (baseUrl === undefined || listenKey === undefined) {
-            throw new AuthenticationError (this.id + ' watchPositions() has no websocket url or listenKey');
+        const userStreamKey = this.safeString (this.options, 'listenKey');
+        if (baseUrl === undefined || userStreamKey === undefined) {
+            throw new AuthenticationError (this.id + ' watchPositions() requires a websocket URL and a listen key');
         }
-        const url = baseUrl + '?listenKey=' + listenKey;
+        const url = baseUrl + '?listenKey=' + userStreamKey;
         const client = this.client (url);
         this.setPositionsCache (client, type, symbols);
         let fetchPositionsSnapshot: Bool = undefined;
