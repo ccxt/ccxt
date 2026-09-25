@@ -2683,8 +2683,7 @@ export default class bybit extends Exchange {
         let hasOptionSymbol = false;
         if (symbols !== undefined) {
             parsedSymbols = [];
-            const marketTypeInfo = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-            const defaultType = marketTypeInfo[0]; // don't omit here
+            const defaultType = this.handleMarketTypeAndParams ('fetchTickers', undefined, params)[0]; // don't omit here
             // we can't use marketSymbols here due to the conflicting ids between markets
             let currentType: Str = undefined;
             for (let i = 0; i < symbols.length; i++) {

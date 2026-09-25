@@ -3123,8 +3123,7 @@ export default class binance extends binanceRest {
         let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
         type = this.safeString (params, 'type', type);
         const [ isPortfolioMargin, paramsPortfolioMargin ] = this.handleOptionBoolAndParams2 (params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
-        const subTypeInfo = this.handleSubTypeAndParams ('keepAliveListenKey', undefined, paramsPortfolioMargin);
-        const subType = subTypeInfo[0];
+        const subType = this.handleSubTypeAndParams ('keepAliveListenKey', undefined, paramsPortfolioMargin)[0];
         if (type !== 'option' && type !== 'stock') {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
             // which would incorrectly convert type='option' to 'future'.
@@ -3700,8 +3699,7 @@ export default class binance extends binanceRest {
         let type: Str = undefined;
         let paramsMarketType: Dict = {};
         [ type, paramsMarketType ] = this.handleMarketTypeAndParams (method, market, params);
-        const subTypeAndParams = this.handleSubTypeAndParams (method, market, paramsMarketType);
-        const subType: Str = subTypeAndParams[0];
+        const subType: Str = this.handleSubTypeAndParams (method, market, paramsMarketType)[0];
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
