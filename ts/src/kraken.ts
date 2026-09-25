@@ -3745,8 +3745,7 @@ export default class kraken extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        const fullUrl = apiUrl + url;
-        return { 'url': fullUrl, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': apiUrl + url, 'method': method, 'body': body, 'headers': headers };
     }
 
     override nonce (): number {

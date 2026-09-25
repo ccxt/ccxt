@@ -2238,7 +2238,6 @@ export default class alpaca extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = this.implodeHostname (baseApiUrl);
         let headersValue: NullableDict = {};
         if (headers !== undefined) {
             headersValue = headers;
@@ -2258,7 +2257,7 @@ export default class alpaca extends Exchange {
                 headersValue['Content-Type'] = 'application/json';
             }
         }
-        url += endpoint;
+        const url = this.implodeHostname (baseApiUrl) + endpoint;
         const bodyResolved: Str = (bodyJson === undefined) ? body : bodyJson;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
