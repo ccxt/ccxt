@@ -8661,6 +8661,60 @@ function parameterListUseIsMutation (identifier) {
     return false;
 }
 
+// a local holding the marketSymbols / getActiveSymbols string list (directly, or `x === undefined ? [] : x`
+// over such a local) whose list no use rewrites or mutates, including locals it is copied into
+function stringListLocal (csharp, scope, declaration, depth = 0) {
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier || depth > 4) {
+        return false;
+    }
+    const index = indexScope (csharp, scope);
+    const producer = (node) => {
+        while (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.AsExpression) {
+            node = node.expression;
+        }
+        if (node?.kind === ts.SyntaxKind.ConditionalExpression) {
+            return producer (node.whenTrue) && producer (node.whenFalse);
+        }
+        if (node?.kind === ts.SyntaxKind.Identifier) {
+            const list = index.declarations.get (node.escapedText) ?? [];
+            const name = node.escapedText;
+            return list.length === 1 && !index.parameterNames.has (name) && !index.blockedNames.has (name)
+                && list[0].getStart () < node.getStart () && stringListLocal (csharp, scope, list[0], depth + 1);
+        }
+        return node?.kind !== ts.SyntaxKind.PropertyAccessExpression && stringListParameterWriteProducer (node);
+    };
+    return producer (declaration.initializer) && stringListUsesKeepList (csharp, scope, declaration, 0);
+}
+
+function stringListUsesKeepList (csharp, scope, declaration, depth) {
+    if (depth > 4) {
+        return false;
+    }
+    for (const use of indexScope (csharp, scope).identifiers.get (declaration.name.escapedText) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        const parent = use.parent;
+        if ((parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))
+                || parameterListUseIsMutation (use) || enclosingFunction (use) !== scope) {
+            return false;
+        }
+        // copied into another local (directly or as a conditional arm): that local holds the same list
+        let holder = parent;
+        let child = use;
+        while ((holder?.kind === ts.SyntaxKind.ParenthesizedExpression || holder?.kind === ts.SyntaxKind.AsExpression)
+                || (holder?.kind === ts.SyntaxKind.ConditionalExpression && holder.condition !== child)) {
+            child = holder;
+            holder = holder.parent;
+        }
+        if (holder?.kind === ts.SyntaxKind.VariableDeclaration && holder.initializer === child
+                && !(holder.name?.kind === ts.SyntaxKind.Identifier && stringListUsesKeepList (csharp, scope, holder, depth + 1))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // is every element of this narrowed parameter a string? (see the family comment above)
 function stringListParameterElementType (csharp, scope, parameter) {
     if (typeof csharp.csharpListTypedCoreArg !== 'function' || !stringListParameterAnnotation (parameter)) {
@@ -8775,6 +8829,9 @@ function elementAccessElementType (csharp, initializer, context) {
     }
     if (declaration.getStart () > initializer.getStart ()) {
         return undefined; // the list is not provably built before the read
+    }
+    if (stringListLocal (csharp, scope, declaration)) {
+        return 'string';
     }
     const built = stringElementsProducer (declaration.initializer)
         ? { elementType: 'string', pushes: new Set () }
