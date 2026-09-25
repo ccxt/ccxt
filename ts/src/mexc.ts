@@ -6168,9 +6168,8 @@ export default class mexc extends Exchange {
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
-        let marginMode: Str = undefined;
-        let paramsMarginMode = undefined;
-        [ marginMode, paramsMarginMode ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
+        const [ marginModeValue, paramsMarginMode ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
+        let marginMode: Str = marginModeValue;
         if ((defaultType === 'margin') || (isMargin === true)) {
             marginMode = 'isolated';
         }
