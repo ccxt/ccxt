@@ -443,7 +443,7 @@ public partial class limitless : PredictionExchange
             }
         }
         Dictionary<string, object> eventsDict = new Dictionary<string, object>() {};
-        List<object> eventKeys = new List<object>(((IDictionary<string,object>)eventGroups).Keys);
+        List<object> eventKeys = new List<object>(eventGroups.Keys);
         for (int i = 0; i < eventKeys.Count; i++)
         {
             string? eventKey = ((string)eventKeys[i]);
@@ -568,7 +568,7 @@ public partial class limitless : PredictionExchange
             { "price", 0.001 },
         };
         List<object> outcomes = new List<object>() {};
-        List<object> tokenEntries = new List<object>(((IDictionary<string,object>)tokens).Keys);
+        List<object> tokenEntries = new List<object>(tokens.Keys);
         for (int i = 0; i < tokenEntries.Count; i++)
         {
             string? outcomeLabel = ((string)tokenEntries[i]);
@@ -1058,7 +1058,7 @@ public partial class limitless : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
-        string? slug = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "slug");
+        string? slug = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "slug");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "addressOrSlug", slug },
         };
@@ -1347,7 +1347,7 @@ public partial class limitless : PredictionExchange
         for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
-            string? slug = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "slug");
+            string? slug = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "slug");
             if ((slug == null))
             {
                 throw new ExchangeError ((this.id + " fetchTickers() missing slug")) ;
@@ -1420,7 +1420,7 @@ public partial class limitless : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
-        string? slug = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "slug");
+        string? slug = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "slug");
         string? tokenId = this.safeString(outcomeObj, "outcomeId");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "slug", slug },
@@ -1482,7 +1482,7 @@ public partial class limitless : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
-        string? slug = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "slug");
+        string? slug = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "slug");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "slug", slug },
         };
@@ -1510,7 +1510,7 @@ public partial class limitless : PredictionExchange
         object decimals = this.safeInteger(this.options, "usdcDecimals", 6);
         // sizes are scaled by 10^decimals, USDC uses 6 decimals
         string? scaleStr = this.parsePrecision(this.numberToString(prefixUnaryNeg(ref decimals)));
-        string? outcomeLabel = this.safeStringLower((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "outcomeLabel", "yes");
+        string? outcomeLabel = this.safeStringLower((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "outcomeLabel", "yes");
         bool isYes = outcomeLabel != "no";
         List<object> rawBids = this.safeList(response, "bids", new List<object>() {});
         List<object> rawAsks = this.safeList(response, "asks", new List<object>() {});
@@ -1585,8 +1585,8 @@ public partial class limitless : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
-        string? slug = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "slug");
-        string? outcomeLabel = this.safeStringUpper((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "outcomeLabel");
+        string? slug = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "slug");
+        string? outcomeLabel = this.safeStringUpper((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "outcomeLabel");
         string? interval = this.safeString(this.timeframes, timeframeVar, "1d");
         Dictionary<string, object> response = await this.limitlessPublicGetMarketsSlugHistoricalPrice(this.extend(new Dictionary<string, object>() {
             { "slug", slug },
@@ -2404,7 +2404,7 @@ public partial class limitless : PredictionExchange
             { "maker", maker },
             { "signer", signer },
             { "taker", taker },
-            { "tokenId", (outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null) },
+            { "tokenId", (outcomeObj != null && outcomeObj.ContainsKey("outcomeId") ? outcomeObj["outcomeId"] : null) },
             { "nonce", 0 },
             { "feeRateBps", this.safeInteger(rank, "feeRateBps", 0) },
             { "side", sideValue },
@@ -2485,7 +2485,7 @@ public partial class limitless : PredictionExchange
         {
             signRequest["price"] = this.parseNumber(priceString);
         }
-        string? slug = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "slug");
+        string? slug = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "slug");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ownerId", this.safeInteger(account, "id") },
             { "order", signRequest },
@@ -2499,7 +2499,7 @@ public partial class limitless : PredictionExchange
         Dictionary<string, object> response = await this.limitlessPrivatePostOrders(this.extend(request, paramsValue));
         Dictionary<string, object> parsedOrder = this.parsePredictionOrder(response, outcomeObj);
         // the create-order response omits a status field; a freshly accepted order is open
-        if (isEqual((parsedOrder != null && ((IDictionary<string, object>)parsedOrder).ContainsKey("status") ? ((IDictionary<string, object>)parsedOrder)["status"] : null), null))
+        if (isEqual((parsedOrder != null && parsedOrder.ContainsKey("status") ? parsedOrder["status"] : null), null))
         {
             parsedOrder["status"] = "open";
         }
@@ -2574,9 +2574,9 @@ public partial class limitless : PredictionExchange
     public virtual string signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
-        string? r = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
-        string? s = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
-        string v = this.intToBase16(this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)));
+        string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
+        string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         string rPadded = (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string sPadded = (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string result = ((("0x" + rPadded) + sPadded) + v);
@@ -2684,11 +2684,11 @@ public partial class limitless : PredictionExchange
         Dictionary<string, object> response = await this.limitlessPrivateDeleteOrdersOrderId(this.extend(request, parameters));
         // the delete response carries no order body, so backfill the id and the resulting status
         Dictionary<string, object> order = this.parsePredictionOrder(response);
-        if (isEqual((order != null && ((IDictionary<string, object>)order).ContainsKey("id") ? ((IDictionary<string, object>)order)["id"] : null), null))
+        if (isEqual((order != null && order.ContainsKey("id") ? order["id"] : null), null))
         {
             order["id"] = id;
         }
-        if (isEqual((order != null && ((IDictionary<string, object>)order).ContainsKey("status") ? ((IDictionary<string, object>)order)["status"] : null), null))
+        if (isEqual((order != null && order.ContainsKey("status") ? order["status"] : null), null))
         {
             order["status"] = "canceled";
         }
@@ -2798,7 +2798,7 @@ public partial class limitless : PredictionExchange
         if ((outcome != null))
         {
             IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
-            request["slug"] = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "slug");
+            request["slug"] = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "slug");
         } else if ((slug == null))
         {
             throw new ArgumentsRequired ((this.id + " cancelAllOrders requires either an outcome argument or a slug parameter")) ;
@@ -3433,7 +3433,7 @@ public partial class limitless : PredictionExchange
             }
         }
         List<object> result = new List<object>() {};
-        List<object> eventKeys = new List<object>(((IDictionary<string,object>)eventGroups).Keys);
+        List<object> eventKeys = new List<object>(eventGroups.Keys);
         int eventKeysLength = eventKeys.Count;
         for (int i = 0; i < eventKeysLength; i++)
         {

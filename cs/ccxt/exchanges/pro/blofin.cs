@@ -148,7 +148,7 @@ public partial class blofin : ccxt.blofin
         {
             object rawTrade = data[i];
             Dictionary<string, object> trade = this.parseWsTrade(rawTrade);
-            string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+            string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
             ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((stored == null))
             {
@@ -340,7 +340,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             Dictionary<string, object> ticker = this.parseWsTicker(data[i]);
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             this.tickers[(string)symbol] = ticker;
             if ((channelName != null))
             {
@@ -407,7 +407,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             Dictionary<string, object> ticker = this.parseWsBidAsk(data[i]);
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             string messageHash = ("bidask:" + symbol);
             this.bidsasks[(string)symbol] = ticker;
             client.resolve(ticker, messageHash);
@@ -671,7 +671,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             Dictionary<string, object> order = this.parseWsOrder(data[i]);
-            string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
+            string? symbol = ((string)(order != null && order.ContainsKey("symbol") ? order["symbol"] : null));
             orders.append(order);
             if ((channelName != null))
             {
@@ -740,7 +740,7 @@ public partial class blofin : ccxt.blofin
             cache.append(position);
             if ((channelName != null))
             {
-                string messageHash = ((channelName + ":") + ((position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null)));
+                string messageHash = ((channelName + ":") + ((position != null && position.ContainsKey("symbol") ? position["symbol"] : null)));
                 client.resolve(position, messageHash);
             }
         }
@@ -801,7 +801,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRate(first);
-        string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
+        string? symbol = ((string)(fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null));
         this.fundingRates[(string)symbol] = fundingRate;
         string messageHash = ("fundingRate:" + symbol);
         client.resolve(fundingRate, messageHash);
@@ -950,7 +950,7 @@ public partial class blofin : ccxt.blofin
             method = this.safeValue(methods, channelName);
             if (((method == null)) && (channelName.IndexOf("candle", StringComparison.Ordinal) >= 0))
             {
-                method = ((IDictionary<string,object>)methods)["candle"];
+                method = methods["candle"];
             }
         }
         if ((method != null))

@@ -1526,7 +1526,7 @@ public partial class aster : Exchange
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        ((IDictionary<string,object>)requestUntil)["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        requestUntil["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string? price = this.safeString(paramsUntil, "price");
         bool isMark = (price == "mark");
         bool isIndex = (price == "index");
@@ -1534,15 +1534,15 @@ public partial class aster : Exchange
         List<object> response = null;
         if (isMark)
         {
-            ((IDictionary<string,object>)requestUntil)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            requestUntil["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.fapiPublicGetV3MarkPriceKlines(this.extend(requestUntil, paramsOmitted));
         } else if (isIndex)
         {
-            ((IDictionary<string,object>)requestUntil)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
+            requestUntil["pair"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.fapiPublicGetV3IndexPriceKlines(this.extend(requestUntil, paramsOmitted));
         } else
         {
-            ((IDictionary<string,object>)requestUntil)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            requestUntil["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {
                 response = await this.fapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted));
@@ -1644,7 +1644,7 @@ public partial class aster : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", this.safeString(trade, "orderId") },
             { "type", null },
             { "side", side },
@@ -1917,7 +1917,7 @@ public partial class aster : Exchange
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", high },
@@ -3145,7 +3145,7 @@ public partial class aster : Exchange
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             Dictionary<string, object> currentMarket = this.market(marketId);
-            orderSymbols.Add((currentMarket != null && ((IDictionary<string, object>)currentMarket).ContainsKey("symbol") ? ((IDictionary<string, object>)currentMarket)["symbol"] : null));
+            orderSymbols.Add((currentMarket != null && currentMarket.ContainsKey("symbol") ? currentMarket["symbol"] : null));
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
@@ -3820,7 +3820,7 @@ public partial class aster : Exchange
         bool success = errorCode == "200";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", ((rawType == 1)) ? "add" : "reduce" },
             { "marginMode", "isolated" },
             { "amount", this.safeNumber(data, "amount") },
@@ -3950,11 +3950,11 @@ public partial class aster : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntil)["startTime"] = since;
+            requestUntil["startTime"] = since;
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = Math.Min(limit.Value, 1000); // max 1000
+            requestUntil["limit"] = Math.Min(limit.Value, 1000); // max 1000
         }
         List<object> response = await this.fapiPrivateGetV3Income(this.extend(requestUntil, paramsUntil));
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(response, market, since, limit));
@@ -4431,7 +4431,7 @@ public partial class aster : Exchange
             }
         }
         // as oppose to notionalValue
-        bool usdm = ((position != null && ((IDictionary<string, object>)position).ContainsKey("notional")));
+        bool usdm = ((position != null && position.ContainsKey("notional")));
         string? maintenanceMarginString = this.safeString(position, "maintMargin");
         double? maintenanceMargin = this.parseNumber(maintenanceMarginString);
         string? entryPriceString = this.safeString(position, "entryPrice");
@@ -4548,7 +4548,7 @@ public partial class aster : Exchange
                 string? rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            int pricePrecision = this.precisionFromString(this.safeString((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("precision") ? ((IDictionary<string, object>)marketResolved)["precision"] : null), "price"));
+            int pricePrecision = this.precisionFromString(this.safeString((marketResolved != null && marketResolved.ContainsKey("precision") ? marketResolved["precision"] : null), "price"));
             Int64 pricePrecisionPlusOne = add(pricePrecision, 1);
             string pricePrecisionPlusOneString = pricePrecisionPlusOne.ToString();
             // round half up
@@ -4913,9 +4913,9 @@ public partial class aster : Exchange
     {
         this.checkRequiredCredentials();
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
-        string? r = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
-        string? s = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
-        string v = this.intToBase16(this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)));
+        string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
+        string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
@@ -5003,7 +5003,7 @@ public partial class aster : Exchange
     { "type", "uint256" },
 }} },
                 };
-                ((IDictionary<string,object>)finalParams).Remove("signer"); // signer is not needed for approveBuilder endpoint
+                finalParams.Remove("signer"); // signer is not needed for approveBuilder endpoint
                 paramString = this.encodeValuesWithJson(finalParams);
                 paramsToEncode = this.capitalizeKeys(finalParams);
             } else

@@ -783,11 +783,11 @@ public partial class sxbet : PredictionExchange
         Dictionary<string, object> signature = ecdsa(((digest == null) ? null : digest.Substring(Math.Max(digest.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        string? rRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
-        string? sRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
+        string? rRaw = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
+        string? sRaw = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
         string r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
-        string v = this.intToBase16(this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)));
+        string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         return ((("0x" + r) + s) + v);
     }
 
@@ -1026,7 +1026,7 @@ public partial class sxbet : PredictionExchange
         {
             throw new NotSupported ((this.id + " createOrder() does not support trigger, stop-loss or take-profit orders")) ;
         }
-        string? marketHash = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash", "");
+        string? marketHash = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash", "");
         string? outcomeId = this.safeString(outcomeObj, "outcomeId");
         bool isOutcomeOne = ((outcomeId == marketHash));
         bool isBuy = ((side == "buy"));
@@ -1593,7 +1593,7 @@ public partial class sxbet : PredictionExchange
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "marketHash", this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash") },
+            { "marketHash", this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash") },
         };
         if ((limit != null))
         {
@@ -1804,7 +1804,7 @@ public partial class sxbet : PredictionExchange
             for (int i = 0; i < outcomesLength; i++)
             {
                 IDictionary<string, object> outcomeObj = this.outcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
-                string? hash = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash", "");
+                string? hash = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash", "");
                 wantedMarkets[(string)hash] = true;
             }
         }
@@ -1922,7 +1922,7 @@ public partial class sxbet : PredictionExchange
         {
             await this.loadOutcome(outcome);
             IDictionary<string, object> outcomeObj = this.outcome(outcome);
-            request["marketHash"] = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash", "");
+            request["marketHash"] = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash", "");
             wantedOutcomeId = this.safeString(outcomeObj, "outcomeId");
         }
         if ((since != null))
@@ -2070,7 +2070,7 @@ public partial class sxbet : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
-        string? marketHash = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash");
+        string? marketHash = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash");
         // the book snapshot is public and carries the same top of book - the batched best-odds
         // route needs an apiKey, so it only pays off for the multi-market path
         IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
@@ -2149,7 +2149,7 @@ public partial class sxbet : PredictionExchange
         {
             await this.loadOutcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
             IDictionary<string, object> outcomeObj = this.outcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
-            string? marketHash = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash", "");
+            string? marketHash = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash", "");
             if (isEqual(this.safeBool(seenHashes, marketHash), null))
             {
                 seenHashes[(string)marketHash] = true;
@@ -2214,7 +2214,7 @@ public partial class sxbet : PredictionExchange
         for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
-            string? marketHash = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash", "");
+            string? marketHash = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash", "");
             IDictionary<string, object> raw = this.safeDict(rowsByHash, marketHash);
             if ((raw == null))
             {
@@ -2321,7 +2321,7 @@ public partial class sxbet : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
-        string? marketHash = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash");
+        string? marketHash = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash");
         string? outcomeId = this.safeString(outcomeObj, "outcomeId");
         bool isOutcomeOne = ((outcomeId == marketHash));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2653,7 +2653,7 @@ public partial class sxbet : PredictionExchange
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         string? sym = this.safeString(outcomeObj, "outcome");
-        string? marketHash = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash");
+        string? marketHash = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash");
         string channel = ("orderbook_v3:" + marketHash);
         string messageHash = ("orderbook::" + sym);
         string? url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
@@ -2725,7 +2725,7 @@ public partial class sxbet : PredictionExchange
         }
         ((IDictionary<string,object>)(this.options.ContainsKey("wsBookVersions") ? this.options["wsBookVersions"] : null))[(string)marketHash] = version;
         IDictionary<string, object> watchedBooks = this.safeDict(this.options, "wsWatchedBooks", new Dictionary<string, object>() {});
-        List<object> watchedSyms = new List<object>(((IDictionary<string,object>)watchedBooks).Keys);
+        List<object> watchedSyms = new List<object>(watchedBooks.Keys);
         Int64 timestamp = this.milliseconds();
         int watchedSymsLength = watchedSyms.Count;
         for (int i = 0; i < watchedSymsLength; i++)
@@ -2796,7 +2796,7 @@ public partial class sxbet : PredictionExchange
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         string? sym = this.safeString(outcomeObj, "outcome");
-        string? marketHash = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash");
+        string? marketHash = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash");
         string messageHash = ("ticker::" + sym);
         IDictionary<string, object> watchedTickers = this.safeDict(this.options, "wsWatchedTickers");
         if ((watchedTickers == null))
@@ -2847,7 +2847,7 @@ public partial class sxbet : PredictionExchange
         //     }
         //
         IDictionary<string, object> watchedTickers = this.safeDict(this.options, "wsWatchedTickers", new Dictionary<string, object>() {});
-        List<object> watchedSyms = new List<object>(((IDictionary<string,object>)watchedTickers).Keys);
+        List<object> watchedSyms = new List<object>(watchedTickers.Keys);
         int rowsLength = getArrayLength(rows);
         for (int i = 0; i < rowsLength; i++)
         {

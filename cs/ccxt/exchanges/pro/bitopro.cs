@@ -540,7 +540,7 @@ public partial class bitopro : ccxt.bitopro
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(message, "timestamp");
         string? datetime = this.safeString(message, "datetime");
-        List<object> currencies = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> currencies = new List<object>(data.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", data },
             { "timestamp", timestamp },

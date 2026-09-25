@@ -1368,7 +1368,7 @@ public partial class mexc : Exchange
             //
             //     {}
             //
-            List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+            List<object> keys = new List<object>(response.Keys);
             int length = keys.Count;
             status = (length > 0) ? this.json(response) : "ok";
         } else if ((marketType == "swap"))
@@ -2552,7 +2552,7 @@ public partial class mexc : Exchange
             changePcnt = Precise.stringMul(changePcnt, "100");
         }
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "open", open },
@@ -4117,7 +4117,7 @@ public partial class mexc : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeInteger(order, "updateTime") },
             { "status", this.parseOrderStatus(this.safeString2(order, "status", "state")) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", this.parseOrderType(typeRaw) },
             { "timeInForce", timeInForce },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
@@ -5445,7 +5445,7 @@ public partial class mexc : Exchange
                 result = this.safeDict(addressStructures, defaultNetworkForCurrency);
             } else
             {
-                List<object> keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
+                List<object> keys = new List<object>(addressStructures.Keys);
                 string? key = this.safeString(keys, 0);
                 result = this.safeDict(addressStructures, key);
             }
@@ -5901,7 +5901,7 @@ public partial class mexc : Exchange
         //    }
         //
         Dictionary<string, object> marketResolved = this.safeMarket(this.safeString(position, "symbol"), market, null, "swap");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? contracts = this.safeString(position, "holdVol");
         double? entryPrice = this.safeNumber(position, "openAvgPrice");
         string? initialMargin = this.safeString(position, "im");
@@ -6126,12 +6126,12 @@ public partial class mexc : Exchange
         string? toId = this.safeString(accounts, toAccount, toAccount);
         if ((fromId == null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
+            List<object> keys = new List<object>(accounts.Keys);
             throw new ExchangeError (((this.id + " fromAccount must be one of ") + String.Join(", ", keys.ToArray()))) ;
         }
         if ((toId == null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
+            List<object> keys = new List<object>(accounts.Keys);
             throw new ExchangeError (((this.id + " toAccount must be one of ") + String.Join(", ", keys.ToArray()))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -6589,7 +6589,7 @@ public partial class mexc : Exchange
             string? networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)(result != null && ((IDictionary<string, object>)result).ContainsKey("networks") ? ((IDictionary<string, object>)result)["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", this.safeNumber(networkEntry, "withdrawFee") },
                         { "percentage", null },
@@ -6953,7 +6953,7 @@ public partial class mexc : Exchange
                 } else
                 {
                     Dictionary<string, object> paramsSorted = this.keysort(paramsOmitted);
-                    if ((new List<object>(((IDictionary<string,object>)paramsSorted).Keys)).Count > 0)
+                    if ((new List<object>(paramsSorted.Keys)).Count > 0)
                     {
                         auth = add(auth, this.urlencode(paramsSorted));
                         url = add(url, ("?" + (auth)));

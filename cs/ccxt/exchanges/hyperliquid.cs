@@ -1546,7 +1546,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         List<object> bidAsk = this.safeList(ticker, "impactPxs");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
             { "datetime", null },
             { "previousClose", this.safeNumber(ticker, "prevDayPx") },
@@ -1765,17 +1765,17 @@ public partial class hyperliquid : Exchange
         return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
-    public virtual object signHash(object hash, object privateKey)
+    public virtual Dictionary<string, object> signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         return new Dictionary<string, object>() {
-            { "r", ("0x" + ((signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null))) },
-            { "s", ("0x" + ((signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null))) },
-            { "v", this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)) },
+            { "r", ("0x" + ((signature != null && signature.ContainsKey("r") ? signature["r"] : null))) },
+            { "s", ("0x" + ((signature != null && signature.ContainsKey("s") ? signature["s"] : null))) },
+            { "v", this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)) },
         };
     }
 
-    public virtual object signMessage(object message, object privateKey)
+    public virtual Dictionary<string, object> signMessage(object message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
@@ -1857,8 +1857,8 @@ public partial class hyperliquid : Exchange
 }} },
         };
         byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, phantomAgent);
-        object signature = this.signMessage(msg, this.privateKey);
-        return ((Dictionary<string, object>)((object)(signature)));
+        Dictionary<string, object> signature = this.signMessage(msg, this.privateKey);
+        return signature;
     }
 
     public virtual object signUserSignedAction(object messageTypes, object message)
@@ -1872,7 +1872,7 @@ public partial class hyperliquid : Exchange
             { "version", "1" },
         };
         byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-        object signature = this.signMessage(msg, this.privateKey);
+        Dictionary<string, object> signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
 
@@ -2038,10 +2038,10 @@ public partial class hyperliquid : Exchange
         };
         object sig = this.buildApproveBuilderFeeSig(payload);
         Dictionary<string, object> action = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((IDictionary<string,object>)payload)["hyperliquidChain"] },
+            { "hyperliquidChain", payload["hyperliquidChain"] },
             { "signatureChainId", "0x66eee" },
-            { "maxFeeRate", ((IDictionary<string,object>)payload)["maxFeeRate"] },
-            { "builder", ((IDictionary<string,object>)payload)["builder"] },
+            { "maxFeeRate", payload["maxFeeRate"] },
+            { "builder", payload["builder"] },
             { "nonce", nonce },
             { "type", "approveBuilderFee" },
         };
@@ -2194,10 +2194,10 @@ public partial class hyperliquid : Exchange
         };
         object sig = this.buildUserAbstractionSig(payload);
         Dictionary<string, object> action = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((IDictionary<string,object>)payload)["hyperliquidChain"] },
+            { "hyperliquidChain", payload["hyperliquidChain"] },
             { "signatureChainId", "0x66eee" },
-            { "abstraction", ((IDictionary<string,object>)payload)["abstraction"] },
-            { "user", ((IDictionary<string,object>)payload)["user"] },
+            { "abstraction", payload["abstraction"] },
+            { "user", payload["user"] },
             { "nonce", nonce },
             { "type", type },
         };
@@ -2244,10 +2244,10 @@ public partial class hyperliquid : Exchange
         };
         object sig = this.buildUserDexAbstractionSig(payload);
         Dictionary<string, object> action = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((IDictionary<string,object>)payload)["hyperliquidChain"] },
+            { "hyperliquidChain", payload["hyperliquidChain"] },
             { "signatureChainId", "0x66eee" },
-            { "enabled", ((IDictionary<string,object>)payload)["enabled"] },
-            { "user", ((IDictionary<string,object>)payload)["user"] },
+            { "enabled", payload["enabled"] },
+            { "user", payload["user"] },
             { "nonce", nonce },
             { "type", type },
         };
@@ -3686,7 +3686,7 @@ public partial class hyperliquid : Exchange
                 }
             }
         }
-        List<object> deduplicated = new List<object>(((IDictionary<string,object>)deduplicatedByOid).Values);
+        List<object> deduplicated = new List<object>(deduplicatedByOid.Values);
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(deduplicated, market, since, limit));
     }
 
@@ -4091,7 +4091,7 @@ public partial class hyperliquid : Exchange
         string? coin = this.safeString(trade, "coin");
         string? marketId = this.coinToMarketId(coin);
         Dictionary<string, object> marketResolved = this.safeMarket(marketId);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? id = this.safeString(trade, "tid");
         string? side = this.safeString(trade, "side");
         if ((side != null))
@@ -4298,7 +4298,7 @@ public partial class hyperliquid : Exchange
         string? coin = this.safeString(entry, "coin");
         string? marketId = this.coinToMarketId(coin);
         Dictionary<string, object> marketResolved = this.safeMarket(marketId);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         IDictionary<string, object> leverage = this.safeDict(entry, "leverage", new Dictionary<string, object>() {});
         string? marginMode = this.safeString(leverage, "type");
         bool isIsolated = (marginMode == "isolated");
@@ -4634,7 +4634,7 @@ public partial class hyperliquid : Exchange
             object transferSig = this.buildUsdClassSendSig(transferPayload);
             Dictionary<string, object> transferRequest = new Dictionary<string, object>() {
                 { "action", new Dictionary<string, object>() {
-                    { "hyperliquidChain", ((IDictionary<string,object>)transferPayload)["hyperliquidChain"] },
+                    { "hyperliquidChain", transferPayload["hyperliquidChain"] },
                     { "signatureChainId", "0x66eee" },
                     { "type", "usdClassTransfer" },
                     { "amount", strAmountFinal },
@@ -4795,7 +4795,7 @@ public partial class hyperliquid : Exchange
             };
             sig = this.buildWithdrawSig(payload);
             action = new Dictionary<string, object>() {
-                { "hyperliquidChain", ((IDictionary<string,object>)payload)["hyperliquidChain"] },
+                { "hyperliquidChain", payload["hyperliquidChain"] },
                 { "signatureChainId", "0x66eee" },
                 { "destination", address },
                 { "amount", amount.ToString() },
@@ -5438,7 +5438,7 @@ public partial class hyperliquid : Exchange
         double? rate = this.safeNumber(delta, "fundingRate");
         return new Dictionary<string, object>() {
             { "info", income },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "code", code },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

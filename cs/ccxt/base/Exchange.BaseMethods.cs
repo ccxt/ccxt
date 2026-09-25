@@ -1910,7 +1910,7 @@ public partial class BaseExchange
             { "referenceId", this.safeString(entry, "referenceId") },
             { "referenceAccount", this.safeString(entry, "referenceAccount") },
             { "type", this.safeString(entry, "type") },
-            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
+            { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
             { "amount", this.parseNumber(amount) },
             { "before", this.parseNumber(before) },
             { "after", this.parseNumber(after) },
@@ -1924,7 +1924,7 @@ public partial class BaseExchange
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         IDictionary<string, object> networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        List<object> keys = new List<object>(networks.Keys);
         int length = keys.Count;
         if ((length != 0))
         {
@@ -2182,8 +2182,8 @@ public partial class BaseExchange
         this.markets = this.mapToSafeMap(this.indexBy(values, "symbol"));
         Dictionary<string, object> marketsSortedBySymbol = this.keysort(this.markets);
         Dictionary<string, object> marketsSortedById = this.keysort(this.markets_by_id);
-        this.symbols = new List<object>(((IDictionary<string,object>)marketsSortedBySymbol).Keys);
-        this.ids = new List<object>(((IDictionary<string,object>)marketsSortedById).Keys);
+        this.symbols = new List<object>(marketsSortedBySymbol.Keys);
+        this.ids = new List<object>(marketsSortedById.Keys);
         int numCurrencies = 0;
         if ((currencies != null))
         {
@@ -2230,7 +2230,7 @@ public partial class BaseExchange
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
             List<object> allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
             Dictionary<string, object> groupedCurrencies = this.groupBy(allCurrencies, "code");
-            List<object> codes = new List<object>(((IDictionary<string,object>)groupedCurrencies).Keys);
+            List<object> codes = new List<object>(groupedCurrencies.Keys);
             List<object> resultingCurrencies = new List<object>() {};
             for (int i = 0; i < codes.Count; i++)
             {
@@ -2264,7 +2264,7 @@ public partial class BaseExchange
         }
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
         Dictionary<string, object> currenciesSortedByCode = this.keysort(this.currencies);
-        this.codes = new List<object>(((IDictionary<string,object>)currenciesSortedByCode).Keys);
+        this.codes = new List<object>(currenciesSortedByCode.Keys);
         if ((this.markets == null))
         {
             throw new ExchangeError ((this.id + " setMarkets() markets not set")) ;
@@ -2353,7 +2353,7 @@ public partial class BaseExchange
                 debtBalance[(string)code] = getValue(getValue(balance, code), "debt");
             }
         }
-        List<object> debtBalanceArray = new List<object>(((IDictionary<string,object>)debtBalance).Keys);
+        List<object> debtBalanceArray = new List<object>(debtBalance.Keys);
         int length = debtBalanceArray.Count;
         if ((!isEqual(length, null)) && ((length != 0)))
         {
@@ -3121,7 +3121,7 @@ public partial class BaseExchange
             }
         }
         List<object> result = new List<object>() {};
-        List<object> feeValues = new List<object>(((IDictionary<string,object>)reduced).Values);
+        List<object> feeValues = new List<object>(reduced.Values);
         for (int i = 0; i < feeValues.Count; i++)
         {
             List<object> reducedFeeValues = new List<object>(((IDictionary<string,object>)feeValues[i]).Values);
@@ -3720,7 +3720,7 @@ public partial class BaseExchange
             return null;
         }
         IDictionary<string, object> replacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)replacements).Keys);
+        List<object> keys = new List<object>(replacements.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? baseCoin = ((string)keys[i]);
@@ -4503,7 +4503,7 @@ public partial class BaseExchange
                     fetchData["request"] = request;
                 }
                 this.setLastRequest(request);
-                object response = await this.fetch((request != null && ((IDictionary<string, object>)request).ContainsKey("url") ? ((IDictionary<string, object>)request)["url"] : null), (request != null && ((IDictionary<string, object>)request).ContainsKey("method") ? ((IDictionary<string, object>)request)["method"] : null), (request != null && ((IDictionary<string, object>)request).ContainsKey("headers") ? ((IDictionary<string, object>)request)["headers"] : null), (request != null && ((IDictionary<string, object>)request).ContainsKey("body") ? ((IDictionary<string, object>)request)["body"] : null));
+                object response = await this.fetch((request != null && request.ContainsKey("url") ? request["url"] : null), (request != null && request.ContainsKey("method") ? request["method"] : null), (request != null && request.ContainsKey("headers") ? request["headers"] : null), (request != null && request.ContainsKey("body") ? request["body"] : null));
                 if ((fetchData != null))
                 {
                     ((IDictionary<string,object>)GetValue(fetchData, "response"))["body"] = response;
@@ -4597,8 +4597,8 @@ public partial class BaseExchange
         for (int i = 0; isLessThan(i, oldest); i++)
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, i));
-            object ts = (trade != null && ((IDictionary<string, object>)trade).ContainsKey("timestamp") ? ((IDictionary<string, object>)trade)["timestamp"] : null);
-            object price = (trade != null && ((IDictionary<string, object>)trade).ContainsKey("price") ? ((IDictionary<string, object>)trade)["price"] : null);
+            object ts = (trade != null && trade.ContainsKey("timestamp") ? trade["timestamp"] : null);
+            object price = (trade != null && trade.ContainsKey("price") ? trade["price"] : null);
             if (((ts == null)) || ((price == null)))
             {
                 continue;
@@ -4639,7 +4639,7 @@ public partial class BaseExchange
             if (isNewCandle)
             {
                 // moved to a new timeframeVar -> create a new candle from opening trade
-                ohlcvs.Add(new List<object>() {openingTime, price, price, price, price, (trade != null && ((IDictionary<string, object>)trade).ContainsKey("amount") ? ((IDictionary<string, object>)trade)["amount"] : null), 1});
+                ohlcvs.Add(new List<object>() {openingTime, price, price, price, price, (trade != null && trade.ContainsKey("amount") ? trade["amount"] : null), 1});
             } else
             {
                 // still processing the same timeframeVar -> update opening trade
@@ -4650,7 +4650,7 @@ public partial class BaseExchange
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_high)] = mathMax(prevHighValue, price);
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_low)] = mathMin(prevLowValue, price);
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_close)] = price;
-                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_volume)] = this.sum(getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_volume), (trade != null && ((IDictionary<string, object>)trade).ContainsKey("amount") ? ((IDictionary<string, object>)trade)["amount"] : null));
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_volume)] = this.sum(getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_volume), (trade != null && trade.ContainsKey("amount") ? trade["amount"] : null));
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_count)] = this.sum(getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_count), 1);
             }
         }
@@ -5592,7 +5592,7 @@ public partial class BaseExchange
                 return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressStructures, network));
             } else
             {
-                List<object> keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
+                List<object> keys = new List<object>(addressStructures.Keys);
                 string? key = ((string)(keys != null && 0 < keys.Count ? keys[0] : null));
                 return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressStructures, key));
             }
@@ -6008,7 +6008,7 @@ public partial class BaseExchange
     public virtual string? safeCurrencyCode(object currencyId, object currency = null)
     {
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
-        return ((string?)((object)((currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null))));
+        return ((string?)((object)((currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null))));
     }
 
     public virtual IList<object> filterBySymbolSinceLimit(object array, object symbol = null, object since = null, object limit = null, bool? tail = null)
@@ -6204,7 +6204,7 @@ public partial class BaseExchange
     public virtual string? safeSymbol(object marketId, object market = null, string? delimiter = null, object marketType = null)
     {
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, delimiter, marketType);
-        return ((string?)((object)((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null))));
+        return ((string?)((object)((marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null))));
     }
 
     public virtual Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
@@ -6219,9 +6219,9 @@ public partial class BaseExchange
         {
             object entry = getValue(response, i);
             Dictionary<string, object> parsed = this.parseFundingRate(entry);
-            if (!isEqual((parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null), null))
+            if (!isEqual((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null), null))
             {
-                fundingRates[(string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null)] = parsed;
+                fundingRates[(string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null)] = parsed;
             }
         }
         return this.filterByArray(fundingRates, "symbol", symbols);
@@ -6457,9 +6457,9 @@ public partial class BaseExchange
         {
             object entry = getValue(response, i);
             Dictionary<string, object> parsed = this.parseOpenInterest(entry);
-            if (!isEqual((parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null), null))
+            if (!isEqual((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null), null))
             {
-                result[(string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null)] = parsed;
+                result[(string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null)] = parsed;
             }
         }
         return this.filterByArray(result, "symbol", symbols);
@@ -6980,7 +6980,7 @@ public partial class BaseExchange
                     // UNTIL filtering is required in order to work
                     if (!(paginationTimestamp == null))
                     {
-                        ((IDictionary<string,object>)paramsMaxEntriesPerRequest)["until"] = subtract(paginationTimestamp, 1);
+                        paramsMaxEntriesPerRequest["until"] = subtract(paginationTimestamp, 1);
                     }
                     object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, null, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest }));
                     int responseLength = getArrayLength(response);
@@ -7311,7 +7311,7 @@ public partial class BaseExchange
         {
             try
             {
-                ((IDictionary<string,object>)paramsMaxEntriesPerRequest)[(string)pageKey] = add(i, 1);
+                paramsMaxEntriesPerRequest[(string)pageKey] = add(i, 1);
                 object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest }));
                 errors = 0;
                 int responseLength = getArrayLength(response);
@@ -7421,7 +7421,7 @@ public partial class BaseExchange
                 uniqueResult[(string)id] = entry;
             }
         }
-        List<object> values = new List<object>(((IDictionary<string,object>)uniqueResult).Values);
+        List<object> values = new List<object>(uniqueResult.Values);
         return ((object)values);
     }
 

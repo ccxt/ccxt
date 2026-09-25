@@ -754,7 +754,7 @@ public partial class poloniex : ccxt.poloniex
             if ((marketId != null))
             {
                 Dictionary<string, object> trade = this.parseWsTrade(item);
-                string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+                string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
                 string type = "trades";
                 string messageHash = ((type + "::") + symbol);
                 object tradesArray = ((symbol == null)) ? null : this.safeValue(this.trades, symbol);
@@ -988,7 +988,7 @@ public partial class poloniex : ccxt.poloniex
                         previousOrder["trades"] = new List<object>() {};
                     }
                     ((IList<object>)GetValue(previousOrder, "trades")).Add(trade);
-                    previousOrder["lastTradeTimestamp"] = (trade != null && ((IDictionary<string, object>)trade).ContainsKey("timestamp") ? ((IDictionary<string, object>)trade)["timestamp"] : null);
+                    previousOrder["lastTradeTimestamp"] = (trade != null && trade.ContainsKey("timestamp") ? trade["timestamp"] : null);
                     string? totalCost = "0";
                     string? totalAmount = "0";
                     object previousOrderTrades = GetValue(previousOrder, "trades");
@@ -1007,7 +1007,7 @@ public partial class poloniex : ccxt.poloniex
                     previousOrder["cost"] = this.parseNumber(totalCost);
                     if (!isEqual(GetValue(previousOrder, "filled"), null))
                     {
-                        string? tradeAmount = this.numberToString((trade != null && ((IDictionary<string, object>)trade).ContainsKey("amount") ? ((IDictionary<string, object>)trade)["amount"] : null));
+                        string? tradeAmount = this.numberToString((trade != null && trade.ContainsKey("amount") ? trade["amount"] : null));
                         string? previousOrderFilled = this.numberToString(GetValue(previousOrder, "filled"));
                         previousOrderFilled = Precise.stringAdd(previousOrderFilled, tradeAmount);
                         previousOrder["filled"] = previousOrderFilled;
@@ -1022,13 +1022,13 @@ public partial class poloniex : ccxt.poloniex
                         previousOrder["fee"] = new Dictionary<string, object>() {
                             { "rate", null },
                             { "cost", 0 },
-                            { "currency", this.safeString((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "currency") },
+                            { "currency", this.safeString((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "currency") },
                         };
                     }
-                    if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"), null)))
+                    if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "cost"), null)))
                     {
                         string? stringOrderCost = this.numberToString(getValue(GetValue(previousOrder, "fee"), "cost"));
-                        string? stringTradeCost = this.numberToString(this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"));
+                        string? stringTradeCost = this.numberToString(this.safeNumber((trade != null && trade.ContainsKey("fee") ? trade["fee"] : null), "cost"));
                         ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                     }
                     string? rawState = this.safeString(order, "state");
@@ -1158,7 +1158,7 @@ public partial class poloniex : ccxt.poloniex
             if ((marketId != null))
             {
                 Dictionary<string, object> ticker = this.parseTicker(item);
-                string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+                string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
                 if ((symbol != null))
                 {
                     this.tickers[(string)symbol] = ticker;

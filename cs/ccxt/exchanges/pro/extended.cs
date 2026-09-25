@@ -395,7 +395,7 @@ public partial class extended : ccxt.extended
             symbols[(string)symbol] = true;
             stored.append(trade);
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string messageHash = ("myTrades:" + (keys[i]));
@@ -567,7 +567,7 @@ public partial class extended : ccxt.extended
             symbols[(string)symbol] = true;
             orders.append(order);
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string messageHash = ("orders:" + (keys[i]));
@@ -642,7 +642,7 @@ public partial class extended : ccxt.extended
         Int64? fundingTimestamp = this.safeInteger(fundingRate, "T");
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", fundingRate },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "markPrice", null },
             { "indexPrice", null },
             { "interestRate", null },

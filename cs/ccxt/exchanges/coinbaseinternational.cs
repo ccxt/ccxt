@@ -836,7 +836,7 @@ public partial class coinbaseinternational : Exchange
         string? code = this.safeCurrencyCode(currencyId);
         return new Dictionary<string, object>() {
             { "info", income },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "code", code },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -1317,7 +1317,7 @@ public partial class coinbaseinternational : Exchange
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "entryPrice", null },
             { "markPrice", this.safeNumber(position, "mark_price") },
             { "notional", null },
@@ -1703,8 +1703,8 @@ public partial class coinbaseinternational : Exchange
             { "contract", !isSpot },
             { "linear", isLinear },
             { "inverse", isInverse },
-            { "taker", getValue((fees != null && ((IDictionary<string, object>)fees).ContainsKey("trading") ? ((IDictionary<string, object>)fees)["trading"] : null), "taker") },
-            { "maker", getValue((fees != null && ((IDictionary<string, object>)fees).ContainsKey("trading") ? ((IDictionary<string, object>)fees)["trading"] : null), "maker") },
+            { "taker", getValue((fees != null && fees.ContainsKey("trading") ? fees["trading"] : null), "taker") },
+            { "maker", getValue((fees != null && fees.ContainsKey("trading") ? fees["trading"] : null), "maker") },
             { "contractSize", isSpot ? null : 1 },
             { "expiry", null },
             { "expiryDatetime", null },

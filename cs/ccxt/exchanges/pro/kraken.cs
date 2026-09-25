@@ -1300,7 +1300,7 @@ public partial class kraken : ccxt.kraken
         };
         if ((parameters != null))
         {
-            subscribe["params"] = this.deepExtend(((IDictionary<string,object>)subscribe)["params"], parameters);
+            subscribe["params"] = this.deepExtend(subscribe["params"], parameters);
         }
         ccxt.pro.ArrayCache result = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, subscribe, subscriptionHash));
         object limitResolved = limit;
@@ -1378,12 +1378,12 @@ public partial class kraken : ccxt.kraken
                 IDictionary<string, object> trade = this.safeDict(allTrades, i, new Dictionary<string, object>() {});
                 Dictionary<string, object> parsed = this.parseWsTrade(trade);
                 stored.append(parsed);
-                string symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+                string symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
                 symbols[(string)symbol] = true;
             }
             string name = "myTrades";
             client.resolve(this.myTrades, name);
-            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+            List<object> keys = new List<object>(symbols.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 string messageHash = ((name + ":") + (keys[i]));
@@ -1535,7 +1535,7 @@ public partial class kraken : ccxt.kraken
                     IDictionary<string, object> symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new Dictionary<string, object>() {});
                     if (inOp(symbolsByOrderId, getValue(first, "id")))
                     {
-                        ((IDictionary<string,object>)symbolsByOrderId).Remove((string)getValue(first, "id"));
+                        symbolsByOrderId.Remove((string)getValue(first, "id"));
                     }
                 }
                 stored.append(newOrder);
@@ -1546,7 +1546,7 @@ public partial class kraken : ccxt.kraken
             }
             string name = "orders";
             client.resolve(this.orders, name);
-            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+            List<object> keys = new List<object>(symbols.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 string messageHash = ((name + ":") + (keys[i]));

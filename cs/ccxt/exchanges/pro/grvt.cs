@@ -824,7 +824,7 @@ public partial class grvt : ccxt.grvt
         }
         Dictionary<string, object> trade = this.parseWsMyTrade(data);
         this.myTrades.append(trade);
-        client.resolve(this.myTrades, ("myTrades::" + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null))));
+        client.resolve(this.myTrades, ("myTrades::" + ((trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null))));
         client.resolve(this.myTrades, "myTrades");
     }
 
@@ -1052,7 +1052,7 @@ public partial class grvt : ccxt.grvt
         Dictionary<string, object> order = this.parseWsOrder(data);
         this.orders.append(order);
         client.resolve(this.orders, "orders");
-        client.resolve(this.orders, ("order::" + ((order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null))));
+        client.resolve(this.orders, ("order::" + ((order != null && order.ContainsKey("symbol") ? order["symbol"] : null))));
     }
 
     public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)

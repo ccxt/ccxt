@@ -685,7 +685,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             IDictionary<string, object> ticker = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> parsed = this.parseWsTicker(ticker, market);
-            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             if ((symbol != null))
             {
                 this.tickers[(string)symbol] = parsed;
@@ -719,7 +719,7 @@ public partial class cryptocom : ccxt.cryptocom
         string? quote = this.safeString(marketResolved, "quote");
         string? last = this.safeString(ticker, "a");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeNumber(ticker, "h") },
@@ -792,7 +792,7 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTicker = this.parseWsBidAsk(ticker);
-        string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
+        string? symbol = ((string)(parsedTicker != null && parsedTicker.ContainsKey("symbol") ? parsedTicker["symbol"] : null));
         if ((symbol != null))
         {
             this.bidsasks[(string)symbol] = parsedTicker;

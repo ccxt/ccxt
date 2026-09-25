@@ -462,7 +462,7 @@ public partial class bitrue : ccxt.bitrue
         {
             return null;
         }
-        List<object> symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
+        List<object> symbols = new List<object>(markets.Keys);
         for (int i = 0; i < symbols.Count; i++)
         {
             object candidate = getValue(markets, symbols[i]);

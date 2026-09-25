@@ -673,7 +673,7 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> orderbook = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit), parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.extend(orderbook, new Dictionary<string, object>() {             { "asks", this.sortBy(this.aggregate((orderbook != null && ((IDictionary<string, object>)orderbook).ContainsKey("asks") ? ((IDictionary<string, object>)orderbook)["asks"] : null)), 0) },             { "bids", this.sortBy(this.aggregate((orderbook != null && ((IDictionary<string, object>)orderbook).ContainsKey("bids") ? ((IDictionary<string, object>)orderbook)["bids"] : null)), 0, true) },         }));
+        return ccxt.BaseExchange.ToOrderBook(this.extend(orderbook, new Dictionary<string, object>() {             { "asks", this.sortBy(this.aggregate((orderbook != null && orderbook.ContainsKey("asks") ? orderbook["asks"] : null)), 0) },             { "bids", this.sortBy(this.aggregate((orderbook != null && orderbook.ContainsKey("bids") ? orderbook["bids"] : null)), 0, true) },         }));
     }
 
     public async virtual Task<ccxt.Order> EditLimitBuyOrder(string id, string symbol, object amount, object price = null, object parameters = null)
@@ -805,7 +805,7 @@ public partial class Exchange
         // Promise<string> with Promise<Order['status']>.
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(await this.FetchOrder(id, symbol, parameters));
-        return ccxt.BaseExchange.ToStringValue((order != null && ((IDictionary<string, object>)order).ContainsKey("status") ? ((IDictionary<string, object>)order)["status"] : null));
+        return ccxt.BaseExchange.ToStringValue((order != null && order.ContainsKey("status") ? order["status"] : null));
     }
 
     public async virtual Task<ccxt.Order> FetchUnifiedOrder(object order, object parameters = null)

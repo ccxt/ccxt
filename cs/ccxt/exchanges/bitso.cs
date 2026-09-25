@@ -1831,7 +1831,7 @@ public partial class bitso : Exchange
             }
         }
         IDictionary<string, object> withdrawalFees = this.safeDict(payload, "withdrawal_fees", new Dictionary<string, object>() {});
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
+        List<object> currencyIds = new List<object>(withdrawalFees.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)currencyIds[i]);
@@ -1988,7 +1988,7 @@ public partial class bitso : Exchange
                 }
             }
         }
-        List<object> withdrawalKeys = new List<object>(((IDictionary<string,object>)withdrawalResponse).Keys);
+        List<object> withdrawalKeys = new List<object>(withdrawalResponse.Keys);
         for (int i = 0; i < withdrawalKeys.Count; i++)
         {
             string? currencyId = ((string)withdrawalKeys[i]);

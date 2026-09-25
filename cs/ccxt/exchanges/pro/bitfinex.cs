@@ -420,7 +420,7 @@ public partial class bitfinex : ccxt.bitfinex
         string name = "myTrade";
         List<object> data = this.safeList(message, 2);
         Dictionary<string, object> trade = this.parseWsTrade(data);
-        string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+        string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
         if ((this.myTrades == null))
@@ -569,7 +569,7 @@ public partial class bitfinex : ccxt.bitfinex
         int createdKey = isPublic ? 1 : 2;
         int priceKey = isPublic ? 3 : 5;
         int amountKey = isPublic ? 2 : 4;
-        marketId = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("id") ? ((IDictionary<string, object>)marketResolved)["id"] : null);
+        marketId = (marketResolved != null && marketResolved.ContainsKey("id") ? marketResolved["id"] : null);
         string? type = this.safeString(trade, 6);
         if ((type != null))
         {
@@ -678,7 +678,7 @@ public partial class bitfinex : ccxt.bitfinex
         //     ]
         //
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? last = this.safeString(ticker, 6);
         string? change = this.safeString(ticker, 4);
         return this.safeTicker(new Dictionary<string, object>() {
@@ -1016,7 +1016,7 @@ public partial class bitfinex : ccxt.bitfinex
             this.balance[(string)balanceType] = this.safeBalance(oldBalance);
             updatedTypes[(string)balanceType] = true;
         }
-        List<object> updatesKeys = new List<object>(((IDictionary<string,object>)updatedTypes).Keys);
+        List<object> updatesKeys = new List<object>(updatedTypes.Keys);
         for (int i = 0; i < updatesKeys.Count; i++)
         {
             string? type = ((string)updatesKeys[i]);
@@ -1281,7 +1281,7 @@ public partial class bitfinex : ccxt.bitfinex
             {
                 object value = data[i];
                 Dictionary<string, object> parsed = this.parseWsOrder(value);
-                object symbol = (parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null);
+                object symbol = (parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null);
                 symbolIds[(string)((string)symbol)] = true;
                 orders.append(parsed);
             }
@@ -1289,12 +1289,12 @@ public partial class bitfinex : ccxt.bitfinex
         {
             Dictionary<string, object> parsed = this.parseWsOrder(data);
             orders.append(parsed);
-            object symbol = (parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null);
+            object symbol = (parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null);
             symbolIds[(string)((string)symbol)] = true;
         }
         string name = "orders";
         client.resolve(this.orders, name);
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbolIds).Keys);
+        List<object> keys = new List<object>(symbolIds.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? symbol = ((string)keys[i]);

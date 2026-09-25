@@ -976,7 +976,7 @@ public partial class coinbase : Exchange
             for (int i = 0; i < getArrayLength(this.accounts); i++)
             {
                 IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
-                if (isEqual((account != null && ((IDictionary<string, object>)account).ContainsKey("code") ? ((IDictionary<string, object>)account)["code"] : null), code) && (((account != null && ((IDictionary<string, object>)account).ContainsKey("type") ? ((IDictionary<string, object>)account)["type"] : null) as string) == "wallet"))
+                if (isEqual((account != null && account.ContainsKey("code") ? account["code"] : null), code) && (((account != null && account.ContainsKey("type") ? account["type"] : null) as string) == "wallet"))
                 {
                     accountId = this.safeString(account, "id");
                     break;
@@ -1600,7 +1600,7 @@ public partial class coinbase : Exchange
         List<object> data = this.safeList(currencies, "data", new List<object>() {});
         Dictionary<string, object> dataById = this.indexBy(data, "id");
         IDictionary<string, object> rates = this.safeDict(this.safeDict(exchangeRates, "data", new Dictionary<string, object>() {}), "rates", new Dictionary<string, object>() {});
-        List<object> baseIds = new List<object>(((IDictionary<string,object>)rates).Keys);
+        List<object> baseIds = new List<object>(rates.Keys);
         List<object> result = new List<object>() {};
         for (int i = 0; i < baseIds.Count; i++)
         {
@@ -2263,7 +2263,7 @@ public partial class coinbase : Exchange
         List<object> cryptoData = this.safeList(cryptoResponse, "data", new List<object>() {});
         IDictionary<string, object> ratesData = this.safeDict(ratesResponse, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> rates = this.safeDict(ratesData, "rates", new Dictionary<string, object>() {});
-        List<object> ratesIds = new List<object>(((IDictionary<string,object>)rates).Keys);
+        List<object> ratesIds = new List<object>(rates.Keys);
         List<object> currencies = this.arrayConcat(fiatData, cryptoData);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
@@ -2397,7 +2397,7 @@ public partial class coinbase : Exchange
         IDictionary<string, object> rates = this.safeDict(data, "rates", new Dictionary<string, object>() {});
         string? quoteId = this.safeString(data, "currency");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> baseIds = new List<object>(((IDictionary<string,object>)rates).Keys);
+        List<object> baseIds = new List<object>(rates.Keys);
         string delimiter = "-";
         for (int i = 0; i < baseIds.Count; i++)
         {
@@ -2709,7 +2709,7 @@ public partial class coinbase : Exchange
         double? last = this.safeNumber(ticker, "price");
         string? datetime = this.safeString(ticker, "time");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "bid", bid },
@@ -2915,7 +2915,7 @@ public partial class coinbase : Exchange
         //         "size": 9
         //     }
         //
-        ((IDictionary<string,object>)paramsMarketType)["type"] = marketType;
+        paramsMarketType["type"] = marketType;
         return ccxt.BaseExchange.ToBalances(this.parseCustomBalance(response, paramsMarketType));
     }
 
@@ -2970,7 +2970,7 @@ public partial class coinbase : Exchange
         string? cursor = this.safeString(pagination, "next_starting_after");
         if (((cursor != null)) && (cursor != ""))
         {
-            ((IDictionary<string,object>)(last != null && ((IDictionary<string, object>)last).ContainsKey("info") ? ((IDictionary<string, object>)last)["info"] : null))["next_starting_after"] = cursor;
+            ((IDictionary<string,object>)(last != null && last.ContainsKey("info") ? last["info"] : null))["next_starting_after"] = cursor;
             ((List<object>)ledger)[Convert.ToInt32(lastIndex)] = last;
         }
         return ccxt.BaseExchange.ToLedgerEntryList(ledger);
@@ -3327,9 +3327,9 @@ public partial class coinbase : Exchange
         for (int i = 0; i < getArrayLength(this.accounts); i++)
         {
             IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
-            if (isEqual((account != null && ((IDictionary<string, object>)account).ContainsKey("code") ? ((IDictionary<string, object>)account)["code"] : null), code))
+            if (isEqual((account != null && account.ContainsKey("code") ? account["code"] : null), code))
             {
-                return (account != null && ((IDictionary<string, object>)account).ContainsKey("id") ? ((IDictionary<string, object>)account)["id"] : null);
+                return (account != null && account.ContainsKey("id") ? account["id"] : null);
             }
         }
         return null;
@@ -5701,7 +5701,7 @@ public partial class coinbase : Exchange
             { "realizedPnl", null },
             { "percentage", null },
             { "contracts", this.safeNumber(position, "net_size") },
-            { "contractSize", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contractSize") ? ((IDictionary<string, object>)marketResolved)["contractSize"] : null) },
+            { "contractSize", (marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null) },
             { "markPrice", null },
             { "lastPrice", null },
             { "side", side },

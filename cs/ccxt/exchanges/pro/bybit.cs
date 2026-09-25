@@ -377,7 +377,7 @@ public partial class bybit : ccxt.bybit
         string requestId = this.requestId().ToString();
         if (orderRequest.ContainsKey("orderFilter"))
         {
-            ((IDictionary<string,object>)orderRequest).Remove("orderFilter");
+            orderRequest.Remove("orderFilter");
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "order.cancel" },
@@ -1047,7 +1047,7 @@ public partial class bybit : ccxt.bybit
         if ((limit == null))
         {
             Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-            limit = ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("spot") ? ((IDictionary<string, object>)firstMarket)["spot"] : null) as bool?) == true)) ? 50 : 500;
+            limit = ((((firstMarket != null && firstMarket.ContainsKey("spot") ? firstMarket["spot"] : null) as bool?) == true)) ? 50 : 500;
         }
         channel = channel + limit.ToString();
         List<object> subMessageHashes = new List<object>() {};
@@ -1389,7 +1389,7 @@ public partial class bybit : ccxt.bybit
         }
         string? marketId = this.safeString(trade, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeInteger2(trade, "t", "T");
         string? side = this.safeStringLower(trade, "S");
         object takerOrMaker = null;
@@ -1681,7 +1681,7 @@ public partial class bybit : ccxt.bybit
             symbols[(string)symbol] = true;
             trades.append(parsed);
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string currentMessageHash = ("myTrades:" + (keys[i]));
@@ -2041,7 +2041,7 @@ public partial class bybit : ccxt.bybit
         Int64? timestamp = this.safeInteger2(liquidation, "updatedTime", "T");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "contracts", this.safeNumber2(liquidation, "size", "v") },
             { "contractSize", this.safeNumber(marketResolved, "contractSize") },
             { "price", this.safeNumber2(liquidation, "price", "p") },
@@ -2266,7 +2266,7 @@ public partial class bybit : ccxt.bybit
             // } else {
             //     parsed = this.parseOrder (rawOrders[i]);
             // }
-            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             if ((symbol == null))
             {
                 continue;
@@ -2274,7 +2274,7 @@ public partial class bybit : ccxt.bybit
             symbols[(string)symbol] = true;
             orders.append(parsed);
         }
-        List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> symbolsArray = new List<object>(symbols.Keys);
         for (int i = 0; i < symbolsArray.Count; i++)
         {
             string currentMessageHash = ("orders:" + (symbolsArray[i]));
@@ -2936,7 +2936,7 @@ public partial class bybit : ccxt.bybit
             this.handleOrderBook(client, (Dictionary<string, object>)message);
             return;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+        List<object> keys = new List<object>(methods.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);

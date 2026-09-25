@@ -574,8 +574,8 @@ public partial class bitvavo : Exchange
                 { "expiryDatetime", null },
                 { "strike", null },
                 { "optionType", null },
-                { "taker", getValue((fees != null && ((IDictionary<string, object>)fees).ContainsKey("trading") ? ((IDictionary<string, object>)fees)["trading"] : null), "taker") },
-                { "maker", getValue((fees != null && ((IDictionary<string, object>)fees).ContainsKey("trading") ? ((IDictionary<string, object>)fees)["trading"] : null), "maker") },
+                { "taker", getValue((fees != null && fees.ContainsKey("trading") ? fees["trading"] : null), "taker") },
+                { "maker", getValue((fees != null && fees.ContainsKey("trading") ? fees["trading"] : null), "maker") },
                 { "precision", new Dictionary<string, object>() {
                     { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityDecimals"))) },
                     { "price", this.safeNumber(market, "tickSize") },
@@ -1233,7 +1233,7 @@ public partial class bitvavo : Exchange
         }
         if (!(limitResolved == null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = mathMin(limitResolved, 1440); // default 1440, max 1440
+            requestUntil["limit"] = mathMin(limitResolved, 1440); // default 1440, max 1440
         }
         return this.extend(requestUntil, paramsUntil);
     }
@@ -2339,7 +2339,7 @@ public partial class bitvavo : Exchange
         Int64? timestamp = this.safeInteger(order, "created");
         string? marketId = this.safeString(order, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? side = this.safeString(order, "side");
         string? type = this.safeString(order, "orderType");
@@ -2912,9 +2912,9 @@ public partial class bitvavo : Exchange
         string? networkCode = this.networkIdToCode(networkId, currencyCode);
         if ((networkCode != null))
         {
-            ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
-                { "deposit", ((IDictionary<string,object>)result)["deposit"] },
-                { "withdraw", ((IDictionary<string,object>)result)["withdraw"] },
+            ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                { "deposit", result["deposit"] },
+                { "withdraw", result["withdraw"] },
             };
         }
         return result;

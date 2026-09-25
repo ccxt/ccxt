@@ -409,7 +409,7 @@ public partial class hollaex : Exchange
         //     }
         //
         IDictionary<string, object> pairs = this.safeDict(response, "pairs", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)pairs).Keys);
+        List<object> keys = new List<object>(pairs.Keys);
         List<object> result = new List<object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
@@ -551,7 +551,7 @@ public partial class hollaex : Exchange
         //     }
         //
         IDictionary<string, object> coins = this.safeDict(response, "coins", new Dictionary<string, object>() {});
-        List<object> values = new List<object>(((IDictionary<string,object>)coins).Values);
+        List<object> values = new List<object>(coins.Values);
         return this.parseCurrencies(values);
     }
 
@@ -568,7 +568,7 @@ public partial class hollaex : Exchange
         }
         IDictionary<string, object> rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new Dictionary<string, object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        List<object> networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
+        List<object> networkIds = new List<object>(rawNetworks.Keys);
         for (int j = 0; j < networkIds.Count; j++)
         {
             string? networkId = ((string)networkIds[j]);
@@ -639,7 +639,7 @@ public partial class hollaex : Exchange
         }
         Dictionary<string, object> response = await this.publicGetOrderbooks(parameters);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(response.Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
@@ -815,7 +815,7 @@ public partial class hollaex : Exchange
         //
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.parse8601(this.safeString2(ticker, "time", "timestamp"));
         string? close = this.safeString(ticker, "close");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -908,7 +908,7 @@ public partial class hollaex : Exchange
         //
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? datetime = this.safeString(trade, "timestamp");
         Int64? timestamp = this.parse8601(datetime);
         string? side = this.safeString(trade, "side");
@@ -1672,7 +1672,7 @@ public partial class hollaex : Exchange
         string? network = this.safeString(depositAddress, "network");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
+            { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
             { "network", network },
             { "address", address },
             { "tag", tag },
@@ -2029,7 +2029,7 @@ public partial class hollaex : Exchange
             { "tagTo", tagTo },
             { "type", type },
             { "amount", amount },
-            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
+            { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
             { "status", status },
             { "updated", updated },
             { "comment", this.safeString(transaction, "message") },
@@ -2148,7 +2148,7 @@ public partial class hollaex : Exchange
         IDictionary<string, object> withdrawalFees = this.safeDict(fee, "withdrawal_fees");
         if ((withdrawalFees != null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
+            List<object> keys = new List<object>(withdrawalFees.Keys);
             int keysLength = keys.Count;
             for (int i = 0; i < keysLength; i++)
             {
@@ -2163,7 +2163,7 @@ public partial class hollaex : Exchange
                 }
                 string networkCodeUpper = networkCode.ToUpper(); // default to the upper case network code
                 double? withdrawalFee = this.safeNumber(value, "value");
-                ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[networkCodeUpper] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)result["networks"])[networkCodeUpper] = new Dictionary<string, object>() {
                     { "deposit", null },
                     { "withdraw", withdrawalFee },
                 };

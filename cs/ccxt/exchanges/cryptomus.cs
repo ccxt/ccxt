@@ -487,7 +487,7 @@ public partial class cryptomus : Exchange
         //
         List<object> coins = this.safeList(response, "result");
         Dictionary<string, object> groupedById = this.groupBy(coins, "currency_code");
-        List<object> groupedArray = new List<object>(((IDictionary<string,object>)groupedById).Values);
+        List<object> groupedArray = new List<object>(groupedById.Values);
         return this.parseCurrencies(groupedArray);
     }
 
@@ -586,7 +586,7 @@ public partial class cryptomus : Exchange
         //
         string? marketId = this.safeString(ticker, "currency_pair");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? last = this.safeString(ticker, "last_price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1159,7 +1159,7 @@ public partial class cryptomus : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", type },
             { "timeInForce", null },
             { "postOnly", null },

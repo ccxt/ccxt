@@ -554,7 +554,7 @@ public partial class btcturk : Exchange
         //
         string? marketId = this.safeString(ticker, "pair");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -806,7 +806,7 @@ public partial class btcturk : Exchange
             if ((since != null))
             {
                 object to = add(this.parseToInt(((double?)since / 1000)), limitSeconds);
-                request["to"] = mathMin((request != null && ((IDictionary<string, object>)request).ContainsKey("to") ? ((IDictionary<string, object>)request)["to"] : null), to);
+                request["to"] = mathMin((request != null && request.ContainsKey("to") ? request["to"] : null), to);
             } else
             {
                 request["from"] = subtract(this.parseToInt(((double)0 / 1000)), limitSeconds);

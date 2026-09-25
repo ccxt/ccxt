@@ -1360,7 +1360,7 @@ public partial class hyperliquid : PredictionExchange
                 sideHintOrDefault = sideHint;
             }
             IDictionary<string, object> found = this.findOutcomeInMarket(market, sideHintOrDefault);
-            if ((new List<object>(((IDictionary<string,object>)found).Keys)).Count > 0)
+            if ((new List<object>(found.Keys)).Count > 0)
             {
                 return found;
             }
@@ -1754,7 +1754,7 @@ public partial class hyperliquid : PredictionExchange
                 }
             }
         }
-        List<object> dedupedValues = new List<object>(((IDictionary<string,object>)deduped).Values);
+        List<object> dedupedValues = new List<object>(deduped.Values);
         IList<object> parsed = this.parsePredictionOrders(dedupedValues, null, since);
         string? outcomeHandle = null;
         if ((outcome != null))
@@ -2240,7 +2240,7 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         List<object> events = new List<object>() {};
-        List<object> groupKeys = new List<object>(((IDictionary<string,object>)groupMap).Keys);
+        List<object> groupKeys = new List<object>(groupMap.Keys);
         for (int gi = 0; gi < groupKeys.Count; gi++)
         {
             string? key = ((string)groupKeys[gi]);
@@ -2373,23 +2373,23 @@ public partial class hyperliquid : PredictionExchange
         return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
-    public virtual object signHash(object hash, object privateKey)
+    public virtual Dictionary<string, object> signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        string? rRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
-        string? sRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
+        string? rRaw = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
+        string? sRaw = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
         string r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {
             { "r", ("0x" + r) },
             { "s", ("0x" + s) },
-            { "v", this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)) },
+            { "v", this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)) },
         };
     }
 
-    public virtual object signMessage(object message, object privateKey)
+    public virtual Dictionary<string, object> signMessage(object message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
@@ -2448,7 +2448,7 @@ public partial class hyperliquid : PredictionExchange
 }} },
         };
         byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, phantomAgent);
-        return ((Dictionary<string, object>)((object)(this.signMessage(msg, this.privateKey))));
+        return this.signMessage(msg, this.privateKey);
     }
 
     public virtual object signUserSignedAction(object messageTypes, object message)
@@ -2462,7 +2462,7 @@ public partial class hyperliquid : PredictionExchange
             { "version", "1" },
         };
         byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-        object signature = this.signMessage(msg, this.privateKey);
+        Dictionary<string, object> signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
 
@@ -2507,10 +2507,10 @@ public partial class hyperliquid : PredictionExchange
         };
         object sig = this.buildApproveBuilderFeeSig(payload);
         Dictionary<string, object> action = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((IDictionary<string,object>)payload)["hyperliquidChain"] },
+            { "hyperliquidChain", payload["hyperliquidChain"] },
             { "signatureChainId", "0x66eee" },
-            { "maxFeeRate", ((IDictionary<string,object>)payload)["maxFeeRate"] },
-            { "builder", ((IDictionary<string,object>)payload)["builder"] },
+            { "maxFeeRate", payload["maxFeeRate"] },
+            { "builder", payload["builder"] },
             { "nonce", nonce },
             { "type", "approveBuilderFee" },
         };

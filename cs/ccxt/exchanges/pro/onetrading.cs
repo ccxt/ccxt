@@ -561,7 +561,7 @@ public partial class onetrading : ccxt.onetrading
         Dictionary<string, object> order = this.parseTradingOrder(message);
         ccxt.pro.ArrayCache orders = this.orders;
         orders.append(order);
-        client.resolve(this.orders, ("orders:" + ((order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null))));
+        client.resolve(this.orders, ("orders:" + ((order != null && order.ContainsKey("symbol") ? order["symbol"] : null))));
         client.resolve(this.orders, "orders");
     }
 
@@ -1173,7 +1173,7 @@ public partial class onetrading : ccxt.onetrading
             ((IDictionary<string,object>)getValue(subscription, marketId))[timeframeVar] = true;
         }
         List<object> properties = new List<object>() {};
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)subscription).Keys);
+        List<object> marketIds = new List<object>(subscription.Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
             List<object> marketIdtimeframes = new List<object>(((IDictionary<string,object>)getValue(subscription, marketIds[i])).Keys);
@@ -1410,7 +1410,7 @@ public partial class onetrading : ccxt.onetrading
             {
                 return new List<object>() {};
             }
-            marketIds = new List<object>(((IDictionary<string,object>)marketsById).Keys);
+            marketIds = new List<object>(marketsById.Keys);
         } else
         {
             marketIds = this.marketIds(symbols);
@@ -1445,7 +1445,7 @@ public partial class onetrading : ccxt.onetrading
             subscription[(string)marketId] = true;
         }
         request["type"] = type;
-        ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("channels") ? request["channels"] : null), 0))["instrument_codes"] = new List<object>(((IDictionary<string,object>)subscription).Keys);
+        ((IDictionary<string,object>)getValue((request != null && request.ContainsKey("channels") ? request["channels"] : null), 0))["instrument_codes"] = new List<object>(subscription.Keys);
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription);
     }
 

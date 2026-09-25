@@ -1055,7 +1055,7 @@ public partial class weex : Exchange
                 };
             }
         }
-        List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        List<object> networkKeys = new List<object>(networks.Keys);
         int networksLength = networkKeys.Count;
         bool emptyChains = (networksLength == 0); // non-functional coins
         bool? valueForEmpty = emptyChains ? false : null;
@@ -1487,7 +1487,7 @@ public partial class weex : Exchange
         Int64? timestamp = this.safeInteger2(ticker, "closeTime", "time");
         string? percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString(ticker, "highPrice") },
@@ -1560,7 +1560,7 @@ public partial class weex : Exchange
         string? marketId = this.safeString(entry, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "spot");
         return new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
             { "datetime", null },
             { "price", this.safeNumberOmitZero(entry, "price") },
@@ -2013,7 +2013,7 @@ public partial class weex : Exchange
         {
             tradeMarketType = "swap";
         }
-        object marketResolved = ((market == null)) ? this.safeMarket(tradeMarketId, null, null, tradeMarketType) : market;
+        Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? tradeMarketId : null, market, null, tradeMarketType);
         object isSpot = null;
         if ((market == null))
         {
@@ -2058,7 +2058,7 @@ public partial class weex : Exchange
             { "order", this.safeString(trade, "orderId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(marketResolved, "symbol") },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", null },
             { "takerOrMaker", takerOrMaker },
             { "side", side },
@@ -3666,7 +3666,7 @@ public partial class weex : Exchange
         {
             orderMarketType = "spot";
         }
-        object marketResolved = ((market == null)) ? this.safeMarket(orderMarketId, null, null, orderMarketType) : market;
+        Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? orderMarketId : null, market, null, orderMarketType);
         Int64? timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
         string? rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         string? triggerPrice = ((string)this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice")));
@@ -4167,7 +4167,7 @@ public partial class weex : Exchange
         bool hasUntil = ((requestUntil != null && requestUntil.ContainsKey("endTime")));
         if (hasSince && !hasUntil)
         {
-            ((IDictionary<string,object>)requestUntil)["endTime"] = this.milliseconds();
+            requestUntil["endTime"] = this.milliseconds();
         } else if (hasUntil && !hasSince)
         {
             throw new ArgumentsRequired ((this.id + " fetchFundingHistory() requires since to be set when until is used")) ;
@@ -4395,7 +4395,7 @@ public partial class weex : Exchange
         string? size = this.safeString(position, "size");
         string? entryPrice = Precise.stringDiv(notional, size);
         return this.safePosition(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", this.safeString2(position, "id", "positionId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

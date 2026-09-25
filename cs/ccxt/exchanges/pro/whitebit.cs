@@ -522,7 +522,7 @@ public partial class whitebit : ccxt.whitebit
         ccxt.pro.ArrayCache stored = this.myTrades;
         Dictionary<string, object> parsed = this.parseWsTrade(trade);
         stored.append(parsed);
-        string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+        string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
         string messageHash = ("myTrades:" + symbol);
         client.resolve(stored, messageHash);
     }
@@ -562,7 +562,7 @@ public partial class whitebit : ccxt.whitebit
                 feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             } else
             {
-                feeCurrencyCode = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null);
+                feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -592,7 +592,7 @@ public partial class whitebit : ccxt.whitebit
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", orderId },
             { "type", null },
             { "side", side },
@@ -681,7 +681,7 @@ public partial class whitebit : ccxt.whitebit
             { "status", status },
         }));
         stored.append(parsed);
-        string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+        string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
         string messageHash = ("orders:" + symbol);
         client.resolve(this.orders, messageHash);
     }
@@ -734,7 +734,7 @@ public partial class whitebit : ccxt.whitebit
         }
         Int64? timestamp = this.safeTimestamp(order, "ctime");
         Int64? lastTradeTimestamp = this.safeTimestamp(order, "mtime");
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? rawSide = this.safeInteger(order, "side");
         string side = "buy";
         if ((rawSide == 1))
@@ -747,7 +747,7 @@ public partial class whitebit : ccxt.whitebit
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.parseNumber(dealFee) },
-                { "currency", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+                { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
             };
         }
         string? unifiedStatus = null;
@@ -951,7 +951,7 @@ public partial class whitebit : ccxt.whitebit
                 }
             } else
             {
-                List<object> keys = new List<object>(((IDictionary<string,object>)balanceDict).Keys);
+                List<object> keys = new List<object>(balanceDict.Keys);
                 for (int j = 0; j < keys.Count; j++)
                 {
                     string? currencyId = ((string)keys[j]);
@@ -1051,7 +1051,7 @@ public partial class whitebit : ccxt.whitebit
             {
                 // resubscribe
                 List<object> marketIdsNew = new List<object>() {};
-                marketIdsNew = new List<object>(((IDictionary<string,object>)subscription).Keys);
+                marketIdsNew = new List<object>(subscription.Keys);
                 if (isNested == true)
                 {
                     marketIdsNew = new List<object>() {marketIdsNew};
@@ -1271,7 +1271,7 @@ public partial class whitebit : ccxt.whitebit
         // not every method stores its subscription
         // as an object so we can't do indeById here
         IDictionary<string, object> subs = client.subscriptions;
-        List<object> values = new List<object>(((IDictionary<string,object>)subs).Values);
+        List<object> values = new List<object>(subs.Values);
         for (int i = 0; i < values.Count; i++)
         {
             object subscription = values[i];

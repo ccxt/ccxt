@@ -112,7 +112,7 @@ public partial class phemex : ccxt.phemex
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Dictionary<string, object> marketValue = marketResolved;
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         string? lastString = this.fromEp(this.safeString(ticker, "close"), marketValue);
         double? last = this.parseNumber(lastString);
@@ -176,7 +176,7 @@ public partial class phemex : ccxt.phemex
         string? marketId = this.safeString(ticker, 0);
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Dictionary<string, object> marketValue = marketResolved;
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? lastString = this.fromEp(this.safeString(ticker, 4), marketValue);
         double? last = this.parseNumber(lastString);
         double? quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 6), marketValue));
@@ -294,15 +294,15 @@ public partial class phemex : ccxt.phemex
         //    }
         //
         List<object> tickers = new List<object>() {};
-        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("market24h")))
+        if ((message != null && message.ContainsKey("market24h")))
         {
             object ticker = this.safeValue(message, "market24h");
             tickers.Add(this.parseSwapTicker(ticker));
-        } else if ((message != null && ((IDictionary<string, object>)message).ContainsKey("spot_market24h")))
+        } else if ((message != null && message.ContainsKey("spot_market24h")))
         {
             object ticker = this.safeValue(message, "spot_market24h");
             tickers.Add(this.parseTicker(ticker));
-        } else if ((message != null && ((IDictionary<string, object>)message).ContainsKey("data")))
+        } else if ((message != null && message.ContainsKey("data")))
         {
             List<object> data = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < data.Count; i++)
@@ -1042,7 +1042,7 @@ public partial class phemex : ccxt.phemex
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> parsed = this.parseTrade(rawTrade);
             cachedTrades.append(parsed);
-            string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             if ((type == null))
             {
                 type = ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT")) ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
@@ -1052,7 +1052,7 @@ public partial class phemex : ccxt.phemex
                 marketIds[(string)symbol] = true;
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? market = ((string)keys[i]);
@@ -1326,7 +1326,7 @@ public partial class phemex : ccxt.phemex
         {
             Dictionary<string, object> parsed = ((Dictionary<string, object>)parsedOrders[i]);
             stored.append(parsed);
-            object symbol = (parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null);
+            object symbol = (parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null);
             Dictionary<string, object> market = this.market(symbol);
             if ((type == null))
             {
@@ -1335,7 +1335,7 @@ public partial class phemex : ccxt.phemex
             }
             marketIds[(string)symbol] = true;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string currentMessageHash = (("orders" + ":") + (keys[i]));
@@ -1479,7 +1479,7 @@ public partial class phemex : ccxt.phemex
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Dictionary<string, object> marketValue = marketResolved;
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         string? side = this.safeStringLower(order, "side");
         string? type = this.parseOrderType(this.safeString(order, "ordType"));

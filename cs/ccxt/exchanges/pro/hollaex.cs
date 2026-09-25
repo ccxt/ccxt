@@ -290,7 +290,7 @@ public partial class hollaex : ccxt.hollaex
         }
         // non-symbol specific
         client.resolve(this.myTrades, channel);
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)keys[i]);
@@ -435,7 +435,7 @@ public partial class hollaex : ccxt.hollaex
         }
         // non-symbol specific
         client.resolve(this.orders, channel);
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)keys[i]);

@@ -2636,7 +2636,7 @@ public partial class cryptocom : Exchange
         {
             return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, network));
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
+        List<object> keys = new List<object>(depositAddresses.Keys);
         return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, (keys != null && 0 < keys.Count ? keys[0] : null)));
     }
 
@@ -2819,7 +2819,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
         string? last = this.safeString(ticker, "a");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeNumber(ticker, "h") },
@@ -2837,7 +2837,7 @@ public partial class cryptocom : Exchange
             { "percentage", this.safeString(ticker, "c") },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "v") },
-            { "quoteVolume", ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) as string) == "USD")) ? this.safeString(ticker, "vv") : null },
+            { "quoteVolume", ((((marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) as string) == "USD")) ? this.safeString(ticker, "vv") : null },
             { "info", ticker },
         }, marketResolved);
     }
@@ -2888,7 +2888,7 @@ public partial class cryptocom : Exchange
             { "id", this.safeString2(trade, "d", "trade_id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", this.safeString(trade, "order_id") },
             { "side", this.safeStringLower2(trade, "s", "side") },
             { "takerOrMaker", this.safeStringLower(trade, "taker_side") },
@@ -3242,7 +3242,7 @@ public partial class cryptocom : Exchange
                 string? networkCode = this.networkIdToCode(networkId, currencyCode);
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                    ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
                             { "fee", null },
                             { "percentage", null },
@@ -3255,8 +3255,8 @@ public partial class cryptocom : Exchange
                 }
                 if ((networkListLength == 1))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["fee"] = this.safeNumber(networkInfo, "withdrawal_fee");
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["percentage"] = false;
+                    ((IDictionary<string,object>)result["withdraw"])["fee"] = this.safeNumber(networkInfo, "withdrawal_fee");
+                    ((IDictionary<string,object>)result["withdraw"])["percentage"] = false;
                 }
             }
         }
@@ -3963,7 +3963,7 @@ public partial class cryptocom : Exchange
             { "hedged", null },
             { "side", Precise.stringGt(amount, "0") ? "long" : "short" },
             { "contracts", this.parseNumber(Precise.stringAbs(amount)) },
-            { "contractSize", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("contractSize") ? ((IDictionary<string, object>)marketResolved)["contractSize"] : null) },
+            { "contractSize", (marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null) },
             { "entryPrice", null },
             { "markPrice", null },
             { "notional", null },
@@ -4248,7 +4248,7 @@ public partial class cryptocom : Exchange
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
             Dictionary<string, object> requestParams = this.extend(new Dictionary<string, object>() {}, parameters);
-            List<object> paramsKeys = new List<object>(((IDictionary<string,object>)requestParams).Keys);
+            List<object> paramsKeys = new List<object>(requestParams.Keys);
             object strSortKey = this.paramsToString(requestParams, 0);
             string payload = ((((path + nonce) + this.apiKey) + (strSortKey)) + nonce);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);

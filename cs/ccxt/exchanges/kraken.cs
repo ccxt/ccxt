@@ -736,7 +736,7 @@ public partial class kraken : Exchange
         //
         IDictionary<string, object> markets = this.safeDict(assetsResponse, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> cachedCurrencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)markets).Keys);
+        List<object> keys = new List<object>(markets.Keys);
         List<object> result = new List<object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
@@ -1269,7 +1269,7 @@ public partial class kraken : Exchange
         }
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
         IDictionary<string, object> tickers = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        List<object> ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        List<object> ids = new List<object>(tickers.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < ids.Count; i++)
         {
@@ -1516,7 +1516,7 @@ public partial class kraken : Exchange
         //                                                "balance": "0.0000051000"           },
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> ledger = this.safeDict(result, "ledger", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)ledger).Keys);
+        List<object> keys = new List<object>(ledger.Keys);
         List<object> items = new List<object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
@@ -1551,7 +1551,7 @@ public partial class kraken : Exchange
         //                                          "fee": "0.0050000000",
         //                                      "balance": "0.0000051000"           } } }
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
+        List<object> keys = new List<object>(result.Keys);
         List<object> items = new List<object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
@@ -1799,7 +1799,7 @@ public partial class kraken : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> currencyIds = new List<object>(balances.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)currencyIds[i]);
@@ -2578,7 +2578,7 @@ public partial class kraken : Exchange
             }
             request["oflags"] = extendedPostFlags;
         }
-        if (((flags != null)) && !((request != null && ((IDictionary<string, object>)request).ContainsKey("oflags"))))
+        if (((flags != null)) && !((request != null && request.ContainsKey("oflags"))))
         {
             request["oflags"] = flags;
         }
@@ -2866,7 +2866,7 @@ public partial class kraken : Exchange
         }, parameters));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> orders = new List<object>() {};
-        List<object> orderIds = new List<object>(((IDictionary<string,object>)result).Keys);
+        List<object> orderIds = new List<object>(result.Keys);
         for (int i = 0; i < orderIds.Count; i++)
         {
             string? id = ((string)orderIds[i]);
@@ -2942,7 +2942,7 @@ public partial class kraken : Exchange
         //
         IDictionary<string, object> tradesResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> trades = this.safeDict(tradesResult, "trades", new Dictionary<string, object>() {});
-        List<object> ids = new List<object>(((IDictionary<string,object>)trades).Keys);
+        List<object> ids = new List<object>(trades.Keys);
         for (int i = 0; i < ids.Count; i++)
         {
             ((IDictionary<string,object>)getValue(trades, ids[i]))["id"] = ids[i];
@@ -3188,7 +3188,7 @@ public partial class kraken : Exchange
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> open = this.safeDict(result, "open", new Dictionary<string, object>() {});
         List<object> orders = new List<object>() {};
-        List<object> orderIds = new List<object>(((IDictionary<string,object>)open).Keys);
+        List<object> orderIds = new List<object>(open.Keys);
         for (int i = 0; i < orderIds.Count; i++)
         {
             string? id = ((string)orderIds[i]);
@@ -3289,7 +3289,7 @@ public partial class kraken : Exchange
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> closed = this.safeDict(result, "closed", new Dictionary<string, object>() {});
         List<object> orders = new List<object>() {};
-        List<object> orderIds = new List<object>(((IDictionary<string,object>)closed).Keys);
+        List<object> orderIds = new List<object>(closed.Keys);
         for (int i = 0; i < orderIds.Count; i++)
         {
             string? id = ((string)orderIds[i]);
@@ -3557,7 +3557,7 @@ public partial class kraken : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            ((IDictionary<string,object>)paramsPaginate)["cursor"] = true;
+            paramsPaginate["cursor"] = true;
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, paramsPaginate, "next_cursor", "cursor"));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -3799,7 +3799,7 @@ public partial class kraken : Exchange
         string? address = this.safeString(depositAddress, "address");
         string? tag = this.safeString(depositAddress, "tag");
         Dictionary<string, object> currencyResolved = this.safeCurrency(null, currency);
-        string? code = ((string)(currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null));
+        string? code = ((string)(currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null));
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },

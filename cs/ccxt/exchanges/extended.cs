@@ -982,7 +982,7 @@ public partial class extended : Exchange
             Dictionary<string, object> market = this.safeMarket(marketId);
             IDictionary<string, object> stats = this.safeDict(marketData, "marketStats", new Dictionary<string, object>() {});
             Dictionary<string, object> ticker = this.parseTicker(stats, market);
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             if ((symbol != null))
             {
                 tickers[(string)symbol] = ticker;
@@ -1100,8 +1100,8 @@ public partial class extended : Exchange
         Dictionary<string, object> orderbook = this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bid", "ask", "price", "qty");
         if ((limit != null))
         {
-            orderbook["bids"] = this.arraySlice((orderbook != null && ((IDictionary<string, object>)orderbook).ContainsKey("bids") ? ((IDictionary<string, object>)orderbook)["bids"] : null), 0, limit);
-            orderbook["asks"] = this.arraySlice((orderbook != null && ((IDictionary<string, object>)orderbook).ContainsKey("asks") ? ((IDictionary<string, object>)orderbook)["asks"] : null), 0, limit);
+            orderbook["bids"] = this.arraySlice((orderbook != null && orderbook.ContainsKey("bids") ? orderbook["bids"] : null), 0, limit);
+            orderbook["asks"] = this.arraySlice((orderbook != null && orderbook.ContainsKey("asks") ? orderbook["asks"] : null), 0, limit);
         }
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -1330,8 +1330,8 @@ public partial class extended : Exchange
         Int64? timestamp = this.safeInteger(history, "paidTime");
         return new Dictionary<string, object>() {
             { "info", history },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
-            { "code", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("settle") ? ((IDictionary<string, object>)marketResolved)["settle"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
+            { "code", (marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "id", this.safeString(history, "id") },
@@ -1597,7 +1597,7 @@ public partial class extended : Exchange
         Int64? timestamp = this.safeInteger(info, "T");
         return new Dictionary<string, object>() {
             { "info", info },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "fundingRate", this.safeNumber(info, "f") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -2463,7 +2463,7 @@ public partial class extended : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         return new Dictionary<string, object>() {
             { "info", fee },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "maker", this.safeNumber(fee, "makerFeeRate") },
             { "taker", this.safeNumber(fee, "takerFeeRate") },
             { "percentage", true },
@@ -2551,7 +2551,7 @@ public partial class extended : Exchange
         double? leverageValue = this.safeNumber(leverage, "leverage");
         return new Dictionary<string, object>() {
             { "info", leverage },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "marginMode", null },
             { "longLeverage", leverageValue },
             { "shortLeverage", leverageValue },
@@ -2746,7 +2746,7 @@ public partial class extended : Exchange
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
@@ -2797,7 +2797,7 @@ public partial class extended : Exchange
             return ccxt.BaseExchange.ToDict(account);
         }
         Dictionary<string, object> accountData = ccxt.BaseExchange.FromAccount(await this.FetchAccount(parameters));
-        account = (accountData != null && ((IDictionary<string, object>)accountData).ContainsKey("info") ? ((IDictionary<string, object>)accountData)["info"] : null);
+        account = (accountData != null && accountData.ContainsKey("info") ? accountData["info"] : null);
         this.options["account"] = account;
         return ccxt.BaseExchange.ToDict(account);
     }
@@ -3040,8 +3040,8 @@ public partial class extended : Exchange
         Dictionary<string, object> settlement = this.createOrderSettlementData(isBuy, amountString, priceString, settlementParams);
         request["settlement"] = new Dictionary<string, object>() {
             { "signature", new Dictionary<string, object>() {
-                { "r", (settlement != null && ((IDictionary<string, object>)settlement).ContainsKey("r") ? ((IDictionary<string, object>)settlement)["r"] : null) },
-                { "s", (settlement != null && ((IDictionary<string, object>)settlement).ContainsKey("s") ? ((IDictionary<string, object>)settlement)["s"] : null) },
+                { "r", (settlement != null && settlement.ContainsKey("r") ? settlement["r"] : null) },
+                { "s", (settlement != null && settlement.ContainsKey("s") ? settlement["s"] : null) },
             } },
             { "starkKey", starkKey },
             { "collateralPosition", collateralPosition },
@@ -3070,8 +3070,8 @@ public partial class extended : Exchange
                     { "price", this.priceToPrecision(symbol, stopLossExecutionPrice) },
                     { "settlement", new Dictionary<string, object>() {
                         { "signature", new Dictionary<string, object>() {
-                            { "r", (stopLossSettlement != null && ((IDictionary<string, object>)stopLossSettlement).ContainsKey("r") ? ((IDictionary<string, object>)stopLossSettlement)["r"] : null) },
-                            { "s", (stopLossSettlement != null && ((IDictionary<string, object>)stopLossSettlement).ContainsKey("s") ? ((IDictionary<string, object>)stopLossSettlement)["s"] : null) },
+                            { "r", (stopLossSettlement != null && stopLossSettlement.ContainsKey("r") ? stopLossSettlement["r"] : null) },
+                            { "s", (stopLossSettlement != null && stopLossSettlement.ContainsKey("s") ? stopLossSettlement["s"] : null) },
                         } },
                         { "starkKey", starkKey },
                         { "collateralPosition", collateralPosition },
@@ -3099,8 +3099,8 @@ public partial class extended : Exchange
                     { "price", this.priceToPrecision(symbol, takeProfitExecutionPrice) },
                     { "settlement", new Dictionary<string, object>() {
                         { "signature", new Dictionary<string, object>() {
-                            { "r", (takeProfitSettlement != null && ((IDictionary<string, object>)takeProfitSettlement).ContainsKey("r") ? ((IDictionary<string, object>)takeProfitSettlement)["r"] : null) },
-                            { "s", (takeProfitSettlement != null && ((IDictionary<string, object>)takeProfitSettlement).ContainsKey("s") ? ((IDictionary<string, object>)takeProfitSettlement)["s"] : null) },
+                            { "r", (takeProfitSettlement != null && takeProfitSettlement.ContainsKey("r") ? takeProfitSettlement["r"] : null) },
+                            { "s", (takeProfitSettlement != null && takeProfitSettlement.ContainsKey("s") ? takeProfitSettlement["s"] : null) },
                         } },
                         { "starkKey", starkKey },
                         { "collateralPosition", collateralPosition },

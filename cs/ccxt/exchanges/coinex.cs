@@ -1487,8 +1487,8 @@ public partial class coinex : Exchange
                 { "contract", true },
                 { "linear", linear },
                 { "inverse", inverse },
-                { "taker", getValue((fees != null && ((IDictionary<string, object>)fees).ContainsKey("trading") ? ((IDictionary<string, object>)fees)["trading"] : null), "taker") },
-                { "maker", getValue((fees != null && ((IDictionary<string, object>)fees).ContainsKey("trading") ? ((IDictionary<string, object>)fees)["trading"] : null), "maker") },
+                { "taker", getValue((fees != null && fees.ContainsKey("trading") ? fees["trading"] : null), "taker") },
+                { "maker", getValue((fees != null && fees.ContainsKey("trading") ? fees["trading"] : null), "maker") },
                 { "contractSize", this.parseNumber("1") },
                 { "expiry", null },
                 { "expiryDatetime", null },
@@ -1563,10 +1563,10 @@ public partial class coinex : Exchange
         string marketType = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("mark_price"))) ? "swap" : "spot";
         string? marketId = this.safeString(ticker, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
-        string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         // on inverse contracts 'value' is denominated in the settle currency, not
         // the quote, so it is the quote volume only for spot and linear markets
-        string? quoteVolume = ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("inverse") ? ((IDictionary<string, object>)marketResolved)["inverse"] : null) as bool?) == true)) ? null : this.safeString(ticker, "value");
+        string? quoteVolume = ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true)) ? null : this.safeString(ticker, "value");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -1894,7 +1894,7 @@ public partial class coinex : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", this.safeString(trade, "deal_id") },
             { "order", this.safeString(trade, "order_id") },
             { "type", null },
@@ -2627,7 +2627,7 @@ public partial class coinex : Exchange
             { "timestamp", timestamp },
             { "lastTradeTimestamp", updatedTimestamp },
             { "status", this.parseOrderStatus(rawStatus) },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", this.safeString(order, "type") },
             { "timeInForce", null },
             { "postOnly", null },
@@ -3256,7 +3256,7 @@ public partial class coinex : Exchange
             { "orders", ordersRequests },
         };
         Dictionary<string, object> response = null;
-        if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("spot") ? ((IDictionary<string, object>)firstMarket)["spot"] : null) as bool?) == true))
+        if ((((firstMarket != null && firstMarket.ContainsKey("spot") ? firstMarket["spot"] : null) as bool?) == true))
         {
             response = await this.v2PrivatePostSpotBatchModifyOrder(this.extend(request, parameters));
         } else
@@ -3794,7 +3794,7 @@ public partial class coinex : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
         {
-            ((IDictionary<string,object>)requestUntil)["market_type"] = "FUTURES";
+            requestUntil["market_type"] = "FUTURES";
             response = await this.v2PrivateGetFuturesUserDeals(this.extend(requestUntil, paramsUntil));
         } else
         {
@@ -3803,10 +3803,10 @@ public partial class coinex : Exchange
             IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
             if ((marginMode != null))
             {
-                ((IDictionary<string,object>)requestUntil)["market_type"] = "MARGIN";
+                requestUntil["market_type"] = "MARGIN";
             } else
             {
-                ((IDictionary<string,object>)requestUntil)["market_type"] = "SPOT";
+                requestUntil["market_type"] = "SPOT";
             }
             response = await this.v2PrivateGetSpotUserDeals(this.extend(requestUntil, paramsMarginMode));
         }
@@ -4029,7 +4029,7 @@ public partial class coinex : Exchange
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeInteger(position, "position_id") },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "notional", this.safeNumber(position, "settle_value") },
             { "marginMode", this.safeString(position, "margin_mode") },
             { "liquidationPrice", this.safeNumber(position, "liq_price") },
@@ -4218,12 +4218,12 @@ public partial class coinex : Exchange
             IDictionary<string, object> tier = ((IDictionary<string, object>)brackets[i]);
             double? maxNotional = this.safeNumber(tier, "amount");
             object curr = null;
-            if ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("linear") ? ((IDictionary<string, object>)marketResolved)["linear"] : null) as bool?) == true))
+            if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
             {
-                curr = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null);
+                curr = (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
             } else
             {
-                curr = (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null);
+                curr = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
             }
             object notional = minNotional;
             tiers.Add(new Dictionary<string, object>() {
@@ -4449,11 +4449,11 @@ public partial class coinex : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntil)["start_time"] = since;
+            requestUntil["start_time"] = since;
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = limit;
+            requestUntil["limit"] = limit;
         }
         Dictionary<string, object> response = await this.v2PrivateGetFuturesPositionFundingHistory(this.extend(requestUntil, paramsUntil));
         //
@@ -5275,18 +5275,18 @@ public partial class coinex : Exchange
         double? rate = this.safeNumber(info, "daily_interest_rate");
         double? baseRate = null;
         double? quoteRate = null;
-        if (isEqual(currency, (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("baseId") ? ((IDictionary<string, object>)marketResolved)["baseId"] : null)))
+        if (isEqual(currency, (marketResolved != null && marketResolved.ContainsKey("baseId") ? marketResolved["baseId"] : null)))
         {
             baseRate = rate;
-        } else if (isEqual(currency, (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quoteId") ? ((IDictionary<string, object>)marketResolved)["quoteId"] : null)))
+        } else if (isEqual(currency, (marketResolved != null && marketResolved.ContainsKey("quoteId") ? marketResolved["quoteId"] : null)))
         {
             quoteRate = rate;
         }
         return new Dictionary<string, object>() {
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
-            { "base", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("base") ? ((IDictionary<string, object>)marketResolved)["base"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
+            { "base", (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null) },
             { "baseRate", baseRate },
-            { "quote", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("quote") ? ((IDictionary<string, object>)marketResolved)["quote"] : null) },
+            { "quote", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
             { "quoteRate", quoteRate },
             { "period", 86400000 },
             { "timestamp", null },
@@ -5424,7 +5424,7 @@ public partial class coinex : Exchange
         Int64? timestamp = this.safeInteger(info, "expired_at");
         return new Dictionary<string, object>() {
             { "info", info },
-            { "symbol", (marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null) },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "currency", this.safeCurrencyCode(this.safeString(info, "ccy")) },
             { "interest", this.safeNumber(info, "to_repaied_amount") },
             { "interestRate", this.safeNumber(info, "daily_interest_rate") },
@@ -5743,8 +5743,8 @@ public partial class coinex : Exchange
             bool? isWithdrawEnabled = this.safeBool(entry, "withdraw_enabled");
             if ((isWithdrawEnabled == true))
             {
-                ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["fee"] = this.safeNumber(entry, "withdrawal_fee");
-                ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["percentage"] = false;
+                ((IDictionary<string,object>)result["withdraw"])["fee"] = this.safeNumber(entry, "withdrawal_fee");
+                ((IDictionary<string,object>)result["withdraw"])["percentage"] = false;
                 string? networkId = this.safeString(entry, "chain");
                 if (((networkId != null)) && (networkId != ""))
                 {
@@ -5753,7 +5753,7 @@ public partial class coinex : Exchange
                     string? networkCode = this.networkIdToCode(networkId, feeCode);
                     if ((networkCode != null))
                     {
-                        ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                        ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                             { "withdraw", new Dictionary<string, object>() {
                                 { "fee", this.safeNumber(entry, "withdrawal_fee") },
                                 { "percentage", false },
@@ -6220,11 +6220,11 @@ public partial class coinex : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((since != null))
         {
-            ((IDictionary<string,object>)requestUntil)["start_time"] = since;
+            requestUntil["start_time"] = since;
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)requestUntil)["limit"] = limit;
+            requestUntil["limit"] = limit;
         }
         Dictionary<string, object> response = await this.v2PrivateGetFuturesPositionMarginHistory(this.extend(requestUntil, paramsUntil));
         //

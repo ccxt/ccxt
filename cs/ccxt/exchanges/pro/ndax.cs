@@ -101,7 +101,7 @@ public partial class ndax : ccxt.ndax
         //     }
         //
         Dictionary<string, object> ticker = this.parseTicker(payload);
-        string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
         Dictionary<string, object> market = this.market(symbol);
         if ((symbol != null))
         {
@@ -185,7 +185,7 @@ public partial class ndax : ccxt.ndax
         for (int i = 0; i < payload.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(payload[i]);
-            string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+            string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
             object tradesArray = ((symbol == null)) ? null : this.safeValue(this.trades, symbol);
             if ((tradesArray == null))
             {
@@ -202,7 +202,7 @@ public partial class ndax : ccxt.ndax
                 updates[(string)symbol] = true;
             }
         }
-        List<object> symbols = new List<object>(((IDictionary<string,object>)updates).Keys);
+        List<object> symbols = new List<object>(updates.Keys);
         for (int i = 0; i < symbols.Count; i++)
         {
             string? symbol = ((string)symbols[i]);
@@ -363,7 +363,7 @@ public partial class ndax : ccxt.ndax
             }
         }
         string name = "SubscribeTicker";
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)updates).Keys);
+        List<object> marketIds = new List<object>(updates.Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);

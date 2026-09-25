@@ -404,7 +404,7 @@ public partial class zaif : Exchange
             { "datetime", null },
         };
         IDictionary<string, object> funds = this.safeDict(balances, "funds", new Dictionary<string, object>() {});
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)funds).Keys);
+        List<object> currencyIds = new List<object>(funds.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)currencyIds[i]);
@@ -628,7 +628,7 @@ public partial class zaif : Exchange
         if ((numTrades == 1))
         {
             IDictionary<string, object> firstTrade = this.safeDict(trades, 0, new Dictionary<string, object>() {});
-            if (((new List<object>(((IDictionary<string,object>)firstTrade).Keys)).Count == 0))
+            if (((new List<object>(firstTrade.Keys)).Count == 0))
             {
                 trades = new List<object>() {};
             }
@@ -912,7 +912,7 @@ public partial class zaif : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
+                { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
             };
         }
         return new Dictionary<string, object>() {
@@ -926,7 +926,7 @@ public partial class zaif : Exchange
             { "addressTo", null },
             { "amount", null },
             { "type", null },
-            { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
+            { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
             { "status", null },
             { "updated", null },
             { "tagFrom", null },

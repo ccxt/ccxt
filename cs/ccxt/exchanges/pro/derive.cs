@@ -418,7 +418,7 @@ public partial class derive : ccxt.derive
         IDictionary<string, object> status = this.safeDict(result, "status");
         if ((status != null))
         {
-            List<object> topics = new List<object>(((IDictionary<string,object>)status).Keys);
+            List<object> topics = new List<object>(status.Keys);
             for (int i = 0; i < topics.Count; i++)
             {
                 string? topic = ((string)topics[i]);

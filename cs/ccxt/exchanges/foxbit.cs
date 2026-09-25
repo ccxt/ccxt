@@ -1160,17 +1160,17 @@ public partial class foxbit : Exchange
                 {
                     request["time_in_force"] = timeInForce;
                 }
-                ((IDictionary<string,object>)orderParams).Remove("timeInForce");
+                orderParams.Remove("timeInForce");
             }
             if ((postOnly == true))
             {
                 request["post_only"] = true;
-                ((IDictionary<string,object>)orderParams).Remove("postOnly");
+                orderParams.Remove("postOnly");
             }
             if ((triggerPrice != null))
             {
                 request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
-                ((IDictionary<string,object>)orderParams).Remove("triggerPrice");
+                orderParams.Remove("triggerPrice");
             }
             if (type == "INSTANT")
             {
