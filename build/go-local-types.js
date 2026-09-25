@@ -6547,6 +6547,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         installCcxtGoClosurePointerJoin (goTranspiler);
         installCcxtGoClosureDefaultValue (goTranspiler);
         installCcxtGoTernaryLiftJoin (goTranspiler);
+        installCcxtGoTernaryMapJoin (goTranspiler);
     }
     // the emitted signature of the same helpers: `any` → `*string` for the methods
     // the predicate above accepts, so the coercion and the local typing can never
@@ -9063,6 +9064,77 @@ function installCcxtGoTernaryLiftJoin (goTranspiler) {
         return lines.join ('\n');
     };
     goTranspiler.__ccxtGoTernaryLiftJoinInstalled = true;
+}
+
+// ------------------------- ternary map joins: `c ? this.omit (p, k) : p` -------------------------
+// Every arm is a map: `{}`, a proven map local, or Omit of one (OmitMap/OmitN build a fresh map).
+// The Omit arm is re-boxed through MapTyped (identity on a map); only non-rebinding uses are admitted.
+function ccxtGoTernaryMapArm (goTranspiler, armNode, armText) {
+    const node = ccxtGoUnwrapParens (armNode);
+    if (node?.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+        return (node.properties.length === 0) && (armText.trim () === 'map[string]any{}') ? armText : undefined;
+    }
+    if (node?.kind === ts.SyntaxKind.Identifier) {
+        return ccxtGoProducerArgIsMap (goTranspiler, node) ? armText : undefined;
+    }
+    if ((node?.kind === ts.SyntaxKind.CallExpression) && (node.expression?.kind === ts.SyntaxKind.PropertyAccessExpression)
+            && (node.expression.expression?.kind === ts.SyntaxKind.ThisKeyword) && (node.expression.name?.escapedText === 'omit')
+            && (ccxtGoWholePrintedCallee (goTranspiler, armText) === 'this.Omit')
+            && ccxtGoProducerArgIsMap (goTranspiler, ccxtGoUnwrapParens (node.arguments[0]))) {
+        return 'MapTyped(' + armText.trim () + ')';
+    }
+    return undefined;
+}
+
+function installCcxtGoTernaryMapJoin (goTranspiler) {
+    if ((typeof goTranspiler.printVariableDeclarationList !== 'function') || (typeof goTranspiler.goEnclosingFunction !== 'function')
+            || (typeof goTranspiler.goLocalIsSafeToType !== 'function') || goTranspiler.__ccxtGoTernaryMapJoinInstalled) {
+        return;
+    }
+    const upstream = goTranspiler.printVariableDeclarationList.bind (goTranspiler);
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        if ((typeof printed !== 'string') || (node?.declarations?.length !== 1)) {
+            return printed;
+        }
+        const declaration = node.declarations[0];
+        const initializer = declaration.initializer;
+        const literal = ccxtGoClosureLiteralLines (printed);
+        if ((literal === undefined) || (initializer?.kind !== ts.SyntaxKind.ConditionalExpression)
+                || (literal.name !== (goTranspiler.printNode (declaration.name) ?? '').trim ())) {
+            return printed;
+        }
+        const whenTrue = ccxtGoTernaryMapArm (goTranspiler, initializer.whenTrue, literal.whenTrue);
+        const whenFalse = ccxtGoTernaryMapArm (goTranspiler, initializer.whenFalse, literal.whenFalse);
+        const scope = goTranspiler.goEnclosingFunction (declaration);
+        if ((whenTrue === undefined) || (whenFalse === undefined) || (scope === undefined)) {
+            return printed;
+        }
+        const varName = declaration.name.escapedText;
+        let unproven = false;
+        const visit = (n) => {
+            if (unproven) {
+                return;
+            }
+            if ((n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && (n !== declaration.name)) {
+                unproven = ccxtGoProducerUseRebinds (n);
+                return;
+            }
+            ts.forEachChild (n, visit);
+        };
+        ts.forEachChild (scope, visit);
+        const mapType = CCXT_GO_PRODUCER_DICT_TYPE;
+        if (unproven || goTranspiler.goTypeNameIsShadowed (scope, mapType) || !goTranspiler.goLocalIsSafeToType (scope, declaration, varName, mapType)) {
+            return printed;
+        }
+        const lines = printed.split ('\n');
+        const body = literal.indent + '\t';
+        lines[0] = literal.indent + 'var ' + literal.name + ' ' + mapType + ' = func() ' + mapType + ' {';
+        lines[2] = body + '\treturn ' + whenTrue;
+        lines[4] = body + 'return ' + whenFalse;
+        return lines.join ('\n');
+    };
+    goTranspiler.__ccxtGoTernaryMapJoinInstalled = true;
 }
 
 // ------------------------- ws cache limit locals: `let limitResolved: Int = limit` -------------------------
