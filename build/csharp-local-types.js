@@ -17112,6 +17112,9 @@ function nativeGuardedSubtractExpression (csharp, node) {
         }
         const kind = nativeArithmeticOperandKind (csharp, operand);
         if (kind === 'Int64?') {
+            if (nativeInt64ValueIsNonNull (csharp, operand, 0)) {
+                return 'Int64';
+            }
             return (operand.kind === ts.SyntaxKind.Identifier) && !nativeSubtractOperandIsRebound (csharp, operand)
                 && csharp.csharpNullGuardAdmitsRead (node, operand) ? 'Int64' : undefined;
         }
@@ -17124,6 +17127,66 @@ function nativeGuardedSubtractExpression (csharp, node) {
         return undefined; // no nullable operand: nativeArithmeticIsProven's decision
     }
     return '(' + csharp.printNode (node.left, 0) + ' - ' + csharp.printNode (node.right, 0) + ')';
+}
+
+// default argument position of the base safe integer readers (Exchange.SafeMethods.cs)
+const NON_NULL_DEFAULT_INT64_READERS = { 'safeInteger': 2, 'safeInteger2': 3, 'safeIntegerN': 2 };
+
+// an `Int64?` value that is never null: a safe integer read with a non-null integer default
+// (SafeIntegerN answers the default on every null path), a conditional picking the tested
+// identifier only when it is non-null, or a never-rebound local initialised with either
+function nativeInt64ValueIsNonNull (csharp, node, depth) {
+    let current = node;
+    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.expression;
+    }
+    if (current === undefined || depth > 4) {
+        return false;
+    }
+    const nonNullIntKind = (n) => NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (nativeArithmeticOperandKind (csharp, n))
+        || ((nativeArithmeticOperandKind (csharp, n) === 'Int64?') && nativeInt64ValueIsNonNull (csharp, n, depth + 1));
+    if (current.kind === ts.SyntaxKind.CallExpression) {
+        const callee = current.expression;
+        const position = (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword)
+            ? NON_NULL_DEFAULT_INT64_READERS[callee.name?.text] : undefined;
+        return (position !== undefined) && (current.arguments.length === position + 1) && nonNullIntKind (current.arguments[position]);
+    }
+    if (current.kind === ts.SyntaxKind.ConditionalExpression) {
+        const tested = [ current.whenTrue, current.whenFalse ].map ((arm) => {
+            let inner = arm;
+            while (inner?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+                inner = inner.expression;
+            }
+            return inner;
+        });
+        for (const [ index, arm ] of tested.entries ()) {
+            if (arm?.kind !== ts.SyntaxKind.Identifier || typeof csharp.csharpTestIsNonNullCheck !== 'function') {
+                continue;
+            }
+            let symbol;
+            try {
+                symbol = csharp.getChecker ().getSymbolAtLocation (arm);
+            } catch (e) {
+                return false;
+            }
+            const other = index === 0 ? current.whenFalse : current.whenTrue;
+            if ((symbol !== undefined) && csharp.csharpTestIsNonNullCheck (current.condition, symbol, index === 0) && nonNullIntKind (other)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    if ((current.kind !== ts.SyntaxKind.Identifier) || nativeSubtractOperandIsRebound (csharp, current)) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = csharp.getChecker ().getSymbolAtLocation (current)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return (declaration?.kind === ts.SyntaxKind.VariableDeclaration) && (declaration.initializer !== undefined)
+        && nativeInt64ValueIsNonNull (csharp, declaration.initializer, depth + 1);
 }
 
 // the guard proof is dropped for a binding written anywhere after its declaration (a write

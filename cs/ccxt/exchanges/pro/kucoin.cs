@@ -274,7 +274,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? refreshInterval = (((1000L * 60L) * 60) * 24); // 24 hours
         refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", refreshInterval);
         Int64 now = this.milliseconds();
-        bool expired = isGreaterThanOrEqual((subtract(now, lastUpdate)), refreshInterval);
+        bool expired = isGreaterThanOrEqual(((now - lastUpdate)), refreshInterval);
         string messageHash = "utaToken";
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         var client = this.client(url);

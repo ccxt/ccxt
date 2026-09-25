@@ -3989,13 +3989,13 @@ public partial class htx : Exchange
                 if ((since == null))
                 {
                     Int64 now = this.seconds();
-                    request["from"] = subtract(now, multiply(duration, (subtract(contractLimit, 1))));
+                    request["from"] = subtract(now, multiply(duration, ((contractLimit - 1))));
                     calcualtedEnd = now;
                 } else
                 {
                     Int64? start = this.parseToInt(((double?)since / 1000));
                     request["from"] = start;
-                    calcualtedEnd = this.sum(start, multiply(duration, (subtract(contractLimit, 1))));
+                    calcualtedEnd = this.sum(start, multiply(duration, ((contractLimit - 1))));
                 }
                 request["to"] = ((untilSeconds != null)) ? untilSeconds : calcualtedEnd;
             }
@@ -8954,7 +8954,7 @@ public partial class htx : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
+        return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)

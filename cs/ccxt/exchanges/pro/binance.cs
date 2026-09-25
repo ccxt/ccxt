@@ -3325,7 +3325,7 @@ public partial class binance : ccxt.binance
         Int64? listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
         Int64 time = this.milliseconds();
         Int64? delay = (listenTokenRefreshRate + 10000);
-        if (isGreaterThan(subtract(time, lastAuthenticatedTime), delay))
+        if (isGreaterThan((time - lastAuthenticatedTime), delay))
         {
             // the future covers the REST create plus the ws subscribe, including the
             // renewal timer re-entry through renewListenToken, so a concurrent caller
@@ -3486,7 +3486,7 @@ public partial class binance : ccxt.binance
         }
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
         Int64? delay = (listenKeyRefreshRate + 10000);
-        if (isGreaterThan(subtract(time, lastAuthenticatedTime), delay))
+        if (isGreaterThan((time - lastAuthenticatedTime), delay))
         {
             // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
             // the flight is registered on a never-dialed client because the

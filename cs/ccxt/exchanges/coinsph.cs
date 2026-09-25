@@ -1273,7 +1273,7 @@ public partial class coinsph : Exchange
             } else
             {
                 Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-                object endTimeByLimit = this.sum(since, multiply(duration, (subtract(limitResolved, 1))));
+                object endTimeByLimit = this.sum(since, multiply(duration, ((limitResolved - 1))));
                 Int64 now = this.milliseconds();
                 request["endTime"] = mathMin(endTimeByLimit, now);
             }
@@ -1282,7 +1282,7 @@ public partial class coinsph : Exchange
             request["endTime"] = until;
             // since work properly only when it is "younger" than last "limit" candle
             Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-            request["startTime"] = subtract(until, (multiply(duration, (subtract(limitResolved, 1)))));
+            request["startTime"] = subtract(until, (multiply(duration, ((limitResolved - 1)))));
         }
         request["limit"] = limitResolved;
         object paramsOmitted = this.omit(parameters, "until");

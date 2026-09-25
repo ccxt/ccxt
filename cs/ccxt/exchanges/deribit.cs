@@ -1851,7 +1851,7 @@ public partial class deribit : Exchange
         object sinceResolved = ((since == null)) ? null : mathMax(subtract(since, 1), 0);
         if ((since == null))
         {
-            request["start_timestamp"] = subtract(now, multiply(multiply((subtract(windowLimit, 1)), duration), 1000));
+            request["start_timestamp"] = subtract(now, multiply(multiply(((windowLimit - 1)), duration), 1000));
             request["end_timestamp"] = now;
         } else
         {
@@ -3819,7 +3819,7 @@ public partial class deribit : Exchange
         Int64? time = ((since == null)) ? now : (since + month);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
-            { "start_timestamp", subtract(sinceResolved, 1) },
+            { "start_timestamp", (sinceResolved - 1) },
         };
         Int64? until = this.safeInteger2(paramsPaginate, "until", "end_timestamp");
         object paramsUntil = ((until != null)) ? this.omit(paramsPaginate, new List<object>() {"until"}) : paramsPaginate;

@@ -1293,7 +1293,7 @@ public partial class sxbet : PredictionExchange
         // the venue caps one cancel request at maxCancelOrders ids (100, see /metadata/obv3) -
         // chunk larger batches instead of letting the whole request 400
         Int64? chunkSize = this.safeInteger(this.options, "cancelOrdersBatchSize", 100);
-        Int64? chunkCount = this.parseToInt(divide(this.sum(idsLength, subtract(chunkSize, 1)), chunkSize));
+        Int64? chunkCount = this.parseToInt(divide(this.sum(idsLength, (chunkSize - 1)), chunkSize));
         List<object> result = new List<object>() {};
         for (int c = 0; (c < chunkCount); c++)
         {
@@ -2173,7 +2173,7 @@ public partial class sxbet : PredictionExchange
             return ccxt.BaseExchange.ToPredictionTickers(this.parseSxbetTickersByHash(outcomesList, rowsByHash));
         }
         Int64? chunkSize = this.safeInteger(this.options, "bestOddsBatchSize", 100);
-        Int64? chunkCount = this.parseToInt(divide(this.sum(hashesLength, subtract(chunkSize, 1)), chunkSize));
+        Int64? chunkCount = this.parseToInt(divide(this.sum(hashesLength, (chunkSize - 1)), chunkSize));
         for (int c = 0; (c < chunkCount); c++)
         {
             Int64? start = (c * chunkSize);

@@ -686,7 +686,7 @@ public partial class coinbaseinternational : Exchange
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption));
         }
         Dictionary<string, object> market = this.market(symbol);
-        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+        object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1);
         Int64? offSet = this.safeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", multiply(page, maxEntriesPerRequestOption));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1186,7 +1186,7 @@ public partial class coinbaseinternational : Exchange
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption));
         }
-        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+        object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1);
         Int64? offSet = this.safeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", multiply(page, maxEntriesPerRequestOption));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "result_offset", offSet },
@@ -2459,7 +2459,7 @@ public partial class coinbaseinternational : Exchange
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption));
         }
-        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+        object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1);
         Int64? offSet = this.safeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", multiply(page, maxEntriesPerRequestOption));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "portfolio", portfolio },
@@ -2558,7 +2558,7 @@ public partial class coinbaseinternational : Exchange
         {
             market = this.market(symbol);
         }
-        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+        object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1);
         Int64? offSet = this.safeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "result_offset", offSet },

@@ -1202,7 +1202,7 @@ public partial class binance : PredictionExchange
         {
             return ccxt.BaseExchange.ToPredictionOrderList(await this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest));
         }
-        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+        object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Int64? offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", multiply(page, maxEntriesPerRequest));
         if ((offSet > 0))
@@ -1295,7 +1295,7 @@ public partial class binance : PredictionExchange
         {
             return ccxt.BaseExchange.ToPredictionOrderList(await this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest));
         }
-        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+        object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Int64? offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", multiply(page, maxEntriesPerRequest));
         if ((offSet > 0))
@@ -1586,7 +1586,7 @@ public partial class binance : PredictionExchange
         {
             return ccxt.BaseExchange.ToPredictionTradeList(await this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest));
         }
-        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+        object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "FILLED" },
         };
