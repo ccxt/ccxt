@@ -297,7 +297,7 @@ class bitbns(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quote')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            if (base is None) or (quote is None):
+            if (baseId is None) or (base is None) or (quote is None):
                 continue
             marketPrecision = self.safe_dict(market, 'precision', {})
             marketLimits = self.safe_dict(market, 'limits', {})

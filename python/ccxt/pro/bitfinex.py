@@ -391,7 +391,6 @@ class bitfinex(ccxt.async_support.bitfinex):
         channel = self.safe_string(subscription, 'channel')
         marketId = self.safe_string(subscription, 'symbol')
         market = self.safe_market(marketId)
-        messageHash = channel + ':' + marketId
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
         symbol = market['symbol']
         stored = self.safe_value(self.trades, symbol)
@@ -418,7 +417,9 @@ class bitfinex(ccxt.async_support.bitfinex):
             trade = self.safe_list(message, 2, [])
             parsed = self.parse_ws_trade(trade, market)
             stored.append(parsed)
-        client.resolve(stored, messageHash)
+        if channel is not None:
+            messageHash = channel + ':' + marketId
+            client.resolve(stored, messageHash)
 
     def parse_ws_trade(self, trade: object, market: Market = None) -> Trade:
         #

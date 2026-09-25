@@ -589,8 +589,9 @@ class derive(ccxt.async_support.derive):
                     parsed['timestamp'] = self.safe_integer(order, 'timestamp')
                     parsed['datetime'] = self.safe_string(order, 'datetime')
                 cachedOrders.append(parsed)
-                messageHashSymbol = topic + ':' + symbol
-                client.resolve(self.orders, messageHashSymbol)
+                if topic is not None:
+                    messageHashSymbol = topic + ':' + symbol
+                    client.resolve(self.orders, messageHashSymbol)
         client.resolve(self.orders, topic)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -647,8 +648,9 @@ class derive(ccxt.async_support.derive):
             trade = self.parse_trade(message)
             myTrades.append(trade)
             client.resolve(myTrades, topic)
-            messageHash = topic + self.safe_string(trade, 'symbol', '')
-            client.resolve(myTrades, messageHash)
+            if topic is not None:
+                messageHash = topic + self.safe_string(trade, 'symbol', '')
+                client.resolve(myTrades, messageHash)
 
     def handle_error_message(self, client: Client, message: dict) -> Bool:
         #

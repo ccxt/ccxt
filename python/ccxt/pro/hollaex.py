@@ -118,8 +118,9 @@ class hollaex(ccxt.async_support.hollaex):
             if orderbook is None:
                 return
             orderbook.reset(snapshot)
-        messageHash = channel + ':' + marketId
-        client.resolve(orderbook, messageHash)
+        if channel is not None:
+            messageHash = channel + ':' + marketId
+            client.resolve(orderbook, messageHash)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -173,8 +174,9 @@ class hollaex(ccxt.async_support.hollaex):
         parsedTrades = self.parse_trades(data, market)
         for j in range(0, len(parsedTrades)):
             stored.append(parsedTrades[j])
-        messageHash = channel + ':' + marketId
-        client.resolve(stored, messageHash)
+        if channel is not None:
+            messageHash = channel + ':' + marketId
+            client.resolve(stored, messageHash)
         client.resolve(stored, channel)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -253,8 +255,9 @@ class hollaex(ccxt.async_support.hollaex):
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
             marketId = keys[i]
-            messageHash = channel + ':' + marketId
-            client.resolve(self.myTrades, messageHash)
+            if channel is not None:
+                messageHash = channel + ':' + marketId
+                client.resolve(self.myTrades, messageHash)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -371,8 +374,9 @@ class hollaex(ccxt.async_support.hollaex):
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
             marketId = keys[i]
-            messageHash = channel + ':' + marketId
-            client.resolve(self.orders, messageHash)
+            if channel is not None:
+                messageHash = channel + ':' + marketId
+                client.resolve(self.orders, messageHash)
 
     async def watch_balance(self, params: dict = {}) -> Balances:
         """

@@ -655,6 +655,8 @@ class apex(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         settleId = self.safe_string(market, 'settleAssetId')
         settle = self.safe_currency_code(settleId)
+        if (baseId is None) or (quote is None) or (settle is None):
+            return None
         symbol = baseId + '/' + quote + ':' + settle
         expiry = 0
         takerFee = self.parse_number('0.0002')

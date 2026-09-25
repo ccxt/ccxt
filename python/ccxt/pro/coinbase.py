@@ -449,9 +449,10 @@ class coinbase(ccxt.async_support.coinbase):
                 if symbol is not None:
                     self.tickers[symbol] = result
                 newTickers.append(result)
-                messageHash = channel + '::' + symbol
-                client.resolve(result, messageHash)
-                self.try_resolve_usdc(client, messageHash, result)
+                if channel is not None:
+                    messageHash = channel + '::' + symbol
+                    client.resolve(result, messageHash)
+                    self.try_resolve_usdc(client, messageHash, result)
 
     def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
