@@ -1,4 +1,5 @@
 import { Transpiler } from 'ast-transpiler';
+import { installCacheRemoveCall } from './cache-remove-call.js';
 import { getProgramBatch } from './worker-program-batch.js';
 import { patchJavaLocalTypes } from './javaTranspiler.js';
 import { installJavaExpressionTypeResolver } from './javaTranspiler.js';
@@ -37,6 +38,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
     if (!cachedTranspiler || cachedConfigKey !== key) {
         if (!programCache) programCache = Transpiler.createProgramCache ();
         cachedTranspiler = new Transpiler (transpilerConfig, programCache);
+        installCacheRemoveCall(cachedTranspiler, 'java');
         cachedTranspiler.setVerboseMode (false);
         // same printer hook the main thread installs in setupTranspiler(); the
         // batch below prints through this very javaTranspiler instance
