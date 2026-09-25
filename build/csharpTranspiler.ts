@@ -404,7 +404,7 @@ function csharpHelperLocalIsNonNull (region, name: string, line: number, value: 
 
 // rewrite every proven helper call on one line; offsets are taken from the mask, the emitted text
 // from the original line
-function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType, takeIndexType, takeNullableKeyType = (k) => false, takeInOpType = (n) => undefined): string | undefined {
+function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType, takeIndexType, takeNullableKeyType = (k) => false, takeInOpType = (n) => undefined, objectNull = false): string | undefined {
     const edits = [];
     const lengthCall = /getArrayLength[ ]*\(/g;
     let match;
@@ -481,7 +481,7 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         edits.push ({ start: match.index, end: close + 1,
             text: `(${valueNullTest} && ${name}.ContainsKey(${keyText}) ? ${name}[${keyText}] : null)` });
     }
-    csharpHelperOperatorEdits (original, masked, takeType, edits);
+    csharpHelperOperatorEdits (original, masked, takeType, edits, objectNull);
     if (edits.length === 0) {
         return undefined;
     }
@@ -495,6 +495,7 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
 // declared C# kinds an operator rule may read: the value the emitted declaration holds
 const CSHARP_OPERATOR_STRING_TYPES = [ 'string', 'string?' ];
 const CSHARP_OPERATOR_NULLABLE_TYPES = [ 'string', 'string?', 'Int64?', 'long?', 'int?', 'double?', 'bool?' ];
+const CSHARP_OPERATOR_BOOL_TYPES = [ 'bool', 'bool?' ];
 const CSHARP_OPERATOR_INTEGER_TYPES = [ 'int', 'Int64', 'long' ];
 const CSHARP_OPERATOR_NUMERIC_TYPES = [ 'int', 'Int64', 'long', 'double' ];
 const CSHARP_OPERATOR_NULLABLE_INTEGER_TYPES = [ 'Int64?', 'long?', 'int?' ];
@@ -509,6 +510,9 @@ function csharpOperatorOperand (maskedArg: string, originalArg: string, takeType
     }
     if (maskedArg === 'null') {
         return { kind: 'null' };
+    }
+    if ((maskedArg === 'true') || (maskedArg === 'false')) {
+        return { kind: 'bool-literal' };
     }
     if (/^-?\d{1,15}$/.test (maskedArg)) {
         return { kind: 'integer-literal' };
@@ -526,20 +530,24 @@ function csharpOperatorOperand (maskedArg: string, originalArg: string, takeType
 // `isEqual(a, b)` -> `(a == b)` and `isGreaterThan(a, b)` & co -> the operator, when the emitted
 // declarations make the C# operator compute the helper's answer for every value the operands
 // can hold (a null / NaN operand whose helper branch differs keeps the helper)
-function csharpNativeOperatorText (helper: string, left, right, leftText: string, rightText: string): string | undefined {
+function csharpNativeOperatorText (helper: string, left, right, leftText: string, rightText: string, objectNull: boolean): string | undefined {
     const isName = (o, types) => (o.kind === 'name') && types.includes (o.type);
     if (helper === 'isEqual') {
         // string ordinal equality, null on either side answering like isEqual's null branch
         const stringPair = (isName (left, CSHARP_OPERATOR_STRING_TYPES) && ((right.kind === 'string-literal') || isName (right, CSHARP_OPERATOR_STRING_TYPES)))
             || (isName (right, CSHARP_OPERATOR_STRING_TYPES) && (left.kind === 'string-literal'));
-        const nullTest = (isName (left, CSHARP_OPERATOR_NULLABLE_TYPES) && (right.kind === 'null'))
-            || (isName (right, CSHARP_OPERATOR_NULLABLE_TYPES) && (left.kind === 'null'));
+        // an `object` name is null only for the null box, which is isEqual's both-null branch
+        const nullableName = (o) => isName (o, CSHARP_OPERATOR_NULLABLE_TYPES) || (objectNull && isName (o, [ 'object' ]));
+        const nullTest = (nullableName (left) && (right.kind === 'null')) || (nullableName (right) && (left.kind === 'null'));
+        // bool equality: a null `bool?` differs from both literals, like isEqual's null branch
+        const boolPair = (isName (left, CSHARP_OPERATOR_BOOL_TYPES) && (right.kind === 'bool-literal'))
+            || (isName (right, CSHARP_OPERATOR_BOOL_TYPES) && (left.kind === 'bool-literal'));
         // integers compare through Convert.ToInt64 in isEqual: the same value comparison
         // (a nullable integer: null equals only null in both, the lifted `==`)
         const integer = (o) => isName (o, CSHARP_OPERATOR_INTEGER_TYPES) || isName (o, CSHARP_OPERATOR_NULLABLE_INTEGER_TYPES) || (o.kind === 'integer-literal');
         const integerPair = integer (left) && integer (right)
             && ((left.kind === 'name') || (right.kind === 'name'));
-        return (stringPair || nullTest || integerPair) ? `(${leftText} == ${rightText})` : undefined;
+        return (stringPair || nullTest || boolPair || integerPair) ? `(${leftText} == ${rightText})` : undefined;
     }
     const token = CSHARP_OPERATOR_TOKENS[helper];
     if (token === undefined) {
@@ -576,7 +584,7 @@ function csharpNativeOperatorText (helper: string, left, right, leftText: string
 const CSHARP_HELPER_LINE_RE = /getArrayLength|inOp|getValue|isEqual|isGreaterThan|isLessThan/;
 
 // the operator helper calls of one line whose operands the emitted declarations prove
-function csharpHelperOperatorEdits (original: string, masked: string, takeType, edits) {
+function csharpHelperOperatorEdits (original: string, masked: string, takeType, edits, objectNull: boolean) {
     const helperCall = /(?<![A-Za-z0-9_.])(isEqual|isGreaterThan|isGreaterThanOrEqual|isLessThan|isLessThanOrEqual)\(/g;
     let match;
     while ((match = helperCall.exec (masked)) !== null) {
@@ -591,7 +599,7 @@ function csharpHelperOperatorEdits (original: string, masked: string, takeType, 
         const left = csharpOperatorOperand (masked.substring (open + 1, comma).trim (), leftText, takeType);
         const right = csharpOperatorOperand (masked.substring (comma + 1, close).trim (), rightText, takeType);
         if ((left === undefined) || (right === undefined)) continue;
-        const text = csharpNativeOperatorText (match[1], left, right, leftText, rightText);
+        const text = csharpNativeOperatorText (match[1], left, right, leftText, rightText, objectNull);
         if (text !== undefined) {
             edits.push ({ start: match.index, end: close + 1, text });
         }
@@ -626,7 +634,7 @@ function csharpHelperTopLevelComma (line: string, open: number, close: number): 
 // `getArrayLength(x)` -> `(x?.Count ?? 0)` / `(x?.Length ?? 0)`, `inOp(x, k)` ->
 // `x.ContainsKey(k)` / `x.Contains(k)` (with a null test where the emitted declaration allows a
 // null receiver) for every receiver the emitted signature / declarations type as a collection
-export function nativeDeclaredHelperCalls (content: string): string {
+export function nativeDeclaredHelperCalls (content: string, objectNull = true): string {
     if (!CSHARP_HELPER_LINE_RE.test (content)) {
         return content;
     }
@@ -718,7 +726,7 @@ export function nativeDeclaredHelperCalls (content: string): string {
             const key = csharpHelperReceiverType (region, keyMask, i, region.params);
             return (key !== undefined) && (key.type === 'string?');
         };
-        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType, takeNullableKeyType, (name) => csharpInOpReceiverType (region, name, i));
+        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType, takeNullableKeyType, (name) => csharpInOpReceiverType (region, name, i), objectNull);
         if (rewritten === undefined) {
             return line;
         }
@@ -1565,7 +1573,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'BaseExchange': { 'CancelAllContractOrders': [ 0 ], 'CancelAllSpotOrders': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'calculateFee': [ 0, 1, 2 ], 'repayIsolatedMargin': [ 0 ], 'repayMargin': [ 2 ], 'unWatchFundingRate': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'alpaca': { 'FetchTransactionsHelper': [ 0, 1 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
     'apex': { 'FetchFundingHistory': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ] },
-    'aster': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'isInverse': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'aster': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'isInverse': [ 0 ], 'isLinear': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransferStatus': [ 0 ] },
     'backpack': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0, 1 ], 'parseMarketType': [ 0 ], 'parseOrderSide': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'bigone': { 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ], 'parseType': [ 0 ] },
     'binance': { 'FetchFundingHistory': [ 0 ], 'FetchMyDustTrades': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'FetchMySettlementHistory': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'createOrderRequest': [ 1, 2 ], 'editContractOrderRequest': [ 0, 2, 3 ], 'editSpotOrderRequest': [ 0, 2, 3 ], 'modifyMarginHelper': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTypeByMarket': [ 0 ], 'parseTransactionStatusByType': [ 0 ], 'parseTransferStatus': [ 0 ], 'repayIsolatedMargin': [ 0 ], 'verifyGiftCode': [ 0 ] },
@@ -1602,7 +1610,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'coinsph': { 'encodeOrderSide': [ 0 ], 'parseOrderSide': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'cryptocom': { 'FetchSettlementHistory': [ 0 ], 'createAdvancedOrderRequest': [ 0, 1, 2 ], 'createOrderRequest': [ 0, 1, 2 ], 'editOrderRequest': [ 0 ], 'parseDepositStatus': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseWithdrawalStatus': [ 0 ] },
     'cryptomus': { 'parseOrderStatus': [ 0 ] },
-    'deepcoin': { 'createOrderRequest': [ 0, 1, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'deepcoin': { 'createOrderRequest': [ 0, 1, 2 ], 'createRegularOrderRequest': [ 1, 2 ], 'createTriggerOrderRequest': [ 1, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
     'delta': { 'FetchOrdersWithMethod': [ 1 ], 'FetchSettlementHistory': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseOrderStatus': [ 0 ] },
     'deribit': { 'FetchMyLiquidations': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
     'derive': { 'FetchFundingHistory': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
@@ -1613,9 +1621,9 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'gate': { 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'FetchMySettlementHistory': [ 0 ], 'FetchOrdersByStatus': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'createOrderRequest': [ 1, 2 ], 'editOrderRequest': [ 0, 2, 3 ], 'fetchOrderRequest': [ 0 ], 'getSettlementCurrencies': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'prepareOrdersByStatusRequest': [ 0 ], 'repayIsolatedMargin': [ 0 ] },
     'gemini': { 'parseMarketActive': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'grvt': { 'FetchFundingHistory': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ] },
-    'hashkey': { 'CreateSpotOrder': [ 0, 1, 2 ], 'CreateSwapOrder': [ 0, 1, 2 ], 'FetchOpenSpotOrders': [ 0 ], 'FetchOpenSwapOrders': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'modifyMarginHelper': [ 0, 2 ], 'parseAccountType': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ] },
-    'hibachi': { 'FetchMySettlementHistory': [ 0 ], 'createOrderRequest': [ 1, 2, 3 ], 'editOrderRequest': [ 2, 3, 4 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
-    'hitbtc': { 'FetchTransactionsHelper': [ 0, 1 ], 'createOrderRequest': [ 2, 3 ], 'modifyMarginHelper': [ 0, 2 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
+    'hashkey': { 'CreateSpotOrder': [ 0, 1, 2 ], 'CreateSwapOrder': [ 0, 1, 2 ], 'FetchOpenSpotOrders': [ 0 ], 'FetchOpenSwapOrders': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'createSpotOrderRequest': [ 1, 2 ], 'createSwapOrderRequest': [ 1, 2 ], 'encodeAccountType': [ 0 ], 'encodeFlowType': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseAccountType': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ] },
+    'hibachi': { 'FetchMySettlementHistory': [ 0 ], 'createOrderRequest': [ 1, 2, 3 ], 'editOrderRequest': [ 2, 3, 4 ], 'orderMessage': [ 3, 4 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'hitbtc': { 'FetchTransactionsHelper': [ 0, 1 ], 'createOrderRequest': [ 1, 2, 3 ], 'modifyMarginHelper': [ 0, 2 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
     'hollaex': { 'parseOrderStatus': [ 0 ] },
     'htx': { 'CreateSpotOrderRequest': [ 1 ], 'FetchClosedContractOrders': [ 0 ], 'FetchClosedSpotOrders': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'FetchSpotOrders': [ 0 ], 'FetchTradingLimitsById': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'createContractOrderRequest': [ 1, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTradingLimits': [ 1 ], 'parseTransactionStatus': [ 0 ], 'repayIsolatedMargin': [ 0 ] },
     'hyperliquid': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0, 3 ], 'modifyMarginHelper': [ 0, 2 ], 'parseCreateEditOrderArgs': [ 2, 3 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ] },
@@ -1623,21 +1631,21 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'indodax': { 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'kraken': { 'orderRequest': [ 0, 1, 2 ], 'parseAccountType': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionsByType': [ 0 ] },
     'krakenfutures': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'parseLedgerEntryType': [ 0 ] },
-    'kucoin': { 'CancelAllContractOrders': [ 0 ], 'CancelAllSpotOrders': [ 0 ], 'CancelAllUtaOrders': [ 0 ], 'CreateContractOrder': [ 0, 1, 2 ], 'CreateSpotOrder': [ 0, 1, 2 ], 'CreateUtaOrder': [ 0, 1, 2 ], 'FetchContractOrder': [ 0 ], 'FetchContractOrdersByStatus': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchMyContractTrades': [ 0 ], 'FetchMySpotTrades': [ 0 ], 'FetchMyUtaTrades': [ 0 ], 'FetchOrdersByStatus': [ 0 ], 'FetchSpotOrder': [ 0 ], 'FetchSpotOrdersByStatus': [ 0 ], 'FetchUtaOrder': [ 0 ], 'FetchUtaOrdersByStatus': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseLedgerStatus': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ], 'repayIsolatedMargin': [ 0 ] },
+    'kucoin': { 'CancelAllContractOrders': [ 0 ], 'CancelAllSpotOrders': [ 0 ], 'CancelAllUtaOrders': [ 0 ], 'CreateContractOrder': [ 0, 1, 2 ], 'CreateSpotOrder': [ 0, 1, 2 ], 'CreateUtaOrder': [ 0, 1, 2 ], 'FetchContractOrder': [ 0 ], 'FetchContractOrdersByStatus': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchMyContractTrades': [ 0 ], 'FetchMySpotTrades': [ 0 ], 'FetchMyUtaTrades': [ 0 ], 'FetchOrdersByStatus': [ 0 ], 'FetchSpotOrder': [ 0 ], 'FetchSpotOrdersByStatus': [ 0 ], 'FetchUtaOrder': [ 0 ], 'FetchUtaOrdersByStatus': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'createContractOrderRequest': [ 1, 2 ], 'createSpotOrderRequest': [ 1, 2 ], 'createUtaOrderRequest': [ 1, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseLedgerStatus': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ], 'repayIsolatedMargin': [ 0 ], 'typeToTradeType': [ 0 ] },
     'latoken': { 'FetchPrivateTradingFee': [ 0 ], 'FetchPublicTradingFee': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ], 'parseTransferStatus': [ 0 ] },
     'lbank': { 'FetchOrderDefault': [ 0 ], 'FetchOrderSupplement': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
-    'lighter': { 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'signAndCancelAllOrders': [ 1 ], 'signAndCancelOrder': [ 1 ], 'signAndCreateOrder': [ 1, 2, 3 ] },
+    'lighter': { 'createOrderRequest': [ 1 ], 'modifyLeverageAndMarginMode': [ 1 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'signAndCancelAllOrders': [ 1 ], 'signAndCancelOrder': [ 1 ], 'signAndCreateOrder': [ 1, 2, 3 ] },
     'luno': { 'parseOrderStatus': [ 0 ] },
     'mercado': { 'parseOrderStatus': [ 0 ] },
-    'mexc': { 'CreateSpotOrder': [ 1, 2 ], 'CreateSwapOrder': [ 1, 2 ], 'FetchFundingHistory': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseOrderSide': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatusByType': [ 0, 1 ], 'parseTransferStatus': [ 0 ] },
+    'mexc': { 'CreateSpotOrder': [ 1, 2, 5 ], 'CreateSwapOrder': [ 1, 2, 5 ], 'FetchAccountHelper': [ 0 ], 'FetchFundingHistory': [ 0 ], 'createSpotOrderRequest': [ 1, 2 ], 'modifyMarginHelper': [ 0, 2 ], 'parseOrderSide': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatusByType': [ 0, 1 ], 'parseTransferStatus': [ 0 ] },
     'modetrade': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'mudrex': { 'parseOrderStatus': [ 0 ] },
     'nado': { 'CancelAllOrdersRequest': [ 0 ], 'CreateOrderRequest': [ 0, 1, 2 ], 'EditOrderRequest': [ 0, 2, 3 ], 'FetchFundingHistory': [ 0 ], 'parseOrderTimeInForce': [ 0 ] },
     'ndax': { 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatusByType': [ 0 ] },
-    'okx': { 'FetchFundingHistory': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'editOrderRequest': [ 0, 2, 3 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'okx': { 'FetchFundingHistory': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'editOrderRequest': [ 0, 2, 3 ], 'modifyMarginHelper': [ 0, 2 ], 'parseBalanceByType': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
     'onetrading': { 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ] },
     'pacifica': { 'FetchFundingHistory': [ 0 ], 'cancelAllOrdersRequest': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'editOrderRequest': [ 0, 2, 3 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ] },
-    'paradex': { 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'paradex': { 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'encodeMarginMode': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'paymium': { 'parseTransferStatus': [ 0 ] },
     'phemex': { 'FetchFundingHistory': [ 0 ], 'parseMarginStatus': [ 0 ], 'parseOrderSide': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
     'poloniex': { 'FetchTransactionsHelper': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'orderRequest': [ 0, 1, 2 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ] },
@@ -1666,7 +1674,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'pro:coinbase': { 'parseWsTicker': [ 1 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:coinbaseexchange': { 'parseWsOrderStatus': [ 0 ] },
     'pro:coinbaseinternational': { 'parseWsTicker': [ 1 ] },
-    'pro:coinex': { 'parseWsOrderStatus': [ 0 ] },
+    'pro:coinex': { 'authenticate': [ 0 ], 'parseWsOrderStatus': [ 0 ] },
     'pro:cryptocom': { 'unWatchTrades': [ 0 ] },
     'pro:deepcoin': { 'parsePositionSide': [ 0 ], 'parseWsOrderStatus': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:derive': { 'unWatchTrades': [ 0 ] },
@@ -1687,7 +1695,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'pro:onetrading': { 'parseTradingOrderStatus': [ 0 ], 'parseWsOrderStatus': [ 0 ] },
     'pro:pacifica': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:poloniex': { 'parseStatus': [ 0 ] },
-    'pro:toobit': { 'parseWsTicker': [ 1 ] },
+    'pro:toobit': { 'parseWsTicker': [ 1 ], 'setBalanceCache': [ 1 ] },
     'pro:upbit': { 'parseWsOrderStatus': [ 0 ] },
     'pro:weex': { 'subscribePrivate': [ 2 ], 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:whitebit': { 'parseWsOrderType': [ 0 ] },
@@ -1697,9 +1705,9 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'tokocrypto': { 'parseBalanceCustom': [ 1, 2 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatusByType': [ 0 ] },
     'toobit': { 'FetchDepositsOrWithdrawalsHelper': [ 0, 1 ], 'createContractOrderRequest': [ 0, 1, 2 ], 'createOrderRequest': [ 0, 1, 2 ], 'parseLedgerType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'upbit': { 'calcOrderPrice': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
-    'weex': { 'CreateContractOrder': [ 0, 1, 2 ], 'CreateSpotOrder': [ 0, 1, 2 ], 'FetchFundingHistory': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'weex': { 'CreateContractOrder': [ 0, 1, 2 ], 'CreateSpotOrder': [ 0, 1, 2 ], 'FetchFundingHistory': [ 0 ], 'createContractOrderRequest': [ 1, 2 ], 'createSpotOrderRequest': [ 1, 2 ], 'encodeMarginMode': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransferStatus': [ 0 ] },
     'whitebit': { 'FetchFundingHistory': [ 0 ], 'isFiat': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ] },
-    'woo': { 'FetchFundingHistory': [ 0 ], 'defaultNetworkCodeForCurrency': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'repayMargin': [ 2 ] },
+    'woo': { 'FetchFundingHistory': [ 0 ], 'defaultNetworkCodeForCurrency': [ 0 ], 'encodeMarginMode': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'repayMargin': [ 2 ] },
     'woofipro': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'xt': { 'CreateContractOrder': [ 1, 2 ], 'CreateSpotOrder': [ 1, 2 ], 'FetchFundingHistory': [ 0 ], 'FetchOrdersByStatus': [ 0, 1 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'zebpay': { 'orderRequest': [ 0, 1 ] },
@@ -8003,7 +8011,8 @@ class NewTranspiler {
         // tier flag has to come from `this.isPrediction` (set by every prediction pass) --
         // otherwise a prediction file would look up the REST venue's table and skip its own
         const venueKey = (this.isPrediction ? 'prediction:' : ws ? 'pro:' : '') + this.currentVenue;
-        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))))))))))))), venueKey)));
+        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))))))))))))), venueKey)), false);
+        // the copy retypes below read `isEqual(x, null)` on `object` names; the final pass rewrites them
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeCacheElementWriteCasts (content);
         content = this.retypeIdentifierCopies (content);

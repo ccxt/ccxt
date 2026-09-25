@@ -1,0 +1,79 @@
+total isEqual( 1379
+  367 str | param:object
+  181 null | expr
+  132 str | local:object
+  116 null | local:object
+   63 bool | expr
+   48 bool | unknown
+   44 other | expr
+   41 num | param:object
+   32 str | expr
+   32 null | param:object
+   32 strnum | expr
+   32 bool | local:bool?
+   31 bool | local:object
+   26 strnum | local:object
+   22 str | unknown
+   21 num | local:object
+   21 null | unknown
+   18 bool | param:object
+   15 strnum | param:object
+   12 num | expr
+   12 bool | local:bool
+   11 other | local:object
+   11 other | local:string?
+   10 other | unknown
+    8 num | param:string?
+    8 other | local:int
+    6 null | param:double
+    6 null | param:Int64
+    5 other | local:Int64?
+    4 other | param:object
+    4 strnum | unknown
+    2 num | unknown
+    1 null | local:int
+    1 null | local:Int64
+    1 str | local:bool?
+    1 strnum | local:bool?
+    1 other | param:string?
+    1 other | local:bool?
+  162 sign.api
+    7 createSpotOrderRequest.type
+    7 createContractOrderRequest.side
+    6 safeDeterministicCall.method
+    6 parseBalanceCustom.type
+    6 createSignedRequest.structureType
+    6 handleMessage.message
+    5 fetchPaginatedCallCursor.method
+    4 filterEventsBySearchIn.searchIn
+    4 isLinear.type
+    4 FetchTransactionsWithMethod.method
+    4 createRegularOrderRequest.side
+    4 createTriggerOrderRequest.side
+    4 customParseBalance.marketType
+    4 getWsUrl.type
+    4 getFutureWsCategory.channel
+    3 isFiat.code
+    3 createOrderRequest.side
+    3 FetchMarketsByTypeAndSubType.type
+    3 createUtaOrderRequest.side
+    3 modifyLeverageAndMarginMode.marginMode
+    3 getUrlByMarketType.type
+    3 helperForWatchMultipleConstruct.itemHashName
+    3 subscribePrivate.type
+    3 orderRequestWs.method
+    3 negotiateHelper.connectId
+    3 getOrdersMessageHashSuffix.topic
+    2 calculateFeeWithRate.type
+    2 calculateFeeWithRate.side
+    2 checkRequiredMarginArgument.marginMode
+    2 filterEventsByStatus.status
+    2 isLinear.subType
+    2 parseBalanceCustom.marginMode
+    2 handleTypePostOnlyAndTimeInForce.type
+    2 FetchOrdersWithMethod.method
+    2 prepareRequest.type
+    2 parseOrderTypeTimeInForceAndPostOnly.timeInForce
+    2 parseOrderTypeTimeInForceAndPostOnly.type
+    2 orderMessage.side
+    2 FetchMarketsByTypeAndSubType.subType
