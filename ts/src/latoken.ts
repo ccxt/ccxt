@@ -1169,9 +1169,8 @@ export default class latoken extends Exchange {
         const quoteId = this.safeString (order, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const hasBaseAndQuote = (base !== undefined) && (quote !== undefined);
         let symbol: Str = undefined;
-        if (hasBaseAndQuote) {
+        if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
         }
         const symbolKnown = (symbol !== undefined) && (this.markets !== undefined) && (symbol in this.markets);

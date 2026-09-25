@@ -6868,6 +6868,11 @@ function localIdentifierType (csharp, node) {
     if (bindings !== 1 || binding === undefined) {
         return undefined;
     }
+    if (binding.kind === ts.SyntaxKind.VariableDeclaration && binding.name?.kind === ts.SyntaxKind.ArrayBindingPattern && binding.getStart () < node.getStart ()) {
+        // a slot of a destructured audited tuple the declaration hook types
+        const slot = binding.name.elements.findIndex ((element) => element.name?.kind === ts.SyntaxKind.Identifier && element.name.escapedText === name);
+        return (slot < 0) ? undefined : destructuredSlotType (csharp, scope, binding, slot, { scope, stack: new Set (), depth: 0 });
+    }
     if (binding.kind !== ts.SyntaxKind.VariableDeclaration || binding.name?.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
     }
@@ -6994,6 +6999,9 @@ function indexScope (csharp, scope) {
         walk (name);
     };
     const bindingCounts = new Map ();
+    // printed names bound by a destructuring element (`const [ a, b ] = ...`)
+    const patternBindingCounts = new Map ();
+    const bindingElements = [];
     const bindings = new Map ();
     // every binding node per name (parameters, identifier variable declarations, catch
     // variables) — the scope-aware classifier below resolves same-name uses against it.
@@ -7033,6 +7041,11 @@ function indexScope (csharp, scope) {
             }
             list.push (n);
         }
+        if (n.kind === ts.SyntaxKind.BindingElement && n.name?.kind === ts.SyntaxKind.Identifier) {
+            const printed = csharp.printNode (n.name, 0);
+            patternBindingCounts.set (printed, (patternBindingCounts.get (printed) ?? 0) + 1);
+            bindingElements.push (n);
+        }
         if (n.kind === ts.SyntaxKind.Parameter) {
             if (n.name?.kind === ts.SyntaxKind.Identifier) {
                 parameterNames.add (n.name.escapedText);
@@ -7060,7 +7073,7 @@ function indexScope (csharp, scope) {
         ts.forEachChild (n, visit);
     };
     ts.forEachChild (scope, visit);
-    index = { identifiers, bindingNames, bindingCounts, bindings, declarations, parameterNames, blockedNames, bindingScopes, bindingScopesPrinted };
+    index = { identifiers, bindingNames, bindingCounts, patternBindingCounts, bindingElements, bindings, declarations, parameterNames, blockedNames, bindingScopes, bindingScopesPrinted };
     scopeIndexCache.set (scope, index);
     return index;
 }
@@ -7267,6 +7280,22 @@ function declarationCsharpType (csharp, declaration, context) {
     }
 }
 
+// a read of the only binding of its name, a slot of a `const [ ... ] = this.<helper> (...)` declaration the
+// destructured declaration hook types, declared before the read
+function destructuredElementReadType (csharp, context, identifier) {
+    const index = indexScope (csharp, context.scope);
+    const printedName = csharp.printNode (identifier, 0);
+    if ((index.bindingCounts.get (printedName) ?? 0) !== 0 || (index.patternBindingCounts.get (printedName) ?? 0) !== 1 || index.parameterNames.has (identifier.escapedText)) {
+        return undefined;
+    }
+    const element = (index.bindingElements ?? []).find ((candidate) => candidate.name.escapedText === identifier.escapedText);
+    const declaration = element?.parent?.parent;
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.getStart () >= identifier.getStart () || context.depth >= MAX_RESOLVE_DEPTH) {
+        return undefined;
+    }
+    return destructuredSlotType (csharp, context.scope, declaration, element.parent.elements.indexOf (element), context);
+}
+
 function resolveLocalReadType (csharp, context, identifier) {
     if (!context || !context.scope) {
         return undefined;
@@ -7275,7 +7304,7 @@ function resolveLocalReadType (csharp, context, identifier) {
     const name = identifier.escapedText;
     const declarations = index.declarations.get (name);
     if (!declarations || declarations.length === 0) {
-        return undefined; // not a local
+        return destructuredElementReadType (csharp, context, identifier); // not a plain local
     }
     // The read must provably refer to a plain local declaration of this function. The
     // common case is a name bound exactly once; a name with several local bindings (two
@@ -8655,6 +8684,71 @@ function parameterListUseIsMutation (identifier) {
     return false;
 }
 
+// a local holding the marketSymbols / getActiveSymbols string list (directly, or `x === undefined ? [] : x`
+// over such a local) whose list no use rewrites or mutates, including locals it is copied into
+function stringListLocal (csharp, scope, declaration, depth = 0) {
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier || depth > 4) {
+        return false;
+    }
+    const index = indexScope (csharp, scope);
+    const producer = (node) => {
+        while (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.AsExpression) {
+            node = node.expression;
+        }
+        if (node?.kind === ts.SyntaxKind.ConditionalExpression) {
+            return producer (node.whenTrue) && producer (node.whenFalse);
+        }
+        if (node?.kind === ts.SyntaxKind.Identifier) {
+            const name = node.escapedText;
+            if (index.parameterNames.has (name)) {
+                // a narrowed string-list parameter (stringListParameterElementType)
+                const parameter = (scope.parameters ?? []).find ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.escapedText === name);
+                return parameter !== undefined && (index.declarations.get (name) ?? []).length === 0 && stringListParameterElementType (csharp, scope, parameter);
+            }
+            const list = index.declarations.get (name) ?? [];
+            return list.length === 1 && !index.blockedNames.has (name)
+                && list[0].getStart () < node.getStart () && stringListLocal (csharp, scope, list[0], depth + 1);
+        }
+        return stringListParameterWriteProducer (node);
+    };
+    return producer (declaration.initializer) && stringListUsesKeepList (csharp, scope, declaration, 0, producer);
+}
+
+function stringListUsesKeepList (csharp, scope, declaration, depth, producer) {
+    if (depth > 4) {
+        return false;
+    }
+    for (const use of indexScope (csharp, scope).identifiers.get (declaration.name.escapedText) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            // a plain rewrite with another proven string list keeps the invariant
+            if (depth === 0 && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && producer !== undefined && producer (parent.right)) {
+                continue;
+            }
+            return false;
+        }
+        if (parameterListUseIsMutation (use) || enclosingFunction (use) !== scope) {
+            return false;
+        }
+        // copied into another local (directly or as a conditional arm): that local holds the same list
+        let holder = parent;
+        let child = use;
+        while ((holder?.kind === ts.SyntaxKind.ParenthesizedExpression || holder?.kind === ts.SyntaxKind.AsExpression)
+                || (holder?.kind === ts.SyntaxKind.ConditionalExpression && holder.condition !== child)) {
+            child = holder;
+            holder = holder.parent;
+        }
+        if (holder?.kind === ts.SyntaxKind.VariableDeclaration && holder.initializer === child
+                && !(holder.name?.kind === ts.SyntaxKind.Identifier && stringListUsesKeepList (csharp, scope, holder, depth + 1, undefined))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // is every element of this narrowed parameter a string? (see the family comment above)
 function stringListParameterElementType (csharp, scope, parameter) {
     if (typeof csharp.csharpListTypedCoreArg !== 'function' || !stringListParameterAnnotation (parameter)) {
@@ -8769,6 +8863,9 @@ function elementAccessElementType (csharp, initializer, context) {
     }
     if (declaration.getStart () > initializer.getStart ()) {
         return undefined; // the list is not provably built before the read
+    }
+    if (stringListLocal (csharp, scope, declaration)) {
+        return 'string';
     }
     const built = stringElementsProducer (declaration.initializer)
         ? { elementType: 'string', pushes: new Set () }
@@ -9125,6 +9222,33 @@ function marketRowUseDisqualifies (n) {
     return false;
 }
 
+// `(market === undefined) ? this.safeMarket (...) : market` over an unwritten MARKET-ROW PARAMETER
+function marketRowParamConditional (csharp, scope, index, node) {
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return false;
+    }
+    const arm = (value) => {
+        while (value?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            value = value.expression;
+        }
+        if (marketRowValueOrNullish (value)) {
+            return true;
+        }
+        if (value?.kind !== ts.SyntaxKind.Identifier || (index.declarations.get (value.escapedText) ?? []).length !== 0) {
+            return false;
+        }
+        const params = (index.bindings.get (value.escapedText) ?? []).filter ((candidate) => candidate.kind === ts.SyntaxKind.Parameter);
+        if (params.length !== 1 || !MARKET_ROW_PARAM_TYPES.includes (marketRowParamAnnotation (params[0]))) {
+            return false;
+        }
+        return (index.identifiers.get (value.escapedText) ?? []).every ((n) => n === params[0].name || !marketRowUseDisqualifies (n));
+    };
+    return arm (node.whenTrue) && arm (node.whenFalse);
+}
+
 // `market['swap']` on a PROVEN row receiver: the literal key, else undefined. Two receiver
 // shapes: a LOCAL whose single binding is a market-row producer (or a nullish reset), and a
 // MARKET-ROW PARAMETER (the TS annotation, see MARKET_ROW_PARAM_TYPES). Every other use of the
@@ -9155,7 +9279,7 @@ function marketRowReadKey (csharp, initializer) {
     let declaration;
     if (candidates.length === 1) {
         declaration = candidates[0];
-        if (declaration.initializer === undefined || !marketRowValueOrNullish (declaration.initializer)) {
+        if (declaration.initializer === undefined || !(marketRowValueOrNullish (declaration.initializer) || marketRowParamConditional (csharp, scope, index, declaration.initializer))) {
             return undefined;
         }
         if (declaration.getStart () > initializer.getStart ()) {
@@ -10631,6 +10755,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // (`const keys = this.sort (…)` -> `List<string> keys = …`): the element box is that scalar or
         // null, so the declaration names it behind the exact cast back
         const typedListElement = (elementType === undefined) ? typedListElementReadType (csharp, declaration.initializer) : undefined;
+        const tupleElement0 = (elementType === undefined && typedListElement === undefined) ? handleTupleElement0ReadType (csharp, declaration.initializer) : undefined;
         // `this.handleOption (method, key, <literal>)` / `this.safeValue (this.options, key,
         // <literal>)` whose option key's writer census is the default literal's own kind
         const optionsDefaultType = optionsLiteralDefaultCastType (declaration.initializer);
@@ -10670,6 +10795,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // numeric / bool arms cast to the nullable box the same way
             csharpType = (typedListElement === 'string') ? 'string?' : (typedListElement + '?');
             cast = (typedListElement === 'string') ? 'string' : (typedListElement + '?');
+        } else if (tupleElement0 !== undefined) {
+            csharpType = tupleElement0;
+            cast = (tupleElement0 === 'string?') ? 'string' : tupleElement0;
         } else if (wsCacheElement !== undefined) {
             csharpType = wsCacheElement;
             cast = wsCacheElement;
@@ -12442,37 +12570,135 @@ const DESTRUCTURED_DECLARATION_ELEMENT0 = {
     'handleOptionBoolAndParams': 'bool?', 'handleOptionBoolAndParams2': 'bool?',
     'handleOptionIntegerAndParams': 'Int64?', 'handleOptionIntegerAndParams2': 'Int64?',
 };
-// element 0 is not the last tuple read, so its line keeps the `;`
-const DESTRUCTURED_ELEMENT0_LINE_RE = /^([ \t]*)var ([A-Za-z_]\w*) = ([A-Za-z_]\w*\[0\])(?=;?$)/m;
 // the audited string helpers: a caller default that can flow out as element 0 must be a string literal or absent
-function destructuredStringHelperElement0 (call, helper) {
+function destructuredStringHelperElement0 (call, helper, csharp) {
     if (!Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, helper)) {
         return undefined;
     }
     const position = DESTRUCTURED_STRING_HELPERS[helper];
     const argument = position > 0 ? call.arguments?.[position - 1] : undefined;
-    return (argument === undefined || isUndefinedLiteral (argument) || isStringLiteral (argument)) ? 'string?' : undefined;
+    if (argument === undefined || isUndefinedLiteral (argument) || isStringLiteral (argument)) {
+        return 'string?';
+    }
+    // or a local the printer declares string / string? (destructuredStringElementProof's rule)
+    const local = (csharp !== undefined && argument.kind === ts.SyntaxKind.Identifier) ? localIdentifierType (csharp, argument) : undefined;
+    return STRING_TYPES.includes (local) ? 'string?' : undefined;
 }
 
+// `this.<helper> (...)[0]`, or `t[0]` of a local `t` holding that call and never rewritten or
+// mutated: the same element-0 box the destructured form names
+function handleTupleElement0ReadType (csharp, initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.argumentExpression?.kind !== ts.SyntaxKind.NumericLiteral || initializer.argumentExpression.text !== '0') {
+        return undefined;
+    }
+    let call = initializer.expression;
+    if (call?.kind === ts.SyntaxKind.Identifier) {
+        const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
+        const index = (scope === undefined) ? undefined : indexScope (csharp, scope);
+        const name = call.escapedText;
+        const declarations = index?.declarations.get (name) ?? [];
+        if (declarations.length !== 1 || index.parameterNames.has (name) || index.blockedNames.has (name) || declarations[0].getStart () > initializer.getStart ()) {
+            return undefined;
+        }
+        for (const use of index.identifiers.get (name) ?? []) {
+            if (use !== declarations[0].name && !isNotAUse (use) && receiverUseIsWrite (use)) {
+                return undefined;
+            }
+        }
+        call = declarations[0].initializer;
+        // the awaited venue helpers (handleAccountIndex) hand back the same tuple (see destructuredWriteIsCastable)
+        if (call?.kind === ts.SyntaxKind.AwaitExpression) {
+            call = call.expression;
+        }
+    }
+    const helper = destructuredAuditedCallName (call);
+    if (helper === undefined) {
+        return undefined;
+    }
+    return destructuredHelperElement0Type (call, helper, undefined, csharp);
+}
+
+// `this.<name>(...)` whose name is a handle-family member or an audited tuple helper of the tables below
+function destructuredAuditedCallName (node) {
+    const handle = destructuredHandleCallName (node);
+    if (handle !== undefined) {
+        return handle;
+    }
+    const callee = node?.kind === ts.SyntaxKind.CallExpression ? node.expression : undefined;
+    const name = (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) ? callee.name?.escapedText : undefined;
+    if (typeof name !== 'string') {
+        return undefined;
+    }
+    const audited = Object.prototype.hasOwnProperty.call (DESTRUCTURED_ELEMENT0_TYPES, name)
+        || Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, name) || DESTRUCTURED_DICT_HELPERS.includes (name)
+        || Object.prototype.hasOwnProperty.call (BOOL_OPTION_HELPERS, name);
+    return audited ? name : undefined;
+}
+
+// the element-0 box of an audited tuple helper call (see the element-0 / string / dict tables)
+function destructuredHelperElement0Type (call, helper, targetName, csharp) {
+    if (Object.prototype.hasOwnProperty.call (DESTRUCTURED_DECLARATION_ELEMENT0, helper)) {
+        return DESTRUCTURED_DECLARATION_ELEMENT0[helper];
+    }
+    if (Object.prototype.hasOwnProperty.call (DESTRUCTURED_ELEMENT0_TYPES, helper)) {
+        return DESTRUCTURED_ELEMENT0_TYPES[helper];
+    }
+    if (DESTRUCTURED_DICT_HELPERS.includes (helper)) {
+        return 'Dictionary<string, object>';
+    }
+    // a documented bool option local (BOOL_OPTION_LOCALS) whose default argument is a bool literal or absent
+    if (Object.prototype.hasOwnProperty.call (BOOL_OPTION_HELPERS, helper) && BOOL_OPTION_LOCALS.includes (targetName)) {
+        const argument = call.arguments?.[BOOL_OPTION_HELPERS[helper] - 1];
+        return (argument === undefined || isUndefinedLiteral (argument) || isBoolLiteralArgument (argument)) ? 'bool?' : undefined;
+    }
+    return destructuredStringHelperElement0 (call, helper, csharp);
+}
+
+// the C# type retypeDestructuredElement0 declares slot `slot` of `const [ ... ] = this.<helper> (...)` with
+function destructuredSlotType (csharp, scope, declaration, slot, context) {
+    const helper = destructuredAuditedCallName (declaration.initializer);
+    if (helper === undefined || scope === undefined) {
+        return undefined;
+    }
+    const type = destructuredHelperElement0Type (declaration.initializer, helper, declaration.name.elements?.[0]?.name?.escapedText, csharp);
+    const stringSlots = Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, helper) && STRING_TYPES.includes (type);
+    const slots = stringSlots ? stringElementIndexes (helper) : [ 0 ];
+    const element = declaration.name.elements?.[slot];
+    const target = element?.name;
+    if (type === undefined || !slots.includes (slot) || target?.kind !== ts.SyntaxKind.Identifier || context.stack.has (element)) {
+        return undefined;
+    }
+    const index = indexScope (csharp, scope);
+    const printedName = csharp.printNode (target, 0);
+    if ((index.bindingCounts.get (printedName) ?? 0) + (index.patternBindingCounts.get (printedName) ?? 0) !== 1) {
+        return undefined;
+    }
+    context.stack.add (element);
+    try {
+        return csharpLocalIsSafeToRetype (csharp, scope, element, target.escapedText, type, { scope, stack: context.stack, depth: context.depth + 1 }) ? type : undefined;
+    } finally {
+        context.stack.delete (element);
+    }
+}
+
+// the slot read prints `holder[i]` (typed holder) or `((IList<object>) holder)[i]`
 function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
-    const helper = destructuredHandleCallName (declaration.initializer);
-    const target = declaration.name.elements?.[0]?.name;
-    if (helper === undefined || target?.kind !== ts.SyntaxKind.Identifier || scope === undefined) {
-        return printed;
+    const elements = declaration.name.elements ?? [];
+    for (let slot = 0; slot < elements.length; slot++) {
+        const type = destructuredSlotType (csharp, scope, declaration, slot, { scope, stack: new Set (), depth: 0 });
+        if (type === undefined) {
+            continue;
+        }
+        const name = csharp.printNode (elements[slot].name, 0);
+        const re = new RegExp ('^([ \\t]*)var ' + name + ' = ((?:\\(\\(IList<object>\\) ?[A-Za-z_]\\w*\\)|[A-Za-z_]\\w*)\\[' + slot + '\\])(?=;?$)', 'm');
+        const match = re.exec (printed);
+        if (match === null) {
+            continue;
+        }
+        const cast = (type === 'string?') ? 'string' : type;
+        printed = printed.replace (match[0], match[1] + type + ' ' + name + ' = (' + cast + ')' + match[2]);
     }
-    const type = DESTRUCTURED_DECLARATION_ELEMENT0[helper] ?? destructuredStringHelperElement0 (declaration.initializer, helper);
-    if (type === undefined) {
-        return printed;
-    }
-    const match = DESTRUCTURED_ELEMENT0_LINE_RE.exec (printed);
-    if (match === null || match[2] !== csharp.printNode (target, 0) || (indexScope (csharp, scope).bindingCounts.get (match[2]) ?? 0) !== 1) {
-        return printed;
-    }
-    if (!csharpLocalIsSafeToRetype (csharp, scope, target.parent, target.escapedText, type, { scope, stack: new Set (), depth: 0 })) {
-        return printed;
-    }
-    const cast = (type === 'string?') ? 'string' : type;
-    return printed.replace (match[0], match[1] + type + ' ' + match[2] + ' = (' + cast + ')' + match[3]);
+    return printed;
 }
 
 // Element 1 of the base params-tuple helpers (`const [ v, p ] = this.handleX (...)`): every
@@ -13251,10 +13477,10 @@ export function installCsharpLocalTypes (transpiler) {
         // `const [a, b] = this.handleM (...)` — the printer emits a `var abVariable = <call>;`
         // holder and one casted read per element; type the holder per the proof above
         if (declaration.name?.kind === ts.SyntaxKind.ArrayBindingPattern) {
-            if (destructuredHandleCallName (declaration.initializer) === undefined) {
-                return printed;
-            }
             const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+            if (destructuredHandleCallName (declaration.initializer) === undefined) {
+                return (destructuredAuditedCallName (declaration.initializer) === undefined) ? printed : retypeDestructuredElement0 (csharp, scope, declaration, printed);
+            }
             return retypeElement1Params (csharp, declaration, retypeDestructuredElement0 (csharp, scope, declaration, retypeDestructuringTemp (csharp, scope, printed) ?? printed));
         }
         const info = csharpLocalDeclaration (csharp, declaration);
