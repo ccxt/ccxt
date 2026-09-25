@@ -6558,6 +6558,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         installCcxtGoClosureDefaultValue (goTranspiler);
         installCcxtGoTernaryLiftJoin (goTranspiler);
         installCcxtGoTernaryMapJoin (goTranspiler);
+        installCcxtGoNilDeclaredParseNumberJoins (goTranspiler);
     }
     // the emitted signature of the same helpers: `any` → `*string` for the methods
     // the predicate above accepts, so the coercion and the local typing can never
@@ -9053,6 +9054,115 @@ export function installCcxtGoNilDeclaredValueJoins (goTranspiler) {
         return parsed[1] + 'var ' + parsed[2] + ' ' + scan.joinType;
     };
     goTranspiler.__ccxtGoNilDeclaredValueJoinsInstalled = true;
+}
+
+// ------------------------- nil-declared ParseNumber pointer joins -------------------------
+// `let x: Num = undefined; ... x = this.parseNumber (s)`: one-argument parseNumber answers a float64 or
+// nil, which `*float64` carries unchanged (Float64PtrTyped at each such write). Reads admitted: nil
+// tests and values of a structure literal handed to a `this.safe*` builder that is not a market row.
+const CCXT_GO_PARSE_NUMBER_JOIN_ROW_BUILDERS_REJECTED = [ 'safeMarketStructure', 'safeCurrencyStructure' ];
+
+function ccxtGoIsOneArgParseNumber (goTranspiler, node) {
+    return (node?.kind === ts.SyntaxKind.CallExpression) && (node.arguments.length === 1)
+        && (ccxtGoWholePrintedCallee (goTranspiler, goTranspiler.printNode (node, 0)) === 'this.ParseNumber');
+}
+
+function ccxtGoParseNumberJoinReadIsSafe (goTranspiler, n) {
+    const parent = n.parent;
+    if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && COMPARISON_TOKENS.includes (parent.operatorToken.kind)) {
+        return isUndefinedLiteral ((parent.left === n) ? parent.right : parent.left);
+    }
+    if (!((parent?.kind === ts.SyntaxKind.PropertyAssignment) && (parent.initializer === n))
+            && (parent?.kind !== ts.SyntaxKind.ShorthandPropertyAssignment)) {
+        return false;
+    }
+    let top = parent.parent;
+    while ((top?.parent?.kind === ts.SyntaxKind.PropertyAssignment) && (top.parent.parent?.kind === ts.SyntaxKind.ObjectLiteralExpression)) {
+        top = top.parent.parent;
+    }
+    const call = top?.parent;
+    const callee = call?.expression;
+    return (top?.kind === ts.SyntaxKind.ObjectLiteralExpression) && (call?.kind === ts.SyntaxKind.CallExpression) && call.arguments.includes (top)
+        && (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword)
+        && /^safe[A-Z]\w*$/.test (callee.name.text) && !CCXT_GO_PARSE_NUMBER_JOIN_ROW_BUILDERS_REJECTED.includes (callee.name.text);
+}
+
+// true when every write is a 1-arg parseNumber (at least one) or an already *float64 value
+export function ccxtGoNilDeclaredParseNumberJoin (goTranspiler, declaration) {
+    if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || !ts.isIdentifier (declaration.name)
+            || !isNilDeclaredInitializer (declaration.initializer) || (declaration.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)
+            || (NIL_DECLARED_GUARD_NAMES.indexOf (declaration.name.text) >= 0)) {
+        return false;
+    }
+    goTranspiler.ccxtGoParseNumberJoins ??= new WeakMap ();
+    const cache = goTranspiler.ccxtGoParseNumberJoins;
+    if (cache.has (declaration)) {
+        return cache.get (declaration);
+    }
+    cache.set (declaration, false);
+    const scope = goTranspiler.goEnclosingFunction?.(declaration);
+    const name = declaration.name.text;
+    let parseWrites = 0;
+    let ok = (scope !== undefined) && !goTranspiler.goTypeNameIsShadowed?.(scope, '*float64');
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if ((n !== declaration) && ((n.kind === ts.SyntaxKind.VariableDeclaration) || (n.kind === ts.SyntaxKind.Parameter))
+                && bindingMentionsName (n.name, name)) {
+            ok = false;
+            return;
+        }
+        if (ts.isIdentifier (n) && (n.text === name) && (n !== declaration.name)) {
+            const parent = n.parent;
+            if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n) && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+                if (ccxtGoIsOneArgParseNumber (goTranspiler, parent.right)) {
+                    parseWrites += 1;
+                } else if (goTranspiler.goTypeOfInitializer (parent.right, goTranspiler.printNode (parent.right, 0)) !== '*float64') {
+                    ok = false;
+                }
+            } else if (isDestructuringTarget (n) || !ccxtGoParseNumberJoinReadIsSafe (goTranspiler, n)) {
+                ok = false;
+            }
+            return;
+        }
+        n.forEachChild (visit);
+    };
+    scope?.forEachChild (visit);
+    const joined = ok && (parseWrites > 0);
+    cache.set (declaration, joined);
+    return joined;
+}
+
+function ccxtGoParseNumberJoinDeclarationOf (goTranspiler, node) {
+    const declaration = ccxtGoParamDeclarationOf (goTranspiler, node);
+    return ccxtGoNilDeclaredParseNumberJoin (goTranspiler, declaration) ? declaration : undefined;
+}
+
+export function installCcxtGoNilDeclaredParseNumberJoins (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoNilDeclaredParseNumberJoinsInstalled
+            || (typeof goTranspiler.printVariableDeclarationList !== 'function') || (typeof goTranspiler.printBinaryExpression !== 'function')) {
+        return;
+    }
+    const upstream = goTranspiler.printVariableDeclarationList.bind (goTranspiler);
+    const nilDeclaration = /^([\t ]*)var (\w+) any = nil$/;
+    goTranspiler.printVariableDeclarationList = (node, indentation) => {
+        const printed = upstream (node, indentation);
+        const parsed = (typeof printed === 'string') ? printed.match (nilDeclaration) : null;
+        if ((parsed === null) || (node.declarations?.length !== 1) || !ccxtGoNilDeclaredParseNumberJoin (goTranspiler, node.declarations[0])) {
+            return printed;
+        }
+        return parsed[1] + 'var ' + parsed[2] + ' *float64 = nil';
+    };
+    const binary = goTranspiler.printBinaryExpression;
+    goTranspiler.printBinaryExpression = function (node, identation) {
+        if ((node?.operatorToken?.kind === ts.SyntaxKind.EqualsToken) && ts.isIdentifier (node.left)
+                && ccxtGoIsOneArgParseNumber (this, node.right) && (ccxtGoParseNumberJoinDeclarationOf (this, node.left) !== undefined)) {
+            return this.printNode (node.left, 0) + ' = Float64PtrTyped(' + this.printNode (node.right, identation).trim () + ')';
+        }
+        return binary.call (this, node, identation);
+    };
+    goTranspiler.__ccxtGoNilDeclaredParseNumberJoinsInstalled = true;
 }
 
 // ------------------------- G14: ternary literal pointer joins with value arms -------------------------
