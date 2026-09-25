@@ -16447,83 +16447,83 @@ export function installCsharpGuardedMinMax (transpiler) {
 // A parameter ts/src declares `boolean` (or `Bool`, or an un-annotated `= true/false`) prints
 // `bool` when required and `bool?` when optional (callers pass null for a skipped optional).
 // Name-keyed so the base and every override move together (C# override invariance). A name is
-// listed only when every generated C# declaration and every C# call site agrees (fixpoint census,
-// research/r16/cs-bool-params/cs_sites.py); the checker must still read the parameter as boolean.
+// listed with the type every C# call site's argument converts to: a `bool` slot only takes bool
+// values, a `bool?` slot bool / bool? / null (fixpoint over callers); the checker must agree.
 export const CSHARP_BOOLEAN_PARAMS = {
-    'adapterAddress': [ 0 ],
-    'applyScale': [ 1 ],
-    'checkRequiredUid': [ 0 ],
-    'cleanUnsubscription': [ 3 ],
-    'conditionalTokensAddress': [ 0, 1 ],
-    'constructPhantomAgent': [ 1 ],
-    'convertOHLCVToTradingView': [ 7 ],
-    'convertTradingViewToOHLCV': [ 7 ],
-    'createAuthToken': [ 3 ],
-    'createOrderAppendix': [ 0 ],
-    'createOrderSettlementData': [ 0 ],
-    'createPublicRequest': [ 4 ],
-    'enableDemoTrading': [ 0 ],
-    'enableUserDexAbstraction': [ 0 ],
-    'exchangeAddress': [ 0, 1 ],
-    'fetchPaginatedCallDynamic': [ 6 ],
-    'filterByArray': [ 3 ],
-    'filterByArrayADLRanks': [ 3 ],
-    'filterByArrayPositions': [ 3 ],
-    'filterByArrayTickers': [ 3 ],
-    'filterByCurrencySinceLimit': [ 4 ],
-    'filterByLimit': [ 3 ],
-    'filterByOutcomeSinceLimit': [ 4 ],
-    'filterByOutcomesSinceLimit': [ 4 ],
-    'filterBySinceLimit': [ 4 ],
-    'filterBySymbolSinceLimit': [ 4 ],
-    'filterBySymbolsSinceLimit': [ 4 ],
-    'filterByValueSinceLimit': [ 6 ],
-    'filterOutByArray': [ 3 ],
-    'filterTransfersByType': [ 2 ],
-    'getInstType': [ 2 ],
-    'getListenKey': [ 0 ],
-    'getMarginMode': [ 0 ],
-    'getSymbolsForMarketType': [ 2, 3 ],
-    'handleParamBool': [ 2 ],
-    'handleParamBool2': [ 3 ],
-    'handleTradeType': [ 2 ],
-    'handleTriggerDirectionAndParams': [ 2 ],
-    'handleTriggerOptionAndParams': [ 2 ],
-    'handleTriggerPricesAndParams': [ 2 ],
-    'handleUTAAndParams': [ 2 ],
-    'isLeveragedCurrency': [ 1 ],
-    'loadAccountSettings': [ 0 ],
-    'loadAccounts': [ 0 ],
-    'loadEvents': [ 0 ],
-    'loadEventsHelper': [ 0 ],
-    'loadLeverageBrackets': [ 0 ],
-    'loadMarkets': [ 0 ],
-    'loadMigrationStatus': [ 0 ],
-    'loadOutcome': [ 1 ],
-    'loadOutcomes': [ 1 ],
-    'loadTradingLimits': [ 1 ],
-    'marketSymbols': [ 3, 4 ],
-    'multiOrderSpotPrepareRequest': [ 1 ],
-    'negotiate': [ 0 ],
-    'opinionOrderRawAmounts': [ 0 ],
-    'padHex': [ 2 ],
-    'parseAccountPositions': [ 1 ],
-    'parseDepositAddresses': [ 2 ],
-    'parseOHLCVs': [ 5 ],
-    'parseSxbetV3BookSides': [ 1 ],
-    'parseTradesHelper': [ 0 ],
-    'prepareParadexDomain': [ 0 ],
-    'prioritizedNetworkAliases': [ 2 ],
-    'removeRepeatedElementsFromArray': [ 1 ],
-    'safeBool2': [ 3 ],
-    'safeBoolN': [ 2 ],
-    'selectNetworkKeyFromNetworks': [ 3 ],
-    'setPositionMode': [ 0 ],
-    'setSandboxMode': [ 0 ],
-    'signPredictfunOrder': [ 1, 2 ],
-    'spotOrderPrepareRequest': [ 1 ],
-    'watchMultiTickerHelper': [ 4 ],
-    'watchMultipleSubscription': [ 3 ],
+    'adapterAddress': { 0: 'bool?' },
+    'applyScale': { 1: 'bool?' },
+    'checkRequiredUid': { 0: 'bool?' },
+    'cleanUnsubscription': { 3: 'bool?' },
+    'conditionalTokensAddress': { 0: 'bool?', 1: 'bool?' },
+    'constructPhantomAgent': { 1: 'bool?' },
+    'convertOHLCVToTradingView': { 7: 'bool?' },
+    'convertTradingViewToOHLCV': { 7: 'bool?' },
+    'createAuthToken': { 3: 'bool?' },
+    'createOrderAppendix': { 0: 'bool' },
+    'createOrderSettlementData': { 0: 'bool' },
+    'createPublicRequest': { 4: 'bool?' },
+    'enableDemoTrading': { 0: 'bool' },
+    'enableUserDexAbstraction': { 0: 'bool' },
+    'exchangeAddress': { 0: 'bool?', 1: 'bool?' },
+    'fetchPaginatedCallDynamic': { 6: 'bool?' },
+    'filterByArray': { 3: 'bool?' },
+    'filterByArrayADLRanks': { 3: 'bool?' },
+    'filterByArrayPositions': { 3: 'bool?' },
+    'filterByArrayTickers': { 3: 'bool?' },
+    'filterByCurrencySinceLimit': { 4: 'bool?' },
+    'filterByLimit': { 3: 'bool?' },
+    'filterByOutcomeSinceLimit': { 4: 'bool?' },
+    'filterByOutcomesSinceLimit': { 4: 'bool?' },
+    'filterBySinceLimit': { 4: 'bool?' },
+    'filterBySymbolSinceLimit': { 4: 'bool?' },
+    'filterBySymbolsSinceLimit': { 4: 'bool?' },
+    'filterByValueSinceLimit': { 6: 'bool?' },
+    'filterOutByArray': { 3: 'bool?' },
+    'filterTransfersByType': { 2: 'bool?' },
+    'getInstType': { 2: 'bool?' },
+    'getListenKey': { 0: 'bool' },
+    'getMarginMode': { 0: 'bool?' },
+    'getSymbolsForMarketType': { 2: 'bool?', 3: 'bool?' },
+    'handleParamBool': { 2: 'bool?' },
+    'handleParamBool2': { 3: 'bool?' },
+    'handleTradeType': { 2: 'bool?' },
+    'handleTriggerDirectionAndParams': { 2: 'bool?' },
+    'handleTriggerOptionAndParams': { 2: 'bool?' },
+    'handleTriggerPricesAndParams': { 2: 'bool?' },
+    'handleUTAAndParams': { 2: 'bool?' },
+    'isLeveragedCurrency': { 1: 'bool?' },
+    'loadAccountSettings': { 0: 'bool?' },
+    'loadAccounts': { 0: 'bool?' },
+    'loadEvents': { 0: 'bool?' },
+    'loadEventsHelper': { 0: 'bool?' },
+    'loadLeverageBrackets': { 0: 'bool?' },
+    'loadMarkets': { 0: 'bool?' },
+    'loadMigrationStatus': { 0: 'bool?' },
+    'loadOutcome': { 1: 'bool?' },
+    'loadOutcomes': { 1: 'bool?' },
+    'loadTradingLimits': { 1: 'bool?' },
+    'marketSymbols': { 3: 'bool?', 4: 'bool?' },
+    'multiOrderSpotPrepareRequest': { 1: 'bool?' },
+    'negotiate': { 0: 'bool' },
+    'opinionOrderRawAmounts': { 0: 'bool' },
+    'padHex': { 2: 'bool?' },
+    'parseAccountPositions': { 1: 'bool?' },
+    'parseDepositAddresses': { 2: 'bool?' },
+    'parseOHLCVs': { 5: 'bool?' },
+    'parseSxbetV3BookSides': { 1: 'bool' },
+    'parseTradesHelper': { 0: 'bool' },
+    'prepareParadexDomain': { 0: 'bool?' },
+    'prioritizedNetworkAliases': { 2: 'bool?' },
+    'removeRepeatedElementsFromArray': { 1: 'bool?' },
+    'safeBool2': { 3: 'bool?' },
+    'safeBoolN': { 2: 'bool?' },
+    'selectNetworkKeyFromNetworks': { 3: 'bool?' },
+    'setPositionMode': { 0: 'bool' },
+    'setSandboxMode': { 0: 'bool?' },
+    'signPredictfunOrder': { 1: 'bool?', 2: 'bool?' },
+    'spotOrderPrepareRequest': { 1: 'bool?' },
+    'watchMultiTickerHelper': { 4: 'bool?' },
+    'watchMultipleSubscription': { 3: 'bool?' },
 };
 
 function csharpBooleanParamType (csharp, node) {
@@ -16532,11 +16532,8 @@ function csharpBooleanParamType (csharp, node) {
     }
     const owner = node.parent;
     const name = owner.name?.text;
-    const positions = (name === undefined) ? undefined : CSHARP_BOOLEAN_PARAMS[name];
-    if (positions === undefined || positions.indexOf (owner.parameters.indexOf (node)) < 0) {
-        return undefined;
-    }
-    if (owner.getSourceFile ().fileName.replace (/\\/g, '/').includes ('/test/')) {
+    const wanted = (name === undefined) ? undefined : CSHARP_BOOLEAN_PARAMS[name]?.[owner.parameters.indexOf (node)];
+    if (wanted === undefined || owner.getSourceFile ().fileName.replace (/\\/g, '/').includes ('/test/')) {
         return undefined;
     }
     let type;
@@ -16545,16 +16542,18 @@ function csharpBooleanParamType (csharp, node) {
     } catch (e) {
         return undefined;
     }
-    const arms = (type?.isUnion?.() ? type.types : [ type ]).filter ((t) => !(t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
+    // `boolean` is itself the union true | false: test the flag before splitting a union
+    const parts = ((type?.flags & ts.TypeFlags.Union) && !(type.flags & ts.TypeFlags.Boolean)) ? (ts.typeParts (type) ?? []) : [ type ];
+    const arms = parts.filter ((t) => t !== undefined && !(t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
     if (arms.length === 0 || !arms.every ((t) => t.flags & ts.TypeFlags.BooleanLike)) {
         return undefined;
     }
-    const optional = (node.initializer !== undefined) || (node.questionToken !== undefined) || (arms.length !== (type?.isUnion?.() ? type.types.length : 1));
-    if (!optional) {
-        return 'bool';
+    const optional = (node.initializer !== undefined) || (node.questionToken !== undefined) || (arms.length !== parts.length);
+    if (optional && wanted === 'bool') {
+        return undefined;
     }
     // an initializer prints `= null`, and the printer appends the `?` itself
-    return (node.initializer !== undefined) ? 'bool' : 'bool?';
+    return ((wanted === 'bool?') && (node.initializer !== undefined)) ? 'bool' : wanted;
 }
 
 export function installCsharpBooleanParams (transpiler) {
@@ -16564,5 +16563,13 @@ export function installCsharpBooleanParams (transpiler) {
     }
     const upstream = csharp.printParameterType.bind (csharp);
     csharp.printParameterType = (node) => csharpBooleanParamType (csharp, node) ?? upstream (node);
+    // an override with an untyped first parameter prints its parent's parameters through this
+    // path, which never appends the nullable `?` for an `= null` default
+    const upstreamCustom = csharp.printParameteCustomName.bind (csharp);
+    csharp.printParameteCustomName = (node, name, defaultValue = true) => {
+        const printed = upstreamCustom (node, name, defaultValue);
+        const own = (node?.initializer !== undefined) ? csharpBooleanParamType (csharp, node) : undefined;
+        return (own === 'bool' && printed.startsWith ('bool ')) ? 'bool? ' + printed.slice (5) : printed;
+    };
     csharp._booleanParamsPatched = true;
 }
