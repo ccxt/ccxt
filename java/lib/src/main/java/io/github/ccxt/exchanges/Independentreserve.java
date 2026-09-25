@@ -1331,7 +1331,7 @@ public class Independentreserve extends IndependentreserveApi
             }
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
-            var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
+            Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 throw new BadRequest((this.id + " withdraw () does not accept params[\"networkCode\"]")) ;

@@ -2260,7 +2260,7 @@ impl DydxCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.".into()))));
         }
         let mut idString: Value = to_string_val(&id);
-        if (id != Value::Null) && Value::Int(idString.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        if Value::Int(idString.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.".into()))));
         }
         let mut goodTillBlock: Value = self.safe_integer_k(paramsOmitted.clone(), "goodTillBlock", &[]);

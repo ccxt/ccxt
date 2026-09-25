@@ -2215,7 +2215,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             rows.append(self.extend(response, {'orderHash': noop[i]}))
         return self.parse_prediction_orders(rows, outcomeObj)
 
-    async def fetch_order(self, id: Str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
+    async def fetch_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         fetches one of your own orders by its hash
 

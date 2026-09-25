@@ -2879,7 +2879,7 @@ public class Mexc extends MexcApi
         }
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "LIMIT_MAKER"), paramsWithoutClientOrderId);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         if (java.util.Objects.equals(postOnly, true))
         {
             request.put("type", "LIMIT_MAKER");
@@ -3029,7 +3029,7 @@ public class Mexc extends MexcApi
             }
             List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), Helpers.isEqual(type, 2), parameters);
             Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-            var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
             Object orderType = null;
             if (java.util.Objects.equals(postOnly, true))
             {
@@ -4648,13 +4648,13 @@ public class Mexc extends MexcApi
             }
             String marketType = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object paramsMarketType = null;
+            Map<String, Object> paramsMarketType = null;
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (Object) null);
             marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             String marginMode = this.safeString(paramsMarketType, "marginMode");
             Boolean isMargin = (Boolean) this.safeBool(paramsMarketType, "margin", false);
-            Object paramsOmitted2 = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("margin", "marginMode")));
+            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("margin", "marginMode")));
             Map<String, Object> response = null;
             if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(isMargin, true)) || (java.util.Objects.equals(marketType, "margin")))
             {
@@ -4679,7 +4679,7 @@ public class Mexc extends MexcApi
                 this.checkRequiredArgument("fetchBalance", parsedSymbols, "symbol or symbols", new ArrayList<Object>(Arrays.asList()));
                 marketType = "margin";
                 request.put("symbols", parsedSymbols);
-                Object paramsOmitted = this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("symbol", "symbols")));
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("symbol", "symbols")));
                 response = (this.spotPrivateGetMarginIsolatedAccount(this.extend(request, paramsOmitted))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -4809,7 +4809,7 @@ public class Mexc extends MexcApi
             Map<String, Object> market = this.market(symbol);
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -6568,11 +6568,11 @@ public class Mexc extends MexcApi
             Map<String, Object> currency = this.currency((String) (code));
             List<Object> tagResolvedparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             var tagResolved = ((List<Object>) tagResolvedparamsWithdrawTagVariable).get(0);
-            var paramsWithdrawTag = ((List<Object>) tagResolvedparamsWithdrawTagVariable).get(1);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagResolvedparamsWithdrawTagVariable).get(1);
             Boolean intern = (Boolean) this.safeBool(paramsWithdrawTag, "internal", false);
             if (java.util.Objects.equals(intern, true))
             {
-                Object paramsInternal = this.omit(paramsWithdrawTag, "internal");
+                Map<String, Object> paramsInternal = (Map<String, Object>) this.omit(paramsWithdrawTag, "internal");
                 Map<String, Object> requestForInternal = new HashMap<String, Object>() {{
                     put( "asset", currency.get("id") );
                     put( "amount", amount );

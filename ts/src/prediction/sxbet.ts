@@ -1363,7 +1363,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    async fetchOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         this.checkRequiredCredentials ();
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument');

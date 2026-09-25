@@ -2955,12 +2955,12 @@ func (this *Toobit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Toobit) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Toobit) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Toobit) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Toobit) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3493,12 +3493,12 @@ func (this *Toobit) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Toobit) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Toobit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Toobit) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Toobit) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3553,12 +3553,12 @@ func (this *Toobit) withdrawBody(ch chan any, code any, amount any, address any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Toobit) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Toobit) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Toobit) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Toobit) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3576,7 +3576,7 @@ func (this *Toobit) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	if GetValue(market, "type") != "swap" {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
-	var marginModeValue string = ToUpper(marginMode)
+	var marginModeValue string = strings.ToUpper(marginMode)
 	var request map[string]any = map[string]any{
 		"symbol":     market["id"],
 		"marginType": marginModeValue,

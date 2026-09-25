@@ -1821,7 +1821,7 @@ public class Woo extends WooApi
             );
             List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", paramsOmitted, (String) null);
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
                 request.put("marginMode", this.encodeMarginMode(marginMode));
@@ -1841,7 +1841,7 @@ public class Woo extends WooApi
             Boolean isConditional = Boolean.TRUE.equals(isTrailing) || !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(this.safeValue(paramsMarginMode, "childOrders"), null));
             Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
             String timeInForce = this.safeStringLower(paramsMarginMode, "timeInForce");
-            Boolean postOnly = this.isPostOnly(isMarket, null, paramsMarginMode);
+            Boolean postOnly = this.isPostOnly(isMarket, null, Helpers.toMapArg(paramsMarginMode));
             String clientOrderIdKey = "clientOrderId";
             if (Boolean.TRUE.equals(isConditional))
             {
@@ -2382,7 +2382,7 @@ public class Woo extends WooApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
             Boolean trigger = (Boolean) this.safeBool2(paramsPaginate, "stop", "trigger", (Object) null);
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -2393,7 +2393,7 @@ public class Woo extends WooApi
                 request.put("startTime", since);
             }
             Long until = this.safeInteger(paramsOmitted, "until"); // unified in milliseconds
-            Object paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
@@ -3100,7 +3100,7 @@ public class Woo extends WooApi
                 request.put("startTime", since);
             }
             Long until = this.safeInteger(paramsPaginate, "until"); // unified in milliseconds
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
@@ -3141,7 +3141,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit, Helpers.toMapArg(paramsOmitted));
+            return this.parseTrades(trades, market, since, limit, paramsOmitted);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3423,7 +3423,7 @@ public class Woo extends WooApi
             }
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
-            var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
+            Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 request.put("network", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
@@ -3437,7 +3437,7 @@ public class Woo extends WooApi
                 request.put("size", Math.min(limit, 1000));
             }
             String transactionType = this.safeString(paramsNetworkCode, "type");
-            Object paramsOmitted = this.omit(paramsNetworkCode, "type");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsNetworkCode, "type");
             if (!java.util.Objects.equals(transactionType, null))
             {
                 request.put("type", transactionType);
@@ -3952,7 +3952,7 @@ public class Woo extends WooApi
 
             List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
-            var paramsWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3972,7 +3972,7 @@ public class Woo extends WooApi
             {
                 throw new ArgumentsRequired(((this.id + " withdraw() requires a network parameter for ") + code)) ;
             }
-            Object paramsOmitted = this.omit(paramsWithdrawTag, "network");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsWithdrawTag, "network");
             request.put("token", currency.get("id"));
             request.put("network", this.networkCodeToId(network, Helpers.toStringArg(currency.get("code"))));
             Map<String, Object> response = (this.v3PrivatePostAssetWalletWithdraw(this.extend(request, paramsOmitted))).join();
@@ -4263,7 +4263,7 @@ public class Woo extends WooApi
                 request.put("startTime", since);
             }
             Long until = this.safeInteger(paramsPaginate, "until"); // unified in milliseconds
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);

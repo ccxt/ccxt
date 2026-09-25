@@ -1103,10 +1103,10 @@ public class Hollaex extends HollaexApi
             Integer maxLimit = 500;
             List<Object> paginateOptionparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", paginate);
             Boolean paginateOption = (Boolean) ((List<Object>) paginateOptionparamsPaginateVariable).get(0);
-            var paramsPaginate = ((List<Object>) paginateOptionparamsPaginateVariable).get(1);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateOptionparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginateOption))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
             }
             Long until = this.safeInteger(paramsPaginate, "until");
             Long timeDelta = ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * ((long) maxLimit)) * 1000L);
@@ -1122,7 +1122,7 @@ public class Hollaex extends HollaexApi
             }
             request.put("from", this.parseToInt(Helpers.divide(start, 1000))); // convert to seconds
             request.put("to", this.parseToInt((((double) until) / ((double) 1000)))); // convert to seconds
-            Object paramsOmitted = this.omit(paramsPaginate, "until");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, "until");
             List<Object> response = (this.publicGetChart(this.extend(request, paramsOmitted))).join();
             //
             //     [
@@ -2178,7 +2178,7 @@ public class Hollaex extends HollaexApi
 
             List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
-            var paramsWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2195,7 +2195,7 @@ public class Hollaex extends HollaexApi
             {
                 throw new ArgumentsRequired((this.id + " withdraw() requires a network parameter")) ;
             }
-            Object paramsOmitted = this.omit(paramsWithdrawTag, "network");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsWithdrawTag, "network");
             Map<String, Object> request = Helpers.newMap(
                 "currency", currency.get("id"),
                 "amount", amount,

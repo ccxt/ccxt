@@ -2319,12 +2319,12 @@ func (this *Modetrade) createOrdersBody(ch chan any, orders any, optionalArgs ..
  * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Modetrade) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Modetrade) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Modetrade) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2956,12 +2956,12 @@ func (this *Modetrade) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Modetrade) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Modetrade) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Modetrade) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3584,12 +3584,12 @@ func (this *Modetrade) SignMessage(message any, privateKey any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Modetrade) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Modetrade) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Modetrade) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3601,16 +3601,9 @@ func (this *Modetrade) withdrawBody(ch chan any, code any, amount any, address a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	this.CheckAddress(address)
-	var codeUpper any = func() any {
-		if !IsEqual(code, nil) {
-			return ToUpper(code)
-		}
-		return code
-	}()
-	if codeUpper != nil {
-		if !IsEqual(codeUpper, "USDC") {
-			panic(NotSupported(this.Id + " withdraw() only support USDC"))
-		}
+	var codeUpper string = strings.ToUpper(code)
+	if codeUpper != "USDC" {
+		panic(NotSupported(this.Id + " withdraw() only support USDC"))
 	}
 	var currency map[string]any = this.Currency(codeUpper)
 	var verifyingContractAddress *string = this.SafeString(this.Options, "verifyingContractAddress")

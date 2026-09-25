@@ -1182,12 +1182,12 @@ func (this *Zebpay) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Zebpay) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Zebpay) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Zebpay) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

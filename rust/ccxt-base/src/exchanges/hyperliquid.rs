@@ -5511,7 +5511,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
         // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
         let mut transferType: Option<String> = self.safe_string_k(params, "type", &[]).as_str().map(str::to_owned);
-        let mut isUsdc: bool = (code == Value::Null) || (to_upper(&code).as_str() == Some("USDC"));
+        let mut isUsdc: bool = to_upper(&code).as_str() == Some("USDC");
         if isUsdc && (transferType.as_deref() != Some("spot")) {
             // Transfer USDC with subAccountTransfer
             let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &Value::Str("1000000".into())));
@@ -5615,10 +5615,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         self.check_address(&[address.clone()]);
-        if (code != Value::Null) {
-            if (to_upper(&code).as_str() != Some("USDC")) {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
-            }
+        if (to_upper(&code).as_str() != Some("USDC")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
         }
         let mut vaultAddressOption: Value = self.handle_option_string_and_params(params, Value::Str("withdraw".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]);

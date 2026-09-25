@@ -3443,12 +3443,12 @@ func (this *Phemex) createOrderBody(ch chan any, symbol string, typeVar string, 
  * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Phemex) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Phemex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Phemex) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Phemex) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -5293,12 +5293,12 @@ func (this *Phemex) ParseMarginModification(data any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Phemex) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Phemex) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Phemex) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5316,7 +5316,7 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
-	var marginModeValue string = ToLower(marginMode)
+	var marginModeValue string = strings.ToLower(marginMode)
 	if (marginModeValue != "isolated") && (marginModeValue != "cross") {
 		panic(BadRequest(this.Id + " setMarginMode() marginMode argument should be isolated or cross"))
 	}
@@ -5717,12 +5717,12 @@ func (this *Phemex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
  * @param {string} [params.bizType] for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Phemex) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Phemex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Phemex) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Phemex) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6073,12 +6073,12 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
  * @param {string} [params.network] unified network code
  * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
  */
-func (this *Phemex) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Phemex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Phemex) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Phemex) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)

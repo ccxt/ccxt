@@ -4237,14 +4237,8 @@ export default class aster extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         let type: Str = undefined;
-        let fromId: Str = undefined;
-        if (fromAccount !== undefined) {
-            fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
-        }
-        let toId: Str = undefined;
-        if (toAccount !== undefined) {
-            toId = this.convertTypeToAccount (toAccount).toUpperCase ();
-        }
+        const fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
+        const toId = this.convertTypeToAccount (toAccount).toUpperCase ();
         if (fromId === 'SPOT' && toId === 'FUTURE') {
             type = 'SPOT_FUTURE';
         } else if (fromId === 'FUTURE' && toId === 'SPOT') {

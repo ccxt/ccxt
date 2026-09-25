@@ -3807,14 +3807,14 @@ public class Okx extends OkxApi
             Map<String, Object> market = this.market(symbol);
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 200L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 200L)).join();
             }
             String priceType = this.safeString(paramsPaginate, "price");
             boolean isMarkOrIndex = this.inArray(priceType, new ArrayList<Object>(Arrays.asList("mark", "index")));
-            Object paramsPrice = this.omit(paramsPaginate, "price");
+            Map<String, Object> paramsPrice = (Map<String, Object>) this.omit(paramsPaginate, "price");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
             String timezone = this.safeString(options, "timezone", "UTC");
             Boolean limitIsUndefined = (java.util.Objects.equals(limit, null));
@@ -5986,7 +5986,7 @@ public class Okx extends OkxApi
             {
                 request.put("ordType", "trigger");
             }
-            Object query = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "trailing")));
+            Map<String, Object> query = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "trailing")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetTradeOrdersAlgoPending"))
             {
@@ -6631,17 +6631,17 @@ public class Okx extends OkxApi
             }
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchLedger", new HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method");
             method = this.safeString(paramsPaginate, "method", method);
-            Object paramsOmitted = this.omit(paramsPaginate, "method");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, "method");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> marginModeOptionparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchLedger", Helpers.toMapArg(paramsOmitted), (String) null);
+            List<Object> marginModeOptionparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchLedger", paramsOmitted, (String) null);
             String marginModeOption = (String) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(1);
             String marginMode = (((java.util.Objects.equals(marginModeOption, null)))) ? this.safeString(paramsMarginMode, "mgnMode") : marginModeOption;
@@ -7089,7 +7089,7 @@ public class Okx extends OkxApi
                 }
             }
             request.put("fee", this.numberToString(fee)); // withdrawals to OKCoin or OKX are fee-free, please set 0
-            Object query = this.omit(paramsWithdrawTag, omitKeys);
+            Map<String, Object> query = (Map<String, Object>) this.omit(paramsWithdrawTag, omitKeys);
             Map<String, Object> response = (this.privatePostAssetWithdrawal(this.extend(request, query))).join();
             //
             //     {

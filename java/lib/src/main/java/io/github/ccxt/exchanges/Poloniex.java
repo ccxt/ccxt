@@ -2244,7 +2244,7 @@ public class Poloniex extends PoloniexApi
                 request.put("limit", Helpers.mathMax(limit, max));
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsMarketType, "trigger", "stop", (Object) null);
-            Object paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(marketType, "spot"))
             {
@@ -2485,7 +2485,7 @@ public class Poloniex extends PoloniexApi
         Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
         List<Object> hedgedparamsHedgedVariable = (List<Object>) this.handleParamString(paramsMarginMode, "hedged", (String) null);
         String hedged = (String) ((List<Object>) hedgedparamsHedgedVariable).get(0);
-        var paramsHedged = ((List<Object>) hedgedparamsHedgedVariable).get(1);
+        Map<String, Object> paramsHedged = (Map<String, Object>) ((List<Object>) hedgedparamsHedgedVariable).get(1);
         // marginMode and hedged are consumed for contract markets only
         Object query = parameters;
         if (Boolean.TRUE.equals(isContract))
@@ -2782,7 +2782,7 @@ public class Poloniex extends PoloniexApi
                 return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsMarketType, "trigger", "stop", (Object) null);
-            Object paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 response = (this.privateDeleteSmartorders(this.extend(request, paramsOmitted))).join();
@@ -2848,7 +2848,7 @@ public class Poloniex extends PoloniexApi
                 throw new NotSupported((((this.id + " fetchOrder() is not supported for ") + marketType) + " markets yet")) ;
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsMarketType, "trigger", "stop", (Object) null);
-            Object paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             Object response = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(isTrigger, true))
             {
@@ -3297,10 +3297,10 @@ public class Poloniex extends PoloniexApi
         }
         Map<String, Object> currency = this.currency((String) (code));
         Object networkCode = null;
-        Object query = null;
+        Map<String, Object> query = null;
         List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         networkCode = ((List<Object>) networkCodequeryVariable).get(0);
-        query = ((List<Object>) networkCodequeryVariable).get(1);
+        query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
         if (java.util.Objects.equals(networkCode, null))
         {
             throw new ArgumentsRequired((((this.id + " fetchDepositAddress requires a network parameter for ") + code) + ".")) ;
@@ -3436,7 +3436,7 @@ public class Poloniex extends PoloniexApi
             }};
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
-            var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
+            Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))
             {
                 throw new ArgumentsRequired((((this.id + " withdraw requires a network parameter for ") + code) + ".")) ;

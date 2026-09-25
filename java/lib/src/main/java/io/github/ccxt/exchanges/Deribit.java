@@ -1932,10 +1932,10 @@ public class Deribit extends DeribitApi
             }
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 5000L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 5000L)).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{

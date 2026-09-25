@@ -1093,10 +1093,10 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> market = this.market(symbol);
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 2000L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 2000L)).join();
             }
             String priceType = this.safeString(paramsPaginate, "price", "trade");
             if (java.util.Objects.equals(priceType, "index"))
@@ -1111,7 +1111,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 "price_type", priceType,
                 "interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"))
             );
-            Object paramsOmitted = this.omit(paramsPaginate, "price");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, "price");
             Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? 2000 : Math.min(limit, 2000);
             Object limitResolved = null;
             if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(limit, null)))
@@ -1573,7 +1573,7 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             request.put("limitPrice", this.priceToPrecision(symbolValue, priceValue));
         }
-        Object paramsOmitted = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
+        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 

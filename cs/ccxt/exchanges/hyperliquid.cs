@@ -4672,7 +4672,7 @@ public partial class hyperliquid : Exchange
         // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
         // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
         string? transferType = this.safeString(parameters, "type");
-        bool isUsdc = ((code == null)) || ((code.ToUpper() == "USDC"));
+        bool isUsdc = ((code.ToUpper() == "USDC"));
         if (isUsdc && (transferType != "spot"))
         {
             // Transfer USDC with subAccountTransfer
@@ -4766,12 +4766,9 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         this.checkAddress(address);
-        if ((code != null))
+        if ((code.ToUpper() != "USDC"))
         {
-            if ((code.ToUpper() != "USDC"))
-            {
-                throw new NotSupported ((this.id + " withdraw() only support USDC")) ;
-            }
+            throw new NotSupported ((this.id + " withdraw() only support USDC")) ;
         }
         string? vaultAddressOption = ((string)getValue(this.handleOptionStringAndParams(parameters, "withdraw", "vaultAddress"), 0));
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);

@@ -21,7 +21,7 @@ type IPredictionDispatch interface {
 // each per-method assertion succeeds because it requires only that one method. Regular venues have
 // all of them, so their (regular-only) base dispatch sites satisfy the assertions too.
 type IEditOrder interface {
-	EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any
+	EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any
 }
 type IEditOrderWithClientOrderId interface {
 	EditOrderWithClientOrderIdAsync(clientOrderId string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan any
@@ -329,7 +329,7 @@ type ICoreExchange interface {
 	CreateSafeDictionary(isWs ...bool) *sync.Map
 	SetOptions(options any)
 	CreateOrdersAsync(orders any, optionalArgs ...any) <-chan any
-	WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any
+	WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any
 	// WS methods
 	FetchBalanceWsAsync(optionalArgs ...any) <-chan any
 	// FetchCurrenciesWs(optionalArgs ...any) <-chan any

@@ -1244,7 +1244,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         return await self.fetch_open_orders(outcome, since, limit, params)
 
-    async def fetch_order(self, id: Str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
+    async def fetch_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         fetches a single maker order by its order hash - unlike the listing, GET /orders-v3/{orderId} also serves filled, cancelled and expired orders while they still exist. a missing or foreign id 404s with 'Order not found', surfaced through handleErrors's OrderNotFound mapping
 

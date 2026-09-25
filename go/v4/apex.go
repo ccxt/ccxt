@@ -1776,12 +1776,12 @@ func (this *Apex) createOrderBody(ch chan any, symbol string, typeVar string, si
  * @param {string} [params.transferId] UUID, which is unique across the platform
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Apex) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Apex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1823,7 +1823,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 	var accountId *string = this.SafeString(accountData, "id", "")
 	var currency any = map[string]any{}
 	var assets any = []any{}
-	if (!IsEqual(fromAccount, nil)) && (ToLower(fromAccount) == "contract") {
+	if ToLower(fromAccount) == "contract" {
 		assets = contractAssets
 	} else {
 		assets = spotAssets
@@ -1850,7 +1850,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 	}
 	var finalClientOrderId any = clientOrderId // java req
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"}))
-	if (!IsEqual(fromAccount, nil)) && (ToLower(fromAccount) == "contract") {
+	if ToLower(fromAccount) == "contract" {
 		var formattedUint32 string = "4294967295"
 		var zkSignAccountId *string = Precise.StringMod(accountId, formattedUint32)
 		var expireTime int64 = timestampSeconds + (3600*24)*28
@@ -2205,12 +2205,12 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Apex) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Apex) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Apex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

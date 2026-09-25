@@ -1556,12 +1556,12 @@ func (this *Coinsph) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Coinsph) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Coinsph) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinsph) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Coinsph) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2428,12 +2428,12 @@ func (this *Coinsph) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Coinsph) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Coinsph) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Coinsph) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Coinsph) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)

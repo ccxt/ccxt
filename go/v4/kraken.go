@@ -2791,12 +2791,12 @@ func (this *Kraken) OrderRequest(method string, symbol any, typeVar any, request
  * @param {string} [params.clientOrderId] the orders client order id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Kraken) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Kraken) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2966,12 +2966,12 @@ func (this *Kraken) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Kraken) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Kraken) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Kraken) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4234,12 +4234,12 @@ func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Kraken) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Kraken) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Kraken) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Kraken) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -4444,7 +4444,7 @@ func (this *Kraken) transferOutBody(ch chan any, code any, amount any, optionalA
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes361715 map[string]any = MapTyped(PanicOnError((<-this.TransferAsync(code, amount, "spot", "swap", params))))
+	var retRes361715 map[string]any = MapTyped(PanicOnError((<-this.TransferAsync(StringArg(code), amount, "spot", "swap", params))))
 	ch <- BoxAbsent(retRes361715)
 	return nil
 }
@@ -4461,12 +4461,12 @@ func (this *Kraken) transferOutBody(ch chan any, code any, amount any, optionalA
  * @param {object} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kraken) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Kraken) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kraken) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Kraken) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

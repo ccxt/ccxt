@@ -1356,12 +1356,12 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitfinex) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Bitfinex) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transferring between derivatives wallet and regular wallet is not documented in their API
@@ -3041,12 +3041,12 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Bitfinex) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3661,12 +3661,12 @@ func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitfinex) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Bitfinex) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3686,7 +3686,7 @@ func (this *Bitfinex) withdrawBody(ch chan any, code any, amount any, address an
 	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
 	if networkId == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" withdraw() could not find a network for '", code), "'. You can specify it by providing the 'network' value inside params")))
+		panic(ArgumentsRequired(this.Id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params"))
 	}
 	var wallet *string = this.SafeString(paramsOmitted, "wallet", "exchange") // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
 	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, "network", "wallet"))
@@ -5125,12 +5125,12 @@ func (this *Bitfinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bitfinex) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

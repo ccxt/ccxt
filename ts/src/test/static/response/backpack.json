@@ -1027,7 +1027,7 @@
                 "description": "cancel order",
                 "method": "cancelOrder",
                 "input": [
-                    8284661092,
+                    "8284661092",
                     "ETH/USDC"
                 ],
                 "httpResponse": {

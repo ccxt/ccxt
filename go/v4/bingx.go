@@ -5794,12 +5794,12 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bingx) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Bingx) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bingx) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Bingx) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6416,12 +6416,12 @@ func (this *Bingx) ParseTransactionStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Bingx) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Bingx) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Bingx) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Bingx) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6439,7 +6439,7 @@ func (this *Bingx) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	if GetValue(market, "type") != "swap" {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
-	var marginModeUpper string = ToUpper(marginMode)
+	var marginModeUpper string = strings.ToUpper(marginMode)
 	var marginModeValue string = func() string {
 		if marginModeUpper == "CROSS" {
 			return "CROSSED"
@@ -6915,12 +6915,12 @@ func (this *Bingx) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any
  * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bingx) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Bingx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bingx) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Bingx) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -7427,12 +7427,12 @@ func (this *Bingx) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
  * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bingx) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Bingx) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bingx) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bingx) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

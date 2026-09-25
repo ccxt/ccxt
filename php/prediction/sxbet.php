@@ -1392,11 +1392,11 @@ class sxbet extends Exchange {
         return Async\await($this->fetch_open_orders($outcome, $since, $limit, $params));
     }
 
-    public function fetch_order(?string $id, ?string $outcome = null, $params = array()): PromiseInterface {
+    public function fetch_order(string $id, ?string $outcome = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $outcome, $params);
     }
 
-    private function do_fetch_order(?string $id, ?string $outcome = null, $params = array()) {
+    private function do_fetch_order(string $id, ?string $outcome = null, $params = array()) {
         /**
          * fetches a single maker order by its order hash - unlike the listing, GET /orders-v3/{orderId} also serves filled, cancelled and expired orders while they still exist. a missing or foreign $id 404s with 'Order not found', surfaced through handleErrors's OrderNotFound mapping
          *

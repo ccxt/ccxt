@@ -2693,12 +2693,12 @@ func (this *Aster) ParseBalance(response any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Aster) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Aster) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Aster) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Aster) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2708,7 +2708,7 @@ func (this *Aster) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
-	var marginModeUpper string = ToUpper(marginMode)
+	var marginModeUpper string = strings.ToUpper(marginMode)
 	var marginModeValue string = func() string {
 		if marginModeUpper == "CROSS" {
 			return "CROSSED"
@@ -5210,12 +5210,12 @@ func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Aster) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Aster) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Aster) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Aster) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -5307,12 +5307,12 @@ func (this *Aster) ParseTransaction(transaction any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Aster) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Aster) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Aster) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Aster) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5325,17 +5325,11 @@ func (this *Aster) transferBody(ch chan any, code any, amount any, fromAccount a
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
 	var typeVar *string = nil
-	var fromId *string = nil
-	if !IsEqual(fromAccount, nil) {
-		fromId = SafeStringPtr(ToUpper(this.ConvertTypeToAccount(fromAccount)))
-	}
-	var toId *string = nil
-	if !IsEqual(toAccount, nil) {
-		toId = SafeStringPtr(ToUpper(this.ConvertTypeToAccount(toAccount)))
-	}
-	if (fromId != nil && *fromId == "SPOT") && (toId != nil && *toId == "FUTURE") {
+	var fromId string = ToUpper(this.ConvertTypeToAccount(fromAccount))
+	var toId string = ToUpper(this.ConvertTypeToAccount(toAccount))
+	if (fromId == "SPOT") && (toId == "FUTURE") {
 		typeVar = SafeStringPtr("SPOT_FUTURE")
-	} else if (fromId != nil && *fromId == "FUTURE") && (toId != nil && *toId == "SPOT") {
+	} else if (fromId == "FUTURE") && (toId == "SPOT") {
 		typeVar = SafeStringPtr("FUTURE_SPOT")
 	}
 	if typeVar == nil {

@@ -1330,12 +1330,12 @@ func (this *Lighter) createOrderBody(ch chan any, symbol string, typeVar string,
  * @param {string} [params.apiKeyIndex] api key index
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Lighter) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Lighter) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Lighter) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Lighter) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3150,12 +3150,12 @@ func (this *Lighter) ParseOrderTimeInForceInteger(tifInteger any) *string {
  * @param {string} [params.memo] hex encoding memo
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Lighter) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Lighter) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Lighter) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Lighter) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3197,7 +3197,7 @@ func (this *Lighter) transferBody(ch chan any, code any, amount any, fromAccount
 		return 1
 	}() // 0: perp, 1: spot
 	var toRouteType int = func() int {
-		if IsEqual(toAccount, "perp") {
+		if toAccount == "perp" {
 			return 0
 		}
 		return 1
@@ -3629,12 +3629,12 @@ func (this *Lighter) ParseTransactionStatus(status *string) *string {
  * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Lighter) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Lighter) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Lighter) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Lighter) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3942,19 +3942,19 @@ func (this *Lighter) setLeverageBody(ch chan any, leverage any, optionalArgs ...
  * @param {int} [params.leverage] required leverage
  * @returns {object} response from the exchange
  */
-func (this *Lighter) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Lighter) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Lighter) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Lighter) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(marginMode, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires an marginMode parameter"))
 	}
 	var leverageparamsLeverageVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "leverage")

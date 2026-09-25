@@ -5059,12 +5059,12 @@ func (this *Mexc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Mexc) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Mexc) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Mexc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Mexc) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6708,12 +6708,12 @@ func (this *Mexc) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.symbol] market symbol required for margin account transfers eg:BTCUSDT
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Mexc) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Mexc) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Mexc) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Mexc) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6897,12 +6897,12 @@ func (this *Mexc) ParseTransferStatus(status *string) *string {
  * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Mexc) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Mexc) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Mexc) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Mexc) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -7516,12 +7516,12 @@ func (this *Mexc) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
  * @param {string} [params.direction] "long" or "short" required when there is no position
  * @returns {object} response from the exchange
  */
-func (this *Mexc) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Mexc) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Mexc) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Mexc) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7536,7 +7536,7 @@ func (this *Mexc) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 	if GetValue(market, "spot") == true {
 		panic(BadSymbol(this.Id + " setMarginMode() supports contract markets only"))
 	}
-	var marginModeLower string = ToLower(marginMode)
+	var marginModeLower string = strings.ToLower(marginMode)
 	if (marginModeLower != "isolated") && (marginModeLower != "cross") {
 		panic(BadRequest(this.Id + " setMarginMode() marginMode argument should be isolated or cross"))
 	}

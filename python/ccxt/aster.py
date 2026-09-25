@@ -4010,12 +4010,8 @@ class aster(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
         }
         type = None
-        fromId = None
-        if fromAccount is not None:
-            fromId = self.convert_type_to_account(fromAccount).upper()
-        toId = None
-        if toAccount is not None:
-            toId = self.convert_type_to_account(toAccount).upper()
+        fromId = self.convert_type_to_account(fromAccount).upper()
+        toId = self.convert_type_to_account(toAccount).upper()
         if fromId == 'SPOT' and toId == 'FUTURE':
             type = 'SPOT_FUTURE'
         elif fromId == 'FUTURE' and toId == 'SPOT':

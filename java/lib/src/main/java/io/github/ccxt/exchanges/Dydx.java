@@ -1191,7 +1191,7 @@ public class Dydx extends DydxApi
 
             List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchOrders", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-            var paramsPublicAddress = ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
+            Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
             List<Object> subAccountNumberparamsSubAccountNumberVariable = (List<Object>) this.handleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0");
             String subAccountNumber = (String) ((List<Object>) subAccountNumberparamsSubAccountNumberVariable).get(0);
             Map<String, Object> paramsSubAccountNumber = (Map<String, Object>) ((List<Object>) subAccountNumberparamsSubAccountNumberVariable).get(1);
@@ -1397,7 +1397,7 @@ public class Dydx extends DydxApi
 
             List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchPositions", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-            var paramsPublicAddress = ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
+            Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
             List<Object> subAccountNumberparamsSubAccountNumberVariable = (List<Object>) this.handleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0");
             String subAccountNumber = (String) ((List<Object>) subAccountNumberparamsSubAccountNumberVariable).get(0);
             Map<String, Object> paramsSubAccountNumber = (Map<String, Object>) ((List<Object>) subAccountNumberparamsSubAccountNumberVariable).get(1);
@@ -1730,7 +1730,7 @@ public class Dydx extends DydxApi
             put( "typeUrl", "/dydxprotocol.clob.MsgPlaceOrder" );
             put( "value", orderPayload );
         }};
-        Object paramsOmitted = this.omit(paramsGoodTillBlockTimeInSeconds, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId")));
+        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGoodTillBlockTimeInSeconds, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId")));
         String walletAddress = this.getWalletAddress();
         Long clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
         Object subaccountIdValue = (((java.util.Objects.equals(subaccountIdOption, null)))) ? 0 : subaccountIdOption;
@@ -1891,7 +1891,7 @@ public class Dydx extends DydxApi
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
             }
             String idString = String.valueOf(id);
-            if (!java.util.Objects.equals(id, null) && ((String)idString).indexOf("-") > -1)
+            if (((String)idString).indexOf("-") > -1)
             {
                 throw new NotSupported((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
             }
@@ -2764,7 +2764,7 @@ public class Dydx extends DydxApi
 
             List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchAccounts", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-            var paramsPublicAddress = ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
+            Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", userAddress );
             }};
@@ -2851,7 +2851,7 @@ public class Dydx extends DydxApi
             }
             List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchBalance", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-            var paramsPublicAddress = ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
+            Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
             List<Object> subaccountNumberparamsSubaccountNumberVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPublicAddress, "fetchBalance", "subaccountNumber", 0L);
             Long subaccountNumber = (Long) ((List<Object>) subaccountNumberparamsSubaccountNumberVariable).get(0);
             Map<String, Object> paramsSubaccountNumber = (Map<String, Object>) ((List<Object>) subaccountNumberparamsSubaccountNumberVariable).get(1);

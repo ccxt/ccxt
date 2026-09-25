@@ -3314,12 +3314,12 @@ func (this *Coinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
  * @param {float} [params.triggerPrice] the price to trigger stop orders
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinex) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Coinex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Coinex) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Coinex) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4387,12 +4387,12 @@ func (this *Coinex) ParsePosition(position any, optionalArgs ...any) any {
  * @param {int} params.leverage the rate of leverage
  * @returns {object} response from the exchange
  */
-func (this *Coinex) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Coinex) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Coinex) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Coinex) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4402,7 +4402,7 @@ func (this *Coinex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
-	var marginModeValue string = ToLower(marginMode)
+	var marginModeValue string = strings.ToLower(marginMode)
 	if (marginModeValue != "isolated") && (marginModeValue != "cross") {
 		panic(BadRequest(this.Id + " setMarginMode() marginMode argument should be isolated or cross"))
 	}
@@ -5099,12 +5099,12 @@ func (this *Coinex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
  * @param {string} [params.network] unified network code
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Coinex) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Coinex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Coinex) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Coinex) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -5411,12 +5411,12 @@ func (this *Coinex) ParseTransaction(transaction any, optionalArgs ...any) any {
  * @param {string} [params.symbol] unified ccxt symbol, required when either the fromAccount or toAccount is margin
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Coinex) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Coinex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Coinex) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Coinex) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5437,17 +5437,17 @@ func (this *Coinex) transferBody(ch chan any, code any, amount any, fromAccount 
 		"to_account_type":   toId,
 	}
 	var paramsOmitted any = params
-	if (IsEqual(fromAccount, "margin")) || (IsEqual(toAccount, "margin")) {
+	if (IsEqual(fromAccount, "margin")) || (toAccount == "margin") {
 		paramsOmitted = this.Omit(params, "symbol")
 	}
-	if (IsEqual(fromAccount, "margin")) || (IsEqual(toAccount, "margin")) {
+	if (IsEqual(fromAccount, "margin")) || (toAccount == "margin") {
 		var symbol *string = this.SafeString(params, "symbol")
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " transfer() the symbol parameter must be defined for a margin account"))
 		}
 		request["market"] = this.MarketId(symbol)
 	}
-	if (!IsEqual(fromAccount, "spot")) && (!IsEqual(toAccount, "spot")) {
+	if (!IsEqual(fromAccount, "spot")) && (toAccount != "spot") {
 		panic(BadRequest(this.Id + " transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot"))
 	}
 

@@ -1279,12 +1279,12 @@ func (this *Bittrade) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Bittrade) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Bittrade) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Bittrade) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2777,12 +2777,12 @@ func (this *Bittrade) ParseTransactionStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bittrade) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Bittrade) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Bittrade) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)

@@ -1615,10 +1615,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String depth = null;
-            Object paramsDepth = null;
+            Map<String, Object> paramsDepth = null;
             List<Object> depthparamsDepthVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books");
             depth = (String) ((List<Object>) depthparamsDepthVariable).get(0);
-            paramsDepth = ((List<Object>) depthparamsDepthVariable).get(1);
+            paramsDepth = (Map<String, Object>) ((List<Object>) depthparamsDepthVariable).get(1);
             Long limit = this.safeInteger(paramsDepth, "limit");
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2148,7 +2148,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String typeOption = (String) ((List<Object>) typeOptionparamsTypeVariable).get(0);
             Map<String, Object> paramsType = (Map<String, Object>) ((List<Object>) typeOptionparamsTypeVariable).get(1);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsType, "trigger", "stop", false);
-            Object paramsOmitted = this.omit(paramsType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2186,7 +2186,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 throw new ArgumentsRequired((this.id + " watchMyTrades() type is required")) ;
             }
             String uppercaseType = type.toUpperCase();
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("watchMyTrades", Helpers.toMapArg(paramsOmitted), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("watchMyTrades", paramsOmitted, (String) null);
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             if (java.util.Objects.equals(uppercaseType, "SPOT"))
@@ -2390,7 +2390,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String typeOption = (String) ((List<Object>) typeOptionparamsTypeVariable).get(0);
             Map<String, Object> paramsType = (Map<String, Object>) ((List<Object>) typeOptionparamsTypeVariable).get(1);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsType, "stop", "trigger", false);
-            Object paramsOmitted = this.omit(paramsType, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsType, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2421,7 +2421,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 throw new ArgumentsRequired((this.id + " watchOrders() type is required")) ;
             }
             String uppercaseType = type.toUpperCase();
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("watchOrders", Helpers.toMapArg(paramsOmitted), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("watchOrders", paramsOmitted, (String) null);
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             if (java.util.Objects.equals(uppercaseType, "SPOT"))

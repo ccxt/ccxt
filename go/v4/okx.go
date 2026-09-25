@@ -5137,12 +5137,12 @@ func (this *Okx) EditOrderRequest(id any, symbol any, typeVar any, side any, opt
  * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Okx) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Okx) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Okx) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Okx) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -6747,12 +6747,12 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Okx) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Okx) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Okx) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7234,12 +7234,12 @@ func (this *Okx) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Okx) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Okx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Okx) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Okx) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -8292,12 +8292,12 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Okx) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Okx) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Okx) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Okx) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -9224,12 +9224,12 @@ func (this *Okx) setPositionModeBody(ch chan any, hedged any, optionalArgs ...an
  * @param {int} [params.leverage] leverage
  * @returns {object} response from the exchange
  */
-func (this *Okx) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Okx) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Okx) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Okx) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -9241,7 +9241,7 @@ func (this *Okx) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...
 	}
 	// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
 	// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-	var marginModeValue string = ToLower(marginMode)
+	var marginModeValue string = strings.ToLower(marginMode)
 	if (marginModeValue != "cross") && (marginModeValue != "isolated") {
 		panic(BadRequest(this.Id + " setMarginMode() marginMode must be either cross or isolated"))
 	}

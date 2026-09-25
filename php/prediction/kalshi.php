@@ -1926,11 +1926,11 @@ class kalshi extends Exchange {
         return $this->filter_by_since_limit($result, $since, $limit, 'timestamp');
     }
 
-    public function fetch_order(?string $id, ?string $outcome = null, $params = array()): PromiseInterface {
+    public function fetch_order(string $id, ?string $outcome = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $outcome, $params);
     }
 
-    private function do_fetch_order(?string $id, ?string $outcome = null, $params = array()) {
+    private function do_fetch_order(string $id, ?string $outcome = null, $params = array()) {
         /**
          * fetches a single order by $id from the kalshi portfolio endpoint
          *

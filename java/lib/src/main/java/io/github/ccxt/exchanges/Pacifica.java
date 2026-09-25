@@ -1041,7 +1041,7 @@ public class Pacifica extends PacificaApi
 
             List<Object> userAccountparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchBalance", (Map<String, Object>) (parameters));
             String userAccount = (String) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account", userAccount );
             }};
@@ -1136,7 +1136,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> market = this.market(symbol);
             List<Object> userAccountparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchLeverage", (Map<String, Object>) (parameters));
             String userAccount = (String) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
             String cacheAddress = this.walletAddress;
             Object settings = null;
             if (java.util.Objects.equals(userAccount, cacheAddress))
@@ -1219,7 +1219,7 @@ public class Pacifica extends PacificaApi
 
             List<Object> userAccountparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchAccountSettings", (Map<String, Object>) (parameters));
             String userAccount = (String) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account", userAccount );
             }};
@@ -1296,7 +1296,7 @@ public class Pacifica extends PacificaApi
             (this.loadAccountSettings(false, new HashMap<String, Object>() {{}})).join();
             List<Object> userAccountparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchMarginMode", (Map<String, Object>) (parameters));
             String userAccount = (String) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
             String cacheAddress = this.walletAddress;
             Object settings = null;
             if (java.util.Objects.equals(userAccount, cacheAddress))
@@ -1720,11 +1720,11 @@ public class Pacifica extends PacificaApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchMyTrades", (Map<String, Object>) (paramsPaginate));
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsOriginAndSingleAddress), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOriginAndSingleAddress), 1);
@@ -2833,7 +2833,7 @@ public class Pacifica extends PacificaApi
             }
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchOpenOrders", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account", userAddress );
             }};
@@ -2908,7 +2908,7 @@ public class Pacifica extends PacificaApi
             }
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchOrders", (Map<String, Object>) (paramsPaginate));
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -3293,7 +3293,7 @@ public class Pacifica extends PacificaApi
             }
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchPositions", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account", userAddress );
@@ -3522,7 +3522,7 @@ public class Pacifica extends PacificaApi
             }
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchTradingFee", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account", userAddress );
@@ -3714,11 +3714,11 @@ public class Pacifica extends PacificaApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchLedger", (Map<String, Object>) (paramsPaginate));
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, Helpers.toMapArg(paramsOriginAndSingleAddress), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account", userAddress );
@@ -3838,7 +3838,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchFundingHistory", (Map<String, Object>) (paramsPaginate));
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account", userAddress );
             }};
@@ -3849,7 +3849,7 @@ public class Pacifica extends PacificaApi
             Integer defaultLimit = 100;
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsOriginAndSingleAddress), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, paramsOriginAndSingleAddress, "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
             }
             Map<String, Object> response = (this.publicGetFundingHistory(this.extend(request, paramsOriginAndSingleAddress))).join();
             // {
@@ -4015,7 +4015,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> paramsAgentAddress = (Map<String, Object>) ((List<Object>) agentAddressparamsAgentAddressVariable).get(1);
             List<Object> originAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("createSubAccount", (Map<String, Object>) (paramsAgentAddress));
             String originAddress = (String) ((List<Object>) originAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) originAddressparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) originAddressparamsOriginAndSingleAddressVariable).get(1);
             if (java.util.Objects.equals(originAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
@@ -4043,7 +4043,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> paramsTimestamp = (Map<String, Object>) ((List<Object>) timestampparamsTimestampVariable).get(1);
             List<Object> expiryWindowparamsExpiryWindowVariable = (List<Object>) this.handleOptionIntegerAndParams2(paramsTimestamp, "createSubAccount", "expiryWindow", "expiry_window", 5000L);
             Long expiryWindow = (Long) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(0);
-            var paramsExpiryWindow = ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(1);
+            Map<String, Object> paramsExpiryWindow = (Map<String, Object>) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(1);
             Map<String, Object> subaccountSignatureHeader = new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
                 put( "expiry_window", expiryWindow );

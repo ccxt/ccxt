@@ -4404,14 +4404,8 @@ class aster extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $type = null;
-        $fromId = null;
-        if ($fromAccount !== null) {
-            $fromId = strtoupper($this->convert_type_to_account($fromAccount));
-        }
-        $toId = null;
-        if ($toAccount !== null) {
-            $toId = strtoupper($this->convert_type_to_account($toAccount));
-        }
+        $fromId = strtoupper($this->convert_type_to_account($fromAccount));
+        $toId = strtoupper($this->convert_type_to_account($toAccount));
         if ($fromId === 'SPOT' && $toId === 'FUTURE') {
             $type = 'SPOT_FUTURE';
         } elseif ($fromId === 'FUTURE' && $toId === 'SPOT') {

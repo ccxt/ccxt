@@ -597,12 +597,12 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
  * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Nado) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Nado) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Nado) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Nado) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

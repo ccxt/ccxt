@@ -1937,7 +1937,7 @@ public class Woofipro extends WoofiproApi
                 request.put("start_t", since);
             }
             Long until = this.safeInteger(paramsPaginate, "until"); // unified in milliseconds
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_t", until);
@@ -3006,7 +3006,7 @@ public class Woofipro extends WoofiproApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -3674,15 +3674,12 @@ public class Woofipro extends WoofiproApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             this.checkAddress(address);
-            Object codeUpper = (((!java.util.Objects.equals(code, null)))) ? ((String)code).toUpperCase() : code;
-            if (!java.util.Objects.equals(codeUpper, null))
+            String codeUpper = ((String)code).toUpperCase();
+            if (!java.util.Objects.equals(codeUpper, "USDC"))
             {
-                if (!java.util.Objects.equals(codeUpper, "USDC"))
-                {
-                    throw new NotSupported((this.id + " withdraw() only support USDC")) ;
-                }
+                throw new NotSupported((this.id + " withdraw() only support USDC")) ;
             }
-            Map<String, Object> currency = this.currency((String) (codeUpper));
+            Map<String, Object> currency = this.currency(codeUpper);
             String verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
             String chainId = this.safeString(parameters, "chainId");
             Map<String, Object> currencyNetworks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});

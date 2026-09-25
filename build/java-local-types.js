@@ -3820,7 +3820,7 @@ const HANDLE_ELEMENT_1_PARAMS = new Set ([
     'handleParamString', 'handleParamString2', 'handleParamInteger', 'handleParamInteger2',
     'handleParamBool', 'handleParamBool2', 'handleNetworkCodeAndParams',
     'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'handleOptionBoolAndParams', 'handleOptionBoolAndParams2',
-    'handleOptionIntegerAndParams', 'handleOptionIntegerAndParams2',
+    'handleOptionIntegerAndParams', 'handleOptionIntegerAndParams2', 'isTriggerOrder',
 ]);
 
 // the element-1 type: a `Map` on every returning path except the list-valued `omit`
@@ -4023,14 +4023,22 @@ function handleValueProvablyTyped (printer, node, type, selfName) {
     if (type === 'Long') {
         return handleProvablyLongValue (node, selfName);
     }
+    if (type === HANDLE_ELEMENT_1_TYPE) {
+        return isNullishInitializer (node);
+    }
     return false;
 }
 
 // the element-1 type of a base tuple producer: the caller's params box, proven from the base
 // declaration the checked signature resolves to
-function handleElement1Type (printer, callNode) {
+function handleElement1Type (printer, node) {
+    const callNode = (node !== undefined && ts.isAwaitExpression (node)) ? unwrapParens (node.expression) : node;
+    if (!isThisCall (callNode)) {
+        return undefined;
+    }
     const name = String (callNode.expression.name.text);
-    if (!HANDLE_ELEMENT_1_PARAMS.has (name)) {
+    const venue = HANDLE_VENUE_ELEMENT_TYPES[name];
+    if (!HANDLE_ELEMENT_1_PARAMS.has (name) && venue === undefined) {
         return undefined;
     }
     let declaration;
@@ -4039,7 +4047,12 @@ function handleElement1Type (printer, callNode) {
     } catch (e) {
         return undefined;
     }
-    if (declaration === undefined || !HANDLE_DECLARATION_FILE.test (declaration.getSourceFile ().fileName)) {
+    const file = declaration?.getSourceFile ().fileName;
+    if (file === undefined) {
+        return undefined;
+    }
+    if (HANDLE_ELEMENT_1_PARAMS.has (name) ? !HANDLE_DECLARATION_FILE.test (file)
+        : !(venue.file.test (file) && handleDeclaresDictElement1 (declaration) && handleVenueReturnsDict (printer, declaration, 0))) {
         return undefined;
     }
     // a box declared `object` / `any` may be a list body (batch order requests reach fetch2 as lists)
@@ -4053,7 +4066,61 @@ function handleElement1Type (printer, callNode) {
         return undefined;
     }
     // element 1 passes the params argument through: only a statically Dict argument proves a map
-    return handleParamsArgumentIsDict (printer, callNode.arguments?.[0], 0) ? HANDLE_ELEMENT_1_TYPE : undefined;
+    const at = handleParamsPosition (declaration);
+    if (at === undefined) {
+        return undefined;
+    }
+    const arg = callNode.arguments?.[at];
+    if (arg === undefined) {
+        // the omitted argument takes the declaration's `{}` default
+        return declaration.parameters[at].initializer !== undefined
+            && ts.isObjectLiteralExpression (declaration.parameters[at].initializer) ? HANDLE_ELEMENT_1_TYPE : undefined;
+    }
+    return handleParamsArgumentIsDict (printer, arg, 0) ? HANDLE_ELEMENT_1_TYPE : undefined;
+}
+
+// a venue producer declared `[T, Dict]` (or a Promise of it): every return is a tuple whose
+// slot 1 the checker holds to Dict, the same contract the base producers carry
+function handleDeclaresDictElement1 (declaration) {
+    let type = declaration.type;
+    if (type !== undefined && ts.isTypeReferenceNode (type) && type.typeName.getText () === 'Promise') {
+        type = type.typeArguments?.[0];
+    }
+    const slot = (type !== undefined && ts.isTupleTypeNode (type) && type.elements.length === 2) ? type.elements[1] : undefined;
+    return slot !== undefined && ts.isTypeReferenceNode (slot) && slot.typeName.getText () === 'Dict';
+}
+
+// every `return` of the venue producer is `[x, p]` with p proven a Dict (memoised per declaration)
+const HANDLE_VENUE_DICT_RETURNS = new WeakMap ();
+function handleVenueReturnsDict (printer, declaration, depth) {
+    if (HANDLE_VENUE_DICT_RETURNS.has (declaration)) {
+        return HANDLE_VENUE_DICT_RETURNS.get (declaration);
+    }
+    HANDLE_VENUE_DICT_RETURNS.set (declaration, false); // a recursive producer reads as unproven
+    let ok = declaration.body !== undefined;
+    const visit = (n) => {
+        if (!ok || ts.isFunctionLike (n)) {
+            return;
+        }
+        if (ts.isReturnStatement (n)) {
+            const value = unwrapParens (n.expression);
+            ok = value !== undefined && ts.isArrayLiteralExpression (value) && value.elements.length === 2
+                && handleParamsArgumentIsDict (printer, unwrapParens (value.elements[1]), depth + 1);
+            return;
+        }
+        n.forEachChild (visit);
+    };
+    if (ok) {
+        declaration.body.forEachChild (visit);
+    }
+    HANDLE_VENUE_DICT_RETURNS.set (declaration, ok);
+    return ok;
+}
+
+// the index of the producer's `params` parameter (the box element 1 passes through)
+function handleParamsPosition (declaration) {
+    const at = (declaration.parameters ?? []).findIndex ((p) => ts.isIdentifier (p.name) && p.name.text === 'params');
+    return at === -1 ? undefined : at;
 }
 
 function handleParamsArgumentIsDict (printer, arg, depth) {
@@ -4064,24 +4131,112 @@ function handleParamsArgumentIsDict (printer, arg, depth) {
     } catch (e) {
         return false;
     }
-    if (type === undefined || (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.NonPrimitive | ts.TypeFlags.Unknown)) !== 0) {
-        return false;
-    }
-    // an element-1 binding of another handle call is proven only by that call's own argument
+    // an element-1 binding of another base producer is proven only by that call's own params argument
     const pattern = argDeclaration?.kind === ts.SyntaxKind.BindingElement ? argDeclaration.parent : undefined;
-    const call = pattern?.parent?.initializer;
+    const init = pattern?.parent?.initializer;
+    const call = (init !== undefined && ts.isAwaitExpression (unwrapParens (init))) ? unwrapParens (unwrapParens (init).expression) : unwrapParens (init);
     if (pattern?.elements?.indexOf (argDeclaration) === 1 && call?.kind === ts.SyntaxKind.CallExpression
             && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
             && HANDLE_ELEMENT_1_PARAMS.has (String (call.expression.name.text))) {
-        return depth < 8 && handleParamsArgumentIsDict (printer, call.arguments?.[0], depth + 1);
+        let producer;
+        try {
+            producer = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+        } catch (e) {
+            return false;
+        }
+        if (producer === undefined || !HANDLE_DECLARATION_FILE.test (producer.getSourceFile ().fileName)) {
+            return false;
+        }
+        const at = handleParamsPosition (producer);
+        return depth < 8 && at !== undefined && call.arguments?.[at] !== undefined
+            && handleParamsArgumentIsDict (printer, call.arguments[at], depth + 1);
+    }
+    if (argDeclaration !== undefined && ts.isVariableDeclaration (argDeclaration) && ts.isIdentifier (argDeclaration.name)) {
+        return handleNullInitParamsLocalIsDict (printer, argDeclaration, depth);
+    }
+    if (type === undefined || (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.NonPrimitive | ts.TypeFlags.Unknown)) !== 0) {
+        return false;
     }
     return true;
+}
+
+// `let p = undefined; [a, p] = this.handleX (..., q, ...)`: p holds null or the element-1 box of
+// each write, so it is a Dict when every write's own params argument is (p itself included,
+// assumed while it is being proven); any other write falls back to the checker type
+const HANDLE_PARAMS_LOCAL_VISITING = new Set ();
+function handleNullInitParamsLocalIsDict (printer, declaration, depth) {
+    const checkerDict = () => {
+        let type;
+        try {
+            type = printer.getChecker ().getTypeAtLocation (declaration.name);
+        } catch (e) {
+            return false;
+        }
+        return type !== undefined && (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.NonPrimitive | ts.TypeFlags.Unknown)) === 0;
+    };
+    if (declaration.initializer !== undefined && !isNullishInitializer (declaration.initializer)) {
+        return checkerDict ();
+    }
+    if (HANDLE_PARAMS_LOCAL_VISITING.has (declaration)) {
+        return true;
+    }
+    const scope = enclosingFunction (declaration);
+    const name = declaration.name.text;
+    let writes = 0;
+    HANDLE_PARAMS_LOCAL_VISITING.add (declaration);
+    try {
+        for (const use of (scope === undefined ? [] : (identifierIndex (scope).get (name) ?? []))) {
+            if (use === declaration.name || handleIsNotAUse (use)) {
+                continue;
+            }
+            let symbolDeclaration;
+            try {
+                symbolDeclaration = printer.getChecker ().getSymbolAtLocation (use)?.valueDeclaration?.resolve ();
+            } catch (e) {
+                return false;
+            }
+            if (symbolDeclaration !== declaration) {
+                continue;
+            }
+            const parent = use.parent;
+            if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === use
+                && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+                // null, or `this.omit (<dict>, ...)`: Functions.omit copies a Map into a fresh Map
+                const right = unwrapParens (parent.right);
+                const omitted = right !== undefined && ts.isCallExpression (right) && isThisCall (right)
+                    && String (right.expression.name.text) === 'omit' && right.arguments.length >= 2
+                    && handleParamsArgumentIsDict (printer, unwrapParens (right.arguments[0]), depth + 1);
+                if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !(isNullishInitializer (right) || omitted)) {
+                    return false;
+                }
+                continue;
+            }
+            if (parent !== undefined && ts.isArrayLiteralExpression (parent)) {
+                const grand = parent.parent;
+                if (grand === undefined || !ts.isBinaryExpression (grand) || grand.left !== parent
+                    || grand.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+                    continue; // an array literal read (a returned tuple), not a destructuring write
+                }
+                if (parent.elements.indexOf (use) !== 1
+                    || depth >= 8 || handleElement1Type (printer, unwrapParens (grand.right)) === undefined) {
+                    return false;
+                }
+                writes++;
+            }
+        }
+    } finally {
+        HANDLE_PARAMS_LOCAL_VISITING.delete (declaration);
+    }
+    return writes > 0;
 }
 
 // the audited element type of `this.handleX (...)`[index], or undefined
 function handleElementType (printer, callNode, index) {
     if (index === 0 && handleVenueElementType (printer, callNode) !== undefined) {
         return handleVenueElementType (printer, callNode);
+    }
+    if (index === 1) {
+        return handleElement1Type (printer, callNode);
     }
     if (!isThisCall (callNode)) {
         return undefined;
@@ -4173,16 +4328,6 @@ function handleTupleIsSafeToNarrow (printer, scope, skipNode, sourceName, expect
         const parent = n.parent;
         if (parent === undefined) {
             continue;
-        }
-        if (expected === HANDLE_ELEMENT_1_TYPE && ts.isCallExpression (parent)
-            && parent.arguments[0] === n && parent.arguments[1] !== undefined
-            && ts.isStringLiteral (parent.arguments[1])
-            && ts.isPropertyAccessExpression (parent.expression)
-            && parent.expression.expression.kind === ts.SyntaxKind.ThisKeyword
-            && String (parent.expression.name.text) === 'omit') {
-            // `this.omit (x, 'k')` with x typed `Map<String, Object>` binds the Map overload,
-            // which drops the list-valued passthrough the Object overload performs
-            return false;
         }
         if (ts.isTypeOfExpression (parent)) {
             return false; // `typeof x` prints instanceof tests (inconvertible for String/Long/Boolean)
@@ -4584,6 +4729,7 @@ export function patchJavaHandlerLocalTypes (printer) {
             return printed; // unexpected shape (or a section that runs before this one) — keep it
         }
         tupleTypes.set (declaration, type);
+        HANDLE_TYPED_BINDINGS.set (declaration, type);
         return printed.slice (0, at) + `${iden}${type} ${printedName} = ` + printed.slice (at + marker.length);
     };
     if (typeof printer.printCustomBinaryExpressionIfAny === 'function') {
@@ -11871,7 +12017,8 @@ function javaOmitSourceIsMap (printer, source, depth) {
         type = declaration.initializer !== undefined
             ? printer.javaOptionalParameterType?.(declaration) : printer.javaNativeParameterType?.(declaration);
     } else {
-        type = printer.javaDeclaredLocalTypeResolver?.(declaration);
+        // a tuple binding / write target typed by the handle* section publishes in HANDLE_TYPED_BINDINGS
+        type = printer.javaDeclaredLocalTypeResolver?.(declaration) ?? HANDLE_TYPED_BINDINGS.get (declaration);
     }
     if (String (type ?? '').replace (/^java\.util\./, '') !== 'Map<String, Object>') {
         return false;
