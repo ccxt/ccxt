@@ -924,7 +924,6 @@ export default class lighter extends Exchange {
         let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
         params['accountIndex'] = accountIndex;
-        const market = this.market (symbol);
         let groupingType: Int = undefined;
         [ groupingType, params ] = this.handleOptionIntegerAndParams (params, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, params);
