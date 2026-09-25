@@ -3939,7 +3939,7 @@ export class RustTranspilerBuilder {
      */
     rewriteNativeStringAffixChecks(content: string): string {
         const PLACE = /^&(?:self\.)?[A-Za-z_][A-Za-z0-9_]*$/;
-        const LIT = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)$/;
+        const LIT = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.(?:into|to_string)\(\)\)$/;
         const FMT = /^&Value::Str\((format!\(.*\))\.into\(\)\)$/s;
         const head = /(?<![A-Za-z0-9_:.])(starts_with|ends_with)\(/g;
         let out = '';
