@@ -6216,7 +6216,7 @@ export default class coinex extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api: any = [], method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         path = this.implodeParams (path, params);
         const version: string = api[0];
         const requestUrl: string = api[1];
