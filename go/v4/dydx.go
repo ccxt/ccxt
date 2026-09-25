@@ -1786,10 +1786,10 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar string, side string, am
 		}
 		return *clobPairId
 	}()
-	var orderId any = this.CreateOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
+	var orderId string = this.CreateOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
 	return []any{orderId, this.Extend(signingPayload, paramsOmitted)}
 }
-func (this *Dydx) CreateOrderIdFromParts(address any, subAccountNumber any, clientOrderId any, orderFlags any, clobPairId any) any {
+func (this *Dydx) CreateOrderIdFromParts(address any, subAccountNumber any, clientOrderId any, orderFlags any, clobPairId any) string {
 	var nameSp *string = this.SafeString(this.Options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d")
 	var prefixAddress any = Add(Add(address, "-"), ToString(subAccountNumber))
 	var prefix string = this.Uuid5(nameSp, prefixAddress)

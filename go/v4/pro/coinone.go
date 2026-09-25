@@ -433,7 +433,7 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"fee":          nil,
 	}, marketResolved)
 }
-func (this *Coinone) HandleErrorMessage(client any, message any) any {
+func (this *Coinone) HandleErrorMessage(client any, message any) bool {
 	//
 	//     {
 	//         "response_type": "ERROR",

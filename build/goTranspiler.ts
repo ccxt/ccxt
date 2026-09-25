@@ -1410,7 +1410,7 @@ function goAccessInsideNilGuard (masked: string[], k: number, name: string): boo
 }
 
 function nativeTypedContainerAccess (content: string): string {
-    if (!/\b(?:GetArrayLength|GetValue|AddElementToObject)\(/.test (content)) {
+    if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|InOp)\(/.test (content)) {
         return content;
     }
     const lines = content.split ('\n');
@@ -1432,7 +1432,53 @@ function nativeTypedContainerAccess (content: string): string {
     return lines.join ('\n');
 }
 
+// Go types whose len() answers what GetArrayLength answers (nil slice -> 0, string -> bytes)
+const GO_ARRLEN_NATIVE_TYPES = /^(?:string|\[\](?:any|string|int64|float64|bool|int|map\[string\]any|\[\]any))$/;
+// hand-written callees whose Go signature returns []any (no generated override exists)
+const GO_ARRLEN_SLICE_PRODUCER = /^(?:ccxt\.)?(?:this\.(?:ToArray|ArrayConcat|Sort|SortBy|SortBy2|FilterBy|ExtractParams)\(.*\)|(?:ListTyped|ArrayTyped|ObjectValues|SafeListTyped|SafeList2Typed|SafeListTypedDefault)\(.*\)|\[\]any\{.*\})$/;
+
+// `var x any = P` -> `var x []any = P` when x is declared once, every write is a []any producer
+// and no read observes the box itself (nil comparison, type assertion, address, multi-assign):
+// each read then sees the same []any value it saw through the box.
+function retypeSliceProducerLocals (lines: string[], masked: string[], start: number, end: number) {
+    const maskedFunc = masked.slice (start, end + 1).join ('\n');
+    const names = new Set ([ ...maskedFunc.matchAll (/\bGetArrayLength\((\w+)\)/g) ].map ((m) => m[1]));
+    for (const name of names) {
+        const n = goAccessEscape (name);
+        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
+        if ((decl === undefined) || (decl.type !== 'any') || (decl.index === undefined)) {
+            continue;
+        }
+        const declRx = new RegExp ('^(\\s*var ' + n + ' )any( = )(.*)$');
+        const writeRx = new RegExp ('^\\s*' + n + ' = (.*)$');
+        let declLine = -1;
+        let safe = true;
+        for (let k = start + 1; (k < end) && safe; k++) {
+            const d = declRx.exec (masked[k]);
+            const w = writeRx.exec (masked[k]);
+            const rhs = d ? lines[k].substring (d[1].length + 3 + d[2].length) : (w ? lines[k].substring (lines[k].length - w[1].length) : undefined);
+            if (d) {
+                declLine = k;
+            }
+            if ((rhs !== undefined) && !GO_ARRLEN_SLICE_PRODUCER.test (rhs.trim ())) {
+                safe = false;
+            }
+            if ((rhs === undefined) && goTextWritesName (masked[k], n)) {
+                safe = false;
+            }
+            if (new RegExp ('\\b' + n + '\\s*[!=]=|[!=]=\\s*' + n + '\\b|\\b' + n + '\\s*\\.\\s*\\(|&\\s*' + n + '\\b|\\b' + n + '\\s*,[^=\\n]*=|,\\s*' + n + '\\s*(?:,[^=\\n]*)?=').test (masked[k])) {
+                safe = false;
+            }
+        }
+        if (safe && (declLine >= 0)) {
+            lines[declLine] = lines[declLine].replace (declRx, '$1[]any$2$3');
+            masked[declLine] = masked[declLine].replace (declRx, '$1[]any$2$3');
+        }
+    }
+}
+
 function rewriteTypedContainerFunc (lines: string[], masked: string[], start: number, end: number) {
+    retypeSliceProducerLocals (lines, masked, start, end);
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     const lineOffsets: number[] = [];
     let offset = 0;
@@ -1460,13 +1506,16 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
     for (let k = start + 1; k < end; k++) {
         let line = lines[k];
         const m = masked[k];
+        if (goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt)) {
+            continue;
+        }
         if (!/\b(?:GetArrayLength|GetValue|AddElementToObject)\(/.test (m)) {
             continue;
         }
         const isCode = (text: string, at: number) => m.substr (at, text.length) === text;
         line = line.replace (/(?<![\w.])(?:ccxt\.)?GetArrayLength\((\w+)\)/g, (all: string, name: string, at: number) => {
             const t = typeAt (name, k);
-            return (isCode (all, at) && ((t === '[]any') || (t === '[]string'))) ? 'len(' + name + ')' : all;
+            return (isCode (all, at) && (t !== undefined) && GO_ARRLEN_NATIVE_TYPES.test (t)) ? 'len(' + name + ')' : all;
         });
         if (line.length === lines[k].length) {
             line = line.replace (new RegExp ('((?<![\\w.])(?:ccxt\\.)?(?:' + consumers + ')\\()(?:ccxt\\.)?GetValue\\((\\w+), ("[^"\\\\\\n]*")\\)', 'g'), (all: string, head: string, name: string, key: string, at: number) =>
@@ -1478,6 +1527,34 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
             lines[k] = line;
         }
     }
+}
+
+// `if ... InOp(m, k) ... {` -> `if _, ok := m[k]; ... ok ... {` on a map local the method creates (the
+// native map-write receiver proof, so no other goroutine sees it) with a string key; the read has no
+// side effect and a nil map reads ok=false like the helper. Other shapes, or `ok` in the func, keep InOp.
+function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc: string,
+    declOf: (name: string) => any, typeAt: (name: string, k: number) => string | undefined): boolean {
+    const cond = /^(\s*(?:\} else )?if )([^;{}]*) \{$/.exec (masked[k]);
+    const calls = [ ...masked[k].matchAll (/(?<![\w.])(?:ccxt\.)?InOp\(/g) ];
+    if ((cond === null) || (calls.length !== 1) || /\bok\b/.test (maskedFunc)) {
+        return false;
+    }
+    const at = calls[0].index;
+    const call = /^(?:ccxt\.)?InOp\((\w+), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
+    if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
+        return false;
+    }
+    const [ , name, key ] = call;
+    if ((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf)) {
+        return false;
+    }
+    if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
+        return false;
+    }
+    let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + call[0].length);
+    rest = rest.replace (/(^|[^\w)\]])\(ok\)/g, '$1ok');
+    lines[k] = cond[1] + '_, ok := ' + name + '[' + key + ']; ' + rest;
+    return true;
 }
 
 // ------------------------------------------------------------------------------------

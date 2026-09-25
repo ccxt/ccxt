@@ -4316,12 +4316,12 @@ func (this *Btse) setMarginModeBody(ch chan any, marginMode string, optionalArgs
 	}
 	var hedged *bool = this.SafeBool(params, "hedged")
 	if marginModeValue == "cross" {
-		if !(InOp(params, "hedged")) {
+		if _, ok := params["hedged"]; !ok {
 			panic(ArgumentsRequired(this.Id + " setMarginMode() requires a hedged parameter for cross margin mode"))
 		} else if hedged != nil && *hedged == true {
 			positionMode = "HEDGE"
 		}
-	} else if (InOp(params, "hedged")) && (hedged == nil || *hedged != true) {
+	} else if _, ok := params["hedged"]; ok && (hedged == nil || *hedged != true) {
 		panic(BadRequest(this.Id + " setMarginMode() hedged parameter cannot be false for isolated margin mode"))
 	} else {
 		positionMode = "ISOLATED"

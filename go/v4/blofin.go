@@ -1735,7 +1735,7 @@ func (this *Blofin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalanceByType(response)
 	return nil
 }
-func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2020,7 +2020,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol string, typeVar string, 
 		}())
 	}
 	if isCombinedSlTp {
-		var tpslRequest any = this.CreateTpslOrderRequest(symbol, typeVar, side, amount, price, paramsTpsl)
+		var tpslRequest map[string]any = this.CreateTpslOrderRequest(symbol, typeVar, side, amount, price, paramsTpsl)
 
 		response = (<-this.PrivatePostTradeOrderTpsl(tpslRequest))
 		PanicOnError(response)
@@ -2050,7 +2050,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol string, typeVar string, 
 	ch <- order
 	return nil
 }
-func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar string, side string, optionalArgs ...any) any {
+func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar string, side string, optionalArgs ...any) map[string]any {
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)

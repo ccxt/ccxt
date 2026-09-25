@@ -98,7 +98,7 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name string, optionalAr
 	if ccxt.IsEqual(url, nil) {
 		panic(ccxt.ExchangeError(this.Id + " urls.api.ws is not set"))
 	}
-	if ccxt.InOp(params, "signature") {
+	if _, ok := params["signature"]; ok {
 		// need to distinguish between public trades and user trades
 		url = ccxt.Add(url, "?")
 	}
@@ -147,7 +147,7 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name string, op
 	if ccxt.IsEqual(url, nil) {
 		panic(ccxt.ExchangeError(this.Id + " urls.api.ws is not set"))
 	}
-	if ccxt.InOp(params, "signature") {
+	if _, ok := params["signature"]; ok {
 		// need to distinguish between public trades and user trades
 		url = ccxt.Add(url, "?")
 	}

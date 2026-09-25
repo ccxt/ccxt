@@ -1000,9 +1000,9 @@ func (this *Btcturk) createOrderBody(ch chan any, symbol string, typeVar string,
 	if typeVar != "market" {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	if InOp(params, "clientOrderId") {
+	if _, ok := params["clientOrderId"]; ok {
 		request["newClientOrderId"] = GetValue(params, "clientOrderId")
-	} else if !(InOp(params, "newClientOrderId")) {
+	} else if _, ok := params["newClientOrderId"]; !ok {
 		request["newClientOrderId"] = this.Uuid()
 	}
 

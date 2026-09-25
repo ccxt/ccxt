@@ -1313,7 +1313,7 @@ func (this *Bitvavo) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
 }
-func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) map[string]any {
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
@@ -1392,7 +1392,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		ch <- BoxAbsent(retRes116419)
 		return nil
 	}
-	var request any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, paramsPaginate)
+	var request map[string]any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, paramsPaginate)
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketCandles(request)).Raw))
 
@@ -1810,7 +1810,7 @@ func (this *Bitvavo) fetchDepositAddressBody(ch chan any, code string, optionalA
 	}
 	return nil
 }
-func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2082,7 +2082,7 @@ func (this *Bitvavo) editOrderBody(ch chan any, id string, symbol any, typeVar a
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) any {
+func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2136,7 +2136,7 @@ func (this *Bitvavo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.CancelOrderRequest(id, symbol, params)
+	var request map[string]any = this.CancelOrderRequest(id, symbol, params)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrder(request)).Raw))
 
@@ -2333,7 +2333,7 @@ func (this *Bitvavo) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) any {
+func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
@@ -2400,7 +2400,7 @@ func (this *Bitvavo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.FetchOrdersRequest(symbol, since, limit, paramsPaginate)
+	var request map[string]any = this.FetchOrdersRequest(symbol, since, limit, paramsPaginate)
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOrders(request)).Raw))
 
@@ -2645,7 +2645,7 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             rawTrades,
 	}, marketResolved)
 }
-func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) any {
+func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
@@ -2712,7 +2712,7 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.FetchMyTradesRequest(symbol, since, limit, paramsPaginate)
+	var request map[string]any = this.FetchMyTradesRequest(symbol, since, limit, paramsPaginate)
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetTrades(request)).Raw))
 
@@ -2868,7 +2868,7 @@ func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              fee,
 	}, currencyResolved)
 }
-func (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optionalArgs ...any) any {
+func (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optionalArgs ...any) map[string]any {
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2918,7 +2918,7 @@ func (this *Bitvavo) withdrawBody(ch chan any, code string, amount any, address 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	var request any = this.WithdrawRequest(code, amount, address, tagWithdrawTag, paramsWithdrawTag)
+	var request map[string]any = this.WithdrawRequest(code, amount, address, tagWithdrawTag, paramsWithdrawTag)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawal(request)).Raw))
 
@@ -2932,7 +2932,7 @@ func (this *Bitvavo) withdrawBody(ch chan any, code string, amount any, address 
 	ch <- this.ParseTransaction(response, currency)
 	return nil
 }
-func (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) any {
+func (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) map[string]any {
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	since := GetArg(optionalArgs, 1, nil)
@@ -2987,7 +2987,7 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = this.FetchWithdrawalsRequest(code, since, limit, params)
+	var request map[string]any = this.FetchWithdrawalsRequest(code, since, limit, params)
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -3014,7 +3014,7 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	})
 	return nil
 }
-func (this *Bitvavo) FetchDepositsRequest(optionalArgs ...any) any {
+func (this *Bitvavo) FetchDepositsRequest(optionalArgs ...any) map[string]any {
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	since := GetArg(optionalArgs, 1, nil)
@@ -3069,7 +3069,7 @@ func (this *Bitvavo) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = this.FetchDepositsRequest(code, since, limit, params)
+	var request map[string]any = this.FetchDepositsRequest(code, since, limit, params)
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)

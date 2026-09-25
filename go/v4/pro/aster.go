@@ -91,7 +91,7 @@ func (this *Aster) Describe() any {
 		"exceptions": map[string]any{},
 	})
 }
-func (this *Aster) GetAccountTypeFromUrl(url any) any {
+func (this *Aster) GetAccountTypeFromUrl(url any) string {
 	if ccxt.GetIndexOf(url, "fstream") > -1 {
 		return "swap"
 	}
@@ -552,7 +552,7 @@ func (this *Aster) HandleTicker(client any, message map[string]any) {
 	//             "T": 1754668800000
 	//     }
 	//
-	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var ticker map[string]any = message
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, marketType))
 	var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
@@ -748,7 +748,7 @@ func (this *Aster) HandleBidAsk(client any, message map[string]any) {
 	//             "E": 1754896692926
 	//     }
 	//
-	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var data map[string]any = message
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
@@ -986,7 +986,7 @@ func (this *Aster) HandleTrade(client any, message map[string]any) {
 	//         "m": false
 	//     }
 	//
-	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var trade map[string]any = message
 	var marketId *string = this.SafeString(trade, "s")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
@@ -1383,7 +1383,7 @@ func (this *Aster) HandleOrderBook(client any, message map[string]any) {
 	//             ]
 	//     }
 	//
-	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var data map[string]any = message
 	var marketId *string = this.SafeString(data, "s")
 	var timestamp *int64 = this.SafeInteger(data, "T")
@@ -1650,7 +1650,7 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 	//             }
 	//     }
 	//
-	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var data map[string]any = message
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
@@ -1982,8 +1982,8 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var accountType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
-	var messageHash any = ccxt.Add(accountType, ":balance")
+	var accountType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var messageHash string = accountType + ":balance"
 	if ccxt.IsEqual(ccxt.GetValue(this.Balance, accountType), nil) {
 		ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
 	}
@@ -2004,7 +2004,7 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 		account["free"] = this.SafeString(entry, "f")
 		account["used"] = this.SafeString(entry, "l")
 		account["total"] = this.SafeString(entry, wallet)
-		if (accountType != nil) && (code != nil) {
+		if (!ccxt.IsEqual(accountType, nil)) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
 		}
 	}
@@ -2637,7 +2637,7 @@ func (this *Aster) ParseWsOrder(order any, optionalArgs ...any) any {
 }
 func (this *Aster) GetMarketFromOrder(client any, order any) any {
 	var marketId *string = this.SafeString(order, "s")
-	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
+	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	return this.SafeMarket(marketId, nil, nil, marketType)
 }
 func (this *Aster) HandleBalanceAndPosition(client any, message map[string]any) {

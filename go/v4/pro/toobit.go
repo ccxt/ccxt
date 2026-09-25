@@ -1597,7 +1597,7 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any
 func (this *Toobit) GetUserStreamUrl() any {
 	return ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/api/v1/ws/"), this.SafeString(ccxt.GetValue(this.Options, "ws"), "listenKey"))
 }
-func (this *Toobit) HandleErrorMessage(client any, message any) any {
+func (this *Toobit) HandleErrorMessage(client any, message any) bool {
 	//
 	//    {
 	//        "code": '-100010',
