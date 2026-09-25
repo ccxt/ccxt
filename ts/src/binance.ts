@@ -13361,7 +13361,7 @@ export default class binance extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: any = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         } else if (('noSymbol' in config) && !('symbol' in params)) {
@@ -13382,7 +13382,7 @@ export default class binance extends Exchange {
         return this.safeNumber (config, 'cost', 1);
     }
 
-    override async request (path: string, api = 'public', method: any = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: any = {}) {
+    override async request (path: string, api = 'public', method: any = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}) {
         const response = await this.fetch2 (path, api, method, params, headers, body, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api === 'private') {
