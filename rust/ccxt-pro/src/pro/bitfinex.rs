@@ -733,7 +733,7 @@ impl BitfinexCore {
         // ]
         //
         let mut name: Value = Value::Str("myTrade".into());
-        let mut data: Value = self.safe_value(message, Value::Int(2), &[]);
+        let mut data: Value = self.safe_list(message, Value::Int(2), &[]);
         let mut trade: Value = self.parse_ws_trade(data, &[]);
         let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol);
@@ -1313,9 +1313,9 @@ impl BitfinexCore {
         //       null
         //   ]
         //
-        let mut updateType: Value = self.safe_value(message.clone(), Value::Int(1), &[]);
+        let mut updateType: Option<String> = self.safe_string(message.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut data: Value = Value::from(vec![]);
-        if (updateType.as_str() == Some("ws")) {
+        if (updateType.as_deref() == Some("ws")) {
             data = self.safe_list(message.clone(), Value::Int(2), &[]);
         }  else {
             data = Value::from(vec![self.safe_value(message.clone(), Value::Int(2), &[])]);

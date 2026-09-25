@@ -523,7 +523,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("listenKey".into(), self.get_listen_key(isContract.clone()).await); }
             }  else {
                 let mut listenKey: Value = self.get_listen_key(isContract.clone()).await;
-                let mut param: Value = add(&Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), &listenKey);
+                let mut param: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), listenKey).into());
                 if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![param])); }
             }
         }  else {
@@ -598,7 +598,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("listenKey".into(), self.get_listen_key(isContract.clone()).await); }
             }  else {
                 let mut listenKey: Value = self.get_listen_key(isContract.clone()).await;
-                let mut param: Value = add(&Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), &listenKey);
+                let mut param: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), listenKey).into());
                 if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![param])); }
             }
         }  else {

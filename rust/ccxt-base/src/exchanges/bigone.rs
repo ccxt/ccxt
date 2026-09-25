@@ -1603,8 +1603,10 @@ impl BigoneCore {
 
     pub fn parse_contract_order_book(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
-        let mut responseBids: Value = self.safe_dict_k(orderbook.clone(), "bids", &[]);
-        let mut responseAsks: Value = self.safe_dict_k(orderbook, "asks", &[]);
+        let __orderbook_empty = indexmap::IndexMap::new();
+        let orderbook = orderbook.as_map().unwrap_or(&__orderbook_empty);
+        let mut responseBids: Value = (match orderbook.get("bids") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
+        let mut responseAsks: Value = (match orderbook.get("asks") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut bids: Value = self.parse_contract_bids_asks(responseBids);
         let mut asks: Value = self.parse_contract_bids_asks(responseAsks);
         return Value::Map({

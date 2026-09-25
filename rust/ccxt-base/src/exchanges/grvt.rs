@@ -3253,12 +3253,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut __for_first_713: bool = true;
             while { if !__for_first_713 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_713 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderLegs.len() as i64) as f64) } {
             let mut leg: Value = orderLegs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.market(crate::value::get_value_k(&leg, "instrument"));
+            let mut market: Value = self.market(leg.as_map().and_then(|__m| __m.get("instrument")).cloned().unwrap_or(Value::Null));
             let mut bigInt10: Value = self.convert_to_big_int_custom(Value::Str("10".into()));
             let mut precisionValue: Value = self.precision_from_string(self.safe_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("base".into()), &[]));
             let mut precisionValueStr: Value = to_string_val(&precisionValue);
             let mut sizeMultiplier: Value = crate::runtime::Math::pow(&bigInt10, &self.convert_to_big_int_custom(precisionValueStr));
-            let mut size: Value = crate::value::get_value_k(&leg, "size");
+            let mut size: Value = leg.as_map().and_then(|__m| __m.get("size")).cloned().unwrap_or(Value::Null);
             let mut sizeParts: Value = split(&size, &Value::Str(".".into()));
             let mut sizeDec: Value = self.safe_string(sizeParts, Value::Int(1), &[Value::Str("".into())]);
             let mut sizeDecLength: Value = (match (&(Value::Int(sizeDec.len() as i64)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); // php tr
@@ -3268,12 +3268,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut m = indexmap::IndexMap::new();
                     m.insert("assetID".to_string(), crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "instrument_hash"));
                     m.insert("contractSize".to_string(), self.parse_to_int(sizeInteger));
-                    m.insert("isBuyingContract".to_string(), crate::value::get_value_k(&leg, "is_buying_asset"));
+                    m.insert("isBuyingContract".to_string(), leg.as_map().and_then(|__m| __m.get("is_buying_asset")).cloned().unwrap_or(Value::Null));
                 m
             });
             let mut limitPrice: Value = self.safe_string_k(leg.clone(), "limit_price", &[]);
             if (self.omit_zero(limitPrice) != Value::Null) {
-                let mut price: Value = crate::value::get_value_k(&leg, "limit_price");
+                let mut price: Value = leg.as_map().and_then(|__m| __m.get("limit_price")).cloned().unwrap_or(Value::Null);
                 let mut limitParts: Value = split(&price, &Value::Str(".".into()));
                 let mut limitDec: Value = self.safe_string(limitParts, Value::Int(1), &[Value::Str("".into())]);
                 let mut limitDecLength: Value = (match (&(Value::Int(limitDec.len() as i64)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); // php tr

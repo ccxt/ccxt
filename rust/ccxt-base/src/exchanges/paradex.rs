@@ -2497,11 +2497,11 @@ impl ParadexCore {
 })]));
             m
         });
-        let mut msg: Value = self.starknet_encode_structured_data(domain, messageTypes, req, crate::value::get_value_k(&account, "address"));
-        let mut signature: Value = self.starknet_sign(msg, crate::value::get_value_k(&account, "privateKey"));
+        let mut msg: Value = self.starknet_encode_structured_data(domain, messageTypes, req, account.as_map().and_then(|__m| __m.get("address")).cloned().unwrap_or(Value::Null));
+        let mut signature: Value = self.starknet_sign(msg, account.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), crate::value::get_value_k(&account, "address")); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("public_key".into(), crate::value::get_value_k(&account, "publicKey")); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), account.as_map().and_then(|__m| __m.get("address")).cloned().unwrap_or(Value::Null)); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("public_key".into(), account.as_map().and_then(|__m| __m.get("publicKey")).cloned().unwrap_or(Value::Null)); }
         let mut response: Value = self.private_post_onboarding(&[params]).await;
         return response;
 
@@ -2567,10 +2567,10 @@ impl ParadexCore {
 })]));
             m
         });
-        let mut msg: Value = self.starknet_encode_structured_data(domain, messageTypes, req.clone(), crate::value::get_value_k(&account, "address"));
-        let mut signature: Value = self.starknet_sign(msg, crate::value::get_value_k(&account, "privateKey"));
+        let mut msg: Value = self.starknet_encode_structured_data(domain, messageTypes, req.clone(), account.as_map().and_then(|__m| __m.get("address")).cloned().unwrap_or(Value::Null));
+        let mut signature: Value = self.starknet_sign(msg, account.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), crate::value::get_value_k(&account, "address")); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), account.as_map().and_then(|__m| __m.get("address")).cloned().unwrap_or(Value::Null)); }
         add_element_to_object(&mut params, &Value::Str("timestamp".into()), match &req { Value::Dict(__m15) => __m15.get("timestamp").cloned().unwrap_or(Value::Null), _ => Value::Null });
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("expiration".into(), match &req { Value::Dict(__m15) => __m15.get("expiration").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
         let mut response: Value = self.private_post_auth(&[params]).await;
@@ -2904,8 +2904,8 @@ impl ParadexCore {
             });
         }
         let mut domain: Value = self.prepare_paradex_domain(&[]).await;
-        let mut msg: Value = self.starknet_encode_structured_data(domain, messageTypes, orderReq.clone(), crate::value::get_value_k(&account, "address"));
-        let mut signature: Value = self.starknet_sign(msg, crate::value::get_value_k(&account, "privateKey"));
+        let mut msg: Value = self.starknet_encode_structured_data(domain, messageTypes, orderReq.clone(), account.as_map().and_then(|__m| __m.get("address")).cloned().unwrap_or(Value::Null));
+        let mut signature: Value = self.starknet_sign(msg, account.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null));
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature_timestamp".into(), match &orderReq { Value::Dict(__m15) => __m15.get("timestamp").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
         return request;

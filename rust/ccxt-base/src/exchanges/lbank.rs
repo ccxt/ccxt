@@ -1918,7 +1918,7 @@ impl LbankCore {
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
-        let mut data: Value = self.safe_value_k(response, "data", &[]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[]);
         // from spotPrivatePostUserInfo
         let mut toBtc: Value = self.safe_value_k(data.clone(), "toBtc", &[]);
         if (toBtc != Value::Null) {

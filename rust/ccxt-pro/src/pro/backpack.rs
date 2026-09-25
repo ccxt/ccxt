@@ -180,8 +180,6 @@ impl crate::exchange_generated::ExchangeBase for BackpackCore {
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ws_order_side" => self.parse_ws_order_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ws_order_status" => self.parse_ws_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -238,8 +236,6 @@ impl BackpackCore {
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_ws_order_side" => self.parse_ws_order_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_ws_order_status" => self.parse_ws_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1663,13 +1659,13 @@ impl BackpackCore {
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "c", &[]);
         let mut microseconds: Value = self.safe_integer_k(order.clone(), "E", &[Value::Int(0)]);
         let mut timestamp: Value = self.parse_to_int((match ((microseconds).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        let mut status: Value = self.parse_ws_order_status(self.safe_string_k(order.clone(), "X", &[]), &[market.clone()]);
+        let mut status: Value = self.parse_ws_order_status(self.safe_string_k(order.clone(), "X", &[]), &[market.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut marketId: Value = self.safe_string_k(order.clone(), "s", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut type_var: Value = self.safe_string_lower_k(order.clone(), "o", &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "f", &[]);
-        let mut side: Value = self.parse_ws_order_side(self.safe_string_k(order.clone(), "S", &[]));
+        let mut side: Value = self.parse_ws_order_side(self.safe_string_k(order.clone(), "S", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut price: Value = self.safe_string_k(order.clone(), "p", &[]);
         let mut triggerPrice: Value = self.safe_number_k(order.clone(), "P", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "q", &[]);
@@ -1714,7 +1710,7 @@ impl BackpackCore {
     Value::Null
 }
 
-    pub fn parse_ws_order_status(&self, mut status: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order_status(&self, mut status: Value, optional_args: &[Value]) -> Option<String> {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1727,21 +1723,17 @@ impl BackpackCore {
                 m.insert("TriggerFailed".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_ws_order_side(&self, mut side: Value) -> Value {
+    pub fn parse_ws_order_side(&self, mut side: Value) -> Option<String> {
         let mut sides: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Bid".to_string(), Value::Str("buy".into()));
                 m.insert("Ask".to_string(), Value::Str("sell".into()));
             m
         });
-        return self.safe_string(sides, side.clone(), &[side.clone()]);
-
-    Value::Null
+        return self.safe_string(sides, side.clone(), &[side.clone()]).as_str().map(str::to_owned);
 }
 
 /*

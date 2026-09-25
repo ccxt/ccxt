@@ -3704,12 +3704,12 @@ impl PoloniexCore {
     pub fn parse_deposit_address_special(&self, mut response: Value, mut currency: Value, mut networkEntry: Value) -> Value {
         let mut address: Value = self.safe_string_k(response.clone(), "address", &[]);
         if (address == Value::Null) {
-            address = self.safe_string(response.clone(), crate::value::get_value_k(&networkEntry, "id"), &[]);
+            address = self.safe_string(response.clone(), networkEntry.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
         }
         let mut tag: Value = Value::Null;
         self.check_address(&[address.clone()]);
         if (networkEntry != Value::Null) {
-            let mut depositAddress: Value = self.safe_string_k(crate::value::get_value_k(&networkEntry, "info"), "depositAddress", &[]);
+            let mut depositAddress: Value = self.safe_string(networkEntry.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("depositAddress".into()), &[]);
             if (depositAddress != Value::Null) {
                 tag = address.clone();
                 address = depositAddress;

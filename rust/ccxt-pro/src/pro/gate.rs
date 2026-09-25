@@ -1729,7 +1729,7 @@ impl GateCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-            let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
+            let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
                 stored = ArrayCacheByTimestamp::new(limit);
@@ -2225,7 +2225,7 @@ impl GateCore {
             }
         }
         }
-        let mut messageHashes: Value = self.find_message_hashes(client.clone(), add(&type_var, &Value::Str(":positions::".into())));
+        let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str(format!("{}{}", type_var, Value::Str(":positions::".into())).into()));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_334: bool = true;
@@ -2240,7 +2240,7 @@ impl GateCore {
             }
         }
         }
-        client.resolve(&[newPositions, add(&type_var, &Value::Str(":positions".into()))]);
+        client.resolve(&[newPositions, Value::Str(format!("{}{}", type_var, Value::Str(":positions".into())).into())]);
 }
 
 /*

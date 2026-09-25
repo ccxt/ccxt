@@ -2617,7 +2617,7 @@ impl KrakenCore {
         if (id == Value::Null) {
             return id;
         }
-        let mut market: Value = self.safe_value(self.options.as_map().and_then(|__m| __m.get("delistedMarketsById")).cloned().unwrap_or(Value::Null), id.clone(), &[]);
+        let mut market: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("delistedMarketsById")).cloned().unwrap_or(Value::Null), id.clone(), &[]);
         if (market != Value::Null) {
             return market;
         }

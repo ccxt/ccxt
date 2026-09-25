@@ -9306,7 +9306,7 @@ impl KucoinCore {
             market = self.market(symbol);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        let mut method: Value = self.options.as_map().and_then(|__m| __m.get("fetchMyTradesMethod")).cloned().unwrap_or(Value::Null);
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchMyTradesMethod", &[]).as_str().map(str::to_owned);
         let mut parseResponseData: bool = false;
         let mut response: Value = Value::Null;
         { let __destr_tmp = self.handle_until_option(Value::Str("endAt".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -9326,7 +9326,7 @@ impl KucoinCore {
                 let __ws_arg_82 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_hf_fills(&[__ws_arg_82]).await;
             }
-        }  else if (method.as_str() == Some("private_get_fills")) {
+        }  else if (method.as_deref() == Some("private_get_fills")) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since != Value::Null) {
                 // only returns trades up to one week after the since param
@@ -9334,7 +9334,7 @@ impl KucoinCore {
             }
             let __ws_arg_83 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_fills(&[__ws_arg_83]).await;
-        }  else if (method.as_str() == Some("private_get_limit_fills")) {
+        }  else if (method.as_deref() == Some("private_get_limit_fills")) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)

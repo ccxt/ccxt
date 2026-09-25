@@ -3116,7 +3116,7 @@ impl DeribitCore {
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), priceString);
-        m.insert("triggerPrice".to_string(), self.safe_value_k(order, "stop_price", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(order, "stop_price", &[]));
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), cost);
         m.insert("average".to_string(), averageString);

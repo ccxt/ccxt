@@ -1027,7 +1027,7 @@ impl DeriveCore {
                     if (fee != Value::Null) {
                         add_element_to_object(&mut parsed, &Value::Str("fee".into()), fee);
                     }
-                    let mut fees: Value = self.safe_value_k(order.clone(), "fees", &[]);
+                    let mut fees: Value = self.safe_list_k(order.clone(), "fees", &[]);
                     if (fees != Value::Null) {
                         add_element_to_object(&mut parsed, &Value::Str("fees".into()), fees);
                     }

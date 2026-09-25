@@ -1426,7 +1426,7 @@ impl WoofiproCore {
             }
             cachedOrders.append(parsed);
             client.resolve(&[self.orders.clone(), topic.clone()]);
-            let mut messageHashSymbol: Value = Value::Str(format!("{}{}", add(&topic, &Value::Str(":".into())), symbol).into());
+            let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), symbol).into());
             client.resolve(&[self.orders.clone(), messageHashSymbol]);
         }
 }

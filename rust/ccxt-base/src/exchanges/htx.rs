@@ -4000,7 +4000,7 @@ impl HtxCore {
             let mut settleId: Value = Value::Null;
             let mut id: Value = Value::Null;
             let mut lowercaseId: Value = Value::Null;
-            let mut contract: Value = (Value::Bool(in_op(&market, &Value::Str("contract_code".into()))));
+            let mut contract: Value = (Value::Bool(matches!(&market, Value::Dict(__d) if __d.contains_key("contract_code"))));
             let mut spot: Value = Value::Bool(!(matches!(&contract, Value::Bool(true))));
             let mut swap: Value = Value::Bool(false);
             let mut future: Value = Value::Bool(false);
@@ -5539,7 +5539,7 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut type_var: Value = self.safe_value(accountsById, typeId.clone(), &[typeId.clone()]);
+        let mut type_var: Value = self.safe_string(accountsById, typeId.clone(), &[typeId.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), account.clone());
@@ -5803,7 +5803,7 @@ impl HtxCore {
         if (keysLength == 0.0) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" networkIdToCode() - markets need to be loaded at first".into()))));
         }
-        let mut networkTitle: Value = self.safe_value(self.options.as_map().and_then(|__m| __m.get("networkNamesByChainIds")).cloned().unwrap_or(Value::Null), networkId.clone(), &[networkId.clone()]);
+        let mut networkTitle: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networkNamesByChainIds")).cloned().unwrap_or(Value::Null), networkId.clone(), &[networkId.clone()]);
         return self.super_network_id_to_code(&[networkTitle, currencyCode]);
 
     Value::Null
@@ -5830,7 +5830,7 @@ impl HtxCore {
             return uniqueNetworkIds.as_map().and_then(|__m| networkCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }  else {
             let mut networkTitle: Value = self.super_network_code_to_id(networkCode, &[currencyCode]);
-            return self.safe_value(uniqueNetworkIds, networkTitle.clone(), &[networkTitle.clone()]);
+            return self.safe_string(uniqueNetworkIds, networkTitle.clone(), &[networkTitle.clone()]);
         }
 
     Value::Null

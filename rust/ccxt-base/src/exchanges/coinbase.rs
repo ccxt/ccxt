@@ -7228,8 +7228,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
         }
-        let mut advancedTrade: Value = self.options.as_map().and_then(|__m| __m.get("advanced")).cloned().unwrap_or(Value::Null);
-        if !(in_op(&response, &Value::Str("data".into()))) && (!is_equal(&advancedTrade, &Value::Bool(true))) {
+        let mut advancedTrade: Value = self.safe_bool_k(self.options.clone(), "advanced", &[]);
+        if !(in_op(&response, &Value::Str("data".into()))) && (advancedTrade.as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" failed due to a malformed response ".into())).into()), json_stringify(&response))));
         }
         return Value::Null;

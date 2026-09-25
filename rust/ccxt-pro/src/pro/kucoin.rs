@@ -177,7 +177,6 @@ impl crate::exchange_generated::ExchangeBase for KucoinCore {
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "get_current_position" => self.get_current_position(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "get_message_hash" => self.get_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "get_my_trades_message_hash_suffix" => self.get_my_trades_message_hash_suffix(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "get_uta_url" => self.get_uta_url().await,
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -246,7 +245,6 @@ impl KucoinCore {
             "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "get_current_position" => self.get_current_position(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "get_message_hash" => self.get_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "get_my_trades_message_hash_suffix" => self.get_my_trades_message_hash_suffix(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "get_uta_url" => { crate::exchange_stubs::enqueue_spawn("get_uta_url", args.to_vec()); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -3198,7 +3196,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             if (symbol == Value::Null) {
-                let mut suffix: Value = self.get_my_trades_message_hash_suffix(topic.clone());
+                let mut suffix: Value = self.get_my_trades_message_hash_suffix(topic.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                 messageHash = Value::Str(format!("{}{}", messageHash, suffix).into());
             }
             let __ws_arg_3 = self.extend(request, &[params]);
@@ -3212,14 +3210,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn get_my_trades_message_hash_suffix(&self, mut topic: Value) -> Value {
+    pub fn get_my_trades_message_hash_suffix(&self, mut topic: Value) -> Option<String> {
         let mut suffix: Value = Value::Str("-spot".into());
         if get_index_of(&topic, &Value::Str("contractMarket".into())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             suffix = Value::Str("-contract".into());
         }
-        return suffix;
-
-    Value::Null
+        return suffix.as_str().map(str::to_owned);
 }
 
     pub fn handle_my_trade(&mut self, mut client: Value, mut message: Value) {
@@ -3263,7 +3259,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         myTrades.append(parsed.clone());
         let mut messageHash: Value = Value::Str("myTrades".into());
         let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut suffix: Value = self.get_my_trades_message_hash_suffix(topic);
+        let mut suffix: Value = self.get_my_trades_message_hash_suffix(topic).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut typeSpecificMessageHash: Value = Value::Str(format!("{}{}", messageHash, suffix).into());
         client.resolve(&[self.myTrades.clone(), typeSpecificMessageHash]);
         let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());

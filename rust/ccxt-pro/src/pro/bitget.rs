@@ -1116,7 +1116,7 @@ impl BitgetCore {
         if (timeframe == Value::Null) {
             return;
         }
-        let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
+        let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit);
@@ -3195,7 +3195,7 @@ impl BitgetCore {
                     add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow, &interest));
                 }
                 let mut freeQuery: Value = Value::Str("available".into());
-                if (in_op(&rawBalance, &Value::Str("maxTransferOut".into()))) {
+                if (matches!(&rawBalance, Value::Dict(__d) if __d.contains_key("maxTransferOut"))) {
                     freeQuery = Value::Str("maxTransferOut".into());
                 }
                 add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string(rawBalance.clone(), freeQuery, &[]));
