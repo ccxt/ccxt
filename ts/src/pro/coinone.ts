@@ -6,6 +6,7 @@ import { AuthenticationError } from '../base/errors.js';
 import type { Bool, Dict, Int, Market, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -76,7 +77,7 @@ export default class coinone extends coinoneRest {
             },
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 
@@ -338,7 +339,10 @@ export default class coinone extends coinoneRest {
         const quoteId = this.safeStringUpper (trade, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
+        let symbol: Str = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+        }
         const timestamp = this.safeInteger (trade, 'timestamp');
         market = this.safeMarket (symbol, market);
         const isSellerMaker = this.safeBool (trade, 'is_seller_maker');

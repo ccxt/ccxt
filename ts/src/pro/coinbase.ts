@@ -6,6 +6,7 @@ import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -671,7 +672,7 @@ export default class coinbase extends coinbaseRest {
         const name = 'level2';
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const orderbook = await this.subscribe (name, false, symbol, params);
+        const orderbook: Ob = await this.subscribe (name, false, symbol, params);
         return orderbook.limit ();
     }
 
@@ -708,7 +709,7 @@ export default class coinbase extends coinbaseRest {
             await this.loadMarkets ();
         }
         const name = 'level2';
-        const orderbook = await this.subscribeMultiple (name, false, symbols, params);
+        const orderbook: Ob = await this.subscribeMultiple (name, false, symbols, params);
         return orderbook.limit ();
     }
 

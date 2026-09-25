@@ -5,6 +5,7 @@ import ndaxRest from '../ndax.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -300,7 +301,7 @@ export default class ndax extends ndaxRest {
                     this.safeFloat (ohlcv, 5),
                 ];
                 const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
-                const length = stored.length;
+                const length: number = stored.length;
                 if ((length > 0) && (parsed[0] === stored[length - 1][0])) {
                     const previous = stored[length - 1];
                     let high = parsed[1];
@@ -404,7 +405,7 @@ export default class ndax extends ndaxRest {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit ();
     }
 

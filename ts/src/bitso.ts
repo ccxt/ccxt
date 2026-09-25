@@ -503,6 +503,9 @@ export default class bitso extends Exchange {
             let quote: Str = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const fees = this.safeDict (market, 'fees', {});
             const flatRate = this.safeDict (fees, 'flat_rate', {});
             const takerString = this.safeString (flatRate, 'taker');
@@ -1976,7 +1979,11 @@ export default class bitso extends Exchange {
                 endpoint += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api']['rest'] + endpoint;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             // bitso rejects a nonce that is not higher than the previous one (error 104)

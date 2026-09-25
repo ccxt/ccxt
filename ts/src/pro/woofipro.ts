@@ -8,6 +8,7 @@ import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, FeeString, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
@@ -84,7 +85,7 @@ export default class woofipro extends woofiproRest {
         if (this.accountId !== undefined && this.accountId !== '') {
             id = this.accountId;
         }
-        const url = this.urls['api']['ws']['public'] + '/' + id;
+        const url = this.safeString (this.urls['api']['ws'], 'public') + '/' + id;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -115,7 +116,7 @@ export default class woofipro extends woofiproRest {
             'topic': topic,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watchPublic (topic, message);
+        const orderbook: Ob = await this.watchPublic (topic, message);
         return orderbook.limit ();
     }
 
@@ -623,7 +624,7 @@ export default class woofipro extends woofiproRest {
 
     async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.accountId;
         const client = this.client (url);
         const messageHash = 'authenticated';
         const event = 'auth';
@@ -654,7 +655,7 @@ export default class woofipro extends woofiproRest {
 
     async watchPrivate (messageHash: string, message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.accountId;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -665,7 +666,7 @@ export default class woofipro extends woofiproRest {
 
     async watchPrivateMultiple (messageHashes: string[], message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.accountId;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -1037,7 +1038,7 @@ export default class woofipro extends woofiproRest {
         } else {
             messageHashes.push ('positions');
         }
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.accountId;
         const client = this.client (url);
         this.setPositionsCache (client, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
@@ -1073,7 +1074,7 @@ export default class woofipro extends woofiproRest {
     async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeString (position, 'contracts', '0');
@@ -1127,7 +1128,7 @@ export default class woofipro extends woofiproRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];

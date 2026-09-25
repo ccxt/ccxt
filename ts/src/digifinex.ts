@@ -663,6 +663,9 @@ export default class digifinex extends Exchange {
             const settleId = this.safeString (market, 'clear_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             //
             // The status is documented in the exchange API docs as follows:
@@ -774,6 +777,9 @@ export default class digifinex extends Exchange {
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -4175,7 +4181,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const tiers: LeverageTier[] = [];
-        const brackets = this.safeValue (info, 'open_max_limits', {});
+        const brackets = this.safeList (info, 'open_max_limits', []);
         for (let i = 0; i < brackets.length; i++) {
             const tier = this.safeDict (brackets, i);
             const marketId = this.safeString (info, 'instrument_id');
@@ -4533,15 +4539,19 @@ export default class digifinex extends Exchange {
     }
 
     override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const signed = api[0] === 'private';
-        const endpoint = api[1];
+        const signed = this.safeString (api, 0) === 'private';
+        const endpoint = this.safeString (api, 1);
         let pathPart: Str = '/swap/v2';
         if (endpoint === 'spot') {
             pathPart = '/v3';
         }
         const request = '/' + this.implodeParams (path, params);
         const payload = pathPart + request;
-        let url = this.urls['api']['rest'] + payload;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + payload;
         const query = this.omit (params, this.extractParams (path));
         let urlencoded: Str = undefined;
         if (signed && (pathPart === '/swap/v2') && (method === 'POST')) {

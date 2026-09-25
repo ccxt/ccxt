@@ -5,6 +5,7 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool , Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -232,7 +233,7 @@ export default class alpaca extends alpacaRest {
             'action': 'subscribe',
             'orderbooks': [ market['id'] ],
         };
-        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         return orderbook.limit ();
     }
 
@@ -633,7 +634,7 @@ export default class alpaca extends alpacaRest {
                 'key': this.apiKey,
                 'secret': this.secret,
             };
-            if (url === this.urls['api']['ws']['trading']) {
+            if (url === this.safeString (this.urls['api']['ws'], 'trading')) {
                 // this auth request is being deprecated in test environment
                 request = {
                     'action': 'authenticate',
@@ -657,8 +658,12 @@ export default class alpaca extends alpacaRest {
         //    }
         //
         const code = this.safeString (message, 'code');
-        const msg = this.safeValue (message, 'msg', {});
-        throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + msg);
+        const msg = this.safeString (message, 'msg');
+        let errorMessage = this.id + ' code: ' + code;
+        if (msg !== undefined) {
+            errorMessage = errorMessage + ' message: ' + msg;
+        }
+        throw new ExchangeError (errorMessage);
     }
 
     handleConnected (client: Client, message: Dict): Dict {

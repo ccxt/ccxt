@@ -127,7 +127,7 @@ type IBaseExchange interface {
 	SetSocksProxy(proxyUrl any)
 	SignInAsync(optionalArgs ...any) <-chan any
 	Market(symbol any) map[string]any
-	Currency(code any) any
+	Currency(code any) map[string]any
 	GetMarket(symbol string) MarketInterface
 	GetMarketsList() []MarketInterface
 	GetCurrency(currencyId string) Currency
@@ -242,7 +242,7 @@ type ICoreExchange interface {
 	FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan any
 	FetchMarketLeverageTiersAsync(symbol any, optionalArgs ...any) <-chan any
 	FetchOrdersAsync(optionalArgs ...any) <-chan any
-	SafeCurrency(currencyId any, optionalArgs ...any) any
+	SafeCurrency(currencyId any, optionalArgs ...any) map[string]any
 	Parse8601(datetime2 any) *int64
 	Iso8601(ts2 any) *string
 	FetchPositionAsync(symbol any, optionalArgs ...any) <-chan any
@@ -267,7 +267,7 @@ type ICoreExchange interface {
 	FetchOrderBooksAsync(optionalArgs ...any) <-chan any
 	FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any
 	FetchWithdrawalsAsync(optionalArgs ...any) <-chan any
-	Currency(code any) any
+	Currency(code any) map[string]any
 	ParseDate(datetime2 any) any
 	RoundTimeframe(timeframe any, timestamp any, direction ...any) any
 	Extend(aa any, bb ...any) map[string]any
@@ -411,7 +411,7 @@ type IDerivedExchange interface {
 	FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any
 	ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any
 	FetchLeveragesAsync(optionalArgs ...any) <-chan any
-	SafeMarket(optionalArgs ...any) any
+	SafeMarket(optionalArgs ...any) map[string]any
 	Sign(path any, optionalArgs ...any) any
 	FetchBalanceAsync(optionalArgs ...any) <-chan any
 	CancelOrderAsync(id any, optionalArgs ...any) <-chan any

@@ -6,6 +6,7 @@ import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.j
 import type { Dict, FeeString, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -115,8 +116,8 @@ export default class deepcoin extends deepcoinRest {
     }
 
     createPublicRequest (market: any, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false): Dict {
-        let marketId = market['symbol']; // spot markets use symbol with slash
-        if (market['type'] === 'swap') {
+        let marketId = this.safeString (market, 'symbol'); // spot markets use symbol with slash
+        if (this.safeString (market, 'type') === 'swap') {
             marketId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''); // swap markets use symbol without slash
         }
         let action = '1'; // subscribe
@@ -168,7 +169,7 @@ export default class deepcoin extends deepcoinRest {
 
     async watchPrivate (messageHash: string, params: Dict = {}): Promise<any> {
         const listenKey = await this.authenticate ();
-        const url = this.urls['api']['ws']['private'] + '?listenKey=' + listenKey;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '?listenKey=' + listenKey;
         return await this.watch (url, messageHash, undefined, 'private', params);
     }
 
@@ -693,7 +694,7 @@ export default class deepcoin extends deepcoinRest {
         const messageHash = 'orderbook' + '::' + market['symbol'];
         let suffix: Str = undefined;
         [ suffix, params ] = this.orderBookSuffix (market, 'watchOrderBook', params);
-        const orderbook = await this.watchPublic (market, messageHash, '25', params, suffix);
+        const orderbook: Ob = await this.watchPublic (market, messageHash, '25', params, suffix);
         return orderbook.limit ();
     }
 
@@ -846,7 +847,8 @@ export default class deepcoin extends deepcoinRest {
         //     }
         //
         const timestamp = this.safeInteger (message, 'mt', 0);
-        if (timestamp > orderbook['timestamp']) {
+        const currentTimestamp = this.safeInteger (orderbook, 'timestamp');
+        if ((currentTimestamp !== undefined) && (timestamp > currentTimestamp)) {
             const response = this.safeList (message, 'r', []);
             this.handleDeltas (orderbook, response);
             orderbook['timestamp'] = timestamp;
@@ -1119,7 +1121,7 @@ export default class deepcoin extends deepcoinRest {
         } else {
             messageHashes.push (messageHash);
         }
-        const url = this.urls['api']['ws']['private'] + '?listenKey=' + listenKey;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '?listenKey=' + listenKey;
         const positions = await this.watchMultiple (url, messageHashes, params, [ 'private' ]);
         if (this.newUpdates) {
             return positions;

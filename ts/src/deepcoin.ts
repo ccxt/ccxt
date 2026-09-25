@@ -519,6 +519,9 @@ export default class deepcoin extends Exchange {
         let settle: Str = undefined;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         let isLinear: Bool = undefined;
         if (swap) {
@@ -3093,14 +3096,18 @@ export default class deepcoin extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestPath = path;
+        let requestPath: string = path;
         if (method === 'GET') {
             const query = this.urlencode (params);
             if (query.length > 0) {
                 requestPath += '?' + query;
             }
         }
-        const url = this.urls['api'][api] + '/' + requestPath;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + '/' + requestPath;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();

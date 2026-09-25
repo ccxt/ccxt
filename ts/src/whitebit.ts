@@ -479,7 +479,7 @@ export default class whitebit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
             await this.loadTimeDifference ();
         }
         const markets = await this.v4PublicGetMarkets ();
@@ -518,6 +518,9 @@ export default class whitebit extends Exchange {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const active = this.safeBool (market, 'tradesEnabled');
         const isCollateral = this.safeBool (market, 'isCollateral');
         const typeId = this.safeString (market, 'type');
@@ -1089,7 +1092,7 @@ export default class whitebit extends Exchange {
             if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
-            const symbol = market['symbol'];
+            const symbol = marketSymbol;
             // Filter by symbols if specified
             if (symbols !== undefined) {
                 let symbolFound = false;
@@ -1229,7 +1232,7 @@ export default class whitebit extends Exchange {
             for (let j = 0; j < feeKeys.length; j++) {
                 const feeKey = feeKeys[j];
                 const fee = this.safeDict (feesData, feeKey);
-                if ((fee !== undefined && fee !== null) && fee['ticker'] === code) {
+                if ((fee !== undefined && fee !== null) && this.safeString (fee, 'ticker') === code) {
                     feeData = fee;
                     break;
                 }
@@ -4268,7 +4271,7 @@ export default class whitebit extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
@@ -4280,7 +4283,11 @@ export default class whitebit extends Exchange {
         }
         headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams (path, params);
-        let url = (this.urls['api'] as Dict)[version][accessibility] + pathWithParams;
+        const apiUrl = this.safeString (this.urls['api'][version], accessibility);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + pathWithParams;
         if (accessibility === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);

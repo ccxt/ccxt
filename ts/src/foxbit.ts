@@ -1671,6 +1671,9 @@ export default class foxbit extends Exchange {
         const quoteId = this.safeString (quoteAssets, 'symbol');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const fees = this.safeDict (market, 'default_fees');
         return this.safeMarketStructure ({
@@ -2050,7 +2053,11 @@ export default class foxbit extends Exchange {
             fullPath = '/status';
             urlPath = 'status';
         }
-        let url = this.urls['api'][urlPath] + fullPath;
+        const apiUrl = this.safeString (this.urls['api'], urlPath);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + fullPath;
         params = this.omit (params, this.extractParams (path));
         const timestamp = this.milliseconds ();
         let query = '';

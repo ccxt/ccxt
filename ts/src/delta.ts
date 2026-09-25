@@ -879,6 +879,9 @@ export default class delta extends Exchange {
             const numericId = this.safeInteger (market, 'id');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             const callOptions = (type === 'call_options');
             const putOptions = (type === 'put_options');
@@ -2345,7 +2348,7 @@ export default class delta extends Exchange {
         return await this.fetchOrdersWithMethod ('privateGetOrdersHistory', symbol, since, limit, params);
     }
 
-    async fetchOrdersWithMethod (method: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchOrdersWithMethod (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {
             // 'product_ids': market['id'], // comma-separated
@@ -2914,7 +2917,7 @@ export default class delta extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, type: any, params: Dict = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: string, params: Dict = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         amount = amount.toString ();
@@ -4175,7 +4178,11 @@ export default class delta extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = {}, body: Str = undefined): Dict {
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + requestPath;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + requestPath;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length > 0) {

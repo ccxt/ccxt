@@ -7,6 +7,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/erro
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Fee, FeeString, List, Market, NullableDict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -171,7 +172,7 @@ export default class whitebit extends whitebitRest {
             priceInterval,
             true, // true for allowing multiple subscriptions
         ];
-        const orderbook = await this.watchPublic (messageHash, method, reqParams, params);
+        const orderbook: Ob = await this.watchPublic (messageHash, method, reqParams, params);
         return orderbook.limit ();
     }
 
@@ -783,7 +784,7 @@ export default class whitebit extends whitebitRest {
         return await this.watchPrivate (messageHash, method, [], params);
     }
 
-    setBalanceCache (client: Client, type: any, subscriptionHash: any) {
+    setBalanceCache (client: Client, type: Str, subscriptionHash: any) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }

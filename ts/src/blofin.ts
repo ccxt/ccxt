@@ -630,6 +630,9 @@ export default class blofin extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         if (swap) {
             symbol = symbol + ':' + settle;
@@ -3182,7 +3185,11 @@ export default class blofin extends Exchange {
     override sign (path: any, api = 'public', method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api']['rest'] + request;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + request;
         // const type = this.getPathAuthenticationType (path);
         if (api === 'public') {
             if (!this.isEmpty (query)) {

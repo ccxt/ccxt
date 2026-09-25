@@ -9,7 +9,7 @@ import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
-import { PARAMETERS_ARG_TYPED_METHODS } from './csharp-local-types.js'
+import { PARAMETERS_ARG_TYPED_METHODS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
@@ -222,8 +222,8 @@ const CSHARP_DECLARED_LIST_TYPES = [ 'List<object>', 'IList<object>' ];
 // the return type accepts a trailing `?` (`bool?` / `double?`), or the region boundary
 // drifts and a later method's body reads the previous method's parameter types
 const CSHARP_HELPER_SIGNATURE_RE = /^[ ]{4,}(?:(?:public|private|protected|internal)[ ]+)?(?:static[ ]+|async[ ]+|virtual[ ]+|override[ ]+|sealed[ ]+|new[ ]+|partial[ ]+|extern[ ]+|unsafe[ ]+)*(?:[A-Za-z_][\w<>,.\[\]?]*(?:[ ][A-Za-z_][\w<>,.\[\]?]*)*)[ ]+([A-Za-z_]\w*)[ ]*\(/;
-// a declaration of one variable: `Type name = value;` / `Type name;`
-const CSHARP_HELPER_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]]*(?:[ ][A-Za-z_][\w<>,.\[\]]*)*)[ ]+([A-Za-z_]\w*)[ ]*(=[ ]*([^;]*))?;[ ]*$/;
+// a declaration of one variable: `Type name = value;` / `Type name;` (`Int64? x` included)
+const CSHARP_HELPER_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]?]*(?:[ ][A-Za-z_][\w<>,.\[\]?]*)*)[ ]+([A-Za-z_]\w*)[ ]*(=[ ]*([^;]*))?;[ ]*$/;
 // the same declaration with a collection/object initializer that spans lines (`= new X () {`)
 const CSHARP_HELPER_NEW_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]]*(?:[ ][A-Za-z_][\w<>,.\[\]]*)*)[ ]+([A-Za-z_]\w*)[ ]*=[ ]*new\b[^;]*\{[ ]*$/;
 const CSHARP_HELPER_TYPE_RE = /^[A-Za-z_][\w.]*(?:[ ]*<[^<>=;(){}]*>)?(?:[ ]*\[\])?[?]?$/;
@@ -434,6 +434,7 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         edits.push ({ start: match.index, end: close + 1,
             text: `(${name} != null && ${name}.ContainsKey(${keyText}) ? ${name}[${keyText}] : null)` });
     }
+    csharpHelperOperatorEdits (original, masked, takeType, edits);
     if (edits.length === 0) {
         return undefined;
     }
@@ -442,6 +443,112 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         out = out.substring (0, edit.start) + edit.text + out.substring (edit.end);
     }
     return out;
+}
+
+// declared C# kinds an operator rule may read: the value the emitted declaration holds
+const CSHARP_OPERATOR_STRING_TYPES = [ 'string', 'string?' ];
+const CSHARP_OPERATOR_NULLABLE_TYPES = [ 'string', 'string?', 'Int64?', 'long?', 'int?', 'double?', 'bool?' ];
+const CSHARP_OPERATOR_INTEGER_TYPES = [ 'int', 'Int64', 'long' ];
+const CSHARP_OPERATOR_NUMERIC_TYPES = [ 'int', 'Int64', 'long', 'double' ];
+const CSHARP_OPERATOR_NULLABLE_INTEGER_TYPES = [ 'Int64?', 'long?', 'int?' ];
+const CSHARP_OPERATOR_NULLABLE_NUMERIC_TYPES = [ 'Int64?', 'long?', 'int?', 'double?' ];
+const CSHARP_OPERATOR_TOKENS = { isGreaterThan: '>', isGreaterThanOrEqual: '>=', isLessThan: '<', isLessThanOrEqual: '<=' };
+
+// the kind of one printed operand: a string / numeric literal, null, or a name the emitted
+// text declares (its declared type); undefined for every other expression
+function csharpOperatorOperand (maskedArg: string, originalArg: string, takeType) {
+    if (/^"[ ]*"$/.test (maskedArg) && /^"(?:[^"\\]|\\.)*"$/.test (originalArg)) {
+        return { kind: 'string-literal' };
+    }
+    if (maskedArg === 'null') {
+        return { kind: 'null' };
+    }
+    if (/^-?\d{1,15}$/.test (maskedArg)) {
+        return { kind: 'integer-literal' };
+    }
+    if (/^-?\d+\.\d+$/.test (maskedArg)) {
+        return { kind: 'double-literal' };
+    }
+    if (!/^[A-Za-z_]\w*$/.test (maskedArg) || (maskedArg === 'null')) {
+        return undefined;
+    }
+    const receiver = takeType (maskedArg);
+    return (receiver === undefined) ? undefined : { kind: 'name', type: receiver.type };
+}
+
+// `isEqual(a, b)` -> `(a == b)` and `isGreaterThan(a, b)` & co -> the operator, when the emitted
+// declarations make the C# operator compute the helper's answer for every value the operands
+// can hold (a null / NaN operand whose helper branch differs keeps the helper)
+function csharpNativeOperatorText (helper: string, left, right, leftText: string, rightText: string): string | undefined {
+    const isName = (o, types) => (o.kind === 'name') && types.includes (o.type);
+    if (helper === 'isEqual') {
+        // string ordinal equality, null on either side answering like isEqual's null branch
+        const stringPair = (isName (left, CSHARP_OPERATOR_STRING_TYPES) && ((right.kind === 'string-literal') || isName (right, CSHARP_OPERATOR_STRING_TYPES)))
+            || (isName (right, CSHARP_OPERATOR_STRING_TYPES) && (left.kind === 'string-literal'));
+        const nullTest = (isName (left, CSHARP_OPERATOR_NULLABLE_TYPES) && (right.kind === 'null'))
+            || (isName (right, CSHARP_OPERATOR_NULLABLE_TYPES) && (left.kind === 'null'));
+        // integers compare through Convert.ToInt64 in isEqual: the same value comparison
+        // (a nullable integer: null equals only null in both, the lifted `==`)
+        const integer = (o) => isName (o, CSHARP_OPERATOR_INTEGER_TYPES) || isName (o, CSHARP_OPERATOR_NULLABLE_INTEGER_TYPES) || (o.kind === 'integer-literal');
+        const integerPair = integer (left) && integer (right)
+            && ((left.kind === 'name') || (right.kind === 'name'));
+        return (stringPair || nullTest || integerPair) ? `(${leftText} == ${rightText})` : undefined;
+    }
+    const token = CSHARP_OPERATOR_TOKENS[helper];
+    if (token === undefined) {
+        return undefined;
+    }
+    const numericLiteral = (o) => (o.kind === 'integer-literal') || (o.kind === 'double-literal');
+    const plain = (o) => isName (o, CSHARP_OPERATOR_NUMERIC_TYPES) || numericLiteral (o);
+    if ((left.kind !== 'name') && (right.kind !== 'name')) {
+        return undefined;
+    }
+    const integral = (o) => isName (o, CSHARP_OPERATOR_INTEGER_TYPES) || (o.kind === 'integer-literal');
+    if (integral (left) && integral (right)) {
+        return `(${leftText} ${token} ${rightText})`;
+    }
+    // `>` / `>=`: the helper answers false for a null left (isEqual(null, x) is false too) and for a
+    // NaN operand, as the lifted / IEEE operator does; `<` / `<=` answer true there, so they stay.
+    // Two names must share a kind (Int64 vs double compares exactly only through a literal), and an
+    // `int` left meets only integers (isEqual's `(int)b` cast of a double box answers false)
+    if ((token === '>') || (token === '>=')) {
+        const leftOk = plain (left) || isName (left, CSHARP_OPERATOR_NULLABLE_NUMERIC_TYPES);
+        const bothNames = (left.kind === 'name') && (right.kind === 'name');
+        const leftBase = (left.kind === 'name') ? left.type.replace ('?', '').replace ('long', 'Int64') : '';
+        const rightBase = (right.kind === 'name') ? right.type.replace ('long', 'Int64') : '';
+        const sameKind = !bothNames || (leftBase === rightBase) || ((leftBase !== 'double') && (rightBase !== 'double'));
+        const intLeft = (leftBase === 'int') && !integral (right);
+        if (leftOk && plain (right) && sameKind && !intLeft) {
+            return `(${leftText} ${token} ${rightText})`;
+        }
+    }
+    return undefined;
+}
+
+// a line that may carry a call one of the rewrites above takes
+const CSHARP_HELPER_LINE_RE = /getArrayLength|inOp|getValue|isEqual|isGreaterThan|isLessThan/;
+
+// the operator helper calls of one line whose operands the emitted declarations prove
+function csharpHelperOperatorEdits (original: string, masked: string, takeType, edits) {
+    const helperCall = /(?<![A-Za-z0-9_.])(isEqual|isGreaterThan|isGreaterThanOrEqual|isLessThan|isLessThanOrEqual)\(/g;
+    let match;
+    while ((match = helperCall.exec (masked)) !== null) {
+        const open = match.index + match[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const comma = csharpHelperTopLevelComma (masked, open, close);
+        if ((comma === undefined) || (csharpHelperTopLevelComma (masked, comma, close) !== undefined)) continue;
+        if (edits.some ((e) => (e.start < close + 1) && (match.index < e.end))) continue;
+        const leftText = original.substring (open + 1, comma).trim ();
+        const rightText = original.substring (comma + 1, close).trim ();
+        const left = csharpOperatorOperand (masked.substring (open + 1, comma).trim (), leftText, takeType);
+        const right = csharpOperatorOperand (masked.substring (comma + 1, close).trim (), rightText, takeType);
+        if ((left === undefined) || (right === undefined)) continue;
+        const text = csharpNativeOperatorText (match[1], left, right, leftText, rightText);
+        if (text !== undefined) {
+            edits.push ({ start: match.index, end: close + 1, text });
+        }
+    }
 }
 
 // the index of the `)` closing the call whose `(` sits at `open`
@@ -473,7 +580,7 @@ function csharpHelperTopLevelComma (line: string, open: number, close: number): 
 // `x.ContainsKey(k)` / `x.Contains(k)` (with a null test where the emitted declaration allows a
 // null receiver) for every receiver the emitted signature / declarations type as a collection
 export function nativeDeclaredHelperCalls (content: string): string {
-    if (!content.includes ('getArrayLength') && !content.includes ('inOp') && !content.includes ('getValue')) {
+    if (!CSHARP_HELPER_LINE_RE.test (content)) {
         return content;
     }
     const lines = content.split ('\n');
@@ -510,7 +617,7 @@ export function nativeDeclaredHelperCalls (content: string): string {
     };
     let changed = false;
     const out = lines.map ((line, i) => {
-        if ((line.indexOf ('getArrayLength') < 0) && (line.indexOf ('inOp') < 0) && (line.indexOf ('getValue') < 0)) {
+        if (!CSHARP_HELPER_LINE_RE.test (line)) {
             return line;
         }
         const region = regionOfLine (i);
@@ -1986,10 +2093,8 @@ const WS_HANDLER_IDICT_MESSAGE: Record<string, string[]> = {
 // No `object <name>Var` shadow (unlike typeCoreArgs): every write in the 202 bodies is a literal
 // or a `Dictionary<string, object>` producer, so the narrowed declaration keeps the bodies
 // byte-identical, and the 8 `add (method, …)` sites pass a static string or a literal.
-const SIGNATURE_ARG_TYPES: Record<string, Record<number, string>> = {
-    'sign': { 2: 'string', 4: 'Dictionary<string, object>' },
-    'handleErrors': { 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
-};
+// the table lives in build/csharp-local-types.js so the printer reads these positions typed too
+
 
 // S43 pilot: method names whose trailing `parameters` argument is retyped to
 // `Dictionary<string, object> parameters = null`. C# overrides are invariant on parameter types,
@@ -5134,17 +5239,18 @@ class NewTranspiler {
     // declaration because every write is a literal or a `Dictionary<string, object>` producer.
     retypeSignatureArgs (content: string): string {
         const names = Object.keys (SIGNATURE_ARG_TYPES);
-        if (!names.some (name => content.includes (' object ' + name + '('))) {
+        if (!names.some (name => content.includes (' ' + name + '('))) {
             return content;
         }
-        const sigRe = /^(\s*)public (virtual|override) object (sign|handleErrors)\((.*)\)\s*$/;
+        // any return type: sign() returns the request dictionary (CSHARP_METHOD_RETURN_TYPES)
+        const sigRe = /^(\s*)public (virtual|override) ([\w<>., ?]+) (sign|handleErrors)\((.*)\)\s*$/;
         const lines = content.split ('\n');
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);
             if (sig === null) {
                 continue;
             }
-            const [ , indent, modifier, methodName, plist ] = sig;
+            const [ , indent, modifier, returnType, methodName, plist ] = sig;
             const positions = SIGNATURE_ARG_TYPES[methodName];
             const params = this.splitCsharpParams (plist);
             let changed = false;
@@ -5159,7 +5265,7 @@ class NewTranspiler {
                 changed = true;
             }
             if (changed) {
-                lines[i] = `${indent}public ${modifier} object ${methodName}(${params.join (',')})`;
+                lines[i] = `${indent}public ${modifier} ${returnType} ${methodName}(${params.join (',')})`;
             }
         }
         return lines.join ('\n');

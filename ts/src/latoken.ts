@@ -357,7 +357,11 @@ export default class latoken extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
     /**
@@ -888,9 +892,12 @@ export default class latoken extends Exchange {
         const quoteId = this.safeString (trade, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        if ((this.markets !== undefined) && (symbol in this.markets)) {
-            market = this.market (symbol);
+        let symbol: Str = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
+                market = this.market (symbol);
+            }
         }
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
@@ -1884,7 +1891,11 @@ export default class latoken extends Exchange {
                 body = this.json (query);
             }
         }
-        const url = this.urls['api']['rest'] + requestString;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + requestString;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

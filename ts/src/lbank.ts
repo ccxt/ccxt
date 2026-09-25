@@ -573,6 +573,9 @@ export default class lbank extends Exchange {
             const quoteId = parts[1];
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const symbol = base + '/' + quote;
             result.push ({
                 'id': marketId,
@@ -670,6 +673,9 @@ export default class lbank extends Exchange {
             const quoteId = settleId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             const symbol = base + '/' + quote + ':' + settle;
             result.push ({
@@ -3084,12 +3090,20 @@ export default class lbank extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every spot endpoint ends with ".do"
         if (api[0] === 'spot') {
             url += '.do';
         } else {
-            url = this.urls['api']['contract'] + '/' + this.implodeParams (path, params);
+            const contractUrl = this.safeString (this.urls['api'], 'contract');
+            if (contractUrl === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = contractUrl + '/' + this.implodeParams (path, params);
         }
         if (api[1] === 'public') {
             if (Object.keys (query).length > 0) {

@@ -596,6 +596,9 @@ export default class woofipro extends Exchange {
         const quoteId = this.safeString (parts, 2);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = this.safeString (parts, 2);
         const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
@@ -2948,7 +2951,8 @@ export default class woofipro extends Exchange {
     }
 
     hashMessage (message: any) {
-        return '0x' + this.hash (message, keccak, 'hex');
+        const hashed: string = this.hash (message, keccak, 'hex');
+        return '0x' + hashed;
     }
 
     signHash (hash: string, privateKey: string): string {
@@ -3501,7 +3505,11 @@ export default class woofipro extends Exchange {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
-        let url = this.urls['api'][access] + '/' + version + '/';
+        const apiUrl = this.safeString (this.urls['api'], access);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + version + '/';
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         if (access === 'public') {

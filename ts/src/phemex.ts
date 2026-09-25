@@ -714,8 +714,11 @@ export default class phemex extends Exchange {
         const quoteId = this.safeString (market, 'quoteCurrency');
         const settleId = this.safeString (market, 'settleCurrency');
         let base = this.safeCurrencyCode (baseId);
-        base = (base as string).replace (' ', ''); // replace space for junction codes, eg. `1000 SHIB`
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
+        base = base.replace (' ', ''); // replace space for junction codes, eg. `1000 SHIB`
         const settle = this.safeCurrencyCode (settleId);
         let inverse = false;
         if (settleId !== quoteId) {
@@ -846,6 +849,9 @@ export default class phemex extends Exchange {
         const baseId = this.safeString (market, 'baseCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const status = this.safeString (market, 'status');
         const precisionAmount = this.parseSafeNumber (this.safeString (market, 'baseTickSize'));
         const precisionPrice = this.parseSafeNumber (this.safeString (market, 'quoteTickSize'));
@@ -1131,7 +1137,9 @@ export default class phemex extends Exchange {
                 market = this.extend (market, { 'valueScale': valueScale });
                 market = this.parseSpotMarket (market);
             }
-            result.push (market);
+            if (market !== undefined) {
+                result.push (market);
+            }
         }
         return result;
     }
@@ -1305,7 +1313,7 @@ export default class phemex extends Exchange {
         return orderbook as OrderBook;
     }
 
-    toEn (n: any, scale: any) {
+    toEn (n: any, scale: Int) {
         if ((n === undefined) || (scale === undefined)) {
             return undefined;
         }
@@ -2769,7 +2777,7 @@ export default class phemex extends Exchange {
             if (qtyType === 'ByQuote') {
                 let cost = this.safeNumber (params, 'cost');
                 params = this.omit (params, 'cost');
-                if (this.options['createOrderByQuoteRequiresPrice'] === true) {
+                if (this.safeBool (this.options, 'createOrderByQuoteRequiresPrice') === true) {
                     if (price !== undefined) {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);

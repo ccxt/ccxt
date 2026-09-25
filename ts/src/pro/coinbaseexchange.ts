@@ -8,6 +8,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import Precise from '../base/Precise.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -61,6 +62,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
     }
 
     async subscribe (name: string, symbol: Str = undefined, messageHashStart: Str = undefined, params: Dict = {}) {
+        if (messageHashStart === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + name + ' subscription requires a messageHashStart argument');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -72,7 +76,10 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             messageHash += ':' + market['id'];
             productIds.push (market['id']);
         }
-        let url = this.urls['api']['ws'];
+        let url = this.safeString (this.urls['api'], 'ws');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' urls.api.ws is not set');
+        }
         if ('signature' in params) {
             // need to distinguish between public trades and user trades
             url = url + '?';
@@ -89,6 +96,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
     }
 
     async subscribeMultiple (name: string, symbols: string[] = [], messageHashStart: Str = undefined, params: Dict = {}) {
+        if (messageHashStart === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + name + ' subscription requires a messageHashStart argument');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -102,7 +112,10 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             productIds.push (market['id']);
             messageHashes.push (messageHashStart + ':' + market['symbol']);
         }
-        let url = this.urls['api']['ws'];
+        let url = this.safeString (this.urls['api'], 'ws');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' urls.api.ws is not set');
+        }
         if ('signature' in params) {
             // need to distinguish between public trades and user trades
             url = url + '?';
@@ -365,7 +378,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             'limit': limit,
         };
         const authentication = this.authenticate ();
-        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, authentication), messageHashes, subscription);
+        const orderbook: Ob = await this.watchMultiple (url, messageHashes, this.extend (request, authentication), messageHashes, subscription);
         return orderbook.limit ();
     }
 
@@ -404,7 +417,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             'limit': limit,
         };
         const authentication = this.authenticate ();
-        const orderbook = await this.watch (url, messageHash, this.extend (request, authentication), messageHash, subscription);
+        const orderbook: Ob = await this.watch (url, messageHash, this.extend (request, authentication), messageHash, subscription);
         return orderbook.limit ();
     }
 

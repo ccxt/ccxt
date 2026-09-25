@@ -574,6 +574,9 @@ export default class bithumb extends Exchange {
                     }
                     const market = data[currencyId];
                     const base = this.safeCurrencyCode (currencyId);
+                    if (base === undefined) {
+                        continue;
+                    }
                     let active = true;
                     if (Array.isArray (market)) {
                         const numElements = market.length;
@@ -2591,7 +2594,7 @@ export default class bithumb extends Exchange {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `side` parameter (sell or buy)');
             }
             let side: Str = undefined;
-            if (params['side'] === 'buy') {
+            if (this.safeString (params, 'side') === 'buy') {
                 side = 'bid';
             } else {
                 side = 'ask';
@@ -3336,7 +3339,11 @@ export default class bithumb extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const endpoint = '/' + this.implodeParams (path, params);
-        let url = this.implodeHostname (this.urls['api'][api]) + endpoint;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname (apiUrl) + endpoint;
         const query = this.omit (params, this.extractParams (path));
         const queryKeys = Object.keys (query);
         const queryKeysLength = queryKeys.length;

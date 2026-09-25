@@ -5,6 +5,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } f
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Bool, Fee } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -202,7 +203,7 @@ export default class toobit extends toobitRest {
             subParams.push (rawHash);
         }
         const marketIds = this.marketIds (symbols);
-        const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
+        const url = this.safeString (this.urls['api']['ws'], 'common') + '/quote/ws/v1';
         const request: Dict = {
             'symbol': marketIds.join (','),
             'topic': 'trade',
@@ -299,7 +300,7 @@ export default class toobit extends toobitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
+        const url = this.safeString (this.urls['api']['ws'], 'common') + '/quote/ws/v1';
         const messageHashes: List = [];
         const timeframes = this.safeDict (this.options['ws'], 'timeframes', {});
         const marketIds: List = [];
@@ -447,7 +448,7 @@ export default class toobit extends toobitRest {
             subParams.push (rawHash);
         }
         const marketIds = this.marketIds (symbols);
-        const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
+        const url = this.safeString (this.urls['api']['ws'], 'common') + '/quote/ws/v1';
         const request: Dict = {
             'symbol': marketIds.join (','),
             'topic': 'realtimes',
@@ -570,13 +571,13 @@ export default class toobit extends toobitRest {
             subParams.push (rawHash);
         }
         const marketIds = this.marketIds (symbols);
-        const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
+        const url = this.safeString (this.urls['api']['ws'], 'common') + '/quote/ws/v1';
         const request: Dict = {
             'symbol': marketIds.join (','),
             'topic': channel,
             'event': 'sub',
         };
-        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const orderbook: Ob = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         return orderbook.limit ();
     }
 
@@ -1206,7 +1207,7 @@ export default class toobit extends toobitRest {
         const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
-        const delay = this.sum (listenKeyRefreshRate, 10000);
+        const delay = listenKeyRefreshRate + 10000;
         if (time - lastAuthenticatedTime > delay) {
             this.checkRequiredCredentials ();
             // single-flight leader election on a never-dialed client, see
@@ -1280,7 +1281,7 @@ export default class toobit extends toobitRest {
     }
 
     getUserStreamUrl (): string {
-        return this.urls['api']['ws']['common'] + '/api/v1/ws/' + this.options['ws']['listenKey'];
+        return this.safeString (this.urls['api']['ws'], 'common') + '/api/v1/ws/' + this.safeString (this.options['ws'], 'listenKey');
     }
 
     handleErrorMessage (client: Client, message: Dict): Bool {

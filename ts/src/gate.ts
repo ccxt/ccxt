@@ -5,7 +5,7 @@ import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, NullResponse } from './base/errors.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees, MarginLoan, Endpoint, DepositAddresses, Liquidation } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees, MarginLoan, Endpoint, DepositAddresses, Liquidation, MarketType } from './base/types.js';
 
 /**
  * @class gate
@@ -1380,7 +1380,7 @@ export default class gate extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         if (this.checkRequiredCredentials (false)) {
@@ -1390,7 +1390,7 @@ export default class gate extends Exchange {
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         const types = this.safeList (fetchMarketsOptions, 'types', [ 'spot', 'swap', 'future', 'option' ]);
         for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
+            const marketType = this.safeString (types, i);
             if (marketType === 'spot') {
                 // if (!sandboxMode) {
                 // gate doesn't have a sandbox for spot markets
@@ -1460,6 +1460,9 @@ export default class gate extends Exchange {
             const [ baseId, quoteId ] = (id as string).split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const takerPercent = this.safeString (market, 'fee');
             const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision')));
@@ -1529,7 +1532,7 @@ export default class gate extends Exchange {
     async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const result: List = [];
         let swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
-        if (this.options['sandboxMode'] === true) {
+        if (this.safeBool (this.options, 'sandboxMode') === true) {
             swapSettlementCurrencies = [ 'usdt' ]; // gate sandbox only has usdt-margined swaps
         }
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
@@ -1541,14 +1544,16 @@ export default class gate extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const contract = this.safeDict (response, i, {});
                 const parsedMarket = this.parseContractMarket (contract, settleId);
-                result.push (parsedMarket);
+                if (parsedMarket !== undefined) {
+                    result.push (parsedMarket);
+                }
             }
         }
         return result;
     }
 
     async fetchFutureMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['sandboxMode'] === true) {
+        if (this.safeBool (this.options, 'sandboxMode') === true) {
             return []; // right now sandbox does not have inverse swaps
         }
         const result: List = [];
@@ -1562,13 +1567,15 @@ export default class gate extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const contract = this.safeDict (response, i, {});
                 const parsedMarket = this.parseContractMarket (contract, settleId);
-                result.push (parsedMarket);
+                if (parsedMarket !== undefined) {
+                    result.push (parsedMarket);
+                }
             }
         }
         return result;
     }
 
-    parseContractMarket (market: Dict, settleId: Str): Dict {
+    parseContractMarket (market: Dict, settleId: Str): Market {
         //
         //  Perpetual swap
         //
@@ -1679,10 +1686,13 @@ export default class gate extends Exchange {
         const date = this.safeString (parts, 2);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         const expiry = this.safeTimestamp (market, 'expire_time');
         let symbol = '';
-        let marketType = 'swap';
+        let marketType: MarketType = 'swap';
         if (date !== undefined) {
             symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
             marketType = 'future';
@@ -1716,7 +1726,7 @@ export default class gate extends Exchange {
             'margin': false,
             'swap': marketType === 'swap',
             'future': marketType === 'future',
-            'option': marketType === 'option',
+            'option': false,
             'active': status === 'trading',
             'contract': true,
             'linear': isLinear,
@@ -1809,6 +1819,9 @@ export default class gate extends Exchange {
                 const quoteId = this.safeString (parts, 1);
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 let symbol = base + '/' + quote;
                 const expiry = this.safeTimestamp (market, 'expiration_time');
                 const strike = this.safeString (market, 'strike_price');
@@ -3009,7 +3022,7 @@ export default class gate extends Exchange {
         if (market['option'] === true) {
             for (let i = 0; i < (response as List).length; i++) {
                 const entry = response[i];
-                if (entry['name'] === market['id']) {
+                if (this.safeString (entry, 'name') === market['id']) {
                     ticker = entry;
                     break;
                 }
@@ -7183,7 +7196,11 @@ export default class gate extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
     override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {

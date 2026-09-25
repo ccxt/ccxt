@@ -527,6 +527,9 @@ export default class btcmarkets extends Exchange {
         const id = this.safeString (market, 'marketId');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const fees = this.safeDict (this.safeDict (this.options, 'fees', {}), quote, this.fees);
         const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimals')));
@@ -1466,7 +1469,11 @@ export default class btcmarkets extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api'][api] + request;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

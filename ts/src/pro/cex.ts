@@ -7,6 +7,7 @@ import { ArgumentsRequired, ExchangeError, BadRequest } from '../base/errors.js'
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -999,7 +1000,7 @@ export default class cex extends cexRest {
             'oid': this.requestId (),
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }
 
@@ -1074,7 +1075,8 @@ export default class cex extends cexRest {
         const symbol = this.pairToSymbol (pair);
         const storedOrderBook: Dict = this.safeValue (this.orderbooks, symbol);
         const messageHash = 'orderbook:' + symbol;
-        if (incrementalId !== storedOrderBook['nonce'] + 1) {
+        const nonce = this.safeInteger (storedOrderBook, 'nonce');
+        if ((nonce === undefined) || (incrementalId !== nonce + 1)) {
             delete client.subscriptions[messageHash];
             client.reject (this.id + ' watchOrderBook() skipped a message', messageHash);
             return;

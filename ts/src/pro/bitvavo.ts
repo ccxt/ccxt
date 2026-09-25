@@ -7,6 +7,7 @@ import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/e
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, List, Strings, Tickers, Bool, Currencies, Market, Transaction } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -638,7 +639,7 @@ export default class bitvavo extends bitvavoRest {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit ();
     }
 
@@ -684,7 +685,7 @@ export default class bitvavo extends bitvavoRest {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
+        const orderbook: Ob = await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
         return orderbook.limit ();
     }
 
@@ -832,7 +833,7 @@ export default class bitvavo extends bitvavoRest {
             'action': name,
             'market': marketId,
         };
-        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const orderbook: Ob = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
         return orderbook.limit ();
     }
 

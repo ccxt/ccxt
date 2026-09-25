@@ -795,7 +795,7 @@ export default class kraken extends krakenRest {
                 throw new NotSupported (this.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only');
             }
         }
-        const orderbook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, this.extend (requiredParams, params));
+        const orderbook: Ob = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, this.extend (requiredParams, params));
         return orderbook.limit ();
     }
 
@@ -987,7 +987,7 @@ export default class kraken extends krakenRest {
         }
         orderbook.limit ();
         // checksum temporarily disabled because the exchange checksum was not reliable
-        const checksum = this.handleOption ('watchOrderBook', 'checksum', false);
+        const checksum: Bool = this.handleOption ('watchOrderBook', 'checksum', false);
         if (checksum === true) {
             const payloadArray: string[] = [];
             if (c !== undefined) {
