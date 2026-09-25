@@ -1978,7 +1978,7 @@ public partial class lbank : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrderSupplement (private)
@@ -2112,7 +2112,7 @@ public partial class lbank : Exchange
             { "timestamp", timestamp },
             { "lastTradeTimestamp", null },
             { "status", this.parseOrderStatus(rawStatus) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", type },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },

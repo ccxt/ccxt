@@ -762,7 +762,7 @@ public partial class mercado : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -802,7 +802,7 @@ public partial class mercado : Exchange
         Int64? timestamp = this.safeTimestamp(order, "created_timestamp");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", this.safeString(order, "fee") },
-            { "currency", getValue(market, "quote") },
+            { "currency", (market != null && market.ContainsKey("quote") ? market["quote"] : null) },
         };
         string? price = this.safeString(order, "limit_price");
         // price = this.safeNumber (order, 'executed_price_avg', price);
@@ -811,7 +811,7 @@ public partial class mercado : Exchange
         string? filled = this.safeString(order, "executed_quantity");
         Int64? lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
         List<object> rawTrades = this.safeList(order, "operations", new List<object>() {});
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },

@@ -2318,7 +2318,7 @@ public partial class backpack : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {

@@ -1778,7 +1778,7 @@ public partial class bittrade : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {                  id:  13997833014,
@@ -1837,10 +1837,10 @@ public partial class bittrade : Exchange
             object feeCurrency = null;
             if (isEqual(side, "sell"))
             {
-                feeCurrency = getValue(market, "quote");
+                feeCurrency = (market != null && market.ContainsKey("quote") ? market["quote"] : null);
             } else
             {
-                feeCurrency = getValue(market, "base");
+                feeCurrency = (market != null && market.ContainsKey("base") ? market["base"] : null);
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -1854,7 +1854,7 @@ public partial class bittrade : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", type },
             { "timeInForce", null },
             { "postOnly", null },

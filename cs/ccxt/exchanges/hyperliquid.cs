@@ -3786,7 +3786,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrdersWs error
@@ -3911,7 +3911,7 @@ public partial class hyperliquid : Exchange
         {
             market = this.safeMarket(marketId, market);
         }
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeInteger(entry, "timestamp");
         string? status = this.safeString2(order, "status", "ccxtStatus");
         order = this.omit(order, new List<object>() {"ccxtStatus"});

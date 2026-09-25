@@ -15125,6 +15125,76 @@ export const SIGNATURE_ARG_TYPES = {
     'handleErrors': { 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
 };
 
+// parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every
+// declaration (retypeParseMarketParams): every call site passes null, a dictionary value or an
+// admitted name's own unwritten `market`. A body writing a non-row value keeps an object shadow.
+export const PARSE_MARKET_IDICT_PARAMS = {
+    'parseContractOrder': 1, 'parseMarketToEvent': 1, 'parseOrder': 1, 'parseSpotOrder': 1,
+    'parseSwapOrder': 1, 'parseSxbetV3Fill': 1, 'parseUtaOrder': 1,
+};
+
+// every write of the parameter is a market-row producer or a nullish reset (the text pass keeps
+// the same bodies unshadowed)
+function parseMarketParamWritesAreRows (csharp, owner, declaration) {
+    let checker;
+    try {
+        checker = csharp.getChecker ();
+    } catch (e) {
+        return false;
+    }
+    let rows = true;
+    const visit = (node) => {
+        if (!rows || node === undefined) {
+            return;
+        }
+        if ((node.kind === ts.SyntaxKind.Identifier) && (node !== declaration.name)) {
+            let symbol;
+            try {
+                symbol = checker.getSymbolAtLocation (node);
+            } catch (e) {
+                symbol = undefined;
+            }
+            if ((symbol !== undefined) && (symbol.valueDeclaration === declaration) && csharpWriteTarget (node)) {
+                const parent = node.parent;
+                const plain = (parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === node)
+                    && (parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken);
+                if (!plain || !parseMarketParamRowWrite (parent.right)) {
+                    rows = false;
+                    return;
+                }
+            }
+        }
+        ts.forEachChild (node, visit);
+    };
+    if (owner.body !== undefined) {
+        ts.forEachChild (owner.body, visit);
+    }
+    return rows;
+}
+
+// the write shapes retypeParseMarketParams leaves unshadowed: null or a typed market-row core
+function parseMarketParamRowWrite (node) {
+    if ((node?.kind === ts.SyntaxKind.NullKeyword) || ((node?.kind === ts.SyntaxKind.Identifier) && (node.escapedText === 'undefined'))) {
+        return true;
+    }
+    const callee = (node?.kind === ts.SyntaxKind.CallExpression) ? node.expression : undefined;
+    return (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword)
+        && [ 'market', 'safeMarket' ].includes (callee.name?.escapedText);
+}
+
+// the declared parameter behind a PARSE_MARKET_IDICT_PARAMS position, or undefined
+function parseMarketParamType (csharp, declaration) {
+    const owner = declaration?.parent;
+    if ((declaration?.kind !== ts.SyntaxKind.Parameter) || (owner?.kind !== ts.SyntaxKind.MethodDeclaration)) {
+        return undefined;
+    }
+    const at = PARSE_MARKET_IDICT_PARAMS[owner.name?.escapedText];
+    if ((at === undefined) || (owner.parameters.indexOf (declaration) !== at) || (declaration.name?.escapedText !== 'market')) {
+        return undefined;
+    }
+    return parseMarketParamWritesAreRows (csharp, owner, declaration) ? 'IDictionary<string, object>' : undefined;
+}
+
 function coreArgParamType (csharp, node) {
     if (node === undefined || node.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
@@ -15138,6 +15208,10 @@ function coreArgParamType (csharp, node) {
     const declaration = symbol?.valueDeclaration;
     if (declaration === undefined || declaration.kind !== ts.SyntaxKind.Parameter) {
         return undefined;
+    }
+    const parseMarket = parseMarketParamType (csharp, declaration);
+    if (parseMarket !== undefined) {
+        return parseMarket;
     }
     const owner = declaration.parent;
     // a generated core is a class method; the generated tests' `async public` helpers are plain
@@ -15272,6 +15346,10 @@ export function installCsharpParameterTypes (transpiler) {
         const type = answer (node);
         return (type !== undefined) ? coreArgParamIsValueTyped (type) : upstreamValueTyped (node);
     };
+    // the printer's row reads (`market["k"]` -> null-tested ContainsKey form) ask this resolver
+    const upstreamResolver = csharp.csharpDeclaredLocalTypeResolver;
+    csharp.csharpDeclaredLocalTypeResolver = (declaration) => parseMarketParamType (csharp, declaration)
+        ?? ((typeof upstreamResolver === 'function') ? upstreamResolver (declaration) : undefined);
     csharp._parameterTypesPatched = true;
 }
 

@@ -5858,7 +5858,7 @@ public partial class htx : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -6074,7 +6074,7 @@ public partial class htx : Exchange
         string? id = this.safeStringN(order, new List<object>() {"algo_id", "id", "order_id_str", "order-id", "order_id"});
         object side = this.safeString2(order, "direction", "side");
         string? contractCode = this.safeString(order, "contract_code");
-        bool isLinearOrder = ((contractCode != null)) && ((market != null)) && (isEqual(getValue(market, "linear"), true)) && (!isEqual(getValue(market, "spot"), true));
+        bool isLinearOrder = ((contractCode != null)) && ((market != null)) && (isEqual((market != null && market.ContainsKey("linear") ? market["linear"] : null), true)) && (!isEqual((market != null && market.ContainsKey("spot") ? market["spot"] : null), true));
         object type = null;
         if ((isLinearOrder == true))
         {
@@ -6130,7 +6130,7 @@ public partial class htx : Exchange
                 feeCurrency = this.safeCurrencyCode(feeCurrencyId);
             } else
             {
-                feeCurrency = (isEqual(side, "sell")) ? getValue(market, "quote") : getValue(market, "base");
+                feeCurrency = (isEqual(side, "sell")) ? (market != null && market.ContainsKey("quote") ? market["quote"] : null) : (market != null && market.ContainsKey("base") ? market["base"] : null);
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -6158,7 +6158,7 @@ public partial class htx : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", type },
             { "timeInForce", this.safeStringUpper(order, "time_in_force") },
             { "postOnly", null },

@@ -2375,15 +2375,15 @@ public partial class myriad : PredictionExchange
      * @param {object} market the parsed ccxt market
      * @returns {object} an event structure
      */
-    public virtual Dictionary<string, object> parseMarketToEvent(object raw, object market)
+    public virtual Dictionary<string, object> parseMarketToEvent(object raw, IDictionary<string, object> market)
     {
         string? slug = this.safeString(raw, "slug", this.safeString(raw, "id"));
         string? state = this.safeString(raw, "state", "open");
         string? endDate = this.safeString(raw, "expiresAt");
         return new Dictionary<string, object>() {
-            { "id", getValue(market, "id") },
+            { "id", (market != null && market.ContainsKey("id") ? market["id"] : null) },
             { "slug", slug },
-            { "event", getValue(market, "market") },
+            { "event", (market != null && market.ContainsKey("market") ? market["market"] : null) },
             { "title", this.safeString2(raw, "title", "shortName") },
             { "description", this.safeString(raw, "description") },
             { "markets", new List<object>() {market} },

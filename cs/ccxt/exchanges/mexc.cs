@@ -3897,7 +3897,7 @@ public partial class mexc : Exchange
         }
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -4116,7 +4116,7 @@ public partial class mexc : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeInteger(order, "updateTime") },
             { "status", this.parseOrderStatus(this.safeString2(order, "status", "state")) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", this.parseOrderType(typeRaw) },
             { "timeInForce", timeInForce },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },

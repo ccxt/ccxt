@@ -2052,8 +2052,9 @@ public partial class delta : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
+        object marketVar = market;
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -2127,14 +2128,14 @@ public partial class delta : Exchange
         }
         string? marketId = this.safeString(order, "product_id");
         IDictionary<string, object> marketsByNumericId = this.safeDict(this.options, "marketsByNumericId", new Dictionary<string, object>() {});
-        market = this.safeValue(marketsByNumericId, marketId, market);
+        marketVar = this.safeValue(marketsByNumericId, marketId, marketVar);
         object symbol = null;
-        if ((market == null))
+        if ((marketVar == null))
         {
             symbol = marketId;
         } else
         {
-            symbol = getValue(market, "symbol");
+            symbol = getValue(marketVar, "symbol");
         }
         string? status = this.parseOrderStatus(this.safeString(order, "state"));
         string? side = this.safeString(order, "side");
@@ -2152,9 +2153,9 @@ public partial class delta : Exchange
         if ((feeCostString != null))
         {
             string? feeCurrencyCode = null;
-            if ((market != null))
+            if ((marketVar != null))
             {
-                IDictionary<string, object> settlingAsset = this.safeDict(getValue(market, "info"), "settling_asset", new Dictionary<string, object>() {});
+                IDictionary<string, object> settlingAsset = this.safeDict(getValue(marketVar, "info"), "settling_asset", new Dictionary<string, object>() {});
                 string? feeCurrencyId = this.safeString(settlingAsset, "symbol");
                 feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             }
@@ -2182,7 +2183,7 @@ public partial class delta : Exchange
             { "status", status },
             { "fee", fee },
             { "trades", null },
-        }, market);
+        }, marketVar);
     }
 
     /**

@@ -2876,7 +2876,7 @@ export default class extended extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const market = extendedOrderRequest['market'] as Market;
+        const market = this.market (symbol);
         const now = this.safeInteger (extendedOrderRequest, 'timestamp');
         data['timestamp'] = now;
         data['status'] = 'NEW';
@@ -2956,7 +2956,7 @@ export default class extended extends Exchange {
         //     }
         //
         const responseData = this.safeDict (editResponse, 'data', {});
-        const market = extendedOrderRequest['market'] as Market;
+        const market = this.market (symbol);
         const now = this.safeInteger (extendedOrderRequest, 'timestamp');
         responseData['timestamp'] = now;
         responseData['status'] = 'NEW';

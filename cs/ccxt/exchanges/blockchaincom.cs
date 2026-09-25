@@ -602,7 +602,7 @@ public partial class blockchaincom : Exchange
         return this.safeString(states, state, state);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {

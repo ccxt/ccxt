@@ -2296,7 +2296,7 @@ public partial class bitvavo : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // cancelOrder, cancelAllOrders
@@ -2347,7 +2347,7 @@ public partial class bitvavo : Exchange
         Int64? timestamp = this.safeInteger(order, "created");
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? side = this.safeString(order, "side");
         string? type = this.safeString(order, "orderType");

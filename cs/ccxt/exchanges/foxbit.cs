@@ -2008,7 +2008,7 @@ public partial class foxbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeString(order, "market_symbol");
         if ((market == null) && (symbol != null))

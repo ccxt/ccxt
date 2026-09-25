@@ -2723,7 +2723,7 @@ public partial class phemex : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public virtual object parseSpotOrder(object order, object market = null)
+    public virtual object parseSpotOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -2789,7 +2789,7 @@ public partial class phemex : Exchange
         }
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         string? price = this.fromEp(this.safeString(order, "priceEp"), market);
         string? amount = this.fromEv(this.safeString(order, "baseQtyEv"), market);
         string? remaining = ((string)this.omitZero(this.fromEv(this.safeString(order, "leavesBaseQtyEv"), market)));
@@ -2846,7 +2846,7 @@ public partial class phemex : Exchange
         return this.safeString(sides, side, side);
     }
 
-    public virtual object parseSwapOrder(object order, object market = null)
+    public virtual object parseSwapOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2998,7 +2998,7 @@ public partial class phemex : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeValue },
-                { "currency", getValue(market, "quote") },
+                { "currency", (market != null && market.ContainsKey("quote") ? market["quote"] : null) },
             };
         } else if ((ptFeeRv != null))
         {
@@ -3035,7 +3035,7 @@ public partial class phemex : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         bool? isSwap = this.safeBool(market, "swap", false);
         bool hasPnl = ((order != null && ((IDictionary<string, object>)order).ContainsKey("closedPnl"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("closedPnlRv"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("totalPnlRv")));

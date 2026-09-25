@@ -1584,7 +1584,7 @@ public partial class coinbaseexchange : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1626,7 +1626,7 @@ public partial class coinbaseexchange : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", getValue(market, "quote") },
+                { "currency", (market != null && market.ContainsKey("quote") ? market["quote"] : null) },
                 { "rate", null },
             };
         }
@@ -1645,7 +1645,7 @@ public partial class coinbaseexchange : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "status", status },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", type },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },

@@ -2303,7 +2303,7 @@ public partial class bithumb : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //
@@ -2493,7 +2493,7 @@ public partial class bithumb : Exchange
         {
             string? marketId = this.safeString(order, "market");
             market = this.safeMarket(marketId, market);
-            symbol = ((string)getValue(market, "symbol"));
+            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         string? id = this.safeStringN(order, new List<object>() {"order_id", "uuid", "algo_order_id"});
         List<object> rawTrades = this.safeList2(order, "contract", "trades", new List<object>() {});

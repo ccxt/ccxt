@@ -4017,7 +4017,7 @@ impl ExtendedCore {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut extendedOrderRequest: Value = self.create_extended_order_request(symbol, type_var, side, amount, &[price, params]).await;
+        let mut extendedOrderRequest: Value = self.create_extended_order_request(symbol.clone(), type_var, side, amount, &[price, params]).await;
         let mut request: Value = self.safe_dict_k(extendedOrderRequest.clone(), "request", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4036,7 +4036,7 @@ impl ExtendedCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut market: Value = extendedOrderRequest.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null);
+        let mut market: Value = self.market(symbol);
         let mut now: Value = self.safe_integer_k(extendedOrderRequest, "timestamp", &[]);
         add_element_to_object(&mut data, &Value::Str("timestamp".into()), now);
         if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("NEW".into())); }
@@ -4121,7 +4121,7 @@ impl ExtendedCore {
                 m.insert("expiryEpochMillis".to_string(), expiryEpochMillis);
             m
         })]);
-        let mut extendedOrderRequest: Value = self.create_extended_order_request(symbol, type_var, side, amount, &[price, requestParams]).await;
+        let mut extendedOrderRequest: Value = self.create_extended_order_request(symbol.clone(), type_var, side, amount, &[price, requestParams]).await;
         let mut request: Value = self.safe_dict_k(extendedOrderRequest.clone(), "request", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4140,7 +4140,7 @@ impl ExtendedCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut market: Value = extendedOrderRequest.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null);
+        let mut market: Value = self.market(symbol);
         let mut now: Value = self.safe_integer_k(extendedOrderRequest, "timestamp", &[]);
         add_element_to_object(&mut responseData, &Value::Str("timestamp".into()), now);
         if let Value::Dict(__d) = &mut responseData { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("NEW".into())); }

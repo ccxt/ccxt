@@ -2309,7 +2309,7 @@ public partial class deribit : Exchange
         return this.safeString(orderTypes, orderType, orderType);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -2379,7 +2379,7 @@ public partial class deribit : Exchange
             feeCostString = Precise.stringAbs(feeCostString);
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
-                { "currency", getValue(market, "base") },
+                { "currency", (market != null && market.ContainsKey("base") ? market["base"] : null) },
             };
         }
         string? rawType = this.safeString(order, "order_type");
@@ -2395,7 +2395,7 @@ public partial class deribit : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", lastTradeTimestamp },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", type },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },

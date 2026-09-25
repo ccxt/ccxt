@@ -1754,7 +1754,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -1796,7 +1796,7 @@ public partial class alpaca : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         string? alpacaStatus = this.safeString(order, "status");
         string? status = this.parseOrderStatus(alpacaStatus);
         string? feeValue = this.safeString(order, "commission");

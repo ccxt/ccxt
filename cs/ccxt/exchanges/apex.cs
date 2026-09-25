@@ -1255,7 +1255,7 @@ public partial class apex : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -1316,7 +1316,7 @@ public partial class apex : Exchange
         string? clientOrderId = this.safeString(order, "clientId");
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "size");
         string? orderType = this.safeString(order, "type");
@@ -1351,7 +1351,7 @@ public partial class apex : Exchange
             { "trades", null },
             { "fee", new Dictionary<string, object>() {
                 { "cost", this.safeString(order, "fee") },
-                { "currency", getValue(market, "settleId") },
+                { "currency", (market != null && market.ContainsKey("settleId") ? market["settleId"] : null) },
             } },
             { "info", order },
         }, market);

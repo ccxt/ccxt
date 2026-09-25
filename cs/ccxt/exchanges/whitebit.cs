@@ -3058,7 +3058,7 @@ public partial class whitebit : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder, fetchOpenOrders, cancelOrder
@@ -3101,7 +3101,7 @@ public partial class whitebit : Exchange
         //
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market, "_");
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         string? side = this.safeString(order, "side");
         string? filled = this.safeString(order, "dealStock");
         string? remaining = this.safeString(order, "left");
@@ -3131,7 +3131,7 @@ public partial class whitebit : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.parseNumber(dealFee) },
-                { "currency", getValue(market, "quote") },
+                { "currency", (market != null && market.ContainsKey("quote") ? market["quote"] : null) },
             };
         }
         Int64? timestamp = this.safeTimestamp2(order, "ctime", "timestamp");

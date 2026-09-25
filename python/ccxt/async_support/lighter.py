@@ -850,7 +850,6 @@ class lighter(Exchange, ImplicitAPI):
         accountIndex = None
         accountIndex, params = await self.handle_account_index(params, method, 'accountIndex', 'account_index')
         params['accountIndex'] = accountIndex
-        market = self.market(symbol)
         groupingType = None
         groupingType, params = self.handle_option_integer_and_params(params, method, 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         orderRequests = self.create_order_request(symbol, type, side, amount, price, params)
@@ -883,7 +882,7 @@ class lighter(Exchange, ImplicitAPI):
                 signingPayload['integrator_taker_fee'] = order['integrator_taker_fee']
                 signingPayload['integrator_maker_fee'] = order['integrator_maker_fee']
             txType, txInfo = self.lighter_sign_create_grouped_orders(signer, signingPayload)
-        return [txType, txInfo, order, market]
+        return [txType, txInfo, order]
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -904,7 +903,8 @@ class lighter(Exchange, ImplicitAPI):
         :param int [params.orderExpiry]: orderExpiry
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        txType, txInfo, order, market = await self.sign_and_create_order('createOrder', symbol, type, side, amount, price, params)
+        txType, txInfo, order = await self.sign_and_create_order('createOrder', symbol, type, side, amount, price, params)
+        market = self.market(symbol)
         request = {
             'tx_type': txType,
             'tx_info': txInfo,
@@ -2960,7 +2960,7 @@ class lighter(Exchange, ImplicitAPI):
         else:
             raise ArgumentsRequired(self.id + ' ' + method + ' requires order id or client order id')
         txType, txInfo = self.lighter_sign_cancel_order(signer, self.extend(signRaw, params))
-        return [txType, txInfo, market]
+        return [txType, txInfo]
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2972,7 +2972,8 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.apiKeyIndex]: api key index
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        txType, txInfo, market = await self.sign_and_cancel_order('cancelOrder', id, symbol, params)
+        txType, txInfo = await self.sign_and_cancel_order('cancelOrder', id, symbol, params)
+        market = self.market(symbol)
         request = {
             'tx_type': txType,
             'tx_info': txInfo,

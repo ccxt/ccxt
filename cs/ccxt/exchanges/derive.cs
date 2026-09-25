@@ -2337,7 +2337,7 @@ public partial class derive : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> parseOrder(object rawOrder, object market = null)
+    public override Dictionary<string, object> parseOrder(object rawOrder, IDictionary<string, object> market = null)
     {
         //
         // {

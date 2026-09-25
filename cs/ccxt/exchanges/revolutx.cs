@@ -1006,7 +1006,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the order was placed in
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         string? orderId = this.safeString2(order, "id", "venue_order_id");
         string? clientOrderId = this.safeString(order, "client_order_id");

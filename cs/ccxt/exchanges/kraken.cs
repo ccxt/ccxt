@@ -2123,15 +2123,16 @@ public partial class kraken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
+        object marketVar = market;
         //
         // createOrder
         //
         //     {
         //         "descr": {
         //            "order": "buy 0.02100000 ETHUSDT @ limit 330.00" // limit orders
-        //                     "buy 0.12345678 ETHUSDT @ market" // market order
+        //                     "buy 0.12345678 ETHUSDT @ market" // marketVar order
         //                     "sell 0.28002676 ETHUSDT @ stop loss 0.0123 -> limit 0.0.1222" // stop order
         //                     "sell 0.00100000 ETHUSDT @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"
         //                     "buy 0.10000000 LTCUSDT @ take profit 75.00000 -> limit 74.00000"
@@ -2258,7 +2259,7 @@ public partial class kraken : Exchange
             string? part5 = this.safeString(parts, 5);
             if (isEqual(part4, "limit") || isEqual(part4, "market"))
             {
-                rawType = part4; // eg, limit, market
+                rawType = part4; // eg, limit, marketVar
             } else
             {
                 rawType = add(add(part4, " "), part5); // eg. stop loss, take profit, trailing stop
@@ -2279,11 +2280,11 @@ public partial class kraken : Exchange
         string? symbol = null;
         if ((foundMarket != null))
         {
-            market = foundMarket;
+            marketVar = foundMarket;
         } else if ((marketId != null))
         {
-            // delisted market ids go here
-            market = this.getDelistedMarketById(marketId);
+            // delisted marketVar ids go here
+            marketVar = this.getDelistedMarketById(marketId);
         }
         Int64? timestamp = this.safeTimestamp(order, "opentm");
         amount = this.safeString(order, "vol", amount);
@@ -2305,9 +2306,9 @@ public partial class kraken : Exchange
         string? flags = this.safeString(order, "oflags", "");
         bool? isPostOnly = (flags?.IndexOf("post", StringComparison.Ordinal) ?? -1) > -1;
         double? average = this.safeNumber(order, "price");
-        if ((market != null))
+        if ((marketVar != null))
         {
-            symbol = this.safeString(market, "symbol");
+            symbol = this.safeString(marketVar, "symbol");
             if (inOp(order, "fee"))
             {
                 string? feeCost = this.safeString(order, "fee");
@@ -2317,10 +2318,10 @@ public partial class kraken : Exchange
                 };
                 if ((flags?.IndexOf("fciq", StringComparison.Ordinal) ?? -1) >= 0)
                 {
-                    fee["currency"] = getValue(market, "quote");
+                    fee["currency"] = getValue(marketVar, "quote");
                 } else if ((flags?.IndexOf("fcib", StringComparison.Ordinal) ?? -1) >= 0)
                 {
-                    fee["currency"] = getValue(market, "base");
+                    fee["currency"] = getValue(marketVar, "base");
                 }
             }
         }
@@ -2377,7 +2378,7 @@ public partial class kraken : Exchange
         }
         string? typeParsed = this.parseOrderType(rawType);
         // unlike from endpoints which provide eg: "take-profit-limit"
-        // for "space-delimited" orders we dont have market/limit suffixes, their format is
+        // for "space-delimited" orders we dont have marketVar/limit suffixes, their format is
         // eg: `stop loss > limit 123`, so we need to parse them manually
         if (this.inArray(typeParsed, new List<object>() {"stop loss", "take profit"}))
         {
@@ -2414,7 +2415,7 @@ public partial class kraken : Exchange
             { "reduceOnly", this.safeBool2(order, "reduceOnly", "reduce_only") },
             { "fee", fee },
             { "trades", trades },
-        }, market);
+        }, marketVar);
     }
 
     public virtual List<object> orderRequest(string? method, object symbol, object type, object request, object amount, object price = null, object parameters = null)

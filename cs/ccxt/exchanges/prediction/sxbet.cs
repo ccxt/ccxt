@@ -1671,7 +1671,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [market] the outcome object labelling hint
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public virtual object parseSxbetV3Fill(object fill, object market = null)
+    public virtual object parseSxbetV3Fill(object fill, IDictionary<string, object> market = null)
     {
         //
         //     {
