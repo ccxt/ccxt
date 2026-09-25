@@ -1133,7 +1133,7 @@ func (this *Bingx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var topic string = "ohlcv"
 	var methodName string = "unWatchOHLCV"
 	var symbolsAndTimeframes []any = []any{[]any{market["symbol"], timeframe}}
-	ccxt.AddElementToObject(params, "symbolsAndTimeframes", symbolsAndTimeframes)
+	params["symbolsAndTimeframes"] = symbolsAndTimeframes
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchAsync(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, params)))
 	return nil

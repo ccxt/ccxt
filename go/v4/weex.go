@@ -2968,9 +2968,9 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 		request["clientAlgoId"] = clientOrderId
 		AddElementToObject(params, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
 		if isMarketOrder {
-			AddElementToObject(params, "type", "STOP_MARKET")
+			params["type"] = "STOP_MARKET"
 		} else {
-			AddElementToObject(params, "type", "STOP")
+			params["type"] = "STOP"
 		}
 		// conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
 		if hasStopLoss {

@@ -1175,7 +1175,7 @@ public partial class btcturk : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -1189,7 +1189,7 @@ public partial class btcturk : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string url = ((apiUrl + "/") + (path));
+        string url = ((apiUrl + "/") + path);
         bool isQueryMethod = ((method == "GET")) || ((method == "DELETE"));
         if (isQueryMethod)
         {

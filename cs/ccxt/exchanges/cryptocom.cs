@@ -4229,7 +4229,7 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4243,7 +4243,7 @@ public partial class cryptocom : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string url = ((apiUrl + "/") + (path));
+        string url = ((apiUrl + "/") + path);
         object query = this.omit(parameters, this.extractParams(path));
         if (access == "public")
         {
@@ -4258,7 +4258,7 @@ public partial class cryptocom : Exchange
             Dictionary<string, object> requestParams = this.extend(new Dictionary<string, object>() {}, parameters);
             List<object> paramsKeys = new List<object>(((IDictionary<string,object>)requestParams).Keys);
             object strSortKey = this.paramsToString(requestParams, 0);
-            object payload = add(add(add(add(path, nonce), this.apiKey), strSortKey), nonce);
+            string payload = ((((path + nonce) + this.apiKey) + (strSortKey)) + nonce);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
             int paramsKeysLength = paramsKeys.Count;
             requestBody = this.json(new Dictionary<string, object>() {

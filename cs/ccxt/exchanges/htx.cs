@@ -8967,14 +8967,14 @@ public partial class htx : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> signedHeaders = null;
         string? signedBody = null;
-        object pathString = path;
+        string pathString = path;
         object url = "/";
         bool isArrayParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object query = null;
@@ -9085,7 +9085,7 @@ public partial class htx : Exchange
                     string id = this.safeString(options, "id", "AA03022abc");
                     if (!isArrayParams)
                     {
-                        if (((((string)pathString).IndexOf("cancel", StringComparison.Ordinal) == -1)) && ((string)pathString).EndsWith("order"))
+                        if (((pathString.IndexOf("cancel", StringComparison.Ordinal) == -1)) && pathString.EndsWith("order"))
                         {
                             // swap order placement
                             string? channelCode = this.safeString(parameters, "channel_code");
@@ -9093,7 +9093,7 @@ public partial class htx : Exchange
                             {
                                 ((IDictionary<string,object>)parameters)["channel_code"] = id;
                             }
-                        } else if (((string)pathString).EndsWith("orders/place"))
+                        } else if (pathString.EndsWith("orders/place"))
                         {
                             // spot order placement
                             string? clientOrderId = this.safeString(parameters, "client-order-id");

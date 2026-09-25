@@ -651,7 +651,7 @@ func (this *Htx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		subMessageHash = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".depth.size_"), this.NumberToString(depth)), ".high_freq")
 	}
 	if ccxt.GetValue(market, "spot") != true {
-		ccxt.AddElementToObject(params, "data_type", "incremental")
+		params["data_type"] = "incremental"
 	}
 
 	ch <- ccxt.PanicOnError((<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params)))

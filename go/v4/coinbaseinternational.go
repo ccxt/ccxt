@@ -1592,7 +1592,7 @@ func (this *Coinbaseinternational) fetchWithdrawalsBody(ch chan any, optionalArg
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	AddElementToObject(params, "type", "WITHDRAW")
+	params["type"] = "WITHDRAW"
 
 	var retRes121515 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, params))))
 	ch <- BoxAbsent(retRes121515)
@@ -1634,7 +1634,7 @@ func (this *Coinbaseinternational) fetchDepositsBody(ch chan any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	AddElementToObject(params, "type", "DEPOSIT")
+	params["type"] = "DEPOSIT"
 
 	var retRes123815 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, params))))
 	ch <- BoxAbsent(retRes123815)

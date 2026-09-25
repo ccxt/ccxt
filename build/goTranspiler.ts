@@ -1079,8 +1079,11 @@ function goTextReadIsHazard (maskedLine: string, name: string): boolean {
 // declaration of that name in its top-level func) become native Go where the helper adds nothing:
 // len(x); x["k"] as the first argument of a helper that derefs it at entry; x["k"] = v on a proven non-nil map.
 const GO_ACCESS_DEREF_CONSUMERS = [ 'SafeStringPtr', 'IsEqual', 'EvalTruthy', 'IsString', 'ToString', 'ParseInt', 'Add', 'GetValue' ];
-const GO_ACCESS_NON_NIL_MAP_INIT = /^(?:map\[string\]any\{|GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$|this\.(?:Extend|DeepExtend)\()/;
+const GO_ACCESS_NON_NIL_MAP_INIT = /^(?:map\[string\]any\{|(?:ccxt\.)?GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$|this\.(?:Extend|DeepExtend)\()/;
 const GO_ACCESS_SCALAR_TYPES = [ 'string', 'int64', 'float64', 'bool', 'int' ];
+// value types derefScalar passes through unchanged (it only unwraps pointers)
+const GO_ACCESS_PLAIN_VALUE_TYPES = [ ...GO_ACCESS_SCALAR_TYPES, 'map[string]any', '[]any', '[]string' ];
+const GO_ACCESS_DEREF_POINTER_TYPES = [ '*string', '*int64', '*float64', '*bool' ];
 
 function goAccessEscape (name: string): string {
     return name.replace (/[^\w]/g, '');
@@ -1107,6 +1110,21 @@ function goAccessSingleDeclaration (maskedFunc: string, signature: string, name:
         return { 'type': vars[0][1].trim (), 'index': vars[0].index, 'line': line };
     }
     return undefined;
+}
+
+// line k sits directly in the body of an `if name != nil {` block (no else-if chain above it)
+function goAccessInsideNilGuard (masked: string[], k: number, name: string): boolean {
+    let depth = 0;
+    for (let j = k - 1; j >= 0; j--) {
+        const line = masked[j];
+        for (let c = line.length - 1; c >= 0; c--) {
+            depth += (line[c] === '}') ? 1 : ((line[c] === '{') ? -1 : 0);
+            if (depth < 0) {
+                return new RegExp ('^\\s*if ' + goAccessEscape (name) + ' != nil \\{\\s*$').test (line);
+            }
+        }
+    }
+    return false;
 }
 
 function nativeTypedContainerAccess (content: string): string {
@@ -1173,15 +1191,19 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
                 ((isCode (head, at) && (typeAt (name, k) === 'map[string]any')) ? head + name + '[' + key + ']' : all));
         }
         const write = /^(\s*)(?:ccxt\.)?AddElementToObject\((\w+), ("[^"\\\n]*"), (.+)\)$/.exec (line);
-        if ((write !== null) && (line === lines[k]) && isCode (line.trimStart (), line.length - line.trimStart ().length)) {
+        const writeHead = (write === null) ? '' : line.trimStart ().substring (0, line.trimStart ().indexOf ('(') + write[2].length + 1);
+        if ((write !== null) && (line === lines[k]) && isCode (writeHead, line.length - line.trimStart ().length) && m.trimEnd ().endsWith (')')) {
             const decl = declOf (write[2]);
             const init = (decl?.line ?? '').replace (/^\s*var\s+\w+\s+map\[string\]any\s*=\s*/, '');
             const value = write[4];
             const valueType = /^\w+$/.test (value) ? typeAt (value, k) : undefined;
-            const plainValue = /^(?:"[^"\\\n]*"|-?\d+(?:\.\d+)?|true|false)$/.test (value) || (valueType !== undefined && GO_ACCESS_SCALAR_TYPES.indexOf (valueType) >= 0);
+            const plainValue = /^(?:"[^"\\\n]*"|-?\d+(?:\.\d+)?|true|false)$/.test (value) || (valueType !== undefined && GO_ACCESS_PLAIN_VALUE_TYPES.indexOf (valueType) >= 0);
+            // a pointer the enclosing `if v != nil {` proves non-nil: the helper stores *v
+            const derefValue = (valueType !== undefined) && (GO_ACCESS_DEREF_POINTER_TYPES.indexOf (valueType) >= 0)
+                && notRebound (value) && goAccessInsideNilGuard (masked, k, value);
             if ((typeAt (write[2], k) === 'map[string]any') && (decl.index !== undefined) && GO_ACCESS_NON_NIL_MAP_INIT.test (init.trim ())
-                && notRebound (write[2]) && plainValue) {
-                line = write[1] + write[2] + '[' + write[3] + '] = ' + value;
+                && notRebound (write[2]) && (plainValue || derefValue)) {
+                line = write[1] + write[2] + '[' + write[3] + '] = ' + (derefValue ? '*' : '') + value;
             }
         }
         lines[k] = line;

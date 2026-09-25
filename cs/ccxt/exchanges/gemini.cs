@@ -2399,7 +2399,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(results, "network"));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";

@@ -2483,7 +2483,7 @@ public partial class opinion : PredictionExchange
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "opinion";
         method ??= "GET";
@@ -2501,12 +2501,12 @@ public partial class opinion : PredictionExchange
         }, existingHeaders);
         if (isEqual(access, "private"))
         {
-            if (isEqual(path, "auth/api-key"))
+            if ((path == "auth/api-key"))
             {
                 // wallet-signature scheme: no apiKey involved, the signature itself is the credential
                 if (((this.walletAddress == null)) || ((this.privateKey == null)))
                 {
-                    throw new ArgumentsRequired ((((this.id + " ") + (path)) + " requires a walletAddress and privateKey")) ;
+                    throw new ArgumentsRequired ((((this.id + " ") + path) + " requires a walletAddress and privateKey")) ;
                 }
                 Dictionary<string, object> actionByMethod = new Dictionary<string, object>() {
                     { "POST", "create" },
@@ -2526,7 +2526,7 @@ public partial class opinion : PredictionExchange
                 string? apiKey = hasDirectApiKey ? this.apiKey : this.safeString(this.options, "apiKey");
                 if ((apiKey == null))
                 {
-                    throw new AuthenticationError ((((this.id + " ") + (path)) + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
+                    throw new AuthenticationError ((((this.id + " ") + path) + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
                 }
                 headersExtended["apikey"] = apiKey;
             }

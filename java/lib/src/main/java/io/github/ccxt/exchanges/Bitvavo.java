@@ -1941,19 +1941,19 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("amountRemaining", "triggerPrice", "stopPrice", "triggerAmount")));
         if (!java.util.Objects.equals(price, null))
         {
-            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+            request.put("price", this.priceToPrecision(symbol, price));
         }
         if (!java.util.Objects.equals(amount, null))
         {
-            Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
+            request.put("amount", this.amountToPrecision(symbol, amount));
         }
         if (!java.util.Objects.equals(amountRemaining, null))
         {
-            Helpers.addElementToObject(request, "amountRemaining", this.amountToPrecision(symbol, amountRemaining));
+            request.put("amountRemaining", this.amountToPrecision(symbol, amountRemaining));
         }
         if (!java.util.Objects.equals(triggerPrice, null))
         {
-            Helpers.addElementToObject(request, "triggerAmount", this.priceToPrecision(symbol, triggerPrice));
+            request.put("triggerAmount", this.priceToPrecision(symbol, triggerPrice));
         }
         request = this.extend(request, paramsOmitted);
         if (this.isEmpty(request))
@@ -1973,7 +1973,7 @@ public class Bitvavo extends BitvavoApi
         {
             throw new ArgumentsRequired((this.id + " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
-        Helpers.addElementToObject(request, "market", ((Map<String, Object>)market).get("id"));
+        request.put("market", ((Map<String, Object>)market).get("id"));
         return (Map<String, Object>) (request);
     }
 

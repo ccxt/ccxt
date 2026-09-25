@@ -3951,7 +3951,7 @@ public partial class extended : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3962,7 +3962,7 @@ public partial class extended : Exchange
         string? accessibility = this.safeString(api, 1);
         string endpoint = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        bool queryPost = (isEqual(path, "user/deadmanswitch"));
+        bool queryPost = ((path == "user/deadmanswitch"));
         object url = this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"));
         if (accessibility == "private")
         {

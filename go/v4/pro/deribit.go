@@ -462,7 +462,7 @@ func (this *Deribit) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
+	params["callerMethodName"] = "watchTrades"
 
 	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
@@ -696,7 +696,7 @@ func (this *Deribit) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchOrderBook")
+	params["callerMethodName"] = "watchOrderBook"
 
 	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil

@@ -3311,7 +3311,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         // api is either a string ('gamma') or array (['gamma', 'public'])
         api ??= "gamma";
@@ -3387,13 +3387,13 @@ public partial class polymarket : PredictionExchange
             // '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
             // would corrupt the literal to 'auth/derive-$api-key' and break this check
             string deriveApiKeyPath = ("auth/derive-" + "api-key");
-            bool isL1Auth = (isEqual(path, "auth/api-key")) || (isEqual(path, deriveApiKeyPath)) || (isEqual(path, "auth/api-keys"));
+            bool isL1Auth = ((path == "auth/api-key")) || ((path == deriveApiKeyPath)) || ((path == "auth/api-keys"));
             if (isL1Auth)
             {
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if ((this.privateKey == null))
                 {
-                    throw new ArgumentsRequired ((((this.id + " ") + (path)) + " requires a privateKey")) ;
+                    throw new ArgumentsRequired ((((this.id + " ") + path) + " requires a privateKey")) ;
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 string address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));

@@ -3032,7 +3032,7 @@ public partial class ndax : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3048,14 +3048,14 @@ public partial class ndax : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
-            if (isEqual(path, "Authenticate"))
+            if ((path == "Authenticate"))
             {
                 string auth = ((this.login + ":") + this.password);
                 string auth64 = this.stringToBase64(auth);
                 headersSigned = new Dictionary<string, object>() {
                     { "Authorization", ("Basic " + auth64) },
                 };
-            } else if (isEqual(path, "Authenticate2FA"))
+            } else if ((path == "Authenticate2FA"))
             {
                 string? pending2faToken = this.safeString(this.options, "pending2faToken");
                 if ((pending2faToken != null))

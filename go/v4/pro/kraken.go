@@ -841,7 +841,7 @@ func (this *Kraken) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
-	ccxt.AddElementToObject(params, "event_trigger", "bbo")
+	params["event_trigger"] = "bbo"
 
 	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("bidask", "ticker", symbolsNormalized, nil, params))))
 	if this.NewUpdates {
@@ -1484,7 +1484,7 @@ func (this *Kraken) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "snap_trades", true)
+	params["snap_trades"] = true
 
 	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync("myTrades", symbol, since, limit, params)))
 	return nil

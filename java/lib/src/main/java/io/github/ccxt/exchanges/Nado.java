@@ -1662,7 +1662,7 @@ public class Nado extends NadoApi
                 }
                 Map<String, Object> transaction = this.extend(new HashMap<String, Object>() {{}}, tx);
                 transaction = this.extend(transaction, eventVar);
-                Helpers.addElementToObject(transaction, "transaction_type", transactionType);
+                transaction.put("transaction_type", transactionType);
                 ((List<Object>)transactions).add(this.parseTransaction((Map<String, Object>) (transaction), currency));
             }
             return this.filterByCurrencySinceLimit(transactions, code, since, limit, false);

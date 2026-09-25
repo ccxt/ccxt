@@ -3802,7 +3802,7 @@ func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
 	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
-	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
+	params["createMarketBuyOrderRequiresPrice"] = false
 
 	var retRes307815 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
 	ch <- BoxAbsent(retRes307815)

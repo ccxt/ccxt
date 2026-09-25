@@ -200,7 +200,7 @@ func (this *Gate) createOrderWsBody(ch chan any, symbol any, typeVar string, sid
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_place")
 	var url any = this.GetUrlByMarket(market)
-	ccxt.AddElementToObject(params, "textIsRequired", true)
+	params["textIsRequired"] = true
 	var request map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbolValue, typeVar, side, amount, price, params))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url, messageType)))
@@ -1018,7 +1018,7 @@ func (this *Gate) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	ccxt.AddElementToObject(params, "callerMethodName", "watchTicker")
+	params["callerMethodName"] = "watchTicker"
 
 	var result map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchTickersAsync([]any{symbolValue}, params))))
 

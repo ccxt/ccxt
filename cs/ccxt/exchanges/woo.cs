@@ -3861,7 +3861,7 @@ public partial class woo : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
         method ??= "GET";
@@ -3891,7 +3891,7 @@ public partial class woo : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            if ((method == "POST") && (isEqual(path, "trade/algoOrder") || isEqual(path, "trade/order")))
+            if ((method == "POST") && ((path == "trade/algoOrder") || (path == "trade/order")))
             {
                 bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if ((isSandboxMode != true))

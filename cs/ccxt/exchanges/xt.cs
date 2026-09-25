@@ -6761,7 +6761,7 @@ public partial class xt : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -6820,7 +6820,7 @@ public partial class xt : Exchange
                     ((IDictionary<string,object>)query)["media"] = id;
                 }
             }
-            bool isUndefinedBody = (((method == "GET")) || (isEqual(path, "order/{orderId}")) || (isEqual(path, "ws-token")));
+            bool isUndefinedBody = (((method == "GET")) || ((path == "order/{orderId}")) || ((path == "ws-token")));
             if (((method == "PUT")) && (isEqual(endpoint, "spot")))
             {
                 isUndefinedBody = false;
