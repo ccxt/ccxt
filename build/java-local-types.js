@@ -13174,7 +13174,7 @@ function longLimitInitializer (lines, from, to, type, value) {
     return { text: `${t.cond} ? ${fix (t.whenTrue)} : ${fix (t.whenFalse)}`, boxChanges: false };
 }
 
-const LONG_LIMIT_BOX_NEUTRAL_CALLEES = /^(?:Helpers\.(?:multiply|subtract|add|divide|mod|isEqual|isGreaterThan|isLessThan|isGreaterThanOrEqual|isLessThanOrEqual)|this\.sum)$/;
+const LONG_LIMIT_BOX_NEUTRAL_CALLEES = /^(?:Helpers\.(?:multiply|subtract|add|divide|mod|isEqual|isGreaterThan|isLessThan|isGreaterThanOrEqual|isLessThanOrEqual)|(?:\w+\.)?this\.sum)$/;
 
 function longLimitCodeOnly (line) {
     return line.replace (/\/\/.*$/, '').replace (/"(?:[^"\\]|\\.)*"/g, '""');
@@ -13270,6 +13270,7 @@ function longLimitRetypeMember (lines, from, to) {
         for (const [ j, text ] of plan) lines[j] = text;
         changed = true;
     }
+    if (longLimitRetypeGroups (lines, from, to)) changed = true;
     // a Long-declared name needs no toLongOrNull conversion
     for (let j = from; j < to; j++) {
         if (!lines[j].includes ('Helpers.toLongOrNull(')) continue;
@@ -13278,6 +13279,267 @@ function longLimitRetypeMember (lines, from, to) {
             (longLimitIsLong (lines, from, to, n) ? n : whole))
             .replace (/Helpers\.toLongOrNull\((this\.(?:milliseconds|seconds)\(\))\)/g, '$1');
         if (next !== lines[j]) { lines[j] = next; changed = true; }
+    }
+    return changed;
+}
+
+// ===== 32b. Long limit groups: locals whose every write is a Long value, typed together =====
+// A group is a set of Integer/Object locals copied into each other (bare copies, ternary arms)
+// whose other writes are int literals, Long names or long expressions. A group reaching a
+// toLongOrNull argument prints Long; a ternary whose arm unboxing changes needs non-null arms.
+function longLimitStrip (e) {
+    let s = e.trim ();
+    while (s.startsWith ('(') && s.endsWith (')')) {
+        let depth = 0;
+        let whole = true;
+        for (let k = 0; k < s.length - 1; k++) {
+            if (s[k] === '(') depth++;
+            else if (s[k] === ')') depth--;
+            if (depth === 0) { whole = false; break; }
+        }
+        if (!whole) break;
+        s = s.slice (1, -1).trim ();
+    }
+    return s;
+}
+
+// top-level split of `e` on the binary operators ` - `, ` + `, ` * `
+function longLimitOperands (e) {
+    const out = [];
+    let depth = 0;
+    let last = 0;
+    for (let k = 0; k < e.length; k++) {
+        const ch = e[k];
+        if (ch === '"') return undefined;
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        else if (depth === 0 && ch === ' ' && /^ [-+*] /.test (e.slice (k, k + 3))) {
+            out.push (e.slice (last, k));
+            last = k + 3;
+            k += 2;
+        }
+    }
+    out.push (e.slice (last));
+    return out.length > 1 ? out : undefined;
+}
+
+// the arguments of `callee(...)` when the call spans the whole expression
+function longLimitCallArgs (e, callee) {
+    if (!e.startsWith (callee + '(') || !e.endsWith (')')) return undefined;
+    const inner = e.slice (callee.length + 1, -1);
+    const args = [];
+    let depth = 0;
+    let last = 0;
+    for (let k = 0; k < inner.length; k++) {
+        const ch = inner[k];
+        if (ch === '"') return undefined;
+        if (ch === '(') depth++;
+        else if (ch === ')') { depth--; if (depth < 0) return undefined; }
+        else if (depth === 0 && ch === ',') { args.push (inner.slice (last, k).trim ()); last = k + 1; }
+    }
+    args.push (inner.slice (last).trim ());
+    return depth === 0 ? args : undefined;
+}
+
+// Java type of a printed expression: { kind: 'Long' | 'long' | 'lit' | 'null' | 'int' | 'Integer' | 'Object', text, atoms, conds }
+// `group` names are typed Long (new) or by their declaration (old); atoms = group names used as bare values
+function longLimitType (ctx, expr, group, old) {
+    const e = longLimitStrip (expr);
+    const leaf = (kind, text = expr.trim ()) => ({ kind, text, atoms: [], conds: [] });
+    if (LONG_LIMIT_INT.test (e)) return leaf ('lit', old ? e : e + 'L');
+    if (/^-?\d+L$/.test (e)) return leaf ('long');
+    if (e === 'null') return leaf ('null');
+    if (/^[A-Za-z_]\w*$/.test (e)) {
+        if (group.has (e)) {
+            return { kind: old ? ctx.declType (e) : 'Long', text: e, atoms: [ e ], conds: [] };
+        }
+        const t = ctx.declType (e);
+        return [ 'Long', 'long', 'int', 'Integer' ].includes (t) ? leaf (t) : undefined;
+    }
+    if (/^this\.(?:milliseconds|seconds)\(\)$/.test (e)) return leaf ('Long');
+    if (/^\(long\) [A-Za-z_]\w*$/.test (e)) return leaf ('long');
+    if (longLimitCallArgs (e, 'io.github.ccxt.ws.ArrayCache.getLimitOf') !== undefined) return leaf ('Long');
+    if (e.startsWith ('Math.round(Double.parseDouble(') && longLimitCallArgs (e, 'Math.round') !== undefined) return leaf ('long');
+    const prim = (x) => x !== undefined && x.atoms.length === 0 && [ 'long', 'lit', 'Long', 'int', 'Integer' ].includes (x.kind);
+    const wide = (x) => [ 'long', 'Long' ].includes (x.kind);
+    for (const callee of [ 'Math.min', 'Math.max' ]) {
+        const args = longLimitCallArgs (e, callee);
+        if (args === undefined) continue;
+        const ts = args.map ((a) => longLimitType (ctx, a, group, true));
+        return (args.length === 2 && ts.every (prim) && ts.some (wide)) ? leaf ('long') : undefined;
+    }
+    const orElse = longLimitCallArgs (e, 'java.util.Objects.requireNonNullElse');
+    if (orElse !== undefined) {
+        const ts = orElse.map ((a) => longLimitType (ctx, a, group, true));
+        return (orElse.length === 2 && ts.every ((x) => x !== undefined && x.atoms.length === 0 && wide (x))) ? leaf ('Long') : undefined;
+    }
+    const ops = longLimitOperands (e);
+    if (ops !== undefined) {
+        const ts = ops.map ((a) => longLimitType (ctx, a, group, true));
+        return (ts.every (prim) && ts.some (wide)) ? leaf ('long') : undefined;
+    }
+    const t = longLimitSplitTernary (e);
+    if (t === undefined) return undefined;
+    const a = longLimitType (ctx, t.whenTrue, group, old);
+    const b = longLimitType (ctx, t.whenFalse, group, old);
+    if (a === undefined || b === undefined || /\?/.test (t.cond)) return undefined;
+    const kinds = [ a.kind, b.kind ];
+    const numeric = (k) => [ 'long', 'lit', 'Long', 'int', 'Integer' ].includes (k);
+    let kind;
+    if (kinds.includes ('Object')) kind = 'Object';
+    else if (kinds.every ((k) => k === 'null')) kind = 'null';
+    else if (kinds.includes ('null')) kind = kinds.some ((k) => [ 'long', 'Long' ].includes (k)) ? 'Long' : 'Integer';
+    else if (a.kind === b.kind && (a.kind === 'Long' || a.kind === 'Integer')) kind = a.kind;
+    else if (kinds.every (numeric)) kind = kinds.some ((k) => [ 'long', 'Long' ].includes (k)) ? 'long' : 'int';
+    else return undefined;
+    return { kind, text: `${t.cond} ? ${a.text} : ${b.text}`, atoms: [ ...a.atoms, ...b.atoms ], conds: [ t.cond, ...a.conds, ...b.conds ], ternary: { cond: t.cond, arms: [ [ t.whenTrue, a, b ], [ t.whenFalse, b, a ] ] } };
+}
+
+// does the ternary unbox its selected arm (binary numeric promotion)
+function longLimitPromotes (a, b) {
+    const numeric = (k) => [ 'long', 'lit', 'Long', 'int', 'Integer' ].includes (k);
+    if (!numeric (a.kind) || !numeric (b.kind)) return false;
+    return !(a.kind === b.kind && (a.kind === 'Long' || a.kind === 'Integer'));
+}
+
+function longLimitRetypeGroups (lines, from, to) {
+    if (!lines.slice (from, to).some ((l) => l.includes ('Helpers.toLongOrNull('))) return false;
+    const declRe = /^(\s*)(Integer|Object) ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
+    const typeCache = new Map ();
+    const ctx = {
+        declType: (name) => {
+            if (!typeCache.has (name)) {
+                const d = longLimitDeclarations (lines, from, to, name);
+                typeCache.set (name, d.length === 1 ? d[0].type.replace (/^final\s+/, '') : undefined);
+            }
+            return typeCache.get (name);
+        },
+    };
+    // candidates: single-declaration Integer/Object locals with an initializer; their writes
+    const info = new Map ();
+    for (let i = from + 1; i < to; i++) {
+        const d = declRe.exec (lines[i]);
+        if (d === null || ctx.declType (d[3]) === undefined) continue;
+        info.set (d[3], { decl: i, writes: [ [ i, d[1], d[4].trim (), d[5] ?? '' ] ] });
+    }
+    for (let j = from; j < to; j++) {
+        const w = /^(\s*)([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/.exec (lines[j]);
+        if (w !== null && info.has (w[2])) info.get (w[2]).writes.push ([ j, w[1], w[3].trim (), w[4] ?? '' ]);
+    }
+    const group = new Set (info.keys ());
+    const mention = (name) => new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, 'g');
+    // old boxes an old value can hold ('I' Integer, 'L' Long)
+    const oldBoxes = (name, seen = new Set ()) => {
+        if (seen.has (name)) return new Set ();
+        seen.add (name);
+        const out = new Set ();
+        for (const [ , , rhs ] of info.get (name).writes) {
+            const add = (x) => {
+                if (x === undefined) { out.add ('?'); return; }
+                if (x.ternary !== undefined && x.kind === 'Object') {
+                    x.ternary.arms.forEach (([ , arm ]) => add (arm));
+                    return;
+                }
+                if (x.atoms.length === 1 && x.text === x.atoms[0] && ctx.declType (x.atoms[0]) === 'Object') {
+                    oldBoxes (x.atoms[0], seen).forEach ((b) => out.add (b));
+                    return;
+                }
+                if ([ 'lit', 'int', 'Integer' ].includes (x.kind)) out.add ('I');
+                else if ([ 'long', 'Long' ].includes (x.kind)) out.add ('L');
+                else if (x.kind !== 'null') out.add ('?');
+            };
+            add (longLimitType (ctx, rhs, group, true));
+        }
+        return out;
+    };
+    // every write of `name` whose new value is primitive and non-null
+    const nonNull = (name) => group.has (name) && info.get (name).writes.every (([ , , rhs ]) => {
+        const x = longLimitType (ctx, rhs, group, false);
+        return x !== undefined && [ 'long', 'lit' ].includes (x.kind) && (x.ternary === undefined || x.ternary.arms.every (([ , arm ]) => [ 'long', 'lit' ].includes (arm.kind)));
+    });
+    const guardedNonNull = (cond, armText, isTrueArm) => {
+        const c = longLimitStrip (cond);
+        const m = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (c.replace (/^!\((.*)\)$/, '!$1'));
+        return m !== null && m[2] === longLimitStrip (armText) && ((m[1] === '!') === isTrueArm);
+    };
+    // a ternary whose selected-arm unboxing changes needs every reference arm non-null
+    const ternaryOk = (oldT, newT) => {
+        if (newT.ternary === undefined) return true;
+        const oldPromotes = longLimitPromotes (oldT.ternary.arms[0][1], oldT.ternary.arms[1][1]);
+        const newPromotes = longLimitPromotes (newT.ternary.arms[0][1], newT.ternary.arms[1][1]);
+        if (!ternaryOk (oldT.ternary.arms[0][1], newT.ternary.arms[0][1]) || !ternaryOk (oldT.ternary.arms[1][1], newT.ternary.arms[1][1])) return false;
+        if (oldPromotes === newPromotes) return true;
+        return newT.ternary.arms.every (([ text, arm ], k) => ![ 'Long', 'Integer' ].includes (arm.kind) || !/^[A-Za-z_]\w*$/.test (longLimitStrip (text))
+            || guardedNonNull (newT.ternary.cond, text, k === 0) || nonNull (longLimitStrip (text)));
+    };
+    const typed = new Map ();
+    const boxChanges = new Map ();
+    let stable = false;
+    while (!stable) {
+        stable = true;
+        typed.clear ();
+        for (const name of group) boxChanges.set (name, oldBoxes (name).has ('I') || oldBoxes (name).has ('?'));
+        for (const name of [ ...group ]) {
+            const ws = [];
+            for (const [ j, iden, rhs, comment ] of info.get (name).writes) {
+                const n = longLimitType (ctx, rhs, group, false);
+                const o = longLimitType (ctx, rhs, group, true);
+                if (n === undefined || o === undefined || ![ 'Long', 'long', 'lit', 'null' ].includes (n.kind) || !ternaryOk (o, n)
+                    || (n.kind === 'null' && n.ternary !== undefined)) { ws.length = 0; ws.push (undefined); break; }
+                ws.push ([ j, iden, n, comment ]);
+            }
+            if (ws.includes (undefined) || ws.every (([ , , n ]) => n.kind === 'null')) { group.delete (name); stable = false; continue; }
+            typed.set (name, ws);
+        }
+        if (!stable) continue;
+        // every other mention: a bare value in a group write, or a use whose result ignores the box
+        const writeAt = new Map ();
+        for (const [ name, ws ] of typed) for (const [ j, , n ] of ws) writeAt.set (j, { name, n });
+        for (const name of [ ...group ]) {
+            const bc = boxChanges.get (name);
+            for (let j = from; j < to; j++) {
+                const code = longLimitCodeOnly (lines[j]);
+                const count = (code.match (mention (name)) ?? []).length;
+                if (count === 0) continue;
+                const w = writeAt.get (j);
+                if (w !== undefined && w.name === name && info.get (name).writes.some (([ k ]) => k === j)) {
+                    const rhsCount = (longLimitCodeOnly (info.get (name).writes.find (([ k ]) => k === j)[2]).match (mention (name)) ?? []).length;
+                    if (rhsCount === 0) continue;
+                }
+                let ok = false;
+                if (/\b(?:catch|->)\b/.test (code) && !code.includes (`toLongOrNull(${name})`)) ok = false;
+                else if (w !== undefined && w.name !== name) {
+                    const atoms = w.n.atoms.filter ((a) => a === name).length;
+                    const condUses = w.n.conds.map ((c) => (longLimitCodeOnly (c).match (mention (name)) ?? []).length).reduce ((x, y) => x + y, 0);
+                    ok = atoms + condUses === count && w.n.conds.every ((c) => longLimitUseOk (c, name, bc));
+                } else if (longLimitUseOk (lines[j], name, bc)) ok = true;
+                else if (!bc && new RegExp (`^\\s*(?:(?:final )?Object )?([A-Za-z_]\\w*) = ${name};(\\s*//.*)?$`).test (lines[j])) {
+                    const target = /^\s*(?:(?:final )?Object )?([A-Za-z_]\w*) = /.exec (lines[j])[1];
+                    ok = !group.has (target) && ctx.declType (target) === 'Object';
+                }
+                if (!ok) {
+                    if (process.env.JAVA_LONG_LIMIT_DEBUG && lines.slice (from, to).some ((l) => l.includes (`toLongOrNull(${name})`))) {
+                        console.log (`long-group reject ${name}: ${lines[j].trim ()}`);
+                    }
+                    group.delete (name);
+                    stable = false;
+                    break;
+                }
+            }
+        }
+    }
+    // retype the connected groups that reach a toLongOrNull argument
+    const parent = new Map ([ ...group ].map ((n) => [ n, n ]));
+    const find = (n) => (parent.get (n) === n ? n : find (parent.get (n)));
+    for (const [ name, ws ] of typed) for (const [ , , n ] of ws) for (const a of n.atoms) parent.set (find (a), find (name));
+    const fed = new Set ([ ...group ].filter ((n) => lines.slice (from, to).some ((l) => l.includes (`Helpers.toLongOrNull(${n})`))).map (find));
+    let changed = false;
+    for (const [ name, ws ] of typed) {
+        if (!fed.has (find (name))) continue;
+        for (const [ j, iden, n, comment ] of ws) {
+            lines[j] = j === info.get (name).decl ? `${iden}Long ${name} = ${n.text};${comment}` : `${iden}${name} = ${n.text};${comment}`;
+        }
+        changed = true;
     }
     return changed;
 }
