@@ -1460,7 +1460,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		"instId": market["id"],
 	}
 	if since != nil {
-		request["before"] = mathMax(Subtract(since, 1), 0)
+		request["before"] = mathMax(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -2457,7 +2457,7 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		request["before"] = mathMax(Subtract(since, 1), 0)
+		request["before"] = mathMax(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -2518,7 +2518,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		request["before"] = mathMax(Subtract(since, 1), 0)
+		request["before"] = mathMax(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100

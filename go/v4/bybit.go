@@ -2272,7 +2272,7 @@ func (this *Bybit) EnableDemoTrading(enable any) {
 	this.Options.Store("enableDemoTrading", enable)
 }
 func (this *Bybit) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Bybit) AddPaginationCursorToResult(response any) any {
 	var result map[string]any = SafeMapTyped(response, "result")

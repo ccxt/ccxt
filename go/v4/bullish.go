@@ -3628,7 +3628,7 @@ func (this *Bullish) ParseBorrowRate(info any, optionalArgs ...any) any {
 	}
 }
 func (this *Bullish) GetTimestamp() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 /**

@@ -5479,7 +5479,7 @@ func (this *Whitebit) ParseFundingRateHistory(info any, optionalArgs ...any) any
 	}
 }
 func (this *Whitebit) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")

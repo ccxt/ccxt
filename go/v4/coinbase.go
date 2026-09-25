@@ -2443,7 +2443,7 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan any, optionalArgs ...
 	var timestamp *int64 = this.SafeInteger(options, "timestamp")
 	var expires *int64 = this.SafeInteger(options, "expires", 1000)
 	var now int64 = this.Milliseconds()
-	if (timestamp == nil) || (IsGreaterThan((Subtract(now, timestamp)), expires)) {
+	if (timestamp == nil) || (IsGreaterThan((now - *timestamp), expires)) {
 		var promises []any = []any{this.V2PublicGetCurrencies(params), this.V2PublicGetCurrenciesCrypto(params)}
 
 		var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
@@ -6642,7 +6642,7 @@ func (this *Coinbase) Nonce() any {
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
 	}
-	return Subtract(this.Milliseconds(), timeDifference)
+	return this.Milliseconds() - *timeDifference
 }
 func (this *Coinbase) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})

@@ -4616,7 +4616,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Kraken) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Kraken) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(code, 520) {

@@ -742,7 +742,7 @@ func (this *Bitrue) Describe() any {
 	})
 }
 func (this *Bitrue) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 /**

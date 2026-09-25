@@ -2012,7 +2012,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		if since == nil {
 			return nil
 		}
-		return mathMax(Subtract(since, 1), 0)
+		return mathMax(*since-1, 0)
 	}()
 	if since == nil {
 		request["start_timestamp"] = Subtract(now, Multiply(Multiply((Subtract(windowLimit, 1)), duration), 1000))

@@ -7990,7 +7990,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 		if since == nil {
 			panic(ArgumentsRequired(this.Id + " fetchPaginatedCallDeterministic() requires a since argument when until is set"))
 		}
-		var requiredCalls float64 = MathCeil(Divide((Subtract(until, since)), step))
+		var requiredCalls float64 = MathCeil(Divide((*until - *since), step))
 		if IsGreaterThan(requiredCalls, maxCallsPaginationCalls) {
 			panic(BadRequest(this.Id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is " + ToString(maxCallsPaginationCalls) + " required calls is " + ToString(requiredCalls)))
 		}

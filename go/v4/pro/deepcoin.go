@@ -259,7 +259,7 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 			}()
 			// try block:
 			var listenKeyExpiryTimestamp *int64 = this.SafeInteger(this.Options, "listenKeyExpiryTimestamp", time)
-			var expired bool = ccxt.IsGreaterThan((ccxt.Subtract(time, listenKeyExpiryTimestamp)), 60000) // 1 minute before expiry
+			var expired bool = ((time - *listenKeyExpiryTimestamp) > 60000) // 1 minute before expiry
 			listenKey = ccxt.DerefScalar(this.SafeString(this.Options, "listenKey"))
 			var response map[string]any = nil
 			if ccxt.IsEqual(listenKey, nil) {

@@ -2027,7 +2027,7 @@ func (this *Kucoin) Describe() any {
 	})
 }
 func (this *Kucoin) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 /**
@@ -4823,7 +4823,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 			timestamp = this.ParseToInt(float64(*nanoseconds) / 1000000)
 		}
 	}
-	var orderbook map[string]any = this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", Subtract(level, 2), Subtract(level, 1))
+	var orderbook map[string]any = this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", *level-2, *level-1)
 	orderbook["nonce"] = this.SafeInteger(data, "sequence")
 
 	ch <- orderbook

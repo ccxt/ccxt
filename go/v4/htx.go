@@ -9347,7 +9347,7 @@ func (this *Htx) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	}
 }
 func (this *Htx) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Htx) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")

@@ -1150,7 +1150,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	if period == nil {
 		period = SafeStringPtr("7D")
 		if since != nil {
-			var age any = Subtract(this.Milliseconds(), since)
+			var age int64 = this.Milliseconds() - *since
 			var day int = 86400000
 			if IsGreaterThan(age, 14*day) {
 				period = SafeStringPtr("1M")
@@ -4694,7 +4694,7 @@ func (this *Btse) CleanPath(path string) any {
 	return result
 }
 func (this *Btse) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 func NewBtse(userConfig map[string]any) *Btse {
