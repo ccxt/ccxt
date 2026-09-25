@@ -440,7 +440,7 @@ public class Btcbox extends BtcboxApi
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> currency = this.currency((String) (code));
-            String currencyId = (String) ((Map<String, Object>)currency).get("id");
+            String currencyId = (String) currency.get("id");
             String free = (currencyId + "_balance");
             if (Helpers.inOp(response, free))
             {
@@ -501,10 +501,10 @@ public class Btcbox extends BtcboxApi
             Integer numSymbols = ((List<?>)this.symbols).size();
             if ((numSymbols != null && numSymbols > 1))
             {
-                request.put("coin", ((Map<String, Object>)market).get("baseId"));
+                request.put("coin", market.get("baseId"));
             }
             Map<String, Object> response = (this.publicGetDepth(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), (Long) null, "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(response, market.get("symbol"), (Long) null, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -560,7 +560,7 @@ public class Btcbox extends BtcboxApi
             Integer numSymbols = ((List<?>)this.symbols).size();
             if ((numSymbols != null && numSymbols > 1))
             {
-                request.put("coin", ((Map<String, Object>)market).get("baseId"));
+                request.put("coin", market.get("baseId"));
             }
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
@@ -617,7 +617,7 @@ public class Btcbox extends BtcboxApi
             put( "order", null );
             put( "timestamp", timestamp );
             put( "datetime", Btcbox.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", marketResolved.get("symbol") );
             put( "type", type );
             put( "side", side );
             put( "takerOrMaker", null );
@@ -653,7 +653,7 @@ public class Btcbox extends BtcboxApi
             Integer numSymbols = ((List<?>)this.symbols).size();
             if ((numSymbols != null && numSymbols > 1))
             {
-                request.put("coin", ((Map<String, Object>)market).get("baseId"));
+                request.put("coin", market.get("baseId"));
             }
             List<Object> response = (this.publicGetOrders(this.extend(request, parameters))).join();
             //
@@ -699,7 +699,7 @@ public class Btcbox extends BtcboxApi
                 put( "amount", amount );
                 put( "price", price );
                 put( "type", side );
-                put( "coin", ((Map<String, Object>)market).get("baseId") );
+                put( "coin", market.get("baseId") );
             }};
             Map<String, Object> response = (this.privatePostTradeAdd(this.extend(request, parameters))).join();
             //
@@ -737,7 +737,7 @@ public class Btcbox extends BtcboxApi
             Map<String, Object> market = this.market(symbolResolved);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
-                put( "coin", ((Map<String, Object>)market).get("baseId") );
+                put( "coin", market.get("baseId") );
             }};
             Map<String, Object> response = (this.privatePostTradeCancel(this.extend(request, parameters))).join();
             //
@@ -815,7 +815,7 @@ public class Btcbox extends BtcboxApi
             "timeInForce", null,
             "postOnly", null,
             "status", status,
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "price", price,
             "triggerPrice", null,
             "cost", null,
@@ -850,7 +850,7 @@ public class Btcbox extends BtcboxApi
             Map<String, Object> market = this.market(symbolResolved);
             Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
-                put( "coin", ((Map<String, Object>)market).get("baseId") );
+                put( "coin", market.get("baseId") );
             }}, parameters);
             Map<String, Object> response = (this.privatePostTradeView(this.extend(request, parameters))).join();
             //
@@ -884,7 +884,7 @@ public class Btcbox extends BtcboxApi
             Map<String, Object> market = this.market(symbolResolved);
             Map<String, Object> request = Helpers.newMap(
                 "type", type,
-                "coin", ((Map<String, Object>)market).get("baseId")
+                "coin", market.get("baseId")
             );
             List<Object> response = (this.privatePostTradeList(this.extend(request, parameters))).join();
             //

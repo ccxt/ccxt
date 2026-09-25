@@ -91,7 +91,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String messageHash = (("orderbook" + ":") + ((Map<String, Object>)market).get("id"));
+            String messageHash = (("orderbook" + ":") + market.get("id"));
             Object orderbook = (this.watchPublic(messageHash, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
@@ -124,7 +124,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String marketId = this.safeString(message, "symbol");
         String channel = this.safeString(message, "topic");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         if (java.util.Objects.equals(symbol, null))
         {
             return;
@@ -172,8 +172,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
-            String messageHash = (("trade" + ":") + ((Map<String, Object>)market).get("id"));
+            String symbolValue = (String) market.get("symbol");
+            String messageHash = (("trade" + ":") + market.get("id"));
             Object trades = (this.watchPublic(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -205,7 +205,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String channel = this.safeString(message, "topic");
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = (String) market.get("symbol");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -250,8 +250,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
-                messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("id")));
+                symbolResolved = market.get("symbol");
+                messageHash = (messageHash + (":" + market.get("id")));
             }
             Object trades = (this.watchPrivate(messageHash, parameters)).join();
             Long limitResolved = limit;
@@ -311,7 +311,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             stored.append(parsed);
             Object symbol = Helpers.GetValue(trade, "symbol");
             Map<String, Object> market = this.market(symbol);
-            String marketId = (String) ((Map<String, Object>)market).get("id");
+            String marketId = (String) market.get("id");
             if (!java.util.Objects.equals(marketId, null))
             {
                 marketIds.put((String)marketId, true);
@@ -354,8 +354,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
-                messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("id")));
+                symbolResolved = market.get("symbol");
+                messageHash = (messageHash + (":" + market.get("id")));
             }
             Object orders = (this.watchPrivate(messageHash, parameters)).join();
             Long limitResolved = limit;
@@ -457,7 +457,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             stored.append(parsed);
             Object symbol = Helpers.GetValue(order, "symbol");
             Map<String, Object> market = this.market(symbol);
-            String marketId = (String) ((Map<String, Object>)market).get("id");
+            String marketId = (String) market.get("id");
             if (!java.util.Objects.equals(marketId, null))
             {
                 marketIds.put((String)marketId, true);

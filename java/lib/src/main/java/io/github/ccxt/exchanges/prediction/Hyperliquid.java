@@ -2618,10 +2618,10 @@ public class Hyperliquid extends HyperliquidApi
             );
             Object sig = this.buildApproveBuilderFeeSig((Map<String, Object>) (payload));
             Map<String, Object> action = new HashMap<String, Object>() {{
-                put( "hyperliquidChain", ((Map<String, Object>)payload).get("hyperliquidChain") );
+                put( "hyperliquidChain", payload.get("hyperliquidChain") );
                 put( "signatureChainId", "0x66eee" );
-                put( "maxFeeRate", ((Map<String, Object>)payload).get("maxFeeRate") );
-                put( "builder", ((Map<String, Object>)payload).get("builder") );
+                put( "maxFeeRate", payload.get("maxFeeRate") );
+                put( "builder", payload.get("builder") );
                 put( "nonce", nonce );
                 put( "type", "approveBuilderFee" );
             }};

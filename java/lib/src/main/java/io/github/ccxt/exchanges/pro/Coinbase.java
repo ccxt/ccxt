@@ -237,7 +237,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
-                String marketId = (String) ((Map<String, Object>)market).get("id");
+                String marketId = (String) market.get("id");
                 ((List<Object>)productIds).add(marketId);
                 ((List<Object>)messageHashes).add(((name + "::") + symbol));
             }
@@ -290,7 +290,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
-                String marketId = (String) ((Map<String, Object>)market).get("id");
+                String marketId = (String) market.get("id");
                 ((List<Object>)productIds).add(marketId);
                 ((List<Object>)watchMessageHashes).add(((name + "::") + symbol));
                 unWatchMessageHashes.add(((("unsubscribe:" + name) + "::") + symbol));
@@ -577,7 +577,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 Map<String, Object> result = (Map<String, Object>) this.parseWsTicker(ticker, (Map<String, Object>) null);
                 Helpers.addElementToObject(result, "timestamp", timestamp);
                 Helpers.addElementToObject(result, "datetime", datetime);
-                String symbol = (String) ((Map<String, Object>)result).get("symbol");
+                String symbol = (String) result.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     Helpers.addElementToObject(this.tickers, symbol, result);
@@ -829,7 +829,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             String name = "level2";
             Map<String, Object> market = this.market(symbol);
-            Object symbolValue = ((Map<String, Object>)market).get("symbol");
+            Object symbolValue = market.get("symbol");
             Object orderbook = (this.subscribe(name, false, symbolValue, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
@@ -1135,7 +1135,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             String marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            String symbol = (String) ((Map<String, Object>)market).get("symbol");
+            String symbol = (String) market.get("symbol");
             String messageHash = ("level2::" + symbol);
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
             Long limit = this.safeInteger(subscription, "limit");
@@ -1192,7 +1192,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         List<Object> events = (List<Object>) this.safeList(message, "events", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> firstEvent = (Map<String, Object>) this.safeDict(events, 0, new HashMap<String, Object>() {{}});
         Boolean isUnsub = (firstEvent.containsKey("subscriptions"));
-        List<Object> subKeys = Helpers.objectKeys(((Map<String, Object>)firstEvent).get("subscriptions"));
+        List<Object> subKeys = Helpers.objectKeys(firstEvent.get("subscriptions"));
         Integer subKeysLength = ((List<?>)subKeys).size();
         if (Boolean.TRUE.equals(isUnsub) && java.util.Objects.equals(subKeysLength, 0))
         {

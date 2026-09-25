@@ -2744,8 +2744,8 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            String networkId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "networkId");
-            String marketId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketId");
+            String networkId = this.safeString(outcomeObj.get("info"), "networkId");
+            String marketId = this.safeString(outcomeObj.get("info"), "marketId");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", marketId );
                 put( "network_id", networkId );
@@ -3031,10 +3031,10 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            String networkId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "networkId");
-            String marketId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketId");
-            String outcomeId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "outcomeId");
-            String tradingModel = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "tradingModel", "amm");
+            String networkId = this.safeString(outcomeObj.get("info"), "networkId");
+            String marketId = this.safeString(outcomeObj.get("info"), "marketId");
+            String outcomeId = this.safeString(outcomeObj.get("info"), "outcomeId");
+            String tradingModel = this.safeString(outcomeObj.get("info"), "tradingModel", "amm");
             if (java.util.Objects.equals(tradingModel, "ob"))
             {
                 Map<String, Object> obRequest = new HashMap<String, Object>() {{
@@ -3237,8 +3237,8 @@ public class Myriad extends MyriadApi
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String networkId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "networkId");
-            String marketId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketId");
+            String networkId = this.safeString(outcomeObj.get("info"), "networkId");
+            String marketId = this.safeString(outcomeObj.get("info"), "marketId");
             String outcomeId = this.safeString(outcomeInfo, "outcomeId", this.safeString(outcomeInfo, "id"));
             String outcomeTitle = this.safeString(outcomeInfo, "outcomeLabel", this.safeString(outcomeInfo, "label", this.safeString(outcomeInfo, "title")));
             String bucketKey = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1d"), "30d");

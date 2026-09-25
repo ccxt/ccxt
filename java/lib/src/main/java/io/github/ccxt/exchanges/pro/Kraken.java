@@ -385,7 +385,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     put( "order_type", type );
                     put( "side", side );
                     put( "order_qty", Kraken.this.parseToNumeric(Kraken.this.amountToPrecision(symbol, amount)) );
-                    put( "symbol", ((Map<String, Object>)market).get("symbol") );
+                    put( "symbol", market.get("symbol") );
                     put( "token", token );
                 }} );
                 put( "req_id", requestId );
@@ -988,7 +988,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             String name = "ohlc";
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicV2");
             Long requestId = this.requestId();
             String messageHash = this.getMessageHash("ohlcv", (String) null, symbolValue);
@@ -1389,7 +1389,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }};
             if (!java.util.Objects.equals(parameters, null))
             {
-                subscribe.put("params", this.deepExtend(((Map<String, Object>)subscribe).get("params"), parameters));
+                subscribe.put("params", this.deepExtend(subscribe.get("params"), parameters));
             }
             List<Object> result = (this.<List<Object>>watch(url, messageHash, subscribe, subscriptionHash, null)).join();
             Long limitResolved = limit;
@@ -1473,7 +1473,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(allTrades, i, new HashMap<String, Object>() {{}});
                 Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), (Map<String, Object>) null);
                 stored.append(parsed);
-                Object symbol = ((String)((Map<String, Object>)parsed).get("symbol"));
+                Object symbol = ((String)parsed.get("symbol"));
                 symbols.put((String)symbol, true);
             }
             String name = "myTrades";
@@ -1626,7 +1626,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Object newOrder = parsed;
                 if (!java.util.Objects.equals(previousOrder, null))
                 {
-                    Map<String, Object> newRawOrder = this.extend(((Map<String, Object>)previousOrder).get("info"), ((Map<String, Object>)newOrder).get("info"));
+                    Map<String, Object> newRawOrder = this.extend(previousOrder.get("info"), ((Map<String, Object>)newOrder).get("info"));
                     newOrder = this.parseWsOrder((Map<String, Object>) (newRawOrder), (Map<String, Object>) null);
                 }
                 Object length = ((List<?>)stored).size();
@@ -1761,7 +1761,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 ),
                 "req_id", this.requestId()
             );
-            request.put("params", this.deepExtend(((Map<String, Object>)request).get("params"), parameters));
+            request.put("params", this.deepExtend(request.get("params"), parameters));
             String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicV2");
             return (this.watchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs)).join();
         });

@@ -872,7 +872,7 @@ public class Alpaca extends AlpacaApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String marketId = (String) ((Map<String, Object>)market).get("id");
+            String marketId = (String) market.get("id");
             String loc = this.safeString(parameters, "loc", "us");
             String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -964,7 +964,7 @@ public class Alpaca extends AlpacaApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String id = (String) ((Map<String, Object>)market).get("id");
+            String id = (String) market.get("id");
             String loc = this.safeString(parameters, "loc", "us");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbols", id );
@@ -1011,7 +1011,7 @@ public class Alpaca extends AlpacaApi
             Map<String, Object> orderbooks = (Map<String, Object>) this.safeDict(response, "orderbooks", new HashMap<String, Object>() {{}});
             Map<String, Object> rawOrderbook = (Map<String, Object>) this.safeDict(orderbooks, id, new HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
-            return this.parseOrderBook(rawOrderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "b", "a", "p", "s", 2);
+            return this.parseOrderBook(rawOrderbook, market.get("symbol"), timestamp, "b", "a", "p", "s", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1044,7 +1044,7 @@ public class Alpaca extends AlpacaApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String marketId = (String) ((Map<String, Object>)market).get("id");
+            String marketId = (String) market.get("id");
             String loc = this.safeString(parameters, "loc", "us");
             String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
             Boolean paginate = false;
@@ -1309,7 +1309,7 @@ public class Alpaca extends AlpacaApi
                 String datetime = this.safeString(latestQuote, "t");
                 Object ticker = this.safeTicker(new HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", ((Map<String, Object>)market).get("symbol") );
+                    put( "symbol", market.get("symbol") );
                     put( "timestamp", Alpaca.this.parse8601(datetime) );
                     put( "datetime", datetime );
                     put( "high", Alpaca.this.safeString(dailyBar, "h") );
@@ -1457,7 +1457,7 @@ public class Alpaca extends AlpacaApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String id = (String) ((Map<String, Object>)market).get("id");
+            String id = (String) market.get("id");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", id );
                 put( "side", side );
@@ -1660,7 +1660,7 @@ public class Alpaca extends AlpacaApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("symbols", ((Map<String, Object>)market).get("id"));
+                request.put("symbols", market.get("id"));
             }
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
@@ -1885,7 +1885,7 @@ public class Alpaca extends AlpacaApi
         //
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         String alpacaStatus = this.safeString(order, "status");
         String status = this.parseOrderStatus(alpacaStatus);
         String feeValue = this.safeString(order, "commission");
@@ -2125,7 +2125,7 @@ public class Alpaca extends AlpacaApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", ((Map<String, Object>)currency).get("id") );
+                put( "asset", currency.get("id") );
             }};
             Map<String, Object> response = (this.traderPrivateGetV2Wallets(this.extend(request, parameters))).join();
             //
@@ -2195,7 +2195,7 @@ public class Alpaca extends AlpacaApi
                 addressValue = Helpers.add((address + ":"), tagWithdrawTag);
             }
             Map<String, Object> request = Helpers.newMap(
-                "asset", ((Map<String, Object>)currency).get("id"),
+                "asset", currency.get("id"),
                 "address", addressValue,
                 "amount", this.numberToString(amount)
             );

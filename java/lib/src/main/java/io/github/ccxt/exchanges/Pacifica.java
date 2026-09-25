@@ -1272,7 +1272,7 @@ public class Pacifica extends PacificaApi
         {
             Object marketId = ((Map<String, Object>)(settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i))).get("symbol");
             Map<String, Object> market = this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
-            String symbol = (String) ((Map<String, Object>)market).get("symbol");
+            String symbol = (String) market.get("symbol");
             settingsBySymbol.put((String)symbol, (settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i)));
         }
         return settingsBySymbol;
@@ -1383,7 +1383,7 @@ public class Pacifica extends PacificaApi
             Long aggLevel = (Long) ((List<Object>) aggLevelparamsAggLevelVariable).get(0);
             Map<String, Object> paramsAggLevel = (Map<String, Object>) ((List<Object>) aggLevelparamsAggLevelVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "agg_level", aggLevel );
             }};
             Map<String, Object> response = (this.publicGetBook(this.extend(request, paramsAggLevel))).join();
@@ -1494,7 +1494,7 @@ public class Pacifica extends PacificaApi
         //
         String marketId = this.safeString(info, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         Double funding = this.safeNumber(info, "funding", (Object) null);
         Double markPx = this.safeNumber(info, "mark", (Object) null);
         Double oraclePx = this.safeNumber(info, "oracle", (Object) null);
@@ -1565,7 +1565,7 @@ public class Pacifica extends PacificaApi
             }
             String tf = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = Helpers.newMap(
-                "symbol", ((Map<String, Object>)market).get("id"),
+                "symbol", market.get("id"),
                 "interval", tf,
                 "start_time", since
             );
@@ -1659,7 +1659,7 @@ public class Pacifica extends PacificaApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
@@ -1810,7 +1810,7 @@ public class Pacifica extends PacificaApi
         String amount = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         String id = this.safeString(trade, "history_id");
         String side = this.safeString(trade, "side");
         if (java.util.Objects.equals(side, "open_long"))
@@ -1977,7 +1977,7 @@ public class Pacifica extends PacificaApi
          */
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> sigPayload = Helpers.newMap(
-            "symbol", ((Map<String, Object>)market).get("id"),
+            "symbol", market.get("id"),
             "side", this.mapSide((String) (side))
         );
         String operationType = null;
@@ -2370,7 +2370,7 @@ public class Pacifica extends PacificaApi
         {
             Map<String, Object> market = this.market(symbol);
             sigPayload.put("all_symbols", false);
-            sigPayload.put("symbol", ((Map<String, Object>)market).get("id"));
+            sigPayload.put("symbol", market.get("id"));
         } else
         {
             sigPayload.put("all_symbols", true);
@@ -2455,7 +2455,7 @@ public class Pacifica extends PacificaApi
         }
         String clientOrderId = this.safeString(parameters, "clientOrderId");
         Map<String, Object> sigPayload = new HashMap<String, Object>() {{
-            put( "symbol", ((Map<String, Object>)market).get("id") );
+            put( "symbol", market.get("id") );
         }};
         if (!java.util.Objects.equals(clientOrderId, null))
         {
@@ -2590,7 +2590,7 @@ public class Pacifica extends PacificaApi
                 return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2623,7 +2623,7 @@ public class Pacifica extends PacificaApi
                 Long timestamp = this.safeInteger(entry, "created_at");
                 ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", ((Map<String, Object>)market).get("symbol") );
+                    put( "symbol", market.get("symbol") );
                     put( "fundingRate", Pacifica.this.safeNumber(entry, "funding_rate", (Object) null) );
                     put( "timestamp", timestamp );
                     put( "datetime", Pacifica.this.iso8601(timestamp) );
@@ -2711,7 +2711,7 @@ public class Pacifica extends PacificaApi
         //
         String marketId = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -3206,7 +3206,7 @@ public class Pacifica extends PacificaApi
         //
         String marketId = this.safeString2(order, "symbol", "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         Long timestamp = (Long) this.safeInteger2(order, "created_at", "ct");
         String status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
         String side = this.safeString(order, "side", "d");
@@ -3346,7 +3346,7 @@ public class Pacifica extends PacificaApi
         //
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         String margin = this.safeString(position, "margin");
         String marginMode = (((!java.util.Objects.equals(margin, null) && !java.util.Objects.equals(margin, "0")))) ? "isolated" : "cross";
         Boolean isIsolated = (java.util.Objects.equals(marginMode, "isolated"));
@@ -3411,7 +3411,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> market = this.market(symbol);
             Boolean isIsolated = (java.util.Objects.equals(marginMode, "isolated"));
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "is_isolated", isIsolated );
             }};
             Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
@@ -3451,7 +3451,7 @@ public class Pacifica extends PacificaApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "leverage", leverage );
             }};
             Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
@@ -3892,7 +3892,7 @@ public class Pacifica extends PacificaApi
         Long timestamp = this.safeInteger(income, "created_at");
         String marketId = this.safeString(income, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         String amount = this.safeString(income, "amount");
         String code = this.safeCurrencyCode("USDC", (Map<String, Object>) null);
         Double rate = this.safeNumber(income, "rate", (Object) null);
@@ -4330,7 +4330,7 @@ public class Pacifica extends PacificaApi
 
     public String prepareMessage(Map<String, Object> header, Map<String, Object> payload)
     {
-        if (java.util.Objects.equals(((Map<String, Object>)header).get("type"), null) || java.util.Objects.equals(((Map<String, Object>)header).get("timestamp"), null) || java.util.Objects.equals(((Map<String, Object>)header).get("expiry_window"), null))
+        if (java.util.Objects.equals(header.get("type"), null) || java.util.Objects.equals(header.get("timestamp"), null) || java.util.Objects.equals(header.get("expiry_window"), null))
         {
             throw new ArgumentsRequired((this.id + " prepareMessage() requires type, timestamp, expiry_window in header")) ;
         }

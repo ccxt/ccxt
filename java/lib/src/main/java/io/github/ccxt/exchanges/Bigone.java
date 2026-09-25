@@ -1006,7 +1006,7 @@ public class Bigone extends BigoneApi
             if (java.util.Objects.equals(type, "spot"))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "asset_pair_name", ((Map<String, Object>)market).get("id") );
+                    put( "asset_pair_name", market.get("id") );
                 }};
                 Map<String, Object> response = (this.publicGetAssetPairsAssetPairNameTicker(this.extend(request, paramsMarketType))).join();
                 //
@@ -1167,10 +1167,10 @@ public class Bigone extends BigoneApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
+            if (java.util.Objects.equals(market.get("contract"), true))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "symbol", ((Map<String, Object>)market).get("id") );
+                    put( "symbol", market.get("id") );
                 }};
                 response = (this.contractPublicGetDepthSymbolSnapshot(this.extend(request, parameters))).join();
                 //
@@ -1200,11 +1200,11 @@ public class Bigone extends BigoneApi
                 //        from: '0'
                 //    }
                 //
-                return this.parseContractOrderBook((Map<String, Object>) (response), ((Map<String, Object>)market).get("symbol"), limit);
+                return this.parseContractOrderBook((Map<String, Object>) (response), market.get("symbol"), limit);
             } else
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "asset_pair_name", ((Map<String, Object>)market).get("id") );
+                    put( "asset_pair_name", market.get("id") );
                 }};
                 if (!java.util.Objects.equals(limit, null))
                 {
@@ -1226,7 +1226,7 @@ public class Bigone extends BigoneApi
                 //     }
                 //
                 Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), (Long) null, "bids", "asks", "price", "quantity", 2);
+                return this.parseOrderBook(orderbook, market.get("symbol"), (Long) null, "bids", "asks", "price", "quantity", 2);
             }
         }).thenApply(OrderBook::new);
 
@@ -1346,7 +1346,7 @@ public class Bigone extends BigoneApi
             "id", id,
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "order", orderId,
             "type", "limit",
             "side", side,
@@ -1452,12 +1452,12 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
+            if (java.util.Objects.equals(market.get("contract"), true))
             {
                 throw new NotSupported((this.id + " fetchTrades () can only fetch trades for spot markets")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_pair_name", ((Map<String, Object>)market).get("id") );
+                put( "asset_pair_name", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetAssetPairsAssetPairNameTrades(this.extend(request, parameters))).join();
             //
@@ -1525,7 +1525,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
+            if (java.util.Objects.equals(market.get("contract"), true))
             {
                 throw new NotSupported((this.id + " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
             }
@@ -1540,7 +1540,7 @@ public class Bigone extends BigoneApi
             }
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
             Map<String, Object> request = Helpers.newMap(
-                "asset_pair_name", ((Map<String, Object>)market).get("id"),
+                "asset_pair_name", market.get("id"),
                 "period", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")),
                 "limit", limitResolved
             );
@@ -1771,7 +1771,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+            if (!java.util.Objects.equals(market.get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -1828,7 +1828,7 @@ public class Bigone extends BigoneApi
             query = ((List<Object>) postOnlyqueryVariable).get(1);
             String triggerPrice = this.safeStringN(query, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
             Map<String, Object> request = Helpers.newMap(
-                "asset_pair_name", ((Map<String, Object>)market).get("id"),
+                "asset_pair_name", market.get("id"),
                 "side", requestSide,
                 "amount", this.amountToPrecision(symbol, amount)
             );
@@ -1981,7 +1981,7 @@ public class Bigone extends BigoneApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_pair_name", ((Map<String, Object>)market).get("id") );
+                put( "asset_pair_name", market.get("id") );
             }};
             Map<String, Object> response = (this.privatePostOrdersCancel(this.extend(request, parameters))).join();
             //
@@ -2078,7 +2078,7 @@ public class Bigone extends BigoneApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_pair_name", ((Map<String, Object>)market).get("id") );
+                put( "asset_pair_name", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2137,7 +2137,7 @@ public class Bigone extends BigoneApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_pair_name", ((Map<String, Object>)market).get("id") );
+                put( "asset_pair_name", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2319,7 +2319,7 @@ public class Bigone extends BigoneApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_symbol", ((Map<String, Object>)currency).get("id") );
+                put( "asset_symbol", currency.get("id") );
             }};
             List<Object> networkCodeparamsOmittedVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             String networkCode = (String) ((List<Object>) networkCodeparamsOmittedVariable).get(0);
@@ -2495,7 +2495,7 @@ public class Bigone extends BigoneApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                request.put("asset_symbol", ((Map<String, Object>)currency).get("id"));
+                request.put("asset_symbol", currency.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2554,7 +2554,7 @@ public class Bigone extends BigoneApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                request.put("asset_symbol", ((Map<String, Object>)currency).get("id"));
+                request.put("asset_symbol", currency.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2615,7 +2615,7 @@ public class Bigone extends BigoneApi
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             String guid = this.safeString(parameters, "guid", this.uuid());
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)currency).get("id") );
+                put( "symbol", currency.get("id") );
                 put( "amount", Bigone.this.currencyToPrecision((String) (code), amount, (String) null) );
                 put( "from", fromId );
                 put( "to", toId );
@@ -2699,7 +2699,7 @@ public class Bigone extends BigoneApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)currency).get("id") );
+                put( "symbol", currency.get("id") );
                 put( "target_address", address );
                 put( "amount", Bigone.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};
@@ -2712,7 +2712,7 @@ public class Bigone extends BigoneApi
             var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("gateway_name", this.networkCodeToId(networkCode, Helpers.toStringArg(((Map<String, Object>)currency).get("code"))));
+                request.put("gateway_name", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))));
             }
             // requires write permission on the wallet
             Map<String, Object> response = (this.privatePostWithdrawals(this.extend(request, paramsNetworkCode))).join();

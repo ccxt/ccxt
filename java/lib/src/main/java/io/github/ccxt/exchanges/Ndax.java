@@ -986,8 +986,8 @@ public class Ndax extends NdaxApi
             Object side = (((!java.util.Objects.equals(levelSide, null) && (levelSide == null || levelSide != 0)))) ? java.util.Objects.requireNonNullElse(asksKey, "asks") : java.util.Objects.requireNonNullElse(bidsKey, "bids");
             ((List<Object>)(result == null || side == null ? null : result.get(side))).add(bidask);
         }
-        result.put("bids", this.sortBy(((Map<String, Object>)result).get("bids"), 0, true));
-        result.put("asks", this.sortBy(((Map<String, Object>)result).get("asks"), 0));
+        result.put("bids", this.sortBy(result.get("bids"), 0, true));
+        result.put("asks", this.sortBy(result.get("asks"), 0));
         result.put("timestamp", latestTimestamp);
         result.put("datetime", this.iso8601(latestTimestamp));
         result.put("nonce", nonce);
@@ -1018,7 +1018,7 @@ public class Ndax extends NdaxApi
             Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit; // default 100
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
-                put( "InstrumentId", ((Map<String, Object>)market).get("id") );
+                put( "InstrumentId", market.get("id") );
                 put( "Depth", limitValue );
             }};
             List<Object> response = (this.publicGetGetL2Snapshot(this.extend(request, parameters))).join();
@@ -1198,7 +1198,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
-                put( "InstrumentId", ((Map<String, Object>)market).get("id") );
+                put( "InstrumentId", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetGetLevel1(this.extend(request, parameters))).join();
             //
@@ -1279,7 +1279,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
-                put( "InstrumentId", ((Map<String, Object>)market).get("id") );
+                put( "InstrumentId", market.get("id") );
                 put( "Interval", Ndax.this.safeString(Ndax.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -1521,7 +1521,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
-                put( "InstrumentId", ((Map<String, Object>)market).get("id") );
+                put( "InstrumentId", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1980,7 +1980,7 @@ public class Ndax extends NdaxApi
             Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             String amountString = this.amountToPrecision(symbol, amount);
             Map<String, Object> request = Helpers.newMap(
-                "InstrumentId", this.parseToInt(((Map<String, Object>)market).get("id")),
+                "InstrumentId", this.parseToInt(market.get("id")),
                 "omsId", omsId,
                 "AccountId", accountId,
                 "TimeInForce", 1,
@@ -2053,7 +2053,7 @@ public class Ndax extends NdaxApi
             String amountString = this.amountToPrecision(symbol, amount);
             Map<String, Object> request = Helpers.newMap(
                 "OrderIdToReplace", Helpers.parseInt(id),
-                "InstrumentId", this.parseToInt(((Map<String, Object>)market).get("id")),
+                "InstrumentId", this.parseToInt(market.get("id")),
                 "omsId", omsId,
                 "AccountId", accountId,
                 "TimeInForce", 1,
@@ -2122,7 +2122,7 @@ public class Ndax extends NdaxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("InstrumentId", ((Map<String, Object>)market).get("id"));
+                request.put("InstrumentId", market.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -2211,7 +2211,7 @@ public class Ndax extends NdaxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                request.put("IntrumentId", ((Map<String, Object>)market).get("id"));
+                request.put("IntrumentId", market.get("id"));
             }
             Map<String, Object> response = (this.privatePostCancelAllOrders(this.extend(request, paramsOmitted))).join();
             //
@@ -2404,7 +2404,7 @@ public class Ndax extends NdaxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("InstrumentId", ((Map<String, Object>)market).get("id"));
+                request.put("InstrumentId", market.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -2677,7 +2677,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
-                put( "ProductId", ((Map<String, Object>)currency).get("id") );
+                put( "ProductId", currency.get("id") );
                 put( "GenerateNewKey", false );
             }};
             Map<String, Object> response = (this.privateGetGetDepositInfo(this.extend(request, paramsOmitted))).join();
@@ -3097,7 +3097,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> withdrawTemplateTypesRequest = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
-                put( "ProductId", ((Map<String, Object>)currency).get("id") );
+                put( "ProductId", currency.get("id") );
             }};
             Map<String, Object> withdrawTemplateTypesResponse = (this.privateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest)).join();
             //
@@ -3116,15 +3116,15 @@ public class Ndax extends NdaxApi
             Map<String, Object> firstTemplateType = (Map<String, Object>) this.safeDict(templateTypes, 0, (Object) null);
             if (java.util.Objects.equals(firstTemplateType, null))
             {
-                throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template type for ") + ((Map<String, Object>)currency).get("code"))) ;
+                throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template type for ") + currency.get("code"))) ;
             }
             String templateName = this.safeString(firstTemplateType, "TemplateName");
             Map<String, Object> withdrawTemplateRequest = Helpers.newMap(
                 "omsId", omsId,
                 "AccountId", accountId,
-                "ProductId", ((Map<String, Object>)currency).get("id"),
+                "ProductId", currency.get("id"),
                 "TemplateType", templateName,
-                "AccountProviderId", ((Map<String, Object>)firstTemplateType).get("AccountProviderId")
+                "AccountProviderId", firstTemplateType.get("AccountProviderId")
             );
             Map<String, Object> withdrawTemplateResponse = (this.privateGetGetWithdrawTemplate(withdrawTemplateRequest)).join();
             //
@@ -3138,7 +3138,7 @@ public class Ndax extends NdaxApi
             String template = this.safeString(withdrawTemplateResponse, "Template");
             if (java.util.Objects.equals(template, null))
             {
-                throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template for ") + ((Map<String, Object>)currency).get("code"))) ;
+                throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template for ") + currency.get("code"))) ;
             }
             Object withdrawTemplate = Helpers.parseJson(template);
             Helpers.addElementToObject(withdrawTemplate, "ExternalAddress", address);
@@ -3152,7 +3152,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> withdrawPayload = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
-                put( "ProductId", ((Map<String, Object>)currency).get("id") );
+                put( "ProductId", currency.get("id") );
                 put( "TemplateForm", Ndax.this.json(withdrawTemplate) );
                 put( "TemplateType", templateName );
             }};

@@ -5783,7 +5783,7 @@ public Object describe()
          * @returns {object} returns feature value
          */
         Map<String, Object> market = this.market(symbol);
-        return this.featureValueByType(((Map<String, Object>)market).get("type"), (String) (((Map<String, Object>)market).get("subType")), methodName, paramName, defaultValue);
+        return this.featureValueByType(market.get("type"), (String) (market.get("subType")), methodName, paramName, defaultValue);
     }
 
     public Object featureValueByType(Object marketType, String subType, String methodName, String paramName, Object defaultValue)
@@ -5981,7 +5981,7 @@ public Object describe()
             "referenceId", this.safeString(entry, "referenceId"),
             "referenceAccount", this.safeString(entry, "referenceAccount"),
             "type", this.safeString(entry, "type"),
-            "currency", ((Map<String, Object>)currencyResolved).get("code"),
+            "currency", currencyResolved.get("code"),
             "amount", this.parseNumber(amount),
             "before", this.parseNumber(before),
             "after", this.parseNumber(after),
@@ -6491,19 +6491,19 @@ public Object describe()
             if (Boolean.TRUE.equals(isArray) && ((tradesLength != null && tradesLength > 0)))
             {
                 // move properties that are defined in trades up into the order
-                if (java.util.Objects.equals(((Map<String, Object>)orderDict).get("symbol"), null))
+                if (java.util.Objects.equals(orderDict.get("symbol"), null))
                 {
                     Helpers.addElementToObject(orderDict, "symbol", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "symbol"));
                 }
-                if (java.util.Objects.equals(((Map<String, Object>)orderDict).get("side"), null))
+                if (java.util.Objects.equals(orderDict.get("side"), null))
                 {
                     Helpers.addElementToObject(orderDict, "side", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "side"));
                 }
-                if (java.util.Objects.equals(((Map<String, Object>)orderDict).get("type"), null))
+                if (java.util.Objects.equals(orderDict.get("type"), null))
                 {
                     Helpers.addElementToObject(orderDict, "type", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "type"));
                 }
-                if (java.util.Objects.equals(((Map<String, Object>)orderDict).get("id"), null))
+                if (java.util.Objects.equals(orderDict.get("id"), null))
                 {
                     Helpers.addElementToObject(orderDict, "id", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "order"));
                 }
@@ -7663,24 +7663,24 @@ public Object describe()
             Map<String, Object> market = this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
             if (Helpers.isTrue(java.util.Objects.requireNonNullElse(sameTypeOnly, false)) && (!java.util.Objects.equals(marketType, null)))
             {
-                if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), marketType))
+                if (!java.util.Objects.equals(market.get("type"), marketType))
                 {
-                    throw new BadRequest((((((this.id + " symbols must be of the same type, either ") + marketType) + " or ") + ((Map<String, Object>)market).get("type")) + ".")) ;
+                    throw new BadRequest((((((this.id + " symbols must be of the same type, either ") + marketType) + " or ") + market.get("type")) + ".")) ;
                 }
             }
             if (Helpers.isTrue(java.util.Objects.requireNonNullElse(sameSubTypeOnly, false)) && (!java.util.Objects.equals(isLinearSubType, null)))
             {
-                if (!java.util.Objects.equals(((Map<String, Object>)market).get("linear"), isLinearSubType))
+                if (!java.util.Objects.equals(market.get("linear"), isLinearSubType))
                 {
                     throw new BadRequest((this.id + " symbols must be of the same subType, either linear or inverse.")) ;
                 }
             }
-            if (!java.util.Objects.equals(type, null) && !java.util.Objects.equals(((Map<String, Object>)market).get("type"), type))
+            if (!java.util.Objects.equals(type, null) && !java.util.Objects.equals(market.get("type"), type))
             {
                 throw new BadRequest((((this.id + " symbols must be of the same type ") + type) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
             marketType = this.safeString(market, "type");
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+            if (!java.util.Objects.equals(market.get("spot"), true))
             {
                 isLinearSubType = this.safeBool(market, "linear", (Object) null);
             }
@@ -8069,7 +8069,7 @@ public Object describe()
                 Object item = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
                 String id = (((java.util.Objects.equals(marketIdKey, null)))) ? null : this.safeString(item, marketIdKey);
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, "swap");
-                String symbol = (String) ((Map<String, Object>)market).get("symbol");
+                String symbol = (String) market.get("symbol");
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((java.util.Objects.equals(contract, true)) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized))))
                 {
@@ -8084,7 +8084,7 @@ public Object describe()
                 Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object item = Helpers.GetValue(response, marketId);
                 Map<String, Object> market = this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, "swap");
-                String symbol = (String) ((Map<String, Object>)market).get("symbol");
+                String symbol = (String) market.get("symbol");
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((java.util.Objects.equals(contract, true)) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized))))
                 {
@@ -8326,7 +8326,7 @@ public Object describe()
         }
         if (!java.util.Objects.equals(currency, null))
         {
-            return ((Map<String, Object>)currency).get("id");
+            return currency.get("id");
         }
         return code;
     }
@@ -8336,7 +8336,7 @@ public Object describe()
         Map<String, Object> market = this.market(symbol);
         if (!java.util.Objects.equals(market, null))
         {
-            return (String) ((Map<String, Object>)market).get("id");
+            return (String) market.get("id");
         }
         return symbol;
     }
@@ -9528,7 +9528,7 @@ public Object describe()
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
-                String symbolResolved = (String) ((Map<String, Object>)market).get("symbol");
+                String symbolResolved = (String) market.get("symbol");
                 List<ADL> ranks = (this.fetchPositionsADLRank(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolResolved))), parameters)).join();
                 Map<String, Object> rank = (Map<String, Object>) this.safeDict(ranks, 0, (Object) null);
                 if (java.util.Objects.equals(rank, null))
@@ -10051,7 +10051,7 @@ public Object describe()
             return null;
         }
         Map<String, Object> market = this.market(symbol);
-        return this.decimalToPrecision(cost, TRUNCATE, this.safeString2(((Map<String, Object>)market).get("precision"), "cost", "price"), this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision(cost, TRUNCATE, this.safeString2(market.get("precision"), "cost", "price"), this.precisionMode, this.paddingMode);
     }
 
     public String priceToPrecision(Object symbol, Object price)
@@ -10061,15 +10061,15 @@ public Object describe()
             return null;
         }
         Map<String, Object> market = this.market(symbol);
-        String result = this.decimalToPrecision(price, ROUND, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode, this.paddingMode);
+        String result = this.decimalToPrecision(price, ROUND, ((Map<String, Object>)market.get("precision")).get("price"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
-            String pricePrecision = this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"));
+            String pricePrecision = this.numberToString(((Map<String, Object>)market.get("precision")).get("price"));
             if (java.util.Objects.equals(pricePrecision, null))
             {
-                throw new BadSymbol((((this.id + " priceToPrecision() market ") + ((Map<String, Object>)market).get("symbol")) + " has no price precision")) ;
+                throw new BadSymbol((((this.id + " priceToPrecision() market ") + market.get("symbol")) + " has no price precision")) ;
             }
-            throw new InvalidOrder(((((this.id + " price of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum price precision of ") + pricePrecision)) ;
+            throw new InvalidOrder(((((this.id + " price of ") + market.get("symbol")) + " must be greater than minimum price precision of ") + pricePrecision)) ;
         }
         return result;
     }
@@ -10081,15 +10081,15 @@ public Object describe()
             return null;
         }
         Map<String, Object> market = this.market(symbol);
-        String result = this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), this.precisionMode, this.paddingMode);
+        String result = this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)market.get("precision")).get("amount"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
-            String amountPrecision = this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"));
+            String amountPrecision = this.numberToString(((Map<String, Object>)market.get("precision")).get("amount"));
             if (java.util.Objects.equals(amountPrecision, null))
             {
-                throw new BadSymbol((((this.id + " amountToPrecision() market ") + ((Map<String, Object>)market).get("symbol")) + " has no amount precision")) ;
+                throw new BadSymbol((((this.id + " amountToPrecision() market ") + market.get("symbol")) + " has no amount precision")) ;
             }
-            throw new InvalidOrder(((((this.id + " amount of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum amount precision of ") + amountPrecision)) ;
+            throw new InvalidOrder(((((this.id + " amount of ") + market.get("symbol")) + " must be greater than minimum amount precision of ") + amountPrecision)) ;
         }
         return result;
     }
@@ -10101,7 +10101,7 @@ public Object describe()
             return null;
         }
         Map<String, Object> market = this.market(symbol);
-        return this.decimalToPrecision(fee, ROUND, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision(fee, ROUND, ((Map<String, Object>)market.get("precision")).get("price"), this.precisionMode, this.paddingMode);
     }
 
     public Object currencyToPrecision(String code, Object fee, String networkCode)
@@ -10265,7 +10265,7 @@ public Object describe()
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchLeverageTiers"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchLeverageTiers"), false))
             {
                 Map<String, Object> market = this.market(symbol);
-                if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
+                if (!java.util.Objects.equals(market.get("contract"), true))
                 {
                     throw new BadSymbol((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
                 }
@@ -10292,7 +10292,7 @@ public Object describe()
     public String safeCurrencyCode(String currencyId, Map<String, Object> currency)
     {
         Map<String, Object> currencyResolved = this.safeCurrency((String) (currencyId), currency);
-        return (String) ((Map<String, Object>)currencyResolved).get("code");
+        return (String) currencyResolved.get("code");
     }
 
     public List<Object> filterBySymbolSinceLimit(Object array, String symbol, Long since, Long limit, Object tail)
@@ -10481,7 +10481,7 @@ public Object describe()
     public String safeSymbol(Object marketId, Map<String, Object> market, String delimiter, String marketType)
     {
         Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg(marketId), market, delimiter, marketType);
-        return (String) ((Map<String, Object>)marketResolved).get("symbol");
+        return (String) marketResolved.get("symbol");
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -10496,9 +10496,9 @@ public Object describe()
         {
             Object entry = Helpers.GetValue(response, i);
             Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate(entry, (Map<String, Object>) null);
-            if (!java.util.Objects.equals(((Map<String, Object>)parsed).get("symbol"), null))
+            if (!java.util.Objects.equals(parsed.get("symbol"), null))
             {
-                fundingRates.put((String)((Map<String, Object>)parsed).get("symbol"), parsed);
+                fundingRates.put((String)parsed.get("symbol"), parsed);
             }
         }
         return this.filterByArray(fundingRates, "symbol", symbols, true);
@@ -10777,8 +10777,8 @@ public Object describe()
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
-                String symbolResolved = (String) ((Map<String, Object>)market).get("symbol");
-                if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
+                String symbolResolved = (String) market.get("symbol");
+                if (!java.util.Objects.equals(market.get("contract"), true))
                 {
                     throw new BadSymbol((this.id + " fetchFundingRate() supports contract markets only")) ;
                 }
@@ -10808,8 +10808,8 @@ public Object describe()
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
-                String symbolResolved = (String) ((Map<String, Object>)market).get("symbol");
-                if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
+                String symbolResolved = (String) market.get("symbol");
+                if (!java.util.Objects.equals(market.get("contract"), true))
                 {
                     throw new BadSymbol((this.id + " fetchFundingInterval() supports contract markets only")) ;
                 }
@@ -10961,7 +10961,7 @@ public Object describe()
         if (((!java.util.Objects.equals(markets, null)) && ((account != null && ((Map<?, ?>)markets).containsKey(account)))) || ((!java.util.Objects.equals(marketsById, null)) && ((account != null && marketsById.containsKey(account)))))
         {
             Map<String, Object> market = this.market(account);
-            return ((Map<String, Object>)market).get("id");
+            return market.get("id");
         } else
         {
             return account;
@@ -11866,7 +11866,7 @@ public Object describe()
             Map<String, Object> currency = this.safeCurrency(currencyId, (Map<String, Object>) null);
             String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "option");
-            optionStructures.put((String)((Map<String, Object>)market).get("symbol"), this.parseOption((Map<String, Object>) (info), currency, market));
+            optionStructures.put((String)market.get("symbol"), this.parseOption((Map<String, Object>) (info), currency, market));
         }
         return optionStructures;
     }
@@ -11880,9 +11880,9 @@ public Object describe()
             Object info = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketTypeResolved));
-            if ((java.util.Objects.equals(symbols, null)) || this.inArray(((Map<String, Object>)market).get("symbol"), symbols))
+            if ((java.util.Objects.equals(symbols, null)) || this.inArray(market.get("symbol"), symbols))
             {
-                marginModeStructures.put((String)((Map<String, Object>)market).get("symbol"), this.parseMarginMode((Map<String, Object>) (info), market));
+                marginModeStructures.put((String)market.get("symbol"), this.parseMarginMode((Map<String, Object>) (info), market));
             }
         }
         return marginModeStructures;
@@ -11902,9 +11902,9 @@ public Object describe()
             Object info = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketTypeResolved));
-            if ((java.util.Objects.equals(symbols, null)) || this.inArray(((Map<String, Object>)market).get("symbol"), symbols))
+            if ((java.util.Objects.equals(symbols, null)) || this.inArray(market.get("symbol"), symbols))
             {
-                leverageStructures.put((String)((Map<String, Object>)market).get("symbol"), this.parseLeverage((Map<String, Object>) (info), market));
+                leverageStructures.put((String)market.get("symbol"), this.parseLeverage((Map<String, Object>) (info), market));
             }
         }
         return leverageStructures;
@@ -11947,7 +11947,7 @@ public Object describe()
         {
             throw new ExchangeError((this.id + " parseConversions() could not resolve currency")) ;
         }
-        String currencyCode = (String) ((Map<String, Object>)currency).get("code");
+        String currencyCode = (String) currency.get("code");
         List<Object> fromConversion = this.filterBy(sorted, "fromCurrency", currencyCode);
         List<Object> toConversion = this.filterBy(sorted, "toCurrency", currencyCode);
         List<Object> both = (List<Object>) this.arrayConcat(fromConversion, toConversion);
@@ -12106,7 +12106,7 @@ public Object describe()
             Object info = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketType));
-            if ((java.util.Objects.equals(symbols, null)) || this.inArray(((Map<String, Object>)market).get("symbol"), symbols))
+            if ((java.util.Objects.equals(symbols, null)) || this.inArray(market.get("symbol"), symbols))
             {
                 ((List<Object>)marginModifications).add(this.parseMarginModification((Map<String, Object>) (info), market));
             }

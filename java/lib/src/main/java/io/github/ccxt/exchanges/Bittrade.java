@@ -1019,7 +1019,7 @@ public class Bittrade extends BittradeApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "type", "step0" );
             }};
             Map<String, Object> response = (this.marketGetDepth(this.extend(request, parameters))).join();
@@ -1046,7 +1046,7 @@ public class Bittrade extends BittradeApi
             //
             if (response.containsKey("tick"))
             {
-                if ((java.util.Objects.equals(((Map<String, Object>)response).get("tick"), null)) || (java.util.Objects.equals(((Map<String, Object>)response).get("tick"), null)))
+                if ((java.util.Objects.equals(response.get("tick"), null)) || (java.util.Objects.equals(response.get("tick"), null)))
                 {
                     throw new BadSymbol(((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
                 }
@@ -1080,7 +1080,7 @@ public class Bittrade extends BittradeApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = (this.marketGetDetailMerged(this.extend(request, parameters))).join();
             //
@@ -1139,7 +1139,7 @@ public class Bittrade extends BittradeApi
             {
                 String marketId = this.safeString((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), "symbol");
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-                String symbol = (String) ((Map<String, Object>)market).get("symbol");
+                String symbol = (String) market.get("symbol");
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
                 Helpers.addElementToObject(ticker, "timestamp", timestamp);
                 Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -1292,7 +1292,7 @@ public class Bittrade extends BittradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1330,7 +1330,7 @@ public class Bittrade extends BittradeApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(limit, 1000L), null))
             {
@@ -1373,7 +1373,7 @@ public class Bittrade extends BittradeApi
                 }
             }
             result = this.sortBy(result, "timestamp");
-            return this.filterBySymbolSinceLimit(result, Helpers.toStringArg(((Map<String, Object>)market).get("symbol")), since, java.util.Objects.requireNonNullElse(limit, 1000L), false);
+            return this.filterBySymbolSinceLimit(result, Helpers.toStringArg(market.get("symbol")), since, java.util.Objects.requireNonNullElse(limit, 1000L), false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1417,7 +1417,7 @@ public class Bittrade extends BittradeApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "period", Bittrade.this.safeString(Bittrade.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(limit, 1000L), null))
@@ -1661,7 +1661,7 @@ public class Bittrade extends BittradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
             }
             Object method = this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
             Map<String, Object> response = null;
@@ -1689,7 +1689,7 @@ public class Bittrade extends BittradeApi
             //                                 "state": "filled",
             //                         "canceled-at":  0                      }  ] }
             //
-            return this.parseOrders(((Map<String, Object>)response).get("data"), market, since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response.get("data"), market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -1815,7 +1815,7 @@ public class Bittrade extends BittradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
             }
             String accountId = this.safeString(parameters, "account-id");
             if (java.util.Objects.equals(accountId, null))
@@ -1940,10 +1940,10 @@ public class Bittrade extends BittradeApi
             Object feeCurrency = null;
             if (java.util.Objects.equals(side, "sell"))
             {
-                feeCurrency = ((Map<String, Object>)marketResolved).get("quote");
+                feeCurrency = marketResolved.get("quote");
             } else
             {
-                feeCurrency = ((Map<String, Object>)marketResolved).get("base");
+                feeCurrency = marketResolved.get("base");
             }
             fee = Helpers.newMap(
                 "cost", feeCost,
@@ -1957,7 +1957,7 @@ public class Bittrade extends BittradeApi
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "lastTradeTimestamp", null,
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", type,
             "timeInForce", null,
             "postOnly", null,
@@ -1994,7 +1994,7 @@ public class Bittrade extends BittradeApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+            if (!java.util.Objects.equals(market.get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -2029,7 +2029,7 @@ public class Bittrade extends BittradeApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "account-id", ((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id"),
-                "symbol", ((Map<String, Object>)market).get("id"),
+                "symbol", market.get("id"),
                 "type", ((side + "-") + type)
             );
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
@@ -2301,7 +2301,7 @@ public class Bittrade extends BittradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
             }
             Map<String, Object> response = (this.privatePostOrderOrdersBatchCancelOpenOrders(this.extend(request, parameters))).join();
             //
@@ -2387,7 +2387,7 @@ public class Bittrade extends BittradeApi
             }};
             if (!java.util.Objects.equals(currency, null))
             {
-                request.put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", currency.get("id"));
             }
             if (!java.util.Objects.equals(limitResolved, null))
             {
@@ -2436,7 +2436,7 @@ public class Bittrade extends BittradeApi
             }};
             if (!java.util.Objects.equals(currency, null))
             {
-                request.put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", currency.get("id"));
             }
             if (!java.util.Objects.equals(limitResolved, null))
             {
@@ -2584,7 +2584,7 @@ public class Bittrade extends BittradeApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", address );
                 put( "amount", amount );
-                put( "currency", ((String)((Map<String, Object>)currency).get("id")).toLowerCase() );
+                put( "currency", ((String)currency.get("id")).toLowerCase() );
             }};
             if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
@@ -2598,10 +2598,10 @@ public class Bittrade extends BittradeApi
                 // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
                 if (java.util.Objects.equals(network, "erc20"))
                 {
-                    request.put("chain", (((Map<String, Object>)currency).get("id") + network));
+                    request.put("chain", (currency.get("id") + network));
                 } else
                 {
-                    request.put("chain", (network + ((Map<String, Object>)currency).get("id")));
+                    request.put("chain", (network + currency.get("id")));
                 }
             }
             Object paramsNetwork = (((!java.util.Objects.equals(network, null)))) ? this.omit(paramsWithdrawTag, "network") : paramsWithdrawTag;

@@ -624,7 +624,7 @@ public class Cryptomus extends CryptomusApi
         //
         String marketId = this.safeString(ticker, "currency_pair");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         String last = this.safeString(ticker, "last_price");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -672,7 +672,7 @@ public class Cryptomus extends CryptomusApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currencyPair", ((Map<String, Object>)market).get("id") );
+                put( "currencyPair", market.get("id") );
             }};
             Integer level = 0;
             List<Object> levelOptionparamsLevelVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "level", Helpers.toLongOrNull(level));
@@ -728,7 +728,7 @@ public class Cryptomus extends CryptomusApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currencyPair", ((Map<String, Object>)market).get("id") );
+                put( "currencyPair", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetV1ExchangeMarketTradesCurrencyPair(this.extend(request, parameters))).join();
             //
@@ -880,7 +880,7 @@ public class Cryptomus extends CryptomusApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
-                "market", ((Map<String, Object>)market).get("id"),
+                "market", market.get("id"),
                 "direction", side,
                 "tag", "ccxt"
             );
@@ -1015,7 +1015,7 @@ public class Cryptomus extends CryptomusApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("market", ((Map<String, Object>)market).get("id"));
+                request.put("market", market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1106,7 +1106,7 @@ public class Cryptomus extends CryptomusApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
             {
-                request.put("market", ((Map<String, Object>)market).get("id"));
+                request.put("market", market.get("id"));
             }
             Map<String, Object> response = (this.privateGetV2UserApiExchangeOrders(this.extend(request, parameters))).join();
             //
@@ -1227,7 +1227,7 @@ public class Cryptomus extends CryptomusApi
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "lastTradeTimestamp", null,
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", type,
             "timeInForce", null,
             "postOnly", null,

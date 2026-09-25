@@ -90,14 +90,14 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
+            String messageHash = ("orderbook:" + market.get("symbol"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
                 put( "channel", "ORDERBOOK" );
                 put( "topic", new HashMap<String, Object>() {{
-                    put( "quote_currency", ((Map<String, Object>)market).get("quote") );
-                    put( "target_currency", ((Map<String, Object>)market).get("base") );
+                    put( "quote_currency", market.get("quote") );
+                    put( "target_currency", market.get("base") );
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
@@ -189,14 +189,14 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
+            String messageHash = ("ticker:" + market.get("symbol"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
                 put( "channel", "TICKER" );
                 put( "topic", new HashMap<String, Object>() {{
-                    put( "quote_currency", ((Map<String, Object>)market).get("quote") );
-                    put( "target_currency", ((Map<String, Object>)market).get("base") );
+                    put( "quote_currency", market.get("quote") );
+                    put( "target_currency", market.get("base") );
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
@@ -238,7 +238,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, (Map<String, Object>) null);
-        String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
+        String symbol = (String) ticker.get("symbol");
         if (java.util.Objects.equals(symbol, null))
         {
             return;
@@ -331,14 +331,14 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String messageHash = ("trade:" + ((Map<String, Object>)market).get("symbol"));
+            String messageHash = ("trade:" + market.get("symbol"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
                 put( "channel", "TRADE" );
                 put( "topic", new HashMap<String, Object>() {{
-                    put( "quote_currency", ((Map<String, Object>)market).get("quote") );
-                    put( "target_currency", ((Map<String, Object>)market).get("base") );
+                    put( "quote_currency", market.get("quote") );
+                    put( "target_currency", market.get("base") );
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
@@ -346,7 +346,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, ((Map<String, Object>)market).get("symbol"), limit);
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, market.get("symbol"), limit);
             }
             return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -372,7 +372,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
-        Object symbol = ((Map<String, Object>)trade).get("symbol");
+        Object symbol = trade.get("symbol");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -423,7 +423,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "order", null,
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", null,
             "side", side,
             "takerOrMaker", null,

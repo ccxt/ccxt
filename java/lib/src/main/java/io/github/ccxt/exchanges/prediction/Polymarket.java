@@ -1387,7 +1387,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
+            Object tokenId = outcomeObj.get("outcomeId");
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicGetMidpoint(new HashMap<String, Object>() {{
         put( "token_id", tokenId );
     }}), this.clobPublicGetBook(new HashMap<String, Object>() {{
@@ -1662,7 +1662,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
+            Object tokenId = outcomeObj.get("outcomeId");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
             }};
@@ -1718,7 +1718,7 @@ public class Polymarket extends PolymarketApi
                 throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
+            Object tokenId = outcomeObj.get("outcomeId");
             Long fidelityMin = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), 1); // fidelity in minutes
             Long nowS = this.seconds();
             Object startS = null;
@@ -1999,7 +1999,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
+            Object tokenId = outcomeObj.get("outcomeId");
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String conditionId = this.safeString(outcomeInfo, "conditionId");
             if (java.util.Objects.equals(conditionId, null))
@@ -2283,7 +2283,7 @@ public class Polymarket extends PolymarketApi
             for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {
                 Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                wantedIds.put((String)((Map<String, Object>)outcomeObj).get("outcomeId"), true);
+                wantedIds.put((String)outcomeObj.get("outcomeId"), true);
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)parsed).size(); i++)
@@ -2472,7 +2472,7 @@ public class Polymarket extends PolymarketApi
             put( "datetime", Polymarket.this.iso8601(ts) );
             put( "lastTradeTimestamp", null );
             put( "status", status );
-            put( "outcome", ((Map<String, Object>)mkt).get("outcome") );
+            put( "outcome", mkt.get("outcome") );
             put( "outcomeId", Polymarket.this.safeString(mkt, "outcomeId") );
             put( "label", Polymarket.this.safeString(mkt, "label") );
             put( "market", Polymarket.this.safeString(mkt, "market") );
@@ -2643,7 +2643,7 @@ public class Polymarket extends PolymarketApi
         // dict, which throws a TypeError
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
         Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-        Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
+        Object tokenId = outcomeObj.get("outcomeId");
         String sideStr = ((String)((String)side)).toUpperCase();
         Boolean isMarket = (java.util.Objects.equals(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -2960,14 +2960,14 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> eoaSig = this.signMessage(encoded, this.privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            String eoaSignature = ((("0x" + this.remove0xPrefix(((Map<String, Object>)eoaSig).get("r"))) + this.remove0xPrefix(((Map<String, Object>)eoaSig).get("s"))) + this.intToBase16(((Map<String, Object>)eoaSig).get("v")));
+            String eoaSignature = ((("0x" + this.remove0xPrefix(eoaSig.get("r"))) + this.remove0xPrefix(eoaSig.get("s"))) + this.intToBase16(eoaSig.get("v")));
             return eoaSignature.toLowerCase();
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         Object orderTypeHash = this.hash(this.encode(orderTypeString), keccak(), "binary");
-        Object contentsData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32")), new ArrayList<Object>(Arrays.asList(orderTypeHash, this.convertToBigInt(((Map<String, Object>)message).get("salt")), ((Map<String, Object>)message).get("maker"), ((Map<String, Object>)message).get("signer"), this.convertToBigInt(((Map<String, Object>)message).get("tokenId")), this.convertToBigInt(((Map<String, Object>)message).get("makerAmount")), this.convertToBigInt(((Map<String, Object>)message).get("takerAmount")), ((Map<String, Object>)message).get("side"), ((Map<String, Object>)message).get("signatureType"), this.convertToBigInt(((Map<String, Object>)message).get("timestamp")), this.base16ToBinary(this.remove0xPrefix(((Map<String, Object>)message).get("metadata"))), this.base16ToBinary(this.remove0xPrefix(((Map<String, Object>)message).get("builder"))))));
+        Object contentsData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32")), new ArrayList<Object>(Arrays.asList(orderTypeHash, this.convertToBigInt(message.get("salt")), message.get("maker"), message.get("signer"), this.convertToBigInt(message.get("tokenId")), this.convertToBigInt(message.get("makerAmount")), this.convertToBigInt(message.get("takerAmount")), message.get("side"), message.get("signatureType"), this.convertToBigInt(message.get("timestamp")), this.base16ToBinary(this.remove0xPrefix(message.get("metadata"))), this.base16ToBinary(this.remove0xPrefix(message.get("builder"))))));
         String contentsHash = ("0x" + this.hash(contentsData, keccak(), "hex"));
         Object domainTypeHash = this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak(), "binary");
         Object nameHash = this.hash(this.encode(domainName), keccak(), "binary");
@@ -2999,7 +2999,7 @@ public class Polymarket extends PolymarketApi
             put( "name", "DepositWallet" );
             put( "version", "1" );
             put( "chainId", chainIdValue );
-            put( "verifyingContract", ((Map<String, Object>)message).get("signer") );
+            put( "verifyingContract", message.get("signer") );
             put( "salt", bytes32Zero );
         }};
         Object innerEncoded = this.ethEncodeStructuredData(orderDomain, new HashMap<String, Object>() {{
@@ -3007,7 +3007,7 @@ public class Polymarket extends PolymarketApi
             put( "Order", orderStruct );
         }}, innerValue);
         Map<String, Object> innerSigObj = this.signMessage(innerEncoded, this.privateKey);
-        Object innerSig = Helpers.add(Helpers.add(this.remove0xPrefix(((Map<String, Object>)innerSigObj).get("r")), this.remove0xPrefix(((Map<String, Object>)innerSigObj).get("s"))), this.intToBase16(((Map<String, Object>)innerSigObj).get("v")));
+        Object innerSig = Helpers.add(Helpers.add(this.remove0xPrefix(innerSigObj.get("r")), this.remove0xPrefix(innerSigObj.get("s"))), this.intToBase16(innerSigObj.get("v")));
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -3116,7 +3116,7 @@ public class Polymarket extends PolymarketApi
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
                 Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
                 Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "asset_id", ((Map<String, Object>)outcomeObj).get("outcomeId") );
+                    put( "asset_id", outcomeObj.get("outcomeId") );
                 }};
                 response = (this.clobPrivateDeleteCancelMarketOrders(this.extend(request, parameters))).join();
             } else
@@ -3707,7 +3707,7 @@ public class Polymarket extends PolymarketApi
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         Map<String, Object> sig = this.signMessage(encoded, this.privateKey);
-        return ((("0x" + this.remove0xPrefix(((Map<String, Object>)sig).get("r"))) + this.remove0xPrefix(((Map<String, Object>)sig).get("s"))) + this.intToBase16(((Map<String, Object>)sig).get("v")));
+        return ((("0x" + this.remove0xPrefix(sig.get("r"))) + this.remove0xPrefix(sig.get("s"))) + this.intToBase16(sig.get("v")));
     }
 
     /**
@@ -3792,9 +3792,9 @@ public class Polymarket extends PolymarketApi
         }};
         // cache in options rather than the typed apiKey/secret/password fields so the
         // assignment is valid in the struct-based languages (C#/Go/Java)
-        Helpers.addElementToObject(this.options, "l2ApiKey", ((Map<String, Object>)creds).get("apiKey"));
-        Helpers.addElementToObject(this.options, "l2Secret", ((Map<String, Object>)creds).get("secret"));
-        Helpers.addElementToObject(this.options, "l2Passphrase", ((Map<String, Object>)creds).get("passphrase"));
+        Helpers.addElementToObject(this.options, "l2ApiKey", creds.get("apiKey"));
+        Helpers.addElementToObject(this.options, "l2Secret", creds.get("secret"));
+        Helpers.addElementToObject(this.options, "l2Passphrase", creds.get("passphrase"));
         return creds;
     }
 

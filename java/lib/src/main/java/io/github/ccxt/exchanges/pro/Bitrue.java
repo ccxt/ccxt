@@ -253,7 +253,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
+                symbolResolved = market.get("symbol");
             }
             Object url = (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String messageHash = "orders";
@@ -387,12 +387,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String messageHash = ("orderbook:" + symbolValue);
             Object url = null;
             String channel = null;
             String cbId = null;
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            if (java.util.Objects.equals(market.get("swap"), true))
             {
                 String baseIdLower = this.safeStringLower(market, "baseId");
                 String quoteIdLower = this.safeStringLower(market, "quoteId");
@@ -542,7 +542,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             return null;
         }
         Map<String, Object> market = this.market(symbol);
-        if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
+        if (!java.util.Objects.equals(market.get("contract"), true))
         {
             return rawQuantity;
         }
@@ -571,8 +571,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            String symbolValue = (String) market.get("symbol");
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new NotSupported((this.id + " watchTrades is only supported for swap markets")) ;
             }
@@ -702,8 +702,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            String symbolValue = (String) market.get("symbol");
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new NotSupported((this.id + " watchOHLCV is only supported for swap markets")) ;
             }
@@ -824,8 +824,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            String symbolValue = (String) market.get("symbol");
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new NotSupported((this.id + " watchTicker is only supported for swap markets")) ;
             }

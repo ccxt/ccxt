@@ -122,12 +122,12 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> market = this.market(symbol);
-            String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
+            String messageHash = ("ticker:" + market.get("symbol"));
             String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
             Object paramsOmitted = this.omit(paramsGeneration, "tickTypes");
             Object request = new HashMap<String, Object>() {{
                 put( "type", "ticker" );
-                put( "symbols", new ArrayList<Object>(Arrays.asList(((((Map<String, Object>)market).get("base") + "_") + ((Map<String, Object>)market).get("quote")))) );
+                put( "symbols", new ArrayList<Object>(Arrays.asList(((market.get("base") + "_") + market.get("quote")))) );
                 put( "tickTypes", new ArrayList<Object>(Arrays.asList(tickTypes)) );
             }};
             if (Boolean.TRUE.equals(isGenerationTwo))
@@ -192,10 +192,10 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                     streamMarketId = this.getGen2MarketId((Map<String, Object>) (market));
                 } else
                 {
-                    streamMarketId = (((((Map<String, Object>)market).get("base") + "_") + ((Map<String, Object>)market).get("quote")));
+                    streamMarketId = (((market.get("base") + "_") + market.get("quote")));
                 }
                 ((List<Object>)streamMarketIds).add(streamMarketId);
-                messageHashes.add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("ticker:" + market.get("symbol")));
             }
             String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
             Object paramsOmitted = this.omit(paramsGeneration, "tickTypes");
@@ -453,11 +453,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String messageHash = (("orderbook" + ":") + symbolValue);
             Object request = new HashMap<String, Object>() {{
                 put( "type", "orderbookdepth" );
-                put( "symbols", new ArrayList<Object>(Arrays.asList(((((Map<String, Object>)market).get("base") + "_") + ((Map<String, Object>)market).get("quote")))) );
+                put( "symbols", new ArrayList<Object>(Arrays.asList(((market.get("base") + "_") + market.get("quote")))) );
             }};
             if (Boolean.TRUE.equals(isGenerationTwo))
             {
@@ -665,11 +665,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) market.get("symbol");
             String messageHash = ("trade:" + symbolValue);
             Object request = new HashMap<String, Object>() {{
                 put( "type", "transaction" );
-                put( "symbols", new ArrayList<Object>(Arrays.asList(((((Map<String, Object>)market).get("base") + "_") + ((Map<String, Object>)market).get("quote")))) );
+                put( "symbols", new ArrayList<Object>(Arrays.asList(((market.get("base") + "_") + market.get("quote")))) );
             }};
             if (Boolean.TRUE.equals(isGenerationTwo))
             {
@@ -1068,7 +1068,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
+                symbolResolved = market.get("symbol");
                 messageHash = ((messageHash + ":") + symbolResolved);
             }
             List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();

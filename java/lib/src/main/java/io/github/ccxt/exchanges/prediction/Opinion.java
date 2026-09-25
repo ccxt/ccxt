@@ -945,7 +945,7 @@ public class Opinion extends OpinionApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
+            Object tokenId = ((String)outcomeObj.get("outcomeId"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
             }};
@@ -996,7 +996,7 @@ public class Opinion extends OpinionApi
                 throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1d")) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
+            Object tokenId = ((String)outcomeObj.get("outcomeId"));
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1d"));
             Map<String, Object> response = (this.opinionPublicGetTokenPriceHistory(this.extend(new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
@@ -1176,7 +1176,7 @@ public class Opinion extends OpinionApi
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         Map<String, Object> sig = this.signMessage(encoded, this.privateKey);
-        return ((("0x" + this.remove0xPrefix(((Map<String, Object>)sig).get("r"))) + this.remove0xPrefix(((Map<String, Object>)sig).get("s"))) + this.intToBase16(((Map<String, Object>)sig).get("v")));
+        return ((("0x" + this.remove0xPrefix(sig.get("r"))) + this.remove0xPrefix(sig.get("s"))) + this.intToBase16(sig.get("v")));
     }
 
     public Map<String, Object> opinionOrderRawAmounts(Object isMarket, Object side, Object amount, Object price, Object decimals)
@@ -1910,7 +1910,7 @@ public class Opinion extends OpinionApi
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         Map<String, Object> sig = this.signMessage(encoded, this.privateKey);
-        return ((("0x" + this.remove0xPrefix(((Map<String, Object>)sig).get("r"))) + this.remove0xPrefix(((Map<String, Object>)sig).get("s"))) + this.intToBase16(((Map<String, Object>)sig).get("v")));
+        return ((("0x" + this.remove0xPrefix(sig.get("r"))) + this.remove0xPrefix(sig.get("s"))) + this.intToBase16(sig.get("v")));
     }
 
     /**
@@ -2032,10 +2032,10 @@ public class Opinion extends OpinionApi
             put( "apiKey", Opinion.this.safeString(response, "apiKey") );
             put( "walletAddress", Opinion.this.safeString(response, "walletAddress") );
         }};
-        Helpers.addElementToObject(this.options, "apiKey", ((Map<String, Object>)creds).get("apiKey"));
+        Helpers.addElementToObject(this.options, "apiKey", creds.get("apiKey"));
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        this.apiKey = ((String)((Map<String, Object>)creds).get("apiKey"));
+        this.apiKey = ((String)creds.get("apiKey"));
         return creds;
     }
 

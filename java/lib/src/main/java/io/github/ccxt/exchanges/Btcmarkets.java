@@ -830,7 +830,7 @@ public class Btcmarkets extends BtcmarketsApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "marketId", ((Map<String, Object>)market).get("id") );
+                put( "marketId", market.get("id") );
                 put( "timeWindow", Btcmarkets.this.safeString(Btcmarkets.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             if (!java.util.Objects.equals(since, null))
@@ -875,7 +875,7 @@ public class Btcmarkets extends BtcmarketsApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "marketId", ((Map<String, Object>)market).get("id") );
+                put( "marketId", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketsMarketIdOrderbook(this.extend(request, parameters))).join();
             //
@@ -923,7 +923,7 @@ public class Btcmarkets extends BtcmarketsApi
         //
         String marketId = this.safeString(ticker, "marketId");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         String last = this.safeString(ticker, "lastPrice");
         String baseVolume = this.safeString(ticker, "volume24h");
@@ -974,7 +974,7 @@ public class Btcmarkets extends BtcmarketsApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "marketId", ((Map<String, Object>)market).get("id") );
+                put( "marketId", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketsMarketIdTicker(this.extend(request, parameters))).join();
             //
@@ -1008,7 +1008,7 @@ public class Btcmarkets extends BtcmarketsApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", ((Map<String, Object>)market).get("id") );
+                put( "id", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketsMarketIdTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
@@ -1048,12 +1048,12 @@ public class Btcmarkets extends BtcmarketsApi
         String marketId = this.safeString(trade, "marketId");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
         Object feeCurrencyCode = null;
-        if (java.util.Objects.equals(((Map<String, Object>)marketResolved).get("quote"), "AUD"))
+        if (java.util.Objects.equals(marketResolved.get("quote"), "AUD"))
         {
-            feeCurrencyCode = ((Map<String, Object>)marketResolved).get("quote");
+            feeCurrencyCode = marketResolved.get("quote");
         } else
         {
-            feeCurrencyCode = ((Map<String, Object>)marketResolved).get("base");
+            feeCurrencyCode = marketResolved.get("base");
         }
         String side = this.safeString(trade, "side");
         if (java.util.Objects.equals(side, "Bid"))
@@ -1083,7 +1083,7 @@ public class Btcmarkets extends BtcmarketsApi
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "order", orderId,
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", null,
             "side", side,
             "price", priceString,
@@ -1116,7 +1116,7 @@ public class Btcmarkets extends BtcmarketsApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "marketId", ((Map<String, Object>)market).get("id") );
+                put( "marketId", market.get("id") );
             }};
             List<Object> response = (this.publicGetMarketsMarketIdTrades(this.extend(request, parameters))).join();
             //
@@ -1156,7 +1156,7 @@ public class Btcmarkets extends BtcmarketsApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
-                "marketId", ((Map<String, Object>)market).get("id"),
+                "marketId", market.get("id"),
                 "amount", this.amountToPrecision(symbol, amount),
                 "side", (((java.util.Objects.equals(side, "buy")))) ? "Bid" : "Ask"
             );
@@ -1348,7 +1348,7 @@ public class Btcmarkets extends BtcmarketsApi
         Map<String, Object> market = this.market(symbol);
         String currency = null;
         String cost = null;
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("quote"), "AUD"))
+        if (java.util.Objects.equals(market.get("quote"), "AUD"))
         {
             currency = this.safeString(market, "quote");
             String amountString = this.numberToString(amount);
@@ -1439,7 +1439,7 @@ public class Btcmarkets extends BtcmarketsApi
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "lastTradeTimestamp", null,
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", type,
             "timeInForce", timeInForce,
             "postOnly", postOnly,
@@ -1512,7 +1512,7 @@ public class Btcmarkets extends BtcmarketsApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("marketId", ((Map<String, Object>)market).get("id"));
+                request.put("marketId", market.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -1599,7 +1599,7 @@ public class Btcmarkets extends BtcmarketsApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                request.put("marketId", ((Map<String, Object>)market).get("id"));
+                request.put("marketId", market.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -1668,7 +1668,7 @@ public class Btcmarkets extends BtcmarketsApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = Helpers.newMap(
-                "assetName", ((Map<String, Object>)currency).get("id"),
+                "assetName", currency.get("id"),
                 "amount", this.currencyToPrecision((String) (code), amount, (String) null)
             );
             if (!java.util.Objects.equals(code, "AUD"))

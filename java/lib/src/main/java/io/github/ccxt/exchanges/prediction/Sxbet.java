@@ -710,7 +710,7 @@ public class Sxbet extends SxbetApi
                 throw new ExchangeError((this.id + " parseEvent() could not resolve parsed market")) ;
             }
             ((List<Object>)marketsList).add(parsed);
-            if (java.util.Objects.equals(((Map<String, Object>)parsed).get("active"), true))
+            if (java.util.Objects.equals(parsed.get("active"), true))
             {
                 anyActive = true;
             }
@@ -1709,7 +1709,7 @@ public class Sxbet extends SxbetApi
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "marketHash", Sxbet.this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash") );
+                put( "marketHash", Sxbet.this.safeString(outcomeObj.get("info"), "marketHash") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1932,7 +1932,7 @@ public class Sxbet extends SxbetApi
                 for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
                 {
                     Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
-                    String hash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", "");
+                    String hash = this.safeString(outcomeObj.get("info"), "marketHash", "");
                     wantedMarkets.put((String)hash, true);
                 }
             }
@@ -2054,7 +2054,7 @@ public class Sxbet extends SxbetApi
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-                request.put("marketHash", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", ""));
+                request.put("marketHash", this.safeString(outcomeObj.get("info"), "marketHash", ""));
                 wantedOutcomeId = this.safeString(outcomeObj, "outcomeId");
             }
             if (!java.util.Objects.equals(since, null))
@@ -2298,7 +2298,7 @@ public class Sxbet extends SxbetApi
             {
                 (this.loadOutcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))), false)).join();
                 Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
-                String marketHash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", "");
+                String marketHash = this.safeString(outcomeObj.get("info"), "marketHash", "");
                 if (java.util.Objects.equals(this.safeBool(seenHashes, marketHash, (Object) null), null))
                 {
                     seenHashes.put((String)marketHash, true);
@@ -2474,7 +2474,7 @@ public class Sxbet extends SxbetApi
 
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String marketHash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash");
+            String marketHash = this.safeString(outcomeObj.get("info"), "marketHash");
             String outcomeId = this.safeString(outcomeObj, "outcomeId");
             Boolean isOutcomeOne = (java.util.Objects.equals(outcomeId, marketHash));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2838,7 +2838,7 @@ public class Sxbet extends SxbetApi
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             String sym = this.safeString(outcomeObj, "outcome");
-            String marketHash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash");
+            String marketHash = this.safeString(outcomeObj.get("info"), "marketHash");
             String channel = ("orderbook_v3:" + marketHash);
             String messageHash = ("orderbook::" + sym);
             String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");

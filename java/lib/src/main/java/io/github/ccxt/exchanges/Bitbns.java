@@ -500,7 +500,7 @@ public class Bitbns extends BitbnsApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -525,7 +525,7 @@ public class Bitbns extends BitbnsApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(response, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -850,7 +850,7 @@ public class Bitbns extends BitbnsApi
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "side", ((String)side).toUpperCase() );
-                put( "symbol", ((Map<String, Object>)market).get("uppercaseId") );
+                put( "symbol", market.get("uppercaseId") );
                 put( "quantity", Bitbns.this.amountToPrecision(symbol, amount) );
             }};
             if (java.util.Objects.equals(type, "limit"))
@@ -858,7 +858,7 @@ public class Bitbns extends BitbnsApi
                 request.put("rate", this.priceToPrecision(symbol, price));
             } else
             {
-                request.put("market", ((Map<String, Object>)market).get("quoteId"));
+                request.put("market", market.get("quoteId"));
             }
             if (!java.util.Objects.equals(triggerPrice, null))
             {
@@ -925,11 +925,11 @@ public class Bitbns extends BitbnsApi
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "entry_id", id );
-                put( "symbol", ((Map<String, Object>)market).get("uppercaseId") );
+                put( "symbol", market.get("uppercaseId") );
             }};
             Object response = null;
             String tail = (((java.util.Objects.equals(isTrigger, true)))) ? "StopLossOrder" : "Order";
-            Object quoteSide = (((java.util.Objects.equals(((Map<String, Object>)market).get("quoteId"), "USDT")))) ? "usdtcancel" : "cancel";
+            Object quoteSide = (((java.util.Objects.equals(market.get("quoteId"), "USDT")))) ? "usdtcancel" : "cancel";
             quoteSide = (quoteSide + tail);
             request.put("side", quoteSide);
             response = (this.v2PostCancel(this.extend(request, paramsOmitted))).join();
@@ -964,7 +964,7 @@ public class Bitbns extends BitbnsApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "entry_id", id );
             }};
             Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
@@ -1035,12 +1035,12 @@ public class Bitbns extends BitbnsApi
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             String quoteSide = "listOpen";
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("quoteId"), "USDT"))
+            if (java.util.Objects.equals(market.get("quoteId"), "USDT"))
             {
                 quoteSide = "usdtListOpen";
             }
             Map<String, Object> request = Helpers.newMap(
-                "symbol", ((Map<String, Object>)market).get("uppercaseId"),
+                "symbol", market.get("uppercaseId"),
                 "page", 0,
                 "side", (((java.util.Objects.equals(isTrigger, true)))) ? ((quoteSide + "StopOrders")) : ((quoteSide + "Orders"))
             );
@@ -1131,12 +1131,12 @@ public class Bitbns extends BitbnsApi
             amountString = this.safeString(trade, "base_volume");
             costString = this.safeString(trade, "quote_volume");
         }
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        String symbol = (String) marketResolved.get("symbol");
         Map<String, Object> fee = null;
         String feeCostString = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            String feeCurrencyCode = (String) ((Map<String, Object>)marketResolved).get("quote");
+            String feeCurrencyCode = (String) marketResolved.get("quote");
             fee = Helpers.newMap(
                 "cost", feeCostString,
                 "currency", feeCurrencyCode
@@ -1184,7 +1184,7 @@ public class Bitbns extends BitbnsApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
                 put( "page", 0 );
             }};
             if (!java.util.Objects.equals(since, null))
@@ -1264,8 +1264,8 @@ public class Bitbns extends BitbnsApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "coin", ((Map<String, Object>)market).get("baseId") );
-                put( "market", ((Map<String, Object>)market).get("quoteId") );
+                put( "coin", market.get("baseId") );
+                put( "market", market.get("quoteId") );
             }};
             List<Object> response = (this.wwwGetExchangeDataTradedetails(this.extend(request, parameters))).join();
             //
@@ -1305,7 +1305,7 @@ public class Bitbns extends BitbnsApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)currency).get("id") );
+                put( "symbol", currency.get("id") );
                 put( "page", 0 );
             }};
             Map<String, Object> response = (this.v1PostDepositHistorySymbol(this.extend(request, parameters))).join();
@@ -1363,7 +1363,7 @@ public class Bitbns extends BitbnsApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)currency).get("id") );
+                put( "symbol", currency.get("id") );
                 put( "page", 0 );
             }};
             Map<String, Object> response = (this.v1PostWithdrawHistorySymbol(this.extend(request, parameters))).join();
@@ -1492,7 +1492,7 @@ public class Bitbns extends BitbnsApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)currency).get("id") );
+                put( "symbol", currency.get("id") );
             }};
             Map<String, Object> response = (this.v1PostGetCoinAddressSymbol(this.extend(request, parameters))).join();
             //

@@ -711,8 +711,8 @@ public class Coinone extends CoinoneApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "quote_currency", ((Map<String, Object>)market).get("quote") );
-                put( "target_currency", ((Map<String, Object>)market).get("base") );
+                put( "quote_currency", market.get("quote") );
+                put( "target_currency", market.get("base") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -743,7 +743,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "qty", 2);
+            return this.parseOrderBook(response, market.get("symbol"), timestamp, "bids", "asks", "price", "qty", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -777,8 +777,8 @@ public class Coinone extends CoinoneApi
             {
                 String first = this.safeString(symbolsNormalized, 0);
                 market = this.market(first);
-                request.put("quote_currency", ((Map<String, Object>)market).get("quote"));
-                request.put("target_currency", ((Map<String, Object>)market).get("base"));
+                request.put("quote_currency", market.get("quote"));
+                request.put("target_currency", market.get("base"));
                 response = (this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
             } else
             {
@@ -843,8 +843,8 @@ public class Coinone extends CoinoneApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "quote_currency", ((Map<String, Object>)market).get("quote") );
-                put( "target_currency", ((Map<String, Object>)market).get("base") );
+                put( "quote_currency", market.get("quote") );
+                put( "target_currency", market.get("base") );
             }};
             Map<String, Object> response = (this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
             //
@@ -998,10 +998,10 @@ public class Coinone extends CoinoneApi
             Object feeCurrencyCode = null;
             if (java.util.Objects.equals(side, "sell"))
             {
-                feeCurrencyCode = ((Map<String, Object>)marketResolved).get("quote");
+                feeCurrencyCode = marketResolved.get("quote");
             } else
             {
-                feeCurrencyCode = ((Map<String, Object>)marketResolved).get("base");
+                feeCurrencyCode = marketResolved.get("base");
             }
             fee = Helpers.newMap(
                 "cost", feeCostString,
@@ -1015,7 +1015,7 @@ public class Coinone extends CoinoneApi
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "order", orderId,
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", null,
             "side", side,
             "takerOrMaker", null,
@@ -1048,8 +1048,8 @@ public class Coinone extends CoinoneApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "quote_currency", ((Map<String, Object>)market).get("quote") );
-                put( "target_currency", ((Map<String, Object>)market).get("base") );
+                put( "quote_currency", market.get("quote") );
+                put( "target_currency", market.get("base") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1117,8 +1117,8 @@ public class Coinone extends CoinoneApi
             // the exchange and return 404, the v2.1 order endpoint replaces them,
             // see https://github.com/ccxt/ccxt/issues/23174
             Map<String, Object> request = Helpers.newMap(
-                "quote_currency", ((Map<String, Object>)market).get("quoteId"),
-                "target_currency", ((Map<String, Object>)market).get("baseId"),
+                "quote_currency", market.get("quoteId"),
+                "target_currency", market.get("baseId"),
                 "type", orderType,
                 "side", orderSide,
                 "price", this.priceToPrecision(symbol, price),
@@ -1162,7 +1162,7 @@ public class Coinone extends CoinoneApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
-                put( "currency", ((Map<String, Object>)market).get("id") );
+                put( "currency", market.get("id") );
             }};
             Map<String, Object> response = (this.v2PrivatePostOrderQueryOrder(this.extend(request, parameters))).join();
             //
@@ -1367,8 +1367,8 @@ public class Coinone extends CoinoneApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "quote_currency", ((Map<String, Object>)market).get("quoteId") );
-                put( "target_currency", ((Map<String, Object>)market).get("baseId") );
+                put( "quote_currency", market.get("quoteId") );
+                put( "target_currency", market.get("baseId") );
             }};
             Map<String, Object> response = (this.v2_1PrivatePostOrderOpenOrders(this.extend(request, parameters))).join();
             //
@@ -1419,7 +1419,7 @@ public class Coinone extends CoinoneApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)market).get("id") );
+                put( "currency", market.get("id") );
             }};
             Map<String, Object> response = (this.v2PrivatePostOrderCompleteOrders(this.extend(request, parameters))).join();
             //

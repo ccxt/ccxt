@@ -718,10 +718,10 @@ public class Coinspot extends CoinspotApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "cointype", ((Map<String, Object>)market).get("id") );
+                put( "cointype", market.get("id") );
             }};
             Map<String, Object> orderbook = (this.privatePostOrders(this.extend(request, parameters))).join();
-            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), (Long) null, "buyorders", "sellorders", "rate", "amount", 2);
+            return this.parseOrderBook(orderbook, market.get("symbol"), (Long) null, "buyorders", "sellorders", "rate", "amount", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -847,9 +847,9 @@ public class Coinspot extends CoinspotApi
             {
                 String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
-                if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+                if (java.util.Objects.equals(market.get("spot"), true))
                 {
-                    String symbol = (String) ((Map<String, Object>)market).get("symbol");
+                    String symbol = (String) market.get("symbol");
                     Object ticker = (prices == null || id == null ? null : prices.get(id));
                     result.put((String)symbol, this.parseTicker(ticker, market));
                 }
@@ -881,7 +881,7 @@ public class Coinspot extends CoinspotApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "cointype", ((Map<String, Object>)market).get("id") );
+                put( "cointype", market.get("id") );
             }};
             Map<String, Object> response = (this.privatePostOrdersHistory(this.extend(request, parameters))).join();
             //
@@ -1074,7 +1074,7 @@ public class Coinspot extends CoinspotApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "cointype", ((Map<String, Object>)market).get("id") );
+                put( "cointype", market.get("id") );
                 put( "amount", amount );
                 put( "rate", price );
             }};
