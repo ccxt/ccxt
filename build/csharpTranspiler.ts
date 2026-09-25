@@ -628,14 +628,53 @@ function csharpNativeOperatorText (helper: string, left, right, leftText: string
     return undefined;
 }
 
+// `var x = V[N];` / `var x = ((IList<object>) V)[N];` with `V` declared `IList<object>`: the one
+// binding of `x` in the method, so its static type is `object` (the list's element type)
+function csharpVarObjectElementLocal (region, name: string, line: number): { type: string, kind: string, value: string } | undefined {
+    if (!/^[A-Za-z_]\w*$/.test (name) || (region.params[name] !== undefined) || region.declarations.some ((d) => d.name === name)) {
+        return undefined;
+    }
+    const element = new RegExp ('^[ ]*var[ ]+' + name + '[ ]*=[ ]*(?:([A-Za-z_]\\w*)|\\(\\(IList<object>\\)[ ]*([A-Za-z_]\\w*)\\))\\[\\d+\\];[ ]*$');
+    const binding = new RegExp ('[\\w>?\\]][ ]+' + name + '\\b(?![ ]*\\()|\\b(?:out|ref)[ ]+' + name + '\\b');
+    let found = undefined;
+    for (let k = region.start + 1; k < region.end; k++) {
+        if (/^[ ]*(?:\*|\/\*)/.test (region.lines[k]) || !binding.test (region.lines[k])) continue;
+        const m = element.exec (region.lines[k]);
+        if ((m === null) || (found !== undefined)) return undefined;
+        found = { line: k, list: m[1] ?? m[2], cast: m[1] === undefined };
+    }
+    if ((found === undefined) || (found.line >= line)) {
+        return undefined;
+    }
+    const list = csharpHelperReceiverType (region, found.list, found.line, region.params);
+    if (!found.cast && ((list === undefined) || (list.type !== 'IList<object>')) && !csharpVarListOfObjectCall (region, found.list, found.line)) {
+        return undefined;
+    }
+    return { type: 'object', kind: 'local', value: '' };
+}
+
+// `var V = [await ]this.m(...);` where the file declares `m` only as returning `List<object>`
+function csharpVarListOfObjectCall (region, name: string, line: number): boolean {
+    const call = new RegExp ('^[ ]*var[ ]+' + name + '[ ]*=[ ]*(?:await[ ]+)?this\\.([A-Za-z_]\\w*)\\(');
+    const m = region.lines.slice (region.start + 1, line).map ((l) => call.exec (l)).find ((x) => x !== null);
+    if (m === undefined) return false;
+    const binds = region.lines.filter ((l, k) => (k > region.start) && (k < region.end) && new RegExp ('(?<![\\w.])' + name + '\\b[ ]*=[^=>]').test (l));
+    if (binds.length !== 1) return false;
+    const signature = new RegExp ('^[ ]{4}(?:public|private|protected|internal)\\b.*[ ]([\\w<>,.?]+)[ ]+' + m[1] + '\\(');
+    const returns = region.lines.map ((l) => signature.exec (l)).filter ((s) => s !== null).map ((s) => s[1]);
+    return (returns.length > 0) && returns.every ((t) => (t === 'Task<List<object>>') || (t === 'List<object>'));
+}
+
 // `isEqual(x, "lit")` on an object/string name is true only for a string box equal to the literal
 // (null and other boxes answer false), which is the constant pattern `x is "lit"`; a literal that
 // Double.TryParse could read would reach isEqual's numeric branch for a double box, so it keeps the helper
 function csharpStringConstantPattern (left, right, leftText: string, rightText: string): string | undefined {
     const pair = (name, nameText: string, literal, literalText: string) => {
+        // a bool literal: isEqual is true only for the same bool box (isNumber(bool) is false)
+        if ((name.kind === 'name') && (name.type === 'object') && (literal.kind === 'bool-literal')) return `(${nameText} is ${literalText})`;
         if ((name.kind !== 'name') || ![ 'object', 'string', 'string?' ].includes (name.type) || (literal.kind !== 'string-literal')) return undefined;
         const body = literalText.slice (1, -1);
-        if ((body === '') || /[0-9\\]/.test (body) || /nan|inf|\u221e/i.test (body)) return undefined;
+        if (/[0-9\\]/.test (body) || /nan|inf|\u221e/i.test (body)) return undefined;
         return `(${nameText} is ${literalText})`;
     };
     return pair (left, leftText, right, rightText) ?? pair (right, rightText, left, leftText);
@@ -800,7 +839,7 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true): 
                 const key = csharpHelperReceiverType (region, name, i, region.params);
                 return (key !== undefined) && (key.type === 'string');
             }
-            const receiver = csharpHelperReceiverType (region, name, i, region.params);
+            const receiver = csharpHelperReceiverType (region, name, i, region.params) ?? csharpVarObjectElementLocal (region, name, i);
             if (receiver === undefined) {
                 return undefined;
             }
