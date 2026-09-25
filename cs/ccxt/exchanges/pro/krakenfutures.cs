@@ -1341,7 +1341,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             IDictionary<string, object> bid = this.safeDict(bids, i);
             double? price = this.safeNumber(bid, "price");
             double? qty = this.safeNumber(bid, "qty");
-            object bidsSide = getValue(orderbook, "bids");
+            ccxt.pro.IBids bidsSide = orderbook?.bids;
             (bidsSide as IOrderBookSide).store(price, qty);
         }
         for (int i = 0; i < asks.Count; i++)
@@ -1349,7 +1349,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             IDictionary<string, object> ask = this.safeDict(asks, i);
             double? price = this.safeNumber(ask, "price");
             double? qty = this.safeNumber(ask, "qty");
-            object asksSide = getValue(orderbook, "asks");
+            ccxt.pro.IAsks asksSide = orderbook?.asks;
             (asksSide as IOrderBookSide).store(price, qty);
         }
         orderbook["timestamp"] = timestamp;
@@ -1382,11 +1382,11 @@ public partial class krakenfutures : ccxt.krakenfutures
         Int64? timestamp = this.safeInteger(message, "timestamp");
         if (side == "sell")
         {
-            object asks = getValue(orderbook, "asks");
+            ccxt.pro.IAsks asks = orderbook?.asks;
             (asks as IOrderBookSide).store(price, qty);
         } else
         {
-            object bids = getValue(orderbook, "bids");
+            ccxt.pro.IBids bids = orderbook?.bids;
             (bids as IOrderBookSide).store(price, qty);
         }
         orderbook["timestamp"] = timestamp;

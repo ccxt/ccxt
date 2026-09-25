@@ -1270,7 +1270,7 @@ public partial class poloniex : ccxt.poloniex
                         List<object> bid = this.safeList(bids, j);
                         double? price = this.safeNumber(bid, 0);
                         double? amount = this.safeNumber(bid, 1);
-                        object bidsSide = getValue(orderbook, "bids");
+                        ccxt.pro.IBids bidsSide = orderbook?.bids;
                         (bidsSide as IOrderBookSide).store(price, amount);
                     }
                 }
@@ -1281,7 +1281,7 @@ public partial class poloniex : ccxt.poloniex
                         List<object> ask = this.safeList(asks, j);
                         double? price = this.safeNumber(ask, 0);
                         double? amount = this.safeNumber(ask, 1);
-                        object asksSide = getValue(orderbook, "asks");
+                        ccxt.pro.IAsks asksSide = orderbook?.asks;
                         (asksSide as IOrderBookSide).store(price, amount);
                     }
                 }

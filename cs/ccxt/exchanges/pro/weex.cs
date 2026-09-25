@@ -1068,8 +1068,8 @@ public partial class weex : ccxt.weex
         {
             List<object> asks = this.safeList(message, "a", new List<object>() {});
             List<object> bids = this.safeList(message, "b", new List<object>() {});
-            this.handleDeltas(getValue(orderbook, "asks"), asks);
-            this.handleDeltas(getValue(orderbook, "bids"), bids);
+            this.handleDeltas(orderbook?.asks, asks);
+            this.handleDeltas(orderbook?.bids, bids);
             orderbook["timestamp"] = timestamp;
             orderbook["datetime"] = this.iso8601(timestamp);
             orderbook["nonce"] = nonce;

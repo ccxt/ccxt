@@ -292,8 +292,8 @@ public partial class upbit : ccxt.upbit
         // and reinitialize it again with new bidasks
         (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
         orderbook["symbol"] = symbol;
-        object bids = getValue(orderbook, "bids");
-        object asks = getValue(orderbook, "asks");
+        ccxt.pro.IBids bids = orderbook?.bids;
+        ccxt.pro.IAsks asks = orderbook?.asks;
         List<object> data = this.safeList(message, "orderbook_units", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {

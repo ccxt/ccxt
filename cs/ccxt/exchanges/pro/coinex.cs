@@ -1033,8 +1033,8 @@ public partial class coinex : ccxt.coinex
         {
             List<object> asks = this.safeList(depth, "asks", new List<object>() {});
             List<object> bids = this.safeList(depth, "bids", new List<object>() {});
-            this.handleDeltas(getValue(currentOrderBook, "asks"), asks);
-            this.handleDeltas(getValue(currentOrderBook, "bids"), bids);
+            this.handleDeltas(currentOrderBook?.asks, asks);
+            this.handleDeltas(currentOrderBook?.bids, bids);
             currentOrderBook["nonce"] = timestamp;
             currentOrderBook["timestamp"] = timestamp;
             currentOrderBook["datetime"] = this.iso8601(timestamp);

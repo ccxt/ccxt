@@ -1072,8 +1072,8 @@ public partial class kraken : ccxt.kraken
         if (type == "update")
         {
             orderbook = this.getOrderBook(this.orderbooks, symbol);
-            object storedAsks = getValue(orderbook, "asks");
-            object storedBids = getValue(orderbook, "bids");
+            ccxt.pro.IAsks storedAsks = orderbook?.asks;
+            ccxt.pro.IBids storedBids = orderbook?.bids;
             if ((a != null))
             {
                 this.customHandleDeltas(storedAsks, a);
@@ -1114,8 +1114,8 @@ public partial class kraken : ccxt.kraken
             List<object> payloadArray = new List<object>() {};
             if ((c != null))
             {
-                object checkAsks = getValue(orderbook, "asks");
-                object checkBids = getValue(orderbook, "bids");
+                ccxt.pro.IAsks checkAsks = orderbook?.asks;
+                ccxt.pro.IBids checkBids = orderbook?.bids;
                 // const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
                 // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for (int i = 0; i < 10; i++)
