@@ -226,10 +226,10 @@ func (this *Bitopro) Describe() any {
 				},
 				"post": map[string]any{
 					"orders/{pair}": map[string]any{
-						"cost": 1 / 2,
+						"cost": float64(1) / 2,
 					},
 					"orders/batch": map[string]any{
-						"cost": 20 / 3,
+						"cost": float64(20) / 3,
 					},
 					"wallet/withdraw/{currency}": map[string]any{
 						"cost": 10,
@@ -242,7 +242,7 @@ func (this *Bitopro) Describe() any {
 				},
 				"delete": map[string]any{
 					"orders/{pair}/{id}": map[string]any{
-						"cost": 2 / 3,
+						"cost": float64(2) / 3,
 					},
 					"orders/all": map[string]any{
 						"cost": 5,

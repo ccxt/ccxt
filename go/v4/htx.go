@@ -2075,7 +2075,7 @@ func (this *Htx) Describe() any {
 					"untilDays":        2,
 					"limit":            500,
 					"daysBack":         180,
-					"daysBackCanceled": 1 / 12,
+					"daysBackCanceled": float64(1) / 12,
 					"symbolRequired":   false,
 				},
 				"fetchOHLCV": map[string]any{
@@ -2116,7 +2116,7 @@ func (this *Htx) Describe() any {
 					"untilDays":        2,
 					"limit":            50,
 					"daysBack":         90,
-					"daysBackCanceled": 1 / 12,
+					"daysBackCanceled": float64(1) / 12,
 				},
 				"fetchOHLCV": map[string]any{
 					"limit": 2000,

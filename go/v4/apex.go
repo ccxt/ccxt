@@ -1747,7 +1747,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar string, side 
 		"size":        orderSize,
 		"price":       finalOrderPrice,
 		"limitFee":    limitFee,
-		"expiration":  MathFloor(Add(timeNow/1000, (30*24)*60*60)),
+		"expiration":  MathFloor(Add(float64(timeNow)/1000, (30*24)*60*60)),
 		"timeInForce": timeInForce,
 		"clientId":    finalClientOrderId,
 		"brokerId":    this.SafeString(this.Options, "brokerId", "6956"),
@@ -1843,7 +1843,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 	}()
 	var mathPowResult float64 = (MathPow(10, decimalsNumber))
 	var amountNumber int64 = this.ParseToInt(Multiply(amount, mathPowResult))
-	var timestampSeconds int64 = this.ParseToInt(this.Milliseconds() / 1000)
+	var timestampSeconds int64 = this.ParseToInt(float64(this.Milliseconds()) / 1000)
 	var clientOrderId any = DerefScalar(this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"}))
 	if IsEqual(clientOrderId, nil) {
 		clientOrderId = this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
@@ -1853,7 +1853,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 	if (!IsEqual(fromAccount, nil)) && (ToLower(fromAccount) == "contract") {
 		var formattedUint32 string = "4294967295"
 		var zkSignAccountId *string = Precise.StringMod(accountId, formattedUint32)
-		var expireTime any = Add(timestampSeconds, Multiply(Multiply(3600, 24), 28))
+		var expireTime int64 = timestampSeconds + (3600*24)*28
 		var orderToSign map[string]any = map[string]any{
 			"zkAccountId":          zkSignAccountId,
 			"receiverAddress":      ethAddress,

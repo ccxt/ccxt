@@ -1615,7 +1615,7 @@ func (this *Hyperliquid) ParseFundingRate(info any, optionalArgs ...any) any {
 	var funding *float64 = this.SafeNumber(info, "funding")
 	var markPx *float64 = this.SafeNumber(info, "markPx")
 	var oraclePx *float64 = this.SafeNumber(info, "oraclePx")
-	var fundingTimestamp any = Multiply(Multiply(Multiply((Add(MathFloor((this.Milliseconds()/60)/60/1000), 1)), 60), 60), 1000)
+	var fundingTimestamp any = Multiply(Multiply(Multiply((Add(MathFloor(Divide(Divide(float64(this.Milliseconds())/60, 60), 1000)), 1)), 60), 60), 1000)
 	return map[string]any{
 		"info":                     info,
 		"symbol":                   symbol,

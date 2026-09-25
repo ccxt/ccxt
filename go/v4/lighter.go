@@ -882,7 +882,7 @@ func (this *Lighter) approveBuilderFeeBody(ch chan any, builder any, takerFeeRat
 	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, this.Extend(params, map[string]any{
 		"skipNonce": false,
 	})))))
-	var expiry any = Add(this.Milliseconds(), Multiply(365, 864000))
+	var expiry int64 = this.Milliseconds() + (365 * 864000)
 	var signRaw map[string]any = map[string]any{
 		"integrator_account_index": builder,
 		"integrator_taker_fee":     takerFeeRate,

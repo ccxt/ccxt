@@ -2220,7 +2220,7 @@ func (this *Bydfi) HandleSinceAndUntil(methodName string, optionalArgs ...any) a
 	until = GetValue(untilparamsUntilVariable, 0)
 	paramsUntil = GetValue(untilparamsUntilVariable, 1)
 	var now int64 = this.Milliseconds()
-	var sevenDays int64 = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000).(int64) // the maximum range is 7 days
+	var sevenDays int64 = (7 * 24) * 60 * 60 * 1000 // the maximum range is 7 days
 	var startTime any = since
 	if IsEqual(startTime, nil) {
 		if IsEqual(until, nil) {
@@ -3555,7 +3555,7 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar string, code
 	until = GetValue(untilparamsUntilVariable, 0)
 	paramsUntil = GetValue(untilparamsUntilVariable, 1)
 	var now int64 = this.Milliseconds()
-	var sevenDays int64 = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000).(int64) // the maximum range is 7 days
+	var sevenDays int64 = (7 * 24) * 60 * 60 * 1000 // the maximum range is 7 days
 	var startTime any = since
 	if IsEqual(startTime, nil) {
 		if IsEqual(until, nil) {

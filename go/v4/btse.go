@@ -22,7 +22,7 @@ func (this *Btse) Describe() any {
 		"id":        "btse",
 		"name":      "BTSE",
 		"countries": []any{"VG"},
-		"rateLimit": 1000 / 75,
+		"rateLimit": float64(1000) / 75,
 		"version":   "v3",
 		"certified": false,
 		"pro":       false,

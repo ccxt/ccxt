@@ -6785,7 +6785,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			}
 			request[startTimeReq] = since
 		} else if GetValue(market, "swap") == true {
-			request["startTs"] = Subtract(now, (30*24)*60*60*1000) // 30 days for swap
+			request["startTs"] = now - (30*24)*60*60*1000 // 30 days for swap
 		}
 		var until *int64 = this.SafeInteger(paramsSubType, "until")
 		var paramsUntil map[string]any = MapTyped(this.Omit(paramsSubType, "until"))

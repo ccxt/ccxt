@@ -137,7 +137,7 @@ func (this *Lbank) Describe() any {
 							"cost": 2.5,
 						},
 						"withdrawConfigs": map[string]any{
-							"cost": Multiply(2.5, 1.5),
+							"cost": 2.5 * 1.5,
 						},
 						"timestamp": map[string]any{
 							"cost": 2.5,

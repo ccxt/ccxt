@@ -1072,7 +1072,7 @@ func (this *Zaif) ParseTransaction(transaction any, optionalArgs ...any) any {
 	}
 }
 func (this *Zaif) CustomNonce() any {
-	var num *string = this.NumberToString(this.Milliseconds() / 1000)
+	var num *string = this.NumberToString(float64(this.Milliseconds()) / 1000)
 	var nonce any = ParseFloat(num)
 	return ToFixed(nonce, 8)
 }

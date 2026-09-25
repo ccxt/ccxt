@@ -366,7 +366,7 @@ func (this *Kucoin) authenticateUtaBody(ch chan any) any {
 	this.CheckRequiredCredentials()
 	var utaToken *string = this.SafeString(this.Options, "utaToken")
 	var lastUpdate *int64 = this.SafeInteger(this.Options, "utaTokenLastUpdate", 0)
-	var refreshInterval any = ccxt.Multiply(ccxt.Multiply(ccxt.Multiply(1000, 60), 60), 24) // 24 hours
+	var refreshInterval any = (1000 * 60) * 60 * 24 // 24 hours
 	refreshInterval = ccxt.DerefScalar(this.SafeInteger(this.Options, "utaTokenRefreshInterval", refreshInterval))
 	var now int64 = this.Milliseconds()
 	var expired bool = ccxt.IsGreaterThanOrEqual((ccxt.Subtract(now, lastUpdate)), refreshInterval)
