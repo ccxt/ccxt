@@ -5086,12 +5086,12 @@ public class Gate extends GateApi
             {
                 if (!java.util.Objects.equals(market, null))
                 {
-                    ((Map<String, Object>)request).put("currency_pair", ((Map<String, Object>)market).get("id")); // Should always be set for non-trigger
+                    Helpers.addElementToObject(request, "currency_pair", ((Map<String, Object>)market).get("id")); // Should always be set for non-trigger
                 }
                 var marginModequeryVariable = this.getMarginMode((Boolean) (false), (Map<String, Object>) (paramsMarketType));
                 marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
                 query = ((List<Object>) marginModequeryVariable).get(1);
-                ((Map<String, Object>)request).put("account", marginMode);
+                Helpers.addElementToObject(request, "account", marginMode);
             }
             if (!java.util.Objects.equals(limit, null))
             {

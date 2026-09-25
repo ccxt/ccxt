@@ -2222,8 +2222,8 @@ func (this *Modetrade) createOrderBody(ch chan any, symbol any, typeVar string, 
 
 		response = MapTyped(PanicOnError((<-this.V1PrivatePostOrder(request)).Raw))
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	data["timestamp"] = this.SafeInteger(response, "timestamp")
 	var order map[string]any = MapTyped(this.ParseOrder(data, market))
 	order["type"] = typeVar
 
@@ -2406,8 +2406,8 @@ func (this *Modetrade) editOrderBody(ch chan any, id any, symbol any, typeVar an
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	data["timestamp"] = this.SafeInteger(response, "timestamp")
 
 	ch <- this.ParseOrder(data, market)
 	return nil

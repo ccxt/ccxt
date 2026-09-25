@@ -1783,7 +1783,7 @@ const CORE_ARG_SHADOW_LIMIT_LITERAL_RE = /^-?\d+$/;
 // narrowed it, or a local declared `string`) makes that wrap a no-op: the callee receives the same
 // reference. Only the identifiers owned by THIS unit are listed, so a sibling family (`code`,
 // `type`/`side`/`id`, `timeframeVar`) keeps its casts and extends the list on its own branch.
-const CORE_ARG_CALL_SITE_TYPED_IDENTIFIERS = [ 'symbol' ];
+const CORE_ARG_CALL_SITE_TYPED_IDENTIFIERS = [ 'path', 'symbol' ];
 
 // Callees where every definition in cs/** (base, generated and ws tiers) declares `object` in the
 // position an argument lands in, so an `object` argument and a `string`/nullable-numeric argument
@@ -5304,7 +5304,7 @@ class NewTranspiler {
             return content;
         }
         // any return type: sign() returns the request dictionary (CSHARP_METHOD_RETURN_TYPES)
-        const sigRe = /^(\s*)public (virtual|override) ([\w<>., ?]+) (sign|handleErrors)\((.*)\)\s*$/;
+        const sigRe = /^(\s*)public ((?:async )?(?:virtual|override)) ([\w<>., ?]+) (sign|handleErrors|fetch2|request)\((.*)\)\s*$/;
         const lines = content.split ('\n');
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);

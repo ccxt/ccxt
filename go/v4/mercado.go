@@ -827,7 +827,7 @@ func (this *Mercado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//     }
 	//
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var order any = this.SafeDict(responseData, "order", map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(responseData, "order", map[string]any{}))
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -956,7 +956,7 @@ func (this *Mercado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetOrder(this.Extend(request, params))).Raw))
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var order any = this.SafeDict(responseData, "order")
+	var order map[string]any = SafeMapTyped(responseData, "order")
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -1041,7 +1041,7 @@ func (this *Mercado) withdrawBody(ch chan any, code any, amount any, address any
 	//     }
 	//
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var withdrawal any = this.SafeDict(responseData, "withdrawal")
+	var withdrawal map[string]any = SafeMapTyped(responseData, "withdrawal")
 
 	ch <- this.ParseTransaction(withdrawal, currency)
 	return nil

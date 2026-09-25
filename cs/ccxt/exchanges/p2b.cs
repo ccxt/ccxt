@@ -1422,7 +1422,7 @@ public partial class p2b : Exchange
         }, marketResolved);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -1439,7 +1439,7 @@ public partial class p2b : Exchange
         }
         if (isEqual(api, "private"))
         {
-            ((IDictionary<string,object>)paramsOmitted)["request"] = ("/api/v2/" + (path));
+            ((IDictionary<string,object>)paramsOmitted)["request"] = ("/api/v2/" + path);
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
             ((IDictionary<string,object>)paramsOmitted)["nonce"] = ((object)this.incrementingNonce()).ToString();

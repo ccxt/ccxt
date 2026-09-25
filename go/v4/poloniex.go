@@ -932,7 +932,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		//             "1740770099999",
 		//           ],
 		//
-		var data any = this.SafeList(responseRaw, "data")
+		var data []any = SafeListTyped(responseRaw, "data")
 
 		ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
 		return nil
@@ -4560,7 +4560,7 @@ func (this *Poloniex) modifyMarginHelperBody(ch chan any, symbol any, amount any
 	if typeVar == "reduce" {
 		amountResolved = Precise.StringAbs(amountResolved)
 	}
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.ParseMarginModification(data, market)
 	return nil

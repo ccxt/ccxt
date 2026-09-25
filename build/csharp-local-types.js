@@ -15168,8 +15168,11 @@ export function installCsharpNumericComparisons (transpiler) {
 // `sign()` / `handleErrors()` positions every declaration prints narrowed (retypeSignatureArgs in
 // build/csharpTranspiler.ts, no shadow: every body write is a literal or a same-typed producer).
 // `sign` headers (4) stay object: prediction overrides write an `object existingHeaders` into it.
+// `path` (0) of sign/fetch2/request: ts/src declares `path: string` and no body writes it.
 export const SIGNATURE_ARG_TYPES = {
-    'sign': { 2: 'string' },
+    'fetch2': { 0: 'string' },
+    'request': { 0: 'string' },
+    'sign': { 0: 'string', 2: 'string' },
     'handleErrors': { 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
 };
 

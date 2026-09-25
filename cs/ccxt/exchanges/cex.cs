@@ -2018,7 +2018,7 @@ public partial class cex : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2056,7 +2056,7 @@ public partial class cex : Exchange
             this.checkRequiredCredentials();
             string seconds = this.seconds().ToString();
             string bodySigned = this.json(query);
-            object auth = add(add(path, seconds), bodySigned);
+            string auth = ((path + seconds) + bodySigned);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },

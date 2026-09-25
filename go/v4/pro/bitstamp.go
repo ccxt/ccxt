@@ -830,7 +830,7 @@ func (this *Bitstamp) HandleOrders(client any, message map[string]any) {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var order any = this.SafeDict(message, "data", map[string]any{})
+	var order map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var subscription any = func() any {
 		if channel == nil {
 			return nil
@@ -850,7 +850,7 @@ func (this *Bitstamp) HandleOrders(client any, message map[string]any) {
 	}
 	var stored any = this.Orders
 	var market map[string]any = this.Market(symbol)
-	ccxt.AddElementToObject(order, "event", this.SafeString(message, "event"))
+	order["event"] = this.SafeString(message, "event")
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order, market))
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)

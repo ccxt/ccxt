@@ -3389,7 +3389,7 @@ public partial class nado : Exchange
         return ((string?)((object)(marketId)));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3401,7 +3401,7 @@ public partial class nado : Exchange
             endpoint = api;
         }
         object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), endpoint);
-        if (!isEqual(path, ""))
+        if ((path != ""))
         {
             url = add(url, ("/" + this.implodeParams(path, parameters)));
         }

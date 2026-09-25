@@ -4083,12 +4083,12 @@ public partial class kraken : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = ((((("/" + this.version) + "/") + (api)) + "/") + (path));
+        object url = ((((("/" + this.version) + "/") + (api)) + "/") + path);
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -4104,8 +4104,8 @@ public partial class kraken : Exchange
             {
                 isTriggerPercent = (price.EndsWith("%")) ? true : false;
             }
-            bool isCancelOrderBatch = (isEqual(path, "CancelOrderBatch"));
-            bool isBatchOrder = (isEqual(path, "AddOrderBatch"));
+            bool isCancelOrderBatch = ((path == "CancelOrderBatch"));
+            bool isBatchOrder = ((path == "AddOrderBatch"));
             this.checkRequiredCredentials();
             // kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
             string nonce = ((object)this.incrementingNonce()).ToString();
@@ -4149,7 +4149,7 @@ public partial class kraken : Exchange
             };
         } else
         {
-            url = ("/" + (path));
+            url = ("/" + path);
         }
         object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
         if ((apiUrl == null))

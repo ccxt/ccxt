@@ -5306,7 +5306,7 @@ public partial class phemex : Exchange
         return tiers;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -5339,7 +5339,7 @@ public partial class phemex : Exchange
             string payload = "";
             if ((method == "POST"))
             {
-                bool isOrderPlacement = (isEqual(path, "g-orders")) || (isEqual(path, "spot/orders")) || (isEqual(path, "orders"));
+                bool isOrderPlacement = ((path == "g-orders")) || ((path == "spot/orders")) || ((path == "orders"));
                 if (isOrderPlacement)
                 {
                     if ((this.safeString(parameters, "clOrdID") == null))

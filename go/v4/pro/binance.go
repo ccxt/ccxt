@@ -1726,7 +1726,7 @@ func (this *Binance) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
+	params["callerMethodName"] = "watchTrades"
 
 	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
@@ -2307,7 +2307,7 @@ func (this *Binance) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	ccxt.AddElementToObject(params, "callerMethodName", "watchOHLCV")
+	params["callerMethodName"] = "watchOHLCV"
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbolValue, timeframe}}, params)))
 	return nil
@@ -3477,11 +3477,11 @@ func (this *Binance) SignParams(optionalArgs ...any) any {
 	this.CheckRequiredCredentials()
 	var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
 	if defaultRecvWindow != nil {
-		ccxt.AddElementToObject(params, "recvWindow", defaultRecvWindow)
+		params["recvWindow"] = *defaultRecvWindow
 	}
 	var recvWindow *int64 = this.SafeInteger(params, "recvWindow")
 	if recvWindow != nil {
-		ccxt.AddElementToObject(params, "recvWindow", recvWindow)
+		params["recvWindow"] = *recvWindow
 	}
 	var extendedParams map[string]any = this.Extend(map[string]any{
 		"timestamp": this.Nonce(),

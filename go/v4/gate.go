@@ -9286,7 +9286,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	if containsSettle && (strings.HasSuffix(path, "batch_cancel_orders") == true) {
 		// special case where we need to extract the settle from the path
 		// but the body is an array of strings
-		var settle any = this.SafeDict(params, 0)
+		var settle map[string]any = SafeMapTyped(params, 0)
 		pathImploded = this.ImplodeParams(path, settle)
 		// remove the first element from params
 		var newParams []any = []any{}

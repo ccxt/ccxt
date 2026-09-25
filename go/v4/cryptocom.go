@@ -1844,7 +1844,7 @@ func (this *Cryptocom) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	//         }
 	//     }
 	//
-	var order any = this.SafeDict(response, "result", map[string]any{})
+	var order map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -2007,7 +2007,7 @@ func (this *Cryptocom) createOrderBody(ch chan any, symbol any, typeVar string, 
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result, market)
 	return nil
@@ -2276,7 +2276,7 @@ func (this *Cryptocom) editOrderBody(ch chan any, id any, symbol any, typeVar an
 
 	response := (<-this.V1PrivatePostPrivateAmendOrder(request))
 	PanicOnError(response)
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result)
 	return nil
@@ -2400,7 +2400,7 @@ func (this *Cryptocom) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result, market)
 	return nil
@@ -2770,7 +2770,7 @@ func (this *Cryptocom) withdrawBody(ch chan any, code any, amount any, address a
 	//        }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 
 	ch <- this.ParseTransaction(result, currency)
 	return nil
@@ -4442,7 +4442,7 @@ func (this *Cryptocom) closePositionBody(ch chan any, symbol any, optionalArgs .
 	//        }
 	//    }
 	//
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 
 	ch <- this.ParseOrder(result, market)
 	return nil
@@ -4492,7 +4492,7 @@ func (this *Cryptocom) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseTradingFee(data, market)
 	return nil

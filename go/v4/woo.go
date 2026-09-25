@@ -2188,12 +2188,12 @@ func (this *Woo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	//         "timestamp": 1751940315838
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	AddElementToObject(data, "timestamp", this.SafeString(response, "timestamp"))
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	data["timestamp"] = this.SafeString(response, "timestamp")
 	if isByClientOrder {
-		AddElementToObject(data, "clientOrderId", clientOrderIdExchangeSpecific)
+		data["clientOrderId"] = clientOrderIdExchangeSpecific
 	} else {
-		AddElementToObject(data, "orderId", id)
+		data["orderId"] = id
 	}
 
 	ch <- this.ParseOrder(data, market)
@@ -3938,10 +3938,10 @@ func (this *Woo) transferBody(ch chan any, code any, amount any, fromAccount any
 	//         "id": 200
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
-	AddElementToObject(data, "token", currency["id"])
-	AddElementToObject(data, "status", "ok")
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	data["timestamp"] = this.SafeInteger(response, "timestamp")
+	data["token"] = currency["id"]
+	data["status"] = "ok"
 	var transfer any = this.ParseTransfer(data, currency)
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)

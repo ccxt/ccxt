@@ -5005,14 +5005,14 @@ public partial class weex : Exchange
         this.options["sandboxMode"] = enable;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object endpoint = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
-        bool isBatch = (((string)path).IndexOf("batch", StringComparison.Ordinal) >= 0);
+        bool isBatch = (path.IndexOf("batch", StringComparison.Ordinal) >= 0);
         if (!isBatch && (((method == "GET")) || ((method == "DELETE"))))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -5031,9 +5031,9 @@ public partial class weex : Exchange
         if (isPrivate)
         {
             bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            if (((sandboxMode == true)) && ((((string)path).IndexOf("capi/v3/sim/", StringComparison.Ordinal) != 0)))
+            if (((sandboxMode == true)) && ((path.IndexOf("capi/v3/sim/", StringComparison.Ordinal) != 0)))
             {
-                throw new NotSupported ((((this.id + " ") + (path)) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
+                throw new NotSupported ((((this.id + " ") + path) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }
             this.checkRequiredCredentials();
             object timestamp = this.numberToString(this.nonce());

@@ -1190,7 +1190,7 @@ public partial class bitbank : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -1238,7 +1238,7 @@ public partial class bitbank : Exchange
                 auth = add(auth, requestBody);
             } else
             {
-                auth = add(auth, ((("/" + this.version) + "/") + (path)));
+                auth = add(auth, ((("/" + this.version) + "/") + path));
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     query = this.urlencode(query);

@@ -2353,7 +2353,7 @@ func (this *Bitso) withdrawBody(ch chan any, code any, amount any, address any, 
 	//     }
 	//
 	var payload []any = SafeListTyped(response, "payload")
-	var first any = this.SafeDict(payload, 0)
+	var first map[string]any = SafeMapTyped(payload, 0)
 
 	ch <- this.ParseTransaction(first, currency)
 	return nil

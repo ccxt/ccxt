@@ -13240,7 +13240,7 @@ public partial class kucoin : Exchange
         return ((bool)((object)(uta))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
@@ -13295,7 +13295,7 @@ public partial class kucoin : Exchange
         string? tradeType = this.safeString(query, "tradeType");
         if (!this.isEmpty(query))
         {
-            if ((((method == "GET")) || ((method == "DELETE"))) && (!isEqual(path, "orders/multi-cancel")))
+            if ((((method == "GET")) || ((method == "DELETE"))) && ((path != "orders/multi-cancel")))
             {
                 endpoint = endpoint + ("?" + this.rawencode(query));
             } else

@@ -511,7 +511,7 @@ func (this *Grvt) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var symbolValue any = this.Symbol(symbol)
-	ccxt.AddElementToObject(params, "callerMethodName", "watchOHLCV")
+	params["callerMethodName"] = "watchOHLCV"
 
 	var result map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchOHLCVForSymbolsAsync([]any{[]any{symbolValue, timeframe}}, since, limit, params))))
 

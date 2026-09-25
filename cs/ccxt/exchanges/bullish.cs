@@ -3362,7 +3362,7 @@ public partial class bullish : Exchange
         }, market);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3384,7 +3384,7 @@ public partial class bullish : Exchange
             string timestamp = this.getTimestamp().ToString();
             if ((method == "GET"))
             {
-                string payload = ((((timestamp + nonce) + method) + "/trading-api/") + (path));
+                string payload = ((((timestamp + nonce) + method) + "/trading-api/") + path);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 requestHeaders = new Dictionary<string, object>() {
                     { "BX-TIMESTAMP", timestamp },
@@ -3394,7 +3394,7 @@ public partial class bullish : Exchange
             } else if ((method == "POST"))
             {
                 requestBody = this.json(parameters);
-                string payload = (((((timestamp + nonce) + method) + "/trading-api/") + (path)) + (requestBody));
+                string payload = (((((timestamp + nonce) + method) + "/trading-api/") + path) + (requestBody));
                 string digest = ((string)this.hash(this.encode(payload), sha256, "hex"));
                 string signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256, "hex");
                 requestHeaders = new Dictionary<string, object>() {
@@ -3410,7 +3410,7 @@ public partial class bullish : Exchange
                     ((IDictionary<string,object>)requestHeaders)["BX-RATE-LIMIT-TOKEN"] = rateLimitToken;
                 }
             }
-            if (isEqual(path, "v1/users/hmac/login"))
+            if ((path == "v1/users/hmac/login"))
             {
                 requestHeaders = ((requestHeaders == null)) ? new Dictionary<string, object>() {} : requestHeaders;
                 ((IDictionary<string,object>)requestHeaders)["BX-PUBLIC-KEY"] = this.apiKey;

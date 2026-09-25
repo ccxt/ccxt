@@ -1508,8 +1508,8 @@ func (this *Paradex) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 	var market map[string]any = this.Market(symbol)
 
 	var rates map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRatesAsync([]any{market["symbol"]}, params))))
-	var rate any = this.SafeDict(rates, market["symbol"])
-	if IsEqual(rate, nil) {
+	var rate map[string]any = SafeMapTyped(rates, market["symbol"])
+	if rate == nil {
 		panic(BadSymbol(Add(this.Id+" fetchFundingRate() could not find a funding rate for ", symbol)))
 	}
 

@@ -2834,7 +2834,7 @@ public partial class tokocrypto : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2844,12 +2844,12 @@ public partial class tokocrypto : Exchange
             throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
         }
         object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), api);
-        url = add(url, ("/" + (path)));
+        url = add(url, ("/" + path));
         if (isEqual(api, "wapi"))
         {
             url = add(url, ".html");
         }
-        bool userDataStream = (isEqual(path, "userDataStream")) || (isEqual(path, "listenKey"));
+        bool userDataStream = ((path == "userDataStream")) || ((path == "listenKey"));
         if (userDataStream)
         {
             if (((this.apiKey != null)) && (!isEqual(this.apiKey, "")))
@@ -2870,7 +2870,7 @@ public partial class tokocrypto : Exchange
             {
                 throw new AuthenticationError ((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if ((isEqual(api, "private")) || (isEqual(api, "sapi") && !isEqual(path, "system/status")) || (isEqual(api, "sapiV3")) || (isEqual(api, "wapi") && !isEqual(path, "systemStatus")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")))
+        } else if ((isEqual(api, "private")) || (isEqual(api, "sapi") && (path != "system/status")) || (isEqual(api, "sapiV3")) || (isEqual(api, "wapi") && (path != "systemStatus")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")))
         {
             this.checkRequiredCredentials();
             object query = null;
@@ -2887,10 +2887,10 @@ public partial class tokocrypto : Exchange
             {
                 extendedParams["recvWindow"] = recvWindow;
             }
-            if ((isEqual(api, "sapi")) && (isEqual(path, "asset/dust")))
+            if ((isEqual(api, "sapi")) && ((path == "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
-            } else if ((isEqual(path, "batchOrders")) || (((string)path).IndexOf("sub-account", StringComparison.Ordinal) >= 0) || (isEqual(path, "capital/withdraw/apply")) || (((string)path).IndexOf("staking", StringComparison.Ordinal) >= 0))
+            } else if (((path == "batchOrders")) || (path.IndexOf("sub-account", StringComparison.Ordinal) >= 0) || ((path == "capital/withdraw/apply")) || (path.IndexOf("staking", StringComparison.Ordinal) >= 0))
             {
                 query = this.rawencode(extendedParams);
             } else

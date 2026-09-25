@@ -980,7 +980,7 @@ func (this *Blofin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var first any = this.SafeDict(data, 0, map[string]any{})
+	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(first, "ts")
 
 	ch <- this.ParseOrderBook(first, symbol, timestamp)
@@ -1080,7 +1080,7 @@ func (this *Blofin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketTickers(this.Extend(request, params))).Raw))
 	var data []any = SafeListTyped(response, "data")
-	var first any = this.SafeDict(data, 0, map[string]any{})
+	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTicker(first, market)
 	return nil
@@ -1117,7 +1117,7 @@ func (this *Blofin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketMarkPrice(this.Extend(request, params))).Raw))
 	var data []any = SafeListTyped(response, "data")
-	var first any = this.SafeDict(data, 0, map[string]any{})
+	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTicker(first, market)
 	return nil
@@ -2052,13 +2052,13 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar string, sid
 		PanicOnError(response)
 	}
 	if isCombinedSlTp || isSlOrTp || isTriggerOrder {
-		var dataDict any = this.SafeDict(response, "data", map[string]any{})
+		var dataDict map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 		ch <- this.ParseOrder(dataDict, market)
 		return nil
 	}
 	var data []any = SafeListTyped(response, "data")
-	var first any = this.SafeDict(data, 0)
+	var first map[string]any = SafeMapTyped(data, 0)
 	var order map[string]any = MapTyped(this.ParseOrder(first, market))
 	order["type"] = typeVar
 	order["side"] = side
@@ -2190,7 +2190,7 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	if isTpsl != nil && *isTpsl == true {
 
 		var tpslResponse []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{id}, symbol, params))))
-		var first any = this.SafeDict(tpslResponse, 0)
+		var first map[string]any = SafeMapTyped(tpslResponse, 0)
 
 		ch <- first
 		return nil
@@ -2198,7 +2198,7 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		triggerResponse := (<-this.PrivatePostTradeCancelAlgo(this.Extend(request, query)))
 		PanicOnError(triggerResponse)
-		var triggerData any = this.SafeDict(triggerResponse, "data")
+		var triggerData map[string]any = SafeMapTyped(triggerResponse, "data")
 
 		ch <- this.ParseOrder(triggerData, market)
 		return nil
@@ -2207,7 +2207,7 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	response := (<-this.PrivatePostTradeCancelOrder(this.Extend(request, query)))
 	PanicOnError(response)
 	var data []any = SafeListTyped(response, "data")
-	var order any = this.SafeDict(data, 0)
+	var order map[string]any = SafeMapTyped(data, 0)
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -3081,7 +3081,7 @@ func (this *Blofin) transferBody(ch chan any, code any, amount any, fromAccount 
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAssetTransfer(this.Extend(request, params))).Raw))
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTransfer(data, currency)
 	return nil
@@ -3538,7 +3538,7 @@ func (this *Blofin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseLeverage(data, market)
 	return nil
@@ -3779,7 +3779,7 @@ func (this *Blofin) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseMarginMode(data, market)
 	return nil
@@ -3840,7 +3840,7 @@ func (this *Blofin) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseMarginMode(data, market) // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
 	return nil

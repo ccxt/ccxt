@@ -4059,7 +4059,7 @@ public partial class woofipro : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
         method ??= "GET";
@@ -4086,13 +4086,13 @@ public partial class woofipro : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            if (((method == "POST") || (method == "PUT")) && (isEqual(path, "algo/order") || isEqual(path, "order") || isEqual(path, "batch-order")))
+            if (((method == "POST") || (method == "PUT")) && ((path == "algo/order") || (path == "order") || (path == "batch-order")))
             {
                 bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if ((isSandboxMode != true))
                 {
                     string? brokerId = this.safeString(this.options, "brokerId", "CCXT");
-                    if (isEqual(path, "batch-order"))
+                    if ((path == "batch-order"))
                     {
                         List<object> ordersList = this.safeList(requestParams, "orders", new List<object>() {});
                         for (int i = 0; i < ordersList.Count; i++)

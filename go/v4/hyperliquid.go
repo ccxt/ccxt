@@ -1507,8 +1507,8 @@ func (this *Hyperliquid) fetchFundingRateBody(ch chan any, symbol any, optionalA
 	var market map[string]any = this.Market(symbol)
 
 	var rates map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRatesAsync([]any{market["symbol"]}, params))))
-	var rate any = this.SafeDict(rates, market["symbol"])
-	if IsEqual(rate, nil) {
+	var rate map[string]any = SafeMapTyped(rates, market["symbol"])
+	if rate == nil {
 		panic(BadSymbol(Add(this.Id+" fetchFundingRate() could not find a funding rate for ", symbol)))
 	}
 
@@ -4271,7 +4271,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	//         "status": "order"
 	//     }
 	//
-	var data any = this.SafeDict(response, "order")
+	var data map[string]any = SafeMapTyped(response, "order")
 
 	ch <- this.ParseOrder(data, market)
 	return nil

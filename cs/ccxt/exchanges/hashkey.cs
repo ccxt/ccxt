@@ -4637,7 +4637,7 @@ public partial class hashkey : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4647,7 +4647,7 @@ public partial class hashkey : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string url = ((apiUrl + "/") + (path));
+        string url = ((apiUrl + "/") + path);
         string? query = null;
         if (isEqual(api, "private"))
         {
@@ -4667,7 +4667,7 @@ public partial class hashkey : Exchange
             };
             string? signature = null;
             string? bodySigned = null;
-            if (((method == "POST")) && ((isEqual(path, "api/v1/spot/batchOrders")) || (isEqual(path, "api/v1/futures/batchOrders"))))
+            if (((method == "POST")) && (((path == "api/v1/spot/batchOrders")) || ((path == "api/v1/futures/batchOrders"))))
             {
                 headersSigned["Content-Type"] = "application/json";
                 bodySigned = this.json(this.safeList(parameters, "orders"));

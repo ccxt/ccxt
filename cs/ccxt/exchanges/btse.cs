@@ -4189,7 +4189,7 @@ public partial class btse : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4208,7 +4208,7 @@ public partial class btse : Exchange
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        bool isBodyDelete = ((method == "DELETE")) && ((((string)path).StartsWith("futures/api/v3/") == true));
+        bool isBodyDelete = ((method == "DELETE")) && ((path.StartsWith("futures/api/v3/") == true));
         string queryString = "";
         if ((((method == "GET")) || ((method == "DELETE"))) && !isBodyDelete)
         {
@@ -4235,9 +4235,9 @@ public partial class btse : Exchange
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             object signPath = null;
-            if ((((string)path).StartsWith("public-api/") == true))
+            if ((path.StartsWith("public-api/") == true))
             {
-                signPath = ("/" + (path));
+                signPath = ("/" + path);
             } else
             {
                 signPath = this.cleanPath(path);

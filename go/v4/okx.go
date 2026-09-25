@@ -7224,8 +7224,8 @@ func (this *Okx) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	PanicOnError(responseRaw)
 	var response any = responseRaw
 	if network != nil {
-		var result any = this.SafeDict(response, network)
-		if IsEqual(result, nil) {
+		var result map[string]any = SafeMapTyped(response, network)
+		if result == nil {
 			panic(InvalidAddress(this.Id + " fetchDepositAddress() cannot find " + *network + " deposit address for " + *codeValue))
 		}
 

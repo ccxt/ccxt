@@ -1804,7 +1804,7 @@ func (this *Bitvavo) HandleMyTrades(client any, message map[string]any) {
 	//
 	//
 	// const action = this.safeString (message, 'action')
-	var response any = this.SafeList(message, "response")
+	var response []any = ccxt.SafeListTyped(message, "response")
 	// const marketId = this.safeString (firstRawTrade, 'market')
 	var trades any = this.ParseTrades(response, nil, nil, nil)
 	// const messageHash = this.buildMessageHash (action, { 'market': marketId })
@@ -1927,7 +1927,7 @@ func (this *Bitvavo) HandleWithdraws(client any, message map[string]any) {
 	//
 	// const action = this.safeString (message, 'action')
 	// const messageHash = this.buildMessageHash (action, message)
-	var response any = this.SafeList(message, "response")
+	var response []any = ccxt.SafeListTyped(message, "response")
 	var messageHash *string = this.SafeString(message, "requestId")
 	var withdrawals any = this.ParseTransactions(response, nil, nil, nil, map[string]any{
 		"type": "withdrawal",

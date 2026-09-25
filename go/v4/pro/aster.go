@@ -124,7 +124,7 @@ func (this *Aster) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchTicker")
+	params["callerMethodName"] = "watchTicker"
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -163,7 +163,7 @@ func (this *Aster) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "unWatchTicker")
+	params["callerMethodName"] = "unWatchTicker"
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchTickersAsync([]any{symbol}, params)))
 	return nil
@@ -325,7 +325,7 @@ func (this *Aster) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ...a
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchMarkPrice")
+	params["callerMethodName"] = "watchMarkPrice"
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -359,7 +359,7 @@ func (this *Aster) unWatchMarkPriceBody(ch chan any, symbol any, optionalArgs ..
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "unWatchMarkPrice")
+	params["callerMethodName"] = "unWatchMarkPrice"
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchMarkPricesAsync([]any{symbol}, params)))
 	return nil
@@ -789,7 +789,7 @@ func (this *Aster) watchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
+	params["callerMethodName"] = "watchTrades"
 
 	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
@@ -816,7 +816,7 @@ func (this *Aster) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "unWatchTrades")
+	params["callerMethodName"] = "unWatchTrades"
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)))
 	return nil
@@ -1167,7 +1167,7 @@ func (this *Aster) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchOrderBook")
+	params["callerMethodName"] = "watchOrderBook"
 
 	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
@@ -1196,7 +1196,7 @@ func (this *Aster) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "unWatchOrderBook")
+	params["callerMethodName"] = "unWatchOrderBook"
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params)))
 	return nil
@@ -1396,7 +1396,7 @@ func (this *Aster) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchOHLCV")
+	params["callerMethodName"] = "watchOHLCV"
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -1432,7 +1432,7 @@ func (this *Aster) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = timeframe
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "unWatchOHLCV")
+	params["callerMethodName"] = "unWatchOHLCV"
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)))
 	return nil

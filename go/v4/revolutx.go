@@ -689,8 +689,8 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var tickerData any = this.SafeDict(data, i, map[string]any{})
-		AddElementToObject(tickerData, "timestamp", timestamp)
+		var tickerData map[string]any = MapTyped(this.SafeDict(data, i, map[string]any{}))
+		tickerData["timestamp"] = timestamp
 		var ticker map[string]any = MapTyped(this.ParseTicker(tickerData))
 		var symbol *string = this.SafeString(ticker, "symbol", "")
 		if symbol != nil && *symbol == "" {
@@ -752,8 +752,8 @@ func (this *Revolutx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	}
 
 	var tickers map[string]any = MapTyped(PanicOnError((<-this.FetchTickersAsync([]any{symbol}, params))))
-	var ticker any = this.SafeDict(tickers, symbol)
-	if IsEqual(ticker, nil) {
+	var ticker map[string]any = SafeMapTyped(tickers, symbol)
+	if ticker == nil {
 		panic(ExchangeError(Add(this.Id+" fetchTicker() could not find ticker for symbol ", symbol)))
 	}
 
