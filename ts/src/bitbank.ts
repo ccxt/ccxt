@@ -1114,11 +1114,9 @@ export default class bitbank extends Exchange {
             const requestTime = this.milliseconds ().toString ();
             const timeWindow = this.safeString (this.options, 'timeWindow', '5000');
             const nonce = this.incrementingNonce ().toString ();
-            let auth: Str = undefined;
+            let auth = nonce;
             if (isTimeWindow) {
                 auth = requestTime + timeWindow;
-            } else {
-                auth = nonce;
             }
             url += this.version + '/' + this.implodeParams (path, params);
             if (method === 'POST') {

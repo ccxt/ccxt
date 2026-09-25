@@ -2287,10 +2287,9 @@ export default class coinsph extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url: string = apiUrl;
         const query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
-        url = url + '/' + endpoint;
+        let url = apiUrl + '/' + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             query['timestamp'] = this.milliseconds ();

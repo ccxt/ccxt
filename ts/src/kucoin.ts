@@ -11757,7 +11757,6 @@ export default class kucoin extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl;
         const tradeType = this.safeString (query, 'tradeType');
         if (!this.isEmpty (query)) {
             if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {
@@ -11771,7 +11770,7 @@ export default class kucoin extends Exchange {
                 headersBase['Content-Type'] = 'application/json';
             }
         }
-        url = url + endpoint;
+        let headersResult: NullableDict = headersBase;
         const isFuturePrivate = (api === 'futuresPrivate');
         const isPrivate = (api === 'private');
         const isBroker = (api === 'broker');
@@ -11813,9 +11812,9 @@ export default class kucoin extends Exchange {
                     headersSigned['KC-BROKER-NAME'] = brokerName;
                 }
             }
-            return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
+            headersResult = headersSigned;
         }
-        return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersBase };
+        return { 'url': apiUrl + endpoint, 'method': method, 'body': bodyJson, 'headers': headersResult };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

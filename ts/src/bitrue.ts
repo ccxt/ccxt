@@ -3265,21 +3265,15 @@ export default class bitrue extends Exchange {
         const type = this.safeString (api, 0);
         const version = this.safeString (api, 1);
         const access = this.safeString (api, 2);
-        let url: Str = undefined;
-        if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf ('listenKey') >= 0)) {
-            const apiUrl2 = this.safeString (this.urls['api'], type);
-            if (apiUrl2 === undefined) {
-                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
-            }
-            url = apiUrl2;
-        } else {
-            const apiUrl = this.safeString (this.urls['api'], type);
-            if (apiUrl === undefined) {
-                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
-            }
-            url = apiUrl + '/' + version;
+        const apiUrl = this.safeString (this.urls['api'], type);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        url = url + '/' + this.implodeParams (path, params);
+        let url = apiUrl;
+        if (!((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf ('listenKey') >= 0))) {
+            url += '/' + version;
+        }
+        url += '/' + this.implodeParams (path, params);
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         if (access === 'private') {
             this.checkRequiredCredentials ();

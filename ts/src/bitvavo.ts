@@ -2724,8 +2724,8 @@ export default class bitvavo extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        url = apiUrl + url;
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        const fullUrl = apiUrl + url;
+        return { 'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

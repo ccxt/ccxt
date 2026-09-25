@@ -2112,7 +2112,7 @@ export default class bittrade extends Exchange {
         let requestBody: Str = undefined;
         let url = '/';
         if (api === 'market') {
-            url += api;
+            url += 'market';
         } else if ((api === 'public') || (api === 'private')) {
             url += this.version;
         } else if ((api === 'v2Public') || (api === 'v2Private')) {
