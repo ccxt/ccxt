@@ -1027,7 +1027,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolValue, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -1246,7 +1246,7 @@ public partial class kucoin : ccxt.kucoin
             Int64? limitResolved = limit;
             if (this.newUpdates)
             {
-                limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit}));
+                limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
             }
             return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
         }
@@ -1303,7 +1303,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -2245,7 +2245,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolResolved, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -2554,7 +2554,7 @@ public partial class kucoin : ccxt.kucoin
                 parsed["average"] = this.parseNumber(Precise.stringDiv(costString, filledString));
             }
         }
-        callDynamically(cachedOrders, "append", new object[] {parsed});
+        ccxt.pro.BaseCache.appendTo(cachedOrders, parsed);
         string messageHash = "orders";
         string? topic = this.safeString(message, "topic");
         string suffix = this.getOrdersMessageHashSuffix(topic);
@@ -2707,7 +2707,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolResolved, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }

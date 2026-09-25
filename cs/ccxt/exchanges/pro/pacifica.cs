@@ -1243,7 +1243,7 @@ public partial class pacifica : ccxt.pacifica
             symbolOhlcvs[timeframe] = ohlcv;
         }
         IList<object> parsed = this.parseOHLCV(data);
-        callDynamically(ohlcv, "append", new object[] {parsed});
+        ccxt.pro.BaseCache.appendTo(ohlcv, parsed);
         string messageHash = ((("candles:" + timeframe) + ":") + symbol);
         client.resolve(ohlcv, messageHash);
     }

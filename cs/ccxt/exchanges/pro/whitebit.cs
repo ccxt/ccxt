@@ -96,7 +96,7 @@ public partial class whitebit : ccxt.whitebit
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolValue, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -404,7 +404,7 @@ public partial class whitebit : ccxt.whitebit
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolValue, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -487,7 +487,7 @@ public partial class whitebit : ccxt.whitebit
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolValue, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true));
     }
@@ -635,7 +635,7 @@ public partial class whitebit : ccxt.whitebit
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolValue, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true));
     }

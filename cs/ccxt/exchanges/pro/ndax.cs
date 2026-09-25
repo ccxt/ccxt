@@ -192,7 +192,7 @@ public partial class ndax : ccxt.ndax
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(limit);
             }
-            callDynamically(tradesArray, "append", new object[] {trade});
+            ccxt.pro.BaseCache.appendTo(tradesArray, trade);
             if ((symbol != null))
             {
                 this.trades[(string)symbol] = tradesArray;
@@ -258,7 +258,7 @@ public partial class ndax : ccxt.ndax
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolValue, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }

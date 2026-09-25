@@ -519,7 +519,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolValue, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -607,7 +607,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }

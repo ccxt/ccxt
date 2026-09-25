@@ -1110,7 +1110,7 @@ public partial class gate : ccxt.gate
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -1242,7 +1242,7 @@ public partial class gate : ccxt.gate
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolValue, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -1372,7 +1372,7 @@ public partial class gate : ccxt.gate
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbol, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true));
     }
@@ -1870,7 +1870,7 @@ public partial class gate : ccxt.gate
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolResolved, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }
@@ -1954,7 +1954,7 @@ public partial class gate : ccxt.gate
                     ((IDictionary<string,object>)parsed)["status"] = ((left == 0)) ? "closed" : "canceled";
                 }
             }
-            callDynamically(stored, "append", new object[] {parsed});
+            ccxt.pro.BaseCache.appendTo(stored, parsed);
             object symbol = getValue(parsed, "symbol");
             Dictionary<string, object> market = this.market(symbol);
             if (!isEqual((market.ContainsKey("id") ? market["id"] : null), null))

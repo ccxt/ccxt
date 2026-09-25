@@ -843,7 +843,7 @@ public partial class kraken : ccxt.kraken
         {
             List<object> first = this.safeList(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }

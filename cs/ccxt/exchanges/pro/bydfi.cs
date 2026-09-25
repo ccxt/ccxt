@@ -410,7 +410,7 @@ public partial class bydfi : ccxt.bydfi
         object limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = callDynamically(candles, "getLimit", new object[] {symbol, limit});
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
         IList<object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
@@ -705,7 +705,7 @@ public partial class bydfi : ccxt.bydfi
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {tradeSymbol, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, tradeSymbol, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }

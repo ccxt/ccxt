@@ -3397,7 +3397,7 @@ public partial class predictfun : PredictionExchange
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {outcomeResolved, limitResolved}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, outcomeResolved, limitResolved));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limitResolved, true));
     }
@@ -3434,7 +3434,7 @@ public partial class predictfun : PredictionExchange
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {outcomeResolved, limitResolved}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, outcomeResolved, limitResolved));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true));
     }

@@ -365,7 +365,7 @@ public partial class grvt : ccxt.grvt
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -486,7 +486,7 @@ public partial class grvt : ccxt.grvt
         object limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = callDynamically(stored, "getLimit", new object[] {symbol, limit});
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(stored, symbol, limit);
         }
         IList<object> filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
@@ -774,7 +774,7 @@ public partial class grvt : ccxt.grvt
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbol, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -919,7 +919,7 @@ public partial class grvt : ccxt.grvt
         IDictionary<string, object> data = this.safeDict(message, "feed");
         Dictionary<string, object> position = this.parseWsPosition(data);
         string? symbol = this.safeString(position, "symbol");
-        callDynamically(this.positions, "append", new object[] {position});
+        ccxt.pro.BaseCache.appendTo(this.positions, position);
         List<object> newPositions = new List<object>() {};
         newPositions.Add(position);
         client.resolve(newPositions, ("positions::" + symbol));
@@ -972,7 +972,7 @@ public partial class grvt : ccxt.grvt
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbol, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
     }

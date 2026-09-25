@@ -497,7 +497,7 @@ public partial class bitstamp : ccxt.bitstamp
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolValue, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }
@@ -570,7 +570,7 @@ public partial class bitstamp : ccxt.bitstamp
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolValue, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true));
     }
@@ -954,7 +954,7 @@ public partial class bitstamp : ccxt.bitstamp
             string? entrySymbol = this.safeString(entry, "symbol");
             if (!this.inArray(entrySymbol, symbols))
             {
-                callDynamically(newCache, "append", new object[] {entry});
+                ccxt.pro.BaseCache.appendTo(newCache, entry);
             }
         }
         return ((ccxt.pro.ArrayCache)((object)(newCache)));

@@ -2,8 +2,33 @@ using Newtonsoft.Json;
 using ccxt;
 namespace ccxt.pro;
 
-public class BaseCache : SlimConcurrentList<object>
+public abstract class BaseCache : SlimConcurrentList<object>
 {
+    public abstract Int64? getLimit(object symbol, object limit);
+
+    public abstract void append(object item);
+
+    // typed entry points for receivers only known as object; a null or non-cache receiver
+    // throws NullReferenceException, as the reflective callDynamically lookup did
+    public static Int64? getLimitOf(object cache, object symbol, object limit)
+    {
+        if (cache is BaseCache typed)
+        {
+            return typed.getLimit(symbol, limit);
+        }
+        throw new NullReferenceException();
+    }
+
+    public static void appendTo(object cache, object item)
+    {
+        if (cache is BaseCache typed)
+        {
+            typed.append(item);
+            return;
+        }
+        throw new NullReferenceException();
+    }
+
     // Add any custom properties or methods
     public int? maxSize;
 
@@ -162,7 +187,7 @@ public class ArrayCache : BaseCache
     // Int64? (not object/int): the generated `limitVar` shadows receive this through
     // callDynamically and are declared Int64? -- every path must hand back an Int64 box or null,
     // and ToInt64Arg normalises the incoming object without turning a null limit into 0.
-    public Int64? getLimit(object symbol2, object limit2)
+    public override Int64? getLimit(object symbol2, object limit2)
     {
         lock (this.lockObject)
         {
@@ -207,7 +232,7 @@ public class ArrayCache : BaseCache
         }
     }
 
-    public virtual void append(object item)
+    public override void append(object item)
     {
         lock (this.lockObject)
         {
@@ -284,7 +309,7 @@ public class ArrayCacheByTimestamp : BaseCache
 
     // Int64? for the same reason as ArrayCache.getLimit: callDynamically feeds the generated
     // Int64? `limitVar` shadows, so every path hands back an Int64 box or null.
-    public Int64? getLimit(object symbol, object limit2)
+    public override Int64? getLimit(object symbol, object limit2)
     {
         lock (this.lockObject)
         {
@@ -305,7 +330,7 @@ public class ArrayCacheByTimestamp : BaseCache
         return Math.Min(this.newUpdates, limit);
     }
 
-    public virtual void append(object item)
+    public override void append(object item)
     {
         lock (this.lockObject)
         {

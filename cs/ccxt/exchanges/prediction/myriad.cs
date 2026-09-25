@@ -4366,7 +4366,7 @@ public partial class myriad : PredictionExchange
             { "unrealizedPnl", null },
         });
         object stored = this.positions;
-        callDynamically(stored, "append", new object[] {parsed});
+        ccxt.pro.BaseCache.appendTo(stored, parsed);
         client.resolve(stored, "positions");
     }
 
