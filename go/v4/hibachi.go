@@ -1588,7 +1588,7 @@ func (this *Hibachi) withdrawBody(ch chan any, code any, amount any, address any
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var withdrawAddress string = Slice(address, OpNeg(40), nil)
+	var withdrawAddress string = Slice(address, -40, nil)
 	// Get the withdraw fees
 
 	exchangeInfo := (<-this.PublicGetMarketExchangeInfo(params))
@@ -1662,7 +1662,7 @@ func (this *Hibachi) SignMessage(message any, privateKey any) any {
 	} else {
 		// For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
 		var hash any = this.Hash(message, sha256, "hex")
-		var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+		var signature map[string]any = Ecdsa(Slice(hash, -64, nil), Slice(privateKey, -64, nil), secp256k1, nil)
 		var r any = signature["r"]
 		var s any = signature["s"]
 		var v string = this.IntToBase16(signature["v"])

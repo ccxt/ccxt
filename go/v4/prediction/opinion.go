@@ -2068,7 +2068,7 @@ func (this *Opinion) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
 func (this *Opinion) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, -64, nil), ccxt.Slice(privateKey, -64, nil), ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches
 	var rRaw any = signature["r"]
 	var sRaw any = signature["s"]
@@ -2081,7 +2081,7 @@ func (this *Opinion) SignHash(hash any, privateKey any) any {
 	}
 }
 func (this *Opinion) SignMessage(message any, privateKey any) any {
-	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil))
+	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, -64, nil))
 }
 func (this *Opinion) SignApiKeyAuth(walletAddress any, action any, timestamp any) any {
 	// EIP-712 signature used to create/get/delete an API key (wallet-authenticated key management)

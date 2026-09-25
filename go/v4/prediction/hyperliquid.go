@@ -1045,7 +1045,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome any, optionalArgs .
 			}
 			return 100
 		}()
-		var startOffset any = ccxt.Multiply(ccxt.Multiply(tf, candleCount), ccxt.OpNeg(1000))
+		var startOffset any = ccxt.Multiply(ccxt.Multiply(tf, candleCount), -1000)
 		startTime = this.Sum(until, startOffset)
 		if ccxt.IsEqual(startTime, nil) {
 			panic(ccxt.ExchangeError(this.Id + " fetchOHLCV() missing startTime"))
@@ -2656,7 +2656,7 @@ func (this *Hyperliquid) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
 func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, -64, nil), ccxt.Slice(privateKey, -64, nil), ccxt.Secp256k1, nil)
 	// assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
 	// padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
 	var rRaw any = signature["r"]
@@ -2670,7 +2670,7 @@ func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
 	}
 }
 func (this *Hyperliquid) SignMessage(message any, privateKey any) any {
-	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil))
+	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, -64, nil))
 }
 func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) any {
 	isTestnet := ccxt.GetArg(optionalArgs, 0, true)

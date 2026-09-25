@@ -20,9 +20,9 @@ func TestPrecisionFromString() {
 	// Test 4: Scientific notation with decimal
 	Assert((ccxt.IsEqual(exchange.PrecisionFromString("2.5e-6"), 6)))
 	// Test 5: Scientific notation positive exponent
-	Assert((ccxt.IsEqual(exchange.PrecisionFromString("1e4"), ccxt.OpNeg(4))))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("1e4"), -4)))
 	// Test 6: Scientific notation explicit positive
-	Assert((ccxt.IsEqual(exchange.PrecisionFromString("1e+4"), ccxt.OpNeg(4))))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("1e+4"), -4)))
 	// Test 7: Decimal string 4 places
 	Assert((ccxt.IsEqual(exchange.PrecisionFromString("0.0001"), 4)))
 	// Test 8: Decimal string 5 places
@@ -58,9 +58,9 @@ func TestPrecisionFromString() {
 	// Test 23: Negative decimal mantissa
 	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-2.5e-6"), 6)))
 	// Test 24: Negative mantissa with positive exponent
-	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-1e4"), ccxt.OpNeg(4))))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-1e4"), -4)))
 	// Test 25: Explicitly positive mantissa
 	Assert((ccxt.IsEqual(exchange.PrecisionFromString("+1e-4"), 4)))
 	// Test 26: Negative mantissa with explicitly signed exponent
-	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-1e+4"), ccxt.OpNeg(4))))
+	Assert((ccxt.IsEqual(exchange.PrecisionFromString("-1e+4"), -4)))
 }

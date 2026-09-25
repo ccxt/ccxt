@@ -2019,7 +2019,7 @@ func (this *Predictfun) HashMessage(message any) any {
  * @returns {string} the 65 byte signature, 0x prefixed
  */
 func (this *Predictfun) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, -64, nil), ccxt.Slice(privateKey, -64, nil), ccxt.Secp256k1, nil)
 	// assign before padStart so the php str_pad regex matches, it only handles a bare identifier
 	var rRaw any = signature["r"]
 	var sRaw any = signature["s"]

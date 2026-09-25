@@ -1664,7 +1664,7 @@ func (this *Derive) HashOrderMessage(order any) any {
 }
 func (this *Derive) SignOrder(order any, privateKey any) any {
 	var hashOrder any = this.HashOrderMessage(order)
-	return this.SignHash(Slice(hashOrder, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil))
+	return this.SignHash(Slice(hashOrder, -64, nil), Slice(privateKey, -64, nil))
 }
 func (this *Derive) HashMessage(message any) any {
 	var binaryMessage string = this.Encode(message)
@@ -1676,14 +1676,14 @@ func (this *Derive) HashMessage(message any) any {
 }
 func (this *Derive) SignHash(hash any, privateKey any) any {
 	this.CheckRequiredCredentials()
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, -64, nil), Slice(privateKey, -64, nil), secp256k1, nil)
 	var r any = signature["r"]
 	var s any = signature["s"]
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
 func (this *Derive) SignMessage(message any, privateKey any) any {
-	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
+	return this.SignHash(this.HashMessage(message), Slice(privateKey, -64, nil))
 }
 func (this *Derive) ParseUnits(num any, optionalArgs ...any) *string {
 	dec := GetArg(optionalArgs, 0, "1000000000000000000")

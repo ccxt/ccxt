@@ -3643,14 +3643,14 @@ func (this *Modetrade) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
 func (this *Modetrade) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, -64, nil), Slice(privateKey, -64, nil), secp256k1, nil)
 	var r any = signature["r"]
 	var s any = signature["s"]
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
 func (this *Modetrade) SignMessage(message any, privateKey any) any {
-	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
+	return this.SignHash(this.HashMessage(message), Slice(privateKey, -64, nil))
 }
 
 /**

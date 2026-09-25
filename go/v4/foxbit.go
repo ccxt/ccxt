@@ -2578,7 +2578,7 @@ func (this *Foxbit) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		if amount == nil {
 			panic(ArgumentsRequired(this.Id + " parseLedgerEntry() requires a amount argument"))
 		}
-		realAmount = Multiply(amount, OpNeg(1))
+		realAmount = Multiply(amount, -1)
 	}
 	if balance == nil {
 		panic(ExchangeError(this.Id + " parseLedgerEntry() missing balance"))

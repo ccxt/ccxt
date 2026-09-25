@@ -1528,7 +1528,7 @@ func (this *Dydx) HashMessage(message any) any {
 	return this.Hash(message, keccak, "hex")
 }
 func (this *Dydx) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, -64, nil), Slice(privateKey, -64, nil), secp256k1, nil)
 	var r any = signature["r"]
 	var s any = signature["s"]
 	return map[string]any{
@@ -1538,7 +1538,7 @@ func (this *Dydx) SignHash(hash any, privateKey any) any {
 	}
 }
 func (this *Dydx) SignMessage(message any, privateKey any) any {
-	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
+	return this.SignHash(this.HashMessage(message), Slice(privateKey, -64, nil))
 }
 func (this *Dydx) SignOnboardingAction() any {
 	var message map[string]any = map[string]any{

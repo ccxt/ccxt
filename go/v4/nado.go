@@ -3945,7 +3945,7 @@ func (this *Nado) SignHash(hash any, privateKey any) any {
 	if IsEqual(privateKey, nil) {
 		panic(ArgumentsRequired(this.Id + " signHash() requires privateKey"))
 	}
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, -64, nil), Slice(privateKey, -64, nil), secp256k1, nil)
 	var r any = signature["r"]
 	var s any = signature["s"]
 	var v string = strings.ToLower(this.IntToBase16(this.Sum(27, signature["v"])))
@@ -3956,7 +3956,7 @@ func (this *Nado) RemoveMarketSuffix(marketId any) any {
 		return nil
 	}
 	if EndsWith(marketId, "-PERP") {
-		return Slice(marketId, 0, OpNeg(5))
+		return Slice(marketId, 0, -5)
 	}
 	return marketId
 }

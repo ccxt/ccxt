@@ -743,7 +743,7 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	if maker != nil {
 		takerOrMaker = func() string {
-			if ccxt.IsEqual(maker, ccxt.OpNeg(1)) {
+			if ccxt.IsEqual(maker, -1) {
 				return "taker"
 			}
 			return "maker"

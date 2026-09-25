@@ -5269,7 +5269,7 @@ func (this *Aster) KeccakMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
 func (this *Aster) SignMessage(message any, privateKey any) any {
-	return this.SignHash(this.KeccakMessage(message), Slice(privateKey, OpNeg(64), nil))
+	return this.SignHash(this.KeccakMessage(message), Slice(privateKey, -64, nil))
 }
 func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) any {
 	var chainId *int64 = this.SafeInteger(withdrawPayload, "chainId")
@@ -5513,7 +5513,7 @@ func (this *Aster) HashMessage(binaryMessage any) any {
 }
 func (this *Aster) SignHash(hash any, privateKey any) any {
 	this.CheckRequiredCredentials()
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, -64, nil), Slice(privateKey, -64, nil), secp256k1, nil)
 	var r any = signature["r"]
 	var s any = signature["s"]
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
@@ -5641,7 +5641,7 @@ func (this *Aster) EncodeValuesWithJson(values any) any {
 		var encoded string = this.EncodeURIComponent(valueJsonified)
 		encodedString = Add(encodedString, key+"="+encoded+"&")
 	}
-	return Slice(encodedString, 0, OpNeg(1))
+	return Slice(encodedString, 0, -1)
 }
 func (this *Aster) CapitalizeKeys(dict any) any {
 	var capitalized map[string]any = map[string]any{}

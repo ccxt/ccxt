@@ -3956,7 +3956,7 @@ func (this *Polymarket) EthChecksumAddress(address any) any {
 	return ccxt.Add("0x", result)
 }
 func (this *Polymarket) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, -64, nil), ccxt.Slice(privateKey, -64, nil), ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
 	var rRaw any = signature["r"]
 	var sRaw any = signature["s"]
@@ -3969,7 +3969,7 @@ func (this *Polymarket) SignHash(hash any, privateKey any) any {
 	}
 }
 func (this *Polymarket) SignMessage(message any, privateKey any) any {
-	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil))
+	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, -64, nil))
 }
 func (this *Polymarket) SignClobAuth(address any, timestamp any, nonce any) any {
 	// EIP-712 ClobAuth signature used for L1 auth (creating/deriving L2 api credentials)

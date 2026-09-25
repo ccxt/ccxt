@@ -888,7 +888,7 @@ func (this *Extended) ParseCurrency(currency any) any {
 		"active":    isActive,
 		"deposit":   true,
 		"withdraw":  true,
-		"precision": MathPow(10, Multiply(precision, OpNeg(1))),
+		"precision": MathPow(10, Multiply(precision, -1)),
 		"type":      "other",
 		"margin":    this.SafeBool(currency, "canBeUsedAsCollateral"),
 		"info":      currency,

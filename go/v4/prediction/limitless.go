@@ -2873,7 +2873,7 @@ func (this *Limitless) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
 func (this *Limitless) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, -64, nil), ccxt.Slice(privateKey, -64, nil), ccxt.Secp256k1, nil)
 	var r any = signature["r"]
 	var s any = signature["s"]
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
@@ -2883,7 +2883,7 @@ func (this *Limitless) SignHash(hash any, privateKey any) any {
 	return ccxt.ToLower(result)
 }
 func (this *Limitless) SignMessage(message any, privateKey any) any {
-	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil))
+	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, -64, nil))
 }
 func (this *Limitless) SignEvmTransaction(tx any, privateKey any) any {
 	// builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex

@@ -1897,7 +1897,7 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, 
 	var prevSeqId *int64 = this.SafeInteger(message, "prevSeqId")
 	var nonce any = ccxt.GetValue(orderbook, "nonce")
 	var error any = nil
-	if (prevSeqId != nil) && !ccxt.IsEqual(prevSeqId, ccxt.OpNeg(1)) && !ccxt.IsEqual(nonce, prevSeqId) {
+	if (prevSeqId != nil) && !ccxt.IsEqual(prevSeqId, -1) && !ccxt.IsEqual(nonce, prevSeqId) {
 		error = ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
 	}
 	if !ccxt.IsEqual(error, nil) {

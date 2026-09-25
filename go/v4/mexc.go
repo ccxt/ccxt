@@ -3581,7 +3581,7 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 				}
 			}
 		} else if until != nil {
-			request["start_time"] = this.Sum(until, Multiply(GetValue(this.Options, "maxTimeTillEnd"), OpNeg(1)))
+			request["start_time"] = this.Sum(until, Multiply(GetValue(this.Options, "maxTimeTillEnd"), -1))
 			request["end_time"] = until
 		}
 		if limit != nil {
