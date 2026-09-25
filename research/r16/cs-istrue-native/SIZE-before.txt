@@ -1,0 +1,25 @@
+360 local:bool?
+     phemex.cs:5703 paginate local:bool?
+     bittrade.cs:1946 createMarketBuyOrderRequiresPrice local:bool?
+     whitebit.cs:2716 isMargin local:bool?
+     whitebit.cs:4822 paginate local:bool?
+99 param:object
+     phemex.cs:5149 hedged param:object:SetPositionMode
+     okx.cs:8614 hedged param:object:SetPositionMode
+     okx.cs:9683 enable param:object:setSandboxMode
+     blofin.cs:3537 hedged param:object:SetPositionMode
+11 nonident
+     whitebit.cs:2833 this.isDictionary(balance) this.isDictionary(balance)
+     pacifica.cs:4064 this.isDictionary(value) this.isDictionary(value)
+     binance.cs:13923 (reload) (reload)
+     bithumb.cs:1198 this.isDictionary(response) this.isDictionary(response)
+9 local:bool
+     okx.cs:4427 postOnly local:bool
+     hashkey.cs:2909 postOnly local:bool
+     hashkey.cs:2978 postOnly local:bool
+     bullish.cs:2057 postOnly local:bool
+4 local:object
+     coinex.cs:2991 reduceOnly local:object
+     prediction/limitless.cs:2791 warn local:object
+     prediction/limitless.cs:2842 paginate local:object
+     pro/bingx.cs:345 inverse local:object
