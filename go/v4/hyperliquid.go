@@ -158,7 +158,7 @@ func (this *Hyperliquid) Describe() any {
 			"public": map[string]any{
 				"post": map[string]any{
 					"info": map[string]any{
-						"cost": 20,
+						"cost": 10,
 						"byType": map[string]any{
 							"l2Book":                 2,
 							"allMids":                2,
