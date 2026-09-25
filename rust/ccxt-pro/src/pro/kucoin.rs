@@ -949,7 +949,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
-                add_element_to_object(&mut newDict, &tickers.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), tickers.clone());
+                let mut tickersSymbol: Value = self.safe_string_k(tickers.clone(), "symbol", &[]);
+                if (tickersSymbol != Value::Null) {
+                    if let Value::Dict(__d) = &mut newDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickersSymbol), tickers.clone()); }
+                }
                 return newDict;
             }
         }
@@ -1294,7 +1297,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut tickers, &crate::value::get_value_k(&ticker, "symbol"), ticker.clone());
+            let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
+            if (tickerSymbol != Value::Null) {
+                if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker); }
+            }
             return tickers;
         }
         return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);

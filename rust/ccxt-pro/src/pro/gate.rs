@@ -1412,7 +1412,10 @@ impl GateCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut items, &crate::value::get_value_k(&tickerOrBidAsk, "symbol"), tickerOrBidAsk.clone());
+            let mut tickerOrBidAskSymbol: Value = self.safe_string_k(tickerOrBidAsk.clone(), "symbol", &[]);
+            if (tickerOrBidAskSymbol != Value::Null) {
+                if let Value::Dict(__d) = &mut items { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerOrBidAskSymbol), tickerOrBidAsk); }
+            }
             return items;
         }
         let mut result: Value = (if isWatchTickers { self.tickers.clone() } else { self.bidsasks.clone() });

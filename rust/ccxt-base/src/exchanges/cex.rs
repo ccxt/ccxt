@@ -1361,8 +1361,9 @@ impl CexCore {
                 market = self.safe_market(&[key.clone()]);
             }
             let mut parsed: Value = self.parse_trading_fee(response.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market.clone()]);
-            if (parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) != Value::Null) {
-                add_element_to_object(&mut result, &parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), parsed.clone());
+            let mut parsedSymbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
+            if (parsedSymbol != Value::Null) {
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&parsedSymbol), parsed); }
             }
         }
         }
