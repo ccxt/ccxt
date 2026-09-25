@@ -1413,7 +1413,7 @@ public class Hyperliquid extends HyperliquidApi
                 sideHintOrDefault = sideHint;
             }
             Object found = this.findOutcomeInMarket((Map<String, Object>) (market), Helpers.toStringArg(sideHintOrDefault));
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)found).keySet())).size() > 0)
+            if (((Map<String, Object>)found).size() > 0)
             {
                 return found;
             }

@@ -3592,7 +3592,7 @@ public class Lbank extends LbankApi
         }
         if (java.util.Objects.equals(Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(this.keysort(query))));
             }

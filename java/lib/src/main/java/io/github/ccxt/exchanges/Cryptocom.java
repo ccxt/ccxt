@@ -4409,7 +4409,7 @@ public class Cryptocom extends CryptocomApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(access, "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

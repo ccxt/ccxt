@@ -5260,7 +5260,7 @@ public class Weex extends WeexApi
         Boolean isBatch = (((String)path).indexOf("batch") >= 0);
         if (!Boolean.TRUE.equals(isBatch) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 endpoint = (endpoint + ("?" + this.urlencode(query)));
             }

@@ -6374,7 +6374,7 @@ public class Coinex extends CoinexApi
             }
         } else if (java.util.Objects.equals(requestUrl, "public") || java.util.Objects.equals(requestUrl, "perpetualPublic"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

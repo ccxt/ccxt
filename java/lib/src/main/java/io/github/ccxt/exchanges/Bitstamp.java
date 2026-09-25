@@ -3679,7 +3679,7 @@ public class Bitstamp extends BitstampApi
             put( "foo", "bar" );
         }});
         String postBody = emptyPostBody;
-        if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+        if (Helpers.objectKeys(query).size() > 0)
         {
             postBody = this.urlencode(query);
         }
@@ -3691,7 +3691,7 @@ public class Bitstamp extends BitstampApi
         Map<String, Object> privateHeaders = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

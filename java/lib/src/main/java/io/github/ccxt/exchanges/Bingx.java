@@ -7554,7 +7554,7 @@ public class Bingx extends BingxApi
         Map<String,Object> paramsSorted = this.keysort(paramsOmitted);
         if (java.util.Objects.equals(access, "public"))
         {
-            if (((List<?>)new ArrayList<Object>(paramsSorted.keySet())).size() > 0)
+            if (paramsSorted.size() > 0)
             {
                 url = (url + ("?" + this.urlencode(paramsSorted)));
             }

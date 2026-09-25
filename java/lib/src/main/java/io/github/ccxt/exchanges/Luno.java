@@ -1990,7 +1990,7 @@ public class Luno extends LunoApi
         String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Map<String, Object> requestHeaders = null;
-        if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+        if (Helpers.objectKeys(query).size() > 0)
         {
             url = (url + ("?" + this.urlencode(query)));
         }

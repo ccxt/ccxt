@@ -4384,7 +4384,7 @@ public class Poloniex extends PoloniexApi
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "swapPublic"))
         {
             url = (url + ("/" + implodedPath));
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -4398,7 +4398,7 @@ public class Poloniex extends PoloniexApi
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
             {
                 auth = (auth + "\n"); // eslint-disable-line quotes
-                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     bodyJson = this.json(query);
                     auth = (auth + (("requestBody=" + bodyJson) + "&"));
@@ -4411,7 +4411,7 @@ public class Poloniex extends PoloniexApi
                 }}, query);
                 sortedQuery = this.keysort(sortedQuery);
                 auth = (auth + ("\n" + this.urlencode(sortedQuery))); // eslint-disable-line quotes
-                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

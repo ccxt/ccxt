@@ -6228,7 +6228,7 @@ public class Coinbase extends CoinbaseApi
         String savedPath = fullPath;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 fullPath = (fullPath + ("?" + this.urlencodeWithArrayRepeat(query)));
             }
@@ -6256,7 +6256,7 @@ public class Coinbase extends CoinbaseApi
                 String payload = "";
                 if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
-                    if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                    if (Helpers.objectKeys(query).size() > 0)
                     {
                         requestBody = this.json(query);
                         payload = requestBody;
@@ -6265,7 +6265,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     if (!Boolean.TRUE.equals(isV3))
                     {
-                        if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                        if (Helpers.objectKeys(query).size() > 0)
                         {
                             payload = (payload + ("?" + this.urlencode(query)));
                         }
@@ -6328,7 +6328,7 @@ public class Coinbase extends CoinbaseApi
                 );
                 if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
-                    if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                    if (Helpers.objectKeys(query).size() > 0)
                     {
                         requestBody = this.json(query);
                     }

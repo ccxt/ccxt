@@ -8340,7 +8340,7 @@ public class Okx extends OkxApi
         // const type = this.getPathAuthenticationType (path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -8374,7 +8374,7 @@ public class Okx extends OkxApi
                     }
                 }
             }
-            hasJsonBody = (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (Boolean.TRUE.equals(isArray) || (((List<?>)Helpers.objectKeys(query)).size() > 0));
+            hasJsonBody = (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (Boolean.TRUE.equals(isArray) || (Helpers.objectKeys(query).size() > 0));
             jsonBody = ((Boolean.TRUE.equals(hasJsonBody))) ? this.json(query) : null;
             String timestamp = this.iso8601(this.nonce());
             privateHeaders = Helpers.newMap(
@@ -8385,7 +8385,7 @@ public class Okx extends OkxApi
             Object auth = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + request);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     String urlencodedQuery = ("?" + this.urlencode(query));
                     url = (url + urlencodedQuery);

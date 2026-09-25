@@ -8909,7 +8909,7 @@ public class Gate extends GateApi
         url = Helpers.add(url, entirePath);
         if (java.util.Objects.equals(authentication, "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = Helpers.add(url, ("?" + this.urlencode(query)));
             }
@@ -8927,7 +8927,7 @@ public class Gate extends GateApi
             }
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) || Boolean.TRUE.equals(requiresURLEncoding) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PATCH")))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     // https://github.com/ccxt/ccxt/issues/27663
                     // sort explicitly (true) so the signed order matches the url order in Go,
@@ -8948,7 +8948,7 @@ public class Gate extends GateApi
             } else
             {
                 Map<String, Object> urlQueryParams = (Map<String, Object>) this.safeDict(query, "query", new HashMap<String, Object>() {{}});
-                if (((List<?>)new ArrayList<Object>(urlQueryParams.keySet())).size() > 0)
+                if (urlQueryParams.size() > 0)
                 {
                     queryString = this.urlencode(urlQueryParams);
                     url = Helpers.add(url, ("?" + queryString));

@@ -4421,7 +4421,7 @@ public class Krakenfutures extends KrakenfuturesApi
         if (java.util.Objects.equals(path, "batchorder"))
         {
             postData = ("json=" + this.json(paramsOmitted2));
-        } else if (((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsOmitted2).keySet())).size() > 0)
+        } else if (((Map<String, Object>)paramsOmitted2).size() > 0)
         {
             if (((Map<?, ?>)paramsOmitted2).containsKey("orderIds"))
             {

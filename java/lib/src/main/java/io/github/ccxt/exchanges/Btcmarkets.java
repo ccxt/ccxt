@@ -1721,7 +1721,7 @@ public class Btcmarkets extends BtcmarketsApi
             String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + request) + nonce);
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
             {
-                if (((List<?>)new ArrayList<Object>(query.keySet())).size() > 0)
+                if (query.size() > 0)
                 {
                     request = (request + ("?" + this.urlencode(query)));
                 }
@@ -1741,7 +1741,7 @@ public class Btcmarkets extends BtcmarketsApi
             }};
         } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)new ArrayList<Object>(query.keySet())).size() > 0)
+            if (query.size() > 0)
             {
                 request = (request + ("?" + this.urlencode(query)));
             }

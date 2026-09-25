@@ -2908,7 +2908,7 @@ public class Upbit extends UpbitApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -2929,7 +2929,7 @@ public class Upbit extends UpbitApi
                 put( "access_key", Upbit.this.apiKey );
                 put( "nonce", nonce );
             }};
-            Integer hasQuery = ((List<?>)Helpers.objectKeys(query)).size();
+            Integer hasQuery = Helpers.objectKeys(query).size();
             String auth = null;
             if (Boolean.TRUE.equals(hasBody))
             {

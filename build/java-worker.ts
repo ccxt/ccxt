@@ -2,7 +2,7 @@ import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import { patchJavaLocalTypes } from './javaTranspiler.js';
 import { installJavaExpressionTypeResolver } from './javaTranspiler.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength } from './java-local-types.js';
 import log from 'ololog'
 
 // task payload posted by javaTranspiler.ts#webworkerTranspile (structured clone)
@@ -69,6 +69,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         patchJavaBaseMapFieldReceiverCasts (cachedTranspiler);
         patchJavaFreshMapElementWrites (cachedTranspiler);
         patchJavaDeclaredBoxLiteralEquality (cachedTranspiler);
+        patchJavaObjectKeysLength (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

@@ -2354,7 +2354,7 @@ public class Zebpay extends ZebpayApi
         String timestamp = String.valueOf(this.milliseconds());
         Object signature = "";
         Object query = this.omit(paramsOmitted, this.extractParams(path));
-        Integer queryLength = ((List<?>)Helpers.objectKeys(query)).size();
+        Integer queryLength = Helpers.objectKeys(query).size();
         String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0, "public");
         if (java.util.Objects.equals(access, "public"))
         {

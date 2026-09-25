@@ -3120,7 +3120,7 @@ public class Bitvavo extends BitvavoApi
         Boolean getOrDelete = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
         if (Boolean.TRUE.equals(getOrDelete))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -3131,7 +3131,7 @@ public class Bitvavo extends BitvavoApi
             String payload = "";
             if (!Boolean.TRUE.equals(getOrDelete))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     requestBody = this.json(query);
                     payload = requestBody;

@@ -672,7 +672,7 @@ public class Zaif extends ZaifApi
             if (java.util.Objects.equals(numTrades, 1))
             {
                 Map<String, Object> firstTrade = (Map<String, Object>) this.safeDict(trades, 0, new HashMap<String, Object>() {{}});
-                if ((((List<?>)new ArrayList<Object>(firstTrade.keySet())).size() == 0))
+                if ((firstTrade.size() == 0))
                 {
                     trades = new ArrayList<Object>(Arrays.asList());
                 }

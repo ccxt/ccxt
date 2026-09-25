@@ -9315,7 +9315,7 @@ public class Htx extends HtxApi
                 }
             } else
             {
-                if ((!java.util.Objects.equals(query, null)) && (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0))
+                if ((!java.util.Objects.equals(query, null)) && (((Map<String, Object>)query).size() > 0))
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -9350,7 +9350,7 @@ public class Htx extends HtxApi
             url = Helpers.add(url, this.implodeParams(path, parameters));
             if (java.util.Objects.equals(access, "public"))
             {
-                if ((!java.util.Objects.equals(query, null)) && (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0))
+                if ((!java.util.Objects.equals(query, null)) && (((Map<String, Object>)query).size() > 0))
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

@@ -4284,7 +4284,7 @@ public class Kraken extends KrakenApi
         Object url = ((((("/" + this.version) + "/") + java.util.Objects.requireNonNullElse(api, "public")) + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = (url + ("?" + this.urlencodeNested(parameters)));

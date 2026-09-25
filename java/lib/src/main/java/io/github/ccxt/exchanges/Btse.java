@@ -4425,7 +4425,7 @@ public class Btse extends BtseApi
         String queryString = "";
         if (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))) && !Boolean.TRUE.equals(isBodyDelete))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 queryString = this.urlencode(query);
                 url = (url + ("?" + queryString));

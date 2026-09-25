@@ -4216,7 +4216,7 @@ public class Extended extends ExtendedApi
             }
         }
         url = (((url + "/api/") + version) + endpoint);
-        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE") || Boolean.TRUE.equals(queryPost)) && (((List<?>)Helpers.objectKeys(query)).size() > 0))
+        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE") || Boolean.TRUE.equals(queryPost)) && (Helpers.objectKeys(query).size() > 0))
         {
             url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));
         }

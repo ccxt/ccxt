@@ -1262,7 +1262,7 @@ public class Btcturk extends BtcturkApi
         Boolean isQueryMethod = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
         if (Boolean.TRUE.equals(isQueryMethod))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }

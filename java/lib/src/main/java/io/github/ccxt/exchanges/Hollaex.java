@@ -2359,7 +2359,7 @@ public class Hollaex extends HollaexApi
         String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 requestPath = (requestPath + ("?" + this.urlencode(query)));
             }
@@ -2386,7 +2386,7 @@ public class Hollaex extends HollaexApi
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
                 requestHeaders.put("Content-type", "application/json");
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     requestBody = this.json(query);
                     auth = (auth + requestBody);

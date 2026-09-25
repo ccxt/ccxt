@@ -7207,7 +7207,7 @@ public class Mexc extends MexcApi
                 }
             }
             String paramsEncoded = "";
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)urlParams).keySet())).size() > 0)
+            if (((Map<String, Object>)urlParams).size() > 0)
             {
                 paramsEncoded = this.urlencode(urlParams);
                 url = (url + ("?" + paramsEncoded));
@@ -7238,7 +7238,7 @@ public class Mexc extends MexcApi
             Object paramsOmitted = this.omit(paramsValue, this.extractParams(pathValue));
             if (java.util.Objects.equals(access, "public"))
             {
-                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsOmitted).keySet())).size() > 0)
+                if (((Map<String, Object>)paramsOmitted).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(paramsOmitted)));
                 }
@@ -7260,7 +7260,7 @@ public class Mexc extends MexcApi
                 } else
                 {
                     Map<String,Object> paramsSorted = this.keysort(paramsOmitted);
-                    if (((List<?>)new ArrayList<Object>(paramsSorted.keySet())).size() > 0)
+                    if (paramsSorted.size() > 0)
                     {
                         auth = Helpers.add(auth, this.urlencode(paramsSorted));
                         url = (url + ("?" + auth));
