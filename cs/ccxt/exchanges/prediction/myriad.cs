@@ -1076,7 +1076,7 @@ public partial class myriad : PredictionExchange
         }
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTif);
         object priceValue = price;
-        if (isEqual(priceValue, null))
+        if ((priceValue == null))
         {
             if (isMarket)
             {
@@ -2333,7 +2333,7 @@ public partial class myriad : PredictionExchange
             return null;
         }
         string scale = "1";
-        if (isEqual(decimals, null))
+        if ((decimals == null))
         {
             throw new ExchangeError ((this.id + " fromWeiWithDecimals() missing decimals")) ;
         }
@@ -2811,7 +2811,7 @@ public partial class myriad : PredictionExchange
         if (((price != null)) && ((change != null)))
         {
             previousClose = subtract(price, change);
-            if (isEqual(previousClose, null))
+            if ((previousClose == null))
             {
                 throw new ExchangeError ((this.id + " method() missing previousClose")) ;
             }

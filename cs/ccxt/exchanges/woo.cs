@@ -1888,7 +1888,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual string? encodeMarginMode(object mode)
+    public virtual string? encodeMarginMode(string? mode)
     {
         Dictionary<string, object> modes = new Dictionary<string, object>() {
             { "cross", "CROSS" },

@@ -1875,7 +1875,7 @@ public partial class digifinex : Exchange
             request["period"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
             object startTime = since;
             int duration = this.parseTimeframe(timeframeVar);
-            if (isEqual(startTime, null))
+            if ((startTime == null))
             {
                 if (((limit != null)) || ((until != null)))
                 {
@@ -1884,7 +1884,7 @@ public partial class digifinex : Exchange
                     startTime = subtract(endTime, (multiply(multiply(startLimit, duration), 1000)));
                 }
             }
-            if (!isEqual(startTime, null))
+            if (!(startTime == null))
             {
                 startTime = this.parseToInt(divide(startTime, 1000));
                 request["start_time"] = startTime;

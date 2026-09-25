@@ -1139,7 +1139,7 @@ public partial class bithumb : Exchange
             } else
             {
                 object maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
-                if ((isEqual(maxMarketIdsPerRequest, null)) || (isLessThan(maxMarketIdsPerRequest, 1)))
+                if (((maxMarketIdsPerRequest == null)) || (isLessThan(maxMarketIdsPerRequest, 1)))
                 {
                     maxMarketIdsPerRequest = 300;
                 }
@@ -1621,7 +1621,7 @@ public partial class bithumb : Exchange
         //
         // a workaround for their bug in date format, hours are not 0-padded
         object timestamp = this.safeInteger(trade, "timestamp");
-        bool isGenerationTwo = (!isEqual(timestamp, null));
+        bool isGenerationTwo = (!(timestamp == null));
         string? transactionDatetime = this.safeString(trade, "transaction_date");
         if ((transactionDatetime != null))
         {
@@ -1641,7 +1641,7 @@ public partial class bithumb : Exchange
                 timestamp = this.safeIntegerProduct(trade, "transaction_date", 0.001);
             }
         }
-        if ((!isEqual(timestamp, null)) && (!isGenerationTwo))
+        if ((!(timestamp == null)) && (!isGenerationTwo))
         {
             timestamp = subtract(timestamp, (9L * 3600000L)); // they report UTC + 9 hours, server in Korean timezone
         }

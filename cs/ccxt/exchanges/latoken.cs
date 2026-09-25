@@ -738,7 +738,7 @@ public partial class latoken : Exchange
             Int64? timestamp = this.safeInteger(balance, "timestamp");
             if ((timestamp != null))
             {
-                if (isEqual(maxTimestamp, null))
+                if ((maxTimestamp == null))
                 {
                     maxTimestamp = timestamp;
                 } else

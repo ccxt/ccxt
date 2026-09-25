@@ -1487,13 +1487,13 @@ public partial class pacifica : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Int64 nowMillis = this.milliseconds();
         object until = this.safeInteger(requestUntil, "end_time");
-        if (isEqual(until, null))
+        if ((until == null))
         {
             if ((limit != null))
             {
                 until = subtract(add(since, ((limit * (multiply(this.parseTimeframe(tf), 1000))))), 1);
             }
-            if (isEqual(until, null))
+            if ((until == null))
             {
                 until = subtract((since + ((defaultMaxLimit * (multiply(this.parseTimeframe(tf), 1000))))), 1);
             }
@@ -1947,7 +1947,7 @@ public partial class pacifica : Exchange
         {
             sigPayload["price"] = this.priceToPrecision(symbol, price);
         }
-        if (!isEqual(amount, null) && (operationType != "create_stop_order" && operationType != "set_position_tpsl"))
+        if (!(amount == null) && (operationType != "create_stop_order" && operationType != "set_position_tpsl"))
         {
             sigPayload["amount"] = this.amountToPrecision(symbol, amount);
         }
@@ -1999,7 +1999,7 @@ public partial class pacifica : Exchange
         //
         int lenActions = getArrayLength(actions);
         object maxLen = this.handleOption("batchOrdersRequest", "batchOrdersMax");
-        if (!isEqual(maxLen, null))
+        if (!(maxLen == null))
         {
             if (isGreaterThan(lenActions, maxLen))
             {
@@ -2391,11 +2391,11 @@ public partial class pacifica : Exchange
         {
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
-        if (isEqual(amount, null))
+        if ((amount == null))
         {
             throw new ArgumentsRequired ((this.id + " editOrder() requires an amount!")) ;
         }
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new ArgumentsRequired ((this.id + " editOrder() requires a price")) ;
         }

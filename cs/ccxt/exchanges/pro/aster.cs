@@ -1117,7 +1117,7 @@ public partial class aster : ccxt.aster
         };
         object limit = this.safeNumber(paramsOmitted, "limit");
         Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted, "limit");
-        if (isEqual(limit, null) || (!isEqual(limit, 5) && !isEqual(limit, 10) && !isEqual(limit, 20)))
+        if ((limit == null) || (!isEqual(limit, 5) && !isEqual(limit, 10) && !isEqual(limit, 20)))
         {
             limit = 20;
         }

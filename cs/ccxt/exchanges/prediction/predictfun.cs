@@ -2156,7 +2156,7 @@ public partial class predictfun : PredictionExchange
         Int64? defaultExpiration = this.safeInteger(this.options, "defaultExpiration", 3600); // 1 hour
         Int64? expirationDelta = defaultExpiration;
         object expiration = this.safeInteger(paramsWarnOnMarketOrderWithoutPrice, "expiration");
-        if (isEqual(expiration, null))
+        if ((expiration == null))
         {
             if (isMarket)
             {

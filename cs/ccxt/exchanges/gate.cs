@@ -5755,7 +5755,7 @@ public partial class gate : Exchange
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         string? timeInForce = this.handleTimeInForce(paramsPostOnly);
-        if (isEqual(postOnly, true))
+        if ((postOnly == true))
         {
             timeInForce = "poc";
         }
@@ -5862,7 +5862,7 @@ public partial class gate : Exchange
                         quoteAmount = this.costToPrecision(symbol, cost);
                     } else if ((createMarketBuyOrderRequiresPrice == true))
                     {
-                        if (isEqual(priceResolved, null))
+                        if ((priceResolved == null))
                         {
                             throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                         } else
@@ -6799,7 +6799,7 @@ public partial class gate : Exchange
         var requestqueryVariable = spot ? this.multiOrderSpotPrepareRequest(market, trigger, paramsMarketType) : this.prepareRequest(market, type, paramsMarketType);
         request = (Dictionary<string, object>)((IList<object>)requestqueryVariable)[0];
         query = (Dictionary<string, object>)((IList<object>)requestqueryVariable)[1];
-        if (spot && (isEqual(trigger, true)))
+        if (spot && ((trigger == true)))
         {
             request = this.omit(request, "account");
         }

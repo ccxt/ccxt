@@ -1438,7 +1438,7 @@ public partial class blockchaincom : Exchange
         }
         string? errorCode = this.safeString(response, "status");
         string? errorMessage = this.safeString(response, "error");
-        if (!isEqual(code, null))
+        if (!(code == null))
         {
             string feedback = ((this.id + " ") + this.json(response));
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);

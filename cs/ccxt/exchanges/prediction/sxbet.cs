@@ -1483,7 +1483,7 @@ public partial class sxbet : PredictionExchange
     public virtual object clampSxbetPerPage(object limit)
     {
         int maxPerPage = 100;
-        if (isEqual(limit, null))
+        if ((limit == null))
         {
             return null;
         }

@@ -3139,7 +3139,7 @@ public partial class bybit : Exchange
             }
             string? expiryDatetime = this.iso8601(expiry);
             symbol = ((symbol + ":") + settle);
-            if (!isEqual(expiry, null))
+            if (!(expiry == null))
             {
                 symbol = ((symbol + "-") + this.yymmdd(expiry));
             }
@@ -3772,7 +3772,7 @@ public partial class bybit : Exchange
         };
         // default is 200 when requested with `since`
         object limitResolved = limitVar;
-        if (isEqual(limitResolved, null))
+        if ((limitResolved == null))
         {
             limitResolved = 200;
         }
@@ -5401,7 +5401,7 @@ public partial class bybit : Exchange
         {
             amountValue = amount;
         }
-        string? amountString = (!isEqual(amountValue, null)) ? this.getAmount(symbolValue, amountValue) : null;
+        string? amountString = (!(amountValue == null)) ? this.getAmount(symbolValue, amountValue) : null;
         object priceString = ((price != null)) ? this.getPrice(symbolValue, this.numberToString(price)) : null;
         if (endpointIsTradingStop)
         {
@@ -6234,7 +6234,7 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        if (isEqual(timeout, null))
+        if ((timeout == null))
         {
             throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
@@ -6546,7 +6546,7 @@ public partial class bybit : Exchange
         IList<object> isTriggerparamsTriggerVariable = (IList<object>)this.handleParamBool2(paramsValue, "trigger", "stop", false);
         bool? isTrigger = (bool?)isTriggerparamsTriggerVariable[0];
         IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable[1]);
-        if (isEqual(isTrigger, true))
+        if ((isTrigger == true))
         {
             request["orderFilter"] = "StopOrder";
         }
@@ -6608,7 +6608,7 @@ public partial class bybit : Exchange
         if ((innerListLength == 0))
         {
             string extra = " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-            if (isEqual(isTrigger, true))
+            if ((isTrigger == true))
             {
                 extra = "";
             }
@@ -9168,7 +9168,7 @@ public partial class bybit : Exchange
         request["startTime"] = sinceResolved;
         object endTime = this.safeInteger2(parameters, "until", "endTime");
         object paramsOmitted = this.omit(parameters, new List<object>() {"until"});
-        if (isEqual(endTime, null))
+        if ((endTime == null))
         {
             endTime = add(sinceResolved, (86400000L * 30L)); // since + 30 days
         }

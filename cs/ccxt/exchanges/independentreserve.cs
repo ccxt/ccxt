@@ -928,7 +928,7 @@ public partial class independentreserve : Exchange
         }
         Int64? pageIndex = this.safeInteger(parameters, "pageIndex", 1);
         object limitResolved = limitVar;
-        if (isEqual(limitResolved, null))
+        if ((limitResolved == null))
         {
             limitResolved = 50;
         }

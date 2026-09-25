@@ -1016,7 +1016,7 @@ public partial class bitopro : Exchange
         List<object> result = new List<object>() {};
         object copyFrom = getValue(candles, 0);
         object timestamp = null;
-        if (isEqual(since, null))
+        if ((since == null))
         {
             timestamp = getValue(copyFrom, 0);
         } else

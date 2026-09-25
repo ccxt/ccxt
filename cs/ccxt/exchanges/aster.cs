@@ -1122,11 +1122,11 @@ public partial class aster : Exchange
         }
     }
 
-    public virtual bool isLinear(object type, object subType = null)
+    public virtual bool isLinear(string? type, object subType = null)
     {
         if ((subType == null))
         {
-            return (isEqual(type, "future")) || (isEqual(type, "swap"));
+            return ((type == "future")) || ((type == "swap"));
         } else
         {
             return isEqual(subType, "linear");

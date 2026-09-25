@@ -577,7 +577,7 @@ public partial class gate : ccxt.gate
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalOptionparamsIntervalVariable[1]);
         object messageType = this.getTypeByMarket(market);
         object limit = this.safeInteger(paramsInterval, "limit");
-        if (isEqual(limit, null))
+        if ((limit == null))
         {
             limit = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? 50 : 100; // max 100 atm
             if (isEqual(messageType, "options"))
