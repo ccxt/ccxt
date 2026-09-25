@@ -3219,15 +3219,12 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         this.checkAddress(address);
-        object codeUpper = ((code != null)) ? code.ToUpper() : code;
-        if ((codeUpper != null))
+        string codeUpper = code.ToUpper();
+        if (codeUpper != "USDC")
         {
-            if (!isEqual(codeUpper, "USDC"))
-            {
-                throw new NotSupported ((this.id + " withdraw() only support USDC")) ;
-            }
+            throw new NotSupported ((this.id + " withdraw() only support USDC")) ;
         }
-        Dictionary<string, object> currency = this.currency(((string)codeUpper));
+        Dictionary<string, object> currency = this.currency(codeUpper);
         string? verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
         string? chainId = this.safeString(parameters, "chainId");
         IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});

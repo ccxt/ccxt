@@ -1636,7 +1636,7 @@ public partial class apex : Exchange
         string? accountId = this.safeString(accountData, "id", "");
         object currency = new Dictionary<string, object>() {};
         List<object> assets = new List<object>() {};
-        if ((fromAccount != null) && (fromAccount.ToLower() == "contract"))
+        if ((fromAccount.ToLower() == "contract"))
         {
             assets = contractAssets;
         } else
@@ -1663,7 +1663,7 @@ public partial class apex : Exchange
         }
         string? finalClientOrderId = clientOrderId; // java req
         object paramsOmitted = this.omit(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id"});
-        if ((fromAccount != null) && (fromAccount.ToLower() == "contract"))
+        if ((fromAccount.ToLower() == "contract"))
         {
             string formattedUint32 = "4294967295";
             string? zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
