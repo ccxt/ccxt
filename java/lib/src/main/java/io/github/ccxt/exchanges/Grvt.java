@@ -841,7 +841,7 @@ public class Grvt extends GrvtApi
                 put( "address", walletAddress );
                 put( "signature", Grvt.this.defaultSignature() );
             }};
-            request = this.createSignedRequest(request, "EIP712_WALLETLOGIN_TYPE", (Object) null, (String) null);
+            request = this.createSignedRequest((Map<String, Object>) (request), "EIP712_WALLETLOGIN_TYPE", (Object) null, (String) null);
             Map<String, Object> response = (this.privateEdgePostAuthWalletLogin(this.extend(request, parameters))).join();
             //
             //    {
@@ -909,7 +909,7 @@ public class Grvt extends GrvtApi
                         put( "max_spot_fee_rate", Grvt.this.safeString(Grvt.this.options, "builderRate") );
                         put( "signature", Grvt.this.defaultSignature() );
                     }};
-                    request = this.createSignedRequest(request, "EIP712_BUILDER_APPROVAL_TYPE", (Object) null, (String) null);
+                    request = this.createSignedRequest((Map<String, Object>) (request), "EIP712_BUILDER_APPROVAL_TYPE", (Object) null, (String) null);
                     Map<String, Object> authResponse = (this.privateTradingPostFullV1AuthorizeBuilder(this.extend(request, parameters))).join();
                     //
                     // {
@@ -2266,7 +2266,7 @@ public class Grvt extends GrvtApi
                 "transfer_type", "STANDARD",
                 "transfer_metadata", null
             );
-            request = this.createSignedRequest(request, "EIP712_TRANSFER_TYPE", currency, (String) null);
+            request = this.createSignedRequest((Map<String, Object>) (request), "EIP712_TRANSFER_TYPE", currency, (String) null);
             Map<String, Object> response = null;
             try
             {
@@ -2452,7 +2452,7 @@ public class Grvt extends GrvtApi
                 throw new BadRequest((this.id + " withdraw() requires a network parameter")) ;
             }
             Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "chain_id", networkId);
-            request = this.createSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currency, (String) null);
+            request = this.createSignedRequest((Map<String, Object>) (request), "EIP712_WITHDRAWAL_TYPE", currency, (String) null);
             Map<String, Object> response = (this.privateTradingPostFullV1Withdrawal(this.extend(request, query))).join();
             //
             // {
@@ -2639,7 +2639,7 @@ public class Grvt extends GrvtApi
                 orderRequest.put("builder_fee", this.safeString(this.options, "builderRate"));
             }
             Object paramsOmitted = this.omit(paramsTrigger, new ArrayList<Object>(Arrays.asList("builderFee")));
-            Object signedOrderRequest = this.createSignedRequest(orderRequest, eipType, (Object) null, (String) null);
+            Map<String, Object> signedOrderRequest = this.createSignedRequest((Map<String, Object>) (orderRequest), eipType, (Object) null, (String) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order", signedOrderRequest );
             }};
@@ -3820,26 +3820,26 @@ public class Grvt extends GrvtApi
         return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
     }
 
-    public Object createSignedRequest(Object request, Object structureType, Object currencyObj, String signerAddress)
+    public Map<String, Object> createSignedRequest(Map<String, Object> request, Object structureType, Object currencyObj, String signerAddress)
     {
         Object messageData = null;
         if (java.util.Objects.equals(structureType, "EIP712_TRANSFER_TYPE"))
         {
             Object amountMultiplier = this.convertToBigIntCustom("1000000");
-            Object amountInt = Helpers.multiply(Helpers.GetValue(request, "num_tokens"), amountMultiplier);
+            Object amountInt = Helpers.multiply(request.get("num_tokens"), amountMultiplier);
             if (java.util.Objects.equals(currencyObj, null))
             {
                 throw new ExchangeError((this.id + " createSignedRequest() missing currencyObj")) ;
             }
             messageData = Helpers.newMap(
-                "fromAccount", Helpers.GetValue(request, "from_account_id"),
-                "fromSubAccount", Helpers.GetValue(request, "from_sub_account_id"),
-                "toAccount", Helpers.GetValue(request, "to_account_id"),
-                "toSubAccount", Helpers.GetValue(request, "to_sub_account_id"),
+                "fromAccount", request.get("from_account_id"),
+                "fromSubAccount", request.get("from_sub_account_id"),
+                "toAccount", request.get("to_account_id"),
+                "toSubAccount", request.get("to_sub_account_id"),
                 "tokenCurrency", ((Map<String, Object>)currencyObj).get("numericId"),
                 "numTokens", this.parseToInt(amountInt),
-                "nonce", Helpers.GetValue(Helpers.GetValue(request, "signature"), "nonce"),
-                "expiration", Helpers.GetValue(Helpers.GetValue(request, "signature"), "expiration")
+                "nonce", Helpers.GetValue(request.get("signature"), "nonce"),
+                "expiration", Helpers.GetValue(request.get("signature"), "expiration")
             );
         } else if (java.util.Objects.equals(structureType, "EIP712_WITHDRAWAL_TYPE"))
         {
@@ -3849,12 +3849,12 @@ public class Grvt extends GrvtApi
                 throw new ExchangeError((this.id + " createSignedRequest() missing currencyObj")) ;
             }
             messageData = Helpers.newMap(
-                "fromAccount", Helpers.GetValue(request, "from_account_id"),
-                "toEthAddress", Helpers.GetValue(request, "to_eth_address"),
+                "fromAccount", request.get("from_account_id"),
+                "toEthAddress", request.get("to_eth_address"),
                 "tokenCurrency", ((Map<String, Object>)currencyObj).get("numericId"),
-                "numTokens", this.parseToInt(Helpers.multiply(Helpers.GetValue(request, "num_tokens"), amountMultiplier)),
-                "nonce", Helpers.GetValue(Helpers.GetValue(request, "signature"), "nonce"),
-                "expiration", Helpers.GetValue(Helpers.GetValue(request, "signature"), "expiration")
+                "numTokens", this.parseToInt(Helpers.multiply(request.get("num_tokens"), amountMultiplier)),
+                "nonce", Helpers.GetValue(request.get("signature"), "nonce"),
+                "expiration", Helpers.GetValue(request.get("signature"), "expiration")
             );
         } else if (java.util.Objects.equals(structureType, "EIP712_ORDER_TYPE") || java.util.Objects.equals(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE"))
         {
@@ -3863,19 +3863,19 @@ public class Grvt extends GrvtApi
         {
             Object amountMultiplier = this.convertToBigIntCustom(this.feeAmountMultiplier());
             messageData = new HashMap<String, Object>() {{
-                put( "mainAccountID", Helpers.GetValue(request, "main_account_id") );
-                put( "builderAccountID", Helpers.GetValue(request, "builder_account_id") );
-                put( "maxFutureFeeRate", Grvt.this.parseToInt(Helpers.multiply(Helpers.parseFloat(Helpers.GetValue(request, "max_futures_fee_rate")), amountMultiplier)) );
-                put( "maxSpotFeeRate", Grvt.this.parseToInt(Helpers.multiply(Helpers.parseFloat(Helpers.GetValue(request, "max_spot_fee_rate")), amountMultiplier)) );
-                put( "nonce", Helpers.GetValue(Helpers.GetValue(request, "signature"), "nonce") );
-                put( "expiration", Helpers.GetValue(Helpers.GetValue(request, "signature"), "expiration") );
+                put( "mainAccountID", request.get("main_account_id") );
+                put( "builderAccountID", request.get("builder_account_id") );
+                put( "maxFutureFeeRate", Grvt.this.parseToInt(Helpers.multiply(Helpers.parseFloat(request.get("max_futures_fee_rate")), amountMultiplier)) );
+                put( "maxSpotFeeRate", Grvt.this.parseToInt(Helpers.multiply(Helpers.parseFloat(request.get("max_spot_fee_rate")), amountMultiplier)) );
+                put( "nonce", Helpers.GetValue(request.get("signature"), "nonce") );
+                put( "expiration", Helpers.GetValue(request.get("signature"), "expiration") );
             }};
         } else if (java.util.Objects.equals(structureType, "EIP712_WALLETLOGIN_TYPE"))
         {
             messageData = new HashMap<String, Object>() {{
-                put( "signer", Helpers.GetValue(request, "address") );
-                put( "nonce", Helpers.GetValue(Helpers.GetValue(request, "signature"), "nonce") );
-                put( "expiration", Helpers.GetValue(Helpers.GetValue(request, "signature"), "expiration") );
+                put( "signer", request.get("address") );
+                put( "nonce", Helpers.GetValue(request.get("signature"), "nonce") );
+                put( "expiration", Helpers.GetValue(request.get("signature"), "expiration") );
             }};
         }
         Object domainData = this.eipDomainData();
@@ -3886,10 +3886,10 @@ public class Grvt extends GrvtApi
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         Object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Object signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1(), null);
-        Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "r", this.formatSignatureRS(Helpers.GetValue(signature, "r")));
-        Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "s", this.formatSignatureRS(Helpers.GetValue(signature, "s")));
-        Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "v", this.sum(27, Helpers.GetValue(signature, "v")));
-        Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress);
+        Helpers.addElementToObject(request.get("signature"), "r", this.formatSignatureRS(Helpers.GetValue(signature, "r")));
+        Helpers.addElementToObject(request.get("signature"), "s", this.formatSignatureRS(Helpers.GetValue(signature, "s")));
+        Helpers.addElementToObject(request.get("signature"), "v", this.sum(27, Helpers.GetValue(signature, "v")));
+        Helpers.addElementToObject(request.get("signature"), "signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress);
         return request;
     }
 
