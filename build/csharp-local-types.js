@@ -15904,7 +15904,7 @@ function csharpCorpus () {
     if (csharpCorpusCache !== undefined) {
         return csharpCorpusCache;
     }
-    const table = { 'occurrences': new Map (), 'imports': new Map (), 'declarations': new Map () };
+    const table = { 'occurrences': new Map (), 'imports': new Map (), 'declarations': new Map (), 'parents': new Map () };
     csharpCorpusCache = table;
     try {
         const root = process.cwd ();
@@ -15946,6 +15946,22 @@ function csharpCorpus () {
                     imports.add (base.replace (/\.js$/, '').replace (/\.ts$/, ''));
                 }
                 table.imports.set (rel, imports);
+                // each class's `extends X` resolved through its import to the declaring file
+                const bindings = new Map ();
+                const bindRe = /import\s+(?:\{([^}]*)\}|([A-Za-z_$][\w$]*))\s+from\s*['"](\.[^'"]+)['"]/g;
+                while ((match = bindRe.exec (text)) !== null) {
+                    const target = path.relative (root, path.resolve (path.dirname (full), match[3].replace (/\.js$/, '.ts')));
+                    const names = (match[2] !== undefined) ? [ match[2] ] : match[1].split (',').map ((part) => part.trim ().split (/\s+as\s+/).pop ());
+                    for (const local of names) {
+                        bindings.set (local, target);
+                    }
+                }
+                const parents = new Set ();
+                const extendsRe = /class\s+[A-Za-z_$][\w$]*\s+extends\s+([A-Za-z_$][\w$]*)/g;
+                while ((match = extendsRe.exec (text)) !== null) {
+                    parents.add (bindings.get (match[1]) ?? rel); // unbound: a class of the same file
+                }
+                table.parents.set (rel, parents);
             }
         };
         walk (path.join (root, 'ts/src'));
@@ -16086,8 +16102,24 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
     }
     // a same-named method in the base tier or a related module (base or subclass) keeps `object`
     const declared = corpus.declarations.get (name);
+    // the whole class chain counts: an ancestor or a descendant file declaring the name overrides it
+    const ancestors = (start) => {
+        const seen = new Set ();
+        const queue = [ start ];
+        while (queue.length > 0) {
+            for (const parent of corpus.parents.get (queue.pop ()) ?? []) {
+                if (!seen.has (parent)) {
+                    seen.add (parent);
+                    queue.push (parent);
+                }
+            }
+        }
+        return seen;
+    };
+    const declaringChain = ancestors (declaringRel);
     const related = (rel) => rel.startsWith ('ts/src/base/') || (corpus.imports.get (rel)?.has (moduleBase) ?? false)
-        || (corpus.imports.get (declaringRel)?.has (path.basename (rel).replace (/\.ts$/, '')) ?? false);
+        || (corpus.imports.get (declaringRel)?.has (path.basename (rel).replace (/\.ts$/, '')) ?? false)
+        || declaringChain.has (rel) || ancestors (rel).has (declaringRel);
     if ((target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type)
         && ((declared === undefined) || [ ...declared ].some ((rel) => (rel !== declaringRel) && related (rel)))) {
         return false;
