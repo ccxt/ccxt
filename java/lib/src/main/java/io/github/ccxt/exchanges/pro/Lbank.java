@@ -509,7 +509,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 put( "pair", market.get("id") );
             }};
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object trades = (this.watch(url, messageHash, request, messageHash, request)).join();
+            List<Object> trades = (List<Object>) (this.watch(url, messageHash, request, messageHash, request)).join();
             List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -664,7 +664,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 "pair", pair
             );
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object orders = (this.watch(url, messageHash, request, messageHash, request)).join();
+            List<Object> orders = (List<Object>) (this.watch(url, messageHash, request, messageHash, request)).join();
             return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

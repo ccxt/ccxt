@@ -4547,14 +4547,14 @@ public class Gate extends GateApi
             if (((Map<?, ?>)data).containsKey("balances"))
             {
                 List<Object> flatBalances = new ArrayList<Object>(Arrays.asList());
-                Object balances = this.safeValue(data, "balances", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
                 // inject currency and create an artificial balance object
                 // so it can follow the existent flow
-                List<Object> keys = Helpers.objectKeys(balances);
+                List<String> keys = new ArrayList<String>(balances.keySet());
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
-                    Object currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                    Object content = Helpers.GetValue(balances, currencyId);
+                    String currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                    Object content = (balances == null || currencyId == null ? null : balances.get(currencyId));
                     Helpers.addElementToObject(content, "currency", currencyId);
                     ((List<Object>)flatBalances).add(content);
                 }

@@ -1737,7 +1737,7 @@ class bitso extends Exchange {
                 );
             }
         }
-        $withdrawalFees = $this->safe_value($payload, 'withdrawal_fees', array());
+        $withdrawalFees = $this->safe_dict($payload, 'withdrawal_fees', array());
         $currencyIds = is_array($withdrawalFees) ? array_keys($withdrawalFees) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
@@ -1867,7 +1867,7 @@ class bitso extends Exchange {
         //
         $result = array();
         $depositResponse = $this->safe_list($response, 'deposit_fees', array());
-        $withdrawalResponse = $this->safe_value($response, 'withdrawal_fees', array());
+        $withdrawalResponse = $this->safe_dict($response, 'withdrawal_fees', array());
         for ($i = 0; $i < count($depositResponse); $i++) {
             $entry = $depositResponse[$i];
             $currencyId = $this->safe_string($entry, 'currency');

@@ -404,7 +404,7 @@ public partial class ndax : ccxt.ndax
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = this.requestId();
-        object limitValue = ((limit == null)) ? 100 : limit;
+        Int64? limitValue = ((limit == null)) ? 100 : limit;
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
             { "InstrumentId", this.safeInteger(market, "id") },

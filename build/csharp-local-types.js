@@ -6861,7 +6861,14 @@ function conditionalArmType (csharp, node, context) {
     if (arm?.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
     }
-    return localIdentifierType (csharp, arm);
+    return localIdentifierType (csharp, arm) ?? numericParameterArmType (csharp, arm);
+}
+
+// a parameter arm (`(limit === undefined) ? 100 : limit`) has the numeric type its emitted
+// signature carries; only the nullable numeric spellings, the ones numericArmWidening joins
+function numericParameterArmType (csharp, arm) {
+    const type = parameterArithmeticType (csharp, arm);
+    return NUMERIC_ARM_WIDENING_TYPES.includes (type) ? type : undefined;
 }
 
 // the C# type of reading a local, or undefined unless the name is bound exactly ONCE as a
@@ -15378,6 +15385,9 @@ function nativeArithmeticResultKind (csharp, node) {
             return printed;
         }
     }
+    if (isNativeIntLiteralProduct (csharp, node)) {
+        return 'Int64'; // printed `(x * NL)`
+    }
     const left = nativeArithmeticOperandKind (csharp, node.left);
     const right = nativeArithmeticOperandKind (csharp, node.right);
     return nativeArithmeticIsProven (op, left, right) ? nativeArithmeticPairResultKind (op, left, right) : undefined;
@@ -17240,7 +17250,7 @@ export function csharpTupleReturns (content, file = '') {
         const holder = TUPLE_HOLDER_RE.exec (line);
         if (holder !== null) {
             holders.set (holder[2], CSHARP_TUPLE_RETURN_ELEMENT0[holder[4]]);
-            line = holder[1] + 'var ' + holder[2] + ' = ' + holder[3] + line.slice (holder[0].length);
+            line = holder[1] + '(' + CSHARP_TUPLE_RETURN_ELEMENT0[holder[4]] + ', object) ' + holder[2] + ' = ' + holder[3] + line.slice (holder[0].length);
         } else {
             for (const [ name, type ] of holders) {
                 if (!new RegExp ('\\b' + name + '\\b').test (line)) {
@@ -17316,10 +17326,51 @@ export function csharpTupleReturns (content, file = '') {
         const head = out.slice (lineStart, m.index);
         const end = tupleCloseParen (out, m.index + m[0].length - 1);
         const after = out.slice (end, end + 6);
-        const ok = /^\s*var \w+ = $/.test (head) || /^\s*return $/.test (head) || after.startsWith ('.Item') || /=> $/.test (head);
+        const ok = /^\s*\((?:string|bool|Int64)\?, object\) \w+ = $/.test (head) || /^\s*return $/.test (head) || after.startsWith ('.Item') || /=> $/.test (head);
         if (!ok) {
             tupleFail (file, out.slice (lineStart, lineStart + 160), 'consumer shape');
         }
     }
     return out;
+}
+
+// ===== int x int-literal products =====
+// multiply() normalises both int boxes to Int64 and multiplies unchecked; the literal printed
+// with an `L` suffix makes the operator the same (Int64, Int64) product, e.g. `(duration * 1000L)`
+function intLiteralText (node) {
+    return (node?.kind === ts.SyntaxKind.NumericLiteral && /^\d+$/.test (node.text)
+        && nativeArithmeticOperandKind (undefined, node) === 'int') ? node.text + 'L' : undefined;
+}
+
+function isNativeIntLiteralProduct (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.BinaryExpression || node.operatorToken?.kind !== ts.SyntaxKind.AsteriskToken) {
+        return false;
+    }
+    const leftLiteral = intLiteralText (node.left);
+    const rightLiteral = intLiteralText (node.right);
+    if ((leftLiteral === undefined) === (rightLiteral === undefined)) {
+        return false; // literal x literal is folded by the printer itself
+    }
+    return nativeArithmeticOperandKind (csharp, (leftLiteral === undefined) ? node.left : node.right) === 'int';
+}
+
+function nativeIntLiteralProduct (csharp, node) {
+    if (!isNativeIntLiteralProduct (csharp, node)) {
+        return undefined;
+    }
+    const leftLiteral = intLiteralText (node.left);
+    const rightLiteral = intLiteralText (node.right);
+    const L = leftLiteral ?? csharp.printNode (node.left, 0);
+    const R = rightLiteral ?? csharp.printNode (node.right, 0);
+    return '(' + L + ' * ' + R + ')';
+}
+
+export function installCsharpNativeIntProducts (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printCustomBinaryExpressionIfAny !== 'function' || csharp._nativeIntProductsPatched) {
+        return;
+    }
+    const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => nativeIntLiteralProduct (csharp, node) ?? upstream (node, identation);
+    csharp._nativeIntProductsPatched = true;
 }

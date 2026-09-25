@@ -86,7 +86,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             }
             String url = ((((wsUrl + "?subscribe=ticker-") + market.get("base")) + "-") + market.get("quote"));
             String messageHash = ("trades:" + symbolValue);
-            Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
+            List<Object> trades = (List<Object>) (this.watch(url, messageHash, null, messageHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 

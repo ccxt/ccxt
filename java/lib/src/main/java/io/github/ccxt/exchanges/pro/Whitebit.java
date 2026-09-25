@@ -118,7 +118,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String messageHash = ("candles:" + symbolValue);
             List<Object> reqParams = new ArrayList<Object>(Arrays.asList(marketId, interval));
             String method = "candles_subscribe";
-            Object ohlcv = (this.watchPublic(messageHash, method, reqParams, parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic(messageHash, method, reqParams, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -205,8 +205,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
             Map<String, Object> paramsOmitted = this.omit(parameters, "priceInterval");
             List<Object> reqParams = new ArrayList<Object>(Arrays.asList(market.get("id"), limitValue, priceInterval, true));
-            Object orderbook = (this.watchPublic(messageHash, method, reqParams, paramsOmitted)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(messageHash, method, reqParams, paramsOmitted)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -442,7 +442,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String messageHash = (("trades" + ":") + symbolValue);
             String method = "trades_subscribe";
             // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-            Object trades = (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -529,7 +529,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("myTrades:" + symbolValue);
             String method = "deals_subscribe";
-            Object trades = (this.watchMultipleSubscription(messageHash, method, symbolValue, true, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchMultipleSubscription(messageHash, method, symbolValue, true, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -681,7 +681,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("orders:" + symbolValue);
             String method = "ordersPending_subscribe";
-            Object trades = (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

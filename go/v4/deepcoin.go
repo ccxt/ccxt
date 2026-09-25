@@ -1974,7 +1974,7 @@ func (this *Deepcoin) CreateOrderRequest(symbol any, typeVar string, side string
 	var isTriggerOrder bool = (triggerPrice != nil)
 	var cost *string = this.SafeString(params, "cost")
 	if cost != nil {
-		if (GetValue(market, "spot") != true) || (triggerPrice != nil) {
+		if (market["spot"] != true) || (triggerPrice != nil) {
 			panic(BadRequest(this.Id + " createOrder() accepts a cost parameter for spot non-trigger market orders only"))
 		}
 	}
@@ -2053,7 +2053,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 		panic(BadRequest(this.Id + " createOrder() requires a price argument for limit orders"))
 	}
 	var paramsRequest any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		var cost *string = this.SafeString(paramsOrderType, "cost")
 		if cost != nil {
 			if !isMarketOrder {
@@ -2157,7 +2157,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarginMode, "reduceOnly"))
 	request["isCrossMargin"] = isCrossMargin
 	request["tdMode"] = marginModeOption
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		if reduceOnly != nil && *reduceOnly == true {
 			if IsEqual(side, "buy") {
 				request["posSide"] = "short"
@@ -2878,7 +2878,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(NotSupported(this.Id + " cancelAllOrders() is not supported for spot markets"))
 	}
 	var productGroup any = this.GetProductGroupFromMarket(market)
@@ -3540,7 +3540,7 @@ func (this *Deepcoin) fetchFundingRateBody(ch chan any, symbol string, optionalA
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(ExchangeError(this.Id + " fetchFundingRate() is only valid for swap markets"))
 	}
 	var request map[string]any = map[string]any{

@@ -261,7 +261,7 @@ func (this *Kucoin) subscribePublicUtaBody(ch chan any, messageHash string, chan
 	var requestId string = strconv.FormatInt(this.RequestId(), 10)
 	var market map[string]any = this.Market(symbol)
 	var urlType string = "spot"
-	if ccxt.GetValue(market, "contract") == true {
+	if market["contract"] == true {
 		urlType = "futures"
 	}
 	var tradeType string = strings.ToUpper(urlType)

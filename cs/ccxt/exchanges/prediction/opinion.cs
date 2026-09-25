@@ -857,7 +857,7 @@ public partial class opinion : PredictionExchange
         for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
-            Int64 priceIndex = multiply(i, 2);
+            Int64 priceIndex = (i * 2L);
             object priceResponse = getValue(responses, priceIndex);
             object bookResponse = getValue(responses, this.sum(priceIndex, 1));
             Dictionary<string, object> response = new Dictionary<string, object>() {

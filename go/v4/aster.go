@@ -1357,11 +1357,11 @@ func (this *Aster) ParseMarket(market any) any {
 		return nil
 	}
 	var active bool = (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "TRADING")
-	var spot any = nil
+	var spot bool
 	var symbol any = nil
 	var settle any = nil
 	var settleId any = nil
-	var swap any = nil
+	var swap bool
 	var linear any = nil
 	var inverse any = nil
 	var contractSize *float64 = nil
@@ -1588,7 +1588,7 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		response = ListTyped(PanicOnError((<-this.FapiPublicGetV3IndexPriceKlines(this.Extend(requestUntil, paramsOmitted))).Raw))
 	} else {
 		AddElementToObject(requestUntil, "symbol", market["id"])
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 
 			response = ListTyped(PanicOnError((<-this.FapiPublicGetV3Klines(this.Extend(requestUntil, paramsOmitted))).Raw))
 		} else {
@@ -1766,7 +1766,7 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	// use historical endpoint for targeted requests
 	if InOp(request, "startTime") {
-		if GetValue(market, "swap") == true {
+		if market["swap"] == true {
 
 			response = ListTyped(PanicOnError((<-this.FapiPublicGetV3AggTrades(this.Extend(request, params))).Raw))
 		} else {
@@ -1774,7 +1774,7 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 			response = ListTyped(PanicOnError((<-this.SapiPublicGetV3AggTrades(this.Extend(request, params))).Raw))
 		}
 	} else {
-		if GetValue(market, "swap") == true {
+		if market["swap"] == true {
 
 			response = ListTyped(PanicOnError((<-this.FapiPublicGetV3Trades(this.Extend(request, params))).Raw))
 		} else {
@@ -1903,7 +1903,7 @@ func (this *Aster) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	if limit != nil {
 		request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 50, 100, 500, 1000}, limit)
 	}
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.FapiPublicGetV3Depth(this.Extend(request, params))).Raw))
 	} else {
@@ -2063,7 +2063,7 @@ func (this *Aster) fetchTickerBody(ch chan any, symbol string, optionalArgs ...a
 		"symbol": market["id"],
 	}
 	var response any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = (<-this.FapiPublicGetV3Ticker24hr(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2849,7 +2849,7 @@ func (this *Aster) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs 
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.FapiPrivateGetV3CommissionRate(this.Extend(request, params))).Raw))
 	} else {
@@ -3029,7 +3029,7 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		request["orderId"] = id
 	}
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.FapiPrivateGetV3Order(this.Extend(request, paramsOmitted))).Raw))
 	} else {
@@ -3110,7 +3110,7 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 		request["orderId"] = id
 	}
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = MapTyped(PanicOnError((<-this.SapiPrivateGetV3OpenOrder(this.Extend(request, paramsOmitted))).Raw))
 	} else {
@@ -3197,7 +3197,7 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	var response []any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = ListTyped(PanicOnError((<-this.FapiPrivateGetV3AllOrders(this.Extend(requestUntil, paramsUntil))).Raw))
 	} else {
@@ -3372,7 +3372,7 @@ func (this *Aster) createOrderBody(ch chan any, symbol string, typeVar string, s
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.FapiPrivatePostV3Order(request)).Raw))
 	} else {
@@ -3455,7 +3455,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	}
 	var orderSymbolsResolved []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var market map[string]any = this.Market(GetValue(orderSymbolsResolved, 0))
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(NotSupported(Add(Add(this.Id+" createOrders() does not support ", market["type"]), " orders")))
 	}
 	var request map[string]any = map[string]any{
@@ -3545,7 +3545,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var uppercaseType string = initialUppercaseType
 	var stopPrice any = nil
 	if isTrailingPercentOrder {
-		if GetValue(market, "swap") == true {
+		if market["swap"] == true {
 			uppercaseType = "TRAILING_STOP_MARKET"
 			request["callbackRate"] = trailingPercent
 			if trailingTriggerPrice != nil {
@@ -3583,7 +3583,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var quantityIsRequired bool = false
 	request["type"] = uppercaseType
 	if uppercaseType == "MARKET" {
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
 			if quoteOrderQty == true {
 				var quoteOrderQtyNew *string = this.SafeString2(params, "quoteOrderQty", "cost")
@@ -3662,7 +3662,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	} else {
 		requestParams = MapTyped(this.Omit(params, omitKeys))
 	}
-	if (IsEqual(this.SafeBool(this.Options, "builderFee"), true)) && (GetValue(market, "swap") == true) {
+	if (IsEqual(this.SafeBool(this.Options, "builderFee"), true)) && (market["swap"] == true) {
 		request["builder"] = this.SafeString(this.Options, "builder")
 		request["feeRate"] = this.SafeString(this.Options, "builderRate")
 	}
@@ -3701,7 +3701,7 @@ func (this *Aster) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"symbol": market["id"],
 	}
 	var response any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = (<-this.FapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -3765,7 +3765,7 @@ func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"origClientOrderId", "clientOrderId"}))
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.FapiPrivateDeleteV3Order(this.Extend(request, paramsOmitted))).Raw))
 	} else {
@@ -3820,7 +3820,7 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 		request["orderIdList"] = ids
 	}
 	var response []any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = ListTyped(PanicOnError((<-this.FapiPrivateDeleteV3BatchOrders(this.Extend(request, params))).Raw))
 	} else {
@@ -4634,11 +4634,11 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		var unrounded *string = Precise.StringMul(initialMarginString, "1")
 		initialMarginPercentageString = Precise.StringDiv(unrounded, notionalStringAbs, 8)
 	}
-	var marginRatio any = nil
-	var percentage any = nil
+	var marginRatio *float64 = nil
+	var percentage *float64 = nil
 	if !Precise.StringEquals(collateralString, "0") {
-		marginRatio = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(Precise.StringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4))
-		percentage = this.ParseNumber(Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100"))
+		marginRatio = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(Precise.StringAdd(Precise.StringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4)))
+		percentage = Float64PtrTyped(this.ParseNumber(Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")))
 	}
 	var positionSide *string = this.SafeString(position, "positionSide")
 	var hedged bool = (positionSide == nil || *positionSide != "BOTH")

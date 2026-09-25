@@ -4007,7 +4007,7 @@ class whitebit(Exchange, ImplicitAPI):
     def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
         version = self.safe_value(api, 0)
-        accessibility = self.safe_value(api, 1)
+        accessibility = self.safe_string(api, 1)
         publicHeaders = {} if (headers is None) else headers
         publicHeaders['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         pathWithParams = '/' + self.implode_params(path, params)

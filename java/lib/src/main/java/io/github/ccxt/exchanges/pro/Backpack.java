@@ -847,7 +847,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 topics.add(("trade." + marketId));
                 messageHashes.add(("trades:" + symbol));
             }
-            Object trades = (this.watchPublic(topics, messageHashes, parameters, false)).join();
+            List<Object> trades = (List<Object>) (this.watchPublic(topics, messageHashes, parameters, false)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -1053,8 +1053,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 String topic = ("depth." + marketId);
                 ((List<Object>)topics).add(topic);
             }
-            Object orderbook = (this.watchPublic(topics, messageHashes, parameters, false)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});  // todo check if limit is needed
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topics, messageHashes, parameters, false)).join();
+            return orderbook.limit();  // todo check if limit is needed
         }).thenApply(OrderBook::new);
 
     }
@@ -1259,7 +1259,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 topic = ("account.orderUpdate." + market.get("id"));
                 messageHash = ("orders:" + symbolResolved);
             }
-            Object orders = (this.watchPrivate(new ArrayList<Object>(Arrays.asList(topic)), new ArrayList<Object>(Arrays.asList(messageHash)), parameters, false)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(new ArrayList<Object>(Arrays.asList(topic)), new ArrayList<Object>(Arrays.asList(messageHash)), parameters, false)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

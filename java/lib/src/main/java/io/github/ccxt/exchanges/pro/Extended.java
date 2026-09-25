@@ -244,7 +244,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 symbolResolved = market.get("symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            Object orders = (this.watchPrivate(messageHash, Helpers.newMap(
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, Helpers.newMap(
                 "symbol", symbolResolved,
                 "limit", limit
             ))).join();
@@ -380,7 +380,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 symbolResolved = market.get("symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            Object trades = (this.watchPrivate(messageHash, Helpers.newMap(
+            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, Helpers.newMap(
                 "symbol", symbolResolved,
                 "limit", limit
             ))).join();

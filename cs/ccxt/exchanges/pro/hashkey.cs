@@ -825,7 +825,7 @@ public partial class hashkey : ccxt.hashkey
 
     public virtual void setBalanceCache(WebSocketClient client, object type, object subscribeHash)
     {
-        if (inOp(client.subscriptions, subscribeHash))
+        if ((client.subscriptions != null && subscribeHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
         {
             return;
         }

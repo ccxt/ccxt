@@ -917,7 +917,7 @@ public partial class coinbase : ccxt.coinbase
                 string? marketId = this.safeString(responseOrder, "product_id");
                 if ((marketId != null))
                 {
-                    if (!(inOp(marketIds, marketId)))
+                    if (!((marketIds != null && marketId != null && marketIds.Contains(marketId))))
                     {
                         marketIds.Add(marketId);
                     }

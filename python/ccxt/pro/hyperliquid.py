@@ -1052,7 +1052,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         rawBalances = []
         account = None
         timestamp = None
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_dict(message, 'data', {})
         if topic == 'spotState':
             spotState = self.safe_dict(data, 'spotState')
             rawBalances = self.safe_list(spotState, 'balances', [])

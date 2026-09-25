@@ -5093,7 +5093,7 @@ func (this *Myriad) HandlePosition(client any, data any) {
 		}())
 	}
 	var deltaShares *string = ccxt.Precise.StringDiv(deltaStr, "1000000000000000000")
-	var contracts any = nil
+	var contracts *float64 = nil
 	var posId *string = nil
 	if (networkId != nil) && (marketId != nil) && (outcomeId != nil) {
 		posId = ccxt.SafeStringPtr(*networkId + ":" + *marketId + "/" + *outcomeId)
@@ -5104,7 +5104,7 @@ func (this *Myriad) HandlePosition(client any, data any) {
 			ccxt.AddElementToObject(balances, posId, updated)
 		}
 		this.Options.Store("positionBalances", balances)
-		contracts = this.ParseNumber(updated)
+		contracts = ccxt.Float64PtrTyped(this.ParseNumber(updated))
 	}
 	var parsed any = this.SafePredictionPosition(map[string]any{
 		"info":          data,

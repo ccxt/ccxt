@@ -2560,7 +2560,7 @@ public partial class bithumb : Exchange
         IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOpenOrders", "generation", 2);
         Int64? generation = (Int64?)generationparamsGenerationVariable[0];
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         Dictionary<string, object> response = null;

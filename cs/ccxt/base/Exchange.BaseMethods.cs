@@ -3788,14 +3788,14 @@ public partial class BaseExchange
         for (int i = 0; i < (currenciesToCheck?.Count ?? 0); i++)
         {
             IDictionary<string, object> networks = this.safeDict(currenciesToCheck[i], "networks", new Dictionary<string, object>() {});
-            if (inOp(networks, networkCode))
+            if ((networks != null && networkCode is string inOpKey0 && networks.ContainsKey(inOpKey0)))
             {
                 return ((string?)((object)(this.safeString(getValue(networks, networkCode), "id"))));
             }
         }
         // before returning the original input, try to match if it's backward-maintained networkCode
         IDictionary<string, object> oldCodes = this.safeDict(this.options, "backwardSupportedNetworkCodes", new Dictionary<string, object>() {});
-        if (inOp(oldCodes, networkCode))
+        if ((oldCodes != null && networkCode is string inOpKey1 && oldCodes.ContainsKey(inOpKey1)))
         {
             return ((string?)((object)(this.networkCodeToId(getValue(oldCodes, networkCode), currencyCode))));
         }
@@ -3831,7 +3831,7 @@ public partial class BaseExchange
         if ((currencyCode == null))
         {
             IDictionary<string, object> networkIdsByCodes = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-            if ((inOp(networkIdsByCodes, preferredChain)) && (inOp(networkIdsByCodes, alternativeChain)))
+            if (((networkIdsByCodes != null && preferredChain is string inOpKey2 && networkIdsByCodes.ContainsKey(inOpKey2))) && ((networkIdsByCodes != null && alternativeChain is string inOpKey3 && networkIdsByCodes.ContainsKey(inOpKey3))))
             {
                 return networkCode;
             }
@@ -3851,7 +3851,7 @@ public partial class BaseExchange
     {
         object defaultNetworkCode = null;
         IDictionary<string, object> defaultNetworks = this.safeDict(this.options, "defaultNetworks", new Dictionary<string, object>() {});
-        if (inOp(defaultNetworks, currencyCode))
+        if ((defaultNetworks != null && currencyCode is string inOpKey4 && defaultNetworks.ContainsKey(inOpKey4)))
         {
             // if currency had set its network in "defaultNetworks", use it
             defaultNetworkCode = getValue(defaultNetworks, currencyCode);
@@ -4581,7 +4581,7 @@ public partial class BaseExchange
         timeframeVar ??= "1m";
         since ??= 0;
         limit ??= 2147483647;
-        Int64 ms = multiply(this.parseTimeframe(timeframeVar), 1000);
+        Int64 ms = (this.parseTimeframe(timeframeVar) * 1000L);
         List<object> ohlcvs = new List<object>() {};
         int i_timestamp = 0;
         // const open = 1;
@@ -4705,7 +4705,7 @@ public partial class BaseExchange
         {
             return ccxt.BaseExchange.ToDict(currency);
         }
-        if (((currencyId != null)) && ((this.currencies_by_id != null)) && (inOp(this.currencies_by_id, currencyId)) && (!isEqual(getValue(this.currencies_by_id, currencyId), null)))
+        if (((currencyId != null)) && ((this.currencies_by_id != null)) && ((this.currencies_by_id != null && currencyId is string inOpKey5 && this.currencies_by_id.ContainsKey(inOpKey5))) && (!isEqual(getValue(this.currencies_by_id, currencyId), null)))
         {
             return ccxt.BaseExchange.ToDict(getValue(this.currencies_by_id, currencyId));
         }
@@ -4725,7 +4725,7 @@ public partial class BaseExchange
     {
         if ((marketId != null))
         {
-            if (((this.markets_by_id != null)) && (inOp(this.markets_by_id, marketId)))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey6 && this.markets_by_id.ContainsKey(inOpKey6))))
             {
                 object markets = getValue(this.markets_by_id, marketId);
                 int numMarkets = getArrayLength(markets);
@@ -5698,10 +5698,10 @@ public partial class BaseExchange
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if (inOp(markets, symbol))
+        if ((markets != null && symbol is string inOpKey7 && markets.ContainsKey(inOpKey7)))
         {
             return ccxt.BaseExchange.ToDict(getValue(markets, symbol));
-        } else if (((marketsById != null)) && (inOp(marketsById, symbol)))
+        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey8 && marketsById.ContainsKey(inOpKey8))))
         {
             object marketsList = getValue(marketsById, symbol);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
@@ -6656,7 +6656,7 @@ public partial class BaseExchange
         }
         IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((((markets != null)) && (inOp(markets, account))) || (((marketsById != null)) && (inOp(marketsById, account))))
+        if ((((markets != null)) && ((markets != null && account is string inOpKey9 && markets.ContainsKey(inOpKey9)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey10 && marketsById.ContainsKey(inOpKey10)))))
         {
             Dictionary<string, object> market = this.market(account);
             return ((string?)((object)((market.ContainsKey("id") ? market["id"] : null))));
@@ -7112,7 +7112,7 @@ public partial class BaseExchange
         Dictionary<string, object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "paginationDirection");
         Int64 current = this.milliseconds();
         List<object> tasks = new List<object>() {};
-        Int64 time = multiply(this.parseTimeframe(timeframe), 1000);
+        Int64 time = (this.parseTimeframe(timeframe) * 1000L);
         object maxEntriesPerRequestValue = this.requireValue(maxEntriesPerRequestOption, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
         object step = multiply(time, maxEntriesPerRequestValue);
         Int64? until = this.safeInteger2(paramsOmitted, "until", "till"); // do not omit it here
@@ -7416,7 +7416,7 @@ public partial class BaseExchange
                     id = add(id, amount);
                 }
             }
-            if ((id != null) && !(inOp(uniqueResult, id)))
+            if ((id != null) && !((id is string inOpKey11 && uniqueResult.ContainsKey(inOpKey11))))
             {
                 uniqueResult[(string)id] = entry;
             }
@@ -7841,13 +7841,13 @@ public partial class BaseExchange
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, bool? subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
-        if (((unsubHash != null)) && (inOp(client.subscriptions, unsubHash)))
+        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey12 && client.subscriptions.ContainsKey(inOpKey12))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
         if (subHashIsPrefix != true)
         {
-            if (((subHash != null)) && (inOp(client.subscriptions, subHash)))
+            if (((subHash != null)) && ((client.subscriptions != null && subHash is string inOpKey13 && client.subscriptions.ContainsKey(inOpKey13))))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
             }
@@ -7917,25 +7917,25 @@ public partial class BaseExchange
                 object symbol = symbols[i];
                 if (topic == "trades")
                 {
-                    if (inOp(this.trades, symbol))
+                    if ((this.trades != null && symbol is string inOpKey15 && this.trades.ContainsKey(inOpKey15)))
                     {
                         this.trades.Remove((string)symbol);
                     }
                 } else if (topic == "orderbook")
                 {
-                    if (inOp(this.orderbooks, symbol))
+                    if ((this.orderbooks != null && symbol is string inOpKey16 && this.orderbooks.ContainsKey(inOpKey16)))
                     {
                         ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                     }
                 } else if (topic == "ticker")
                 {
-                    if (inOp(this.tickers, symbol))
+                    if ((this.tickers != null && symbol is string inOpKey17 && this.tickers.ContainsKey(inOpKey17)))
                     {
                         this.tickers.Remove((string)symbol);
                     }
                 } else if (topic == "bidsasks")
                 {
-                    if (inOp(this.bidsasks, symbol))
+                    if ((this.bidsasks != null && symbol is string inOpKey18 && this.bidsasks.ContainsKey(inOpKey18)))
                     {
                         this.bidsasks.Remove((string)symbol);
                     }
@@ -7995,7 +7995,7 @@ public partial class BaseExchange
             return "";
         }
         int second = 1000;
-        Int64 minute = multiply(60, second);
+        Int64 minute = (60L * second);
         Int64 hour = (60 * minute);
         Int64 day = (24 * hour);
         Int64 week = (7 * day);

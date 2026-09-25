@@ -1428,7 +1428,7 @@ func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount a
 	var market map[string]any = this.Market(symbol)
 	var currency *string = nil
 	var cost any = nil
-	if GetValue(market, "quote") == "AUD" {
+	if market["quote"] == "AUD" {
 		currency = this.SafeString(market, "quote")
 		var amountString *string = this.NumberToString(amount)
 		var priceString *string = this.NumberToString(price)

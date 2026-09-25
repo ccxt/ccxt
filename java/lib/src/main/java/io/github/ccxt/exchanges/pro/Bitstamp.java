@@ -542,7 +542,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 "type", channel,
                 "params", parameters
             );
-            Object orders = (this.subscribePrivate((Map<String, Object>) (subscription), messageHash, parameters)).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate((Map<String, Object>) (subscription), messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -623,7 +623,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 "type", channel,
                 "params", parameters
             );
-            Object trades = (this.subscribePrivate((Map<String, Object>) (subscription), messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate((Map<String, Object>) (subscription), messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

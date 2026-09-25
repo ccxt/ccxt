@@ -3326,7 +3326,7 @@ class gate(Exchange, ImplicitAPI):
         data = response
         if 'balances' in data:  # True for cross_margin and unified
             flatBalances = []
-            balances = self.safe_value(data, 'balances', [])
+            balances = self.safe_dict(data, 'balances', {})
             # inject currency and create an artificial balance object
             # so it can follow the existent flow
             keys = list(balances.keys())

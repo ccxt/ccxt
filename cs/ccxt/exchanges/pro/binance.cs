@@ -1314,7 +1314,7 @@ public partial class binance : ccxt.binance
         for (int i = 0; i < symbols.Count; i++)
         {
             object symbol = symbols[i];
-            if (inOp(this.orderbooks, symbol))
+            if ((this.orderbooks != null && symbol is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0)))
             {
                 ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             }
@@ -2728,7 +2728,7 @@ public partial class binance : ccxt.binance
                     string baseIdLower = this.safeStringLower(market, "baseId", "");
                     string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     object underlying = ((baseIdLower + "") + quoteIdLower);
-                    if (!(inOp(seenUnderlyings, underlying)))
+                    if (!((underlying is string inOpKey1 && seenUnderlyings.ContainsKey(inOpKey1))))
                     {
                         seenUnderlyings[(string)underlying] = true;
                         subscriptionArgs.Add(add(underlying, "@optionMarkPrice"));
@@ -2744,7 +2744,7 @@ public partial class binance : ccxt.binance
                     string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     object underlying = ((baseIdLower + "") + quoteIdLower);
                     object subscriptionArg = add(add(underlying, "@optionTicker@"), expiryDate);
-                    if (!(inOp(seenUnderlyings, subscriptionArg)))
+                    if (!((subscriptionArg is string inOpKey2 && seenUnderlyings.ContainsKey(inOpKey2))))
                     {
                         seenUnderlyings[(string)subscriptionArg] = true;
                         subscriptionArgs.Add(subscriptionArg);
@@ -3721,7 +3721,7 @@ public partial class binance : ccxt.binance
     public virtual void setBalanceCache(WebSocketClient client, object type, object isPortfolioMargin = null)
     {
         isPortfolioMargin ??= false;
-        if ((inOp(client.subscriptions, type)) && (inOp(this.balance, type)))
+        if (((client.subscriptions != null && type is string inOpKey3 && client.subscriptions.ContainsKey(inOpKey3))) && ((this.balance != null && type is string inOpKey4 && this.balance.ContainsKey(inOpKey4))))
         {
             return;
         }

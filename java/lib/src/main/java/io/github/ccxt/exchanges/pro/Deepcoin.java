@@ -473,7 +473,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = (("trades" + "::") + market.get("symbol"));
-            Object trades = (this.watchPublic(market, messageHash, "2", parameters, "")).join();
+            List<Object> trades = (List<Object>) (this.watchPublic(market, messageHash, "2", parameters, "")).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -664,7 +664,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             String interval = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = (((("ohlcv" + "::") + symbolValue) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String suffix = ("_" + interval);
-            Object ohlcv = (this.watchPublic(market, messageHash, "11", parameters, suffix)).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic(market, messageHash, "11", parameters, suffix)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -804,8 +804,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             var suffixparamsValueVariable = this.orderBookSuffix((Map<String, Object>) (market), "watchOrderBook", parameters);
             var suffix = ((List<Object>) suffixparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) suffixparamsValueVariable).get(1);
-            Object orderbook = (this.watchPublic(market, messageHash, "25", Helpers.toMapArg(paramsValue), suffix)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(market, messageHash, "25", Helpers.toMapArg(paramsValue), suffix)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1040,7 +1040,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 messageHash = (messageHash + ("::" + symbolResolved));
             }
-            Object trades = (this.watchPrivate(messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1132,7 +1132,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 messageHash = (messageHash + ("::" + symbolResolved));
             }
-            Object orders = (this.watchPrivate(messageHash, parameters)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

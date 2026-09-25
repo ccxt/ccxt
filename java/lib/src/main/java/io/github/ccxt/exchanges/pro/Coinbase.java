@@ -662,7 +662,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             String symbolValue = this.symbol(symbol);
             String name = "market_trades";
-            Object trades = (this.subscribe(name, false, symbolValue, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribe(name, false, symbolValue, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -718,7 +718,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "market_trades";
-            Object trades = (this.subscribeMultiple(name, false, Helpers.toStringListArg(symbols), parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMultiple(name, false, Helpers.toStringListArg(symbols), parameters)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -776,7 +776,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "user";
-            Object orders = (this.subscribe(name, true, symbol, parameters)).join();
+            List<Object> orders = (List<Object>) (this.subscribe(name, true, symbol, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -833,8 +833,8 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             String name = "level2";
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            Object orderbook = (this.subscribe(name, false, symbolValue, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe(name, false, symbolValue, parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -884,8 +884,8 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "level2";
-            Object orderbook = (this.subscribeMultiple(name, false, Helpers.toStringListArg(symbols), parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple(name, false, Helpers.toStringListArg(symbols), parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

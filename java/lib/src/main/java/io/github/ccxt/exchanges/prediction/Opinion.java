@@ -2206,8 +2206,8 @@ public class Opinion extends OpinionApi
 
             // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
             PredictionOrderBook snapshot = (this.fetchOrderBook(outcome, limit, new HashMap<String, Object>() {{}})).join();
-            Object orderbook = this.orderBook(new HashMap<String, Object>() {{}});
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
+            orderbook.reset(snapshot);
             Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);
             return null;
         });
@@ -2239,14 +2239,14 @@ public class Opinion extends OpinionApi
             // the delta belongs to the market's other token, whose book is not being watched
             return;
         }
-        Object orderbook = ((Map<?, ?>)this.orderbooks).get(sym);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(sym);
         String sideStr = this.safeString(message, "side");
-        Object bookSide = (((java.util.Objects.equals(sideStr, "bids")))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide bookSide = (io.github.ccxt.ws.OrderBookSide) ((((java.util.Objects.equals(sideStr, "bids")))) ? (orderbook == null ? null : orderbook.get("bids")) : (orderbook == null ? null : orderbook.get("asks")));
         Double price = this.safeNumber(message, "price", (Object) null);
         Double size = this.safeNumber(message, "size", (Object) null);
-        Helpers.callDynamically(bookSide, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size))});
-        Helpers.addElementToObject(orderbook, "timestamp", null);
-        Helpers.addElementToObject(orderbook, "datetime", null);
+        bookSide.storeArray(new ArrayList<Object>(Arrays.asList(price, size)));
+        orderbook.put("timestamp", null);
+        orderbook.put("datetime", null);
         client.resolve(orderbook, ("orderbook::" + sym));
     }
 
@@ -2329,7 +2329,7 @@ public class Opinion extends OpinionApi
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
             String messageHash = ("trades::" + sym);
-            Object trades = (this.subscribeOpinionChannel(messageHash, "market.last.trade", marketId)).join();
+            List<Object> trades = (List<Object>) (this.subscribeOpinionChannel(messageHash, "market.last.trade", marketId)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -2383,8 +2383,8 @@ public class Opinion extends OpinionApi
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, sym, new ArrayCache(((Number)tradesLimit).intValue()));
         }
-        Object stored = Helpers.GetValue(this.trades, sym);
-        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, sym);
+        stored.append(trade);
         client.resolve(stored, ("trades::" + sym));
     }
 
@@ -2412,7 +2412,7 @@ public class Opinion extends OpinionApi
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             String messageHash = "orders";
-            Object orders = (this.subscribeOpinionChannel(messageHash, "trade.order.update", marketId)).join();
+            List<Object> orders = (List<Object>) (this.subscribeOpinionChannel(messageHash, "trade.order.update", marketId)).join();
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
             return this.filterByValueSinceLimit(orders, "outcome", sym, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
@@ -2521,8 +2521,8 @@ public class Opinion extends OpinionApi
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
-        Object stored = this.orders;
-        Helpers.callDynamically(stored, "append", new Object[]{order});
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
+        stored.append(order);
         client.resolve(stored, "orders");
     }
 
@@ -2550,7 +2550,7 @@ public class Opinion extends OpinionApi
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             String messageHash = "myTrades";
-            Object trades = (this.subscribeOpinionChannel(messageHash, "trade.record.new", marketId)).join();
+            List<Object> trades = (List<Object>) (this.subscribeOpinionChannel(messageHash, "trade.record.new", marketId)).join();
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
             return this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
@@ -2611,8 +2611,8 @@ public class Opinion extends OpinionApi
             Long myTradesLimit = this.safeInteger(this.options, "myTradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)myTradesLimit).intValue());
         }
-        Object stored = this.myTrades;
-        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        stored.append(trade);
         client.resolve(stored, "myTrades");
     }
 

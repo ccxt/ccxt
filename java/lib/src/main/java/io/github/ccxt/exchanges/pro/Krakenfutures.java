@@ -135,10 +135,10 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object orderbook = (this.watchMultiHelper("orderbook", "book", symbols, new HashMap<String, Object>() {{
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultiHelper("orderbook", "book", symbols, new HashMap<String, Object>() {{
                 put( "limit", limit );
             }}, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -339,7 +339,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object trades = (this.watchMultiHelper("trade", "trade", symbols, (Object) null, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchMultiHelper("trade", "trade", symbols, (Object) null, parameters)).join();
             List<Object> first = (List<Object>) this.safeList(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -399,7 +399,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 messageHash = ("::" + String.join(",", (List<String>)symbolsNormalized));
             }
             messageHash = ("positions" + messageHash);
-            Object newPositions = (this.subscribePrivate("open_positions", messageHash, parameters)).join();
+            List<Object> newPositions = (List<Object>) (this.subscribePrivate("open_positions", messageHash, parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -585,7 +585,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Map<String, Object> market = this.market(symbol);
                 messageHash = (messageHash + (":" + market.get("symbol")));
             }
-            Object orders = (this.subscribePrivate(name, messageHash, Helpers.toMapArg(paramsVerbose))).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(name, messageHash, Helpers.toMapArg(paramsVerbose))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -623,7 +623,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Map<String, Object> market = this.market(symbol);
                 messageHash = (messageHash + (":" + market.get("symbol")));
             }
-            Object trades = (this.subscribePrivate(name, messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate(name, messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

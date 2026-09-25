@@ -17,6 +17,8 @@ type OrderBookInterface interface {
 	GetCache() *any
 	SetCache(cache any)
 	GetNonce() any
+	GetAsks() IOrderBookSide
+	GetBids() IOrderBookSide
 	GetValue(key string, defaultValue any) any
 	ToMap() map[string]any
 	Copy() OrderBookInterface
@@ -450,6 +452,22 @@ func (this *WsOrderBook) Copy() OrderBookInterface {
 
 func (this *WsOrderBook) GetNonce() any {
 	return this.Nonce
+}
+
+// GetAsks / GetBids answer the same side GetValue(book, "asks"|"bids") reads
+func (this *WsOrderBook) GetAsks() IOrderBookSide {
+	return this.Asks
+}
+func (this *WsOrderBook) GetBids() IOrderBookSide {
+	return this.Bids
+}
+
+// OrderBookTyped unboxes a stored ws order book; anything else reads as nil
+func OrderBookTyped(v any) OrderBookInterface {
+	if ob, ok := v.(OrderBookInterface); ok {
+		return ob
+	}
+	return nil
 }
 func (this *CountedOrderBook) Limit() any {
 	return this.WsOrderBook.Limit()

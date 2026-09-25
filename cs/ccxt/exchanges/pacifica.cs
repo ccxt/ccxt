@@ -1491,11 +1491,11 @@ public partial class pacifica : Exchange
         {
             if ((limit != null))
             {
-                until = subtract(add(since, ((limit * (multiply(this.parseTimeframe(tf), 1000))))), 1);
+                until = subtract(add(since, ((limit * ((this.parseTimeframe(tf) * 1000L))))), 1);
             }
             if ((until == null))
             {
-                until = subtract((since + ((defaultMaxLimit * (multiply(this.parseTimeframe(tf), 1000))))), 1);
+                until = subtract((since + ((defaultMaxLimit * ((this.parseTimeframe(tf) * 1000L))))), 1);
             }
             if (isGreaterThan(until, nowMillis))
             {
