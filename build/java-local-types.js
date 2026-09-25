@@ -15018,12 +15018,31 @@ function javaBooleanArgumentIsTyped (printer, arg) {
         return true;
     }
     if (ts.isIdentifier (bare)) {
-        if ([ 'boolean', 'Boolean' ].includes (printer.javaDeclaredBooleanKind (bare))) {
-            return true;
-        }
+        return [ 'boolean', 'Boolean' ].includes (printer.javaDeclaredBooleanKind (bare));
     }
-    return printer.javaPrintsBooleanBoxValue (bare, new Set ());
+    return javaPrimitiveBooleanExpression (printer, bare);
 }
+
+// a comparison, `!x` or a primitive-boolean base call: Java prints a primitive boolean
+function javaPrimitiveBooleanExpression (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return false;
+    }
+    if (ts.isPrefixUnaryExpression (value)) {
+        return value.operator === ts.SyntaxKind.ExclamationToken;
+    }
+    if (ts.isBinaryExpression (value)) {
+        return JAVA_COMPARISON_OPERATORS.has (value.operatorToken.kind);
+    }
+    return ts.isCallExpression (value) && printer.javaCallBooleanKind (value) === 'boolean';
+}
+
+const JAVA_COMPARISON_OPERATORS = new Set ([
+    ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsToken,
+    ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken,
+    ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.GreaterThanEqualsToken,
+]);
 
 // the argument sits at a table slot of a `this.m (...)` / `super.m (...)` call
 function javaBooleanFixedSlotArgument (arg) {
@@ -15084,7 +15103,7 @@ export function javaBooleanLocalWrite (printer, node) {
     if (value.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (value) && value.text === 'undefined')) {
         return true;
     }
-    return isBooleanLiteralNode (value) || javaAwaitedUtaCall (printer, value) || printer.javaCallBooleanKind (value) === 'boolean';
+    return isBooleanLiteralNode (value) || javaAwaitedUtaCall (printer, value) || javaPrimitiveBooleanExpression (printer, value);
 }
 
 export function installJavaBooleanWriteLocals (transpiler) {
