@@ -3482,7 +3482,7 @@ func (this *Toobit) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 	var networkCodeparamsOmittedVariable []any = this.HandleNetworkCodeAndParams(this.Extend(request, params))
 	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsOmittedVariable, 0))
-	var paramsOmitted map[string]any = MapTyped(GetValue(networkCodeparamsOmittedVariable, 1))
+	paramsOmitted := GetValue(networkCodeparamsOmittedVariable, 1)
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() : param[\"network\"] is required"))
 	}

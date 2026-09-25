@@ -1872,12 +1872,12 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	var broker *string = this.SafeString(this.Options, "broker", "CCXT")
 	request["broker_id"] = broker
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	marginModeparamsVariable := this.CustomHandleMarginModeAndParams("createOrder", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if (marketType != nil && *marketType == "margin") || (marginMode != nil) {
 		request["spot_margin"] = "MARGIN"

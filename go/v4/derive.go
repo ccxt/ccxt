@@ -1754,9 +1754,9 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	var maxFeeString *string = this.NumberToString(maxFee)
 	var amountString *string = this.NumberToString(amount)
 	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(market["info"], "base_asset_address"), this.ParseToNumeric(GetValue(market["info"], "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
-	var deriveWalletAddress any = nil
+	var deriveWalletAddress *string = nil
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("createOrder", params)
-	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
+	deriveWalletAddress = SafeStringPtr(GetValue(deriveWalletAddressparamsVariable, 0))
 	params = MapTyped(GetValue(deriveWalletAddressparamsVariable, 1))
 	var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
@@ -1947,9 +1947,9 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var maxFeeString *string = this.SafeString(params, "max_fee", "0")
 	var amountString *string = this.NumberToString(amount)
 	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(market["info"], "base_asset_address"), this.ParseToNumeric(GetValue(market["info"], "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
-	var deriveWalletAddress any = nil
+	var deriveWalletAddress *string = nil
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("editOrder", params)
-	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
+	deriveWalletAddress = SafeStringPtr(GetValue(deriveWalletAddressparamsVariable, 0))
 	params = MapTyped(GetValue(deriveWalletAddressparamsVariable, 1))
 	var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
@@ -3181,9 +3181,9 @@ func (this *Derive) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var deriveWalletAddress any = nil
+	var deriveWalletAddress *string = nil
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
-	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
+	deriveWalletAddress = SafeStringPtr(GetValue(deriveWalletAddressparamsVariable, 0))
 	params = MapTyped(GetValue(deriveWalletAddressparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"wallet": deriveWalletAddress,

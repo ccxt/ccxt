@@ -2840,7 +2840,7 @@ func (this *Gate) SpotOrderPrepareRequest(optionalArgs ...any) any {
 	_ = params
 	marginModequeryVariable := this.GetMarginMode(trigger, params)
 	marginMode := GetValue(marginModequeryVariable, 0)
-	query := GetValue(marginModequeryVariable, 1)
+	var query map[string]any = MapTyped(GetValue(marginModequeryVariable, 1))
 	var request map[string]any = map[string]any{}
 	if !(trigger == true) {
 		if market == nil {
@@ -2870,7 +2870,7 @@ func (this *Gate) MultiOrderSpotPrepareRequest(optionalArgs ...any) any {
 	_ = params
 	marginModequeryVariable := this.GetMarginMode(trigger, params)
 	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
-	query := GetValue(marginModequeryVariable, 1)
+	var query map[string]any = MapTyped(GetValue(marginModequeryVariable, 1))
 	var request map[string]any = map[string]any{
 		"account": marginMode,
 	}
@@ -3088,8 +3088,8 @@ func (this *Gate) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	requestqueryVariable := this.PrepareRequest(market, nil, params)
-	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicFuturesGetSettleContractsContract(this.Extend(request, query))).Raw))
 
@@ -3173,8 +3173,8 @@ func (this *Gate) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(firstSymbol)
 	}
 	requestqueryVariable := this.PrepareRequest(market, "swap", params)
-	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleContracts(this.Extend(request, query))).Raw))
 
@@ -3837,8 +3837,8 @@ func (this *Gate) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	typeVar := GetValue(typeVarqueryVariable, 0)
 	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
 	requestrequestParamsVariable := this.PrepareRequest(market, typeVar, query)
-	request := GetValue(requestrequestParamsVariable, 0)
-	requestParams := GetValue(requestrequestParamsVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 0))
+	var requestParams map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 1))
 	AddElementToObject(request, "type", "fund") // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
 	if since != nil {
 		// from should be integer
@@ -3950,8 +3950,8 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//     };
 	//
 	requestqueryVariable := this.PrepareRequest(market, market["type"], params)
-	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 	if limit != nil {
 		if GetValue(market, "spot") == true {
 			// gateeu returns an empty book for a spot limit above 100
@@ -4098,8 +4098,8 @@ func (this *Gate) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var market map[string]any = this.Market(symbol)
 	requestqueryVariable := this.PrepareRequest(market, nil, params)
-	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 	var response []any = nil
 	if (GetValue(market, "spot") == true) || (GetValue(market, "margin") == true) {
 
@@ -4296,8 +4296,8 @@ func (this *Gate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	typeVar := GetValue(typeVarqueryVariable, 0)
 	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
 	requestrequestParamsVariable := this.PrepareRequest(nil, typeVar, query)
-	request := GetValue(requestrequestParamsVariable, 0)
-	requestParams := GetValue(requestrequestParamsVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 0))
+	var requestParams map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 1))
 	var response []any = nil
 	AddElementToObject(request, "timezone", "utc0") // default to utc
 	if (typeVar == "spot") || (typeVar == "margin") {
@@ -4378,11 +4378,11 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	typeVar := GetValue(typeVarqueryVariable, 0)
 	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
 	requestrequestParamsVariable := this.PrepareRequest(nil, typeVar, query)
-	request := GetValue(requestrequestParamsVariable, 0)
-	requestParams := GetValue(requestrequestParamsVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 0))
+	var requestParams map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 1))
 	marginModerequestQueryVariable := this.GetMarginMode(false, requestParams)
 	var marginMode *string = SafeStringPtr(GetValue(marginModerequestQueryVariable, 0))
-	requestQuery := GetValue(marginModerequestQueryVariable, 1)
+	var requestQuery map[string]any = MapTyped(GetValue(marginModerequestQueryVariable, 1))
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		AddElementToObject(request, "currency_pair", market["id"])
@@ -5009,8 +5009,8 @@ func (this *Gate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	//     };
 	//
 	requestqueryVariable := this.PrepareRequest(market, nil, params)
-	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 	var until *int64 = this.SafeInteger2(params, "to", "until")
 	if until != nil {
 		params = MapTyped(this.Omit(params, []any{"until"}))
@@ -7061,8 +7061,8 @@ func (this *Gate) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeString(result, 0)
 	var trigger *bool = this.SafeBoolN(params, []any{"trigger", "is_stop_order", "stop"}, false)
 	requestrequestParamsVariable := this.FetchOrderRequest(id, symbol, params)
-	request := GetValue(requestrequestParamsVariable, 0)
-	requestParams := GetValue(requestrequestParamsVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 0))
+	var requestParams map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 1))
 	var response any = nil
 	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 		if trigger != nil && *trigger == true {
@@ -7331,8 +7331,8 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs 
 	var res []any = this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, params)
 	var typeVar *string = this.SafeString(res, 0)
 	requestrequestParamsVariable := this.PrepareOrdersByStatusRequest(status, symbol, since, limit, params)
-	request := GetValue(requestrequestParamsVariable, 0)
-	requestParams := GetValue(requestrequestParamsVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 0))
+	var requestParams map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 1))
 	var spot bool = (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")
 	var openStatus bool = (IsEqual(status, "open"))
 	var openSpotOrders bool = spot && openStatus && (trigger == nil || *trigger != true)
@@ -8122,8 +8122,8 @@ func (this *Gate) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	}
 	var market map[string]any = this.Market(symbol)
 	requestqueryVariable := this.PrepareRequest(market, nil, params)
-	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 	var defaultMarginMode *string = this.SafeString2(this.Options, "marginMode", "defaultMarginMode")
 	var crossLeverageLimit *string = this.SafeString(query, "cross_leverage_limit")
 	var marginMode *string = this.SafeString(query, "marginMode", defaultMarginMode)
@@ -8609,8 +8609,8 @@ func (this *Gate) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	typeVar := GetValue(typeVarqueryVariable, 0)
 	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
 	requestrequestParamsVariable := this.PrepareRequest(nil, typeVar, query)
-	request := GetValue(requestrequestParamsVariable, 0)
-	requestParams := GetValue(requestrequestParamsVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 0))
+	var requestParams map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 1))
 	if (typeVar != "future") && (typeVar != "swap") {
 		panic(BadRequest(this.Id + " fetchLeverageTiers only supports swap and future"))
 	}
@@ -8750,8 +8750,8 @@ func (this *Gate) fetchMarketLeverageTiersBody(ch chan any, symbol any, optional
 	typeVar := GetValue(typeVarqueryVariable, 0)
 	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
 	requestrequestParamsVariable := this.PrepareRequest(market, typeVar, query)
-	request := GetValue(requestrequestParamsVariable, 0)
-	requestParams := GetValue(requestrequestParamsVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 0))
+	var requestParams map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 1))
 	if (typeVar != "future") && (typeVar != "swap") {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers only supports swap and future"))
 	}
@@ -9383,8 +9383,8 @@ func (this *Gate) modifyMarginHelperBody(ch chan any, symbol any, amount any, op
 	}
 	var market map[string]any = this.Market(symbol)
 	requestqueryVariable := this.PrepareRequest(market, nil, params)
-	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 	AddElementToObject(request, "change", this.NumberToString(amount))
 	var response any = nil
 	if GetValue(market, "swap") == true {
@@ -9741,8 +9741,8 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 		panic(NotSupported(this.Id + " fetchMySettlementHistory() supports option and future markets only"))
 	}
 	requestqueryVariable := this.PrepareRequest(market, typeVar, params)
-	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
@@ -10214,8 +10214,8 @@ func (this *Gate) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 		return nil
 	}()
 	requestqueryVariable := this.PrepareRequest(market, "swap", params)
-	request := GetValue(requestqueryVariable, 0)
-	query := GetValue(requestqueryVariable, 1)
+	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 	AddElementToObject(request, "dual_mode", hedged)
 
 	ch <- PanicOnError((<-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query))).Raw)

@@ -4979,11 +4979,11 @@ func (this *Kucoin) createSpotOrderBody(ch chan any, symbol any, typeVar string,
 	useSync = GetValueBool(useSyncparamsVariable, 0, false)
 	params = MapTyped(GetValue(useSyncparamsVariable, 1))
 	triggerPricestopLossPricetakeProfitPriceVariable := this.HandleTriggerPrices(params)
-	triggerPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 0)
-	stopLossPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 1)
-	takeProfitPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 2)
+	var triggerPrice *float64 = Float64PtrTyped(GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 0))
+	var stopLossPrice *float64 = Float64PtrTyped(GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 1))
+	var takeProfitPrice *float64 = Float64PtrTyped(GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 2))
 	var tradeType *string = this.SafeString(params, "tradeType") // keep it for backward compatibility
-	var isTriggerOrder bool = (!IsEqual(triggerPrice, nil)) || (!IsEqual(stopLossPrice, nil)) || (!IsEqual(takeProfitPrice, nil))
+	var isTriggerOrder bool = ((triggerPrice != nil)) || ((stopLossPrice != nil)) || ((takeProfitPrice != nil))
 	var marginResult any = this.HandleMarginModeAndParams("createOrder", params)
 	var marginMode *string = this.SafeString(marginResult, 0)
 	var isMarginOrder bool = (tradeType != nil && *tradeType == "MARGIN_TRADE") || (marginMode != nil)
@@ -5090,17 +5090,17 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol any, typeVar any, side any, am
 	}
 	var tradeType *string = this.SafeString(params, "tradeType") // keep it for backward compatibility
 	triggerPricestopLossPricetakeProfitPriceVariable := this.HandleTriggerPrices(params)
-	triggerPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 0)
-	stopLossPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 1)
-	takeProfitPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 2)
-	var isTriggerOrder bool = (!IsEqual(triggerPrice, nil)) || (!IsEqual(stopLossPrice, nil)) || (!IsEqual(takeProfitPrice, nil))
+	var triggerPrice *float64 = Float64PtrTyped(GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 0))
+	var stopLossPrice *float64 = Float64PtrTyped(GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 1))
+	var takeProfitPrice *float64 = Float64PtrTyped(GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 2))
+	var isTriggerOrder bool = ((triggerPrice != nil)) || ((stopLossPrice != nil)) || ((takeProfitPrice != nil))
 	var isMarginOrder bool = (tradeType != nil && *tradeType == "MARGIN_TRADE") || (marginMode != nil)
 	params = MapTyped(this.Omit(params, []any{"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"}))
 	if isTriggerOrder {
-		if !IsEqual(triggerPrice, nil) {
+		if triggerPrice != nil {
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
-		} else if (!IsEqual(stopLossPrice, nil)) || (!IsEqual(takeProfitPrice, nil)) {
-			if !IsEqual(stopLossPrice, nil) {
+		} else if ((stopLossPrice != nil)) || ((takeProfitPrice != nil)) {
+			if stopLossPrice != nil {
 				request["stop"] = func() string {
 					if IsEqual(side, "buy") {
 						return "entry"
@@ -5274,9 +5274,9 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 		}
 	}
 	triggerPricestopLossPricetakeProfitPriceVariable := this.HandleTriggerPrices(params)
-	triggerPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 0)
-	stopLossPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 1)
-	takeProfitPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 2)
+	var triggerPrice *float64 = Float64PtrTyped(GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 0))
+	var stopLossPrice *float64 = Float64PtrTyped(GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 1))
+	var takeProfitPrice *float64 = Float64PtrTyped(GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 2))
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = (stopLoss != nil)
@@ -5290,7 +5290,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 	var triggerPriceType *string = this.SafeString(params, "triggerPriceType", "mark")
 	var triggerPriceTypeValue *string = this.SafeString(triggerPriceTypes, triggerPriceType, triggerPriceType)
 	params = this.Omit(params, []any{"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"})
-	if !IsEqual(triggerPrice, nil) {
+	if triggerPrice != nil {
 		request["stop"] = func() string {
 			if IsEqual(side, "buy") {
 				return "up"
@@ -5314,8 +5314,8 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 			priceType = this.SafeString(triggerPriceTypes, priceType, priceType)
 		}
 		request["stopPriceType"] = priceType
-	} else if (!IsEqual(stopLossPrice, nil)) || (!IsEqual(takeProfitPrice, nil)) {
-		if !IsEqual(stopLossPrice, nil) {
+	} else if ((stopLossPrice != nil)) || ((takeProfitPrice != nil)) {
+		if stopLossPrice != nil {
 			request["stop"] = func() string {
 				if IsEqual(side, "buy") {
 					return "up"
@@ -5572,9 +5572,9 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	}
 	// handling with conditional orders
 	triggerPricestopLossPricetakeProfitPriceVariable := this.HandleTriggerPrices(params)
-	triggerPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 0)
-	stopLossPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 1)
-	takeProfitPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 2)
+	var triggerPrice *float64 = Float64PtrTyped(GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 0))
+	var stopLossPrice *float64 = Float64PtrTyped(GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 1))
+	var takeProfitPrice *float64 = Float64PtrTyped(GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 2))
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = (stopLoss != nil)
@@ -5584,7 +5584,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 		"last":  "TP",
 		"index": "IP",
 	}
-	if !IsEqual(triggerPrice, nil) {
+	if triggerPrice != nil {
 		var triggerDirection *string = this.SafeString(params, "triggerDirection")
 		if triggerDirection == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice"))
@@ -5612,8 +5612,8 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 			request["tpTriggerPrice"] = this.PriceToPrecision(symbol, tpTriggerPrice)
 			request["tpTriggerPriceType"] = this.SafeString(triggerPriceTypes, tpTriggerPriceType, tpTriggerPriceType)
 		}
-	} else if (!IsEqual(stopLossPrice, nil)) || (!IsEqual(takeProfitPrice, nil)) {
-		if !IsEqual(stopLossPrice, nil) {
+	} else if ((stopLossPrice != nil)) || ((takeProfitPrice != nil)) {
+		if stopLossPrice != nil {
 			request["triggerDirection"] = func() string {
 				if IsEqual(side, "buy") {
 					return "UP"

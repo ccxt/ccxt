@@ -5528,7 +5528,7 @@ func (this *Whitebit) Sign(path any, optionalArgs ...any) any {
 		var request *string = SafeStringPtr(Add(Add("/"+"api"+"/", version), pathWithParams))
 		var nonceWindowrequestParamsVariable []any = this.HandleOptionBoolAndParams(params, "sign", "nonceWindow", false)
 		nonceWindow := GetValue(nonceWindowrequestParamsVariable, 0)
-		var requestParams map[string]any = MapTyped(GetValue(nonceWindowrequestParamsVariable, 1))
+		requestParams := GetValue(nonceWindowrequestParamsVariable, 1)
 		body = this.Json(this.Extend(map[string]any{
 			"request":     request,
 			"nonce":       nonce,

@@ -1219,10 +1219,10 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var userAddress any = nil
+	var userAddress *string = nil
 	var subAccountNumber *string = nil
 	userAddressparamsVariable := this.HandlePublicAddress("fetchOrders", params)
-	userAddress = GetValue(userAddressparamsVariable, 0)
+	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
 	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var subAccountNumberparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchOrders", "subAccountNumber", "0")
 	subAccountNumber = SafeStringPtr(GetValue(subAccountNumberparamsVariable, 0))
@@ -1462,10 +1462,10 @@ func (this *Dydx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var userAddress any = nil
+	var userAddress *string = nil
 	var subAccountNumber *string = nil
 	userAddressparamsVariable := this.HandlePublicAddress("fetchPositions", params)
-	userAddress = GetValue(userAddressparamsVariable, 0)
+	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
 	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var subAccountNumberparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "subAccountNumber", "0")
 	subAccountNumber = SafeStringPtr(GetValue(subAccountNumberparamsVariable, 0))
@@ -1553,7 +1553,7 @@ func (this *Dydx) SignDydxTx(privateKey any, message any, memo any, chainId any,
 	_ = fee
 	encodedTxsignDocVariable := this.EncodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee)
 	encodedTx := GetValue(encodedTxsignDocVariable, 0)
-	var signDoc map[string]any = MapTyped(GetValue(encodedTxsignDocVariable, 1))
+	signDoc := GetValue(encodedTxsignDocVariable, 1)
 	var signature any = this.SignHash(encodedTx, privateKey)
 	return this.EncodeDydxTxRaw(signDoc, Add(GetValue(signature, "r"), GetValue(signature, "s")))
 }
@@ -2907,10 +2907,10 @@ func (this *Dydx) fetchTransactionsHelperBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	var methodName *string = this.SafeString(params, "methodName")
 	params = MapTyped(this.Omit(params, "methodName"))
-	var userAddress any = nil
+	var userAddress *string = nil
 	var subAccountNumber *string = nil
 	userAddressparamsVariable := this.HandlePublicAddress(methodName, params)
-	userAddress = GetValue(userAddressparamsVariable, 0)
+	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
 	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var subAccountNumberparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "subAccountNumber", "0")
 	subAccountNumber = SafeStringPtr(GetValue(subAccountNumberparamsVariable, 0))
@@ -2968,9 +2968,9 @@ func (this *Dydx) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var userAddress any = nil
+	var userAddress *string = nil
 	userAddressparamsVariable := this.HandlePublicAddress("fetchAccounts", params)
-	userAddress = GetValue(userAddressparamsVariable, 0)
+	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
 	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"address": userAddress,
@@ -3066,9 +3066,9 @@ func (this *Dydx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var userAddress any = nil
+	var userAddress *string = nil
 	userAddressparamsVariable := this.HandlePublicAddress("fetchBalance", params)
-	userAddress = GetValue(userAddressparamsVariable, 0)
+	userAddress = SafeStringPtr(GetValue(userAddressparamsVariable, 0))
 	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var subaccountNumber any = nil
 	var subaccountNumberparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchBalance", "subaccountNumber", 0)
