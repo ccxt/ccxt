@@ -1007,6 +1007,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             this.orderbooks[symbol] = isGrouped ? this.orderBook ({}, limit) : this.countedOrderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
+        if (!isGrouped && (type !== 'snapshot') && (orderbook['nonce'] === undefined)) {
+            return;
+        }
         if (isGrouped) {
             const parsedSnapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
             orderbook.reset (parsedSnapshot);
@@ -1035,7 +1038,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     }
 
     async resubscribeOrderBook (channel: string) {
-        // the channel un-grouped book stream re-sends a fresh snapshot on (re)subscribe
+        await this.unSubscribe ([ channel ], false, {});
         await this.subscribe ([ channel ], [ channel ], false, {});
     }
 
