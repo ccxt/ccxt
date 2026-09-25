@@ -2077,7 +2077,7 @@ public class Bitopro extends BitoproApi
                 put( "address", address );
             }};
             Boolean hasNetwork = (((Map<?, ?>)paramsWithdrawTag).containsKey("network"));
-            Object paramsOmitted = paramsWithdrawTag;
+            Map<String, Object> paramsOmitted = paramsWithdrawTag;
             if (Boolean.TRUE.equals(hasNetwork))
             {
                 paramsOmitted = this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("network")));

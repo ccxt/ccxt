@@ -1960,7 +1960,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice")));
             Double costParam = this.safeNumber2(paramsOmitted, "cost", "funds", (Object) null);
             Boolean omitCost = (java.util.Objects.equals(type, "market")) && (!java.util.Objects.equals(costParam, null));
-            Object paramsCost = paramsOmitted;
+            Map<String, Object> paramsCost = paramsOmitted;
             if (Boolean.TRUE.equals(omitCost))
             {
                 paramsCost = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("cost", "funds")));

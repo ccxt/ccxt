@@ -695,12 +695,12 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 descriptor = ((((group + ".") + depth) + ".") + interval);
             }
-            Object paramsResolved = paramsUseDepthEndpoint;
+            Map<String, Object> paramsResolved = paramsUseDepthEndpoint;
             if (Boolean.TRUE.equals(useDepthEndpoint))
             {
                 paramsResolved = paramsGroup;
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper("book", (String) (descriptor), symbols, Helpers.toMapArg(paramsResolved))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper("book", (String) (descriptor), symbols, paramsResolved)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 

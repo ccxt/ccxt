@@ -3144,7 +3144,7 @@ public class Extended extends ExtendedApi
             String fee = this.safeString(parameters, "fee", "0.0005");
             String builderFeeRate = null;
             String builderId = null;
-            Object paramsBuilder = null;
+            Map<String, Object> paramsBuilder = null;
             if (this.isSandboxModeEnabled)
             {
                 builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
@@ -3340,7 +3340,7 @@ public class Extended extends ExtendedApi
                     request.put("trigger", trigger);
                 }
             }
-            Object paramsOmitted = this.omit(paramsBuilder, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")));
+            Map<String, Object> paramsOmitted = this.omit(paramsBuilder, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")));
             return Helpers.newMap(
                 "request", this.extend(request, paramsOmitted),
                 "market", market,

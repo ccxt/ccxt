@@ -2285,7 +2285,7 @@ public class Bitrue extends BitrueApi
                 Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                 Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                 Boolean isMarketBuyWithPrice = Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")) && Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice);
-                Object paramsNoCost = paramsRequiresPrice;
+                Map<String, Object> paramsNoCost = paramsRequiresPrice;
                 if (Boolean.TRUE.equals(isMarketBuyWithPrice))
                 {
                     paramsNoCost = this.omit(paramsRequiresPrice, "cost");
@@ -2319,7 +2319,7 @@ public class Bitrue extends BitrueApi
                 request.put("open", (((java.util.Objects.equals(reduceOnly, true)))) ? "CLOSE" : "OPEN");
                 String leverage = this.safeString(paramsNoCost, "leverage", "1");
                 request.put("leverage", this.parseToNumeric(leverage));
-                Object paramsSwap = this.omit(paramsNoCost, new ArrayList<Object>(Arrays.asList("leverage", "reduceOnly", "reduce_only", "timeInForce")));
+                Map<String, Object> paramsSwap = this.omit(paramsNoCost, new ArrayList<Object>(Arrays.asList("leverage", "reduceOnly", "reduce_only", "timeInForce")));
                 if (java.util.Objects.equals(market.get("linear"), true))
                 {
                     response = (this.fapiV2PrivatePostOrder(this.extend(request, paramsSwap))).join();

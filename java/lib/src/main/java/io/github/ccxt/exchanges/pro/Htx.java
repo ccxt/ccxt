@@ -573,7 +573,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, true, false);
             Object method = "handleOrderBookSubscription";
-            Object paramsExtended = parameters;
+            Map<String, Object> paramsExtended = parameters;
             if (!java.util.Objects.equals(market.get("spot"), true))
             {
                 paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
@@ -584,7 +584,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 method = null;
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (url), symbolValue, messageHash, method, Helpers.toMapArg(paramsExtended))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (url), symbolValue, messageHash, method, paramsExtended)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -1847,7 +1847,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             Object type = null;
             Object subType = null;
-            Object paramsSubType = new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsSubType = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
             {
                 type = this.safeString(market, "type");

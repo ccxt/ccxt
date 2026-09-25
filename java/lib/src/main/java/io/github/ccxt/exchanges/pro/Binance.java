@@ -3875,7 +3875,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 refreshRateKey = "stockListenKeyRefreshRate";
             }
             Long listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
-            Object delayParams = paramsOmitted;
+            Map<String, Object> delayParams = paramsOmitted;
             if (Boolean.TRUE.equals(isStock))
             {
                 // params had type omitted above - restore it so the next cycle routes back here
@@ -3898,7 +3898,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     String subscribeType = (subscriptionKeys == null || j < 0 || j >= subscriptionKeys.size() ? null : subscriptionKeys.get(j));
                     if (java.util.Objects.equals(subscribeType, type))
                     {
-                        this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", Helpers.toMapArg(delayParams));
+                        this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", delayParams);
                         return null;
                     }
                 }
@@ -4474,11 +4474,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     public Object getMarketType(Object method, Object market, Map<String, Object> parameters)
     {
         String type = null;
-        Object paramsMarketType = new HashMap<String, Object>() {{}};
+        Map<String, Object> paramsMarketType = new HashMap<String, Object>() {{}};
         io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(method, Helpers.toMapArg(market), parameters, (String) null);
         type = typeparamsMarketTypeVariable.first();
         paramsMarketType = typeparamsMarketTypeVariable.second();
-        String subType = (String) ((List<Object>)this.handleSubTypeAndParams(method, Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null)).get(0);
+        String subType = (String) ((List<Object>)this.handleSubTypeAndParams(method, Helpers.toMapArg(market), paramsMarketType, (Object) null)).get(0);
         if (this.isLinear(type, subType))
         {
             type = "future";
@@ -5292,13 +5292,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String type = (String) ((List<Object>) typesubTypeparamsValueVariable).get(0);
             var subType = ((List<Object>) typesubTypeparamsValueVariable).get(1);
             var paramsValue = ((List<Object>) typesubTypeparamsValueVariable).get(2);
-            Object paramsExtended = this.extend(paramsValue, Helpers.newMap(
+            Map<String, Object> paramsExtended = this.extend(paramsValue, Helpers.newMap(
                 "type", type,
                 "symbol", symbolResolved,
                 "subType", subType
             )); // needed inside authenticate for isolated margin
-            (this.authenticate(Helpers.toMapArg(paramsExtended))).join();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", Helpers.toMapArg(paramsExtended), (String) null);
+            (this.authenticate(paramsExtended)).join();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", paramsExtended, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             String urlType = type;

@@ -759,7 +759,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> firstMarket = this.market(firstSymbol);
             Boolean isContract = (Boolean) firstMarket.get("contract");
             String priceType = "LAST_PRICE";
-            Object paramsPriceType = paramsOmitted;
+            Map<String, Object> paramsPriceType = paramsOmitted;
             if (java.util.Objects.equals(isContract, true))
             {
                 io.github.ccxt.base.Pair<String, Map<String, Object>> priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsOmitted), callerMethodName, "price", "priceType", priceType);
@@ -783,7 +783,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 ((List<Object>)channels).add(channel);
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            var symboltimeframestoredVariable = (this.subscribePublic(messageHashes, channels, isContract, Helpers.toMapArg(paramsPriceType), new HashMap<String, Object>() {{}})).join();
+            var symboltimeframestoredVariable = (this.subscribePublic(messageHashes, channels, isContract, paramsPriceType, new HashMap<String, Object>() {{}})).join();
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);
             var stored = ((List<Object>) symboltimeframestoredVariable).get(2);
@@ -849,7 +849,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> firstMarket = this.market(firstSymbol);
             Boolean isContract = (Boolean) firstMarket.get("contract");
             String priceType = "LAST_PRICE";
-            Object paramsPriceType = paramsOmitted;
+            Map<String, Object> paramsPriceType = paramsOmitted;
             if (java.util.Objects.equals(isContract, true))
             {
                 io.github.ccxt.base.Pair<String, Map<String, Object>> priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsOmitted), callerMethodName, "price", "priceType", priceType);
@@ -882,7 +882,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "subMessageHashes", subHashes );
                 put( "topic", "ohlcv" );
             }};
-            return (this.subscribePublic(unSubHashes, channels, isContract, Helpers.toMapArg(paramsPriceType), subscription)).join();
+            return (this.subscribePublic(unSubHashes, channels, isContract, paramsPriceType, subscription)).join();
         });
 
     }

@@ -1759,7 +1759,7 @@ public class Bitvavo extends BitvavoApi
         String stopLossPrice = this.safeString(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice")));
-        Object paramsCost = paramsOmitted;
+        Map<String, Object> paramsCost = paramsOmitted;
         if (Boolean.TRUE.equals(isMarketOrder))
         {
             paramsCost = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("cost")));

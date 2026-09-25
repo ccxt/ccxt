@@ -1535,7 +1535,7 @@ public class Bitfinex extends BitfinexApi
             {
                 request.put("len", limit);
             }
-            Object fullRequest = this.extend(request, parameters);
+            Map<String, Object> fullRequest = this.extend(request, parameters);
             List<Object> orderbook = (this.publicGetBookSymbolPrecision(fullRequest)).join();
             Long timestamp = this.milliseconds();
             Map<String, Object> result = new HashMap<String, Object>() {{
@@ -1546,7 +1546,7 @@ public class Bitfinex extends BitfinexApi
                 put( "datetime", Bitfinex.this.iso8601(timestamp) );
                 put( "nonce", null );
             }};
-            Integer priceIndex = (((java.util.Objects.equals(Helpers.GetValue(fullRequest, "precision"), "R0")))) ? 1 : 0;
+            Integer priceIndex = (((java.util.Objects.equals(fullRequest.get("precision"), "R0")))) ? 1 : 0;
             List<Object> orders = this.toArray(orderbook);
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {

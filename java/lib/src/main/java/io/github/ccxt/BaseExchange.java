@@ -6304,29 +6304,29 @@ public Object describe()
         }};
         if (!java.util.Objects.equals(market, null))
         {
-            Object result = this.extend(cleanStructure, market);
+            Map<String, Object> result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if (java.util.Objects.equals(Helpers.GetValue(result, "spot"), true))
+            if (java.util.Objects.equals(result.get("spot"), true))
             {
-                if (java.util.Objects.equals(Helpers.GetValue(result, "contract"), null))
+                if (java.util.Objects.equals(result.get("contract"), null))
                 {
-                    Helpers.addElementToObject(result, "contract", false);
+                    result.put("contract", false);
                 }
-                if (java.util.Objects.equals(Helpers.GetValue(result, "swap"), null))
+                if (java.util.Objects.equals(result.get("swap"), null))
                 {
-                    Helpers.addElementToObject(result, "swap", false);
+                    result.put("swap", false);
                 }
-                if (java.util.Objects.equals(Helpers.GetValue(result, "future"), null))
+                if (java.util.Objects.equals(result.get("future"), null))
                 {
-                    Helpers.addElementToObject(result, "future", false);
+                    result.put("future", false);
                 }
-                if (java.util.Objects.equals(Helpers.GetValue(result, "option"), null))
+                if (java.util.Objects.equals(result.get("option"), null))
                 {
-                    Helpers.addElementToObject(result, "option", false);
+                    result.put("option", false);
                 }
-                if (java.util.Objects.equals(Helpers.GetValue(result, "index"), null))
+                if (java.util.Objects.equals(result.get("index"), null))
                 {
-                    Helpers.addElementToObject(result, "index", false);
+                    result.put("index", false);
                 }
             }
             return result;
@@ -10034,7 +10034,7 @@ public Object describe()
 
     public Object handleWithdrawTagAndParams(Object tag, Map<String, Object> parameters)
     {
-        Object paramsExtended = parameters;
+        Map<String, Object> paramsExtended = parameters;
         Object tagValue = tag;
         if (Boolean.TRUE.equals(this.isDictionary(tag)))
         {
@@ -10043,7 +10043,7 @@ public Object describe()
         }
         Object tagResolved = (((java.util.Objects.equals(tagValue, null)))) ? this.safeString(paramsExtended, "tag") : tagValue;
         Boolean tagFromParams = (java.util.Objects.equals(tagValue, null)) && (!java.util.Objects.equals(tagResolved, null));
-        Object paramsOmitted = paramsExtended;
+        Map<String, Object> paramsOmitted = paramsExtended;
         if (Boolean.TRUE.equals(tagFromParams))
         {
             paramsOmitted = this.omit(paramsExtended, "tag");

@@ -2893,7 +2893,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
             String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "client_order_id");
             Boolean useClientOrderId = !Boolean.TRUE.equals(twap) && ((generation != null && generation == 2)) && (!java.util.Objects.equals(clientOrderId, null));
-            Object paramsRequest = paramsOmitted;
+            Map<String, Object> paramsRequest = paramsOmitted;
             if (Boolean.TRUE.equals(useClientOrderId))
             {
                 paramsRequest = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")));
@@ -2933,7 +2933,7 @@ public class Bithumb extends BithumbApi
                 {
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires a market with defined base and quote")) ;
                 }
-                Boolean side_in_params = (Helpers.inOp(paramsRequest, "side"));
+                Boolean side_in_params = (paramsRequest.containsKey("side"));
                 if (!Boolean.TRUE.equals(side_in_params))
                 {
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires a `side` parameter (sell or buy)")) ;
@@ -2946,7 +2946,7 @@ public class Bithumb extends BithumbApi
                 {
                     side = "ask";
                 }
-                Object paramsSide = this.omit(paramsRequest, "side");
+                Map<String, Object> paramsSide = this.omit(paramsRequest, "side");
                 // https://github.com/ccxt/ccxt/issues/6771
                 request.put("type", side);
                 request.put("order_currency", base);
@@ -3083,7 +3083,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> response = null;
             Object destinationRequest = null;
             Boolean requiresDestination = (java.util.Objects.equals(code, "XRP") || java.util.Objects.equals(code, "XMR") || java.util.Objects.equals(code, "EOS") || java.util.Objects.equals(code, "STEEM") || java.util.Objects.equals(code, "TON"));
-            Object paramsDestination = paramsNetwork;
+            Map<String, Object> paramsDestination = paramsNetwork;
             if (Boolean.TRUE.equals(requiresDestination))
             {
                 paramsDestination = this.omit(paramsNetwork, new ArrayList<Object>(Arrays.asList("destination", "secondary_address")));
@@ -3103,7 +3103,7 @@ public class Bithumb extends BithumbApi
                 }
             }
             String receiverType = this.safeString2(paramsDestination, "receiver_type", "cust_type_cd");
-            Object paramsReceiverType = this.omit(paramsDestination, new ArrayList<Object>(Arrays.asList("receiver_type", "cust_type_cd")));
+            Map<String, Object> paramsReceiverType = this.omit(paramsDestination, new ArrayList<Object>(Arrays.asList("receiver_type", "cust_type_cd")));
             if ((generation != null && generation == 2))
             {
                 if (java.util.Objects.equals(code, "KRW"))

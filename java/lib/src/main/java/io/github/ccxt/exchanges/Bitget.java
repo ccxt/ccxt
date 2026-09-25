@@ -3609,7 +3609,7 @@ public class Bitget extends BitgetApi
     public Object handleProductTypeAndParams(Map<String, Object> market, Map<String, Object> parameters)
     {
         String subType = null;
-        Object paramsSubType = null;
+        Map<String, Object> paramsSubType = null;
         io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("handleProductTypeAndParams", (Map<String, Object>) null, parameters, (Object) null);
         subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         paramsSubType = subTypeparamsSubTypeVariable.second();
@@ -3630,7 +3630,7 @@ public class Bitget extends BitgetApi
             if (java.util.Objects.equals(market.get("spot"), true))
             {
                 String marginMode = null;
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsSubTypeVariable = this.handleMarginModeAndParams("handleProductTypeAndParams", Helpers.toMapArg(paramsSubType), (String) null);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsSubTypeVariable = this.handleMarginModeAndParams("handleProductTypeAndParams", paramsSubType, (String) null);
                 marginMode = marginModeparamsSubTypeVariable.first();
                 paramsSubType = marginModeparamsSubTypeVariable.second();
                 if (!java.util.Objects.equals(marginMode, null))
@@ -12872,7 +12872,7 @@ public class Bitget extends BitgetApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String type = null;
-            Object paramsMarketType = null;
+            Map<String, Object> paramsMarketType = null;
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTransfers", (Map<String, Object>) null, parameters, (String) null);
             type = typeparamsMarketTypeVariable.first();
             paramsMarketType = typeparamsMarketTypeVariable.second();

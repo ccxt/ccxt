@@ -5225,7 +5225,7 @@ public class Coinex extends CoinexApi
                 put( "from_account_type", fromId );
                 put( "to_account_type", toId );
             }};
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if ((java.util.Objects.equals(fromAccount, "margin")) || (java.util.Objects.equals(toAccount, "margin")))
             {
                 paramsOmitted = this.omit(parameters, "symbol");

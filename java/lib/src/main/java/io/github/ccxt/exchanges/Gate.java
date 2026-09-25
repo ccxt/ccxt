@@ -7709,7 +7709,7 @@ public class Gate extends GateApi
                 request.put("settle", currency.get("id")); // todo: currencies have network-junctions
             }
             Boolean isMarginTransfer = (java.util.Objects.equals(fromId, "margin")) || (java.util.Objects.equals(toId, "margin"));
-            Object query = parameters;
+            Map<String, Object> query = parameters;
             if (Boolean.TRUE.equals(isMarginTransfer))
             {
                 query = this.omit(parameters, "symbol");
@@ -9529,7 +9529,7 @@ public class Gate extends GateApi
                 request.put("settle", settle);
             }
             Boolean isContract = (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
-            Object paramsSettle = paramsMarketType;
+            Map<String, Object> paramsSettle = paramsMarketType;
             if (Boolean.TRUE.equals(isContract))
             {
                 paramsSettle = this.omit(paramsMarketType, "settle");

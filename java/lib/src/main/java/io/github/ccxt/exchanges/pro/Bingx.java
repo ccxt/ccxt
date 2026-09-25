@@ -131,11 +131,11 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String marketType = null;
             String subType = null;
             String url = null;
-            Object query = null;
+            Map<String, Object> query = null;
             io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams(methodName, market, Helpers.toMapArg(parameters), (String) null);
             marketType = marketTypequeryVariable.first();
             query = marketTypequeryVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams(methodName, market, Helpers.toMapArg(query), "linear");
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams(methodName, market, query, "linear");
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = subTypequeryVariable.second();
             if (java.util.Objects.equals(marketType, "swap"))

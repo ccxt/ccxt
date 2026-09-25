@@ -631,7 +631,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", (Map<String, Object>) (market), uta, paramsUta);
             String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
             Map<String, Object> paramsInstType = (Map<String, Object>) ((List<Object>) instTypeparamsInstTypeVariable).get(1);
-            Object paramsRequest = paramsInstType;
+            Map<String, Object> paramsRequest = paramsInstType;
             if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.extend(paramsInstType, new HashMap<String, Object>() {{
@@ -653,7 +653,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 args.put("instId", market.get("id"));
                 messageHash = ((("candles:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + symbolValue);
             }
-            List<Object> ohlcv = (List<Object>) (this.watchPublic(uta, messageHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic(uta, messageHash, (Map<String, Object>) (args), paramsRequest)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -696,7 +696,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", (Map<String, Object>) (market), uta, parameters);
             String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
             Map<String, Object> paramsInstType = (Map<String, Object>) ((List<Object>) instTypeparamsInstTypeVariable).get(1);
-            Object paramsRequest = paramsInstType;
+            Map<String, Object> paramsRequest = paramsInstType;
             if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.extend(paramsInstType, new HashMap<String, Object>() {{
@@ -919,7 +919,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             String channel = "books";
             Long limit = this.safeInteger(parameters, "limit");
             Boolean isFixedDepth = ((limit != null && limit == 1)) || ((limit != null && limit == 5)) || ((limit != null && limit == 15)) || ((limit != null && limit == 50));
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (Boolean.TRUE.equals(isFixedDepth))
             {
                 paramsOmitted = this.omit(parameters, "limit");
@@ -2008,7 +2008,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 topicOrChannel = "topic";
             }
             args.put((String)topicOrChannel, channel);
-            Object paramsRequest = paramsMarginMode;
+            Map<String, Object> paramsRequest = paramsMarginMode;
             if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.extend(paramsMarginMode, new HashMap<String, Object>() {{
@@ -2019,7 +2019,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 args.put("instId", instId);
             }
-            List<Object> orders = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), paramsRequest)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -2790,7 +2790,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 topicOrChannel = "topic";
             }
             args.put((String)topicOrChannel, channel);
-            Object paramsRequest = paramsInstType;
+            Map<String, Object> paramsRequest = paramsInstType;
             if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.extend(paramsInstType, new HashMap<String, Object>() {{
@@ -2803,7 +2803,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             String instTypeLower = (((java.util.Objects.equals(instType, null)))) ? "" : ((String)instType).toLowerCase();
             String messageHash = ("balance:" + instTypeLower);
-            return (this.watchPrivate(uta, messageHash, messageHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
+            return (this.watchPrivate(uta, messageHash, messageHash, (Map<String, Object>) (args), paramsRequest)).join();
         }).thenApply(Balances::new);
 
     }

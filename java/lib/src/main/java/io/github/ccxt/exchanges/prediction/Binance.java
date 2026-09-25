@@ -1268,7 +1268,7 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsPaginate = new HashMap<String, Object>() {{}};
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
@@ -1365,7 +1365,7 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsPaginate = new HashMap<String, Object>() {{}};
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
@@ -1668,7 +1668,7 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsPaginate = new HashMap<String, Object>() {{}};
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();

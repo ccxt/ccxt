@@ -657,7 +657,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Long limitOption = (Long) ((List<Object>) limitOptionparamsLimitOptionVariable).get(0);
             Map<String, Object> paramsLimitOption = (Map<String, Object>) ((List<Object>) limitOptionparamsLimitOptionVariable).get(1);
             Object limitResolved = limitOption;
-            Object paramsLimit = paramsLimitOption;
+            Map<String, Object> paramsLimit = paramsLimitOption;
             if (!java.util.Objects.equals(limit, null))
             {
                 limitResolved = limit;

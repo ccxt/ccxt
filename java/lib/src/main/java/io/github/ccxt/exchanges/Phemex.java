@@ -4503,7 +4503,7 @@ public class Phemex extends PhemexApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Object code = this.safeString2(parameters, "currency", "code", "USDT");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
-            Object paramsSettle = paramsOmitted;
+            Map<String, Object> paramsSettle = paramsOmitted;
             String settle = null;
             Map<String, Object> market = null;
             String firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -4518,7 +4518,7 @@ public class Phemex extends PhemexApi
                 settle = settleparamsSettleVariable.first();
                 paramsSettle = settleparamsSettleVariable.second();
             }
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositions", market, Helpers.toMapArg(paramsSettle), (Object) null);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositions", market, paramsSettle, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Boolean isUSDTSettled = java.util.Objects.equals(settle, "USDT");
@@ -6395,7 +6395,7 @@ public class Phemex extends PhemexApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
             Object code = this.safeString2(parameters, "currency", "code", "USDT");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
-            Object paramsSettle = paramsOmitted;
+            Map<String, Object> paramsSettle = paramsOmitted;
             String settle = null;
             Map<String, Object> market = null;
             String firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -6410,7 +6410,7 @@ public class Phemex extends PhemexApi
                 settle = settleparamsSettleVariable.first();
                 paramsSettle = settleparamsSettleVariable.second();
             }
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, Helpers.toMapArg(paramsSettle), (Object) null);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, paramsSettle, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Boolean isUSDTSettled = java.util.Objects.equals(settle, "USDT");
