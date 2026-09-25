@@ -713,7 +713,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             $previousOrders = $this->safe_dict($orders->hashmap, $symbol, array());
             $previousOrder = $this->safe_dict($previousOrders, $orderId);
             if ($previousOrder === null) {
-                $previousOrder = $this->safe_value_2($previousOrders, $makerOrderId, $takerOrderId);
+                $previousOrder = $this->safe_dict_n($previousOrders, array( $makerOrderId, $takerOrderId ));
             }
             if ($previousOrder === null) {
                 $parsed = $this->parse_ws_order($message);
