@@ -1576,12 +1576,12 @@ func (this *Cex) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *Cex) CreateOrderWsAsync(symbol any, typeVar string, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Cex) CreateOrderWsAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Cex) createOrderWsBody(ch chan any, symbol any, typeVar string, side any, amount any, optionalArgs ...any) any {
+func (this *Cex) createOrderWsBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)

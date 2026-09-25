@@ -2064,7 +2064,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	ch <- order
 	return nil
 }
-func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar string, side string, optionalArgs ...any) any {
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -2076,7 +2076,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar any, side any, op
 	var positionSide string = "net"
 	if hedged != nil && *hedged == true {
 		positionSide = func() string {
-			if IsEqual(side, "buy") {
+			if side == "buy" {
 				return "short"
 			}
 			return "long"
@@ -2100,7 +2100,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar any, side any, op
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	if stopLossPrice != nil {
 		request["slTriggerPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
-		if IsEqual(typeVar, "market") {
+		if typeVar == "market" {
 			request["slOrderPrice"] = "-1"
 		} else {
 			var slLimitPrice *string = this.SafeString(params, "stopLossLimitPrice")
@@ -2112,7 +2112,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar any, side any, op
 	}
 	if takeProfitPrice != nil {
 		request["tpTriggerPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
-		if IsEqual(typeVar, "market") {
+		if typeVar == "market" {
 			request["tpOrderPrice"] = "-1"
 		} else {
 			var tpLimitPrice *string = this.SafeString(params, "takeProfitLimitPrice")
@@ -2125,10 +2125,10 @@ func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar any, side any, op
 	request["marginMode"] = marginMode
 	// the limit prices are consumed only when the order type is not market
 	var consumedKeys []any = []any{"stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"}
-	if (stopLossPrice != nil) && (!IsEqual(typeVar, "market")) {
+	if (stopLossPrice != nil) && (typeVar != "market") {
 		consumedKeys = append(consumedKeys, "stopLossLimitPrice")
 	}
-	if (takeProfitPrice != nil) && (!IsEqual(typeVar, "market")) {
+	if (takeProfitPrice != nil) && (typeVar != "market") {
 		consumedKeys = append(consumedKeys, "takeProfitLimitPrice")
 	}
 	return this.Extend(request, this.Omit(params, consumedKeys))

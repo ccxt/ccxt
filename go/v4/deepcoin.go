@@ -1959,7 +1959,7 @@ func (this *Deepcoin) createOrderBody(ch chan any, symbol any, typeVar string, s
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Deepcoin) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Deepcoin) CreateOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	/**
 	 * @method
 	 * @ignore
@@ -1970,10 +1970,10 @@ func (this *Deepcoin) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
