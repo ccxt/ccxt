@@ -17015,25 +17015,54 @@ const NATIVE_COMPARISON_SYMBOLS = {
 
 const NATIVE_COMPARISON_INTEGER_KINDS = [ 'int', 'uint', 'Int64' ];
 
-function nativeComparisonOperandIsIdentifier (node) {
+function nativeComparisonOperandIsIdentifier (node, symbol) {
     let current = node;
     while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
         current = current.expression;
     }
-    return current?.kind === ts.SyntaxKind.Identifier;
+    const inner = NATIVE_COMPARISON_GUARDED_SYMBOLS.includes (symbol) ? nativeComparisonUnwrap (node) : current;
+    return inner?.kind === ts.SyntaxKind.Identifier;
+}
+
+// parentheses and the assertions that print the bare operand (`x as number`)
+function nativeComparisonUnwrap (node) {
+    let current = node;
+    while ((current?.kind === ts.SyntaxKind.ParenthesizedExpression)
+            || ((current?.kind === ts.SyntaxKind.AsExpression) && (current.type?.kind === ts.SyntaxKind.NumberKeyword))) {
+        current = current.expression;
+    }
+    return current;
+}
+
+// comparisons whose operands may also be proven non-null at the use (a dominating null test)
+const NATIVE_COMPARISON_GUARDED_SYMBOLS = [ '<' ];
+
+// the non-nullable kind an operand has AT this comparison: an `Int64?` identifier under a
+// dominating null test with no later write, or a guarded subtract printed natively
+function nativeComparisonGuardedKind (csharp, comparison, node) {
+    const inner = nativeComparisonUnwrap (node);
+    if (inner?.kind === ts.SyntaxKind.Identifier) {
+        return (nativeArithmeticOperandKind (csharp, inner) === 'Int64?') && !nativeSubtractOperandIsRebound (csharp, inner)
+            && (typeof csharp.csharpNullGuardAdmitsRead === 'function') && csharp.csharpNullGuardAdmitsRead (comparison, inner) ? 'Int64' : undefined;
+    }
+    if ((inner?.kind === ts.SyntaxKind.BinaryExpression) && (nativeGuardedSubtractExpression (csharp, inner) !== undefined)) {
+        return 'Int64';
+    }
+    return undefined;
 }
 
 // the operand kind a comparison may consume, or undefined: integer kinds, Int64?, and doubles
 // only for `>`; a nullable operand must be an identifier (the null test reads it again)
-function nativeComparisonOperand (csharp, node, symbol) {
-    const kind = nativeArithmeticOperandKind (csharp, node);
+function nativeComparisonOperand (csharp, node, symbol, comparison) {
+    const guarded = NATIVE_COMPARISON_GUARDED_SYMBOLS.includes (symbol) ? nativeComparisonGuardedKind (csharp, comparison, node) : undefined;
+    const kind = guarded ?? nativeArithmeticOperandKind (csharp, node);
     const base = nativeArithmeticBaseKind (kind);
     const nullable = nativeArithmeticIsNullableKind (kind);
     if (kind === 'int?' || kind === 'uint?') {
         return undefined;
     }
     const numeric = NATIVE_COMPARISON_INTEGER_KINDS.includes (base) || ((base === 'double') && (symbol === '>'));
-    if (!numeric || (nullable && !nativeComparisonOperandIsIdentifier (node))) {
+    if (!numeric || (nullable && !nativeComparisonOperandIsIdentifier (node, symbol))) {
         return undefined;
     }
     return { nullable, text: csharp.printNode (node, 0).trim () };
@@ -17044,8 +17073,8 @@ function nativeComparisonExpression (csharp, node) {
     if (symbol === undefined) {
         return undefined;
     }
-    const left = nativeComparisonOperand (csharp, node.left, symbol);
-    const right = left && nativeComparisonOperand (csharp, node.right, symbol);
+    const left = nativeComparisonOperand (csharp, node.left, symbol, node);
+    const right = left && nativeComparisonOperand (csharp, node.right, symbol, node);
     if (right === undefined || right === null) {
         return undefined;
     }
