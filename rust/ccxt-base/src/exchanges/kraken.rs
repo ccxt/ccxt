@@ -1171,7 +1171,7 @@ impl KrakenCore {
             if (base == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing base".into()))));
             }
-            if matches!(&spot, Value::Bool(true)) && (in_op(&cachedCurrencies, &base)) {
+            if matches!(&spot, Value::Bool(true)) && (matches!((&cachedCurrencies, &base), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut currency: Value = self.safe_dict(cachedCurrencies.clone(), base.clone(), &[]);
                 let mut currencyPrecision: Value = self.safe_number_k(currency, "precision", &[]);
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
@@ -3263,7 +3263,7 @@ impl KrakenCore {
         //     }
         //
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::from(vec![])]);
-        if !(in_op(&result, &id)) {
+        if !(matches!((&result, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".into())).into()), id)));
         }
         let __ws_arg_11 = self.extend(Value::Map({

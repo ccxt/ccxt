@@ -1964,7 +1964,7 @@ impl IndodaxCore {
             if (address != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                 self.check_address(&[address.clone()]);
                 let mut network: Value = Value::Null;
-                if (in_op(&networks, &marketId)) {
+                if (matches!((&networks, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     let mut networkId: Value = self.safe_string(networks.clone(), marketId.clone(), &[]);
                     if (networkId == Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".into()))));

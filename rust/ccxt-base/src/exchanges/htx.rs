@@ -4202,7 +4202,7 @@ impl HtxCore {
 }
 
     pub fn try_get_symbol_from_future_markets(&self, mut symbolOrMarketId: Value) -> Value {
-        if (self.markets.clone() != Value::Null) && (in_op(&self.markets, &symbolOrMarketId)) {
+        if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbolOrMarketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return symbolOrMarketId;
         }
         // only on "future" market type (inverse & linear), market-id differs between "fetchMarkets" and "fetchTicker"
@@ -4219,7 +4219,7 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if (in_op(&futureMarketIdsForSymbols, &symbolOrMarketId)) {
+        if (matches!((&futureMarketIdsForSymbols, &symbolOrMarketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return futureMarketIdsForSymbols.as_map().and_then(|__m| symbolOrMarketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }
         let mut futureMarkets: Value = self.filter_by(self.markets.clone(), Value::Str("future".into()), Value::Bool(true), &[]);
@@ -5818,7 +5818,7 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if (in_op(&uniqueNetworkIds, &networkCode)) {
+        if (matches!((&uniqueNetworkIds, &networkCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return uniqueNetworkIds.as_map().and_then(|__m| networkCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }  else {
             let mut networkTitle: Value = self.super_network_code_to_id(networkCode, &[currencyCode]);
@@ -7688,7 +7688,7 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (in_op(&stopOrderTypes, &orderType)) {
+            if (matches!((&stopOrderTypes, &orderType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice for a trigger order".into()))));
             }
         }  else {
@@ -7765,7 +7765,7 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if (in_op(&limitOrderTypes, &orderType)) {
+        if (matches!((&limitOrderTypes, &orderType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol, price)); }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop-price".into()), Value::Str("clientOrderId".into()), Value::Str("client-order-id".into()), Value::Str("operator".into()), Value::Str("timeInForce".into())]), &[]);

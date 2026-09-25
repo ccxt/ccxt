@@ -2165,7 +2165,7 @@ impl NadoCore {
         if (timeframe == Value::Null) {
             return;
         }
-        if !(in_op(&self.ohlcvs, &symbol)) {
+        if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2515,7 +2515,7 @@ impl NadoCore {
         let mut marketId: Value = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
@@ -2652,24 +2652,24 @@ impl NadoCore {
         }
         if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("trade:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             let mut symbol: Value = replace_str(&messageHash, &Value::Str("trade:".into()), &Value::Str("".into()));
-            if (in_op(&self.trades, &symbol)) {
+            if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut self.trades, &symbol);
             }
         }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("orderbook:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             let mut symbol: Value = replace_str(&messageHash, &Value::Str("orderbook:".into()), &Value::Str("".into()));
-            if (in_op(&self.orderbooks, &symbol)) {
+            if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut self.orderbooks, &symbol);
             }
         }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("ohlcv:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             let mut parts: Value = split(&messageHash, &Value::Str(":".into()));
             let mut timeframe: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
             let mut symbol: Value = self.safe_string(parts, Value::Int(2), &[]);
-            if (symbol != Value::Null) && (timeframe != Value::Null) && (in_op(&self.ohlcvs, &symbol)) && (in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
+            if (symbol != Value::Null) && (timeframe != Value::Null) && (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && (matches!((&get_value(&self.ohlcvs, &symbol), &timeframe), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
             }
         }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("ticker:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             let mut symbol: Value = replace_str(&messageHash, &Value::Str("ticker:".into()), &Value::Str("".into()));
-            if (in_op(&self.tickers, &symbol)) {
+            if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut self.tickers, &symbol);
             }
         }  else if (messageHash.as_str() == Some("ticker")) {
@@ -2683,7 +2683,7 @@ impl NadoCore {
             }
         }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("bidask:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             let mut symbol: Value = replace_str(&messageHash, &Value::Str("bidask:".into()), &Value::Str("".into()));
-            if (in_op(&self.bidsasks, &symbol)) {
+            if (matches!((&self.bidsasks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut self.bidsasks, &symbol);
             }
         }  else if (messageHash.as_str() == Some("bidask")) {

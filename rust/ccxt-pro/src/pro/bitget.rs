@@ -1375,7 +1375,7 @@ impl BitgetCore {
         let mut incrementalBook: bool = channel.as_deref() == Some("books");
         if incrementalBook {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
-            if !(in_op(&self.orderbooks, &symbol)) {
+            if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // const ob = this.orderBook ({});
                 let mut ob: Value = self.counted_order_book(&[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3087,7 +3087,7 @@ impl BitgetCore {
                     let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     let mut account: Value = self.account();
-                    if (code != Value::Null) && (in_op(&self.balance, &code)) {
+                    if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         account = get_value(&self.balance, &code);
                     }
                     let mut borrow: Value = self.safe_string_k(entry.clone(), "borrow", &[]);
@@ -3107,7 +3107,7 @@ impl BitgetCore {
                 let mut currencyId: Value = self.safe_string2(rawBalance.clone(), Value::Str("coin".into()), Value::Str("marginCoin".into()), &[]);
                 let mut code: Value = self.safe_currency_code(currencyId, &[]);
                 let mut account: Value = self.account();
-                if (code != Value::Null) && (in_op(&self.balance, &code)) {
+                if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     account = get_value(&self.balance, &code);
                 }
                 let mut borrow: Value = self.safe_string_k(rawBalance.clone(), "borrow", &[]);
@@ -3322,7 +3322,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_instance(&e, &Value::Str("AuthenticationError".into())) {
                 let mut messageHash: Value = Value::Str("authenticated".into());
                 client.reject(&[e.clone(), messageHash.clone()]);
-                if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 }
             }  else {
@@ -3518,17 +3518,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
-        if (in_op(&self.orderbooks, &symbol)) {
+        if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut self.orderbooks, &symbol);
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash);
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".into())).into()), symbol)));
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &subMessageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             client.reject(&[Value::from(error), subMessageHash.clone()]);
         }
         client.resolve(&[Value::Bool(true), messageHash]);
@@ -3551,17 +3551,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
-        if (in_op(&self.trades, &symbol)) {
+        if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut self.trades, &symbol);
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash);
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" trades ".into())).into()), symbol)));
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &subMessageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             client.reject(&[Value::from(error), subMessageHash.clone()]);
         }
         client.resolve(&[Value::Bool(true), messageHash]);
@@ -3584,17 +3584,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
-        if (in_op(&self.tickers, &symbol)) {
+        if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut self.tickers, &symbol);
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash);
         }
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ticker ".into())).into()), symbol)));
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &subMessageHash)) {
+        if (matches!((&get_value(&client, &Value::Str("futures".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             client.reject(&[Value::from(error), subMessageHash.clone()]);
         }
         client.resolve(&[Value::Bool(true), messageHash]);
@@ -3639,8 +3639,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol).into());
             subMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol).into());
         }
-        if (in_op(&self.ohlcvs, &symbol)) {
-            if (timeframe != Value::Null) && (in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
+        if (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (timeframe != Value::Null) && (matches!((&get_value(&self.ohlcvs, &symbol), &timeframe), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
             }
         }

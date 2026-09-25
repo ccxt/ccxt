@@ -1006,7 +1006,7 @@ impl HtxCore {
                 // retry to synchronize if we have not reached maxAttempts yet
                 if numAttempts.as_f64().unwrap_or(f64::NAN) < maxAttempts.as_f64().unwrap_or(f64::NAN) {
                     // safety guard
-                    if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         numAttempts = self.sum(&[numAttempts.clone(), Value::Int(1)]);
                         let mut delayTime: Value = Value::Int(1000);
                         if (lastTimestamp != Value::Null) && (snapshotTimestamp != Value::Null) {
@@ -1275,7 +1275,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut parts: Value = split(&ch, &Value::Str(".".into()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut size: Value = self.safe_string(parts, Value::Int(3), &[]);
             if (size == Value::Null) {
                 return;
@@ -2776,7 +2776,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription.clone()]);
             }
             // clean up
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if (id != Value::Null) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
                 }
@@ -3076,7 +3076,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut messageHash: Value = self.safe_string_k(subscription, "messageHash", &[]);
                     client.reject(&[e.clone(), messageHash.clone()]);
                     client.reject(&[e.clone(), id.clone()]);
-                    if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
+                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if (id != Value::Null) {
                             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
                         }
@@ -3085,7 +3085,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     // without removing it a repeated watch call attaches to a future
                     // that nothing will resolve instead of resubscribing, see
                     // https://github.com/ccxt/ccxt/issues/10280
-                    if (messageHash != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+                    if (messageHash != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                     }
                 }
@@ -3103,7 +3103,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_instance(&e, &Value::Str("AuthenticationError".into())) {
                     client.reject(&[e.clone(), Value::Str("auth".into())]);
                     let mut method: Value = Value::Str("auth".into());
-                    if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &method)) {
+                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &method), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &method);
                     }
                     return Value::Bool(false);

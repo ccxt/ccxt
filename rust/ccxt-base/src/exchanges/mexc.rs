@@ -6125,7 +6125,7 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (networkUnified != Value::Null) && (in_op(&networks, &networkUnified)) {
+            if (networkUnified != Value::Null) && (matches!((&networks, &networkUnified), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut network: Value = (if (networkUnified == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6200,7 +6200,7 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if (networkUnified != Value::Null) && (in_op(&networks, &networkUnified)) {
+        if (networkUnified != Value::Null) && (matches!((&networks, &networkUnified), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut network: Value = (if (networkUnified == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

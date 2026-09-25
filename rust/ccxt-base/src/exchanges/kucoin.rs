@@ -3531,8 +3531,8 @@ impl KucoinCore {
             let mut takerFeeRate: Value = self.safe_string_k(ticker.clone(), "takerFeeRate", &[]);
             let mut makerCoefficient: Value = self.safe_string_k(ticker.clone(), "makerCoefficient", &[]);
             let mut takerCoefficient: Value = self.safe_string_k(ticker, "takerCoefficient", &[]);
-            let mut hasCrossMargin: Value = (Value::Bool(in_op(&crossById, &id)));
-            let mut hasIsolatedMargin: Value = (Value::Bool(in_op(&isolatedById, &id)));
+            let mut hasCrossMargin: Value = (Value::Bool(matches!((&crossById, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))));
+            let mut hasIsolatedMargin: Value = (Value::Bool(matches!((&isolatedById, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))));
             let mut isMarginable: Value = Value::Bool(is_true(&self.safe_bool_k(market.clone(), "isMarginEnabled", &[Value::Bool(false)])) || matches!(&hasCrossMargin, Value::Bool(true)) || matches!(&hasIsolatedMargin, Value::Bool(true)));
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -12489,7 +12489,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             let mut item: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "currency", &[]), &[]);
             if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
-                if !(in_op(&borrowRateHistories, &code)) {
+                if !(matches!((&borrowRateHistories, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut borrowRateHistories { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::from(vec![])); }
                 }
                 let mut borrowRateStructure: Value = self.parse_borrow_rate(item, &[]);
@@ -14784,7 +14784,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             let mut tier: Value = self.safe_dict(tiers.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(tier.clone(), "symbol", &[]);
             if (symbol != Value::Null) {
-                if !(in_op(&result, &symbol)) {
+                if !(matches!((&result, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(vec![])); }
                 }
                 crate::runtime::append_to_object_array(&mut result, &symbol, tier);

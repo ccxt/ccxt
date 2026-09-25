@@ -663,7 +663,7 @@ impl ZaifCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), balance.clone()); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), balance); }
             if (deposit != Value::Null) {
-                if (in_op(&deposit, &currencyId)) {
+                if (matches!((&deposit, &currencyId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(deposit.clone(), currencyId.clone(), &[])); }
                 }
             }

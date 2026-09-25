@@ -644,7 +644,7 @@ impl LimitlessCore {
                     while { if !__for_first_1251 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1251 = false; j.as_f64().unwrap_or(f64::NAN) < ((found.len() as i64) as f64) } {
                     let mut raw: Value = found.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut slug: Value = self.safe_string_k(raw.clone(), "slug", &[]);
-                    if ((slug != Value::Null) && (slug.as_str() != Some(""))) && !(in_op(&seen, &slug)) {
+                    if ((slug != Value::Null) && (slug.as_str() != Some(""))) && !(matches!((&seen, &slug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&slug), Value::Bool(true)); }
                         append_to_array(&mut allRaw, raw.clone());
                     }
@@ -745,7 +745,7 @@ impl LimitlessCore {
             let mut m: Value = self.parse_market(raw.clone());
             append_to_array(&mut markets, m.clone());
             if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
-                if !(in_op(&eventGroups, &eventKey)) {
+                if !(matches!((&eventGroups, &eventKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut eventGroups { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), groupId.clone());
@@ -1751,7 +1751,7 @@ impl LimitlessCore {
             if (slug == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() missing slug".into()))));
             }
-            if !(in_op(&outcomesBySlug, &slug)) {
+            if !(matches!((&outcomesBySlug, &slug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if (slug != Value::Null) {
                     if let Value::Dict(__d) = &mut outcomesBySlug { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&slug), Value::from(vec![])); }
                 }
@@ -2148,7 +2148,7 @@ impl LimitlessCore {
             }
             let mut bucket: Value = (match (&(self.parse_to_int((match ((pTs).as_f64(), (ms).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(ms)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             let mut key: Value = to_string_val(&bucket);
-            if !(in_op(&candles, &key)) {
+            if !(matches!((&candles, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut candles { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(vec![bucket, pPrice.clone(), pPrice.clone(), pPrice.clone(), pPrice.clone(), Value::Int(0)])); }
                 append_to_array(&mut bucketOrder, key.clone());
             }  else {
@@ -3891,7 +3891,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     while { if !__for_first_1280 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1280 = false; j.as_f64().unwrap_or(f64::NAN) < ((found.len() as i64) as f64) } {
                     let mut raw: Value = found.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut rawSlug: Value = self.safe_string_k(raw.clone(), "slug", &[]);
-                    if ((rawSlug != Value::Null) && (rawSlug.as_str() != Some(""))) && !(in_op(&seen, &rawSlug)) {
+                    if ((rawSlug != Value::Null) && (rawSlug.as_str() != Some(""))) && !(matches!((&seen, &rawSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&rawSlug), Value::Bool(true)); }
                         append_to_array(&mut rawMarkets, raw.clone());
                     }
@@ -3951,7 +3951,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m.clone());
             if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
-                if !(in_op(&eventGroups, &eventKey)) {
+                if !(matches!((&eventGroups, &eventKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut eventGroups { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), groupId.clone());
@@ -4143,7 +4143,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 while { if !__for_first_1289 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1289 = false; mi.as_f64().unwrap_or(f64::NAN) < categoryMarketsLength } {
                 let mut raw: Value = categoryMarkets.as_array().and_then(|__arr| match &mi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut slug: Value = self.safe_string_k(raw.clone(), "slug", &[]);
-                if (slug != Value::Null) && !(in_op(&seen, &slug)) {
+                if (slug != Value::Null) && !(matches!((&seen, &slug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&slug), Value::Bool(true)); }
                     append_to_array(&mut allRaw, raw);
                 }

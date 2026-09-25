@@ -706,7 +706,7 @@ impl HyperliquidCore {
         if (self.markets.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
         }
-        if (symbol != Value::Null) && !(in_op(&self.markets, &symbol)) {
+        if (symbol != Value::Null) && !(matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut symbolParts: Value = split(&symbol, &Value::Str("/".into()));
             let mut baseName: Value = self.safe_string(symbolParts.clone(), Value::Int(0), &[]);
             let mut spotCurrencyMapping: Value = self.safe_dict_k(self.options.clone(), "spotCurrencyMapping", &[Value::Map({
@@ -717,7 +717,7 @@ impl HyperliquidCore {
                 let mut unifiedBaseName: Value = self.safe_string(spotCurrencyMapping.clone(), baseName.clone(), &[]);
                 let mut quote: Value = self.safe_string(symbolParts, Value::Int(1), &[]);
                 let mut newSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_currency_code(unifiedBaseName, &[]), Value::Str("/".into())).into()), quote).into());
-                if (in_op(&self.markets, &newSymbol)) {
+                if (matches!((&self.markets, &newSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     return get_value(&self.markets, &newSymbol);
                 }
             }
@@ -4448,7 +4448,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut oid: Value = self.safe_string_k(entry, "oid", &[]);
             if (oid != Value::Null) {
-                if !(in_op(&deduplicatedByOid, &oid)) {
+                if !(matches!((&deduplicatedByOid, &oid), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), rawOrder.clone()); }
                 }  else {
                     let mut existingTimestamp: Value = self.safe_integer(deduplicatedByOid.as_map().and_then(|__m| oid.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("statusTimestamp".into()), &[]);

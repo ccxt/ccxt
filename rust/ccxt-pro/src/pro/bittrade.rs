@@ -861,7 +861,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
-        if (in_op(&self.orderbooks, &symbol)) {
+        if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut self.orderbooks, &symbol);
         }
         { let __be_tmp = self.order_book(&[Value::Map({
@@ -895,7 +895,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
             }
             // clean up
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
             }
         }
@@ -1001,7 +1001,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut messageHash: Value = self.safe_string_k(subscription, "messageHash", &[]);
                     client.reject(&[e.clone(), messageHash]);
                     client.reject(&[e, id.clone()]);
-                    if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &id)) {
+                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &id);
                     }
                 }

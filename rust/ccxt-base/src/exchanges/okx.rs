@@ -3863,7 +3863,7 @@ impl OkxCore {
             // on the missing expiry.
             isOption = (partsLength > ((3i64) as f64)) && ((ends_with(&marketId, &Value::Str("-C".into()))) || (ends_with(&marketId, &Value::Str("-P".into()))));
         }
-        if isOption && (marketId != Value::Null) && ((self.markets_by_id.clone() == Value::Null) || !(in_op(&self.markets_by_id, &marketId))) {
+        if isOption && (marketId != Value::Null) && ((self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             return self.create_expired_option_market(marketId.clone());
         }
         return self.super_safe_market(marketId, market, delimiter, marketType);
@@ -7208,7 +7208,7 @@ impl OkxCore {
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
         let mut isTrigger: bool = trigger.as_bool() == Some(true);
-        if (trailing.as_bool() == Some(true)) || isTrigger || ((ordType != Value::Null) && (in_op(&algoOrderTypes, &ordType))) {
+        if (trailing.as_bool() == Some(true)) || isTrigger || ((ordType != Value::Null) && (matches!((&algoOrderTypes, &ordType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             method = Value::Str("privateGetTradeOrdersAlgoPending".into());
         }
         if (trailing.as_bool() == Some(true)) {
@@ -7388,7 +7388,7 @@ impl OkxCore {
         if (trailing.as_bool() == Some(true)) {
             method = Value::Str("privateGetTradeOrdersAlgoHistory".into());
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("move_order_stop".into())); }
-        }  else if isTrigger || ((ordType != Value::Null) && (in_op(&algoOrderTypes, &ordType))) {
+        }  else if isTrigger || ((ordType != Value::Null) && (matches!((&algoOrderTypes, &ordType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             method = Value::Str("privateGetTradeOrdersAlgoHistory".into());
             let mut algoId: Value = self.safe_string_k(params.clone(), "algoId", &[]);
             if (algoId != Value::Null) {
@@ -7590,7 +7590,7 @@ impl OkxCore {
         let mut ordType: Value = self.safe_string_k(params.clone(), "ordType", &[]);
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut trailing: Value = self.safe_bool_k(params, "trailing", &[Value::Bool(false)]);
-        if (trailing.as_bool() == Some(true)) || (trigger.as_bool() == Some(true)) || ((ordType != Value::Null) && (in_op(&algoOrderTypes, &ordType))) {
+        if (trailing.as_bool() == Some(true)) || (trigger.as_bool() == Some(true)) || ((ordType != Value::Null) && (matches!((&algoOrderTypes, &ordType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             method = Value::Str("privateGetTradeOrdersAlgoHistory".into());
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("effective".into())); }
         }
@@ -8261,7 +8261,7 @@ impl OkxCore {
             return result;
         }
         let mut codeNetwork: Value = self.network_id_to_code(&[code.clone(), code.clone()]);
-        if (codeNetwork != Value::Null) && (in_op(&response, &codeNetwork)) {
+        if (codeNetwork != Value::Null) && (matches!((&response, &codeNetwork), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return response.as_map().and_then(|__m| codeNetwork.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }
         // if the network is not specified, return the first address
@@ -10353,7 +10353,7 @@ impl OkxCore {
             let mut item: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "ccy", &[]), &[]);
             if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
-                if !(in_op(&borrowRateHistories, &code)) {
+                if !(matches!((&borrowRateHistories, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut borrowRateHistories { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::from(vec![])); }
                 }
                 let mut borrowRateStructure: Value = self.parse_borrow_rate(item, &[]);
@@ -11194,7 +11194,7 @@ impl OkxCore {
         // handle unified currency code or symbol
         let mut currencyId: Value = Value::Null;
         let mut market: Value = Value::Null;
-        if ((self.markets.clone() != Value::Null) && (in_op(&self.markets, &symbol))) || ((self.markets_by_id.clone() != Value::Null) && (in_op(&self.markets_by_id, &symbol))) {
+        if ((self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) || ((self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             market = self.market(symbol.clone());
             currencyId = market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null);
         }  else {

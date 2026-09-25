@@ -680,7 +680,7 @@ impl BitoproCore {
 }
 
     pub fn authenticate(&mut self, mut url: Value) {
-        if (self.clients.clone() != Value::Null) && (in_op(&self.clients, &url)) {
+        if (self.clients.clone() != Value::Null) && (matches!((&self.clients, &url), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         self.check_required_credentials(&[]);

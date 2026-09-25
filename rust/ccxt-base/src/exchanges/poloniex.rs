@@ -3245,7 +3245,7 @@ impl PoloniexCore {
         self.load_markets(&[]).await;
         let mut orders: Value = self.fetch_open_orders(&[symbol, Value::Null, Value::Null, params]).await;
         let mut indexed: Value = self.index_by(orders, Value::Str("id".into()));
-        return (if (in_op(&indexed, &id)) { Value::Str("open".into()) } else { Value::Str("closed".into()) });
+        return (if (matches!((&indexed, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) { Value::Str("open".into()) } else { Value::Str("closed".into()) });
 
     Value::Null
 }
@@ -3644,7 +3644,7 @@ impl PoloniexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if !(in_op(&self.currencies, &code)) {
+        if !(matches!((&self.currencies, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress(): can not recognize ".into())).into()), code).into()), Value::Str(" currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })".into()))));
         }
         let mut currency: Value = self.currency(code.clone());

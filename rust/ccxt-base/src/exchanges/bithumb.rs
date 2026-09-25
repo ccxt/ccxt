@@ -1704,7 +1704,7 @@ impl BithumbCore {
                     let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut market: Value = self.market(symbol.clone());
                     let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteId", &[]);
-                    if (quoteId != Value::Null) && (in_op(&quoteCurrencies, &quoteId)) {
+                    if (quoteId != Value::Null) && (matches!((&quoteCurrencies, &quoteId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let Value::Dict(__d) = &mut requiredQuotes { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&quoteId), Value::Bool(true)); }
                     }
                 }

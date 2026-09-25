@@ -1027,7 +1027,7 @@ impl PredictfunCore {
                 if (categorySlug == Value::Null) {
                     // nothing to key a duplicate on, keep the row rather than drop it
                     append_to_array(&mut result, category.clone());
-                }  else if !(in_op(&seenSlugs, &categorySlug)) {
+                }  else if !(matches!((&seenSlugs, &categorySlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut seenSlugs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&categorySlug), Value::Bool(true)); }
                     append_to_array(&mut result, category);
                 }
@@ -1045,7 +1045,7 @@ impl PredictfunCore {
                 let mut rawMarket: Value = rawMarkets.as_array().and_then(|__arr| match &mi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut marketSlug: Value = self.safe_string_k(rawMarket.clone(), "categorySlug", &[]);
                 if (marketSlug != Value::Null) {
-                    if (in_op(&orphanMarkets, &marketSlug)) {
+                    if (matches!((&orphanMarkets, &marketSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
                         let mut bucket: Value = get_value(&orphanMarkets, &marketSlug);
@@ -1069,7 +1069,7 @@ impl PredictfunCore {
             let mut __for_first_1413: bool = true;
             while { if !__for_first_1413 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1413 = false; i.as_f64().unwrap_or(f64::NAN) < orphanSlugsLength } {
             let mut orphanSlug: Value = orphanSlugs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if !(in_op(&seenSlugs, &orphanSlug)) {
+            if !(matches!((&seenSlugs, &orphanSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut seenSlugs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&orphanSlug), Value::Bool(true)); }
                 let mut markets: Value = orphanMarkets.as_map().and_then(|__m| orphanSlug.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 let mut first: Value = self.safe_dict(markets.clone(), Value::Int(0), &[Value::Map({
@@ -2825,7 +2825,7 @@ impl PredictfunCore {
             while { if !__for_first_1425 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1425 = false; i.as_f64().unwrap_or(f64::NAN) < parsedLength } {
             let mut position: Value = parsed.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut outcomeId: Value = self.safe_string_k(position.clone(), "outcomeId", &[]);
-            if (outcomeId != Value::Null) && (in_op(&wanted, &outcomeId)) {
+            if (outcomeId != Value::Null) && (matches!((&wanted, &outcomeId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 append_to_array(&mut result, position);
             }
         }
@@ -3910,7 +3910,7 @@ impl PredictfunCore {
         // unregistered, so a rejected request has to take its own entry down - otherwise a retry
         // would skip the send and wait forever on a topic the venue never accepted
         let mut subscribeHash: Value = (match subscription.get("subscribeHash") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (subscribeHash != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash)) {
+        if (subscribeHash != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash);
         }
         let mut messageHashes: Value = (match subscription.get("messageHashes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
@@ -3964,7 +3964,7 @@ impl PredictfunCore {
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
         // leaving it behind would make a later watch believe it is still subscribed
         let mut subscribeHash: Value = (match __pro_message.get("subscribeHash").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (subscribeHash != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash)) {
+        if (subscribeHash != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash);
         }
         // cleanCache drops a cache only when the subscription names that one topic, and the wallet
@@ -4443,7 +4443,7 @@ impl PredictfunCore {
             let mut isYesOutcome: bool = self.safe_integer_k(outcomeInfo, "indexSet", &[]).as_f64() == Some(1.0);
             let mut outcomeHandle: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
             if (outcomeHandle != Value::Null) {
-                if !(in_op(&self.orderbooks, &outcomeHandle)) {
+                if !(matches!((&self.orderbooks, &outcomeHandle), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

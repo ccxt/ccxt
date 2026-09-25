@@ -2229,11 +2229,11 @@ impl BitstampCore {
             }
             let mut parts: Value = split(&minimumOrder, &Value::Str(" ".into()));
             let mut cost: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            if (base != Value::Null) && !(in_op(&result, &base)) {
+            if (base != Value::Null) && !(matches!((&result, &base), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut baseDecimals: Value = self.safe_integer_k(market.clone(), "base_decimals", &[]);
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&base), self.construct_currency_object(baseId, base.clone(), baseDescription, baseDecimals, Value::Null, market.clone())); }
             }
-            if (quote != Value::Null) && !(in_op(&result, &quote)) {
+            if (quote != Value::Null) && !(matches!((&result, &quote), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut counterDecimals: Value = self.safe_integer_k(market.clone(), "counter_decimals", &[]);
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&quote), self.construct_currency_object(quoteId, quote.clone(), quoteDescription, counterDecimals, self.parse_number(cost, &[]), market)); }
             }
@@ -2453,11 +2453,11 @@ impl BitstampCore {
         }
         if (numCurrencyIds == 2.0) {
             let mut marketId: Value = Value::Str(format!("{}{}", currencyIds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), currencyIds.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)).into());
-            if (self.markets_by_id.clone() != Value::Null) && (in_op(&self.markets_by_id, &marketId)) {
+            if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return self.safe_market(&[marketId.clone()]);
             }
             marketId = Value::Str(format!("{}{}", currencyIds.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), currencyIds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).into());
-            if (self.markets_by_id.clone() != Value::Null) && (in_op(&self.markets_by_id, &marketId)) {
+            if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return self.safe_market(&[marketId.clone()]);
             }
         }

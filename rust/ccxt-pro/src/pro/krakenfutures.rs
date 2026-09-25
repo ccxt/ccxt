@@ -2195,7 +2195,7 @@ impl KrakenfuturesCore {
 
     pub fn subscription_exists_for_hash(&mut self, mut url: Value, mut hash: Value) -> Value {
         let mut client: Value = self.client(&[url]);
-        return (Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &hash)));
+        return (Value::Bool(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &hash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))));
 
     Value::Null
 }
@@ -2319,7 +2319,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
             client.reject(&[Value::from(error), messageHash.clone()]);
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
+            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
             }
         }

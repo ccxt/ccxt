@@ -1086,7 +1086,7 @@ impl DeribitCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "instrument_name", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.counted_order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);

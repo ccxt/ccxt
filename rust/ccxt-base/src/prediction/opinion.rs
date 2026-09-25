@@ -402,7 +402,7 @@ impl OpinionCore {
                     }
                     }
                     let mut eventKey: Value = self.safe_string_k(event.clone(), "event", &[]);
-                    if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) && !(in_op(&seenEvents, &eventKey)) {
+                    if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) && !(matches!((&seenEvents, &eventKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let Value::Dict(__d) = &mut seenEvents { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Bool(true)); }
                         append_to_array(&mut eventsList, event);
                     }
@@ -1216,7 +1216,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if !(in_op(&self.timeframes, &timeframe)) {
+        if !(matches!((&self.timeframes, &timeframe), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut supportedKeys: Value = object_keys(&self.timeframes);
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() unsupported timeframe ".into())).into()), timeframe).into()), Value::Str(", supported timeframes are ".into())).into()), join(&supportedKeys, &Value::Str(", ".into())))));
         }
@@ -2214,7 +2214,7 @@ impl OpinionCore {
     m
 })]);
             let mut tokenId: Value = self.safe_string_k(info, "tokenId", &[]);
-            if (tokenId != Value::Null) && (in_op(&wantedTokenIds, &tokenId)) {
+            if (tokenId != Value::Null) && (matches!((&wantedTokenIds, &tokenId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 append_to_array(&mut filtered, position);
             }
         }

@@ -553,7 +553,7 @@ impl HyperliquidCore {
                         m.insert("RECURRING_NAMED_OUTCOME".to_string(), Value::Bool(true));
                     m
                 });
-                if (in_op(&genericOutcomeNames, &outcomeSlug)) {
+                if (matches!((&genericOutcomeNames, &outcomeSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if Value::Int(outcomeSlug.as_str().and_then(|__s| __s.find("FALLBACK")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                         outcomeSlug = Value::Str("OTHER".into());
                     }  else {
@@ -1048,7 +1048,7 @@ impl HyperliquidCore {
             let mut __for_first_1188: bool = true;
             while { if !__for_first_1188 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1188 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomeHandles.len() as i64) as f64) } {
             let mut outcomeHandle: Value = outcomeHandles.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (outcomes != Value::Null) && !(in_op(&requestedOutcomeSymbols, &outcomeHandle)) {
+            if (outcomes != Value::Null) && !(matches!((&requestedOutcomeSymbols, &outcomeHandle), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
             let mut outcomeObj: Value = self.safe_dict(outcomesMap.clone(), outcomeHandle.clone(), &[Value::Map({
@@ -1486,7 +1486,7 @@ impl HyperliquidCore {
             let mut outcomeObj: Value = self.safe_outcome(tradeCoin.clone(), &[]);
             if (outcomes != Value::Null) {
                 let mut outcomeHandle: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-                if (outcomeHandle == Value::Null) || !(in_op(&requestedOutcomeSymbols, &outcomeHandle)) {
+                if (outcomeHandle == Value::Null) || !(matches!((&requestedOutcomeSymbols, &outcomeHandle), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     continue;
                 }
             }
@@ -1679,13 +1679,13 @@ impl HyperliquidCore {
             let mut __for_first_1197: bool = true;
             while { if !__for_first_1197 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1197 = false; i.as_f64().unwrap_or(f64::NAN) < ((candidates.len() as i64) as f64) } {
             let mut key: Value = candidates.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (in_op(&self.exchange.outcomes, &key)) {
+            if (matches!((&self.exchange.outcomes, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return self.safe_dict(self.exchange.outcomes.clone(), key.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             }
-            if (in_op(&self.exchange.outcomes_by_id, &key)) {
+            if (matches!((&self.exchange.outcomes_by_id, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return self.safe_dict(self.exchange.outcomes_by_id.clone(), key.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1693,7 +1693,7 @@ impl HyperliquidCore {
             }
         }
         }
-        if ((self.markets.clone() != Value::Null) && (in_op(&self.markets, &outcomeInput))) || ((self.markets_by_id.clone() != Value::Null) && (in_op(&self.markets_by_id, &outcomeInput))) {
+        if ((self.markets.clone() != Value::Null) && (matches!((&self.markets, &outcomeInput), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) || ((self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &outcomeInput), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             let mut market: Value = self.safe_market(&[outcomeInput.clone()]);
             let mut sideHintOrDefault: Value = (if (sideHint != Value::Null) { sideHint } else { Value::Str("YES".into()) });
             let mut found: Value = self.find_outcome_in_market(market, &[sideHintOrDefault]);
@@ -2165,7 +2165,7 @@ impl HyperliquidCore {
             }
             let mut oid: Value = self.safe_string_k(entry, "oid", &[]);
             if (oid != Value::Null) {
-                if !(in_op(&deduped, &oid)) {
+                if !(matches!((&deduped, &oid), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), raw.clone()); }
                 }  else {
                     let mut existingTs: Value = self.safe_integer(deduped.as_map().and_then(|__m| oid.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("statusTimestamp".into()), &[]);
@@ -2661,7 +2661,7 @@ impl HyperliquidCore {
             if (parentSymbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing parentSymbol".into()))));
             }
-            if !(in_op(&groupMap, &parentSymbol)) {
+            if !(matches!((&groupMap, &parentSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if (parentSymbol != Value::Null) {
                     if let Value::Dict(__d) = &mut groupMap { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&parentSymbol), Value::from(vec![])); }
                 }

@@ -641,7 +641,7 @@ impl MyriadCore {
                 let mut networkId: Value = self.safe_string_k(raw.clone(), "networkId", &[]);
                 let mut marketId: Value = self.safe_string_k(raw.clone(), "id", &[]);
                 let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, Value::Str(":".into())).into()), marketId).into());
-                if !(in_op(&seen, &key)) {
+                if !(matches!((&seen, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::Bool(true)); }
                     append_to_array(&mut rawMarkets, raw);
                 }
@@ -886,7 +886,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 while { if !__for_first_1296 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1296 = false; j.as_f64().unwrap_or(f64::NAN) < ((found.len() as i64) as f64) } {
                 let mut raw: Value = found.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut questionId: Value = self.safe_string_k(raw.clone(), "id", &[]);
-                if (questionId != Value::Null) && !(in_op(&seen, &questionId)) {
+                if (questionId != Value::Null) && !(matches!((&seen, &questionId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&questionId), Value::Bool(true)); }
                     append_to_array(&mut rawQuestions, raw);
                 }
@@ -949,7 +949,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 while { if !__for_first_1298 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1298 = false; i.as_f64().unwrap_or(f64::NAN) < rawQuestionsLength } {
                 let mut rawQuestion: Value = rawQuestions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut questionId: Value = self.safe_string_k(rawQuestion.clone(), "id", &[]);
-                if (questionId != Value::Null) && (in_op(&seen, &questionId)) {
+                if (questionId != Value::Null) && (matches!((&seen, &questionId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     continue;
                 }
                 if (questionId != Value::Null) {
@@ -3838,7 +3838,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut networkId: Value = self.safe_string_k(info.clone(), "networkId", &[]);
             let mut marketId: Value = self.safe_string_k(info.clone(), "marketId", &[]);
             let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, Value::Str(":".into())).into()), marketId).into());
-            if !(in_op(&outcomesByMarket, &key)) {
+            if !(matches!((&outcomesByMarket, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut outcomesByMarket { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(vec![])); }
                 append_to_array(&mut marketKeys, key.clone());
             }
@@ -4127,7 +4127,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
                 let mut marketHandle: Value = self.safe_string_k(m.clone(), "market", &[]);
                 if (marketHandle != Value::Null) {
-                    if (in_op(&seenMarketHandles, &marketHandle)) {
+                    if (matches!((&seenMarketHandles, &marketHandle), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         continue;
                     }
                     if let Value::Dict(__d) = &mut seenMarketHandles { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketHandle), Value::Bool(true)); }
@@ -4153,7 +4153,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut raw: Value = rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut m: Value = self.parse_myriad_market(raw.clone(), &[]);
             let mut marketHandle: Value = self.safe_string_k(m.clone(), "market", &[]);
-            if (marketHandle != Value::Null) && (in_op(&seenMarketHandles, &marketHandle)) {
+            if (marketHandle != Value::Null) && (matches!((&seenMarketHandles, &marketHandle), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketHandle), m.clone()); }
                 continue;
             }

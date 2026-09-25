@@ -742,7 +742,7 @@ impl SxbetCore {
             if (sportXeventId == Value::Null) {
                 continue;
             }
-            if !(in_op(&grouped, &sportXeventId)) {
+            if !(matches!((&grouped, &sportXeventId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut grouped { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sportXeventId), Value::from(vec![])); }
                 append_to_array(&mut order, sportXeventId.clone());
             }
@@ -3101,7 +3101,7 @@ impl SxbetCore {
                 if (subscription.as_str() == Some("connect")) {
                     if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
                 }
-                if (subscription != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscription)) {
+                if (subscription != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subscription), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscription);
                 }
                 { let __be_tmp = self.omit(pendingRequests.clone(), requestIdString.clone(), &[]); if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }

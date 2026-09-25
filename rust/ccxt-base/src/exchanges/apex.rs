@@ -1798,13 +1798,13 @@ impl ApexCore {
         if (market == Value::Null) && (marketId != Value::Null) {
             let mut marketsMap: Value = self.markets.clone();
             let mut marketsById: Value = self.markets_by_id.clone();
-            if (marketsMap != Value::Null) && (in_op(&marketsMap, &marketId)) {
+            if (marketsMap != Value::Null) && (matches!((&marketsMap, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 market = marketsMap.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            }  else if (marketsById != Value::Null) && (in_op(&marketsById, &marketId)) {
+            }  else if (marketsById != Value::Null) && (matches!((&marketsById, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 market = marketsById.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             }  else {
                 let mut newMarketId: Value = self.add_hyphen_before_usdt(marketId.clone());
-                if (marketsById != Value::Null) && (in_op(&marketsById, &newMarketId)) {
+                if (marketsById != Value::Null) && (matches!((&marketsById, &newMarketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     let mut markets: Value = marketsById.as_map().and_then(|__m| newMarketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                     let mut numMarkets: Value = get_array_length(&markets);
                     if numMarkets.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {

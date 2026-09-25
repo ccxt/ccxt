@@ -1328,7 +1328,7 @@ impl LatokenCore {
         let mut base: Value = self.safe_currency_code(baseId, &[]);
         let mut quote: Value = self.safe_currency_code(quoteId, &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-        if (self.markets.clone() != Value::Null) && (in_op(&self.markets, &symbol)) {
+        if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             market = self.market(symbol.clone());
         }
         let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
@@ -1634,7 +1634,7 @@ impl LatokenCore {
         let mut symbol: Value = Value::Null;
         if (base != Value::Null) && (quote != Value::Null) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-            if (self.markets.clone() != Value::Null) && (in_op(&self.markets, &symbol)) {
+            if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 market = self.market(symbol.clone());
             }
         }

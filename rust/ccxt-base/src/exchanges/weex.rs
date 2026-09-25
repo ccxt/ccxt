@@ -5522,7 +5522,7 @@ impl WeexCore {
         if (sandboxMode.as_bool() != Some(true)) || (marketId == Value::Null) {
             return marketId.as_str().map(str::to_owned);
         }
-        if (self.markets_by_id.clone() != Value::Null) && (in_op(&self.markets_by_id, &marketId)) {
+        if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return marketId.as_str().map(str::to_owned);
         }
         if (ends_with(&marketId, &Value::Str("SUSDT".into()))) {

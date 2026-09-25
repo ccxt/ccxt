@@ -1408,7 +1408,7 @@ impl CoinbaseCore {
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
             // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if !(in_op(&self.orderbooks, &symbol)) && is_equal(&get_value(&self.orderbooks, &symbol), &Value::Null) {
+            if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && is_equal(&get_value(&self.orderbooks, &symbol), &Value::Null) {
                 continue;
             }
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);

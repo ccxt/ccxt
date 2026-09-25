@@ -361,7 +361,7 @@ impl HollaexCore {
         let mut timestampMs: Value = self.parse8601(timestamp);
         let mut snapshot: Value = self.parse_order_book(data, symbol.clone(), &[timestampMs]);
         let mut orderbook: Value = Value::Null;
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             orderbook = self.order_book(&[snapshot.clone()]);
             if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         }  else {
@@ -768,7 +768,7 @@ impl HollaexCore {
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
-            if (code != Value::Null) && (in_op(&self.balance, &code)) {
+            if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 account = get_value(&self.balance, &code);
             }
             let mut second: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);

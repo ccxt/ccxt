@@ -930,7 +930,7 @@ impl BitflyerCore {
         let mut order: Value = Value::Null;
         if (side != Value::Null) {
             let mut idInner: Value = Value::Str(format!("{}{}", side, Value::Str("_child_order_acceptance_id".into())).into());
-            if (in_op(&trade, &idInner)) {
+            if (matches!((&trade, &idInner), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 order = trade.as_map().and_then(|__m| idInner.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             }
         }
@@ -1321,7 +1321,7 @@ impl BitflyerCore {
         }
         let mut orders: Value = self.fetch_orders(&[symbol]).await;
         let mut ordersById: Value = self.index_by(orders, Value::Str("id".into()));
-        if (in_op(&ordersById, &id)) {
+        if (matches!((&ordersById, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return ordersById.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }
         panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" No order found with id ".into())).into()), id)));

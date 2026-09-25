@@ -1796,7 +1796,7 @@ impl BitbnsCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut urls: Value = self.urls.clone();
-        if !(in_op(&urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api)) {
+        if !(matches!((&urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet/sandbox URL for ".into())).into()), api).into()), Value::Str(" endpoints".into()))));
         }
         if (api.as_str() != Some("www")) {

@@ -3032,7 +3032,7 @@ impl AlpacaCore {
                 continue;
             }
             let mut positionCode: Value = self.safe_currency_code(baseId, &[]);
-            if (positionCode != Value::Null) && !(in_op(&result, &positionCode)) {
+            if (positionCode != Value::Null) && !(matches!((&result, &positionCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut positionAccount: Value = self.account();
                 add_element_to_object(&mut positionAccount, &Value::Str("free".into()), self.safe_string_k(position.clone(), "qty_available", &[]));
                 add_element_to_object(&mut positionAccount, &Value::Str("total".into()), self.safe_string_k(position, "qty", &[]));
@@ -3105,7 +3105,7 @@ impl AlpacaCore {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, feedback.clone());
             let mut codeAsString: Value = to_string_val(&code);
-            if (code.as_f64().unwrap_or(f64::NAN) < ((400i64) as f64)) || !(in_op(&self.httpExceptions, &codeAsString)) {
+            if (code.as_f64().unwrap_or(f64::NAN) < ((400i64) as f64)) || !(matches!((&self.httpExceptions, &codeAsString), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

@@ -229,7 +229,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut fullKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", exchangeId, Value::Str("_".into())).into()), credential).into());
                 let mut credentialEnvName: Value = to_upper(&fullKey); // example: KRAKEN_APIKEY
                 let mut envVars: Value = getEnvVars();
-                let mut credentialValue: Value = (if (in_op(&envVars, &credentialEnvName)) { envVars.as_map().and_then(|__m| credentialEnvName.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut credentialValue: Value = (if (matches!((&envVars, &credentialEnvName), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) { envVars.as_map().and_then(|__m| credentialEnvName.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 if (credentialValue != Value::Null) && (credentialValue.as_str() != Some("")) {
                     setExchangeProp(exchange.clone(), credential.clone(), credentialValue.clone());
                 }
