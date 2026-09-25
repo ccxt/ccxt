@@ -6151,6 +6151,12 @@ function dataflowValueType (printer, node, context) {
             if (ts.isIdentifier (callee.expression) && callee.expression.escapedText === 'Precise') {
                 return PRECISE_STRING_STATICS.has (callee.name.escapedText) ? JAVA_DATAFLOW_STRING : undefined;
             }
+            // `x.toString ()` prints String.valueOf(x); `x.replace (a, b)` Helpers.replace (declared String)
+            const method = String (callee.name.escapedText);
+            if ((method === 'toString' && node.arguments.length === 0)
+                || ((method === 'replace' || method === 'replaceAll') && node.arguments.length === 2)) {
+                return JAVA_DATAFLOW_STRING;
+            }
             return undefined;
         }
     }

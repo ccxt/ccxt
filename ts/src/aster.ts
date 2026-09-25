@@ -2690,7 +2690,7 @@ export default class aster extends Exchange {
     override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
         const ordersRequests: List = [];
-        let orderSymbols: string[] = [];
+        const orderSymbols: List = [];
         if (orders.length > 5) {
             throw new InvalidOrder (this.id + ' createOrders() order list max 5 orders');
         }
@@ -2707,8 +2707,8 @@ export default class aster extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
-        const market = this.market (orderSymbols[0]);
+        const orderSymbolsResolved = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (orderSymbolsResolved[0]);
         if (market['spot'] === true) {
             throw new NotSupported (this.id + ' createOrders() does not support ' + market['type'] + ' orders');
         }
