@@ -3814,7 +3814,7 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 		"symbol": market["id"],
 	}
 	var clientOrderIdList any = this.SafeList(params, "origClientOrderIdList")
-	if !IsEqual(clientOrderIdList, nil) {
+	if clientOrderIdList != nil {
 		request["origClientOrderIdList"] = clientOrderIdList
 	} else {
 		request["orderIdList"] = ids
@@ -4769,7 +4769,7 @@ func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var defaultMethod *string = methodOption
 	if defaultMethod == nil {
 		var options any = this.SafeDict(this.Options, "fetchPositions")
-		if IsEqual(options, nil) {
+		if options == nil {
 			defaultMethod = this.SafeString(this.Options, "fetchPositions", "positionRisk")
 		} else {
 			defaultMethod = SafeStringPtr("positionRisk")
@@ -5059,7 +5059,7 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
 	PanicOnError((<-this.LoadLeverageBracketsAsync(false, params)))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.FapiPrivateGetV4Account(params)).Raw))
-	var filterClosed *bool = SafeBoolPtr(GetValue(this.HandleOptionBoolAndParams(params, "fetchAccountPositions", "filterClosed", false), 0))
+	var filterClosed *bool = SafeBoolPtr(GetValue(TupleSlice(this.HandleOptionBoolAndParams(params, "fetchAccountPositions", "filterClosed", false)), 0))
 	var result any = this.ParseAccountPositions(response, filterClosed)
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
@@ -5083,7 +5083,7 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
 	// by default cache the leverage bracket
 	// it contains useful stuff like the maintenance margin and initial margin for positions
 	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets")
-	if (IsEqual(leverageBrackets, nil)) || (reload == true) {
+	if ((leverageBrackets == nil)) || (reload == true) {
 
 		var response []any = ListTyped(PanicOnError((<-this.FapiPrivateGetV3LeverageBracket(params)).Raw))
 		//

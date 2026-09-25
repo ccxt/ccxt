@@ -1705,7 +1705,7 @@ func (this *Bitopro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersAllPair(this.Extend(request, params))).Raw))
 	var orders any = this.SafeList(response, "data", []any{})
-	if IsEqual(orders, nil) {
+	if orders == nil {
 		orders = []any{}
 	}
 

@@ -1060,9 +1060,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxLimit int = 500 // docs says max 1500, but in practice only 500 works
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		ch <- this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit)
@@ -1620,7 +1618,7 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	}
 	request["type"] = typeValue
 	var hedged any = false
-	var hedgedqueryVariable []any = this.HandleOptionBoolAndParams(query, "createOrder", "hedged", hedged)
+	var hedgedqueryVariable []any = this.HandleOptionBoolAndParamsNullable(query, "createOrder", "hedged", hedged)
 	hedged = GetValue(hedgedqueryVariable, 0)
 	query = GetValue(hedgedqueryVariable, 1)
 	var reduceOnly *bool = this.SafeBool(query, "reduceOnly", false)
@@ -1984,7 +1982,7 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var response map[string]any = nil
 	var trigger bool = false
-	var triggerOptionparamsTriggerVariable []any = this.HandleOptionBoolAndParams(paramsWallet, "fetchOpenOrders", "trigger", trigger)
+	var triggerOptionparamsTriggerVariable []any = this.HandleOptionBoolAndParamsNullable(paramsWallet, "fetchOpenOrders", "trigger", trigger)
 	triggerOption := GetValue(triggerOptionparamsTriggerVariable, 0)
 	var paramsTrigger map[string]any = MapTyped(GetValue(triggerOptionparamsTriggerVariable, 1))
 	if !EvalTruthy(triggerOption) {
@@ -2080,7 +2078,7 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	request["wallet"] = walletOption
 	var response map[string]any = nil
 	var trigger bool = false
-	var triggerOptionparamsTriggerVariable []any = this.HandleOptionBoolAndParams(paramsWallet, "fetchOpenOrder", "trigger", trigger)
+	var triggerOptionparamsTriggerVariable []any = this.HandleOptionBoolAndParamsNullable(paramsWallet, "fetchOpenOrder", "trigger", trigger)
 	triggerOption := GetValue(triggerOptionparamsTriggerVariable, 0)
 	var paramsTrigger map[string]any = MapTyped(GetValue(triggerOptionparamsTriggerVariable, 1))
 	if !EvalTruthy(triggerOption) {

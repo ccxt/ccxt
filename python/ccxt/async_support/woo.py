@@ -2124,7 +2124,6 @@ class woo(Exchange, ImplicitAPI):
         symbol = marketResolved['symbol']
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'quantity')  # This is base amount
-        cost = self.safe_string(order, 'amount')  # This is quote amount
         orderType = self.safe_string_lower(order, 'type')
         status = self.safe_string_2(order, 'status', 'algoStatus')
         side = self.safe_string_lower(order, 'side')
@@ -2166,7 +2165,8 @@ class woo(Exchange, ImplicitAPI):
             'amount': amount,
             'filled': filled,
             'remaining': None,  # computed by safeOrder from amount minus filled
-            'cost': cost,
+            # safeOrder derives the cost from filled and average; `amount` is the quote the order reserved
+            'cost': None,
             'trades': None,
             'fee': {
                 'cost': fee,

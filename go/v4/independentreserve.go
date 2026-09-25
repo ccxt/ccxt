@@ -1038,7 +1038,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 	}
 	var pageIndex *int64 = this.SafeInteger(params, "pageIndex", 1)
 	var limitResolved any = limit
-	if IsEqual(limitResolved, nil) {
+	if limitResolved == nil {
 		limitResolved = 50
 	}
 	var request map[string]any = map[string]any{

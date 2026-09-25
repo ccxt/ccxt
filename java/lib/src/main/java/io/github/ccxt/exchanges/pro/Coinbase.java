@@ -575,8 +575,8 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                     continue;
                 }
                 Map<String, Object> result = (Map<String, Object>) this.parseWsTicker(ticker, (Map<String, Object>) null);
-                Helpers.addElementToObject(result, "timestamp", timestamp);
-                Helpers.addElementToObject(result, "datetime", datetime);
+                result.put("timestamp", timestamp);
+                result.put("datetime", datetime);
                 String symbol = (String) result.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -1154,9 +1154,9 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             this.handleOrderBookHelper(orderbook, updates);
-            Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
-            Helpers.addElementToObject(orderbook, "datetime", datetime);
-            Helpers.addElementToObject(orderbook, "symbol", symbol);
+            orderbook.put("timestamp", this.parse8601(datetime));
+            orderbook.put("datetime", datetime);
+            orderbook.put("symbol", symbol);
             client.resolve(orderbook, messageHash);
             this.tryResolveUsdc(client, messageHash, orderbook);
         }

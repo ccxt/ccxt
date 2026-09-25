@@ -6498,10 +6498,18 @@ impl BingxCore {
             let __ws_arg_43 = self.extend(request.clone(), &[paramsStandard.clone()]);
             response = self.contract_v1_private_get_all_orders(&[__ws_arg_43]).await;
         }  else if (type_var.as_str() == Some("spot")) {
+            if (since != Value::Null) {
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            }
+            let mut until: Value = self.safe_integer2(paramsStandard.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]);
+            if (until != Value::Null) {
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until.clone()); }
+            }
+            let mut paramsSpot: Value = self.omit(paramsStandard.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]);
             if (limit != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".into(), limit.clone()); }
             }
-            let __ws_arg_44 = self.extend(request.clone(), &[paramsStandard.clone()]);
+            let __ws_arg_44 = self.extend(request.clone(), &[paramsSpot]);
             response = self.spot_v1_private_get_trade_history_orders(&[__ws_arg_44]).await;
         }  else {
             let mut isTwapOrder: Value = self.safe_bool_k(paramsStandard.clone(), "twap", &[Value::Bool(false)]);

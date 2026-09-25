@@ -2005,7 +2005,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                         }
                     }
                 }
-                Helpers.addElementToObject(parsedOrder, "lastUpdateTimestamp", updateTimestamp);
+                parsedOrder.put("lastUpdateTimestamp", updateTimestamp);
             }
         }
         stored.append(parsedOrder);

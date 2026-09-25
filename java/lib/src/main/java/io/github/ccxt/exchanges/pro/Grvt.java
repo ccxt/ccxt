@@ -749,8 +749,8 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltasWithKeys((orderbook == null ? null : orderbook.get("asks")), asks, "price", "size", 2);
             this.handleDeltasWithKeys((orderbook == null ? null : orderbook.get("bids")), bids, "price", "size", 2);
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", this.iso8601(timestamp));
         }
         // grvt defaults to the delta channel (v1.book.d); if the very first
         // message is a delta, the freshly-created orderbook has symbol=null
@@ -759,8 +759,8 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         // typed WsOrderBook surfaces this as `"symbol":null` in the output;
         // Python/JS dict-backed orderbooks happen to mask it but the
         // unconditional assignment is correct for every language.
-        Helpers.addElementToObject(orderbook, "symbol", symbol);
-        Helpers.addElementToObject(orderbook, "nonce", sequenceNumber);
+        orderbook.put("symbol", symbol);
+        orderbook.put("nonce", sequenceNumber);
         String messageHash = ("orderbook::" + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);

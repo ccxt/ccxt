@@ -968,9 +968,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var maxLimit int = 300
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		ch <- this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit)
@@ -1391,7 +1389,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	// a single-symbol request returns the entry directly in data
 	//
 	var data any = this.SafeList(response, "data")
-	if IsEqual(data, nil) {
+	if data == nil {
 		var single map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 		data = []any{single}
 	}
@@ -1576,7 +1574,7 @@ func (this *Btse) fetchTickerBody(ch chan any, symbol string, optionalArgs ...an
 	//
 	// a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
 	var data any = this.SafeDict(response, "data")
-	if IsEqual(data, nil) {
+	if data == nil {
 		var rows []any = SafeListTyped(response, "data")
 		data = this.SafeDict(rows, 0, map[string]any{})
 	}
@@ -1661,7 +1659,7 @@ func (this *Btse) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Raw))
 	var interest any = this.SafeDict(response, "data")
-	if IsEqual(interest, nil) {
+	if interest == nil {
 		var rows []any = SafeListTyped(response, "data")
 		interest = this.SafeDict(rows, 0, map[string]any{})
 	}
@@ -1764,7 +1762,7 @@ func (this *Btse) fetchFundingRateBody(ch chan any, symbol string, optionalArgs 
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Raw))
 	var data any = this.SafeDict(response, "data")
-	if IsEqual(data, nil) {
+	if data == nil {
 		var rows []any = SafeListTyped(response, "data")
 		data = this.SafeDict(rows, 0, map[string]any{})
 	}
@@ -2408,9 +2406,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol string, typeVar string
 	if needsQuoteSize {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice bool = true
-		var createMarketBuyOrderRequiresPricequeryVariable []any = this.HandleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-		createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPricequeryVariable, 0, false)
-		query = GetValue(createMarketBuyOrderRequiresPricequeryVariable, 1)
+		createMarketBuyOrderRequiresPrice, query = this.HandleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *string = this.SafeString(query, "cost")
 		query = this.Omit(query, "cost")
 		if cost != nil {
@@ -2602,7 +2598,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 	// if positionMode is provided, we will get it from params and send it as is
 	if positionMode == nil {
 		var hedged any = false
-		var hedgedqueryVariable []any = this.HandleOptionBoolAndParams(query, "createOrder", "hedged", hedged)
+		var hedgedqueryVariable []any = this.HandleOptionBoolAndParamsNullable(query, "createOrder", "hedged", hedged)
 		hedged = GetValue(hedgedqueryVariable, 0)
 		query = GetValue(hedgedqueryVariable, 1)
 		var marginMode any = "cross"
@@ -2647,7 +2643,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 	// here we handling with attached take profit and stop loss orders
 	var takeProfit any = this.SafeDict(query, "takeProfit")
 	var stopLoss map[string]any = SafeMapTyped(query, "stopLoss")
-	if (!IsEqual(takeProfit, nil)) || ((stopLoss != nil)) {
+	if ((takeProfit != nil)) || ((stopLoss != nil)) {
 		var takeProfitTriggerPrice *string = this.SafeString(takeProfit, "triggerPrice")
 		var stopLossTriggerPrice *string = this.SafeString(stopLoss, "triggerPrice")
 		if takeProfitTriggerPrice != nil {
@@ -4519,9 +4515,7 @@ func (this *Btse) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	// the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
 	// verified live - a bare call on a cross account silently changes the
 	// isolated leverage only, so the unified marginMode param is translated here
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("setLeverage", params)
-	marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params)
 	if !IsEqual(marginMode, nil) {
 		request["marginMode"] = ToUpper(marginMode)
 	}
@@ -4533,7 +4527,7 @@ func (this *Btse) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	return nil
 }
 func (this *Btse) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
 	//

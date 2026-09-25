@@ -1326,9 +1326,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var paginate bool = false
 	var paramsPaginate map[string]any = map[string]any{}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
-	paginate = ccxt.GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = ccxt.MapTyped(ccxt.GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
 	var maxEntriesPerRequestparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", 100)
 	maxEntriesPerRequest := ccxt.GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := ccxt.GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 1)
@@ -1437,9 +1435,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var paginate bool = false
 	var paramsPaginate map[string]any = map[string]any{}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
-	paginate = ccxt.GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = ccxt.MapTyped(ccxt.GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	var maxEntriesPerRequestparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100)
 	maxEntriesPerRequest := ccxt.GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := ccxt.GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 1)
@@ -1773,9 +1769,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var paginate bool = false
 	var paramsPaginate map[string]any = map[string]any{}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = ccxt.GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = ccxt.MapTyped(ccxt.GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	var maxEntriesPerRequestparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100)
 	maxEntriesPerRequest := ccxt.GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := ccxt.GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 1)

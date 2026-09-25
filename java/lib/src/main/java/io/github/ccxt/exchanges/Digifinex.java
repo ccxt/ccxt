@@ -2115,11 +2115,11 @@ public class Digifinex extends DigifinexApi
                 throw new NullResponse((this.id + " createOrder() returned empty response")) ;
             }
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
-            Helpers.addElementToObject(order, "symbol", market.get("symbol"));
-            Helpers.addElementToObject(order, "type", type);
-            Helpers.addElementToObject(order, "side", side);
-            Helpers.addElementToObject(order, "amount", amount);
-            Helpers.addElementToObject(order, "price", price);
+            order.put("symbol", market.get("symbol"));
+            order.put("type", type);
+            order.put("side", side);
+            order.put("amount", amount);
+            order.put("price", price);
             return order;
         }).thenApply(Order::new);
 

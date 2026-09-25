@@ -1199,9 +1199,7 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxLimit int = 100
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	if paginate {
 		var paramsPagination any = this.HandlePaginationParams("fetchTrades", since, paramsPaginate)
 
@@ -1288,9 +1286,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		response = ListTyped(PanicOnError((<-this.PrivateGetV1TradesClientOrderIdClientOrderId(this.Extend(request, params))).Raw))
 	} else {
-		var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-		var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-		var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+		paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 		if paginate {
 			var paramsPagination any = this.HandlePaginationParams("fetchMyTrades", since, paramsPaginate)
 
@@ -1729,9 +1725,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	}
 	var market map[string]any = this.Market(symbol)
 	var maxLimit int = 100
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		var retRes136819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
@@ -1749,12 +1743,12 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	var maxDelta any = Multiply(1000*duration, maxLimit)
 	var startTime any = since
 	// both of since and until are required
-	if IsEqual(startTime, nil) && IsEqual(until, nil) {
+	if IsEqual(startTime, nil) && (until == nil) {
 		until = this.Milliseconds()
 		startTime = Subtract(until, maxDelta)
 	} else if IsEqual(startTime, nil) {
 		startTime = Subtract(until, maxDelta)
-	} else if IsEqual(until, nil) {
+	} else if until == nil {
 		until = this.Sum(startTime, maxDelta)
 	}
 	AddElementToObject(requestUntil, "createdAtDatetime[gte]", this.Iso8601(startTime))
@@ -1821,9 +1815,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxLimit int = 100
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 		var paramsPagination any = this.HandlePaginationParams("fetchFundingRateHistory", since, paramsPaginate)
 
@@ -2021,18 +2013,18 @@ func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) any {
 	var untilKey string = GetArgString(optionalArgs, 3, "createdAtDatetime[lte]")
 	_ = untilKey
 	var until any = DerefScalar(this.SafeInteger(params, "until"))
-	var sinceFromUntil bool = (since == nil) && (!IsEqual(until, nil))
+	var sinceFromUntil bool = (since == nil) && ((until != nil))
 	var paramsResult any = params
 	if sinceFromUntil {
 		paramsResult = this.Omit(params, "until")
 	}
-	if (since != nil) || (!IsEqual(until, nil)) {
+	if (since != nil) || ((until != nil)) {
 		var timeDelta int64 = (7 * 24) * 60 * 60 * 1000 // 7 days
 		var sinceResolved any = since
 		if since == nil {
 			sinceResolved = Subtract(until, timeDelta)
 		}
-		if (since != nil) && (IsEqual(until, nil)) {
+		if (since != nil) && ((until == nil)) {
 			until = this.Sum(since, timeDelta)
 			var now int64 = this.Milliseconds()
 			if IsGreaterThan(until, now) {
@@ -3388,9 +3380,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
 	var maxLimit int = 100
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	if paginate {
 		var paramsPagination any = this.HandlePaginationParams("fetchTransfers", since, paramsPaginate)
 
@@ -3592,7 +3582,7 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	if IsEqual(startTimestamp, nil) {
 		startTimestamp = now - (1000*60)*60*24*90 // Only the last 90 days of data is available for querying
 	}
-	if IsEqual(until, nil) {
+	if until == nil {
 		until = now
 	}
 	AddElementToObject(requestUntil, "createdAtDatetime[gte]", this.Iso8601(startTimestamp))

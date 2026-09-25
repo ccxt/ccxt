@@ -1809,7 +1809,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 				}
 			}
 			var tradeFee any = this.SafeDict(trade, "fee")
-			if !IsEqual(tradeFee, nil) {
+			if (tradeFee != nil) {
 				feeList = append(feeList, tradeFee)
 			}
 		}
@@ -2400,7 +2400,7 @@ func (this *PredictionExchange) waitForTransactionReceiptBody(ch chan any, rpcUr
 
 		receipt := (<-this.EthRpcAsync(rpcUrl, "eth_getTransactionReceipt", []any{txHash}))
 		PanicOnError(receipt)
-		if (!IsEqual(receipt, nil)) && (!IsEqual(receipt, nil)) {
+		if (!IsEqual(receipt, nil)) {
 
 			ch <- receipt
 			return nil

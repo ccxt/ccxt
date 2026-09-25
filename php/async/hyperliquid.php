@@ -168,7 +168,7 @@ class hyperliquid extends Exchange {
                 'public' => array(
                     'post' => array(
                         'info' => array(
-                            'cost' => 20,
+                            'cost' => 10,
                             'byType' => array(
                                 'l2Book' => 2,
                                 'allMids' => 2,

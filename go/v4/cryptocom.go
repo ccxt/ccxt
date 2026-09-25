@@ -822,9 +822,7 @@ func (this *Cryptocom) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 		ch <- map[string]any{}
 		return nil
 	}
-	var skipFetchCurrenciesparamsSkipFetchCurrenciesVariable []any = this.HandleOptionBoolAndParams(params, "fetchCurrencies", "skipFetchCurrencies", false)
-	var skipFetchCurrencies bool = GetValueBool(skipFetchCurrenciesparamsSkipFetchCurrenciesVariable, 0, false)
-	var paramsSkipFetchCurrencies map[string]any = MapTyped(GetValue(skipFetchCurrenciesparamsSkipFetchCurrenciesVariable, 1))
+	skipFetchCurrencies, paramsSkipFetchCurrencies := this.HandleOptionBoolAndParams(params, "fetchCurrencies", "skipFetchCurrencies", false)
 	if skipFetchCurrencies {
 
 		// sub-accounts can't access this endpoint
@@ -1354,9 +1352,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	if paginate {
 
 		var retRes97419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, paramsPaginate))))
@@ -1459,9 +1455,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	if paginate {
 
 		var retRes105719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, paramsPaginate))))
@@ -1546,9 +1540,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol string, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		var retRes112019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 300))))
@@ -2208,9 +2200,7 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side 
 	if isMarketBuy {
 		// use createmarketBuy logic here
 		var quoteAmount any = nil
-		var createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-		var createMarketBuyOrderRequiresPrice bool = GetValueBool(createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable, 0, false)
-		var paramsCreateMarketBuy map[string]any = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable, 1))
+		createMarketBuyOrderRequiresPrice, paramsCreateMarketBuy := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *float64 = this.SafeNumber2(paramsCreateMarketBuy, "cost", "notional")
 		paramsMarketBuy = this.Omit(paramsCreateMarketBuy, "cost")
 		if cost != nil {
@@ -2619,9 +2609,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	if paginate {
 
 		var retRes196419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, 100))))
@@ -3444,9 +3432,7 @@ func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName any, optionalA
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "margin"))
 	var marginMode *string = nil
 	var paramsMarginMode any = nil
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams(methodName, paramsOmitted)
-	marginMode = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	paramsMarginMode = GetValue(marginModeparamsMarginModeVariable, 1)
+	marginMode, paramsMarginMode = this.HandleMarginModeAndParams(methodName, paramsOmitted)
 	if marginMode != nil {
 		if marginMode == nil || *marginMode != "cross" {
 			panic(NotSupported(this.Id + " only cross margin is supported"))
@@ -4071,9 +4057,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
 		var retRes319419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate))))

@@ -1249,8 +1249,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
         this.handleDeltas(((Map<String, Object>)storedOrderBook).get("asks"), asks);
         this.handleDeltas(((Map<String, Object>)storedOrderBook).get("bids"), bids);
-        Helpers.addElementToObject(storedOrderBook, "timestamp", timestamp);
-        Helpers.addElementToObject(storedOrderBook, "datetime", this.iso8601(timestamp));
+        storedOrderBook.put("timestamp", timestamp);
+        storedOrderBook.put("datetime", this.iso8601(timestamp));
         ((Map<String, Object>)storedOrderBook).put("nonce", incrementalId);
         client.resolve(storedOrderBook, messageHash);
     }

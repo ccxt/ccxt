@@ -1073,9 +1073,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             List<Object> bids = (List<Object>) this.safeList(depth, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((currentOrderBook == null ? null : currentOrderBook.get("asks")), asks);
             this.handleDeltas((currentOrderBook == null ? null : currentOrderBook.get("bids")), bids);
-            Helpers.addElementToObject(currentOrderBook, "nonce", timestamp);
-            Helpers.addElementToObject(currentOrderBook, "timestamp", timestamp);
-            Helpers.addElementToObject(currentOrderBook, "datetime", this.iso8601(timestamp));
+            currentOrderBook.put("nonce", timestamp);
+            currentOrderBook.put("timestamp", timestamp);
+            currentOrderBook.put("datetime", this.iso8601(timestamp));
             Helpers.addElementToObject(this.orderbooks, symbol, currentOrderBook);
         }
         // this.checkOrderBookChecksum (this.orderbooks[symbol]);

@@ -1784,7 +1784,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome string, optionalArgs 
 	if rawHistoryLength > 0 {
 		var first any = this.SafeDict(rawHistory, 0, map[string]any{})
 		var firstPrices any = this.SafeList(first, "prices")
-		if !ccxt.IsEqual(firstPrices, nil) {
+		if firstPrices != nil {
 			var selectedSeries any = first
 			for i := 0; i < ccxt.GetArrayLength(rawHistory); i++ {
 				var series any = this.SafeDict(rawHistory, i, map[string]any{})
@@ -2221,7 +2221,7 @@ func (this *Limitless) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 
 	var orders []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersByIdsAsync([]any{id}, outcome, params))))
 	var order any = this.SafeDict(orders, 0)
-	if ccxt.IsEqual(order, nil) {
+	if order == nil {
 		panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" fetchOrder() could not find order ", id)))
 	}
 
@@ -2354,7 +2354,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
 	var rawOrder any = this.SafeDict(data, "order", order)
 	// createOrder returns the order nested under an 'order' key
 	var wrappedOrder any = this.SafeDict(rawOrder, "order")
-	if !ccxt.IsEqual(wrappedOrder, nil) {
+	if wrappedOrder != nil {
 		rawOrder = wrappedOrder
 	}
 	var id *string = this.SafeString(rawOrder, "id")
@@ -2719,9 +2719,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome string, typeVar stri
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
 	if isMarket && (side == "buy") {
 		var createMarketBuyOrderRequiresPrice bool = true
-		var createMarketBuyOrderRequiresPriceparamsValueVariable []any = this.HandleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-		createMarketBuyOrderRequiresPrice = ccxt.GetValueBool(createMarketBuyOrderRequiresPriceparamsValueVariable, 0, false)
-		paramsValue = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsValueVariable, 1)
+		createMarketBuyOrderRequiresPrice, paramsValue = this.HandleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *float64 = this.SafeNumber(paramsValue, "cost")
 		paramsValue = this.Omit(paramsValue, "cost")
 		if createMarketBuyOrderRequiresPrice {

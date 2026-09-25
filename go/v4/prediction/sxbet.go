@@ -817,7 +817,7 @@ func (this *Sxbet) loadSxObv3MetadataBody(ch chan any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var cached any = this.SafeDict(this.Options, "sxObv3Metadata")
-	if !ccxt.IsEqual(cached, nil) {
+	if cached != nil {
 
 		ch <- cached
 		return nil
@@ -2847,7 +2847,7 @@ func (this *Sxbet) RequestId(url any) int64 {
  */
 func (this *Sxbet) RegisterSxbetWsRequest(requestId any, messageHash any, subscription any) {
 	var existing any = this.SafeDict(this.Options, "wsPendingRequests")
-	if ccxt.IsEqual(existing, nil) {
+	if existing == nil {
 		this.Options.Store("wsPendingRequests", this.CreateSafeDictionary())
 	}
 	var requestIdString *string = this.NumberToString(requestId)
@@ -2996,7 +2996,7 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 		// watch() registered at send time, so the next call re-sends the command instead
 		// of waiting forever behind a marker that will never be served
 		error := ccxt.ExchangeError(this.Id + " " + this.Json(msg))
-		if !ccxt.IsEqual(pendingEntry, nil) {
+		if pendingEntry != nil {
 			var failedHash *string = this.SafeString(pendingEntry, "messageHash")
 			var subscription *string = this.SafeString(pendingEntry, "subscription")
 			if subscription != nil && *subscription == "connect" {
@@ -3013,7 +3013,7 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 		}
 		return
 	}
-	if !ccxt.IsEqual(pendingEntry, nil) {
+	if pendingEntry != nil {
 		// a successful command ack - the tracked request has served its purpose
 		this.Options.Store("wsPendingRequests", this.Omit(pendingRequests, requestIdString))
 	}
@@ -3109,7 +3109,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan any, outcome string, optionalArgs 
 	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, sym), nil) {
 		// seed from the REST snapshot so the book is served before the first publication
 		var watchedBooks any = this.SafeDict(this.Options, "wsWatchedBooks")
-		if ccxt.IsEqual(watchedBooks, nil) {
+		if watchedBooks == nil {
 			this.Options.Store("wsWatchedBooks", this.CreateSafeDictionary())
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "wsWatchedBooks"), sym, marketHash)
@@ -3159,7 +3159,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) any {
 		return refreshed
 	}
 	var versionsAll any = this.SafeDict(this.Options, "wsBookVersions")
-	if ccxt.IsEqual(versionsAll, nil) {
+	if versionsAll == nil {
 		this.Options.Store("wsBookVersions", this.CreateSafeDictionary())
 	}
 	var held *string = this.SafeString(ccxt.GetValue(this.Options, "wsBookVersions"), marketHash, "")
@@ -3244,7 +3244,7 @@ func (this *Sxbet) watchTickerBody(ch chan any, outcome string, optionalArgs ...
 	var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash")
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", sym))
 	var watchedTickers any = this.SafeDict(this.Options, "wsWatchedTickers")
-	if ccxt.IsEqual(watchedTickers, nil) {
+	if watchedTickers == nil {
 		this.Options.Store("wsWatchedTickers", this.CreateSafeDictionary())
 	}
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "wsWatchedTickers"), sym, marketHash)

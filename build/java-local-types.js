@@ -13277,3 +13277,254 @@ export function nativeJavaLongLimitLocals (content) {
     }
     return changed ? lines.join ('\n') : content;
 }
+
+// ===== 33. element writes on a local Map that is never a ConcurrentHashMap =====
+// Helpers.addElementToObject on a Map is `put` under the map's monitor, removing on a null value
+// only for a ConcurrentHashMap. A local declared Map<String, Object> holding only fresh maps prints put.
+const JAVA_FRESH_MAP_TS_ROOT = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'ts', 'src');
+let javaFreshMapMethodIndex;
+
+// every class of the generated tiers and the base: its methods by name and its parent file
+function javaFreshMapMethods () {
+    if (javaFreshMapMethodIndex !== undefined) {
+        return javaFreshMapMethodIndex;
+    }
+    const classes = new Map ();
+    for (const dir of [ '', 'pro', 'prediction', 'base', 'abstract', 'prediction/abstract' ]) {
+        const full = path.join (JAVA_FRESH_MAP_TS_ROOT, dir);
+        const names = fs.existsSync (full) ? fs.readdirSync (full).filter ((f) => f.endsWith ('.ts') && !f.endsWith ('.d.ts')) : [];
+        for (const name of names) {
+            const file = path.join (full, name);
+            const sf = ts.createSourceFile (file, fs.readFileSync (file, 'utf8'));
+            const imports = new Map ();
+            const local = new Set (sf.statements.filter ((st) => ts.isClassDeclaration (st) && st.name !== undefined).map ((st) => st.name.text));
+            let entry;
+            for (const statement of sf.statements) {
+                if (ts.isImportDeclaration (statement) && statement.importClause !== undefined && ts.isStringLiteral (statement.moduleSpecifier)) {
+                    const target = path.resolve (path.dirname (file), statement.moduleSpecifier.text.replace (/\.js$/, '.ts'));
+                    const bindings = statement.importClause.namedBindings;
+                    const names = [ statement.importClause.name, ...(bindings !== undefined && ts.isNamedImports (bindings) ? bindings.elements.map ((e) => e.name) : []) ];
+                    names.filter ((n) => n !== undefined).forEach ((n) => imports.set (n.text, target));
+                }
+            }
+            // the classes of one file are merged; the chain leaves the file through an imported parent
+            for (const statement of sf.statements) {
+                if (ts.isClassDeclaration (statement)) {
+                    entry ??= { methods: new Map (), parent: undefined };
+                    const heritage = statement.heritageClauses?.[0]?.types?.[0]?.expression;
+                    for (const member of statement.members) {
+                        if (member.name !== undefined && ts.isIdentifier (member.name)) {
+                            entry.methods.set (member.name.text, [ ...(entry.methods.get (member.name.text) ?? []), member ]);
+                        }
+                    }
+                    if (heritage !== undefined && !(ts.isIdentifier (heritage) && local.has (heritage.text))) {
+                        entry.parent = ts.isIdentifier (heritage) ? (imports.get (heritage.text) ?? null) : null;
+                    }
+                }
+            }
+            if (entry !== undefined) {
+                classes.set (path.resolve (file), entry);
+            }
+        }
+    }
+    const handWritten = JAVA_BASE_HEADER_FILES.map ((f) => {
+        try {
+            return fs.readFileSync (f, 'utf8').split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT')[0];
+        } catch (e) {
+            return undefined;
+        }
+    });
+    javaFreshMapMethodIndex = { classes, handWritten, verdicts: new Map () };
+    return javaFreshMapMethodIndex;
+}
+
+// the declarations a `this.name(..)` call in `file` can dispatch to: the nearest one up the parent
+// chain plus every override in a class extending `file`; undefined when the chain is not closed
+function javaFreshMapDispatch (file, name) {
+    const { classes } = javaFreshMapMethods ();
+    const own = classes.get (path.resolve (file));
+    if (own === undefined) {
+        return undefined;
+    }
+    const found = [];
+    for (let current = own, seen = 0; current !== undefined && seen < 12; seen++) {
+        const decls = current.methods.get (name);
+        if (decls !== undefined) {
+            found.push (...decls);
+            break;
+        }
+        if (current.parent === null) {
+            return undefined;
+        }
+        current = current.parent === undefined ? undefined : classes.get (current.parent);
+    }
+    const root = path.resolve (file);
+    for (const [ other, entry ] of classes) {
+        let current = entry;
+        for (let seen = 0; current?.parent && seen < 12; seen++) {
+            if (current.parent === root) {
+                found.push (...(entry.methods.get (name) ?? []));
+                break;
+            }
+            current = classes.get (current.parent);
+        }
+    }
+    return found;
+}
+
+function javaFreshMapUnwrap (node) {
+    while (node !== undefined && (ts.isParenthesizedExpression (node) || ts.isAsExpression (node) || node.kind === ts.SyntaxKind.NonNullExpression)) {
+        node = node.expression;
+    }
+    return node;
+}
+
+// `this.extend (a, b)` builds a new LinkedHashMap (Generic.extend); extend/deepExtend ending in an
+// object literal hands back a map created inside Generic.deepExtend
+function javaFreshMapExtendCall (call) {
+    const callee = call.expression;
+    if (!ts.isPropertyAccessExpression (callee) || callee.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const name = callee.name.text;
+    const args = call.arguments;
+    if (args.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    const last = args.length > 0 ? javaFreshMapUnwrap (args[args.length - 1]) : undefined;
+    const endsInLiteral = last !== undefined && ts.isObjectLiteralExpression (last);
+    if (!((name === 'extend' && (args.length === 2 || endsInLiteral)) || (name === 'deepExtend' && endsInLiteral))) {
+        return false;
+    }
+    // no class reachable by dispatch redefines the merge helpers
+    const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, name);
+    return declarations !== undefined && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
+}
+
+// every declaration a call from `file` can dispatch to returns a fresh map (object literal, fresh
+// extend, or another such call); hand-written base methods of that name are never proven
+function javaFreshMapMethod (file, name, visiting) {
+    const state = javaFreshMapMethods ();
+    const key = `${path.resolve (file)}#${name}`;
+    if (state.verdicts.has (key)) {
+        return state.verdicts.get (key);
+    }
+    if (visiting.has (key) || visiting.size > 6) {
+        return false;
+    }
+    const declarations = javaFreshMapDispatch (file, name) ?? [];
+    const declaredByHand = state.handWritten.some ((text) => text === undefined || new RegExp (`\\s${name}\\s*\\(`).test (text));
+    let fresh = declarations.length > 0 && !declaredByHand;
+    visiting.add (key);
+    for (const declaration of declarations) {
+        if (!fresh) {
+            break;
+        }
+        if (!ts.isMethodDeclaration (declaration) || declaration.body === undefined) {
+            fresh = false;
+            break;
+        }
+        let returns = 0;
+        const walk = (node) => {
+            if (!fresh || node === undefined || (node !== declaration && ts.isFunctionLike (node))) {
+                return;
+            }
+            if (ts.isReturnStatement (node)) {
+                returns++;
+                fresh = javaFreshMapValue (node.expression, visiting);
+                return;
+            }
+            node.forEachChild (walk);
+        };
+        walk (declaration.body);
+        // a body that only throws never hands a value back
+        const statements = declaration.body.statements;
+        fresh = fresh && (returns > 0 || (statements.length === 1 && ts.isThrowStatement (statements[0])));
+    }
+    visiting.delete (key);
+    if (visiting.size === 0) {
+        state.verdicts.set (key, fresh);
+    }
+    return fresh;
+}
+
+function javaFreshMapValue (expression, visiting) {
+    const value = javaFreshMapUnwrap (expression);
+    if (value === undefined) {
+        return false;
+    }
+    if (ts.isObjectLiteralExpression (value)) {
+        return true;
+    }
+    if (!ts.isCallExpression (value) || !ts.isPropertyAccessExpression (value.expression)) {
+        return false;
+    }
+    const target = value.expression.expression.kind;
+    if (target !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    return javaFreshMapExtendCall (value) || javaFreshMapMethod (value.getSourceFile ().fileName, value.expression.name.text, visiting);
+}
+
+// every write of the local is its fresh initializer or another fresh map, and no pattern binds it
+function javaFreshMapStable (printer, receiver, declaration) {
+    const home = enclosingFunction (declaration);
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (receiver);
+    let ok = home !== undefined && symbol !== undefined;
+    const walk = (node) => {
+        if (!ok || node === undefined) {
+            return;
+        }
+        if (ts.isBinaryExpression (node) && node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && node.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            const left = javaFreshMapUnwrap (node.left);
+            if (ts.isIdentifier (left) && checker.getSymbolAtLocation (left) === symbol) {
+                ok = node.operatorToken.kind === ts.SyntaxKind.EqualsToken && javaFreshMapValue (node.right, new Set ());
+            } else if (ts.isArrayLiteralExpression (left) || ts.isObjectLiteralExpression (left)) {
+                ok = !printer.javaPatternBindsSymbol (left, symbol);
+            }
+        }
+        node.forEachChild (walk);
+    };
+    walk (home?.body);
+    return ok;
+}
+
+export function patchJavaFreshMapElementWrites (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printCustomBinaryExpressionIfAny !== 'function'
+        || typeof printer.javaDeclaredMapReceiver !== 'function' || printer._javaFreshMapElementWritesPatched) {
+        return;
+    }
+    printer._javaFreshMapElementWritesPatched = true;
+    const upstream = printer.printCustomBinaryExpressionIfAny.bind (printer);
+    printer.printCustomBinaryExpressionIfAny = function (node, identation) {
+        const printed = upstream (node, identation);
+        if (typeof printed !== 'string' || node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isElementAccessExpression (node.left)) {
+            return printed;
+        }
+        const receiver = node.left.expression;
+        const key = node.left.argumentExpression;
+        const head = `Helpers.addElementToObject(${receiver.getText?.() ?? ''}, `;
+        if (!ts.isIdentifier (receiver) || !printed.startsWith (head) || !printed.endsWith (')')
+            || !(ts.isStringLiteralLike (key) || printer.javaDeclaredStringType (key))) {
+            return printed;
+        }
+        // WsOrderBook is a plain (non-concurrent) Map whose own put is the synchronized write
+        const declared = String (printer.javaDeclaredTypeOf?.(receiver) ?? '').trim ();
+        if (declared === 'io.github.ccxt.ws.WsOrderBook' && ts.isStringLiteralLike (key)) {
+            return `${receiver.text}.put(${printed.slice (head.length)}`;
+        }
+        if (!printer.javaDeclaredMapReceiver (receiver)) {
+            return printed;
+        }
+        // a never-null value makes put and the helper agree on any Map, a ConcurrentHashMap included
+        const declaration = printer.javaDeclarationOfIdentifier (receiver);
+        const fresh = declaration !== undefined && ts.isVariableDeclaration (declaration) && declaration.initializer !== undefined
+            && javaFreshMapValue (declaration.initializer, new Set ()) && javaFreshMapStable (printer, receiver, declaration);
+        if (!fresh && !printer.javaPrintsNonNullValue (node.right)) {
+            return printed;
+        }
+        return `${receiver.text}.put(${printed.slice (head.length)}`;
+    };
+}

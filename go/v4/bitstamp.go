@@ -2184,7 +2184,7 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan any, symbol string, optionalAr
 	//
 	var tradingFeesByMarketId map[string]any = this.IndexBy(response, "currency_pair")
 	var tradingFee any = this.SafeDict(tradingFeesByMarketId, market["id"])
-	if IsEqual(tradingFee, nil) {
+	if tradingFee == nil {
 		tradingFee = map[string]any{}
 	}
 
@@ -2853,9 +2853,7 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
 		var retRes196719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate))))

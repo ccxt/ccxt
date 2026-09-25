@@ -1126,7 +1126,7 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var openOrdersResult map[string]any = SafeMapTyped(response, "return")
 	var rawOrders any = openOrdersResult["orders"]
 	// { success: 1, return: { orders: null }} if no orders
-	if (IsEqual(rawOrders, nil)) || (IsEqual(rawOrders, nil)) {
+	if IsEqual(rawOrders, nil) {
 
 		ch <- []any{}
 		return nil

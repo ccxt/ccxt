@@ -2249,9 +2249,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome string, typeVar str
 	// read through the extractor rather than off the instance, so one call can opt in without
 	// reconfiguring the exchange - and so the key is taken out of params instead of riding
 	// along into the request body
-	var warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "warnOnMarketOrderWithoutPrice", true)
-	var warnOnMarketOrderWithoutPrice bool = ccxt.GetValueBool(warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable, 0, false)
-	var paramsWarnOnMarketOrderWithoutPrice map[string]any = ccxt.MapTyped(ccxt.GetValue(warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable, 1))
+	warnOnMarketOrderWithoutPrice, paramsWarnOnMarketOrderWithoutPrice := this.HandleOptionBoolAndParams(params, "createOrder", "warnOnMarketOrderWithoutPrice", true)
 	if price == nil {
 		// a priceless limit order already threw above, so this is a market order
 		if warnOnMarketOrderWithoutPrice {
@@ -2304,7 +2302,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome string, typeVar str
 	var defaultExpiration *int64 = this.SafeInteger(this.Options, "defaultExpiration", 3600) // 1 hour
 	var expirationDelta *int64 = defaultExpiration
 	var expiration any = ccxt.DerefScalar(this.SafeInteger(paramsWarnOnMarketOrderWithoutPrice, "expiration"))
-	if ccxt.IsEqual(expiration, nil) {
+	if expiration == nil {
 		if isMarket {
 			expirationDelta = this.SafeInteger(this.Options, "marketOrderExpiration", defaultExpiration)
 		}
@@ -2682,7 +2680,7 @@ func (this *Predictfun) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 
 	var orders []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.CancelOrdersAsync([]any{id}, outcome, params))))
 	var order any = this.SafeDict(orders, 0)
-	if ccxt.IsEqual(order, nil) {
+	if order == nil {
 		panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" cancelOrder() could not remove ", id)))
 	}
 

@@ -290,7 +290,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(data, "date", timestamp);
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
-        Helpers.addElementToObject(ticker, "symbol", market.get("symbol"));
+        ticker.put("symbol", market.get("symbol"));
         Helpers.addElementToObject(this.tickers, market.get("symbol"), ticker);
         client.resolve(ticker, topic);
         return message;

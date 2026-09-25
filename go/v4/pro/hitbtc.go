@@ -1344,9 +1344,7 @@ func (this *Hitbtc) createOrderWsBody(ch chan any, symbol string, typeVar string
 	}
 	var market map[string]any = this.Market(symbol)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("createOrder", paramsMarketType)
-	marginMode := ccxt.GetValue(marginModeparamsMarginModeVariable, 0)
-	var paramsMarginMode map[string]any = ccxt.MapTyped(ccxt.GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsMarketType)
 	orderRequestparamsValueVariable := this.CreateOrderRequest(market, marketType, typeVar, side, amount, price, marginMode, paramsMarginMode)
 	var orderRequest map[string]any = ccxt.MapTyped(ccxt.GetValue(orderRequestparamsValueVariable, 0))
 	var paramsValue map[string]any = ccxt.MapTyped(ccxt.GetValue(orderRequestparamsValueVariable, 1))
@@ -1404,9 +1402,7 @@ func (this *Hitbtc) cancelOrderWsBody(ch chan any, id string, optionalArgs ...an
 		market = this.Market(symbol)
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrderWs", market, params)
-	var marginModequeryVariable []any = this.HandleMarginModeAndParams("cancelOrderWs", paramsMarketType)
-	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(marginModequeryVariable, 0))
-	var query map[string]any = ccxt.MapTyped(ccxt.GetValue(marginModequeryVariable, 1))
+	marginMode, query := this.HandleMarginModeAndParams("cancelOrderWs", paramsMarketType)
 	request = this.Extend(request, query)
 	if marketType != nil && *marketType == "swap" {
 
@@ -1456,9 +1452,7 @@ func (this *Hitbtc) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrdersWs", market, params)
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("cancelAllOrdersWs", paramsMarketType)
-	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = ccxt.MapTyped(ccxt.GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("cancelAllOrdersWs", paramsMarketType)
 	if marketType != nil && *marketType == "swap" {
 
 		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("futures_cancel_orders", paramsMarginMode)))
@@ -1514,7 +1508,7 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any 
 		request["symbol"] = ccxt.GetValue(market, "id")
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrdersWs", market, params)
-	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(this.HandleMarginModeAndParams("fetchOpenOrdersWs", paramsMarketType), 0))
+	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleMarginModeAndParams("fetchOpenOrdersWs", paramsMarketType)), 0))
 	if marketType != nil && *marketType == "swap" {
 
 		ch <- ccxt.PanicOnError((<-this.TradeRequestAsync("futures_get_orders", request)))
