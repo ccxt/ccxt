@@ -753,7 +753,7 @@ public class Digifinex extends DigifinexApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "network", networkCode,
     "active", null,
@@ -1123,7 +1123,7 @@ public class Digifinex extends DigifinexApi
             account.put("total", total);
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1409,7 +1409,7 @@ public class Digifinex extends DigifinexApi
                 String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, ticker);
+                    result.put(symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
@@ -2282,7 +2282,7 @@ public class Digifinex extends DigifinexApi
         {
             marketIdRequest = "instrument_id";
         }
-        request.put((String)marketIdRequest, market.get("id"));
+        request.put(marketIdRequest, market.get("id"));
         Boolean postOnly = this.isPostOnly(isMarketOrder, false, Helpers.toMapArg(paramsMarginMode));
         Object postOnlyParsed = null;
         Object paramsRequest = null;
@@ -2824,7 +2824,7 @@ public class Digifinex extends DigifinexApi
                 {
                     marketIdRequest = "instrument_id";
                 }
-                request.put((String)marketIdRequest, market.get("id"));
+                request.put(marketIdRequest, market.get("id"));
             }
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
@@ -2954,7 +2954,7 @@ public class Digifinex extends DigifinexApi
                 {
                     marketIdRequest = "instrument_id";
                 }
-                request.put((String)marketIdRequest, market.get("id"));
+                request.put(marketIdRequest, market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3208,7 +3208,7 @@ public class Digifinex extends DigifinexApi
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                request.put((String)marketIdRequest, this.safeString(market, "id"));
+                request.put(marketIdRequest, this.safeString(market, "id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3396,7 +3396,7 @@ public class Digifinex extends DigifinexApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                request.put((String)currencyIdRequest, currency.get("id"));
+                request.put(currencyIdRequest, currency.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -4115,7 +4115,7 @@ public class Digifinex extends DigifinexApi
             Map<String, Object> borrowRate = (Map<String, Object>) this.parseBorrowRate(item, (Map<String, Object>) null);
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, borrowRate);
+                result.put(code, borrowRate);
             }
         }
         return result;
@@ -4437,7 +4437,7 @@ public class Digifinex extends DigifinexApi
                 {
                     marketIdRequest = "instrument_id";
                 }
-                request.put((String)marketIdRequest, market.get("id"));
+                request.put(marketIdRequest, market.get("id"));
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot") || java.util.Objects.equals(marketType, "margin"))
@@ -4557,7 +4557,7 @@ public class Digifinex extends DigifinexApi
             {
                 marketIdRequest = "instrument_id";
             }
-            request.put((String)marketIdRequest, market.get("id"));
+            request.put(marketIdRequest, market.get("id"));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot") || java.util.Objects.equals(marketType, "margin"))
             {
@@ -5146,7 +5146,7 @@ public class Digifinex extends DigifinexApi
                 Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code, (Object) null);
                 if (java.util.Objects.equals(depositWithdrawFee, null))
                 {
-                    depositWithdrawFees.put((String)code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
+                    depositWithdrawFees.put(code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
                     Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "info", new ArrayList<Object>(Arrays.asList()));
                 }
                 Object depositWithdrawInfo = Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "info");
@@ -5183,7 +5183,7 @@ public class Digifinex extends DigifinexApi
         {
             String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = this.currency(code);
-            depositWithdrawFees.put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
+            depositWithdrawFees.put(code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
         }
         return depositWithdrawFees;
     }
@@ -5332,7 +5332,7 @@ public class Digifinex extends DigifinexApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(requestUntil, "instrument_id", market.get("id"));
+                requestUntil.put("instrument_id", market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {

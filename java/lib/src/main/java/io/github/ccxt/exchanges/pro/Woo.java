@@ -775,7 +775,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                result.put((String)symbol, parsedTicker);
+                result.put(symbol, parsedTicker);
             }
         }
         client.resolve(result, topic);

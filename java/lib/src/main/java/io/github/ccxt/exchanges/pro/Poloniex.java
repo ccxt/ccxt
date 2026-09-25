@@ -1253,7 +1253,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 }
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    newTickers.put((String)symbol, ticker);
+                    newTickers.put(symbol, ticker);
                 }
             }
         }
@@ -1443,7 +1443,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             newAccount.put("used", this.safeString(balance, "hold"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, newAccount);
+                result.put(code, newAccount);
             }
         }
         return this.safeBalance(result);

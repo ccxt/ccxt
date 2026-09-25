@@ -551,7 +551,7 @@ public class Extended extends ExtendedApi
             {
                 continue;
             }
-            result.put((String)numericIdString, item);
+            result.put(numericIdString, item);
         }
         return result;
     }
@@ -1040,7 +1040,7 @@ public class Extended extends ExtendedApi
                 String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    tickers.put((String)symbol, ticker);
+                    tickers.put(symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized, true);
@@ -1826,7 +1826,7 @@ public class Extended extends ExtendedApi
             account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -2601,7 +2601,7 @@ public class Extended extends ExtendedApi
                 String symbol = this.safeString(parsed, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, parsed);
+                    result.put(symbol, parsed);
                 }
             }
             return result;

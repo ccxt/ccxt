@@ -616,7 +616,7 @@ public class Hollaex extends HollaexApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "network", networkCode,
     "active", this.safeBool(networkEntry, "active", (Object) null),
@@ -688,7 +688,7 @@ public class Hollaex extends HollaexApi
                 Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
                 Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
-                result.put((String)symbol, this.parseOrderBook(orderbook, symbol, timestamp, "bids", "asks", 0, 1, 2));
+                result.put(symbol, this.parseOrderBook(orderbook, symbol, timestamp, "bids", "asks", 0, 1, 2));
             }
             return result;
         }).thenApply(OrderBooks::new);
@@ -835,7 +835,7 @@ public class Hollaex extends HollaexApi
             String marketId = this.safeString(ticker, "symbol", key);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
             String symbol = (String) market.get("symbol");
-            result.put((String)symbol, this.extend(this.parseTicker(ticker, market), parameters));
+            result.put(symbol, this.extend(this.parseTicker(ticker, market), parameters));
         }
         return this.filterByArrayTickers(result, "symbol", symbols, true);
     }
@@ -1181,7 +1181,7 @@ public class Hollaex extends HollaexApi
             account.put("total", this.safeString(response, (currencyId + "_balance")));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

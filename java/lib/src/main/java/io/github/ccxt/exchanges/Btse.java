@@ -1287,7 +1287,7 @@ public class Btse extends BtseApi
                     {
                         continue;
                     }
-                    useds.put((String)usedCode, Precise.stringAdd(this.safeString(useds, usedCode, "0"), this.safeString(usedRow, "balance")));
+                    useds.put(usedCode, Precise.stringAdd(this.safeString(useds, usedCode, "0"), this.safeString(usedRow, "balance")));
                 }
                 for (var j = 0; j < ((List<?>)assets).size(); j++)
                 {
@@ -1297,8 +1297,8 @@ public class Btse extends BtseApi
                     {
                         continue;
                     }
-                    totals.put((String)code, Precise.stringAdd(this.safeString(totals, code, "0"), this.safeString(assetRow, "balance")));
-                    useds.put((String)code, this.safeString(useds, code, "0"));
+                    totals.put(code, Precise.stringAdd(this.safeString(totals, code, "0"), this.safeString(assetRow, "balance")));
+                    useds.put(code, this.safeString(useds, code, "0"));
                 }
             } else
             {
@@ -1309,8 +1309,8 @@ public class Btse extends BtseApi
                 {
                     continue;
                 }
-                totals.put((String)code, Precise.stringAdd(this.safeString(totals, code, "0"), this.safeString2(row, "totalAmount", "total")));
-                frees.put((String)code, Precise.stringAdd(this.safeString(frees, code, "0"), this.safeString2(row, "availableAmount", "available")));
+                totals.put(code, Precise.stringAdd(this.safeString(totals, code, "0"), this.safeString2(row, "totalAmount", "total")));
+                frees.put(code, Precise.stringAdd(this.safeString(frees, code, "0"), this.safeString2(row, "availableAmount", "available")));
             }
         }
         List<String> codes = new ArrayList<String>(totals.keySet());
@@ -1321,7 +1321,7 @@ public class Btse extends BtseApi
             account.put("total", this.safeString(totals, code));
             account.put("free", this.safeString(frees, code));
             account.put("used", this.safeString(useds, code));
-            result.put((String)code, account);
+            result.put(code, account);
         }
         return this.safeBalance(result);
     }
@@ -1406,7 +1406,7 @@ public class Btse extends BtseApi
                             put( "info", level );
                         }});
                     }
-                    result.put((String)symbol, tiers); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
+                    result.put(symbol, tiers); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
                 }
             }
             // the exchange only provides the cap of each risk tier, so the floor
@@ -1428,7 +1428,7 @@ public class Btse extends BtseApi
                     }
                 }
                 // php copies arrays by value, so the mutated list must be written back explicitly
-                result.put((String)symbolKey, tiersList);
+                result.put(symbolKey, tiersList);
             }
             return result;
         }).thenApply(LeverageTiers::new);
@@ -3299,7 +3299,7 @@ public class Btse extends BtseApi
                 String symbol = (String) market.get("symbol");
                 Double makerFee = this.safeNumber(feeInfo, "makerFee", (Object) null);
                 Double takerFee = this.safeNumber(feeInfo, "takerFee", (Object) null);
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", feeInfo );
         put( "symbol", symbol );
         put( "maker", makerFee );

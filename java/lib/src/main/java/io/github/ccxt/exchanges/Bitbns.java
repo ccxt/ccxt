@@ -674,7 +674,7 @@ public class Bitbns extends BitbnsApi
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
         }

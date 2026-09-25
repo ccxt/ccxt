@@ -697,7 +697,11 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    result.put(tickerSymbol, ticker);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
@@ -872,7 +876,11 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
+                String newTickersSymbol = this.safeString(newTickers, "symbol");
+                if (!java.util.Objects.equals(newTickersSymbol, null))
+                {
+                    tickers.put(newTickersSymbol, newTickers);
+                }
                 return tickers;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);

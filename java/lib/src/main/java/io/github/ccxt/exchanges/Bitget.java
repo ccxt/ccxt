@@ -6465,7 +6465,7 @@ public class Bitget extends BitgetApi
                     {
                         continue;
                     }
-                    utaResult.put((String)entrySymbol, this.parseTradingFee((Map<String, Object>) (entry), entryMarket));
+                    utaResult.put(entrySymbol, this.parseTradingFee((Map<String, Object>) (entry), entryMarket));
                 }
                 return utaResult;
             }
@@ -6572,7 +6572,7 @@ public class Bitget extends BitgetApi
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, marketType);
                 Map<String, Object> market = this.market(symbol);
                 Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) (entry), market);
-                result.put((String)symbol, fee);
+                result.put(symbol, fee);
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -7068,7 +7068,7 @@ public class Bitget extends BitgetApi
             account.put("total", this.safeString2(entry, "equity", "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -7158,7 +7158,7 @@ public class Bitget extends BitgetApi
             }
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -12277,15 +12277,15 @@ public class Bitget extends BitgetApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(uta, true))
             {
-                Helpers.addElementToObject(requestUntil, "coin", market.get("settleId"));
-                Helpers.addElementToObject(requestUntil, "category", productType);
+                requestUntil.put("coin", market.get("settleId"));
+                requestUntil.put("category", productType);
                 response = (this.privateUtaGetV3AccountFinancialRecords(this.extend(requestUntil, paramsUntil))).join();
             } else
             {
-                Helpers.addElementToObject(requestUntil, "symbol", market.get("id"));
-                Helpers.addElementToObject(requestUntil, "marginCoin", market.get("settleId"));
+                requestUntil.put("symbol", market.get("id"));
+                requestUntil.put("marginCoin", market.get("settleId"));
                 ((Map<String, Object>)requestUntil).put("businessType", "contract_settle_fee");
-                Helpers.addElementToObject(requestUntil, "productType", productType);
+                requestUntil.put("productType", productType);
                 response = (this.privateMixGetV2MixAccountBill(this.extend(requestUntil, paramsUntil))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -13478,7 +13478,7 @@ public class Bitget extends BitgetApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchMyLiquidations() requires a symbol argument")) ;
                 }
-                Helpers.addElementToObject(requestUntil, "symbol", this.safeString(market, "id"));
+                requestUntil.put("symbol", this.safeString(market, "id"));
                 response = (this.privateMarginGetV2MarginIsolatedLiquidationHistory(this.extend(requestUntil, paramsMarginMode))).join();
             } else if (java.util.Objects.equals(marginMode, "cross"))
             {
@@ -14256,7 +14256,7 @@ public class Bitget extends BitgetApi
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                Helpers.addElementToObject(requestUntil, "category", productType);
+                requestUntil.put("category", productType);
                 response = (this.privateUtaGetV3PositionHistoryPosition(this.extend(requestUntil, paramsUTA))).join();
             } else
             {
@@ -14557,7 +14557,7 @@ public class Bitget extends BitgetApi
                 String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, Helpers.newMap(
+                    result.put(code, Helpers.newMap(
         "info", entry,
         "id", id,
         "code", code,

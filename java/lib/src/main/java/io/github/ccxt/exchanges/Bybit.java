@@ -2803,7 +2803,7 @@ public class Bybit extends BybitApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "info", chain,
     "id", networkId,
     "network", networkCode,
@@ -4784,7 +4784,7 @@ public class Bybit extends BybitApi
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(responseResult, "availableBalance"));
             account.put("total", this.safeString(responseResult, "walletBalance"));
-            result.put((String)code, account);
+            result.put(code, account);
         } else
         {
             for (var i = 0; i < ((List<?>)currencyList).size(); i++)
@@ -4823,7 +4823,7 @@ public class Bybit extends BybitApi
                         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                         if (!java.util.Objects.equals(code, null))
                         {
-                            result.put((String)code, account);
+                            result.put(code, account);
                         }
                     }
                 } else
@@ -4842,7 +4842,7 @@ public class Bybit extends BybitApi
                     String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     if (!java.util.Objects.equals(code, null))
                     {
-                        result.put((String)code, account);
+                        result.put(code, account);
                     }
                 }
             }
@@ -6484,7 +6484,7 @@ public class Bybit extends BybitApi
                 Map<String, Object> orderItem = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );
                 }};
-                orderItem.put((String)idKey, (((java.util.Objects.equals(idKey, "orderId")))) ? id : clientOrderId);
+                orderItem.put(idKey, (((java.util.Objects.equals(idKey, "orderId")))) ? id : clientOrderId);
                 ((List<Object>)ordersRequests).add(orderItem);
             }
             Map<String, Object> request = Helpers.newMap(
@@ -7944,7 +7944,7 @@ public class Bybit extends BybitApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                request.put((String)currencyKey, currency.get("id"));
+                request.put(currencyKey, currency.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -9225,7 +9225,7 @@ public class Bybit extends BybitApi
             if (java.util.Objects.equals(paginate, true))
             {
                 Map<String, Object> paramsPaginate = this.omit(parameters, "paginate");
-                Helpers.addElementToObject(paramsPaginate, "timeframe", java.util.Objects.requireNonNullElse(timeframe, "1h"));
+                paramsPaginate.put("timeframe", java.util.Objects.requireNonNullElse(timeframe, "1h"));
                 return (this.fetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 200L)).join();
             }
             Map<String, Object> market = this.market(symbol);
@@ -10029,7 +10029,7 @@ public class Bybit extends BybitApi
                 String symbol = (String) fee.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, fee);
+                    result.put(symbol, fee);
                 }
             }
             return result;
@@ -10928,7 +10928,7 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
             String symbol = (String) market.get("symbol");
-            tiers.put((String)symbol, this.parseMarketLeverageTiers(this.sortBy(entry, "id"), market));
+            tiers.put(symbol, this.parseMarketLeverageTiers(this.sortBy(entry, "id"), market));
         }
         return tiers;
     }
@@ -11475,7 +11475,7 @@ public class Bybit extends BybitApi
                 String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, Helpers.newMap(
+                    result.put(code, Helpers.newMap(
         "info", entry,
         "id", id,
         "code", code,

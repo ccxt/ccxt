@@ -605,7 +605,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             account.put("total", this.safeString(balance, "amount"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         this.balance = this.safeBalance(result);

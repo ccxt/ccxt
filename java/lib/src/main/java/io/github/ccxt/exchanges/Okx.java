@@ -3140,7 +3140,7 @@ public class Okx extends OkxApi
             String networkCode = this.networkIdToCode(chainPart, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "network", networkCode,
     "active", null,
@@ -4046,7 +4046,7 @@ public class Okx extends OkxApi
             }
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         result.put("timestamp", timestamp);
@@ -4072,7 +4072,7 @@ public class Okx extends OkxApi
             account.put("used", this.safeString(balance, "frozenBal"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -5348,7 +5348,7 @@ public class Okx extends OkxApi
                 Map<String, Object> requestItem = new HashMap<String, Object>() {{
                     put( "instId", market.get("id") );
                 }};
-                requestItem.put((String)idKey, (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : id);
+                requestItem.put(idKey, (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : id);
                 ((List<Object>)request).add(requestItem);
             }
             Map<String, Object> response = null;
@@ -9001,7 +9001,7 @@ public class Okx extends OkxApi
                 String code = this.safeString(rate, "currency");
                 if (!java.util.Objects.equals(code, null))
                 {
-                    rates.put((String)code, rate);
+                    rates.put(code, rate);
                 }
             }
             return rates;
@@ -9096,7 +9096,7 @@ public class Okx extends OkxApi
             {
                 if (!(borrowRateHistories.containsKey(code)))
                 {
-                    borrowRateHistories.put((String)code, new ArrayList<Object>(Arrays.asList()));
+                    borrowRateHistories.put(code, new ArrayList<Object>(Arrays.asList()));
                 }
                 Map<String, Object> borrowRateStructure = (Map<String, Object>) this.parseBorrowRate(item, (Map<String, Object>) null);
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
@@ -9109,7 +9109,7 @@ public class Okx extends OkxApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            borrowRateHistories.put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit, false));
+            borrowRateHistories.put(code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit, false));
         }
         return borrowRateHistories;
     }
@@ -10119,7 +10119,7 @@ public class Okx extends OkxApi
                 Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code, (Object) null);
                 if (java.util.Objects.equals(depositWithdrawFee, null))
                 {
-                    depositWithdrawFees.put((String)code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
+                    depositWithdrawFees.put(code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
                 }
                 if (!java.util.Objects.equals(currencyId, null))
                 {
@@ -10156,7 +10156,7 @@ public class Okx extends OkxApi
         {
             String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = this.currency(code);
-            depositWithdrawFees.put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
+            depositWithdrawFees.put(code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
         }
         return depositWithdrawFees;
     }
@@ -11156,7 +11156,7 @@ public class Okx extends OkxApi
                 String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, Helpers.newMap(
+                    result.put(code, Helpers.newMap(
         "info", entry,
         "id", id,
         "code", code,

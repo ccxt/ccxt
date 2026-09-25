@@ -470,7 +470,7 @@ public class Cex extends CexApi
             Boolean withdraw = java.util.Objects.equals(this.safeString(rawNetwork, "withdrawal"), "enabled");
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "network", networkCode,
     "margin", null,
@@ -1044,9 +1044,10 @@ public class Cex extends CexApi
                 market = this.safeMarket(key, (Map<String, Object>) null, (String) null, (String) null);
             }
             Map<String, Object> parsed = this.parseTradingFee((Map<String, Object>) ((response == null || key == null ? null : response.get(key))), Helpers.toMapArg(market));
-            if (!java.util.Objects.equals(parsed.get("symbol"), null))
+            String parsedSymbol = this.safeString(parsed, "symbol");
+            if (!java.util.Objects.equals(parsedSymbol, null))
             {
-                result.put((String)parsed.get("symbol"), parsed);
+                result.put(parsedSymbol, parsed);
             }
         }
         List<String> symbols = this.symbols;
@@ -1056,7 +1057,7 @@ public class Cex extends CexApi
             if (!(result.containsKey(symbol)))
             {
                 Map<String, Object> market = this.market(symbol);
-                result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (response), market));
+                result.put(symbol, this.parseTradingFee((Map<String, Object>) (response), market));
             }
         }
         return result;
@@ -1202,7 +1203,7 @@ public class Cex extends CexApi
             }};
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

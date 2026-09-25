@@ -1464,12 +1464,12 @@ public class Bitstamp extends BitstampApi
             if ((!java.util.Objects.equals(base, null)) && !(result.containsKey(base)))
             {
                 Long baseDecimals = this.safeInteger(market, "base_decimals");
-                result.put((String)base, this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, null, market));
+                result.put(base, this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, null, market));
             }
             if ((!java.util.Objects.equals(quote, null)) && !(result.containsKey(quote)))
             {
                 Long counterDecimals = this.safeInteger(market, "counter_decimals");
-                result.put((String)quote, this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market));
+                result.put(quote, this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market));
             }
         }
         return result;
@@ -2080,7 +2080,7 @@ public class Bitstamp extends BitstampApi
             account.put("total", this.safeString(currencyBalance, "total"));
             if (!java.util.Objects.equals(currencyCode, null))
             {
-                result.put((String)currencyCode, account);
+                result.put(currencyCode, account);
             }
         }
         return this.safeBalance(result);
@@ -2193,7 +2193,7 @@ public class Bitstamp extends BitstampApi
             String symbol = (String) fee.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                result.put((String)symbol, fee);
+                result.put(symbol, fee);
             }
         }
         return result;
@@ -2288,7 +2288,7 @@ public class Bitstamp extends BitstampApi
             }
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, new HashMap<String, Object>() {{
+                result.put(code, new HashMap<String, Object>() {{
     put( "withdraw_fee", Bitstamp.this.safeNumber(fees, "fee", (Object) null) );
     put( "deposit", new HashMap<String, Object>() {{}} );
     put( "info", Bitstamp.this.safeDict(currencies, id, (Object) null) );

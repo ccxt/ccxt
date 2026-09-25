@@ -314,7 +314,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                     Helpers.addElementToObject(this.trades, symbol, stored);
                 }
                 stored.append(trade);
-                storesForSymbols.put((String)symbol, stored);
+                storesForSymbols.put(symbol, stored);
             }
             List<String> symbols = new ArrayList<String>(storesForSymbols.keySet());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -627,7 +627,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Helpers.addElementToObject(currentBidAsk, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(currentBidAsk, "info", rawBidAskChanges);
         Map<String, Object> bidsAsksDict = new HashMap<String, Object>() {{}};
-        bidsAsksDict.put((String)symbol, currentBidAsk);
+        bidsAsksDict.put(symbol, currentBidAsk);
         Helpers.addElementToObject(this.bidsasks, symbol, currentBidAsk);
         client.resolve(bidsAsksDict, messageHash);
     }

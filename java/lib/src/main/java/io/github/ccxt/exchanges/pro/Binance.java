@@ -1506,7 +1506,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     String underlying = Helpers.add((baseIdLower + ""), quoteIdLower);
                     if (!(seenUnderlyings.containsKey(underlying)))
                     {
-                        seenUnderlyings.put((String)underlying, true);
+                        seenUnderlyings.put(underlying, true);
                         ((List<Object>)subParams).add((underlying + "@optionTrade"));
                     }
                 }
@@ -1612,7 +1612,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     String underlying = Helpers.add((baseIdLower + ""), quoteIdLower);
                     if (!(seenUnderlyings.containsKey(underlying)))
                     {
-                        seenUnderlyings.put((String)underlying, true);
+                        seenUnderlyings.put(underlying, true);
                         ((List<Object>)subParams).add((underlying + "@optionTrade"));
                     }
                 }
@@ -2913,7 +2913,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         String subscriptionArg = ((underlying + "@optionTicker@") + expiryDate);
                         if (!(seenUnderlyings.containsKey(subscriptionArg)))
                         {
-                            seenUnderlyings.put((String)subscriptionArg, true);
+                            seenUnderlyings.put(subscriptionArg, true);
                             ((List<Object>)subscriptionArgs).add(subscriptionArg);
                         }
                     } else
@@ -3017,7 +3017,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             } else
             {
                 Map<String, Object> newDict = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(newDict, Helpers.GetValue(result, "symbol"), result);
+                String resultSymbol = this.safeString(result, "symbol");
+                if (!java.util.Objects.equals(resultSymbol, null))
+                {
+                    newDict.put(resultSymbol, result);
+                }
                 return newDict;
             }
         });
@@ -3316,7 +3320,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String symbol = (String) parsedTicker.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                newTickers.put((String)symbol, parsedTicker);
+                newTickers.put(symbol, parsedTicker);
             }
             if (Boolean.TRUE.equals(isBidAsk))
             {
@@ -6614,7 +6618,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         // hashmap rows are wired by reference, so this
                         // assignment reaches the cached row (and is a no-op
                         // in the reference-semantics runtimes)
-                        orders.put((String)orderId, order);
+                        orders.put(orderId, order);
                     }
                 }
             }

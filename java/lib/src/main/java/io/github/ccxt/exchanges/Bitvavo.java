@@ -755,7 +755,7 @@ public class Bitvavo extends BitvavoApi
             String networkCode = this.networkIdToCode(Helpers.toStringArg(networkId), code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "info", rawCurrency,
     "id", networkId,
     "network", networkCode,
@@ -1368,7 +1368,7 @@ public class Bitvavo extends BitvavoApi
             account.put("used", this.safeString(balance, "inOrder"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

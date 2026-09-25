@@ -1215,7 +1215,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 if (!java.util.Objects.equals(marketId, null))
                 {
-                    ((Map<String, Object>)subscription).put((String)marketId, new HashMap<String, Object>() {{}});
+                    ((Map<String, Object>)subscription).put(marketId, new HashMap<String, Object>() {{}});
                 }
             }
             if ((!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), null)))

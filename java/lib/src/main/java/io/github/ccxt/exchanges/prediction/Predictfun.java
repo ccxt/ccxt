@@ -779,7 +779,7 @@ public class Predictfun extends PredictfunApi
                         ((List<Object>)result).add(category);
                     } else if (!(seenSlugs.containsKey(categorySlug)))
                     {
-                        seenSlugs.put((String)categorySlug, true);
+                        seenSlugs.put(categorySlug, true);
                         ((List<Object>)result).add(category);
                     }
                 }
@@ -800,10 +800,10 @@ public class Predictfun extends PredictfunApi
                             // AppendToArray reassigns only a local copy of a map-stored array
                             Object bucket = (orphanMarkets == null || marketSlug == null ? null : orphanMarkets.get(marketSlug));
                             ((List<Object>)bucket).add(rawMarket);
-                            orphanMarkets.put((String)marketSlug, bucket);
+                            orphanMarkets.put(marketSlug, bucket);
                         } else
                         {
-                            orphanMarkets.put((String)marketSlug, new ArrayList<Object>(Arrays.asList(rawMarket)));
+                            orphanMarkets.put(marketSlug, new ArrayList<Object>(Arrays.asList(rawMarket)));
                             orphanSlugs.add(marketSlug);
                         }
                     }
@@ -817,7 +817,7 @@ public class Predictfun extends PredictfunApi
                 String orphanSlug = (orphanSlugs == null || i < 0 || i >= orphanSlugs.size() ? null : orphanSlugs.get(i));
                 if (!(seenSlugs.containsKey(orphanSlug)))
                 {
-                    seenSlugs.put((String)orphanSlug, true);
+                    seenSlugs.put(orphanSlug, true);
                     Object markets = (orphanMarkets == null || orphanSlug == null ? null : orphanMarkets.get(orphanSlug));
                     Map<String, Object> first = (Map<String, Object>) this.safeDict(markets, 0, new HashMap<String, Object>() {{}});
                     // the market row's 'status' is the registration enum ('REGISTERED' /
@@ -2410,7 +2410,7 @@ public class Predictfun extends PredictfunApi
             {
                 Map<String, Object> outcomeObj = this.outcome((String) ((wantedOutcomes == null || i < 0 || i >= wantedOutcomes.size() ? null : wantedOutcomes.get(i))));
                 String wantedId = this.safeString(outcomeObj, "outcomeId", "");
-                wanted.put((String)wantedId, true);
+                wanted.put(wantedId, true);
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer parsedLength = ((List<?>)parsed).size();
@@ -4437,7 +4437,7 @@ public class Predictfun extends PredictfunApi
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
             // since sign () has a parameter of that name - ending the literal right after it avoids that
             String apiKeyHeader = ("x-api" + "-key");
-            authHeaders.put((String)apiKeyHeader, apiKey);
+            authHeaders.put(apiKeyHeader, apiKey);
         }
         // the API key authorises the request, the JWT authorises acting for a wallet - authenticate ()
         // caches it, so it is attached to every call once an order action has asked for one

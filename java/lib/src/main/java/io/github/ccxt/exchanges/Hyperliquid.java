@@ -3150,8 +3150,8 @@ public class Hyperliquid extends HyperliquidApi
                 String idKey = ((Boolean.TRUE.equals(cancelByCloid))) ? "cloid" : "o";
                 Map<String, Object> market = this.market(symbol);
                 Map<String, Object> cancelObj = new HashMap<String, Object>() {{}};
-                cancelObj.put((String)assetKey, this.parseToNumeric(market.get("baseId")));
-                cancelObj.put((String)idKey, ((Boolean.TRUE.equals(cancelByCloid))) ? clientOrderId : this.parseToNumeric(id));
+                cancelObj.put(assetKey, this.parseToNumeric(market.get("baseId")));
+                cancelObj.put(idKey, ((Boolean.TRUE.equals(cancelByCloid))) ? clientOrderId : this.parseToNumeric(id));
                 ((List<Object>)cancelReq).add(cancelObj);
             }
             cancelAction.put("type", ((Boolean.TRUE.equals(cancelByCloid))) ? "cancelByCloid" : "cancel");
@@ -3877,14 +3877,14 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     if (!(deduplicatedByOid.containsKey(oid)))
                     {
-                        deduplicatedByOid.put((String)oid, rawOrder);
+                        deduplicatedByOid.put(oid, rawOrder);
                     } else
                     {
                         Long existingTimestamp = this.safeInteger((deduplicatedByOid == null || oid == null ? null : deduplicatedByOid.get(oid)), "statusTimestamp");
                         Long currentTimestamp = this.safeInteger(rawOrder, "statusTimestamp");
                         if (!java.util.Objects.equals(currentTimestamp, null) && (java.util.Objects.equals(existingTimestamp, null) || (currentTimestamp != null && (existingTimestamp == null || currentTimestamp > existingTimestamp))))
                         {
-                            deduplicatedByOid.put((String)oid, rawOrder);
+                            deduplicatedByOid.put(oid, rawOrder);
                         }
                     }
                 }

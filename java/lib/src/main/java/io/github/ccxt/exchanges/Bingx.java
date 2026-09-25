@@ -1385,7 +1385,7 @@ public class Bingx extends BingxApi
             Double precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "info", rawNetwork,
     "id", network,
     "network", networkCode,
@@ -3288,7 +3288,7 @@ public class Bingx extends BingxApi
                 account.put("total", this.safeString(balance, "maxWithdrawAmount"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
         } else
@@ -3303,7 +3303,7 @@ public class Bingx extends BingxApi
                 account.put("used", this.safeString(balance, "locked"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
         }
@@ -3734,7 +3734,7 @@ public class Bingx extends BingxApi
         String clientOrderId = this.safeString2(paramsMarketType, exchangeClientOrderId, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
-            request.put((String)exchangeClientOrderId, clientOrderId);
+            request.put(exchangeClientOrderId, clientOrderId);
         }
         String timeInForce = this.safeStringUpper(paramsMarketType, "timeInForce");
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "PostOnly"), paramsMarketType);
@@ -5018,7 +5018,7 @@ public class Bingx extends BingxApi
                 {
                     spotReqKey = "clientOrderIDs";
                 }
-                request.put((String)spotReqKey, String.join(",", (List<String>)parsedIds));
+                request.put(spotReqKey, String.join(",", (List<String>)parsedIds));
                 response = (this.spotV1PrivatePostTradeCancelOrders(this.extend(request, paramsOmitted))).join();
             } else
             {
@@ -6558,7 +6558,7 @@ public class Bingx extends BingxApi
                     {
                         startTimeReq = "startTime";
                     }
-                    request.put((String)startTimeReq, since);
+                    request.put(startTimeReq, since);
                 } else if (java.util.Objects.equals(market.get("swap"), true))
                 {
                     request.put("startTs", (now - ((((30L * 24L) * 60L) * 60L) * 1000L))); // 30 days for swap
@@ -6572,7 +6572,7 @@ public class Bingx extends BingxApi
                     {
                         endTimeReq = "endTime";
                     }
-                    request.put((String)endTimeReq, until);
+                    request.put(endTimeReq, until);
                 } else if (java.util.Objects.equals(market.get("swap"), true))
                 {
                     request.put("endTs", now);
@@ -6675,7 +6675,7 @@ public class Bingx extends BingxApi
                 if ((java.util.Objects.equals(codes, null)) || (this.inArray(code, codes)))
                 {
                     Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, code, (Object) null);
-                    depositWithdrawFees.put((String)code, this.parseDepositWithdrawFee(entry, (Map<String, Object>) null));
+                    depositWithdrawFees.put(code, this.parseDepositWithdrawFee(entry, (Map<String, Object>) null));
                 }
             }
             return depositWithdrawFees;
@@ -6813,7 +6813,7 @@ public class Bingx extends BingxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(requestUntil, "symbol", market.get("id"));
+                requestUntil.put("symbol", market.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {

@@ -1228,7 +1228,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 account.put("used", this.safeString(balance, "tfm"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
             Object parsedBalance = this.safeBalance(result);

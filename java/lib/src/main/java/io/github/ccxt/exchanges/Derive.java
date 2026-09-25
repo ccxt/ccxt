@@ -3131,7 +3131,7 @@ public class Derive extends DeriveApi
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
         }

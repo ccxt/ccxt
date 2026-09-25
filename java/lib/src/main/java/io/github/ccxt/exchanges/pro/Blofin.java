@@ -362,7 +362,11 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    tickers.put(tickerSymbol, ticker);
+                }
                 return tickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols, true);
@@ -449,7 +453,11 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    tickers.put(tickerSymbol, ticker);
+                }
                 return tickers;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);

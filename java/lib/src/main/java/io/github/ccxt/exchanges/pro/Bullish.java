@@ -568,7 +568,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 String symbol = this.safeString(parsedOrder, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    symbols.put((String)symbol, true);
+                    symbols.put(symbol, true);
                 }
             }
             String messageHash = "orders";
@@ -699,7 +699,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 String symbol = this.safeString(parsedTrade, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    symbols.put((String)symbol, true);
+                    symbols.put(symbol, true);
                 }
             }
             String messageHash = "myTrades";

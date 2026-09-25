@@ -667,7 +667,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    result.put(tickerSymbol, ticker);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
@@ -1102,7 +1106,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                marketIds.put((String)symbol, true);
+                marketIds.put(symbol, true);
             }
         }
         List<String> keys = new ArrayList<String>(marketIds.keySet());
@@ -1816,7 +1820,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 Map<String, Object> message = this.extend(request, parameters);
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                 {
-                    ((Map)client.subscriptions).put((String)subscriptionHash, "handleAuthenticate");
+                    ((Map)client.subscriptions).put(subscriptionHash, "handleAuthenticate");
                 }
                 future = (this.watch(url, messageHash, message, messageHash, null)).join();
                 Helpers.addElementToObject(client.subscriptions, messageHash, future);

@@ -913,7 +913,7 @@ public class Coincheck extends CoincheckApi
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, market.get("id"), new HashMap<String, Object>() {{}});
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
         put( "maker", Coincheck.this.safeNumber(fee, "maker_fee", (Object) null) );

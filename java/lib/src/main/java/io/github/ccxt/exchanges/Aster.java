@@ -1587,15 +1587,15 @@ public class Aster extends AsterApi
             List<Object> response = null;
             if (Boolean.TRUE.equals(isMark))
             {
-                Helpers.addElementToObject(requestUntil, "symbol", market.get("id"));
+                requestUntil.put("symbol", market.get("id"));
                 response = (this.fapiPublicGetV3MarkPriceKlines(this.extend(requestUntil, paramsOmitted))).join();
             } else if (Boolean.TRUE.equals(isIndex))
             {
-                Helpers.addElementToObject(requestUntil, "pair", market.get("id"));
+                requestUntil.put("pair", market.get("id"));
                 response = (this.fapiPublicGetV3IndexPriceKlines(this.extend(requestUntil, paramsOmitted))).join();
             } else
             {
-                Helpers.addElementToObject(requestUntil, "symbol", market.get("id"));
+                requestUntil.put("symbol", market.get("id"));
                 if (java.util.Objects.equals(market.get("linear"), true))
                 {
                     response = (this.fapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted))).join();
@@ -2580,7 +2580,7 @@ public class Aster extends AsterApi
             account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -4577,7 +4577,7 @@ public class Aster extends AsterApi
             String crossUnPnl = this.safeString(entry, "crossUnPnl");
             if (!java.util.Objects.equals(code, null))
             {
-                balances.put((String)code, new HashMap<String, Object>() {{
+                balances.put(code, new HashMap<String, Object>() {{
     put( "crossMargin", Precise.stringAdd(crossWalletBalance, crossUnPnl) );
     put( "crossWalletBalance", crossWalletBalance );
 }});
@@ -5279,7 +5279,7 @@ public class Aster extends AsterApi
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = (dict == null || key == null ? null : dict.get(key));
             String capitalizedKey = this.capitalize(key);
-            capitalized.put((String)capitalizedKey, value);
+            capitalized.put(capitalizedKey, value);
         }
         return capitalized;
     }

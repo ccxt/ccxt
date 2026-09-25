@@ -5289,7 +5289,7 @@ public Object describe()
                 continue;
             }
             String code = (String) ((Map<String, Object>)parsed).get("code");
-            result.put((String)code, parsed);
+            result.put(code, parsed);
         }
         return result;
     }
@@ -7299,7 +7299,7 @@ public Object describe()
                 }
                 if (!(reduced.containsKey(feeCurrencyCode)))
                 {
-                    reduced.put((String)feeCurrencyCode, new HashMap<String, Object>() {{}});
+                    reduced.put(feeCurrencyCode, new HashMap<String, Object>() {{}});
                 }
                 String rateKey = (((java.util.Objects.equals(rate, null)))) ? "" : rate;
                 if (Helpers.inOp((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey))
@@ -8205,7 +8205,7 @@ public Object describe()
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((java.util.Objects.equals(contract, true)) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized))))
                 {
-                    tiers.put((String)symbol, this.parseMarketLeverageTiers(item, market));
+                    tiers.put(symbol, this.parseMarketLeverageTiers(item, market));
                 }
             }
         } else
@@ -8220,7 +8220,7 @@ public Object describe()
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((java.util.Objects.equals(contract, true)) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized))))
                 {
-                    tiers.put((String)symbol, this.parseMarketLeverageTiers(item, market));
+                    tiers.put(symbol, this.parseMarketLeverageTiers(item, market));
                 }
             }
         }
@@ -11693,7 +11693,7 @@ public Object describe()
             String uniqValue = ((java.util.Objects.requireNonNullElse(fallbackToTimestamp, true))) ? this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("id", "timestamp", 0))) : this.safeString(entry, "id");
             if (!java.util.Objects.equals(uniqValue, null) && !(uniqueDic.containsKey(uniqValue)))
             {
-                uniqueDic.put((String)uniqValue, 1);
+                uniqueDic.put(uniqValue, 1);
                 ((List<Object>)uniqueResult).add(entry);
             }
         }
@@ -11742,7 +11742,7 @@ public Object describe()
             }
             if (!java.util.Objects.equals(id, null) && !(uniqueResult.containsKey(id)))
             {
-                uniqueResult.put((String)id, entry);
+                uniqueResult.put(id, entry);
             }
         }
         Object values = Helpers.objectValues(uniqueResult);
@@ -11758,7 +11758,7 @@ public Object describe()
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!this.inArray(key, removeKeys))
             {
-                newDict.put((String)key, (dict == null || key == null ? null : dict.get(key)));
+                newDict.put(key, (dict == null || key == null ? null : dict.get(key)));
             }
         }
         return newDict;

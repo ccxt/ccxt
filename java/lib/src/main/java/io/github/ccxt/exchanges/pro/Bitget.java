@@ -189,8 +189,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 symbolOrInstId = "symbol";
             }
-            args.put((String)topicOrChannel, "ticker");
-            args.put((String)symbolOrInstId, market.get("id"));
+            args.put(topicOrChannel, "ticker");
+            args.put(symbolOrInstId, market.get("id"));
             return (this.watchPublic(uta, messageHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsValue))).join();
         }).thenApply(Ticker::new);
 
@@ -269,8 +269,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 {
                     symbolOrInstId = "symbol";
                 }
-                args.put((String)topicOrChannel, "ticker");
-                args.put((String)symbolOrInstId, marketInner.get("id"));
+                args.put(topicOrChannel, "ticker");
+                args.put(symbolOrInstId, marketInner.get("id"));
                 ((List<Object>)topics).add(args);
                 messageHashes.add(("ticker:" + symbol));
             }
@@ -278,7 +278,11 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(tickers, "symbol"), tickers);
+                String tickersSymbol = this.safeString(tickers, "symbol");
+                if (!java.util.Objects.equals(tickersSymbol, null))
+                {
+                    result.put(tickersSymbol, tickers);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsList, true);
@@ -539,8 +543,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 {
                     symbolOrInstId = "symbol";
                 }
-                args.put((String)topicOrChannel, "ticker");
-                args.put((String)symbolOrInstId, marketInner.get("id"));
+                args.put(topicOrChannel, "ticker");
+                args.put(symbolOrInstId, marketInner.get("id"));
                 ((List<Object>)topics).add(args);
                 messageHashes.add(("bidask:" + symbol));
             }
@@ -548,7 +552,11 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(tickers, "symbol"), tickers);
+                String tickersSymbol = this.safeString(tickers, "symbol");
+                if (!java.util.Objects.equals(tickersSymbol, null))
+                {
+                    result.put(tickersSymbol, tickers);
+                }
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsList, true);
@@ -1032,8 +1040,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 {
                     symbolOrInstId = "symbol";
                 }
-                args.put((String)topicOrChannel, channel);
-                args.put((String)symbolOrInstId, market.get("id"));
+                args.put(topicOrChannel, channel);
+                args.put(symbolOrInstId, market.get("id"));
                 ((List<Object>)topics).add(args);
                 messageHashes.add(("orderbook:" + symbol));
             }
@@ -1304,8 +1312,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 {
                     symbolOrInstId = "symbol";
                 }
-                args.put((String)topicOrChannel, ((Boolean.TRUE.equals(uta))) ? "publicTrade" : "trade");
-                args.put((String)symbolOrInstId, market.get("id"));
+                args.put(topicOrChannel, ((Boolean.TRUE.equals(uta))) ? "publicTrade" : "trade");
+                args.put(symbolOrInstId, market.get("id"));
                 ((List<Object>)topics).add(args);
                 messageHashes.add(("trade:" + symbol));
             }
@@ -1631,7 +1639,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 channel = "position";
             }
-            args.put((String)topicOrChannel, channel);
+            args.put(topicOrChannel, channel);
             Object paramsRequest = paramsInstType;
             if (Boolean.TRUE.equals(uta))
             {
@@ -2007,7 +2015,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 topicOrChannel = "topic";
             }
-            args.put((String)topicOrChannel, channel);
+            args.put(topicOrChannel, channel);
             Map<String, Object> paramsRequest = paramsMarginMode;
             if (Boolean.TRUE.equals(uta))
             {
@@ -2172,7 +2180,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             String symbol = (String) parsed.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                marketSymbols.put((String)symbol, true);
+                marketSymbols.put(symbol, true);
             }
         }
         List<String> keys = new ArrayList<String>(marketSymbols.keySet());
@@ -2549,7 +2557,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 topicOrChannel = "topic";
             }
-            args.put((String)topicOrChannel, "fill");
+            args.put(topicOrChannel, "fill");
             Object paramsRequest = paramsInstType;
             if (Boolean.TRUE.equals(uta))
             {
@@ -2789,7 +2797,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 topicOrChannel = "topic";
             }
-            args.put((String)topicOrChannel, channel);
+            args.put(topicOrChannel, channel);
             Map<String, Object> paramsRequest = paramsInstType;
             if (Boolean.TRUE.equals(uta))
             {

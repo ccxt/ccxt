@@ -549,7 +549,7 @@ public class Bitflyer extends BitflyerApi
             account.put("free", this.safeString(balance, "available"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

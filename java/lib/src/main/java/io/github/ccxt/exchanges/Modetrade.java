@@ -1055,7 +1055,7 @@ public class Modetrade extends ModetradeApi
             {
                 minPrecision = (((java.util.Objects.equals(minPrecision, null)))) ? precision : Precise.stringMin(precision, minPrecision);
             }
-            resultingNetworks.put((String)networkId, Helpers.newMap(
+            resultingNetworks.put(networkId, Helpers.newMap(
     "id", networkId,
     "network", networkId,
     "limits", new HashMap<String, Object>() {{
@@ -1654,7 +1654,7 @@ public class Modetrade extends ModetradeApi
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                    result.put((String)symbol, new HashMap<String, Object>() {{
+                    result.put(symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Modetrade.this.parseNumber(Precise.stringDiv(maker, "10000")) );
@@ -2016,7 +2016,7 @@ public class Modetrade extends ModetradeApi
         {
             typeKey = "type";
         }
-        request.put((String)typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        request.put(typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!Boolean.TRUE.equals(isConditional))
         {
             if (Boolean.TRUE.equals(postOnly))
@@ -2036,14 +2036,14 @@ public class Modetrade extends ModetradeApi
         }
         if (!java.util.Objects.equals(price, null))
         {
-            request.put((String)priceKey, this.priceToPrecision(symbol, price));
+            request.put(priceKey, this.priceToPrecision(symbol, price));
         }
         if (Boolean.TRUE.equals(isMarket) && !Boolean.TRUE.equals(isConditional))
         {
-            request.put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
+            request.put(orderQtyKey, this.amountToPrecision(symbol, amount));
         } else if (!java.util.Objects.equals(algoType, "POSITIONAL_TP_SL"))
         {
-            request.put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
+            request.put(orderQtyKey, this.amountToPrecision(symbol, amount));
         }
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
         if (!java.util.Objects.equals(clientOrderId, null))
@@ -2276,11 +2276,11 @@ public class Modetrade extends ModetradeApi
             }
             if (!java.util.Objects.equals(price, null))
             {
-                request.put((String)priceKey, this.priceToPrecision(symbol, price));
+                request.put(priceKey, this.priceToPrecision(symbol, price));
             }
             if (!java.util.Objects.equals(amount, null))
             {
-                request.put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
+                request.put(orderQtyKey, this.amountToPrecision(symbol, amount));
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
             Map<String, Object> response = null;
@@ -2971,7 +2971,7 @@ public class Modetrade extends ModetradeApi
             account.put("used", this.safeString(balance, "frozen"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

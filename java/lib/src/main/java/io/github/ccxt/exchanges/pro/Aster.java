@@ -233,7 +233,11 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
+                String newTickerSymbol = this.safeString(newTicker, "symbol");
+                if (!java.util.Objects.equals(newTickerSymbol, null))
+                {
+                    result.put(newTickerSymbol, newTicker);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsList, true);
@@ -409,7 +413,11 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
+                String newTickerSymbol = this.safeString(newTicker, "symbol");
+                if (!java.util.Objects.equals(newTickerSymbol, null))
+                {
+                    result.put(newTickerSymbol, newTicker);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsList, true);
@@ -619,7 +627,11 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
+                String newTickerSymbol = this.safeString(newTicker, "symbol");
+                if (!java.util.Objects.equals(newTickerSymbol, null))
+                {
+                    result.put(newTickerSymbol, newTicker);
+                }
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsList, true);

@@ -331,7 +331,7 @@ public class Myriad extends MyriadApi
                 String evKey = this.safeString(ev, "event");
                 if (!java.util.Objects.equals(evKey, null))
                 {
-                    eventsDict.put((String)evKey, ev);
+                    eventsDict.put(evKey, ev);
                 }
             }
             this.events = eventsDict;
@@ -381,7 +381,7 @@ public class Myriad extends MyriadApi
                     String key = Helpers.add((networkId + ":"), marketId);
                     if (!(seen.containsKey(key)))
                     {
-                        seen.put((String)key, true);
+                        seen.put(key, true);
                         ((List<Object>)rawMarkets).add(raw);
                     }
                 }
@@ -603,7 +603,7 @@ public class Myriad extends MyriadApi
                     String questionId = this.safeString(raw, "id");
                     if ((!java.util.Objects.equals(questionId, null)) && !(seen.containsKey(questionId)))
                     {
-                        seen.put((String)questionId, true);
+                        seen.put(questionId, true);
                         ((List<Object>)rawQuestions).add(raw);
                     }
                 }
@@ -664,7 +664,7 @@ public class Myriad extends MyriadApi
                     }
                     if (!java.util.Objects.equals(questionId, null))
                     {
-                        seen.put((String)questionId, true);
+                        seen.put(questionId, true);
                     }
                     if (Helpers.isLessThan(collected, maxQuestions))
                     {
@@ -2446,7 +2446,7 @@ public class Myriad extends MyriadApi
             Map<String, Object> account = this.account();
             account.put("free", balanceString);
             account.put("total", balanceString);
-            result.put((String)currency, account);
+            result.put(currency, account);
             return this.safeBalance(result);
         }).thenApply(Balances::new);
 
@@ -3440,7 +3440,7 @@ public class Myriad extends MyriadApi
                     String symbolKey = this.safeString(ticker, "outcome");
                     if (!java.util.Objects.equals(symbolKey, null))
                     {
-                        result.put((String)symbolKey, ticker);
+                        result.put(symbolKey, ticker);
                     }
                 }
             }
@@ -3668,7 +3668,7 @@ public class Myriad extends MyriadApi
                         {
                             continue;
                         }
-                        seenMarketHandles.put((String)marketHandle, true);
+                        seenMarketHandles.put(marketHandle, true);
                         Helpers.addElementToObject(this.markets, marketHandle, m);
                     }
                     ((List<Object>)filteredMarkets).add(m);
@@ -3695,7 +3695,7 @@ public class Myriad extends MyriadApi
                 }
                 if (!java.util.Objects.equals(marketHandle, null))
                 {
-                    seenMarketHandles.put((String)marketHandle, true);
+                    seenMarketHandles.put(marketHandle, true);
                     Helpers.addElementToObject(this.markets, marketHandle, m);
                 }
                 Object ev = this.parseMarketToEvent((Map<String, Object>) (raw), m);
@@ -4028,7 +4028,7 @@ public class Myriad extends MyriadApi
             bookSide.storeArray(new ArrayList<Object>(Arrays.asList(price, amount)));
             orderbook.put("timestamp", ts);
             orderbook.put("datetime", this.iso8601(ts));
-            updated.put((String)sym, true);
+            updated.put(sym, true);
         }
         List<String> updatedSymbols = new ArrayList<String>(updated.keySet());
         Integer updatedLength = ((List<?>)updatedSymbols).size();
@@ -4292,7 +4292,7 @@ public class Myriad extends MyriadApi
                 ((List<Object>)resolvedSymbols).add(this.safeOutcomeSymbol((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))), outcomeObj));
                 if (java.util.Objects.equals(this.safeValue(seenChannels, channel), null))
                 {
-                    seenChannels.put((String)channel, true);
+                    seenChannels.put(channel, true);
                     Long requestId = this.requestId((String) (url));
                     Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                         put( "subscribe", new HashMap<String, Object>() {{
@@ -4547,7 +4547,7 @@ public class Myriad extends MyriadApi
                 String id = this.safeString(p, "id");
                 if (!java.util.Objects.equals(id, null))
                 {
-                    balances.put((String)id, this.numberToString(this.safeNumber(p, "contracts", 0)));
+                    balances.put(id, this.numberToString(this.safeNumber(p, "contracts", 0)));
                 }
             }
             Helpers.addElementToObject(this.options, "positionBalances", balances);
@@ -4707,7 +4707,7 @@ public class Myriad extends MyriadApi
             // ts/src/test/static/request/prediction/myriad.json
             String headerKey = ("x-api" + "-key");
             Map<String, Object> headersKey = new HashMap<String, Object>() {{}};
-            headersKey.put((String)headerKey, this.apiKey);
+            headersKey.put(headerKey, this.apiKey);
             headersValue = this.extend(headersValue, headersKey);
         }
         return Helpers.newMap(

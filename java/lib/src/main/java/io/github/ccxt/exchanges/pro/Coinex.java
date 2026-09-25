@@ -189,7 +189,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, defaultType);
             Object parsedTicker = this.parseWSTicker((Map<String, Object>) (entry), market);
             Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
-            newTickers.put((String)symbol, parsedTicker);
+            newTickers.put(symbol, parsedTicker);
         }
         Object messageHashes = this.findMessageHashes(client, "tickers::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -1729,7 +1729,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 }} );
             }};
             this.watch(url, messageHash, request, requestId, subscribe);
-            ((Map)client.subscriptions).put((String)messageHash, true);
+            ((Map)client.subscriptions).put(messageHash, true);
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 

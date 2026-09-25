@@ -919,7 +919,7 @@ public class Poloniex extends PoloniexApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put((String)keyStart, since);
+                request.put(keyStart, since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1565,7 +1565,7 @@ public class Poloniex extends PoloniexApi
             String networkCode = this.networkIdToCode(chainId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "info", chain,
     "id", chainId,
     "name", null,
@@ -1908,7 +1908,7 @@ public class Poloniex extends PoloniexApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put((String)startKey, since);
+                request.put(startKey, since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2597,7 +2597,7 @@ public class Poloniex extends PoloniexApi
             {
                 clientOrderIdKey = "clientOrderId";
             }
-            request.put((String)clientOrderIdKey, clientOrderId);
+            request.put(clientOrderIdKey, clientOrderId);
             queryOmitted = this.omit(queryOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdId")));
         }
         // remember the timestamp before issuing the request
@@ -2971,7 +2971,7 @@ public class Poloniex extends PoloniexApi
                 account.put("used", this.safeString(balance, "im"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
             return this.safeBalance(result);
@@ -2991,7 +2991,7 @@ public class Poloniex extends PoloniexApi
                 newAccount.put("used", this.safeString(balance, "hold"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, newAccount);
+                    result.put(code, newAccount);
                 }
             }
         }
@@ -3112,7 +3112,7 @@ public class Poloniex extends PoloniexApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Poloniex.this.safeNumber(response, "makerRate", (Object) null) );
@@ -3704,7 +3704,7 @@ public class Poloniex extends PoloniexApi
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
                 Map<String, Object> currency = this.currency(code);
-                depositWithdrawFees.put((String)code, this.parseDepositWithdrawFee(feeInfo, currency));
+                depositWithdrawFees.put(code, this.parseDepositWithdrawFee(feeInfo, currency));
                 Object childChains = this.safeValue(feeInfo, "childChains");
                 Integer chainsLength = Helpers.getArrayLength(childChains);
                 if ((chainsLength != null && chainsLength > 0))
@@ -3719,7 +3719,7 @@ public class Poloniex extends PoloniexApi
                         Double withdrawFee = this.safeNumber(networkInfo, "withdrawalFee", (Object) null);
                         if (!java.util.Objects.equals(networkCode, null))
                         {
-                            networkObject.put((String)networkCode, Helpers.newMap(
+                            networkObject.put(networkCode, Helpers.newMap(
     "withdraw", Helpers.newMap(
         "fee", withdrawFee,
         "percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null

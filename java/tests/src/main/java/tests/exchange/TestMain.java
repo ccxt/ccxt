@@ -1769,7 +1769,7 @@ public class TestMain extends BaseTest
             }
             String exchangeName = Helpers.replace(((String)file), ".json", "");
             Object content = ioFileRead(Helpers.add(folder, file));
-            result.put((String)exchangeName, content);
+            result.put(exchangeName, content);
         }
         return result;
     }
@@ -1822,7 +1822,7 @@ public class TestMain extends BaseTest
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value);
             }
-            result.put((String)key, value);
+            result.put(key, value);
         }
         return result;
     }

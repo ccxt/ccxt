@@ -482,7 +482,7 @@ public class Btcturk extends BtcturkApi
             account.put("used", this.safeString(entry, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

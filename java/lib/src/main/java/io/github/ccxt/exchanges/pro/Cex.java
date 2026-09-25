@@ -148,7 +148,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         this.balance = this.safeBalance(result);

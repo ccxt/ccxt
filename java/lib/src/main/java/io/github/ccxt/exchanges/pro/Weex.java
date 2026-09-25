@@ -284,7 +284,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
+                String newTickerSymbol = this.safeString(newTicker, "symbol");
+                if (!java.util.Objects.equals(newTickerSymbol, null))
+                {
+                    result.put(newTickerSymbol, newTicker);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
@@ -1222,7 +1226,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
+                String newTickerSymbol = this.safeString(newTicker, "symbol");
+                if (!java.util.Objects.equals(newTickerSymbol, null))
+                {
+                    result.put(newTickerSymbol, newTicker);
+                }
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
@@ -1492,7 +1500,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                symbols.put((String)symbol, true);
+                symbols.put(symbol, true);
             }
             trades.append(parsed);
         }
@@ -1740,7 +1748,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String symbol = (String) parsed.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                symbols.put((String)symbol, true);
+                symbols.put(symbol, true);
             }
         }
         String messageHash = "orders";

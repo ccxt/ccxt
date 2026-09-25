@@ -623,7 +623,7 @@ public class Lbank extends LbankApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "network", networkCode,
     "limits", new HashMap<String, Object>() {{
@@ -1570,7 +1570,7 @@ public class Lbank extends LbankApi
                 account.put("free", this.safeString(free, currencyId));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
             return this.safeBalance(result);
@@ -1589,7 +1589,7 @@ public class Lbank extends LbankApi
                 account.put("used", this.safeString(item, "locked"));
                 if (!java.util.Objects.equals(codeInner, null))
                 {
-                    result.put((String)codeInner, account);
+                    result.put(codeInner, account);
                 }
             }
             return this.safeBalance(result);
@@ -1608,7 +1608,7 @@ public class Lbank extends LbankApi
                 account.put("used", this.safeString(item, "freezeAmt"));
                 if (!java.util.Objects.equals(codeInner, null))
                 {
-                    result.put((String)codeInner, account);
+                    result.put(codeInner, account);
                 }
             }
             return this.safeBalance(result);
@@ -3198,7 +3198,7 @@ public class Lbank extends LbankApi
                 List<Object> networkList = (List<Object>) this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    withdrawFees.put((String)code, new HashMap<String, Object>() {{}});
+                    withdrawFees.put(code, new HashMap<String, Object>() {{}});
                 }
                 for (var j = 0; j < ((List<?>)networkList).size(); j++)
                 {
@@ -3287,7 +3287,7 @@ public class Lbank extends LbankApi
                     {
                         if (!java.util.Objects.equals(codeInner, null))
                         {
-                            withdrawFees.put((String)codeInner, new HashMap<String, Object>() {{}});
+                            withdrawFees.put(codeInner, new HashMap<String, Object>() {{}});
                         }
                     }
                     if ((!java.util.Objects.equals(codeInner, null)) && (!java.util.Objects.equals(network, null)))
@@ -3471,7 +3471,7 @@ public class Lbank extends LbankApi
                         Map<String, Object> resultValue = (Map<String, Object>) this.safeDict(result, code, (Object) null);
                         if (java.util.Objects.equals(resultValue, null))
                         {
-                            result.put((String)code, this.depositWithdrawFee(new ArrayList<Object>(Arrays.asList(fee))));
+                            result.put(code, this.depositWithdrawFee(new ArrayList<Object>(Arrays.asList(fee))));
                         } else
                         {
                             Object resultCodeInfo = Helpers.GetValue((result == null || code == null ? null : result.get(code)), "info");

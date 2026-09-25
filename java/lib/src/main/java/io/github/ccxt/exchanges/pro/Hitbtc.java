@@ -462,7 +462,11 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 if (!(newTickers instanceof List))
                 {
                     Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                    Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
+                    String newTickersSymbol = this.safeString(newTickers, "symbol");
+                    if (!java.util.Objects.equals(newTickersSymbol, null))
+                    {
+                        tickers.put(newTickersSymbol, newTickers);
+                    }
                     return tickers;
                 }
             }
@@ -627,7 +631,11 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 if (!(newTickers instanceof List))
                 {
                     Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                    Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
+                    String newTickersSymbol = this.safeString(newTickers, "symbol");
+                    if (!java.util.Objects.equals(newTickersSymbol, null))
+                    {
+                        tickers.put(newTickersSymbol, newTickers);
+                    }
                     return tickers;
                 }
             }

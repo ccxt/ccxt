@@ -139,7 +139,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             // we store an awaitable to the url
             // so that multiple calls don't asynchronously
             // fetch different urls and overwrite each other
-            urls.put((String)connectId, this.spawnWithResult("negotiateHelper", privateChannel, connectId, parameters));
+            urls.put(connectId, this.spawnWithResult("negotiateHelper", privateChannel, connectId, parameters));
             Helpers.addElementToObject(this.options, "urls", urls);
             future = (urls == null || connectId == null ? null : urls.get(connectId));
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
@@ -223,7 +223,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Client client = this.client(url);
             if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
             {
-                ((Map)client.subscriptions).put((String)requestId, subscriptionHash);
+                ((Map)client.subscriptions).put(requestId, subscriptionHash);
             }
             return (this.watch(url, messageHash, message, subscriptionHash, subscription)).join();
         });
@@ -261,7 +261,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Client client = this.client(url);
             if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
             {
-                ((Map)client.subscriptions).put((String)requestId, messageHash);
+                ((Map)client.subscriptions).put(requestId, messageHash);
             }
             return (this.watch(((String)url), messageHash, message, messageHash, subscription)).join();
         });
@@ -296,7 +296,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Client client = this.client(url);
             if (!(((Map<?, ?>)client.subscriptions).containsKey(subscribeHash)))
             {
-                ((Map)client.subscriptions).put((String)requestId, subscribeHash);
+                ((Map)client.subscriptions).put(requestId, subscribeHash);
             }
             return (this.watchMultiple(url, messageHashes, message, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription)).join();
         });
@@ -395,7 +395,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= ((List<?>)subscriptionHashes).size() ? null : ((List<?>)subscriptionHashes).get(i));
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
                 {
-                    ((Map)client.subscriptions).put((String)requestId, subscriptionHash);
+                    ((Map)client.subscriptions).put(requestId, subscriptionHash);
                 }
             }
             return (this.watchMultiple((String) (url), messageHashes, message, subscriptionHashes, subscription)).join();
@@ -418,7 +418,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> message = this.extend(request, parameters);
             if (!java.util.Objects.equals(subscription, null))
             {
-                ((Map<String, Object>)subscription).put((String)requestId, requestId);
+                ((Map<String, Object>)subscription).put(requestId, requestId);
             }
             Client client = this.client(url);
             for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
@@ -426,7 +426,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= ((List<?>)subscriptionHashes).size() ? null : ((List<?>)subscriptionHashes).get(i));
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
                 {
-                    ((Map)client.subscriptions).put((String)requestId, subscriptionHash);
+                    ((Map)client.subscriptions).put(requestId, subscriptionHash);
                 }
             }
             return (this.watchMultiple((String) (url), messageHashes, message, subscriptionHashes, subscription)).join();
@@ -618,7 +618,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 if (this.newUpdates)
                 {
                     Map<String, Object> newDict = new HashMap<String, Object>() {{}};
-                    Helpers.addElementToObject(newDict, ((Map<String, Object>)tickers).get("symbol"), tickers);
+                    String tickersSymbol = this.safeString(tickers, "symbol");
+                    if (!java.util.Objects.equals(tickersSymbol, null))
+                    {
+                        newDict.put(tickersSymbol, tickers);
+                    }
                     return newDict;
                 }
             }
@@ -660,7 +664,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String messageHashWithSymbols = ((channel + ":") + String.join(",", (List<String>)symbols));
             if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHashWithSymbols)))
             {
-                ((Map)client.subscriptions).put((String)requestId, messageHashWithSymbols);
+                ((Map)client.subscriptions).put(requestId, messageHashWithSymbols);
             }
             return (this.watchMultiple((String) (((String)url)), messageHashes, message, messageHashes, subscription)).join();
         });
@@ -947,7 +951,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    tickers.put(tickerSymbol, ticker);
+                }
                 return tickers;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
@@ -3119,7 +3127,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> message = this.extend(request, paramsOmitted);
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
                 {
-                    ((Map)client.subscriptions).put((String)requestId, subscriptionHash);
+                    ((Map)client.subscriptions).put(requestId, subscriptionHash);
                 }
                 return (this.watch(((String)url), messageHash, message, uniformType, null)).join();
             }

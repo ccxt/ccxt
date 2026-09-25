@@ -1018,7 +1018,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String symbol = (String) parsed.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                symbols.put((String)symbol, true);
+                symbols.put(symbol, true);
             }
             trades.append(parsed);
         }
@@ -1578,7 +1578,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String symbol = this.safeString(order, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                marketSymbols.put((String)symbol, true);
+                marketSymbols.put(symbol, true);
             }
         }
         List<String> keys = new ArrayList<String>(marketSymbols.keySet());

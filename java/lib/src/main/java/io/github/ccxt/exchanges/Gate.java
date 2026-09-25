@@ -3009,7 +3009,7 @@ public class Gate extends GateApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "info", chain,
     "id", networkId,
     "network", networkCode,
@@ -3510,7 +3510,7 @@ public class Gate extends GateApi
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = this.market(symbol);
-            result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (response), market));
+            result.put(symbol, this.parseTradingFee((Map<String, Object>) (response), market));
         }
         return result;
     }
@@ -3626,7 +3626,7 @@ public class Gate extends GateApi
                         String networkCode = this.networkIdToCode(networkId, code);
                         if (!java.util.Objects.equals(networkCode, null))
                         {
-                            ((Map<String, Object>)withdrawFees).put((String)networkCode, this.parseNumber((withdrawFixOnChains == null || networkId == null ? null : withdrawFixOnChains.get(networkId))));
+                            ((Map<String, Object>)withdrawFees).put(networkCode, this.parseNumber((withdrawFixOnChains == null || networkId == null ? null : withdrawFixOnChains.get(networkId))));
                         }
                     }
                 }
@@ -8807,7 +8807,7 @@ public class Gate extends GateApi
             {
                 if (!java.util.Objects.equals(market, null))
                 {
-                    Helpers.addElementToObject(requestUntil, "currency_pair", market.get("id"));
+                    requestUntil.put("currency_pair", market.get("id"));
                 }
                 response = (this.privateMarginGetUniInterestRecords(this.extend(requestUntil, paramsMarginMode))).join();
             } else if (java.util.Objects.equals(marginMode, "cross"))

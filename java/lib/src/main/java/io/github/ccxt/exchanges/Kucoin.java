@@ -2924,7 +2924,7 @@ public class Kucoin extends KucoinApi
             String networkCode = this.networkIdToCode(chainId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "info", chain,
     "id", chainId,
     "name", this.safeString(chain, "chainName"),
@@ -3627,7 +3627,7 @@ public class Kucoin extends KucoinApi
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, ticker);
+                    result.put(symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
@@ -9841,7 +9841,7 @@ public class Kucoin extends KucoinApi
                     String codeInner = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     if (!java.util.Objects.equals(codeInner, null))
                     {
-                        ((Map<String, Object>)result).put((String)codeInner, this.parseBalanceHelper((Map<String, Object>) (balance)));
+                        ((Map<String, Object>)result).put(codeInner, this.parseBalanceHelper((Map<String, Object>) (balance)));
                     }
                 }
             } else
@@ -9861,7 +9861,7 @@ public class Kucoin extends KucoinApi
                         account.put("used", this.safeString(balance, "holds"));
                         if (!java.util.Objects.equals(codeInner2, null))
                         {
-                            ((Map<String, Object>)result).put((String)codeInner2, account);
+                            ((Map<String, Object>)result).put(codeInner2, account);
                         }
                     }
                 }
@@ -9931,7 +9931,7 @@ public class Kucoin extends KucoinApi
             account.put("total", this.safeString(data, "accountEquity"));
             if (!java.util.Objects.equals(currencyCode, null))
             {
-                result.put((String)currencyCode, account);
+                result.put(currencyCode, account);
             }
             return this.safeBalance(result);
         });
@@ -10086,7 +10086,7 @@ public class Kucoin extends KucoinApi
                     String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     if (!java.util.Objects.equals(currencyCode, null))
                     {
-                        ((Map<String, Object>)result).put((String)currencyCode, this.parseBalanceHelper((Map<String, Object>) (currencyEntry)));
+                        ((Map<String, Object>)result).put(currencyCode, this.parseBalanceHelper((Map<String, Object>) (currencyEntry)));
                     }
                 }
             }
@@ -11321,7 +11321,7 @@ public class Kucoin extends KucoinApi
             {
                 if (!(borrowRateHistories.containsKey(code)))
                 {
-                    borrowRateHistories.put((String)code, new ArrayList<Object>(Arrays.asList()));
+                    borrowRateHistories.put(code, new ArrayList<Object>(Arrays.asList()));
                 }
                 Map<String, Object> borrowRateStructure = (Map<String, Object>) this.parseBorrowRate(item, (Map<String, Object>) null);
                 Object borrowRateHistoriesCode = (borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code));
@@ -11332,7 +11332,7 @@ public class Kucoin extends KucoinApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            borrowRateHistories.put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit, false));
+            borrowRateHistories.put(code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit, false));
         }
         return borrowRateHistories;
     }
@@ -12906,7 +12906,7 @@ public class Kucoin extends KucoinApi
                 {
                     requestKey = "clientOidsList";
                 }
-                request.put((String)requestKey, ordersRequests);
+                request.put(requestKey, ordersRequests);
                 response = (this.futuresPrivateDeleteOrdersMultiCancel(this.extend(request, paramsRequest))).join();
                 //
                 //   {
@@ -13543,7 +13543,7 @@ public class Kucoin extends KucoinApi
                 {
                     if (!(result.containsKey(symbol)))
                     {
-                        result.put((String)symbol, new ArrayList<Object>(Arrays.asList()));
+                        result.put(symbol, new ArrayList<Object>(Arrays.asList()));
                     }
                     ((List<Object>)(result == null || symbol == null ? null : result.get(symbol))).add(tier);
                 }

@@ -738,7 +738,7 @@ public class Backpack extends BackpackApi
             String networkCode = this.networkIdToCode(networkIdLowerCase, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                parsedNetworks.put((String)networkCode, Helpers.newMap(
+                parsedNetworks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "network", networkCode,
     "limits", new HashMap<String, Object>() {{
@@ -1739,7 +1739,7 @@ public class Backpack extends BackpackApi
             account.put("used", used);
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -2191,7 +2191,7 @@ public class Backpack extends BackpackApi
         if (java.util.Objects.equals(type, "limit"))
         {
             request.put("price", this.priceToPrecision(symbol, price));
-            request.put((String)quantityKey, this.amountToPrecision(symbol, amount));
+            request.put(quantityKey, this.amountToPrecision(symbol, amount));
         } else if (java.util.Objects.equals(type, "market"))
         {
             String cost = this.safeString2(parameters, "cost", "quoteQuantity");
@@ -2202,7 +2202,7 @@ public class Backpack extends BackpackApi
                 ((List<Object>)omitKeys).add("quoteQuantity");
             } else
             {
-                request.put((String)quantityKey, this.amountToPrecision(symbol, amount));
+                request.put(quantityKey, this.amountToPrecision(symbol, amount));
             }
         }
         // trigger orders

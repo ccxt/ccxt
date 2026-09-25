@@ -582,7 +582,7 @@ public class Sxbet extends SxbetApi
                 }
                 if (!(grouped.containsKey(sportXeventId)))
                 {
-                    grouped.put((String)sportXeventId, new ArrayList<Object>(Arrays.asList()));
+                    grouped.put(sportXeventId, new ArrayList<Object>(Arrays.asList()));
                     order.add(sportXeventId);
                 }
                 ((List<Object>)(grouped == null || sportXeventId == null ? null : grouped.get(sportXeventId))).add(raw);
@@ -1896,7 +1896,7 @@ public class Sxbet extends SxbetApi
                 }
                 String free = Precise.stringDiv(this.safeString(row, "availableAmount", "0"), usdcDecimals, 6);
                 String used = Precise.stringDiv(this.safeString(row, "escrowedAmount", "0"), usdcDecimals, 6);
-                result.put((String)code, new HashMap<String, Object>() {{
+                result.put(code, new HashMap<String, Object>() {{
         put( "free", Sxbet.this.parseNumber(free) );
         put( "used", Sxbet.this.parseNumber(used) );
         put( "total", Sxbet.this.parseNumber(Precise.stringAdd(free, used)) );
@@ -1933,7 +1933,7 @@ public class Sxbet extends SxbetApi
                 {
                     Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
                     String hash = this.safeString(outcomeObj.get("info"), "marketHash", "");
-                    wantedMarkets.put((String)hash, true);
+                    wantedMarkets.put(hash, true);
                 }
             }
             // open exposure lives in MATCHED and LOCKED bets - the venue requires an explicit status
@@ -2301,7 +2301,7 @@ public class Sxbet extends SxbetApi
                 String marketHash = this.safeString(outcomeObj.get("info"), "marketHash", "");
                 if (java.util.Objects.equals(this.safeBool(seenHashes, marketHash, (Object) null), null))
                 {
-                    seenHashes.put((String)marketHash, true);
+                    seenHashes.put(marketHash, true);
                     hashesOrder.add(marketHash);
                 }
             }
@@ -2317,7 +2317,7 @@ public class Sxbet extends SxbetApi
                 {
                     String marketHash = (hashesOrder == null || i < 0 || i >= hashesOrder.size() ? null : hashesOrder.get(i));
                     Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot(marketHash)).join();
-                    rowsByHash.put((String)marketHash, this.parseSxbetSnapshotBestOdds((Map<String, Object>) (snapshot)));
+                    rowsByHash.put(marketHash, this.parseSxbetSnapshotBestOdds((Map<String, Object>) (snapshot)));
                 }
                 return this.parseSxbetTickersByHash(outcomesList, (Map<String, Object>) (rowsByHash));
             }
@@ -2340,7 +2340,7 @@ public class Sxbet extends SxbetApi
                     String rowHash = this.safeString(row, "marketHash");
                     if (!java.util.Objects.equals(rowHash, null))
                     {
-                        rowsByHash.put((String)rowHash, row);
+                        rowsByHash.put(rowHash, row);
                     }
                 }
             }
@@ -2375,7 +2375,7 @@ public class Sxbet extends SxbetApi
             String sym = this.safeString(ticker, "outcome");
             if (!java.util.Objects.equals(sym, null))
             {
-                result.put((String)sym, ticker);
+                result.put(sym, ticker);
             }
         }
         return result;

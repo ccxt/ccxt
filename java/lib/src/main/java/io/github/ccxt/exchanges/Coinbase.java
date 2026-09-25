@@ -2397,7 +2397,7 @@ public class Coinbase extends CoinbaseApi
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, this.safeCurrencyStructure(Helpers.newMap(
+                    result.put(code, this.safeCurrencyStructure(Helpers.newMap(
         "info", currency,
         "id", id,
         "code", code,
@@ -2426,9 +2426,9 @@ public class Coinbase extends CoinbaseApi
                     String lowerCaseName = name.toLowerCase();
                     if (!java.util.Objects.equals(code, null))
                     {
-                        networks.put((String)code, lowerCaseName);
+                        networks.put(code, lowerCaseName);
                     }
-                    networksById.put((String)lowerCaseName, code);
+                    networksById.put(lowerCaseName, code);
                 }
             }
             // we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
@@ -2440,7 +2440,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     if (!java.util.Objects.equals(code, null))
                     {
-                        result.put((String)code, this.safeCurrencyStructure(Helpers.newMap(
+                        result.put(code, this.safeCurrencyStructure(Helpers.newMap(
         "info", new HashMap<String, Object>() {{}},
         "id", currencyId,
         "code", code,
@@ -2520,7 +2520,7 @@ public class Coinbase extends CoinbaseApi
                 String marketId = ((baseId + delimiter) + quoteId);
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, delimiter, (String) null);
                 String symbol = (String) market.get("symbol");
-                result.put((String)symbol, this.parseTicker((rates == null || baseId == null ? null : rates.get(baseId)), market));
+                result.put(symbol, this.parseTicker((rates == null || baseId == null ? null : rates.get(baseId)), market));
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         });
@@ -2605,7 +2605,7 @@ public class Coinbase extends CoinbaseApi
                 String marketId = this.safeString(entry, "product_id");
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
                 String symbol = (String) market.get("symbol");
-                result.put((String)symbol, this.parseTicker(entry, market));
+                result.put(symbol, this.parseTicker(entry, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         });
@@ -2899,7 +2899,7 @@ public class Coinbase extends CoinbaseApi
                     }
                     if (!java.util.Objects.equals(code, null))
                     {
-                        result.put((String)code, account);
+                        result.put(code, account);
                     }
                 }
             } else if (this.inArray(type, v3Accounts))
@@ -2928,7 +2928,7 @@ public class Coinbase extends CoinbaseApi
                     }
                     if (!java.util.Objects.equals(code, null))
                     {
-                        result.put((String)code, account);
+                        result.put(code, account);
                     }
                 }
             }
@@ -3606,7 +3606,7 @@ public class Coinbase extends CoinbaseApi
             if (java.util.Objects.equals(reduceOnly, true))
             {
                 Map<String, Object> paramsClose = this.omit(parameters, "reduceOnly");
-                Helpers.addElementToObject(paramsClose, "amount", amount);
+                paramsClose.put("amount", amount);
                 return (this.closePosition(symbol, side, paramsClose)).join();
             }
             Object paramsMarketBuy = null;

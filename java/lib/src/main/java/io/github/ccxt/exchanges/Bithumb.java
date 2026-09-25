@@ -835,7 +835,7 @@ public class Bithumb extends BithumbApi
                 }
                 account.put("free", this.safeString(entry, "balance"));
                 account.put("used", this.safeString(entry, "locked"));
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1287,7 +1287,7 @@ public class Bithumb extends BithumbApi
                         {
                             continue;
                         }
-                        result.put((String)symbol, this.parseTicker(entry, market));
+                        result.put(symbol, this.parseTicker(entry, market));
                     }
                 }
             } else
@@ -1304,7 +1304,7 @@ public class Bithumb extends BithumbApi
                         String quoteId = this.safeString(market, "quoteId");
                         if ((!java.util.Objects.equals(quoteId, null)) && (quoteCurrencies.containsKey(quoteId)))
                         {
-                            requiredQuotes.put((String)quoteId, true);
+                            requiredQuotes.put(quoteId, true);
                         }
                     }
                     List<Object> requiredQuoteIds = new ArrayList<Object>(requiredQuotes.keySet());
@@ -1341,7 +1341,7 @@ public class Bithumb extends BithumbApi
                         String symbol = ((base + "/") + quote);
                         Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
                         Helpers.addElementToObject(ticker, "date", timestamp);
-                        result.put((String)symbol, this.parseTicker(ticker, market));
+                        result.put(symbol, this.parseTicker(ticker, market));
                     }
                 }
             }

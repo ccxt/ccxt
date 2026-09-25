@@ -544,7 +544,7 @@ public class Cryptomus extends CryptomusApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "network", networkCode,
     "limits", new HashMap<String, Object>() {{
@@ -847,7 +847,7 @@ public class Cryptomus extends CryptomusApi
             account.put("used", this.safeString(balanceEntry, "held"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1339,7 +1339,7 @@ public class Cryptomus extends CryptomusApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                result.put((String)symbol, Helpers.newMap(
+                result.put(symbol, Helpers.newMap(
         "info", response,
         "symbol", symbol,
         "maker", this.parseNumber(makerFee),

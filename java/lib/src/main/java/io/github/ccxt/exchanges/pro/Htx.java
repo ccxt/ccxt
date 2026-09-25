@@ -700,7 +700,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                             delayTime = this.sum(1000, (lastTimestamp - snapshotTimestamp));
                         }
                         subscription.put("numAttempts", numAttempts);
-                        ((Map)client.subscriptions).put((String)messageHash, subscription);
+                        ((Map)client.subscriptions).put(messageHash, subscription);
                         this.scheduleCallback(delayTime, "watchOrderBookSnapshot", client, message, subscription);
                     }
                 } else

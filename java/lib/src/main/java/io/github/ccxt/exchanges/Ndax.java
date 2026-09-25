@@ -1603,7 +1603,7 @@ public class Ndax extends NdaxApi
                 account.put("used", this.safeString(balance, "Hold"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
         }

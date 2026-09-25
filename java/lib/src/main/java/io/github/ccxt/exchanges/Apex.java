@@ -444,7 +444,7 @@ public class Apex extends ApexApi
         Map<String, Object> account = this.account();
         account.put("free", this.safeString(response, "availableBalance"));
         account.put("total", this.safeString(response, "totalEquityValue"));
-        result.put((String)code, account);
+        result.put(code, account);
         return this.safeBalance(result);
     }
 
@@ -644,7 +644,7 @@ public class Apex extends ApexApi
                     String networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
-                        networks.put((String)networkCode, Helpers.newMap(
+                        networks.put(networkCode, Helpers.newMap(
     "info", chain,
     "id", networkId,
     "network", networkCode,

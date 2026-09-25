@@ -1227,7 +1227,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> dwStatuses = (List<Object>) this.safeList(indexed.get("statuses"), networkId, new ArrayList<Object>(Arrays.asList()));
             if (!java.util.Objects.equals(network, null))
             {
-                networks.put((String)network, Helpers.newMap(
+                networks.put(network, Helpers.newMap(
     "info", networkId,
     "id", networkId.toLowerCase(),
     "network", networkId,
@@ -1327,7 +1327,7 @@ public class Bitfinex extends BitfinexApi
                     account.put("free", this.safeString(balance, 4));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        result.put((String)code, account);
+                        result.put(code, account);
                     }
                 }
             }
@@ -2819,7 +2819,7 @@ public class Bitfinex extends BitfinexApi
             } else
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(requestUntil, "symbol", market.get("id"));
+                requestUntil.put("symbol", market.get("id"));
                 response = (this.privatePostAuthROrdersSymbolHist(this.extend(requestUntil, paramsUntil))).join();
             }
             //

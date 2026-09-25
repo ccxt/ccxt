@@ -483,7 +483,7 @@ public class Hibachi extends HibachiApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         String networkId = "ARBITRUM";
-        networks.put((String)networkId, new HashMap<String, Object>() {{
+        networks.put(networkId, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkId );
     put( "limits", new HashMap<String, Object>() {{
@@ -504,7 +504,7 @@ public class Hibachi extends HibachiApi
         String code = this.safeCurrencyCode("USDT", (Map<String, Object>) null);
         if (!java.util.Objects.equals(code, null))
         {
-            result.put((String)code, this.safeCurrencyStructure(Helpers.newMap(
+            result.put(code, this.safeCurrencyStructure(Helpers.newMap(
     "id", "USDT",
     "name", "USDT",
     "type", "fiat",
@@ -543,7 +543,7 @@ public class Hibachi extends HibachiApi
         account.put("free", this.safeString(response, "maximalWithdraw"));
         if (!java.util.Objects.equals(code, null))
         {
-            result.put((String)code, account);
+            result.put(code, account);
         }
         return this.safeBalance(result);
     }
@@ -961,7 +961,7 @@ public class Hibachi extends HibachiApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", makerFeeRate );

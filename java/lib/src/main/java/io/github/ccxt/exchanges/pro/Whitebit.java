@@ -1082,7 +1082,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 String marketId = (String) market.get("id");
                 if (!java.util.Objects.equals(marketId, null))
                 {
-                    subscription.put((String)marketId, true);
+                    subscription.put(marketId, true);
                 }
                 marketIds = new ArrayList<Object>(Arrays.asList(marketId));
                 if (java.util.Objects.requireNonNullElse(isNested, false))
@@ -1107,7 +1107,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 {
                     if (!java.util.Objects.equals(marketId, null))
                     {
-                        subscription.put((String)marketId, true);
+                        subscription.put(marketId, true);
                     }
                     hasSymbolSubscription = false;
                 }

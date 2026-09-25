@@ -1375,7 +1375,7 @@ public class Xt extends XtApi
                     String networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
-                        networks.put((String)networkCode, Helpers.newMap(
+                        networks.put(networkCode, Helpers.newMap(
         "info", rawNetwork,
         "id", networkId,
         "network", networkCode,
@@ -1413,7 +1413,7 @@ public class Xt extends XtApi
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, this.safeCurrencyStructure(Helpers.newMap(
+                    result.put(code, this.safeCurrencyStructure(Helpers.newMap(
         "info", entry,
         "id", currencyId,
         "code", code,
@@ -2356,7 +2356,7 @@ public class Xt extends XtApi
                 String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, ticker);
+                    result.put(symbol, ticker);
                 }
             }
             return this.filterByArray(result, "symbol", symbolsNormalized, true);
@@ -2465,7 +2465,7 @@ public class Xt extends XtApi
                 String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, ticker);
+                    result.put(symbol, ticker);
                 }
             }
             return this.filterByArray(result, "symbol", symbolsNormalized, true);
@@ -3113,7 +3113,7 @@ public class Xt extends XtApi
             account.put("total", total);
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -5636,11 +5636,11 @@ public class Xt extends XtApi
             {
                 if (this.inArray(symbol, symbols))
                 {
-                    result.put((String)symbol, this.parseMarketLeverageTiers(entry, market));
+                    result.put(symbol, this.parseMarketLeverageTiers(entry, market));
                 }
             } else
             {
-                result.put((String)symbol, this.parseMarketLeverageTiers(Helpers.GetValue(response, i), market));
+                result.put(symbol, this.parseMarketLeverageTiers(Helpers.GetValue(response, i), market));
             }
         }
         return result;
@@ -6139,7 +6139,7 @@ public class Xt extends XtApi
                 Object matchesSubType = ((Boolean.TRUE.equals(isInverse))) ? market.get("inverse") : market.get("linear");
                 if ((java.util.Objects.equals(market.get("contract"), true)) && (java.util.Objects.equals(matchesSubType, true)))
                 {
-                    result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (fee), market));
+                    result.put(symbol, this.parseTradingFee((Map<String, Object>) (fee), market));
                 }
             }
             return result;
@@ -6286,7 +6286,7 @@ public class Xt extends XtApi
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
             String key = ((this.safeString(breakEntry, "symbol") + "_") + this.safeString(breakEntry, "positionSide"));
-            breakBySymbolSide.put((String)key, breakEntry);
+            breakBySymbolSide.put(key, breakEntry);
         }
         return breakBySymbolSide;
     }

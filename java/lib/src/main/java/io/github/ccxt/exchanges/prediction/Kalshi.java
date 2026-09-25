@@ -463,7 +463,7 @@ public class Kalshi extends KalshiApi
                         {
                             if (!(eventsDict.containsKey(eventKey)))
                             {
-                                eventsDict.put((String)eventKey, Helpers.newMap(
+                                eventsDict.put(eventKey, Helpers.newMap(
         "id", eventTicker,
         "slug", eventTicker,
         "event", eventKey,
@@ -1310,13 +1310,13 @@ public class Kalshi extends KalshiApi
                 }
                 if (!(outcomesByTicker.containsKey(ticker)))
                 {
-                    outcomesByTicker.put((String)ticker, new ArrayList<Object>(Arrays.asList()));
+                    outcomesByTicker.put(ticker, new ArrayList<Object>(Arrays.asList()));
                     tickers.add(ticker);
                 }
                 // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
                 Object grouped = (outcomesByTicker == null || ticker == null ? null : outcomesByTicker.get(ticker));
                 ((List<Object>)grouped).add(outcomeObj);
-                outcomesByTicker.put((String)ticker, grouped);
+                outcomesByTicker.put(ticker, grouped);
             }
             Long chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 100);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1355,7 +1355,7 @@ public class Kalshi extends KalshiApi
                         String symbolKey = this.safeString(ticker, "outcome");
                         if (!java.util.Objects.equals(symbolKey, null))
                         {
-                            result.put((String)symbolKey, ticker);
+                            result.put(symbolKey, ticker);
                         }
                     }
                 }
@@ -2000,7 +2000,7 @@ public class Kalshi extends KalshiApi
                 String marketTicker = this.safeString(outcomeInfo, "ticker");
                 if (!java.util.Objects.equals(marketTicker, null))
                 {
-                    wantedTickers.put((String)marketTicker, true);
+                    wantedTickers.put(marketTicker, true);
                 }
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2863,7 +2863,7 @@ public class Kalshi extends KalshiApi
                         String already = this.safeString(seen, et);
                         if (java.util.Objects.equals(already, null))
                         {
-                            seen.put((String)et, et);
+                            seen.put(et, et);
                             eventTickers.add(et);
                         }
                     }

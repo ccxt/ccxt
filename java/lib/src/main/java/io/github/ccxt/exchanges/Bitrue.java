@@ -909,7 +909,7 @@ public class Bitrue extends BitrueApi
             String network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
             {
-                networks.put((String)network, Helpers.newMap(
+                networks.put(network, Helpers.newMap(
     "info", entry,
     "id", networkId,
     "network", network,
@@ -1256,7 +1256,7 @@ public class Bitrue extends BitrueApi
             account.put("used", this.safeString2(balance, "locked", "accountLock"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         result.put("timestamp", timestamp);

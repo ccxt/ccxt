@@ -1806,7 +1806,7 @@ public class Tokocrypto extends TokocryptoApi
             account.put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

@@ -2404,7 +2404,7 @@ public class Htx extends HtxApi
             for (var i = 0; i < ((List<?>)symbolsValue).size(); i++)
             {
                 String symbol = (symbolsValue == null || i < 0 || i >= symbolsValue.size() ? null : symbolsValue.get(i));
-                result.put((String)symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
+                result.put(symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
             }
             return result;
         });
@@ -4444,7 +4444,7 @@ public class Htx extends HtxApi
             String networkCode = this.networkIdToCode(uniqueChainId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "info", chainEntry,
     "id", uniqueChainId,
     "network", networkCode,
@@ -4779,7 +4779,7 @@ public class Htx extends HtxApi
                     account.put("total", this.safeString(balance, "equity"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        ((Map<String, Object>)result).put((String)code, account);
+                        ((Map<String, Object>)result).put(code, account);
                     }
                 }
                 result = this.safeBalance(result);
@@ -4799,7 +4799,7 @@ public class Htx extends HtxApi
                             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                             if (!java.util.Objects.equals(code, null))
                             {
-                                subResult.put((String)code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, (Map<String, Object>) (subResult)));
+                                subResult.put(code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, (Map<String, Object>) (subResult)));
                             }
                         }
                         List<String> subCodes = new ArrayList<String>(subResult.keySet());
@@ -4820,7 +4820,7 @@ public class Htx extends HtxApi
                         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                         if (!java.util.Objects.equals(code, null))
                         {
-                            ((Map<String, Object>)result).put((String)code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, (Map<String, Object>) (result)));
+                            ((Map<String, Object>)result).put(code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, (Map<String, Object>) (result)));
                         }
                     }
                     result = this.safeBalance(result);
@@ -4837,7 +4837,7 @@ public class Htx extends HtxApi
                     account.put("used", this.safeString(balance, "margin_frozen"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        ((Map<String, Object>)result).put((String)code, account);
+                        ((Map<String, Object>)result).put(code, account);
                     }
                 }
                 result = this.safeBalance(result);
@@ -9547,7 +9547,7 @@ public class Htx extends HtxApi
                     String marginMode = marginModeparamsMarginModeVariable.first();
                     Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
                     ((Map<String, Object>)request).put("margin_mode", (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode);
-                    Helpers.addElementToObject(request, "contract_code", market.get("id"));
+                    request.put("contract_code", market.get("id"));
                     if (!java.util.Objects.equals(limit, null))
                     {
                         ((Map<String, Object>)request).put("limit", limit);
@@ -9555,7 +9555,7 @@ public class Htx extends HtxApi
                     response = (this.contractPrivateGetV5AccountBills(this.extend(request, paramsMarginMode))).join();
                 } else
                 {
-                    Helpers.addElementToObject(request, "contract", market.get("id"));
+                    request.put("contract", market.get("id"));
                     //
                     //     {
                     //         "code": 200,
@@ -9580,7 +9580,7 @@ public class Htx extends HtxApi
                 }
             } else
             {
-                Helpers.addElementToObject(request, "symbol", market.get("id"));
+                request.put("symbol", market.get("id"));
                 response = (this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, paramsUntil))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -11309,7 +11309,7 @@ public class Htx extends HtxApi
             {
                 if (java.util.Objects.equals(market.get("linear"), true))
                 {
-                    Helpers.addElementToObject(requestUntil, "contract_code", market.get("id"));
+                    requestUntil.put("contract_code", market.get("id"));
                     if (!java.util.Objects.equals(limit, null))
                     {
                         ((Map<String, Object>)requestUntil).put("limit", limit);
@@ -11317,12 +11317,12 @@ public class Htx extends HtxApi
                     response = (this.contractPublicGetV5MarketLiquidationOrders(this.extend(requestUntil, paramsUntil))).join();
                 } else
                 {
-                    Helpers.addElementToObject(requestUntil, "contract", market.get("id"));
+                    requestUntil.put("contract", market.get("id"));
                     response = (this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(requestUntil, paramsUntil))).join();
                 }
             } else if (java.util.Objects.equals(market.get("future"), true))
             {
-                Helpers.addElementToObject(requestUntil, "symbol", market.get("id"));
+                requestUntil.put("symbol", market.get("id"));
                 response = (this.contractPublicGetApiV3ContractLiquidationOrders(this.extend(requestUntil, paramsUntil))).join();
             } else
             {

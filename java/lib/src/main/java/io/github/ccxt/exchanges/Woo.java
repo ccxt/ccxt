@@ -1448,7 +1448,7 @@ public class Woo extends WooApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Woo.this.parseNumber(Precise.stringDiv(maker, "10000")) );
@@ -1571,7 +1571,7 @@ public class Woo extends WooApi
                 String code = this.safeString(parsed, "code");
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, parsed);
+                    result.put(code, parsed);
                 }
             }
             return result;
@@ -1596,7 +1596,7 @@ public class Woo extends WooApi
             String specialNetworkId = this.safeString(tokenEntry, "token");
             if (!java.util.Objects.equals(networkCode, null))
             {
-                resultingNetworks.put((String)networkCode, Helpers.newMap(
+                resultingNetworks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "currencyNetworkId", specialNetworkId,
     "network", networkCode,
@@ -1905,7 +1905,7 @@ public class Woo extends WooApi
             String clientOrderId = this.safeStringN(paramsCost, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                request.put((String)clientOrderIdKey, clientOrderId);
+                request.put(clientOrderIdKey, clientOrderId);
             }
             if (Boolean.TRUE.equals(isTrailing))
             {
@@ -3322,7 +3322,7 @@ public class Woo extends WooApi
             account.put("free", this.safeString(balance, "availableBalance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -5350,7 +5350,7 @@ public class Woo extends WooApi
                 String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, Helpers.newMap(
+                    result.put(code, Helpers.newMap(
         "info", entry,
         "id", id,
         "code", code,

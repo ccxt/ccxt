@@ -474,7 +474,7 @@ public class Foxbit extends FoxbitApi
             Boolean isDepositEnabled = java.util.Objects.equals(this.safeString(networkDepositInfo, "status"), "ENABLED");
             if (!java.util.Objects.equals(networkCode, null))
             {
-                parsedNetworks.put((String)networkCode, Helpers.newMap(
+                parsedNetworks.put(networkCode, Helpers.newMap(
     "info", rawCurrency,
     "id", networkId,
     "network", networkCode,
@@ -785,7 +785,7 @@ public class Foxbit extends FoxbitApi
                 String marketId = this.safeString(entry, "market_symbol");
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) market.get("symbol");
-                result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (entry), market));
+                result.put(symbol, this.parseTradingFee((Map<String, Object>) (entry), market));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -1003,7 +1003,7 @@ public class Foxbit extends FoxbitApi
                 }};
                 if (!java.util.Objects.equals(currencyCode, null))
                 {
-                    result.put((String)currencyCode, balanceObj);
+                    result.put(currencyCode, balanceObj);
                 }
             }
             return this.safeBalance(result);

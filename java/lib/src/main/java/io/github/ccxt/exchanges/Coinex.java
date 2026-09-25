@@ -1320,7 +1320,7 @@ public class Coinex extends CoinexApi
             );
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, network);
+                networks.put(networkCode, network);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -2118,7 +2118,7 @@ public class Coinex extends CoinexApi
                 String marketId = this.safeString(entry, "market");
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, type);
                 String symbol = (String) market.get("symbol");
-                result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (entry), market));
+                result.put(symbol, this.parseTradingFee((Map<String, Object>) (entry), market));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -2283,7 +2283,7 @@ public class Coinex extends CoinexApi
                 baseAccount.put("debt", Precise.stringAdd(baseDebt, baseInterest));
                 if (!java.util.Objects.equals(baseCurrencyCode, null))
                 {
-                    result.put((String)baseCurrencyCode, baseAccount);
+                    result.put(baseCurrencyCode, baseAccount);
                 }
             }
             return this.safeBalance(result);
@@ -2328,7 +2328,7 @@ public class Coinex extends CoinexApi
                 account.put("used", this.safeString(entry, "frozen"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
             return this.safeBalance(result);
@@ -2376,7 +2376,7 @@ public class Coinex extends CoinexApi
                 account.put("used", this.safeString(entry, "frozen"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
             return this.safeBalance(result);
@@ -2421,7 +2421,7 @@ public class Coinex extends CoinexApi
                 account.put("used", this.safeString(entry, "frozen"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
             return this.safeBalance(result);
@@ -5955,7 +5955,7 @@ public class Coinex extends CoinexApi
                 {
                     if (!java.util.Objects.equals(code, null))
                     {
-                        result.put((String)code, this.parseDepositWithdrawFee(item, (Map<String, Object>) null));
+                        result.put(code, this.parseDepositWithdrawFee(item, (Map<String, Object>) null));
                     }
                 }
             }

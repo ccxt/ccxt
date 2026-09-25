@@ -2649,7 +2649,7 @@ public class Alpaca extends AlpacaApi
             String equity = this.safeString(account, "equity");
             String positionsValue = this.safeString(account, "position_market_value");
             cashAccount.put("total", Precise.stringSub(equity, positionsValue)); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
-            result.put((String)code, cashAccount);
+            result.put(code, cashAccount);
         }
         for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
@@ -2683,7 +2683,7 @@ public class Alpaca extends AlpacaApi
                 Map<String, Object> positionAccount = this.account();
                 positionAccount.put("free", this.safeString(position, "qty_available"));
                 positionAccount.put("total", this.safeString(position, "qty"));
-                result.put((String)positionCode, positionAccount);
+                result.put(positionCode, positionAccount);
             }
         }
         return this.safeBalance(result);

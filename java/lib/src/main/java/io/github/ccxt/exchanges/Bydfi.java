@@ -3132,7 +3132,7 @@ public class Bydfi extends BydfiApi
             account.put("free", this.safeString2(balance, "available", "availableBalance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

@@ -1004,7 +1004,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 String uid = this.safeString(schedule, "uid");
                 if (!java.util.Objects.equals(uid, null))
                 {
-                    schedulesByUid.put((String)uid, schedule);
+                    schedulesByUid.put(uid, schedule);
                 }
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1020,7 +1020,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     continue;
                 }
                 String volume = this.safeString(volumes, uid, "0");
-                result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (schedule), market, volume));
+                result.put(symbol, this.parseTradingFee((Map<String, Object>) (schedule), market, volume));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -3490,7 +3490,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

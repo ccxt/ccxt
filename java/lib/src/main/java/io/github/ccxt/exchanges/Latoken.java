@@ -795,7 +795,7 @@ public class Latoken extends LatokenApi
                 account.put("used", this.safeString(balance, "blocked"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
             result.put("timestamp", maxTimestamp);

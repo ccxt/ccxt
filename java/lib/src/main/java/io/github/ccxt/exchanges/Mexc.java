@@ -1552,7 +1552,7 @@ public class Mexc extends MexcApi
             String network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
             {
-                networks.put((String)network, Helpers.newMap(
+                networks.put(network, Helpers.newMap(
     "info", chain,
     "id", networkId,
     "network", network,
@@ -4591,7 +4591,7 @@ public class Mexc extends MexcApi
                 account.put("used", this.safeString(entry, "frozenBalance"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put((String)code, account);
+                    ((Map<String, Object>)result).put(code, account);
                 }
             }
             return this.safeBalance(result);
@@ -4607,7 +4607,7 @@ public class Mexc extends MexcApi
                 account.put("used", this.safeString(entry, "locked"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put((String)code, account);
+                    ((Map<String, Object>)result).put(code, account);
                 }
             }
             return this.safeBalance(result);

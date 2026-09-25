@@ -1336,7 +1336,7 @@ public class Kraken extends KrakenApi
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) market.get("symbol");
                 Object ticker = (tickers == null || id == null ? null : tickers.get(id));
-                result.put((String)symbol, this.parseTicker(ticker, market));
+                result.put(symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
@@ -1893,7 +1893,7 @@ public class Kraken extends KrakenApi
             account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

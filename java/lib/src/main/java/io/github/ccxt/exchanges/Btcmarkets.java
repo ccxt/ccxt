@@ -763,7 +763,7 @@ public class Btcmarkets extends BtcmarketsApi
             account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

@@ -151,7 +151,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             account.put("total", this.safeString(entry, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         String messageHash = "balance";

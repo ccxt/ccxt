@@ -628,7 +628,7 @@ public class Coinspot extends CoinspotApi
                     account.put("total", this.safeString(balance, "balance"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        result.put((String)code, account);
+                        result.put(code, account);
                     }
                 }
             }
@@ -643,7 +643,7 @@ public class Coinspot extends CoinspotApi
                 account.put("total", this.safeString(balances, currencyId));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
         }
@@ -851,7 +851,7 @@ public class Coinspot extends CoinspotApi
                 {
                     String symbol = (String) market.get("symbol");
                     Object ticker = (prices == null || id == null ? null : prices.get(id));
-                    result.put((String)symbol, this.parseTicker(ticker, market));
+                    result.put(symbol, this.parseTicker(ticker, market));
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols, true);

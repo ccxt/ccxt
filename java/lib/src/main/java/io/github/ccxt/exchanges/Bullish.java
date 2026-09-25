@@ -1674,8 +1674,8 @@ public class Bullish extends BullishApi
             {
                 until = this.sum(startTime, maxDelta);
             }
-            Helpers.addElementToObject(requestUntil, "createdAtDatetime[gte]", this.iso8601(startTime));
-            Helpers.addElementToObject(requestUntil, "createdAtDatetime[lte]", this.iso8601(until));
+            requestUntil.put("createdAtDatetime[gte]", this.iso8601(startTime));
+            requestUntil.put("createdAtDatetime[lte]", this.iso8601(until));
             List<Object> response = (this.publicGetV1MarketsSymbolCandle(this.extend(requestUntil, paramsUntil))).join();
             //
             //     [
@@ -2487,11 +2487,11 @@ public class Bullish extends BullishApi
             Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
             if (!java.util.Objects.equals(until, null))
             {
-                Helpers.addElementToObject(requestUntil, "createdAtDatetime[lte]", this.iso8601(until));
+                requestUntil.put("createdAtDatetime[lte]", this.iso8601(until));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(requestUntil, "createdAtDatetime[gte]", this.iso8601(since));
+                requestUntil.put("createdAtDatetime[gte]", this.iso8601(since));
             }
             Map<String, Object> response = (this.privateGetV1WalletsTransactions(this.extend(requestUntil, paramsUntil))).join();
             //
@@ -3000,7 +3000,7 @@ public class Bullish extends BullishApi
             account.put("used", this.safeString(balance, "lockedQuantity"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -3339,8 +3339,8 @@ public class Bullish extends BullishApi
             {
                 until = now;
             }
-            Helpers.addElementToObject(requestUntil, "createdAtDatetime[gte]", this.iso8601(startTimestamp));
-            Helpers.addElementToObject(requestUntil, "createdAtDatetime[lte]", this.iso8601(until));
+            requestUntil.put("createdAtDatetime[gte]", this.iso8601(startTimestamp));
+            requestUntil.put("createdAtDatetime[lte]", this.iso8601(until));
             List<Object> response = (this.privateGetV1HistoryBorrowInterest(this.extend(requestUntil, paramsUntil))).join();
             //
             //     [

@@ -684,7 +684,7 @@ public class Bit2c extends Bit2cApi
                 String takerString = this.safeString(fee, "FeeTaker");
                 Double maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
                 Double taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
         put( "taker", taker );

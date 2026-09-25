@@ -220,7 +220,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
+                String newTickerSymbol = this.safeString(newTicker, "symbol");
+                if (!java.util.Objects.equals(newTickerSymbol, null))
+                {
+                    result.put(newTickerSymbol, newTicker);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsResolved, true);

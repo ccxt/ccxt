@@ -754,7 +754,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "name", this.safeString(network, "name"),
     "network", networkCode,
@@ -1016,7 +1016,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1228,7 +1228,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 List<Object> first = (List<Object>) this.safeList(entry, 0, new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, delimiter, (String) null);
                 String symbol = (String) market.get("symbol");
-                result.put((String)symbol, this.parseTicker(first, market));
+                result.put(symbol, this.parseTicker(first, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);

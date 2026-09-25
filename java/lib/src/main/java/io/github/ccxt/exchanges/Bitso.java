@@ -823,7 +823,7 @@ public class Bitso extends BitsoApi
             account.put("total", this.safeString(balance, "total"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1300,7 +1300,7 @@ public class Bitso extends BitsoApi
                 Object fee = (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i));
                 String marketId = this.safeString(fee, "book");
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "_", (String) null);
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
         put( "maker", Bitso.this.safeNumber(fee, "maker_fee_decimal", (Object) null) );
@@ -1940,7 +1940,7 @@ public class Bitso extends BitsoApi
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, new HashMap<String, Object>() {{
+                    result.put(code, new HashMap<String, Object>() {{
         put( "deposit", Bitso.this.safeNumber(depositFee, "fee", (Object) null) );
         put( "withdraw", null );
         put( "info", new HashMap<String, Object>() {{
@@ -1962,7 +1962,7 @@ public class Bitso extends BitsoApi
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, Helpers.newMap(
+                    result.put(code, Helpers.newMap(
         "deposit", this.safeValue(this.safeDict(result, code, (Object) null), "deposit"),
         "withdraw", this.safeNumber(withdrawalFees, currencyId, (Object) null),
         "info", Helpers.newMap(
@@ -2099,7 +2099,7 @@ public class Bitso extends BitsoApi
             {
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, new HashMap<String, Object>() {{
+                    result.put(code, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", Bitso.this.safeNumber(entry, "fee", (Object) null) );
         put( "percentage", (!Boolean.TRUE.equals(Bitso.this.safeBool(entry, "is_fixed", false))) );
@@ -2125,7 +2125,7 @@ public class Bitso extends BitsoApi
                 Map<String, Object> resultValue = (Map<String, Object>) this.safeDict(result, code, (Object) null);
                 if (java.util.Objects.equals(resultValue, null))
                 {
-                    result.put((String)code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
+                    result.put(code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
                 }
                 Helpers.addElementToObject(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "withdraw"), "fee", withdrawFee);
                 Helpers.addElementToObject(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "info"), code, withdrawFee);

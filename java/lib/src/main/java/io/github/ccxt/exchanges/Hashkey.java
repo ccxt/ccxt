@@ -2103,7 +2103,7 @@ public class Hashkey extends HashkeyApi
             account.put("used", this.safeString(balanceEntry, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -2133,7 +2133,7 @@ public class Hashkey extends HashkeyApi
         }};
         if (!java.util.Objects.equals(code, null))
         {
-            result.put((String)code, account);
+            result.put(code, account);
         }
         return this.safeBalance(result);
     }
