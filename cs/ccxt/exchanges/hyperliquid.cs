@@ -385,7 +385,7 @@ public partial class hyperliquid : Exchange
                 string? unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
                 string? quote = this.safeString(symbolParts, 1);
                 string newSymbol = ((this.safeCurrencyCode(unifiedBaseName) + "/") + quote);
-                if (inOp(this.markets, newSymbol))
+                if ((this.markets != null && this.markets.ContainsKey(newSymbol)))
                 {
                     return ccxt.BaseExchange.ToDict(getValue(this.markets, newSymbol));
                 }

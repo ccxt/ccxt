@@ -107,7 +107,7 @@ public partial class hollaex : ccxt.hollaex
         Int64? timestampMs = this.parse8601(timestamp);
         Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestampMs);
         object orderbook = null;
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             orderbook = this.orderBook(snapshot);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;

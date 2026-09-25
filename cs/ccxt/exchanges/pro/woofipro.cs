@@ -149,7 +149,7 @@ public partial class woofipro : ccxt.woofipro
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? topic = this.safeString(message, "topic");
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -658,7 +658,7 @@ public partial class woofipro : ccxt.woofipro
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
             // allows further authentication attempts
-            if (inOp(client.subscriptions, messageHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove("authenticated");
             }
@@ -1164,7 +1164,7 @@ public partial class woofipro : ccxt.woofipro
         if ((fetchPositionsSnapshot == true))
         {
             string messageHash = "fetchPositionsSnapshot";
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash});
@@ -1444,7 +1444,7 @@ public partial class woofipro : ccxt.woofipro
             {
                 string messageHash = "authenticated";
                 client.reject(error, messageHash);
-                if (inOp(client.subscriptions, messageHash))
+                if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 }

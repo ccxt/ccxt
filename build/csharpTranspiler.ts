@@ -331,6 +331,41 @@ function csharpHelperDeclarationOfLine (line: string): { type: string, name: str
 // (orderbooks reads go through getOrderBook); a field may still be null, so reads keep a null test
 const CSHARP_WS_CACHE_DICT_FIELDS = [ 'balance', 'tickers', 'fundingRates', 'bidsasks', 'trades', 'ohlcvs' ];
 
+// inOp-only receivers: further hand-written base dictionaries (Exchange.Options.cs, ws/Exchange.WsBridge.cs)
+// and the ws client's maps (ws/Client.cs); InOp's IDictionary branches answer ContainsKey for each
+const CSHARP_INOP_DICT_FIELDS: { [name: string]: string } = {
+    'orderbooks': 'IDictionary<string, object>', 'markets_by_id': 'IDictionary<string, object>',
+    'timeframes': 'Dictionary<string, object>', 'has': 'Dictionary<string, object>',
+    'options': 'ConcurrentDictionary<string, object>', 'clients': 'ConcurrentDictionary<string, WebSocketClient>',
+    'markets': 'IDictionary<string, object>', 'currencies_by_id': 'IDictionary<string, object>',
+}
+const CSHARP_WS_CLIENT_MAP_RE = /^([A-Za-z_]\w*)\.(subscriptions|futures)$/
+const CSHARP_WS_CLIENT_MAPS: { [name: string]: string } = { 'subscriptions': 'IDictionary<string, object>', 'futures': 'IDictionary<string, Future>' }
+
+// `client.subscriptions|futures` where `client` is a `WebSocketClient` parameter or a local bound once
+// by `var client = this.client(...)` (never null) and never rebound in the method
+function csharpInOpReceiverType (region, name: string, line: number): { type: string, kind: string, value: string } | undefined {
+    if (name.startsWith ('this.')) {
+        const type = CSHARP_INOP_DICT_FIELDS[name.slice (5)];
+        return (type === undefined) ? undefined : { type, kind: 'field', value: '' };
+    }
+    const member = CSHARP_WS_CLIENT_MAP_RE.exec (name);
+    if (member === null) {
+        return undefined;
+    }
+    const client = member[1];
+    const writes = region.lines.filter ((l, k) => (k > region.start) && (k < region.end)
+        && new RegExp ('(?<![\\w.])' + client + '[ ]*=[^=>]').test (l));
+    const bound = writes.filter ((l) => new RegExp ('^[ ]*var[ ]+' + client + '[ ]*=[ ]*this\\.client\\(').test (l));
+    const isParam = region.params[client] === 'WebSocketClient';
+    const local = region.declarations.some ((d) => d.name === client);
+    if (local || !((isParam && writes.length === 0) || (!isParam && writes.length === 1 && bound.length === 1
+        && region.lines.findIndex ((l, k) => (k > region.start) && bound.includes (l)) < line))) {
+        return undefined;
+    }
+    return { type: CSHARP_WS_CLIENT_MAPS[member[2]], kind: 'field', value: '' };
+}
+
 function csharpHelperReceiverType (region, name: string, line: number, params: { [name: string]: string }): { type: string, kind: string, value: string } | undefined {
     if (name.startsWith ('this.')) {
         return CSHARP_WS_CACHE_DICT_FIELDS.includes (name.slice (5)) ? { type: 'IDictionary<string, object>', kind: 'field', value: '' } : undefined;
@@ -369,7 +404,7 @@ function csharpHelperLocalIsNonNull (region, name: string, line: number, value: 
 
 // rewrite every proven helper call on one line; offsets are taken from the mask, the emitted text
 // from the original line
-function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType, takeIndexType, takeNullableKeyType = (k) => false): string | undefined {
+function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType, takeIndexType, takeNullableKeyType = (k) => false, takeInOpType = (n) => undefined): string | undefined {
     const edits = [];
     const lengthCall = /getArrayLength[ ]*\(/g;
     let match;
@@ -394,11 +429,11 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         const firstComma = csharpHelperTopLevelComma (masked, open, close);
         if (firstComma === undefined) continue;
         const name = masked.substring (open + 1, firstComma).trim ();
-        if (!/^(?:this\.)?[A-Za-z_]\w*$/.test (name)) continue;
+        if (!/^(?:this\.)?[A-Za-z_]\w*$/.test (name) && !CSHARP_WS_CLIENT_MAP_RE.test (name)) continue;
         const secondComma = csharpHelperTopLevelComma (masked, firstComma, close);
         if (secondComma !== undefined) continue; // more than two arguments
         const keyMask = masked.substring (firstComma + 1, close).trim ();
-        const receiver = takeType (name);
+        const receiver = takeType (name) ?? takeInOpType (name);
         if (receiver === undefined) continue;
         const nullableKey = (receiver.kind === 'field') && takeNullableKeyType (keyMask);
         if (!nullableKey && !takeKeyType (keyMask)) continue;
@@ -683,7 +718,7 @@ export function nativeDeclaredHelperCalls (content: string): string {
             const key = csharpHelperReceiverType (region, keyMask, i, region.params);
             return (key !== undefined) && (key.type === 'string?');
         };
-        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType, takeNullableKeyType);
+        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType, takeNullableKeyType, (name) => csharpInOpReceiverType (region, name, i));
         if (rewritten === undefined) {
             return line;
         }

@@ -1,0 +1,24 @@
+total 305
+this.field 69
+ident 141
+client.map 58
+     13 inOp(this.markets_by_id
+      8 inOp(this.positions
+      8 inOp(this.orderbooks
+      8 inOp(this.markets
+      4 inOp(this.outcomes_by_id
+      4 inOp(this.outcomes
+      4 inOp(this.balance
+      3 inOp(this.trades
+      3 inOp(this.tickers
+      2 inOp(this.ohlcvs
+      2 inOp(this.fundingRates
+      2 inOp(this.clients
+      2 inOp(this.bidsasks
+      1 inOp(this.options
+      1 inOp(this.headers
+      1 inOp(this.features
+      1 inOp(this.events_by_slug
+      1 inOp(this.events
+      1 inOp(this.currencies_by_id
+      1 inOp(this.currencies

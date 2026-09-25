@@ -225,7 +225,7 @@ public partial class whitebit : ccxt.whitebit
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> data = this.safeDict(parameters, 1);
         Int64? timestamp = this.safeTimestamp(data, "timestamp");
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ccxt.pro.OrderBook ob = this.orderBook();
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
@@ -1104,7 +1104,7 @@ public partial class whitebit : ccxt.whitebit
         // their own authorize frame. the flight lives in client.futures of the handshake client
         // under a non-messageHash key and settles only via client.resolve () / ((WebSocketClient)client).reject ()
         string messageHash = "authenticateFlight";
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
             // a flight is already in progress - wake when the leader settles
             // it, the socket is authorized by then. the flight gate is
@@ -1161,11 +1161,11 @@ public partial class whitebit : ccxt.whitebit
             // replay that failure. the stale future is settled through
             // ((WebSocketClient)client).reject () - guarded, so it always has a waiter and the
             // error is never parked in ((WebSocketClient)client).rejections
-            if (inOp(client.subscriptions, subscribeHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
             }
-            if (inOp(client.futures, subscribeHash))
+            if ((client.futures != null && client.futures.ContainsKey(subscribeHash)))
             {
                 client.reject(e, subscribeHash);
             }
@@ -1212,7 +1212,7 @@ public partial class whitebit : ccxt.whitebit
             if (e is AuthenticationError)
             {
                 client.reject(e, "authenticated");
-                if (inOp(client.subscriptions, "authenticated"))
+                if ((client.subscriptions != null && client.subscriptions.ContainsKey("authenticated")))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove("authenticated");
                 }

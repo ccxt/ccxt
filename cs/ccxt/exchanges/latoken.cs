@@ -1042,7 +1042,7 @@ public partial class latoken : Exchange
         if (((bs != null)) && ((quote != null)))
         {
             symbol = ((bs + "/") + quote);
-            if (((this.markets != null)) && (inOp(this.markets, symbol)))
+            if (((this.markets != null)) && ((this.markets != null && symbol != null && this.markets.ContainsKey(symbol))))
             {
                 marketResolved = this.market(symbol);
             }
@@ -1332,7 +1332,7 @@ public partial class latoken : Exchange
         {
             symbol = ((bs + "/") + quote);
         }
-        bool symbolKnown = ((symbol != null)) && ((this.markets != null)) && (inOp(this.markets, symbol));
+        bool symbolKnown = ((symbol != null)) && ((this.markets != null)) && ((this.markets != null && symbol != null && this.markets.ContainsKey(symbol)));
         object marketResolved = market;
         if (symbolKnown)
         {

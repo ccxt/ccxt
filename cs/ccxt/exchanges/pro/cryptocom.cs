@@ -304,7 +304,7 @@ public partial class cryptocom : ccxt.cryptocom
         object data = this.safeValue(message, "data");
         data = this.safeDict(data, 0);
         Int64? timestamp = this.safeInteger(data, "t");
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(message, "depth");
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook(new Dictionary<string, object>() {}, limit);
@@ -1074,7 +1074,7 @@ public partial class cryptocom : ccxt.cryptocom
         if ((fetchPositionsSnapshot == true))
         {
             string messageHash = "fetchPositionsSnapshot";
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash});
@@ -1525,7 +1525,7 @@ public partial class cryptocom : ccxt.cryptocom
             {
                 string messageHash = "authenticated";
                 client.reject(e, messageHash);
-                if (inOp(client.subscriptions, messageHash))
+                if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 }
@@ -1677,7 +1677,7 @@ public partial class cryptocom : ccxt.cryptocom
         for (int i = 0; i < keys.Count; i++)
         {
             string? messageHash = ((string)keys[i]);
-            if (!(inOp(client.subscriptions, messageHash)))
+            if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
             {
                 continue;
             }

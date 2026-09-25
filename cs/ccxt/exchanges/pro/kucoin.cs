@@ -276,7 +276,7 @@ public partial class kucoin : ccxt.kucoin
         var client = this.client(url);
         if (((utaToken == null)) || expired)
         {
-            if (inOp(client.futures, messageHash))
+            if ((client.futures != null && client.futures.ContainsKey(messageHash)))
             {
                 // wait the existing future if it's already being fetched by another call
                 await client.future(messageHash);
@@ -352,7 +352,7 @@ public partial class kucoin : ccxt.kucoin
         for (int i = 0; i < (subscriptionHashes?.Count ?? 0); i++)
         {
             string? subscriptionHash = ((string)(subscriptionHashes != null && i < subscriptionHashes.Count ? subscriptionHashes[i] : null));
-            if (!(inOp(client.subscriptions, subscriptionHash)))
+            if (!((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash))))
             {
                 ((IDictionary<string,object>)client.subscriptions)[requestId] = subscriptionHash;
             }
@@ -1854,7 +1854,7 @@ public partial class kucoin : ccxt.kucoin
         // let orderbook = this.safeDict (this.orderbooks, symbol);
         if (topic.IndexOf("Depth", StringComparison.Ordinal) >= 0)
         {
-            if (!(inOp(this.orderbooks, symbol)))
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
             } else
@@ -1865,7 +1865,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)this.getOrderBook(this.orderbooks, symbol))["symbol"] = symbol;
         } else
         {
-            if (!(inOp(this.orderbooks, symbol)))
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
             }
@@ -1928,7 +1928,7 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeIntegerProduct(data, "M", 0.000001);
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -2091,7 +2091,7 @@ public partial class kucoin : ccxt.kucoin
         //     }
         //
         string? id = this.safeString(message, "id");
-        if (!(inOp(client.subscriptions, id)))
+        if (!((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id))))
         {
             return;
         }
@@ -3299,7 +3299,7 @@ public partial class kucoin : ccxt.kucoin
         if ((fetchPositionsSnapshot == true))
         {
             string messageHash = "fetchPositionsSnapshot";
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, uta});
@@ -3339,7 +3339,7 @@ public partial class kucoin : ccxt.kucoin
         if ((fetchPositionSnapshot == true))
         {
             string messageHash = ("fetchPositionSnapshot:" + (symbol));
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionSnapshot, new object[] { client, messageHash, symbol});

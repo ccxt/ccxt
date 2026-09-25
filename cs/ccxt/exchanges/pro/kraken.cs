@@ -1229,7 +1229,7 @@ public partial class kraken : ccxt.kraken
             // through client.resolve () / ((WebSocketClient)client).reject () so every write to
             // that map stays behind the client's own lock
             string messageHash = "authenticateFlight";
-            if (inOp(client.futures, messageHash))
+            if ((client.futures != null && client.futures.ContainsKey(messageHash)))
             {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the subscriptions bucket

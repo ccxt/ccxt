@@ -2242,7 +2242,7 @@ public partial class gate : ccxt.gate
             } catch(Exception e)
             {
                 client.reject(e, messageHash);
-                if (((messageHash != null)) && (inOp(client.subscriptions, messageHash)))
+                if (((messageHash != null)) && ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 }
@@ -2264,14 +2264,14 @@ public partial class gate : ccxt.gate
                         }
                         string? symbol = this.safeSymbol(payload[i], null, "_", marketType);
                         string? messageHashSymbol = ((string)add(add((parsedChannel != null && 1 < parsedChannel.Count ? parsedChannel[1] : null), ":"), symbol));
-                        if (((messageHashSymbol != null)) && (inOp(client.subscriptions, messageHashSymbol)))
+                        if (((messageHashSymbol != null)) && ((client.subscriptions != null && messageHashSymbol != null && client.subscriptions.ContainsKey(messageHashSymbol))))
                         {
                             ((IDictionary<string,object>)client.subscriptions).Remove(messageHashSymbol);
                         }
                     }
                 }
             }
-            if (((id != null)) && (inOp(client.subscriptions, id)))
+            if (((id != null)) && ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id))))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(id);
             }
@@ -2306,7 +2306,7 @@ public partial class gate : ccxt.gate
             object method = (methods != null && methods.ContainsKey(channel) ? methods[channel] : null);
             DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
         }
-        if (inOp(client.subscriptions, id))
+        if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
         {
             if ((id != null))
             {
@@ -2340,7 +2340,7 @@ public partial class gate : ccxt.gate
         for (int i = 0; i < keys.Count; i++)
         {
             string? messageHash = ((string)keys[i]);
-            if (!(inOp(client.subscriptions, messageHash)))
+            if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
             {
                 continue;
             }

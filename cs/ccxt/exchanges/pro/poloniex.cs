@@ -1251,7 +1251,7 @@ public partial class poloniex : ccxt.poloniex
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
                 }
-                if (!(inOp(this.orderbooks, symbol)))
+                if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
                 {
                     continue;
                 }
@@ -1484,7 +1484,7 @@ public partial class poloniex : ccxt.poloniex
                 {
                     string messageHash = "authenticated";
                     client.reject(e, messageHash);
-                    if (inOp(client.subscriptions, messageHash))
+                    if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                     }
@@ -1518,7 +1518,7 @@ public partial class poloniex : ccxt.poloniex
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (inOp(client.subscriptions, messageHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }

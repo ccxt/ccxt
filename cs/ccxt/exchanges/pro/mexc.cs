@@ -951,7 +951,7 @@ public partial class mexc : ccxt.mexc
         string messageHash = ("orderbook:" + symbol);
         IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash);
         Int64? limit = this.safeInteger(subscription, "limit");
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }

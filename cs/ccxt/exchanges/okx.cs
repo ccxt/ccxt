@@ -9564,7 +9564,7 @@ public partial class okx : Exchange
         // handle unified currency code or symbol
         string? currencyId = null;
         IDictionary<string, object> market = null;
-        if ((((this.markets != null)) && (inOp(this.markets, symbol))) || (((this.markets_by_id != null)) && (inOp(this.markets_by_id, symbol))))
+        if ((((this.markets != null)) && ((this.markets != null && this.markets.ContainsKey(symbol)))) || (((this.markets_by_id != null)) && ((this.markets_by_id != null && this.markets_by_id.ContainsKey(symbol)))))
         {
             market = this.market(symbol);
             currencyId = this.safeString(market, "baseId");

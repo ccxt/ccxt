@@ -859,7 +859,7 @@ public partial class phemex : ccxt.phemex
             client.resolve(orderbook, messageHash);
         } else
         {
-            if (inOp(this.orderbooks, symbol))
+            if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
             {
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 IDictionary<string, object> changes = this.safeDict2(message, "book", "orderbook_p", new Dictionary<string, object>() {});
@@ -1621,7 +1621,7 @@ public partial class phemex : ccxt.phemex
         //     ]
         // }
         string? id = this.safeString(message, "id", "");
-        if (inOp(client.subscriptions, id))
+        if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
         {
             object method = this.safeValue(client.subscriptions, id);
             ((IDictionary<string,object>)client.subscriptions).Remove(id);
@@ -1691,7 +1691,7 @@ public partial class phemex : ccxt.phemex
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (inOp(client.subscriptions, messageHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }
@@ -1751,7 +1751,7 @@ public partial class phemex : ccxt.phemex
             };
             string subscriptionHash = requestId.ToString();
             Dictionary<string, object> message = this.extend(request, parameters);
-            if (!(inOp(client.subscriptions, messageHash)))
+            if (!((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash))))
             {
                 ((IDictionary<string,object>)client.subscriptions)[subscriptionHash] = this.handleAuthenticate;
             }

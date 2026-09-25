@@ -1055,7 +1055,7 @@ public partial class bitget : ccxt.bitget
         if (incrementalBook)
         {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
-            if (!(inOp(this.orderbooks, symbol)))
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 // const ob = this.orderBook ({});
                 ccxt.pro.CountedOrderBook ob = this.countedOrderBook(new Dictionary<string, object>() {});
@@ -3039,7 +3039,7 @@ public partial class bitget : ccxt.bitget
             {
                 string messageHash = "authenticated";
                 client.reject(e, messageHash);
-                if (inOp(client.subscriptions, messageHash))
+                if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 }
@@ -3246,20 +3246,20 @@ public partial class bitget : ccxt.bitget
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("unsubscribe:orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string subMessageHash = ("orderbook:" + symbol);
-        if (inOp(this.orderbooks, symbol))
+        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
-        if (inOp(client.subscriptions, subMessageHash))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subMessageHash)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(subMessageHash);
         }
-        if (inOp(client.subscriptions, messageHash))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
         }
         var error = new UnsubscribeError(((this.id + " orderbook ") + symbol));
-        if (inOp(client.futures, subMessageHash))
+        if ((client.futures != null && client.futures.ContainsKey(subMessageHash)))
         {
             client.reject(error, subMessageHash);
         }
@@ -3287,16 +3287,16 @@ public partial class bitget : ccxt.bitget
         {
             this.trades.Remove(symbol);
         }
-        if (inOp(client.subscriptions, subMessageHash))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subMessageHash)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(subMessageHash);
         }
-        if (inOp(client.subscriptions, messageHash))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
         }
         var error = new UnsubscribeError(((this.id + " trades ") + symbol));
-        if (inOp(client.futures, subMessageHash))
+        if ((client.futures != null && client.futures.ContainsKey(subMessageHash)))
         {
             client.reject(error, subMessageHash);
         }
@@ -3324,16 +3324,16 @@ public partial class bitget : ccxt.bitget
         {
             this.tickers.Remove(symbol);
         }
-        if (inOp(client.subscriptions, subMessageHash))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subMessageHash)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(subMessageHash);
         }
-        if (inOp(client.subscriptions, messageHash))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
         }
         var error = new UnsubscribeError(((this.id + " ticker ") + symbol));
-        if (inOp(client.futures, subMessageHash))
+        if ((client.futures != null && client.futures.ContainsKey(subMessageHash)))
         {
             client.reject(error, subMessageHash);
         }

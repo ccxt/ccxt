@@ -1133,7 +1133,7 @@ public partial class bybit : ccxt.bybit
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeInteger(message, "ts");
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -1754,7 +1754,7 @@ public partial class bybit : ccxt.bybit
         if ((fetchPositionsSnapshot == true))
         {
             string messageHash = "fetchPositionsSnapshot";
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash});
@@ -2642,7 +2642,7 @@ public partial class bybit : ccxt.bybit
             for (int i = 0; i < topicsLength; i++)
             {
                 string? messageHash = ((string)(messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null));
-                if (!(inOp(client.subscriptions, messageHash)))
+                if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                 {
                     newTopics.Add(getValue(topics, i));
                 }
@@ -2820,7 +2820,7 @@ public partial class bybit : ccxt.bybit
                 for (int i = 0; i < keys.Count; i++)
                 {
                     string? messageHash = ((string)keys[i]);
-                    if (!(inOp(client.subscriptions, messageHash)))
+                    if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                     {
                         continue;
                     }
@@ -2843,7 +2843,7 @@ public partial class bybit : ccxt.bybit
                 {
                     string authenticatedHash = "authenticated";
                     client.reject(error, authenticatedHash);
-                    if (inOp(client.subscriptions, authenticatedHash))
+                    if ((client.subscriptions != null && client.subscriptions.ContainsKey(authenticatedHash)))
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(authenticatedHash);
                     }
@@ -3022,7 +3022,7 @@ public partial class bybit : ccxt.bybit
         {
             var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (inOp(client.subscriptions, messageHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }
@@ -3068,7 +3068,7 @@ public partial class bybit : ccxt.bybit
         for (int i = 0; i < keys.Count; i++)
         {
             string? messageHash = ((string)keys[i]);
-            if (!(inOp(client.subscriptions, messageHash)))
+            if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
             {
                 continue;
             }
