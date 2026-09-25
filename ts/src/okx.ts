@@ -5633,8 +5633,11 @@ export default class okx extends Exchange {
             network = this.safeString (networks, network.toUpperCase (), network); // handle ETH>ERC20 alias
             request['chain'] = currency['id'] + '-' + network;
         }
-        const paramsOmitted: Dict = (network !== undefined) ? this.omit (paramsWithdrawTag, 'network') : paramsWithdrawTag;
-        let fee = this.safeString (paramsOmitted, 'fee');
+        const omitKeys: string[] = [ 'fee' ];
+        if (network !== undefined) {
+            omitKeys.push ('network');
+        }
+        let fee = this.safeString (paramsWithdrawTag, 'fee');
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies ();
             this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
@@ -5646,7 +5649,7 @@ export default class okx extends Exchange {
             }
         }
         request['fee'] = this.numberToString (fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
-        const query = this.omit (paramsOmitted, [ 'fee' ]);
+        const query = this.omit (paramsWithdrawTag, omitKeys);
         const response = await this.privatePostAssetWithdrawal (this.extend (request, query));
         //
         //     {
@@ -6076,9 +6079,9 @@ export default class okx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ marginModeOption, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchLeverage', params);
         // cross as default marginMode
-        const marginMode: Str = (marginModeOption === undefined) ? this.safeString (paramsMarginMode, 'mgnMode', 'cross') : marginModeOption;
+        const defaultMarginMode = this.safeString (params, 'mgnMode', 'cross');
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchLeverage', params, defaultMarginMode);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
@@ -7199,9 +7202,9 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ marginModeOption, paramsMarginMode ] = this.handleMarginModeAndParams ('setLeverage', params);
         // cross as default marginMode
-        const marginMode: Str = (marginModeOption === undefined) ? this.safeString (paramsMarginMode, 'mgnMode', 'cross') : marginModeOption;
+        const defaultMarginMode = this.safeString (params, 'mgnMode', 'cross');
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('setLeverage', params, defaultMarginMode);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
@@ -7744,9 +7747,9 @@ export default class okx extends Exchange {
                 throw new BadRequest (this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }
         }
-        const [ marginModeOption, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchMarketLeverageTiers', params);
         // cross as default marginMode
-        const marginMode: Str = (marginModeOption === undefined) ? this.safeString (paramsMarginMode, 'tdMode', 'cross') : marginModeOption;
+        const defaultMarginMode = this.safeString (params, 'tdMode', 'cross');
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchMarketLeverageTiers', params, defaultMarginMode);
         const request: Dict = {
             'instType': type,
             'tdMode': marginMode,
@@ -7842,9 +7845,9 @@ export default class okx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ marginModeOption, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params);
         // cross as default marginMode
-        const marginMode: Str = (marginModeOption === undefined) ? this.safeString (paramsMarginMode, 'mgnMode', 'cross') : marginModeOption;
+        const defaultMarginMode = this.safeString (params, 'mgnMode', 'cross');
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params, defaultMarginMode);
         const request: Dict = {
             'mgnMode': marginMode,
         };

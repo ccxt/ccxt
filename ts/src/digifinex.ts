@@ -3989,19 +3989,24 @@ export default class digifinex extends Exchange {
             marginMode = (marginMode === 'cross') ? 'crossed' : 'isolated';
             request['margin_mode'] = marginMode;
         }
-        const paramsOmitted = (marginMode !== undefined) ? this.omit (params, [ 'marginMode', 'defaultMarginMode' ]) : params;
-        let side: Str = undefined;
-        if (marginMode === 'isolated') {
-            side = this.safeString (paramsOmitted, 'side');
+        const omitKeys: string[] = [];
+        if (marginMode !== undefined) {
+            omitKeys.push ('marginMode');
+            omitKeys.push ('defaultMarginMode');
         }
-        if (marginMode === 'isolated') {
+        const side = this.safeString (params, 'side');
+        const isIsolated = (marginMode === 'isolated');
+        if (isIsolated) {
             if (side !== undefined) {
                 request['side'] = side;
             } else {
                 this.checkRequiredArgument ('setLeverage', side, 'side', [ 'long', 'short' ]);
             }
         }
-        const paramsRequest = (side !== undefined) ? this.omit (paramsOmitted, 'side') : paramsOmitted;
+        if (isIsolated && (side !== undefined)) {
+            omitKeys.push ('side');
+        }
+        const paramsRequest = this.omit (params, omitKeys);
         return await this.privateSwapPostAccountLeverage (this.extend (request, paramsRequest));
         //
         //     {

@@ -2536,13 +2536,8 @@ export default class bithumb extends Exchange {
         let response: any = undefined;
         const twap = this.safeBool (paramsGeneration, 'twap', false);
         const paramsOmitted = this.omit (paramsGeneration, 'twap');
-        let clientOrderId = undefined;
-        if (twap) {
-            clientOrderId = undefined;
-        } else {
-            clientOrderId = this.safeString2 (paramsOmitted, 'clientOrderId', 'client_order_id');
-        }
-        const useClientOrderId = (generation === 2) && (clientOrderId !== undefined);
+        const clientOrderId = this.safeString2 (paramsOmitted, 'clientOrderId', 'client_order_id');
+        const useClientOrderId = !twap && (generation === 2) && (clientOrderId !== undefined);
         let paramsRequest = paramsOmitted;
         if (useClientOrderId) {
             paramsRequest = this.omit (paramsOmitted, [ 'clientOrderId' ]);
