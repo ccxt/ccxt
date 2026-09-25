@@ -6510,7 +6510,8 @@ function ccxtGoTupleAnnotationElement (typeNode, index) {
 }
 
 function ccxtGoTupleOverridesAgree (declaration, name, index, goType) {
-    const fileName = declaration.getSourceFile ().fileName;
+    // drivers pass relative names (`ts/src/x.ts`): resolve so the marker matches
+    const fileName = path.resolve (declaration.getSourceFile ().fileName);
     const at = fileName.lastIndexOf ('/ts/src/');
     if (at < 0) {
         return false;
@@ -6857,6 +6858,11 @@ function ccxtGoTupleStringReadIsSafe (goTranspiler, node) {
     }
     if ((parent.kind === ts.SyntaxKind.BinaryExpression) && (parent.operatorToken.kind === ts.SyntaxKind.PlusToken)) {
         return true; // Add derefScalars; a native `+` prints `*x` only for a nil-proven operand
+    }
+    if ((parent.kind === ts.SyntaxKind.BinaryExpression) && (parent.right === current) && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)
+        && (parent.left.kind === ts.SyntaxKind.ElementAccessExpression) && (parent.parent?.kind === ts.SyntaxKind.ExpressionStatement)) {
+        // `m["k"] = x` on a map[string]any stores the pointer as AddElementToObject's box would; readers deref
+        return /^\w+\["[^"\n]*"\] = /.test ((goTranspiler.printNode (parent, 0) ?? '').trim ());
     }
     if ((parent.kind === ts.SyntaxKind.ElementAccessExpression) && (parent.argumentExpression === current)) {
         // `c[x]` prints GetValue(c, x) / AddElementToObject(c, x, v): both derefScalar the key
