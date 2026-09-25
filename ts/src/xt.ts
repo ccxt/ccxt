@@ -879,7 +879,7 @@ export default class xt extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     /**
@@ -1062,7 +1062,7 @@ export default class xt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
             await this.loadTimeDifference ();
         }
         const promisesUnresolved = [
@@ -1205,7 +1205,10 @@ export default class xt extends Exchange {
     override parseMarkets (markets: any) {
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
+            const parsed = this.parseMarket (markets[i]);
+            if (parsed !== undefined) {
+                result.push (parsed);
+            }
         }
         return result;
     }
@@ -1332,6 +1335,9 @@ export default class xt extends Exchange {
         const quoteId = this.safeString2 (market, 'quoteCurrency', 'quoteCoin');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const state = this.safeString (market, 'state');
         let symbol = base + '/' + quote;
         const filters: Dict[] = this.safeList (market, 'filters', []);
@@ -2617,7 +2623,10 @@ export default class xt extends Exchange {
         }
     }
 
-    async createSpotOrder (symbol: string, type: OrderType, side: any, amount: any, price: Num = undefined, params: Dict = {}): Promise<Order> {
+    async createSpotOrder (symbol: string, type: OrderType, side: OrderSide, amount: any, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2689,7 +2698,7 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createContractOrder (symbol: string, type: any, side: any, amount: any, price: Num = undefined, params: Dict = {}): Promise<Order> {
+    async createContractOrder (symbol: string, type: OrderType, side: any, amount: any, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3201,7 +3210,7 @@ export default class xt extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchOrdersByStatus (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4553,7 +4562,7 @@ export default class xt extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params: Dict = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: string, params: Dict = {}): Promise<MarginModification> {
         const positionSide = this.safeString (params, 'positionSide');
         let methodName: Str = 'reduceMargin';
         if (addOrReduce === 'ADD') {
@@ -5898,7 +5907,11 @@ export default class xt extends Exchange {
         } else {
             payload = request;
         }
-        let url = this.urls['api'][endpoint] + payload;
+        const apiUrl = this.safeString (this.urls['api'], endpoint);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + payload;
         const query = this.omit (params, this.extractParams (path));
         const urlencoded = this.urlencode (this.keysort (query));
         headers = {

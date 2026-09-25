@@ -614,6 +614,9 @@ export default class gemini extends Exchange {
             const baseId = this.safeStringLower (amountPrecisionParts, 1, marketId.replace (quoteId, ''));
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             result.push ({
                 'id': marketId,
                 'symbol': base + '/' + quote,
@@ -696,7 +699,10 @@ export default class gemini extends Exchange {
             };
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
             const rawResponse = await this.publicGetV1SymbolsDetailsSymbol (this.extend (request, params));
-            result.push (this.parseMarket (rawResponse));
+            const parsed = this.parseMarket (rawResponse);
+            if (parsed !== undefined) {
+                result.push (parsed);
+            }
         }
         return result;
     }
@@ -746,7 +752,10 @@ export default class gemini extends Exchange {
             }
             const responses = await Promise.all (promises);
             for (let i = 0; i < responses.length; i++) {
-                result.push (this.parseMarket (responses[i]));
+                const parsed = this.parseMarket (responses[i]);
+                if (parsed !== undefined) {
+                    result.push (parsed);
+                }
             }
         } else {
             // use trading-pairs info, if it was fetched
@@ -757,13 +766,19 @@ export default class gemini extends Exchange {
                     const marketId = marketIds[i];
                     const pairInfo = this.safeList (indexedTradingPairs, marketId.toUpperCase ());
                     if (pairInfo !== undefined && !this.inArray (marketId, brokenPairs)) {
-                        result.push (this.parseMarket (pairInfo));
+                        const parsed = this.parseMarket (pairInfo);
+                        if (parsed !== undefined) {
+                            result.push (parsed);
+                        }
                     }
                 }
             } else {
                 for (let i = 0; i < marketIds.length; i++) {
                     if (!this.inArray (marketIds[i], brokenPairs)) {
-                        result.push (this.parseMarket (marketIds[i]));
+                        const parsed = this.parseMarket (marketIds[i]);
+                        if (parsed !== undefined) {
+                            result.push (parsed);
+                        }
                     }
                 }
             }
@@ -867,6 +882,9 @@ export default class gemini extends Exchange {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
         if (settleId !== undefined) {
@@ -1101,7 +1119,9 @@ export default class gemini extends Exchange {
             }
             base = this.safeCurrencyCode (baseId);
             quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
+            }
         }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
@@ -1476,10 +1496,10 @@ export default class gemini extends Exchange {
         const remaining = this.safeString (order, 'remaining_amount');
         const filled = this.safeString (order, 'executed_amount');
         let status = 'closed';
-        if (order['is_live'] === true) {
+        if (this.safeBool (order, 'is_live') === true) {
             status = 'open';
         }
-        if (order['is_cancelled'] === true) {
+        if (this.safeBool (order, 'is_cancelled') === true) {
             status = 'canceled';
         }
         const price = this.safeString (order, 'price');
@@ -2060,7 +2080,11 @@ export default class gemini extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        url = this.urls['api'][api] + url;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        url = apiUrl + url;
         if ((method === 'POST') || (method === 'DELETE')) {
             body = this.json (query);
         }

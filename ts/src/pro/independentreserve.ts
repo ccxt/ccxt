@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import independentreserveRest from '../independentreserve.js';
-import { NotSupported, ChecksumError } from '../base/errors.js';
+import { NotSupported, ChecksumError, ExchangeError } from '../base/errors.js';
 import { ROUND, DECIMAL_PLACES, PAD_WITH_ZERO } from '../base/functions/number.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Trade, Dict , Market, Num } from '../base/types.js';
@@ -58,7 +58,11 @@ export default class independentreserve extends independentreserveRest {
         }
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = this.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
+        const wsUrl = this.safeString (this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchTrades() has no websocket url');
+        }
+        const url = wsUrl + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
         const messageHash = 'trades:' + symbol;
         const trades = await this.watch (url, messageHash, undefined, messageHash);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -150,7 +154,11 @@ export default class independentreserve extends independentreserveRest {
             limit = 100;
         }
         const limitString = this.numberToString (limit);
-        const url = this.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote'];
+        const wsUrl = this.safeString (this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchOrderBook() has no websocket url');
+        }
+        const url = wsUrl + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote'];
         const messageHash = 'orderbook:' + symbol + ':' + limitString;
         const subscription: Dict = {
             'receivedSnapshot': false,
@@ -220,7 +228,7 @@ export default class independentreserve extends independentreserveRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+        const checksum: boolean = this.handleOption ('watchOrderBook', 'checksum', true);
         if ((checksum === true) && (receivedSnapshot === true)) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];

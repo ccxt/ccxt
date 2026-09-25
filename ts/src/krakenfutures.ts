@@ -473,6 +473,9 @@ export default class krakenfutures extends Exchange {
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             // swap == perpetual
             let settle: Str = undefined;
             let settleId: Str = undefined;
@@ -3848,7 +3851,11 @@ export default class krakenfutures extends Exchange {
             }
             query += '?' + postData;
         }
-        const url = this.urls['api'][api] + query;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + query;
         if (api === 'private' || access === 'private') {
             this.checkRequiredCredentials ();
             let auth = postData + '/api/';

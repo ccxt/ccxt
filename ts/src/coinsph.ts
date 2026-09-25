@@ -818,6 +818,9 @@ export default class coinsph extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const limits = this.indexBy (this.safeList (market, 'filters', []), 'filterType');
             const amountLimits = this.safeDict (limits, 'LOT_SIZE', {});
             const priceLimits = this.safeDict (limits, 'PRICE_FILTER', {});
@@ -1525,7 +1528,7 @@ export default class coinsph extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {
@@ -1609,7 +1612,7 @@ export default class coinsph extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {
@@ -2280,7 +2283,11 @@ export default class coinsph extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api];
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url: string = apiUrl;
         let query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
         url = url + '/' + endpoint;

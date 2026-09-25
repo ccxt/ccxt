@@ -62,6 +62,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
     }
 
     async subscribe (name: string, symbol: Str = undefined, messageHashStart: Str = undefined, params: Dict = {}) {
+        if (messageHashStart === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + name + ' subscription requires a messageHashStart argument');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -73,7 +76,10 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             messageHash += ':' + market['id'];
             productIds.push (market['id']);
         }
-        let url = this.urls['api']['ws'];
+        let url = this.safeString (this.urls['api'], 'ws');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' urls.api.ws is not set');
+        }
         if ('signature' in params) {
             // need to distinguish between public trades and user trades
             url = url + '?';
@@ -90,6 +96,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
     }
 
     async subscribeMultiple (name: string, symbols: string[] = [], messageHashStart: Str = undefined, params: Dict = {}) {
+        if (messageHashStart === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + name + ' subscription requires a messageHashStart argument');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -103,7 +112,10 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             productIds.push (market['id']);
             messageHashes.push (messageHashStart + ':' + market['symbol']);
         }
-        let url = this.urls['api']['ws'];
+        let url = this.safeString (this.urls['api'], 'ws');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' urls.api.ws is not set');
+        }
         if ('signature' in params) {
             // need to distinguish between public trades and user trades
             url = url + '?';

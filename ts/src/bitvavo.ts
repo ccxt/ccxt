@@ -482,6 +482,9 @@ export default class bitvavo extends Exchange {
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const status = this.safeString (market, 'status');
             result.push (this.safeMarketStructure ({
                 'id': id,
@@ -2722,7 +2725,11 @@ export default class bitvavo extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
         }
-        url = this.urls['api'][api] + url;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        url = apiUrl + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

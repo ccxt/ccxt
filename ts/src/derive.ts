@@ -676,6 +676,9 @@ export default class derive extends Exchange {
         const quoteId = this.safeString (market, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const marketId = this.safeString (market, 'instrument_name');
         let symbol = base + '/' + quote;
         let settleId: Str = undefined;
@@ -2784,7 +2787,11 @@ export default class derive extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const url = this.urls['api'][api] + '/' + path;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + '/' + path;
         if (method === 'POST') {
             headers = {
                 'Content-Type': 'application/json',

@@ -682,6 +682,9 @@ export default class bigone extends Exchange {
             const quoteId = this.safeString (quoteAsset, 'symbol');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             result.push (this.safeMarketStructure ({
                 'id': this.safeString (market, 'name'),
                 'uuid': this.safeString (market, 'id'),
@@ -742,6 +745,9 @@ export default class bigone extends Exchange {
             const marketId = this.safeString (market, 'symbol');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             const inverse = this.safeBool (market, 'isInverse');
             result.push (this.safeMarketStructure ({
@@ -1974,7 +1980,11 @@ export default class bigone extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const query = this.omit (params, this.extractParams (path));
-        const baseUrl = this.implodeHostname (this.urls['api'][api]);
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = this.implodeHostname (apiUrl);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         headers = {};
         if (api === 'public' || api === 'webExchange' || api === 'contractPublic') {

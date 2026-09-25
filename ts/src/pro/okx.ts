@@ -110,14 +110,14 @@ export default class okx extends okxRest {
         if (channel === undefined) {
             throw new ArgumentsRequired (this.id + ' getUrl() requires a channel argument');
         }
-        const isSandbox = this.options['sandboxMode'];
+        const isSandbox: Bool = this.options['sandboxMode'];
         let sandboxSuffix: Str = '';
         if (isSandbox === true) {
             sandboxSuffix = '?brokerId=9999';
         }
         const isBusiness = (access === 'business');
         const isPublic = (access === 'public');
-        const url = this.urls['api']['ws'];
+        const url: string = this.urls['api']['ws'];
         if (isBusiness || (channel.indexOf ('candle') > -1) || (channel === 'orders-algo')) {
             return url + '/business' + sandboxSuffix;
         } else if (isPublic) {
@@ -1975,7 +1975,7 @@ export default class okx extends okxRest {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition (rawPosition);
-            if (position['contracts'] === 0 && rawPosition['posSide'] === 'net') {
+            if (position['contracts'] === 0 && this.safeString (rawPosition, 'posSide') === 'net') {
                 position['side'] = 'long';
                 const shortPosition = this.clone (position);
                 shortPosition['side'] = 'short';

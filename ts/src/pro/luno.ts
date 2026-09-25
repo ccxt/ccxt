@@ -1,6 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import lunoRest from '../luno.js';
+import { ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -57,7 +58,11 @@ export default class luno extends lunoRest {
         symbol = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
         const subscription: Dict = { 'symbol': symbol };
-        const url = this.urls['api']['ws'] + subscriptionHash;
+        const wsUrl = this.safeString (this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchTrades() has no websocket url');
+        }
+        const url = wsUrl + subscriptionHash;
         const messageHash = 'trades:' + symbol;
         const subscribe: Dict = {
             'api_key_id': this.apiKey,
@@ -92,7 +97,7 @@ export default class luno extends lunoRest {
         if (length === 0) {
             return;
         }
-        const symbol = subscription['symbol'];
+        const symbol: string = subscription['symbol'];
         const market = this.market (symbol);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
@@ -166,7 +171,11 @@ export default class luno extends lunoRest {
         symbol = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
         const subscription: Dict = { 'symbol': symbol };
-        const url = this.urls['api']['ws'] + subscriptionHash;
+        const wsUrl = this.safeString (this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchOrderBook() has no websocket url');
+        }
+        const url = wsUrl + subscriptionHash;
         const messageHash = 'orderbook:' + symbol;
         const subscribe: Dict = {
             'api_key_id': this.apiKey,
@@ -210,7 +219,7 @@ export default class luno extends lunoRest {
         //         "timestamp": 1660598775360
         //     }
         //
-        const symbol = subscription['symbol'];
+        const symbol: string = subscription['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger (message, 'timestamp');
         if (!(symbol in this.orderbooks)) {

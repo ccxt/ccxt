@@ -2140,7 +2140,7 @@ export default class bitget extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         let uta: Bool = undefined;
@@ -2280,6 +2280,9 @@ export default class bitget extends Exchange {
             const baseId = this.safeString (market, 'baseCoin');
             const quote = this.safeCurrencyCode (quoteId);
             const base = this.safeCurrencyCode (baseId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const supportMarginCoins = this.safeList (market, 'supportMarginCoins', []);
             let settleId: Str = undefined;
             if (this.inArray (baseId, supportMarginCoins)) {
@@ -2538,6 +2541,9 @@ export default class bitget extends Exchange {
             const baseId = this.safeString (market, 'baseCoin');
             const quote = this.safeCurrencyCode (quoteId);
             const base = this.safeCurrencyCode (baseId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let settleId: Str = undefined;
             let settle: Str = undefined;
             if (category === 'USDT-FUTURES') {
@@ -12110,7 +12116,11 @@ export default class bitget extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
     override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
@@ -12119,7 +12129,11 @@ export default class bitget extends Exchange {
         const pathPart = '/api';
         const request = '/' + this.implodeParams (path, params);
         const payload = pathPart + request;
-        let url = this.implodeHostname (this.urls['api'][endpoint]) + payload;
+        const apiUrl = this.safeString (this.urls['api'], endpoint);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname (apiUrl) + payload;
         const query = this.omit (params, this.extractParams (path));
         if (!signed && (method === 'GET')) {
             const keys = Object.keys (query);

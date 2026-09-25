@@ -217,7 +217,8 @@ export default class revolutx extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const queryKeys = Object.keys (query);
         const queryLength = queryKeys.length;
-        let url = this.urls['api'][api] + '/' + implodedPath;
+        const baseUrl: string = this.urls['api'][api];
+        let url = baseUrl + '/' + implodedPath;
         let queryString = '';
         if (api === 'private') {
             this.checkRequiredCredentials ();

@@ -969,6 +969,9 @@ export default class toobit extends Exchange {
         const baseIdClean = baseParts[0];
         const base = this.safeCurrencyCode (baseIdClean);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = this.safeString (market, 'marginToken');
         const settle = this.safeCurrencyCode (settleId);
         const status = this.safeString (market, 'status');
@@ -3243,7 +3246,8 @@ export default class toobit extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        const baseUrl: string = this.urls['api'][api];
+        let url = baseUrl + '/' + this.implodeParams (path, params);
         const isPost = method === 'POST';
         const isDelete = method === 'DELETE';
         const extraQuery: Dict = {};

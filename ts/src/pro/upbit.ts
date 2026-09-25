@@ -361,7 +361,7 @@ export default class upbit extends upbitRest {
             };
             this.options['ws'] = wsOptions;
         }
-        const url = this.urls['api']['ws'] + '/private';
+        const url = this.safeString (this.urls['api'], 'ws') + '/private';
         const client = this.client (url);
         return client;
     }

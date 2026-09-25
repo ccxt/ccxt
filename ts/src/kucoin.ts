@@ -1514,7 +1514,7 @@ export default class kucoin extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     /**
@@ -1795,6 +1795,9 @@ export default class kucoin extends Exchange {
             const [ baseId, quoteId ] = id.split ('-');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             const ticker = this.safeDict (tickersById, id, {});
             const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
@@ -1864,7 +1867,7 @@ export default class kucoin extends Exchange {
             const contractMarkets = this.safeList (responses, contractIndex, []);
             result = this.arrayConcat (result, contractMarkets);
         }
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         return result;
@@ -1947,6 +1950,9 @@ export default class kucoin extends Exchange {
             const settleId = this.safeString (market, 'settleCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             let symbol = base + '/' + quote + ':' + settle;
             let type = 'swap';
@@ -2116,6 +2122,9 @@ export default class kucoin extends Exchange {
             const settleId = this.safeString (market, 'settlementCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             const hasMargin = this.safeString (market, 'marginMode');
             let isMarginable: Bool = false;
@@ -2206,7 +2215,7 @@ export default class kucoin extends Exchange {
                 'info': market,
             });
         }
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         return result;
@@ -5531,7 +5540,7 @@ export default class kucoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let lowercaseStatus = status.toLowerCase ();
+        let lowercaseStatus: string = status.toLowerCase ();
         const until = this.safeInteger (params, 'until');
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let hf: Bool = undefined;
@@ -5814,7 +5823,7 @@ export default class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let lowercaseStatus = status.toLowerCase ();
+        let lowercaseStatus: string = status.toLowerCase ();
         if (lowercaseStatus === 'open') {
             lowercaseStatus = 'active';
         } else if (lowercaseStatus === 'closed') {
@@ -11764,7 +11773,11 @@ export default class kucoin extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
-        let url = this.urls['api'][api];
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl;
         const tradeType = this.safeString (query, 'tradeType');
         if (!this.isEmpty (query)) {
             if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {
