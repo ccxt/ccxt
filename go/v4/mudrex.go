@@ -764,9 +764,7 @@ func (this *Mudrex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params, "swap")
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params, "swap")
 	var requested *string = this.SafeStringN(paramsMarketType, []any{"trade_currency", "tradeCurrency", "currency"})
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, []any{"trade_currency", "tradeCurrency", "currency"}))
 	var request map[string]any = map[string]any{}

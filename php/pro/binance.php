@@ -3246,8 +3246,7 @@ class binance extends \ccxt\async\binance {
         $type = $this->safe_string_2($this->options, 'defaultType', 'authenticate', 'spot');
         $type = $this->safe_string($params, 'type', $type);
         list($isPortfolioMargin, $paramsPortfolioMargin) = $this->handle_option_bool_and_params_2($params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
-        $subTypeInfo = $this->handle_sub_type_and_params('keepAliveListenKey', null, $paramsPortfolioMargin);
-        $subType = $subTypeInfo[0];
+        $subType = $this->handle_sub_type_and_params('keepAliveListenKey', null, $paramsPortfolioMargin)[0];
         if ($type !== 'option' && $type !== 'stock') {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
             // which would incorrectly convert type='option' to 'future'.
@@ -3837,8 +3836,7 @@ class binance extends \ccxt\async\binance {
         $type = null;
         $paramsMarketType = array();
         list($type, $paramsMarketType) = $this->handle_market_type_and_params($method, $market, $params);
-        $subTypeAndParams = $this->handle_sub_type_and_params($method, $market, $paramsMarketType);
-        $subType = $subTypeAndParams[0];
+        $subType = $this->handle_sub_type_and_params($method, $market, $paramsMarketType)[0];
         if ($this->isLinear($type, $subType)) {
             $type = 'future';
         } elseif ($this->isInverse($type, $subType)) {

@@ -2986,12 +2986,10 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName string, 
 	if isMarkPrice && (userDefaultType == nil || *userDefaultType != "option") {
 		defaultMarket = ccxt.SafeStringPtr("swap")
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(methodName, firstMarket, params, defaultMarket)
+	marketTypeparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams(methodName, firstMarket, params, defaultMarket))
 	marketType := ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams(methodName, firstMarket, paramsMarketType)
-	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = ccxt.MapTyped(ccxt.GetValue(subTypeparamsSubTypeVariable, 1))
+	subType, paramsSubType := this.HandleSubTypeAndParams(methodName, firstMarket, paramsMarketType)
 	// use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
 	var isOptionMarkPrice bool = (isMarkPrice && ccxt.IsEqual(marketType, "option"))
 	var rawMarketType any = nil
@@ -3937,8 +3935,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) an
 	var isPortfolioMarginparamsPortfolioMarginVariable []any = this.HandleOptionBoolAndParams2(params, "keepAliveListenKey", "papi", "portfolioMargin", false)
 	var isPortfolioMargin bool = ccxt.GetValueBool(isPortfolioMarginparamsPortfolioMarginVariable, 0, false)
 	var paramsPortfolioMargin map[string]any = ccxt.MapTyped(ccxt.GetValue(isPortfolioMarginparamsPortfolioMarginVariable, 1))
-	var subTypeInfo any = this.HandleSubTypeAndParams("keepAliveListenKey", nil, paramsPortfolioMargin)
-	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(subTypeInfo, 0))
+	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleSubTypeAndParams("keepAliveListenKey", nil, paramsPortfolioMargin)), 0))
 	if (typeVar == nil || *typeVar != "option") && (typeVar == nil || *typeVar != "stock") {
 		// guard options first: isLinear returns true for linear-settled options (subType='linear')
 		// which would incorrectly convert type='option' to 'future'.
@@ -4270,8 +4267,8 @@ func (this *Binance) fetchPositionWsBody(ch chan any, symbol any, optionalArgs .
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes339215 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPositionsWsAsync([]any{symbol}, params))))
-	ch <- ccxt.BoxAbsent(retRes339215)
+	var retRes339115 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPositionsWsAsync([]any{symbol}, params))))
+	ch <- ccxt.BoxAbsent(retRes339115)
 	return nil
 }
 
@@ -4612,12 +4609,8 @@ func (this *Binance) ResolveAuthType(methodName string, optionalArgs ...any) any
 	_ = market
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
-	var subTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams(methodName, market, paramsMarketType)
-	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(subTypeparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = ccxt.MapTyped(ccxt.GetValue(subTypeparamsSubTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
+	subType, paramsSubType := this.HandleSubTypeAndParams(methodName, market, paramsMarketType)
 	var typeVar *string = marketType
 	if (typeVar == nil || *typeVar != "option") && (typeVar == nil || *typeVar != "stock") {
 		if this.IsLinear(typeVar, subType) {
@@ -4635,11 +4628,10 @@ func (this *Binance) GetMarketType(method any, market any, optionalArgs ...any) 
 	_ = params
 	var typeVar any = nil
 	var paramsMarketType map[string]any = map[string]any{}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(method, market, params)
+	typeVarparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams(method, market, params))
 	typeVar = ccxt.GetValue(typeVarparamsMarketTypeVariable, 0)
 	paramsMarketType = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
-	var subTypeAndParams any = this.HandleSubTypeAndParams(method, market, paramsMarketType)
-	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(subTypeAndParams, 0))
+	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleSubTypeAndParams(method, market, paramsMarketType)), 0))
 	if this.IsLinear(typeVar, subType) {
 		typeVar = "future"
 	} else if this.IsInverse(typeVar, subType) {
@@ -6756,8 +6748,8 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes549232 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes549232, tradeFee)
+							retRes549032 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes549032, tradeFee)
 						}
 					} else if !ccxt.IsEqual(fee, nil) {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

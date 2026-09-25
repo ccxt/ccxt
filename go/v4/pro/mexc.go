@@ -253,9 +253,7 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	if firstSymbol != nil {
 		market = this.Market(firstSymbol)
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchTickers", market, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchTickers", market, params)
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var url any = func() any {
 		if isSpot {
@@ -479,9 +477,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks required symbols argument"))
 	}
 	var markets any = this.RequireValue(this.MarketsForSymbols(symbolsNormalized), "watchBidsAsks() markets is required")
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchBidsAsks", ccxt.GetValue(markets, 0), params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", ccxt.GetValue(markets, 0), params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
 	if !isSpot {
 		panic(ccxt.NotSupported(this.Id + " watchBidsAsks only support spot market"))
@@ -1297,9 +1293,7 @@ func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	var trades any = nil
 	if typeVar != nil && *typeVar == "spot" {
 		var channel string = "spot@private.deals.v3.api.pb"
@@ -1522,9 +1516,7 @@ func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, params)
 	var orders any = nil
 	if typeVar != nil && *typeVar == "spot" {
 		var channel string = "spot@private.orders.v3.api.pb"
@@ -1825,9 +1817,7 @@ func (this *Mexc) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	var messageHash string = "balance:" + *typeVar
 	if typeVar != nil && *typeVar == "spot" {
 		var channel string = "spot@private.account.v3.api.pb"
@@ -2072,9 +2062,7 @@ func (this *Mexc) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	if firstSymbol != nil {
 		market = this.Market(firstSymbol)
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchTickers", market, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchTickers", market, params)
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var url any = func() any {
 		if isSpot {
@@ -2126,9 +2114,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks required symbols argument"))
 	}
 	var markets any = this.RequireValue(this.MarketsForSymbols(symbolsNormalized), "unWatchBidsAsks() markets is required")
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchBidsAsks", ccxt.GetValue(markets, 0), params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", ccxt.GetValue(markets, 0), params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
 	if !isSpot {
 		panic(ccxt.NotSupported(this.Id + " watchBidsAsks only support spot market"))

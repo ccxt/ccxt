@@ -3746,8 +3746,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> isPortfolioMarginparamsPortfolioMarginVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "keepAliveListenKey", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparamsPortfolioMarginVariable).get(0);
             Map<String, Object> paramsPortfolioMargin = (Map<String, Object>) ((List<Object>) isPortfolioMarginparamsPortfolioMarginVariable).get(1);
-            List<Object> subTypeInfo = (List<Object>) this.handleSubTypeAndParams("keepAliveListenKey", (Map<String, Object>) null, Helpers.toMapArg(paramsPortfolioMargin), (Object) null);
-            String subType = (String) ((List<Object>)subTypeInfo).get(0);
+            String subType = (String) ((List<Object>)this.handleSubTypeAndParams("keepAliveListenKey", (Map<String, Object>) null, Helpers.toMapArg(paramsPortfolioMargin), (Object) null)).get(0);
             if (!java.util.Objects.equals(type, "option") && !java.util.Objects.equals(type, "stock"))
             {
                 // guard options first: isLinear returns true for linear-settled options (subType='linear')
@@ -4451,8 +4450,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(method, Helpers.toMapArg(market), parameters, (Object) null);
         type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
         paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
-        List<Object> subTypeAndParams = (List<Object>) this.handleSubTypeAndParams(method, Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
-        String subType = (String) ((List<Object>)subTypeAndParams).get(0);
+        String subType = (String) ((List<Object>)this.handleSubTypeAndParams(method, Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null)).get(0);
         if (this.isLinear(type, Helpers.toStringArg(subType)))
         {
             type = "future";

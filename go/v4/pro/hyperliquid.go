@@ -1332,9 +1332,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 	var userAddressResult any = this.HandlePublicAddress("watchBalance", params)
 	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, paramsValue)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, paramsValue)
 	var isUnifiedEnabled any = nil
 
 	var unifiedResult []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.IsUnifiedEnabledAsync("watchBalance", userAddress, false, paramsMarketType))))
@@ -1398,9 +1396,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan any, optionalArgs ...any) an
 	var userAddressResult any = this.HandlePublicAddress("unWatchBalance", params)
 	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("unWatchBalance", nil, paramsValue)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("unWatchBalance", nil, paramsValue)
 	var isUnifiedEnabled any = nil
 
 	var unifiedResult []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.IsUnifiedEnabledAsync("unWatchBalance", userAddress, false, paramsMarketType))))

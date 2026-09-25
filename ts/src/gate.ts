@@ -5457,8 +5457,7 @@ export default class gate extends Exchange {
         }
         await this.loadUnifiedStatus ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const result = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const type = this.safeString (result, 0);
+        const type = this.handleMarketTypeAndParams ('fetchOrder', market, params)[0];
         const trigger = this.safeBoolN (params, [ 'trigger', 'is_stop_order', 'stop' ], false);
         const [ request, requestParams ] = this.fetchOrderRequest (id, symbol, params);
         let response: Dict;
@@ -5549,8 +5548,7 @@ export default class gate extends Exchange {
             market = this.market (symbol);
         }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
-        const res = this.handleMarketTypeAndParams ('fetchClosedOrders', market, paramsPaginate);
-        const type = this.safeString (res, 0);
+        const type = this.handleMarketTypeAndParams ('fetchClosedOrders', market, paramsPaginate)[0];
         const [ useHistorical, paramsHistorical ] = this.handleOptionBoolAndParams (paramsPaginate, 'fetchClosedOrders', 'historical', false);
         if (!useHistorical && ((since === undefined && until === undefined) || (type !== 'swap'))) {
             return await this.fetchOrdersByStatus ('finished', symbolResolved, since, limit, paramsHistorical) as Order[];
@@ -5615,8 +5613,7 @@ export default class gate extends Exchange {
         }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         const trigger = this.safeBool2 (params, 'trigger', 'stop');
-        const res = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
-        const type = this.safeString (res, 0);
+        const type = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params)[0];
         // don't omit here, omits done in prepareOrdersByStatusRequest
         const [ request, requestParams ] = this.prepareOrdersByStatusRequest (status, symbolResolved, since, limit, params);
         const spot = (type === 'spot') || (type === 'margin');

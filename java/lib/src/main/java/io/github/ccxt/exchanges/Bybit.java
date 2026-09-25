@@ -3696,8 +3696,7 @@ public class Bybit extends BybitApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 parsedSymbols = new ArrayList<Object>(Arrays.asList());
-                List<Object> marketTypeInfo = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (Object) null);
-                String defaultType = (String) ((List<Object>)marketTypeInfo).get(0); // don't omit here
+                String defaultType = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (Object) null)).get(0); // don't omit here
                 // we can't use marketSymbols here due to the conflicting ids between markets
                 String currentType = null;
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)

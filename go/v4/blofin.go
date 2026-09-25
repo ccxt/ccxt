@@ -2399,9 +2399,7 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(requestUntil, "limit", limit) // default 100, max 100
 	}
 	var typeVar string = "swap"
-	var typeMarketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, typeVar)
-	var typeMarketType *string = SafeStringPtr(GetValue(typeMarketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeMarketTypeparamsMarketTypeVariable, 1))
+	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, typeVar)
 	var response any = nil
 	if typeMarketType != nil && *typeMarketType == "spot" {
 		AddElementToObject(requestUntil, "instType", "SPOT")

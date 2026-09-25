@@ -1776,9 +1776,7 @@ func (this *Coinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var symbol *string = this.SafeString(symbolsNormalized, 0)
 		market = this.Market(symbol)
 	}
-	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(marketTypequeryVariable, 1))
+	marketType, query := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
 
@@ -2136,9 +2134,7 @@ func (this *Coinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 	var response map[string]any = nil
 	if typeVar != nil && *typeVar == "swap" {
 
@@ -2518,9 +2514,7 @@ func (this *Coinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchBalance", paramsMarketType)
 	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
 	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
@@ -3771,9 +3765,7 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status string, optional
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, paramsOmitted)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, paramsOmitted)
 	var response map[string]any = nil
 	var isClosed bool = (status == "finished") || (status == "closed")
 	var isOpen bool = (status == "pending") || (status == "open")

@@ -1571,9 +1571,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	if since != nil {
 		request["startTime"] = since
 	}
@@ -2068,9 +2066,7 @@ func (this *Hashkey) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var methodName string = "fetchBalance"
 	var marketType string = "spot"
-	var marketTypeOptionparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(methodName, nil, params, marketType)
-	var marketTypeOption *string = SafeStringPtr(GetValue(marketTypeOptionparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeOptionparamsMarketTypeVariable, 1))
+	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams(methodName, nil, params, marketType)
 	if marketTypeOption != nil && *marketTypeOption == "swap" {
 
 		response := (<-this.PrivateGetApiV1FuturesBalance(paramsMarketType)).Raw
@@ -3393,9 +3389,7 @@ func (this *Hashkey) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(methodName, market, params, "spot")
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params, "spot")
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "spot" {
 
@@ -3518,7 +3512,7 @@ func (this *Hashkey) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		market = this.Market(symbol)
 	}
 	var marketType string = "spot"
-	var marketTypeOption *string = SafeStringPtr(GetValue(this.HandleMarketTypeAndParams(methodName, market, params, marketType), 0))
+	var marketTypeOption *string = SafeStringPtr(GetValue(TupleSlice(this.HandleMarketTypeAndParams(methodName, market, params, marketType)), 0))
 	var response map[string]any = nil
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 
@@ -3581,9 +3575,7 @@ func (this *Hashkey) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(methodName, market, paramsClientOrderId, "spot")
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, paramsClientOrderId, "spot")
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "spot" {
 		if clientOrderId != nil {
@@ -3656,9 +3648,7 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType string = "spot"
-	var marketTypeOptionparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(methodName, market, params, marketType)
-	var marketTypeOption *string = SafeStringPtr(GetValue(marketTypeOptionparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeOptionparamsMarketTypeVariable, 1))
+	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params, marketType)
 	var paramsExtended map[string]any = this.Extend(map[string]any{
 		"methodName": methodName,
 	}, paramsMarketType)
@@ -3879,9 +3869,7 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(methodName, market, paramsAccountId, "spot")
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, paramsAccountId, "spot")
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 		if market != nil {

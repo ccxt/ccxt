@@ -3205,7 +3205,7 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	typeVarparamsMarketTypeVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchBalance", nil, params))
 	typeVar := GetValue(typeVarparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
 	var walletparamsWalletVariable []any = this.HandleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet")

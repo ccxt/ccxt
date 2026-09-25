@@ -27,7 +27,7 @@ func HelperTestHandleMarketTypeAndParams() {
 	//
 	// case #1, should prevail: param
 	//
-	var marketType1params1Variable []any = exchange.HandleMarketTypeAndParams("fetchX", market, initialParams, "valueDefault")
+	marketType1params1Variable := ccxt.TupleSlice(exchange.HandleMarketTypeAndParams("fetchX", market, initialParams, "valueDefault"))
 	var marketType1 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType1params1Variable, 0))
 	params1 := ccxt.GetValue(marketType1params1Variable, 1)
 	Assert(func() bool { _, ok := initialParams["defaultType"]; return ok }())
@@ -36,28 +36,28 @@ func HelperTestHandleMarketTypeAndParams() {
 	//
 	// case #2, should prevail: market.type
 	//
-	var marketType2params2Variable []any = exchange.HandleMarketTypeAndParams("fetchX", market, map[string]any{}, "valueDefault")
+	marketType2params2Variable := ccxt.TupleSlice(exchange.HandleMarketTypeAndParams("fetchX", market, map[string]any{}, "valueDefault"))
 	var marketType2 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType2params2Variable, 0))
 	params2 := ccxt.GetValue(marketType2params2Variable, 1)
 	Assert((marketType2 != nil && *marketType2 == "spot"))
 	//
 	// case #3, should prevail: valueDefault
 	//
-	var marketType3params3Variable []any = exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]any{}, "valueDefault")
+	marketType3params3Variable := ccxt.TupleSlice(exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]any{}, "valueDefault"))
 	var marketType3 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType3params3Variable, 0))
 	params3 := ccxt.GetValue(marketType3params3Variable, 1)
 	Assert((marketType3 != nil && *marketType3 == "valueDefault"))
 	//
 	// case #4, should prevail: method options
 	//
-	var marketType4params4Variable []any = exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]any{})
+	marketType4params4Variable := ccxt.TupleSlice(exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]any{}))
 	var marketType4 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType4params4Variable, 0))
 	params4 := ccxt.GetValue(marketType4params4Variable, 1)
 	Assert((marketType4 != nil && *marketType4 == "valueFromMethodOptions"))
 	//
 	// case #5, should prevail: options
 	//
-	var marketType5params5Variable []any = exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil)
+	marketType5params5Variable := ccxt.TupleSlice(exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil))
 	var marketType5 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType5params5Variable, 0))
 	params5 := ccxt.GetValue(marketType5params5Variable, 1)
 	Assert((marketType5 != nil && *marketType5 == "valueFromOptions"))
@@ -65,7 +65,7 @@ func HelperTestHandleMarketTypeAndParams() {
 	// case #6, should prevail: spot (because hardcoded in base)
 	//
 	ccxt.AddElementToObject(exchange.Options, "defaultType", nil)
-	var marketType6params6Variable []any = exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil)
+	marketType6params6Variable := ccxt.TupleSlice(exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil))
 	var marketType6 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType6params6Variable, 0))
 	params6 := ccxt.GetValue(marketType6params6Variable, 1)
 	Assert((marketType6 != nil && *marketType6 == "spot"))

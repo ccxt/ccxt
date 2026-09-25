@@ -3219,7 +3219,9 @@ function isUndefinedLiteral (node) {
 
 // the printed callee of a whole call, e.g. `this.Iso8601(...)` → 'this.Iso8601'
 function printedCalleeOfCall (goTranspiler, node) {
-    const printed = (goTranspiler.printNode (node, 0) ?? '').trim ();
+    // a tuple-result call prints as TupleSlice(<call>); its callee is the inner call's
+    const text = (goTranspiler.printNode (node, 0) ?? '').trim ();
+    const printed = (ccxtGoTupleResultUnwrap (text) ?? text).trim ();
     const open = printed.indexOf ('(');
     if (open <= 0 || !goTranspiler.isWholePrintedCall (printed, open)) {
         return undefined;
@@ -6355,6 +6357,7 @@ function installCcxtGoGetArgAddArithmetic (goTranspiler) {
     goTranspiler.__ccxtGoGetArgAddArithmeticInstalled = true;
 }
 
+export { ccxtGoTupleResultJoin };
 export function installCcxtGoLocalTypes (goTranspiler) {
     if (goTranspiler === undefined || goTranspiler.__ccxtGoLocalTypesInstalled) {
         return;
@@ -6509,6 +6512,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoDestructuredPointerBoxes (goTranspiler);
     installCcxtGoTupleBoolElement (goTranspiler);
     installCcxtGoTupleParamsRebind (goTranspiler);
+    installCcxtGoTupleResults (goTranspiler);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -9257,4 +9261,94 @@ function installCcxtGoTupleParamsRebind (goTranspiler) {
         }
     };
     goTranspiler.__ccxtGoTupleParamsRebindInstalled = true;
+}
+
+// ---------------------------------------------------------------------------------------------
+// handleMarketTypeAndParams / handleSubTypeAndParams return Go `(*string, map[string]any)`
+// (go/v4/exchange_market_type.go). A destructuring whose printed element reads are already the
+// typed unwraps becomes `a, b := call`; every other use keeps the old `[]any` via TupleSlice(..).
+const CCXT_GO_TUPLE_RESULT_METHODS = [ 'handleMarketTypeAndParams', 'handleSubTypeAndParams' ];
+
+function ccxtGoTupleResultCall (node) {
+    const callee = node?.expression;
+    return (node?.kind === ts.SyntaxKind.CallExpression) && (callee?.kind === ts.SyntaxKind.PropertyAccessExpression)
+        && CCXT_GO_TUPLE_RESULT_METHODS.includes (callee.name?.escapedText)
+        && ((callee.expression?.kind === ts.SyntaxKind.ThisKeyword) || isIdentifierNamed (callee.expression, 'exchange'));
+}
+
+// `TupleSlice(<call>)` -> `<call>`, undefined for any other text
+function ccxtGoTupleResultUnwrap (text) {
+    const t = text.trim ().replace (/^ccxt\./, '');
+    return (t.startsWith ('TupleSlice(') && t.endsWith (')')) ? t.substring ('TupleSlice('.length, t.length - 1) : undefined;
+}
+
+// holder block -> multi-assign, or undefined (the block stays as printed)
+function ccxtGoTupleResultJoin (printed, count, declare) {
+    const lines = printed.split ('\n').filter ((l) => l.trim () !== '');
+    const head = /^(\s*)(?:var (\w+Variable) \[\]any = |(\w+Variable) := )(.*)$/.exec (lines[0] ?? '');
+    if ((head === null) || (lines.length !== count + 1)) {
+        return undefined;
+    }
+    const holder = head[2] ?? head[3];
+    const call = ccxtGoTupleResultUnwrap (head[4]);
+    if (call === undefined) {
+        return undefined;
+    }
+    const names = [ '_', '_' ];
+    for (let i = 1; i < lines.length; i++) {
+        const l = lines[i].trim ().replace (/\bccxt\.(SafeStringPtr|MapTyped|GetValue)\(/g, '$1(');
+        const m = declare
+            ? /^var (\w+) (?:\*string|map\[string\]any) = (SafeStringPtr|MapTyped)\(GetValue\((\w+), (\d)\)\)$/.exec (l)
+            : (/^(\w+) = (SafeStringPtr|MapTyped)\(GetValue\((\w+), (\d)\)\)$/.exec (l) ?? /^(\w+) = ()GetValue\((\w+), (\d)\)$/.exec (l));
+        if (m === null) {
+            return undefined;
+        }
+        const [ name, wrap, h, index ] = [ m[1], m[2], m[3], Number (m[4]) ];
+        // element 0 must already be the *string unwrap; element 1 is the map itself
+        const ok = (h === holder) && (index === i - 1)
+            && ((index === 0) ? (wrap === 'SafeStringPtr') : ((wrap === 'MapTyped') || (!declare && (wrap === ''))));
+        if (!ok) {
+            return undefined;
+        }
+        names[index] = name;
+    }
+    if (declare && names.every ((n) => n === '_')) {
+        return undefined;
+    }
+    return head[1] + names.join (', ') + (declare ? ' := ' : ' = ') + call;
+}
+
+function installCcxtGoTupleResults (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoTupleResultsInstalled) {
+        return;
+    }
+    const printCall = goTranspiler.printCallExpression;
+    goTranspiler.printCallExpression = function (node, identation) {
+        const printed = printCall.call (this, node, identation);
+        if (!ccxtGoTupleResultCall (node)) {
+            return printed;
+        }
+        const lead = /^\s*/.exec (printed)[0];
+        return lead + 'TupleSlice(' + printed.slice (lead.length) + ')';
+    };
+    const printDeclaration = goTranspiler.printVariableDeclarationList;
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = printDeclaration.call (this, node, identation);
+        const declaration = node?.declarations?.[0];
+        if ((typeof printed !== 'string') || (declaration?.name?.kind !== ts.SyntaxKind.ArrayBindingPattern)
+            || !ccxtGoTupleResultCall (declaration.initializer)) {
+            return printed;
+        }
+        return ccxtGoTupleResultJoin (printed, declaration.name.elements.length, true) ?? printed;
+    };
+    const printCustom = goTranspiler.printCustomBinaryExpressionIfAny;
+    goTranspiler.printCustomBinaryExpressionIfAny = function (node, identation) {
+        const printed = printCustom.call (this, node, identation);
+        if ((typeof printed !== 'string') || (node?.left?.kind !== ts.SyntaxKind.ArrayLiteralExpression)
+            || (node.operatorToken?.kind !== ts.SyntaxKind.EqualsToken) || !ccxtGoTupleResultCall (node.right)) {
+            return printed;
+        }
+        return ccxtGoTupleResultJoin (printed, node.left.elements.length, false) ?? printed;
+    };
+    goTranspiler.__ccxtGoTupleResultsInstalled = true;
 }

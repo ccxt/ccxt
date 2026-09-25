@@ -2728,8 +2728,7 @@ class bybit extends Exchange {
         $hasOptionSymbol = false;
         if ($symbols !== null) {
             $parsedSymbols = array();
-            $marketTypeInfo = $this->handle_market_type_and_params('fetchTickers', null, $params);
-            $defaultType = $marketTypeInfo[0]; // don't omit here
+            $defaultType = $this->handle_market_type_and_params('fetchTickers', null, $params)[0]; // don't omit here
             // we can't use marketSymbols here due to the conflicting ids between markets
             $currentType = null;
             for ($i = 0; $i < count($symbols); $i++) {

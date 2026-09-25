@@ -5437,8 +5437,7 @@ class gate extends Exchange {
         }
         $this->load_unified_status();
         $market = ($symbol === null) ? null : $this->market($symbol);
-        $result = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-        $type = $this->safe_string($result, 0);
+        $type = $this->handle_market_type_and_params('fetchOrder', $market, $params)[0];
         $trigger = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
         list($request, $requestParams) = $this->fetch_order_request($id, $symbol, $params);
         if ($type === 'spot' || $type === 'margin') {
@@ -5528,8 +5527,7 @@ class gate extends Exchange {
             $market = $this->market($symbol);
         }
         $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
-        $res = $this->handle_market_type_and_params('fetchClosedOrders', $market, $paramsPaginate);
-        $type = $this->safe_string($res, 0);
+        $type = $this->handle_market_type_and_params('fetchClosedOrders', $market, $paramsPaginate)[0];
         list($useHistorical, $paramsHistorical) = $this->handle_option_bool_and_params($paramsPaginate, 'fetchClosedOrders', 'historical', false);
         if (!$useHistorical && (($since === null && $until === null) || ($type !== 'swap'))) {
             return $this->fetch_orders_by_status('finished', $symbolResolved, $since, $limit, $paramsHistorical);
@@ -5594,8 +5592,7 @@ class gate extends Exchange {
         }
         $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
         $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $res = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
-        $type = $this->safe_string($res, 0);
+        $type = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params)[0];
         // don't omit here, omits done in prepareOrdersByStatusRequest
         list($request, $requestParams) = $this->prepare_orders_by_status_request($status, $symbolResolved, $since, $limit, $params);
         $spot = ($type === 'spot') || ($type === 'margin');

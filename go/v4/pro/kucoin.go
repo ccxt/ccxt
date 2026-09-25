@@ -670,9 +670,7 @@ func (this *Kucoin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbolsNormalized)
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchTickers", firstMarket, params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchTickers", firstMarket, params)
 	var utaparamsUtaVariable []any = this.HandleOptionBoolAndParams(paramsMarketType, "watchTickers", "uta", false)
 	var uta bool = ccxt.GetValueBool(utaparamsUtaVariable, 0, false)
 	var paramsUta map[string]any = ccxt.MapTyped(ccxt.GetValue(utaparamsUtaVariable, 1))
@@ -2518,9 +2516,7 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		var trigger *bool = this.SafeBool2(paramsUta, "stop", "trigger")
 		var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsUta, []any{"stop", "trigger"}))
-		var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, paramsOmitted)
-		var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-		var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+		marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, paramsOmitted)
 		var isFuturesMethod bool = ((marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "margin"))
 
 		url := (<-this.NegotiateAsync(true, isFuturesMethod))
@@ -2972,9 +2968,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if !ccxt.IsEqual(market, nil) {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "symbol"))
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	var isFuturesMethod bool = ((marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "margin"))
 
 	utaEnabled := (<-this.IsUTAEnabledAsync())

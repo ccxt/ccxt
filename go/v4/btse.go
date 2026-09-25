@@ -1249,9 +1249,7 @@ func (this *Btse) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params, "spot")
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params, "spot")
 	var response any = nil
 	if marketType != nil && *marketType == "spot" {
 
@@ -2024,9 +2022,7 @@ func (this *Btse) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var requestparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsUntilVariable, 0)
 	paramsUntil = GetValue(requestparamsUntilVariable, 1)
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, "spot")
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, "spot")
 	var response any = nil
 	if marketType != nil && *marketType == "spot" {
 		if symbol == nil {
@@ -2839,9 +2835,7 @@ func (this *Btse) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, paramsOmitted, "spot")
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrder", market, paramsOmitted, "spot")
 	var response any = nil
 	if marketType != nil && *marketType == "spot" {
 
@@ -3072,9 +3066,7 @@ func (this *Btse) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType string = "spot"
-	var marketTypeOptionparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params, marketType)
-	var marketTypeOption *string = SafeStringPtr(GetValue(marketTypeOptionparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeOptionparamsMarketTypeVariable, 1))
+	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params, marketType)
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
@@ -3131,9 +3123,7 @@ func (this *Btse) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArg
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	var marketType string = "spot"
-	var marketTypeOptionparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("cancelAllOrdersAfter", nil, params, marketType)
-	var marketTypeOption *string = SafeStringPtr(GetValue(marketTypeOptionparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeOptionparamsMarketTypeVariable, 1))
+	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrdersAfter", nil, params, marketType)
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 		request["timeout"] = timeout
 
@@ -3186,9 +3176,7 @@ func (this *Btse) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType string = "spot"
-	var marketTypeOptionparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params, marketType)
-	var marketTypeOption *string = SafeStringPtr(GetValue(marketTypeOptionparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeOptionparamsMarketTypeVariable, 1))
+	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params, marketType)
 	var response []any = nil
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 		if !IsEqual(market, nil) {
@@ -3392,9 +3380,7 @@ func (this *Btse) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var response []any = nil
 	var marketType string = "spot"
-	var marketTypeOptionparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params, marketType)
-	var marketTypeOption *string = SafeStringPtr(GetValue(marketTypeOptionparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeOptionparamsMarketTypeVariable, 1))
+	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params, marketType)
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 
 		response = ListTyped(PanicOnError((<-this.PrivateGetSpotApiV4TradeFees(paramsMarketType)).Raw))

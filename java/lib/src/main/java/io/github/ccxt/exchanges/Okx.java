@@ -3772,8 +3772,7 @@ public class Okx extends OkxApi
         //         "0" // candlestick state
         //     ]
         //
-        Object res = this.handleMarketTypeAndParams("fetchOHLCV", market, new HashMap<String, Object>() {{}}, (Object) null);
-        String type = (String) ((List<Object>)res).get(0);
+        String type = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchOHLCV", market, new HashMap<String, Object>() {{}}, (Object) null)).get(0);
         Integer volumeIndex = (((java.util.Objects.equals(type, "spot")))) ? 5 : 6;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, volumeIndex, (Object) null)));
     }

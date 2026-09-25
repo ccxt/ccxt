@@ -6659,8 +6659,7 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         Dictionary<string, object> market = ((symbol == null)) ? null : this.market(symbol);
-        List<object> result = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
-        string? type = this.safeString(result, 0);
+        string? type = ((string)getValue(this.handleMarketTypeAndParams("fetchOrder", market, parameters), 0));
         bool? trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
         var request = requestrequestParamsVariable[0];
@@ -6773,8 +6772,7 @@ public partial class gate : Exchange
             market = this.market(symbol);
         }
         object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : symbol;
-        List<object> res = this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate);
-        string? type = this.safeString(res, 0);
+        string? type = ((string)getValue(this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate), 0));
         IList<object> useHistoricalparamsHistoricalVariable = (IList<object>)this.handleOptionBoolAndParams(paramsPaginate, "fetchClosedOrders", "historical", false);
         bool? useHistorical = (bool?)useHistoricalparamsHistoricalVariable[0];
         var paramsHistorical = useHistoricalparamsHistoricalVariable[1];
@@ -6868,8 +6866,7 @@ public partial class gate : Exchange
         }
         object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : symbol;
         bool? trigger = this.safeBool2(parameters, "trigger", "stop");
-        List<object> res = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
-        string? type = this.safeString(res, 0);
+        string? type = ((string)getValue(this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters), 0));
         // don't omit here, omits done in prepareOrdersByStatusRequest
         var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbolResolved, since, limit, parameters);
         var request = requestrequestParamsVariable[0];

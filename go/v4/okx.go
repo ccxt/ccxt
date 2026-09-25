@@ -2381,7 +2381,7 @@ func (this *Okx) Describe() any {
 		"rollingWindowSize": 0,
 	})
 }
-func (this *Okx) HandleMarketTypeAndParams(methodName any, optionalArgs ...any) []any {
+func (this *Okx) HandleMarketTypeAndParams(methodName any, optionalArgs ...any) (*string, map[string]any) {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3482,9 +3482,7 @@ func (this *Okx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized any = this.MarketSymbols(symbols)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var request map[string]any = map[string]any{
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
@@ -3607,9 +3605,7 @@ func (this *Okx) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized any = this.MarketSymbols(symbols)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchMarkPrices", market, params, "swap")
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMarkPrices", market, params, "swap")
 	var request map[string]any = map[string]any{
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
@@ -3849,13 +3845,7 @@ func (this *Okx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var res []any = this.HandleMarketTypeAndParams("fetchOHLCV", market, nil)
-	var typeVar *string = SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(res) {
-			return DerefScalar(res[0])
-		}
-		return nil
-	}())
+	var typeVar *string = SafeStringPtr(GetValue(TupleSlice(this.HandleMarketTypeAndParams("fetchOHLCV", market, nil)), 0))
 	var volumeIndex int = func() int {
 		if typeVar != nil && *typeVar == "spot" {
 			return 5
@@ -3915,8 +3905,8 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes272519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 200))))
-		ch <- BoxAbsent(retRes272519)
+		var retRes272419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 200))))
+		ch <- BoxAbsent(retRes272419)
 		return nil
 	}
 	var priceType *string = this.SafeString(paramsPaginate, "price")
@@ -4074,8 +4064,8 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes283919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100))))
-		ch <- BoxAbsent(retRes283919)
+		var retRes283819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100))))
+		ch <- BoxAbsent(retRes283819)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -4304,7 +4294,7 @@ func (this *Okx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	marketTypequeryVariable := TupleSlice(this.HandleMarketTypeAndParams("fetchBalance", nil, params))
 	marketType := GetValue(marketTypequeryVariable, 0)
 	var query map[string]any = MapTyped(GetValue(marketTypequeryVariable, 1))
 	var request map[string]any = map[string]any{}
@@ -4458,8 +4448,8 @@ func (this *Okx) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost 
 		"tgtCcy":                            "quote_ccy",
 	}
 
-	var retRes317515 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes317515)
+	var retRes317415 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, this.Extend(req, params)))))
+	ch <- BoxAbsent(retRes317415)
 	return nil
 }
 
@@ -4496,8 +4486,8 @@ func (this *Okx) createMarketSellOrderWithCostBody(ch chan any, symbol any, cost
 		"tgtCcy":                            "quote_ccy",
 	}
 
-	var retRes320015 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", cost, nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes320015)
+	var retRes319915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", cost, nil, this.Extend(req, params)))))
+	ch <- BoxAbsent(retRes319915)
 	return nil
 }
 func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
@@ -6106,8 +6096,8 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes459119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes459119)
+		var retRes459019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes459019)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -6298,9 +6288,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVar *string = nil
 	var query any = nil
-	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
-	typeVar = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
-	query = GetValue(typeVarqueryVariable, 1)
+	typeVar, query = this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
 	request["instType"] = this.ConvertToInstrumentType(typeVar)
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -6508,8 +6496,8 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes494919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes494919)
+		var retRes494819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes494819)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -6520,9 +6508,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVar *string = nil
 	var query any = nil
-	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate)
-	typeVar = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
-	query = GetValue(typeVarqueryVariable, 1)
+	typeVar, query = this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate)
 	request["instType"] = this.ConvertToInstrumentType(typeVar)
 	if limit != nil {
 		request["limit"] = mathMin(limit, maxLimit) // default 100, max 100
@@ -6717,8 +6703,8 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes513119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate))))
-		ch <- BoxAbsent(retRes513119)
+		var retRes513019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes513019)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -6733,9 +6719,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
 	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
 	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
-	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsUntil)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
+	typeVar, query := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsUntil)
 	AddElementToObject(requestUntil, "instType", this.ConvertToInstrumentType(typeVar))
 	if (limit != nil) && (since == nil) {
 		AddElementToObject(requestUntil, "limit", limit) // default 100, max 100
@@ -6805,8 +6789,8 @@ func (this *Okx) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 		"ordId": id,
 	}
 
-	var retRes520615 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes520615)
+	var retRes520515 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes520515)
 	return nil
 }
 
@@ -6853,8 +6837,8 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes523319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, paramsPaginate))))
-		ch <- BoxAbsent(retRes523319)
+		var retRes523219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes523219)
 		return nil
 	}
 	var options map[string]any = SafeMapTyped(this.Options, "fetchLedger")
@@ -6876,9 +6860,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 			request["mgnMode"] = marginMode
 		}
 	}
-	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, paramsMarginMode)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
+	typeVar, query := this.HandleMarketTypeAndParams("fetchLedger", nil, paramsMarginMode)
 	if typeVar != nil {
 		request["instType"] = this.ConvertToInstrumentType(typeVar)
 	}
@@ -7401,8 +7383,8 @@ func (this *Okx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes569219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, paramsPaginate))))
-		ch <- BoxAbsent(retRes569219)
+		var retRes569119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes569119)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -7551,8 +7533,8 @@ func (this *Okx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes580519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, paramsPaginate))))
-		ch <- BoxAbsent(retRes580519)
+		var retRes580419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes580419)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -7944,9 +7926,7 @@ func (this *Okx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchPosition", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
+	typeVar, query := this.HandleMarketTypeAndParams("fetchPosition", market, params)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -8143,8 +8123,8 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalAr
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes632315 []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, params))))
-	ch <- BoxAbsent(retRes632315)
+	var retRes632215 []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, params))))
+	ch <- BoxAbsent(retRes632215)
 	return nil
 }
 func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
@@ -8826,8 +8806,8 @@ func (this *Okx) fetchFundingIntervalBody(ch chan any, symbol any, optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes691515 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
-	ch <- BoxAbsent(retRes691515)
+	var retRes691415 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
+	ch <- BoxAbsent(retRes691415)
 	return nil
 }
 
@@ -9009,9 +8989,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 		}
 		return symbol
 	}()
-	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(typeVarqueryVariable, 1))
+	typeVar, query := this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
 	if typeVar != nil && *typeVar == "swap" {
 		request["instType"] = this.ConvertToInstrumentType(typeVar)
 	}
@@ -9784,8 +9762,8 @@ func (this *Okx) reduceMarginBody(ch chan any, symbol any, amount any, optionalA
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes771015 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
-	ch <- BoxAbsent(retRes771015)
+	var retRes770915 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
+	ch <- BoxAbsent(retRes770915)
 	return nil
 }
 
@@ -9810,8 +9788,8 @@ func (this *Okx) addMarginBody(ch chan any, symbol any, amount any, optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes772415 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
-	ch <- BoxAbsent(retRes772415)
+	var retRes772315 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
+	ch <- BoxAbsent(retRes772315)
 	return nil
 }
 
@@ -10287,9 +10265,7 @@ func (this *Okx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var marketType *string = nil
 	var paramsSubType map[string]any = map[string]any{}
-	var marketTypeparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchOpenInterests", market, params, "swap")
-	marketType = SafeStringPtr(GetValue(marketTypeparamsSubTypeVariable, 0))
-	paramsSubType = MapTyped(GetValue(marketTypeparamsSubTypeVariable, 1))
+	marketType, paramsSubType = this.HandleSubTypeAndParams("fetchOpenInterests", market, params, "swap")
 	var instType string = "SWAP"
 	if marketType != nil && *marketType == "future" {
 		instType = "FUTURES"
@@ -10388,9 +10364,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 		"period": timeframeValue,
 	}
 	var response map[string]any = nil
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOpenInterestHistory", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenInterestHistory", market, params)
 	if typeVar != nil && *typeVar == "option" {
 
 		response = MapTyped(PanicOnError((<-this.PublicGetRubikStatOptionOpenInterestVolume(this.Extend(request, paramsMarketType))).Raw))
@@ -10690,9 +10664,7 @@ func (this *Okx) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
-	var typeVar *string = SafeStringPtr(GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
 	if (typeVar == nil || *typeVar != "future") && (typeVar == nil || *typeVar != "option") {
 		panic(NotSupported(this.Id + " fetchSettlementHistory() supports futures and options markets only"))
 	}
@@ -10808,9 +10780,7 @@ func (this *Okx) fetchUnderlyingAssetsBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marketTypeOptionparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
-	var marketTypeOption *string = SafeStringPtr(GetValue(marketTypeOptionparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeOptionparamsMarketTypeVariable, 1))
+	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
 	var isSpotOrUndefined bool = (marketTypeOption == nil) || (marketTypeOption != nil && *marketTypeOption == "spot")
 	var marketType *string = marketTypeOption
 	if isSpotOrUndefined {

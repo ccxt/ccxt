@@ -290,7 +290,7 @@ func (this *Coinex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params, "spot")
+	typeVarparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchBalance", nil, params, "spot"))
 	typeVar := ccxt.GetValue(typeVarparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
 
@@ -491,7 +491,7 @@ func (this *Coinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		symbolResolved = ccxt.GetValue(market, "symbol")
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params, "spot")
+	typeVarparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchMyTrades", market, params, "spot"))
 	typeVar := ccxt.GetValue(typeVarparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
 
@@ -786,9 +786,7 @@ func (this *Coinex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		marketIds = []any{}
 		messageHashes = append(messageHashes, "tickers")
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchTickers", market, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchTickers", market, params)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
 	var subscriptionHashes []any = []any{"all@ticker"}
 	var subscribe map[string]any = map[string]any{
@@ -890,9 +888,7 @@ func (this *Coinex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	} else {
 		messageHashes = append(messageHashes, "trades")
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(callerMethodName, market, paramsCallerMethodName)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(callerMethodName, market, paramsCallerMethodName)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
 	// const subscriptionHashes = [ 'trades' ]
 	var subscribe map[string]any = map[string]any{
@@ -976,9 +972,7 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		messageHashes = append(messageHashes, ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol")))
 		ccxt.AddElementToObject(watchOrderBookSubscriptions, symbol, []any{ccxt.GetValue(market, "id"), limitResolved, aggregation, true})
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(callerMethodName, market, paramsOmitted)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(callerMethodName, market, paramsOmitted)
 	var marketList []any = ccxt.ObjectValues(watchOrderBookSubscriptions)
 	var subscribe map[string]any = map[string]any{
 		"method": "depth.subscribe",
@@ -1147,7 +1141,7 @@ func (this *Coinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		symbolResolved = ccxt.GetValue(market, "symbol")
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, paramsOmitted, "spot")
+	typeVarparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchOrders", market, paramsOmitted, "spot"))
 	typeVar := ccxt.GetValue(typeVarparamsMarketTypeVariable, 0)
 	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
 
@@ -1510,9 +1504,7 @@ func (this *Coinex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		messageHashes = append(messageHashes, "bidsasks")
 	}
-	var typeVarparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("watchBidsAsks", market, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", market, params)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
 	var subscriptionHashes []any = []any{"all@bidsasks"}
 	var subscribe map[string]any = map[string]any{

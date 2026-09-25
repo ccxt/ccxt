@@ -517,7 +517,7 @@ func (this *Deepcoin) Describe() any {
 		},
 	})
 }
-func (this *Deepcoin) HandleMarketTypeAndParams(methodName any, optionalArgs ...any) []any {
+func (this *Deepcoin) HandleMarketTypeAndParams(methodName any, optionalArgs ...any) (*string, map[string]any) {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1010,9 +1010,7 @@ func (this *Deepcoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized any = this.MarketSymbols(symbols)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var request map[string]any = map[string]any{
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
@@ -1240,9 +1238,7 @@ func (this *Deepcoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var marketType any = nil
-	var marketTypeOptionparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params, marketType)
-	var marketTypeOption *string = SafeStringPtr(GetValue(marketTypeOptionparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeOptionparamsMarketTypeVariable, 1))
+	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params, marketType)
 	var request map[string]any = map[string]any{
 		"instType": this.ConvertToInstrumentType(marketTypeOption),
 	}
@@ -1679,9 +1675,7 @@ func (this *Deepcoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params, "spot")
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchLedger", nil, params, "spot")
 	var request map[string]any = map[string]any{
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
@@ -2495,9 +2489,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 		market = this.Market(symbol)
 		request["instId"] = GetValue(market, "id")
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams(methodName, market, paramsMethodName, "spot")
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, paramsMethodName, "spot")
 	request["instType"] = this.ConvertToInstrumentType(marketType)
 	if limit != nil {
 		request["limit"] = limit // default 100
@@ -3309,9 +3301,7 @@ func (this *Deepcoin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		market = this.Market(firstSymbol)
 	}
-	var marketTypeOptionparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchPositions", market, params, marketType)
-	var marketTypeOption *string = SafeStringPtr(GetValue(marketTypeOptionparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeOptionparamsMarketTypeVariable, 1))
+	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositions", market, params, marketType)
 	var instrumentType any = this.ConvertToInstrumentType(marketTypeOption)
 	var request map[string]any = map[string]any{
 		"instType": instrumentType,
@@ -3515,9 +3505,7 @@ func (this *Deepcoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		firstMarket = this.Market(firstSymbol)
 	}
-	var subTypeOptionparamsSubTypeVariable []any = this.HandleSubTypeAndParams("fetchFundingRates", firstMarket, params, subType)
-	var subTypeOption *string = SafeStringPtr(GetValue(subTypeOptionparamsSubTypeVariable, 0))
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeOptionparamsSubTypeVariable, 1))
+	subTypeOption, paramsSubType := this.HandleSubTypeAndParams("fetchFundingRates", firstMarket, params, subType)
 	var instType string = "SwapU"
 	if subTypeOption != nil && *subTypeOption == "inverse" {
 		instType = "Swap"
@@ -3785,9 +3773,7 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketTypeparamsMarketTypeVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, "spot")
-	var marketType *string = SafeStringPtr(GetValue(marketTypeparamsMarketTypeVariable, 0))
-	var paramsMarketType map[string]any = MapTyped(GetValue(marketTypeparamsMarketTypeVariable, 1))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, "spot")
 	var request map[string]any = map[string]any{
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
