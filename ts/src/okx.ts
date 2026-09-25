@@ -2736,7 +2736,10 @@ export default class okx extends Exchange {
         if (isMarkOrIndex) {
             requestMaxLimit = 100;
         }
-        let limitResolved = (limit === undefined) ? 100 : Math.min (limit, requestMaxLimit);
+        let limitResolved: Int = 100;
+        if (limit !== undefined) {
+            limitResolved = Math.min (limit, requestMaxLimit);
+        }
         const duration = this.parseTimeframe (timeframe);
         let bar = this.safeString (this.timeframes, timeframe, timeframe);
         if ((timezone === 'UTC') && (duration >= 21600)) { // if utc and timeframe >= 6h
