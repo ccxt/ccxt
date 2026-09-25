@@ -152,7 +152,11 @@ public partial class poloniex : ccxt.poloniex
         {
             publicOrPrivate = "private";
         }
-        object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), publicOrPrivate);
+        string? url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), publicOrPrivate);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "channel", new List<object>() {name} },

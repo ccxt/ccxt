@@ -1566,7 +1566,7 @@ func (this *Gate) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		marketId = ccxt.GetValue(market, "id")
+		marketId = market["id"]
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchMyTrades", market, paramsMarketType)

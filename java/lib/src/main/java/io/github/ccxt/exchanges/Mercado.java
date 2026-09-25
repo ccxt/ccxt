@@ -946,7 +946,7 @@ public class Mercado extends MercadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
             var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
@@ -962,14 +962,14 @@ public class Mercado extends MercadoApi
             }};
             if (java.util.Objects.equals(code, "BRL"))
             {
-                Boolean account_ref = (Helpers.inOp(paramsWithdrawTag, "account_ref"));
+                Boolean account_ref = (((Map<?, ?>)paramsWithdrawTag).containsKey("account_ref"));
                 if (!Boolean.TRUE.equals(account_ref))
                 {
                     throw new ArgumentsRequired(((this.id + " withdraw() requires account_ref parameter to withdraw ") + code)) ;
                 }
             } else if (!java.util.Objects.equals(code, "LTC"))
             {
-                Boolean tx_fee = (Helpers.inOp(paramsWithdrawTag, "tx_fee"));
+                Boolean tx_fee = (((Map<?, ?>)paramsWithdrawTag).containsKey("tx_fee"));
                 if (!Boolean.TRUE.equals(tx_fee))
                 {
                     throw new ArgumentsRequired(((this.id + " withdraw() requires tx_fee parameter to withdraw ") + code)) ;
@@ -978,7 +978,7 @@ public class Mercado extends MercadoApi
                 {
                     if (java.util.Objects.equals(tagWithdrawTag, null))
                     {
-                        if (!(Helpers.inOp(paramsWithdrawTag, "destination_tag")))
+                        if (!(((Map<?, ?>)paramsWithdrawTag).containsKey("destination_tag")))
                         {
                             throw new ArgumentsRequired(((this.id + " withdraw() requires a tag argument or destination_tag parameter to withdraw ") + code)) ;
                         }

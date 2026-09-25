@@ -990,7 +990,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		// the endpoint accepts timestamps in seconds
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchOHLCV", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchOHLCV", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
@@ -1163,7 +1163,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		"symbol": market["id"],
 		"period": period,
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(paramsPeriod, "fetchFundingRateHistory", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPeriod, "fetchFundingRateHistory", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 
@@ -1916,7 +1916,7 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["limit"] = mathMin(limit, 500) // the endpoint supports a maximum of 500 trades
 	}
 	// the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(params, "fetchTrades", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchTrades", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 
@@ -3460,7 +3460,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName string, h
 	if limit != nil {
 		request["pageSize"] = limit
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(paramsOmitted, methodName, "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
@@ -3764,7 +3764,7 @@ func (this *Btse) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["pageSize"] = limit
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(paramsOmitted, "fetchLedger", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, "fetchLedger", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {

@@ -1633,6 +1633,73 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
 }
 
+// `GetValue(m, "lit")` -> `m["lit"]` for a map local whose every write is a Market/SafeMarket
+// result or nil: those rows are pointer-free (MarketTyped), so the index reads what GetValue does.
+const GO_MARKET_ROW_WRITE = /^(?:(?:ccxt\.)?this\.(?:DerivedExchange\.|Exchange\.)?(?:Market|SafeMarket)\(.*\)|nil)$/;
+
+function nativeMarketRowReads (content: string): string {
+    if (!/\bGetValue\(\w+, "/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    let start = -1;
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = k;
+        } else if ((start >= 0) && (lines[k] === '}')) {
+            rewriteMarketRowReads (lines, masked, start, k);
+            start = -1;
+        }
+    }
+    return lines.join ('\n');
+}
+
+function rewriteMarketRowReads (lines: string[], masked: string[], start: number, end: number) {
+    const maskedFunc = masked.slice (start, end + 1).join ('\n');
+    const verdicts = new Map<string, number | undefined> ();
+    // line index of the single declaration when every write is a market row or nil
+    const marketRowLocal = (name: string): number | undefined => {
+        if (verdicts.has (name)) {
+            return verdicts.get (name);
+        }
+        let verdict: number | undefined = undefined;
+        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
+        if ((decl !== undefined) && (decl.type === 'map[string]any') && (decl.index !== undefined) && !new RegExp ('&\\s*' + name + '\\b').test (maskedFunc)) {
+            const writes = new RegExp ('(?<![\\w.])' + name + '\\b[^\\n=(]*(?<![=!<>:])=(?!=)');
+            let ok = true;
+            let declLine = -1;
+            for (let k = start + 1; ok && (k < end); k++) {
+                if (!writes.test (masked[k])) {
+                    continue;
+                }
+                const m = new RegExp ('^\\s*(var ' + name + ' map\\[string\\]any|' + name + ') = (.*)$').exec (lines[k]);
+                ok = (m !== null) && (masked[k].trimEnd ().length === lines[k].trimEnd ().length) && GO_MARKET_ROW_WRITE.test (m[2].trim ());
+                if (ok && m[1].startsWith ('var ')) {
+                    declLine = k;
+                }
+            }
+            verdict = (ok && (declLine >= 0)) ? declLine : undefined;
+        }
+        verdicts.set (name, verdict);
+        return verdict;
+    };
+    for (let k = start + 1; k < end; k++) {
+        if (masked[k].indexOf ('GetValue(') < 0) {
+            continue;
+        }
+        const m = masked[k];
+        lines[k] = lines[k].replace (/(?<![\w.])(?:ccxt\.)?GetValue\((\w+), ("[^"\\\n]*")\)/g, (all: string, name: string, key: string, at: number) => {
+            const head = all.substring (0, all.indexOf ('(') + 1 + name.length);
+            const declLine = (m.substr (at, head.length) === head) ? marketRowLocal (name) : undefined;
+            return ((declLine !== undefined) && (declLine < k)) ? name + '[' + key + ']' : all;
+        });
+    }
+}
+
 function retagLoopBoundedElementReads (content: string): string {
     if (content.indexOf ('GetValue(') < 0) {
         return content; // no candidate line anywhere in this file
@@ -1768,6 +1835,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = assertTypedElementAccess (content);
     content = retagLoopBoundedElementReads (content);
     content = nativeTypedContainerAccess (content);
+    content = nativeMarketRowReads (content);
     return goGofmtSplicedText (content);
 }
 
@@ -2802,6 +2870,7 @@ export function collapseRedundantNilChecks (content: string): string {
 
 // Methods whose generated Go signature already returns map[string]any: MapTyped around their call is
 // the identity and a `.(map[string]any)` assertion on it does not compile, so both are dropped.
+const GO_MARKET_ROW_METHODS = [ 'Market', 'SafeMarket' ];
 const GO_MAP_RETURNING_METHODS = [ 'Market', 'Currency', 'SafeCurrency', 'SafeMarket', 'Account', 'ParseOrderBook' ];
 
 function dropNoOpMapTyped (content: string): string {
@@ -4906,6 +4975,9 @@ ${constStatements.join('\n')}
             // Symbols is a typed []string field on BaseExchange; TS `this.symbols = []` transpiles
             // to an untyped []any{} literal which cannot be assigned to the typed field.
             [/this\.Symbols = \[\]any\{\}/g, 'this.Symbols = []string{}'],
+            // setMarkets indexes each parsed row pointer-free (markets_by_id keeps the row itself)
+            [/(\breturn )DerefScalar\(marketValues\[i\]\)/g, '$1MarketTyped(marketValues[i])'],
+            [/\bvalues = append\(values, market\)/g, 'values = append(values, MarketTyped(market))'],
             // ParseToInt's TS body is `parseInt(parseFloat(numberToString(number)))` and the
             // hand-written ParseInt always returns int64 (math.MinInt64 when the conversion
             // fails), so the method never hands back nil. Name the concrete type here (the
@@ -4971,9 +5043,9 @@ ${constStatements.join('\n')}
             // redeclaration — same shape as the loadOrderBook drop above. The classifier in
             // build/go-local-types.js types locals from the hand-written signature.
             [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+SafeNumber(?:2|N|OmitZero)?\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
-            // handleMarketType/SubType/OptionString/MarginMode/OptionBoolAndParams(2) are hand-written in
+            // handleMarketType/SubType/OptionString(2)/MarginMode/OptionBool(2)/OptionInteger(2)AndParams are hand-written in
             // exchange_market_type.go with a (*string, map[string]any) result pair
-            [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+(?:Handle(?:MarketType|SubType|OptionString|MarginMode)AndParams|HandleOptionBoolAndParams2?|HandleUntilOption)\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
+            [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+(?:Handle(?:MarketType|SubType|OptionString|MarginMode)AndParams|HandleOption(?:Bool|Integer)AndParams2?|HandleOptionStringAndParams2|HandleUntilOption)\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
             // marketSymbols is hand-written in exchange_market_type.go with its []string result
             [new RegExp('func\\s+\\(this \\*BaseExchange\\)\\s+MarketSymbols\\([^{]*\\{[\\s\\S]*?\\n\\}\\n', 'g'), ''],
             // implodeHostname is hand-written in go/v4/exchange_misc.go with its `string` return
@@ -6004,7 +6076,8 @@ ${caseStatements.join('\n')}
      * `wrap`, must hold for every function-level return expression.
      */
     retypeGoMapMethod (content: string, receiver: string, method: string, accept: (expr: string) => boolean | undefined, wrap: boolean, goType = 'map[string]any'): string {
-        const typed = (goType === '[]any') ? 'ListTyped(' : 'MapTyped(';
+        // market rows leave Market/SafeMarket pointer-free, so their fields read natively
+        const typed = (goType === '[]any') ? 'ListTyped(' : ((GO_MARKET_ROW_METHODS.indexOf (method) >= 0) ? 'MarketTyped(' : 'MapTyped(');
         const headRegex = new RegExp ('func\\s+\\(this \\*' + receiver + '\\)\\s+' + method + '\\(([^)]*)\\)\\s+any\\s*\\{', 'g');
         let out = '';
         let cursor = 0;
@@ -6121,7 +6194,7 @@ ${caseStatements.join('\n')}
     // AppendToArray, SafeValue/GetValue receiver), and no call site compares the result to a literal.
     coerceTupleHelperSignatures (content: string): string {
         // F04: the `[]any` retag spells the single space before `{` too
-        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleOptionStringAndParams2|HandleOptionIntegerAndParams|HandleOptionIntegerAndParams2|HandleParamString|HandleParamString2|HandleNetworkCodeAndParams|HandleWithdrawTagAndParams|HandlePostOnly|HandleParamBool|HandleParamBool2|HandleParamInteger|HandleParamInteger2|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {')
+        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleParamString|HandleParamString2|HandleNetworkCodeAndParams|HandleWithdrawTagAndParams|HandlePostOnly|HandleParamBool|HandleParamBool2|HandleParamInteger|HandleParamInteger2|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {')
             // hand-written base (exchange_market_type.go) returns the pair as two results; the
             // Okx/Deepcoin overrides only `return super...` so they carry the same results
             .replace (/func\s+\(this \*(\w+)\)\s+(HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams|HandleMarginModeAndParams)\(([^)]*)\)\s+(?:any|\[\]any)(\s+\{)/g, 'func (this *$1) $2($3) (*string, map[string]any) {')

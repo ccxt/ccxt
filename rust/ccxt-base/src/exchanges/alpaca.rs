@@ -2557,7 +2557,7 @@ impl AlpacaCore {
         let mut currency: Value = self.currency(code);
         let mut addressValue: Value = address.clone();
         if (tagWithdrawTag != Value::Null) && (tagWithdrawTag.as_str() != Some("")) {
-            addressValue = add(&Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), &tagWithdrawTag);
+            addressValue = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), tagWithdrawTag).into());
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

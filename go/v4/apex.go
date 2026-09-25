@@ -1579,7 +1579,7 @@ func (this *Apex) SafeMarket(optionalArgs ...any) map[string]any {
 		}
 		return marketResolved
 	}()
-	return this.Exchange.SafeMarket(marketId, marketValue, delimiter, marketType)
+	return MarketTyped(this.Exchange.SafeMarket(marketId, marketValue, delimiter, marketType))
 }
 func (this *Apex) GenerateRandomClientIdOmni(_accountId any) any {
 	var hasAccountId bool = (!IsEqual(_accountId, nil)) && (!IsEqual(_accountId, ""))
@@ -1991,7 +1991,7 @@ func (this *Apex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV3DeleteOpenOrders(this.Extend(request, params))).Raw))
@@ -2167,7 +2167,7 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["beginTimeInclusive"] = since
@@ -2282,7 +2282,7 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["beginTimeInclusive"] = since
@@ -2347,7 +2347,7 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["beginTimeInclusive"] = since

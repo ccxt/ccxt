@@ -334,7 +334,7 @@ func (this *Bitflyer) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = delimiter
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
-	return this.Exchange.SafeMarket(marketId, market, delimiter, "spot")
+	return MarketTyped(this.Exchange.SafeMarket(marketId, market, delimiter, "spot"))
 }
 
 /**

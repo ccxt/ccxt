@@ -121,7 +121,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> wsRequest = this.wrapAsPostAction(operationType, request);
         string? requestId = this.safeString(wsRequest, "id");
         if (isEqual(operationType, "create_stop_order"))
@@ -213,7 +217,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> wsRequest = this.wrapAsPostAction(batchOperationType, request);
         string? requestId = this.safeString(wsRequest, "id");
         object response = await this.watch(url, requestId, wsRequest, requestId);
@@ -282,7 +290,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> wsRequest = this.wrapAsPostAction(batchOperationType, request);
         string? requestId = this.safeString(wsRequest, "id");
         object response = await this.watch(url, requestId, wsRequest, requestId);
@@ -374,7 +386,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> wsRequest = this.wrapAsPostAction(operationType, request);
         string? requestId = this.safeString(wsRequest, "id");
         object response = await this.watch(url, requestId, wsRequest, requestId);
@@ -439,7 +455,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> wsRequest = this.wrapAsPostAction(operationType, request);
         string? requestId = this.safeString(wsRequest, "id");
         object response = await this.watch(url, requestId, wsRequest, requestId);
@@ -486,7 +506,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -529,7 +553,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {
@@ -645,7 +673,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -685,7 +717,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {
@@ -730,7 +766,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -779,7 +819,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {
@@ -923,7 +967,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -967,7 +1015,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1140,7 +1192,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1187,7 +1243,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1285,7 +1345,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1331,7 +1395,11 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("unWatchOrders", parameters);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
         IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);

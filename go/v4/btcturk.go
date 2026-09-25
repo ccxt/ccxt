@@ -1090,7 +1090,7 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["pairSymbol"] = GetValue(market, "id")
+		request["pairSymbol"] = market["id"]
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenOrders(this.Extend(request, params))).Raw))

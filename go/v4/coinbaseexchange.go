@@ -1974,7 +1974,7 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["product_id"] = GetValue(market, "id")
+		request["product_id"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100
@@ -2178,7 +2178,7 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan any, id any, optionalArgs 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["product_id"] = GetValue(market, "symbol") // the request will be more performant if you include it
+		request["product_id"] = market["symbol"] // the request will be more performant if you include it
 	}
 	var response any = nil
 	if clientOrderId == nil {
@@ -2226,7 +2226,7 @@ func (this *Coinbaseexchange) cancelAllOrdersBody(ch chan any, optionalArgs ...a
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["product_id"] = GetValue(market, "symbol") // the request will be more performant if you include it
+		request["product_id"] = market["symbol"] // the request will be more performant if you include it
 	}
 
 	response := (<-this.PrivateDeleteOrders(this.Extend(request, params))).Raw
@@ -2278,7 +2278,7 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code string, amount any,
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
@@ -2299,7 +2299,7 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code string, amount any,
 		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCoinbaseAccount(this.Extend(request, paramsWithdrawTag))).Raw))
 	} else {
 		request["crypto_address"] = address
-		if !IsEqual(tagWithdrawTag, nil) {
+		if tagWithdrawTag != nil {
 			request["destination_tag"] = tagWithdrawTag
 		}
 

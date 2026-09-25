@@ -1435,7 +1435,7 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
 			if symbolsLength == 1 {
-				request["symbol"] = GetValue(market, "id")
+				request["symbol"] = market["id"]
 			}
 		}
 	}
@@ -2268,7 +2268,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	if limit != nil {
@@ -2400,7 +2400,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params, "swap")
 	if marketType != nil && *marketType == "spot" {
@@ -2823,7 +2823,7 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbols"] = []any{GetValue(market, "id")}
+		request["symbols"] = []any{market["id"]}
 	}
 	var response any = []any{}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
@@ -2915,7 +2915,7 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	if marketType == nil || *marketType != "spot" {
@@ -3563,7 +3563,7 @@ func (this *Poloniex) withdrawBody(ch chan any, code string, amount any, address
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	var currency map[string]any = this.Currency(code)
@@ -3579,7 +3579,7 @@ func (this *Poloniex) withdrawBody(ch chan any, code string, amount any, address
 		panic(ArgumentsRequired(this.Id + " withdraw requires a network parameter for " + code + "."))
 	}
 	request["network"] = this.NetworkCodeToId(networkCode, code)
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["paymentId"] = tagWithdrawTag
 	}
 

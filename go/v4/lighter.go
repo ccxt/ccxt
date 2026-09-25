@@ -1018,9 +1018,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var nonceparamsNonceVariable []any = this.HandleOptionAndParams(paramsAccountIndex, "createOrder", "nonce")
 	nonce := GetValue(nonceparamsNonceVariable, 0)
 	paramsNonce := GetValue(nonceparamsNonceVariable, 1)
-	var orderExpiryOptionparamsOrderExpiryVariable []any = this.HandleOptionIntegerAndParams(paramsNonce, "createOrder", "orderExpiry", 0)
-	orderExpiryOption := GetValue(orderExpiryOptionparamsOrderExpiryVariable, 0)
-	paramsOrderExpiry := GetValue(orderExpiryOptionparamsOrderExpiryVariable, 1)
+	orderExpiryOption, paramsOrderExpiry := this.HandleOptionIntegerAndParams(paramsNonce, "createOrder", "orderExpiry", 0)
 	var orderExpiry any = orderExpiryOption
 	if !IsEqual(nonce, nil) {
 		request["nonce"] = nonce
@@ -1210,9 +1208,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan any, method string, symbol a
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	AddElementToObject(paramsAccountIndex, "accountIndex", accountIndex)
-	var groupingTypeparamsGroupingTypeVariable []any = this.HandleOptionIntegerAndParams(paramsAccountIndex, method, "groupingType", 3)
-	groupingType := GetValue(groupingTypeparamsGroupingTypeVariable, 0)
-	paramsGroupingType := GetValue(groupingTypeparamsGroupingTypeVariable, 1) // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+	groupingType, paramsGroupingType := this.HandleOptionIntegerAndParams(paramsAccountIndex, method, "groupingType", 3) // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
 	var orderRequests any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsGroupingType)
 	var totalOrderRequests int = GetArrayLength(orderRequests)
 	var apiKeyIndex any = nil
@@ -3403,9 +3399,7 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes265319)
 		return nil
 	}
-	var addressparamsAddressVariable []any = this.HandleOptionStringAndParams2(paramsPaginate, "fetchDeposits", "address", "l1_address")
-	var address *string = SafeStringPtr(GetValue(addressparamsAddressVariable, 0))
-	var paramsAddress map[string]any = MapTyped(GetValue(addressparamsAddressVariable, 1))
+	address, paramsAddress := this.HandleOptionStringAndParams2(paramsPaginate, "fetchDeposits", "address", "l1_address")
 	if address == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDeposits() requires an address parameter"))
 	}
@@ -3747,7 +3741,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = mathMin(limit, 100)
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2(paramsApiKeyIndex, "fetchMyTrades", "until", "from")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2Nullable(paramsApiKeyIndex, "fetchMyTrades", "until", "from")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
@@ -3756,7 +3750,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market_id"] = GetValue(market, "id")
+		request["market_id"] = market["id"]
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTrades(this.Extend(request, paramsUntil))).Raw))
@@ -3910,9 +3904,7 @@ func (this *Lighter) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
-	var marginModeparamsMarginModeVariable []any = this.HandleOptionStringAndParams2(params, "setLeverage", "marginMode", "margin_mode")
-	marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleOptionStringAndParams2(params, "setLeverage", "marginMode", "margin_mode")
 	if IsEqual(marginMode, nil) {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires an marginMode parameter"))
 	}

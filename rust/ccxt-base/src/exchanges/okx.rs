@@ -8334,10 +8334,10 @@ impl OkxCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        let mut hasTag: bool = (tagWithdrawTag != Value::Null) && (get_array_length(&tagWithdrawTag).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64));
+        let mut hasTag: bool = (tagWithdrawTag != Value::Null) && (((tagWithdrawTag.len() as i64) as f64) > ((0i64) as f64));
         let mut addressWithTag: Value = address.clone();
         if hasTag {
-            addressWithTag = add(&Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), &tagWithdrawTag);
+            addressWithTag = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), tagWithdrawTag).into());
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

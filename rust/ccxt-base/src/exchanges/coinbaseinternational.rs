@@ -3076,7 +3076,7 @@ impl CoinbaseinternationalCore {
     m
 }));
         let mut tagAndParams: Value = self.handle_withdraw_tag_and_params(tag, params);
-        let mut paramsWithdrawTag: Value = get_value(&tagAndParams, &Value::Int(1));
+        let mut paramsWithdrawTag: Value = tagAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         self.check_address(&[address.clone()]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;

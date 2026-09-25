@@ -4876,7 +4876,7 @@ public class Bitget extends BitgetApi
         return BaseExchange.supplyAsync(() -> {
 
             this.checkAddress(address);
-            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))
@@ -5243,7 +5243,7 @@ public class Bitget extends BitgetApi
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchDepositAddress", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
-            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsUTA);
+            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsUTA));
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             Map<String, Object> currency = this.currency((String) (code));
@@ -7829,7 +7829,7 @@ public class Bitget extends BitgetApi
             request.put("orderType", type);
             String exchangeSpecificTifParam = this.safeString(paramsProductType, "timeInForce");
             Boolean postOnly = null;
-            List<Object> postOnlyparamsProductTypeVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), paramsProductType);
+            List<Object> postOnlyparamsProductTypeVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), Helpers.toMapArg(paramsProductType));
             postOnly = (Boolean) ((List<Object>) postOnlyparamsProductTypeVariable).get(0);
             paramsProductType = ((List<Object>) postOnlyparamsProductTypeVariable).get(1);
             String timeInForce = null;
@@ -7962,7 +7962,7 @@ public class Bitget extends BitgetApi
         String clientOrderId = this.safeString2(paramsMarketType, "clientOid", "clientOrderId");
         String exchangeSpecificTifParam = this.safeString2(paramsMarketType, "force", "timeInForce");
         Boolean postOnly = null;
-        List<Object> postOnlyparamsMarketTypeVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), paramsMarketType);
+        List<Object> postOnlyparamsMarketTypeVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), Helpers.toMapArg(paramsMarketType));
         postOnly = (Boolean) ((List<Object>) postOnlyparamsMarketTypeVariable).get(0);
         paramsMarketType = ((List<Object>) postOnlyparamsMarketTypeVariable).get(1);
         String timeInForce = null;

@@ -993,7 +993,7 @@ func (this *Revolutx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var request map[string]any = map[string]any{}
 	if market != nil {
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["start_date"] = since

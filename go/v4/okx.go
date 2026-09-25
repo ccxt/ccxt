@@ -2495,9 +2495,9 @@ func (this *Okx) SafeMarket(optionalArgs ...any) map[string]any {
 	}
 	if isOption && (marketId != nil) && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
 		// handle expired option contracts
-		return MapTyped(this.CreateExpiredOptionMarket(marketId))
+		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}
-	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
+	return MarketTyped(this.Exchange.SafeMarket(marketId, market, delimiter, marketType))
 }
 
 /**
@@ -4595,7 +4595,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (IsEqual(typeVar, "post_only")), paramsReduceOnly)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	paramsPostOnly := GetValue(postOnlyparamsPostOnlyVariable, 1)
+	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
 	var orderParams any = this.Omit(paramsPostOnly, []any{"currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent"})
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC") || (IsEqual(typeVar, "ioc"))
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK") || (IsEqual(typeVar, "fok"))
@@ -6074,7 +6074,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instId"] = GetValue(market, "id")
+		request["instId"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, maxLimit) // default 100, max 100
@@ -6254,7 +6254,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instId"] = GetValue(market, "id")
+		request["instId"] = market["id"]
 	}
 	var typeVar *string = nil
 	var query any = nil
@@ -6470,7 +6470,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instId"] = GetValue(market, "id")
+		request["instId"] = market["id"]
 	}
 	var typeVar *string = nil
 	var query any = nil
@@ -6673,7 +6673,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instId"] = GetValue(market, "id")
+		request["instId"] = market["id"]
 	}
 	if since != nil {
 		request["begin"] = since
@@ -7233,7 +7233,7 @@ func (this *Okx) withdrawBody(ch chan any, code string, amount any, address any,
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	var hasTag bool = (!IsEqual(tagWithdrawTag, nil)) && (GetArrayLength(tagWithdrawTag) > 0)
+	var hasTag bool = (!IsEqual(tagWithdrawTag, nil)) && (GetLength(tagWithdrawTag) > 0)
 	var addressWithTag any = address
 	if hasTag {
 		addressWithTag = Add(Add(address, ":"), tagWithdrawTag)
@@ -8917,19 +8917,19 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		if GetValue(market, "contract") == true {
-			if GetValue(market, "linear") == true {
+		if market["contract"] == true {
+			if market["linear"] == true {
 				request["ctType"] = "linear"
-				request["ccy"] = GetValue(market, "quoteId")
+				request["ccy"] = market["quoteId"]
 			} else {
 				request["ctType"] = "inverse"
-				request["ccy"] = GetValue(market, "baseId")
+				request["ccy"] = market["baseId"]
 			}
 		}
 	}
 	var symbolResolved any = func() any {
 		if market != nil {
-			return GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return symbol
 	}()
@@ -9911,7 +9911,7 @@ func (this *Okx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instId"] = GetValue(market, "id")
+		request["instId"] = market["id"]
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountInterestAccrued(this.Extend(request, paramsMarginMode))).Raw))

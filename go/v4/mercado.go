@@ -986,7 +986,7 @@ func (this *Mercado) withdrawBody(ch chan any, code string, amount any, address 
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
@@ -1010,7 +1010,7 @@ func (this *Mercado) withdrawBody(ch chan any, code string, amount any, address 
 			panic(ArgumentsRequired(this.Id + " withdraw() requires tx_fee parameter to withdraw " + code))
 		}
 		if code == "XRP" {
-			if IsEqual(tagWithdrawTag, nil) {
+			if tagWithdrawTag == nil {
 				if !(InOp(paramsWithdrawTag, "destination_tag")) {
 					panic(ArgumentsRequired(this.Id + " withdraw() requires a tag argument or destination_tag parameter to withdraw " + code))
 				}

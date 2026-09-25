@@ -2421,7 +2421,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	for i := 0; i < len(marketValues); i++ {
 		var value any = func() any {
 			if i >= 0 && i < len(marketValues) {
-				return DerefScalar(marketValues[i])
+				return MarketTyped(marketValues[i])
 			}
 			return nil
 		}()
@@ -2454,7 +2454,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		} else {
 			market["subType"] = nil
 		}
-		values = append(values, market)
+		values = append(values, MarketTyped(market))
 	}
 	this.Markets = this.MapToSafeMap(this.IndexBy(values, "symbol"))
 	var marketsSortedBySymbol map[string]any = this.Keysort(this.Markets)
@@ -4714,7 +4714,7 @@ func (this *BaseExchange) HandleRequestNetwork(params any, request any, exchange
 	_ = isRequired
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
 	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	paramsNetworkCode := GetValue(networkCodeparamsNetworkCodeVariable, 1)
+	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if networkCode != nil {
 		AddElementToObject(request, exchangeSpecificKey, this.NetworkCodeToId(networkCode, currencyCode))
 	} else if isRequired == true {
@@ -4867,11 +4867,11 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 	var retries int = 0
 	// implicit endpoints may pass a list body as params: keep it an untyped box
 	var requestParams any = params
-	var retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable []any = this.HandleOptionIntegerAndParams(requestParams, path, "maxRetriesOnFailure", retries)
+	var retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable []any = this.HandleOptionIntegerAndParamsNullable(requestParams, path, "maxRetriesOnFailure", retries)
 	retriesMaxRetriesOnFailure := GetValue(retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable, 0)
 	paramsMaxRetriesOnFailure := GetValue(retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable, 1)
 	var retryDelay int = 0
-	var retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable []any = this.HandleOptionIntegerAndParams(paramsMaxRetriesOnFailure, path, "maxRetriesOnFailureDelay", retryDelay)
+	var retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsMaxRetriesOnFailure, path, "maxRetriesOnFailureDelay", retryDelay)
 	retryDelayMaxRetriesOnFailureDelay := GetValue(retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable, 0)
 	paramsMaxRetriesOnFailureDelay := GetValue(retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable, 1)
 	var fetchDataCacheEnabled bool = IsGreaterThan(this.FetchHistoryCacheSize, 0)
@@ -5203,7 +5203,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 			var markets any = GetValue(this.Markets_by_id, marketId)
 			var numMarkets int = GetArrayLength(markets)
 			if numMarkets == 1 {
-				return MapTyped(GetValue(markets, 0))
+				return MarketTyped(GetValue(markets, 0))
 			} else {
 				if (marketType == nil) && (market == nil) {
 					panic(ArgumentsRequired(Add(Add(this.Id+" safeMarket() requires a fourth argument for ", marketId), " to disambiguate between different markets with the same market id")))
@@ -5217,7 +5217,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 				for i := 0; i < GetArrayLength(markets); i++ {
 					var currentMarket any = GetValue(markets, i)
 					if IsEqual(GetValue(currentMarket, marketTypeResolved), true) {
-						return MapTyped(currentMarket)
+						return MarketTyped(currentMarket)
 					}
 				}
 			}
@@ -5252,11 +5252,11 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 					AddElementToObject(result, "symbol", Add(Add(base, "/"), quote))
 				}
 			}
-			return MapTyped(result)
+			return MarketTyped(result)
 		}
 	}
 	if market != nil {
-		return MapTyped(market)
+		return MarketTyped(market)
 	}
 	var emptyMarket any = this.SafeMarketStructure(map[string]any{
 		"symbol":   marketId,
@@ -5265,7 +5265,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 	if IsEqual(emptyMarket, nil) {
 		panic(ExchangeError(this.Id + " safeMarket() failed to build market structure"))
 	}
-	return MapTyped(emptyMarket)
+	return MarketTyped(emptyMarket)
 }
 func (this *BaseExchange) MarketOrNull(optionalArgs ...any) any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5624,14 +5624,6 @@ func (this *BaseExchange) HandleOptionAndParams2(params any, methodName1 any, op
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleOptionStringAndParams2(params any, methodName any, optionName1 any, optionName2 any, optionalArgs ...any) []any {
-	var defaultValue *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = defaultValue
-	var valuenewParamsVariable []any = this.HandleOptionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
-	value := GetValue(valuenewParamsVariable, 0)
-	newParams := GetValue(valuenewParamsVariable, 1)
-	return []any{this.CheckOptionString(methodName, optionName1, value), newParams}
-}
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
@@ -5641,26 +5633,9 @@ func (this *BaseExchange) HandleOptionStringAndParams2(params any, methodName an
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleOptionIntegerAndParams(params any, methodName any, optionName any, optionalArgs ...any) []any {
-	// handleOptionAndParams read as an integer; the statically typed ports throw on another type
-	var defaultValue *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
-	_ = defaultValue
-	var valuenewParamsVariable []any = this.HandleOptionAndParams(params, methodName, optionName, defaultValue)
-	value := GetValue(valuenewParamsVariable, 0)
-	newParams := GetValue(valuenewParamsVariable, 1)
-	return []any{this.CheckOptionInteger(methodName, optionName, value), newParams}
-}
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleOptionIntegerAndParams2(params any, methodName any, optionName1 any, optionName2 any, optionalArgs ...any) []any {
-	var defaultValue *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
-	_ = defaultValue
-	var valuenewParamsVariable []any = this.HandleOptionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
-	value := GetValue(valuenewParamsVariable, 0)
-	newParams := GetValue(valuenewParamsVariable, 1)
-	return []any{this.CheckOptionInteger(methodName, optionName1, value), newParams}
-}
 func (this *BaseExchange) HandleOption(methodName any, optionName any, optionalArgs ...any) any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
@@ -6425,19 +6400,19 @@ func (this *BaseExchange) Market(symbol any) map[string]any {
 	}
 	var marketsById any = this.Markets_by_id
 	if InOp(markets, symbol) {
-		return MapTyped(GetValue(markets, symbol))
+		return MarketTyped(GetValue(markets, symbol))
 	} else if (!IsEqual(marketsById, nil)) && (InOp(marketsById, symbol)) {
 		var marketsList any = GetValue(marketsById, symbol)
 		var defaultType *string = this.SafeString2(this.Options, "defaultType", "defaultSubType", "spot")
 		for i := 0; i < GetArrayLength(marketsList); i++ {
 			var market any = GetValue(marketsList, i)
 			if IsEqual(GetValue(market, defaultType), true) {
-				return MapTyped(market)
+				return MarketTyped(market)
 			}
 		}
-		return MapTyped(GetValue(marketsList, 0))
+		return MarketTyped(GetValue(marketsList, 0))
 	} else if (EndsWith(symbol, "-C")) || (EndsWith(symbol, "-P")) || (StartsWith(symbol, "C-")) || (StartsWith(symbol, "P-")) {
-		return MapTyped(this.DerivedExchange.CreateExpiredOptionMarket(symbol))
+		return MarketTyped(this.DerivedExchange.CreateExpiredOptionMarket(symbol))
 	}
 	panic(BadSymbol(Add(this.Id+" does not have market symbol ", symbol)))
 }
@@ -7097,7 +7072,7 @@ func (this *BaseExchange) HandlePostOnly(isMarketOrder any, exchangeSpecificPost
 	 * @param {object} [params] exchange specific params
 	 * @returns {Array}
 	 */
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var postOnly any = DerefScalar(this.SafeBool(params, "postOnly", false))
@@ -7122,7 +7097,7 @@ func (this *BaseExchange) HandlePostOnly(isMarketOrder any, exchangeSpecificPost
 			} else {
 				keysToOmit = []any{"postOnly"}
 			}
-			var paramsOmitted any = this.Omit(params, keysToOmit)
+			var paramsOmitted map[string]any = MapTyped(this.Omit(params, keysToOmit))
 			return []any{true, paramsOmitted}
 		}
 	}
@@ -7724,7 +7699,7 @@ func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, option
 	_ = maxEntriesPerRequest
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParams(params, method, "maxEntriesPerRequest")
+	var newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "maxEntriesPerRequest")
 	newMaxEntriesPerRequest := GetValue(newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 1)
 	var maxEntriesPerRequestOption any = func() any {
@@ -7762,11 +7737,11 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 	var removeRepeated bool = GetArgBool(optionalArgs, 5, true)
 	_ = removeRepeated
 	var maxCalls int = 10
-	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParams(params, method, "paginationCalls", maxCalls)
+	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
 	maxCallsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 0)
 	paramsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 1)
 	var maxRetries int = 3
-	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries)
+	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
 	maxRetriesOption := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 0)
 	paramsMaxRetries := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 1)
 	var paginationDirectionparamsPaginationDirectionVariable []any = this.HandleOptionAndParams(paramsMaxRetries, method, "paginationDirection", "backward")
@@ -7910,7 +7885,7 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan any, method any, opt
 	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
 	var maxRetries int = 3
-	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParams(params, method, "maxRetries", maxRetries)
+	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "maxRetries", maxRetries)
 	maxRetriesOption := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 0)
 	paramsMaxRetries := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 1)
 	var errors any = 0
@@ -7981,7 +7956,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 	var maxEntriesPerRequest *int64 = GetArgInt64Ptr(optionalArgs, 5, nil)
 	_ = maxEntriesPerRequest
 	var maxCalls int = 10
-	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParams(params, method, "paginationCalls", maxCalls)
+	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
 	maxCallsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 0)
 	paramsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 1)
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls)
@@ -8075,11 +8050,11 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 	var maxEntriesPerRequest *int64 = GetArgInt64Ptr(optionalArgs, 7, nil)
 	_ = maxEntriesPerRequest
 	var maxCalls int = 10
-	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParams(params, method, "paginationCalls", maxCalls)
+	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
 	maxCallsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 0)
 	paramsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 1)
 	var maxRetries int = 3
-	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries)
+	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
 	maxRetriesOption := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 0)
 	paramsMaxRetries := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 1)
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
@@ -8229,11 +8204,11 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan any, method 
 	var maxEntriesPerRequest *int64 = GetArgInt64Ptr(optionalArgs, 5, nil)
 	_ = maxEntriesPerRequest
 	var maxCalls int = 10
-	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParams(params, method, "paginationCalls", maxCalls)
+	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
 	maxCallsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 0)
 	paramsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 1)
 	var maxRetries int = 3
-	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries)
+	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
 	maxRetriesOption := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 0)
 	paramsMaxRetries := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 1)
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)

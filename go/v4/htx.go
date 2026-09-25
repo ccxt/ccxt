@@ -3761,7 +3761,7 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if marketType != nil && *marketType == "spot" {
 		if symbol != nil {
 			market = this.Market(symbol)
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 		if limit != nil {
 			request["size"] = limit // default 100, max 500
@@ -4588,9 +4588,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		panic(NotSupported(this.Id + " fetchBalance() unified account has been deprecated on htx"))
 	}
 	typeVar, paramsType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUnified)
-	var subTypeOptionparamsSubTypeVariable []any = this.HandleOptionStringAndParams2(paramsType, "fetchBalance", "defaultSubType", "subType")
-	subTypeOption := GetValue(subTypeOptionparamsSubTypeVariable, 0)
-	var paramsSubType map[string]any = MapTyped(GetValue(subTypeOptionparamsSubTypeVariable, 1))
+	subTypeOption, paramsSubType := this.HandleOptionStringAndParams2(paramsType, "fetchBalance", "defaultSubType", "subType")
 	var subType any = func() any {
 		if IsEqual(subTypeOption, nil) {
 			return "linear"
@@ -5155,7 +5153,7 @@ func (this *Htx) fetchSpotOrdersByStatesBody(ch chan any, states any, optionalAr
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["start-time"] = since // a window of 48 hours within 180 days
@@ -7125,7 +7123,7 @@ func (this *Htx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		}
 		market = this.Market(symbol)
 		var orderRequest any = nil
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 
 			orderRequest = (<-this.CreateSpotOrderRequestAsync(marketId, typeVar, side, amount, price, orderParams))
 			PanicOnError(orderRequest)
@@ -9242,7 +9240,7 @@ func (this *Htx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 	if IsEqual(marginMode, "isolated") {
 		if symbol != nil {
 			market = this.Market(symbol)
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 
 		response = (<-this.PrivateGetMarginLoanOrders(this.Extend(request, paramsMarginMode)))
@@ -11702,7 +11700,7 @@ func (this *Htx) setPositionModeBody(ch chan any, hedged any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"position_mode": posMode,
 	}
-	if ((market != nil)) && (GetValue(market, "inverse") == true) {
+	if ((market != nil)) && (market["inverse"] == true) {
 		panic(BadRequest(this.Id + " setPositionMode can only be used for linear markets"))
 	}
 

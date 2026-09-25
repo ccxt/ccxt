@@ -2415,7 +2415,7 @@ func (this *Woo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"stop", "trigger"}))
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -3183,7 +3183,7 @@ func (this *Woo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -3476,7 +3476,7 @@ func (this *Woo) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
 func (this *Woo) GetDedicatedNetworkId(currency any, params any) any {
 	var networkCodeRawparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCodeRaw := GetValue(networkCodeRawparamsNetworkCodeVariable, 0)
-	paramsNetworkCode := GetValue(networkCodeRawparamsNetworkCodeVariable, 1)
+	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeRawparamsNetworkCodeVariable, 1))
 	var networkCode *string = this.NetworkIdToCode(networkCodeRaw, GetValue(currency, "code"))
 	var networkEntry any = func() any {
 		if networkCode == nil {
@@ -4119,7 +4119,7 @@ func (this *Woo) withdrawBody(ch chan any, code string, amount any, address any,
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
@@ -4131,7 +4131,7 @@ func (this *Woo) withdrawBody(ch chan any, code string, amount any, address any,
 		"amount":  amount,
 		"address": address,
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["extra"] = tagWithdrawTag
 	}
 	var network *string = this.SafeString(paramsWithdrawTag, "network")
@@ -4445,7 +4445,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["startTime"] = since

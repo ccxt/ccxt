@@ -1345,7 +1345,7 @@ func (this *Bittrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if limit != nil {
 		request["size"] = limit // 1-100 orders, default is 100
@@ -1773,7 +1773,7 @@ func (this *Bittrade) fetchOrdersByStatesBody(ch chan any, states string, option
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	var method any = this.HandleOption("fetchOrdersByStates", "method", "private_get_order_orders")
 	var response any = nil
@@ -1995,7 +1995,7 @@ func (this *Bittrade) fetchOpenOrdersV2Body(ch chan any, optionalArgs ...any) an
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	var accountId *string = this.SafeString(params, "account-id")
 	if accountId == nil {
@@ -2495,7 +2495,7 @@ func (this *Bittrade) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 
 	response := (<-this.PrivatePostOrderOrdersBatchCancelOpenOrders(this.Extend(request, params)))

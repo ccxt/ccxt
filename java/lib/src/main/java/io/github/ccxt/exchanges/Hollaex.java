@@ -2176,7 +2176,7 @@ public class Hollaex extends HollaexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
             var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
@@ -2188,7 +2188,7 @@ public class Hollaex extends HollaexApi
             String addressWithTag = address;
             if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
-                addressWithTag = Helpers.add((address + ":"), tagWithdrawTag);
+                addressWithTag = ((address + ":") + tagWithdrawTag);
             }
             String network = this.safeString(paramsWithdrawTag, "network");
             if (java.util.Objects.equals(network, null))

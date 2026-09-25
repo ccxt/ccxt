@@ -1429,9 +1429,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var aggLevelparamsAggLevelVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "aggLevel", 1)
-	aggLevel := GetValue(aggLevelparamsAggLevelVariable, 0)
-	paramsAggLevel := GetValue(aggLevelparamsAggLevelVariable, 1)
+	aggLevel, paramsAggLevel := this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "aggLevel", 1)
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
 		"agg_level": aggLevel,
@@ -4337,9 +4335,7 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name string, optionalArg
 	var timestampparamsTimestampVariable []any = this.HandleParamInteger(paramsSubAccountPrivateKey, "timestamp", this.Milliseconds())
 	timestamp := GetValue(timestampparamsTimestampVariable, 0)
 	paramsTimestamp := GetValue(timestampparamsTimestampVariable, 1)
-	var expiryWindowparamsExpiryWindowVariable []any = this.HandleOptionIntegerAndParams2(paramsTimestamp, "createSubAccount", "expiryWindow", "expiry_window", 5000)
-	expiryWindow := GetValue(expiryWindowparamsExpiryWindowVariable, 0)
-	paramsExpiryWindow := GetValue(expiryWindowparamsExpiryWindowVariable, 1)
+	expiryWindow, paramsExpiryWindow := this.HandleOptionIntegerAndParams2(paramsTimestamp, "createSubAccount", "expiryWindow", "expiry_window", 5000)
 	var subaccountSignatureHeader map[string]any = map[string]any{
 		"timestamp":     timestamp,
 		"expiry_window": expiryWindow,
@@ -4677,9 +4673,7 @@ func (this *Pacifica) PostActionRequest(operationType any, sigPayload any, param
 			}
 		}
 	}
-	var expiryWindowparamsExpiryWindowVariable []any = this.HandleOptionIntegerAndParams2(params, "postActionRequest", "expiryWindow", "expiry_window", 5000)
-	expiryWindow := GetValue(expiryWindowparamsExpiryWindowVariable, 0)
-	paramsExpiryWindow := GetValue(expiryWindowparamsExpiryWindowVariable, 1)
+	expiryWindow, paramsExpiryWindow := this.HandleOptionIntegerAndParams2(params, "postActionRequest", "expiryWindow", "expiry_window", 5000)
 	var timestamp *int64 = this.SafeInteger(paramsExpiryWindow, "timestamp", this.Milliseconds())
 	var signatureHeader map[string]any = map[string]any{
 		"timestamp":     timestamp,

@@ -1335,14 +1335,14 @@ func (this *Backpack) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return ccxt.GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return symbol
 	}()
 	var topic any = "account.orderUpdate"
 	var messageHash any = "orders"
 	if !ccxt.IsEqual(market, nil) {
-		topic = ccxt.Add("account.orderUpdate.", ccxt.GetValue(market, "id"))
+		topic = ccxt.Add("account.orderUpdate.", market["id"])
 		messageHash = ccxt.Add("orders:", symbolResolved)
 	}
 
@@ -1387,14 +1387,14 @@ func (this *Backpack) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return ccxt.GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return symbol
 	}()
 	var topic any = "account.orderUpdate"
 	var messageHash any = "unsubscribe:orders"
 	if !ccxt.IsEqual(market, nil) {
-		topic = ccxt.Add("account.orderUpdate.", ccxt.GetValue(market, "id"))
+		topic = ccxt.Add("account.orderUpdate.", market["id"])
 		messageHash = ccxt.Add("unsubscribe:orders:", symbolResolved)
 	}
 

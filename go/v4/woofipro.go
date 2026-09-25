@@ -2006,7 +2006,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["start_t"] = since
@@ -3177,7 +3177,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"stop", "trigger"}))
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["start_t"] = since
@@ -3445,7 +3445,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["start_t"] = since

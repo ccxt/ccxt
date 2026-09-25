@@ -184,7 +184,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 publicOrPrivate = "private";
             }
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), publicOrPrivate);
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), publicOrPrivate);
+            if (java.util.Objects.equals(url, null))
+            {
+                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+            }
             Map<String, Object> subscribe = Helpers.newMap(
                 "event", "subscribe",
                 "channel", new ArrayList<Object>(Arrays.asList(name))

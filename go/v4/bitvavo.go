@@ -2178,7 +2178,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "operatorId")
 	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
@@ -2232,9 +2232,7 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var codGroupIdparamsCodGroupIdVariable []any = this.HandleOptionIntegerAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
-	codGroupId := GetValue(codGroupIdparamsCodGroupIdVariable, 0)
-	paramsCodGroupId := GetValue(codGroupIdparamsCodGroupIdVariable, 1)
+	codGroupId, paramsCodGroupId := this.HandleOptionIntegerAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
 	var request map[string]any = map[string]any{
 		"codGroupId": codGroupId,
 		"expiryAfterSeconds": func() any {
@@ -2481,7 +2479,7 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOrdersOpen(this.Extend(request, params))).Raw))

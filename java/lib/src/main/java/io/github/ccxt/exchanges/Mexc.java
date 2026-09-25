@@ -2877,7 +2877,7 @@ public class Mexc extends MexcApi
                 throw new BadRequest((((this.id + " createOrder() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
             }
         }
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "LIMIT_MAKER"), paramsWithoutClientOrderId);
+        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "LIMIT_MAKER"), Helpers.toMapArg(paramsWithoutClientOrderId));
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         if (java.util.Objects.equals(postOnly, true))
@@ -3027,7 +3027,7 @@ public class Mexc extends MexcApi
             {
                 throw new InvalidOrder((this.id + " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")) ;
             }
-            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), Helpers.isEqual(type, 2), parameters);
+            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), Helpers.isEqual(type, 2), Helpers.toMapArg(parameters));
             Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
             Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
             Object orderType = null;
@@ -6566,7 +6566,7 @@ public class Mexc extends MexcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            List<Object> tagResolvedparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            List<Object> tagResolvedparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
             var tagResolved = ((List<Object>) tagResolvedparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagResolvedparamsWithdrawTagVariable).get(1);
             Boolean intern = (Boolean) this.safeBool(paramsWithdrawTag, "internal", false);

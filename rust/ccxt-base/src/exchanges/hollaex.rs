@@ -2461,7 +2461,7 @@ impl HollaexCore {
         let mut currency: Value = self.currency(code.clone());
         let mut addressWithTag: Value = address.clone();
         if (tagWithdrawTag != Value::Null) {
-            addressWithTag = add(&Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), &tagWithdrawTag);
+            addressWithTag = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), tagWithdrawTag).into());
         }
         let mut network: Value = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[]);
         if (network == Value::Null) {

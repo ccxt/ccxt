@@ -261,8 +261,8 @@ func (this *Hollaex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
+		symbolResolved = market["symbol"]
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 	}
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, params))))
@@ -372,8 +372,8 @@ func (this *Hollaex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
+		symbolResolved = market["symbol"]
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 	}
 
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, params))))

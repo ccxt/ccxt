@@ -1377,8 +1377,8 @@ func (this *Latoken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var response any = []any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["currency"] = GetValue(market, "baseId")
-		request["quote"] = GetValue(market, "quoteId")
+		request["currency"] = market["baseId"]
+		request["quote"] = market["quoteId"]
 
 		response = (<-this.PrivateGetAuthTradePairCurrencyQuote(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -1675,8 +1675,8 @@ func (this *Latoken) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["currency"] = GetValue(market, "baseId")
-		request["quote"] = GetValue(market, "quoteId")
+		request["currency"] = market["baseId"]
+		request["quote"] = market["quoteId"]
 		if isTrigger != nil && *isTrigger == true {
 
 			response = ListTyped(PanicOnError((<-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))).Raw))
@@ -1954,8 +1954,8 @@ func (this *Latoken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["currency"] = GetValue(market, "baseId")
-		request["quote"] = GetValue(market, "quoteId")
+		request["currency"] = market["baseId"]
+		request["quote"] = market["quoteId"]
 		if isTrigger != nil && *isTrigger == true {
 
 			response = MapTyped(PanicOnError((<-this.PrivatePostAuthStopOrderCancelAllCurrencyQuote(this.Extend(request, paramsOmitted))).Raw))

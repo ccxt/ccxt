@@ -541,7 +541,7 @@ func (this *Bithumb) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = delimiter
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
-	return this.Exchange.SafeMarket(marketId, market, delimiter, "spot")
+	return MarketTyped(this.Exchange.SafeMarket(marketId, market, delimiter, "spot"))
 }
 func (this *Bithumb) AmountToPrecision(symbol any, amount any) *string {
 	var market map[string]any = this.Market(symbol)
@@ -584,9 +584,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var result []any = []any{}
 	var request map[string]any = map[string]any{}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchMarkets", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchMarkets", "generation", 2)
 	if IsEqual(generation, 2) {
 		request["isDetails"] = true
 
@@ -841,9 +839,7 @@ func (this *Bithumb) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchBalance", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchBalance", "generation", 2)
 	var response any = nil
 	if IsEqual(generation, 2) {
 
@@ -890,9 +886,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "generation", 2)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var response any = nil
@@ -1143,9 +1137,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchTickers", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchTickers", "generation", 2)
 	var request map[string]any = map[string]any{}
 	var result map[string]any = map[string]any{}
 	if IsEqual(generation, 2) {
@@ -1366,9 +1358,7 @@ func (this *Bithumb) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchTicker", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchTicker", "generation", 2)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var response any = nil
@@ -1519,9 +1509,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "generation", 2)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var response any = nil
@@ -1776,9 +1764,7 @@ func (this *Bithumb) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchTrades", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchTrades", "generation", 2)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	if limit != nil {
@@ -1862,9 +1848,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "createOrders", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "createOrders", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " createOrders is only supported for the generation 2 API"))
 	}
@@ -1967,7 +1951,7 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	}()
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, paramsTimeInForce)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	paramsPostOnly := GetValue(postOnlyparamsPostOnlyVariable, 1)
+	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
 	var isPostOnly bool = postOnly || ((timeInForce == "PO"))
 	var paramsOrder any = paramsPostOnly
 	if isPostOnly {
@@ -2066,9 +2050,7 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol string, typeVar string,
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "createOrder", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "createOrder", "generation", 2)
 	var request any = map[string]any{}
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
@@ -2139,9 +2121,7 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan any, symbol string
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "createMarketBuyOrderWithCost", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "createMarketBuyOrderWithCost", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API"))
 	}
@@ -2181,9 +2161,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan any, symbol string, side string
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "createTwapOrder", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "createTwapOrder", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " createTwapOrder() is only supported for the generation 2 API"))
 	}
@@ -2248,9 +2226,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrder", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOrder", "generation", 2)
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2667,9 +2643,7 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOpenOrders", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOpenOrders", "generation", 2)
 	var limitResolved any = func() any {
 		if limit == nil {
 			return 100
@@ -2700,8 +2674,8 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["after"] = since
 		}
 		request["count"] = limitResolved
-		request["order_currency"] = GetValue(market, "base")
-		request["payment_currency"] = GetValue(market, "quote")
+		request["order_currency"] = market["base"]
+		request["payment_currency"] = market["quote"]
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostInfoOrders(this.Extend(request, paramsGeneration))).Raw))
 	}
@@ -2747,9 +2721,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrders", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOrders", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " fetchOrders is only supported for the generation 2 API"))
 	}
@@ -2953,9 +2925,7 @@ func (this *Bithumb) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "cancelOrder", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "cancelOrder", "generation", 2)
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3050,9 +3020,7 @@ func (this *Bithumb) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "cancelOrders", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "cancelOrders", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " cancelOrders is only supported for the generation 2 API"))
 	}
@@ -3152,11 +3120,9 @@ func (this *Bithumb) withdrawBody(ch chan any, code string, amount any, address 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "withdraw", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "withdraw", "generation", 2)
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, paramsGeneration)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	paramsWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1)
 	this.CheckAddress(address)
 	var network *string = this.SafeString2(paramsWithdrawTag, "network", "net_type")
@@ -3164,7 +3130,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code string, amount any, address 
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
-	var destinationRequest any = nil
+	var destinationRequest *string = nil
 	var requiresDestination bool = ((code == "XRP") || (code == "XMR") || (code == "EOS") || (code == "STEEM") || (code == "TON"))
 	var paramsDestination any = paramsNetwork
 	if requiresDestination {
@@ -3172,9 +3138,9 @@ func (this *Bithumb) withdrawBody(ch chan any, code string, amount any, address 
 	}
 	if requiresDestination {
 		var destination *string = this.SafeString2(paramsNetwork, "destination", "secondary_address")
-		if (IsEqual(tagWithdrawTag, nil)) && (destination == nil) {
+		if (tagWithdrawTag == nil) && (destination == nil) {
 			panic(ArgumentsRequired(this.Id + " " + code + " withdraw() requires a tag argument or an extra destination param"))
-		} else if !IsEqual(tagWithdrawTag, nil) {
+		} else if tagWithdrawTag != nil {
 			destinationRequest = tagWithdrawTag
 		} else {
 			destinationRequest = destination
@@ -3201,7 +3167,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code string, amount any, address 
 			request["currency"] = currency["id"]
 			request["net_type"] = network
 			request["amount"] = this.NumberToString(amount)
-			if !IsEqual(destinationRequest, nil) {
+			if destinationRequest != nil {
 				request["secondary_address"] = destinationRequest
 			}
 			if receiverType != nil {
@@ -3217,7 +3183,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code string, amount any, address 
 		if network != nil {
 			request["net_type"] = network
 		}
-		if !IsEqual(destinationRequest, nil) {
+		if destinationRequest != nil {
 			request["destination"] = destinationRequest
 		}
 		if receiverType != nil {
@@ -3356,9 +3322,7 @@ func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchWithdrawalWhitelist", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchWithdrawalWhitelist", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " fetchWithdrawalWhitelist() is only supported for the generation 2 API"))
 	}
@@ -3412,9 +3376,7 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchWithdrawal", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchWithdrawal", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " fetchWithdrawal() is only supported for the generation 2 API"))
 	}
@@ -3488,9 +3450,7 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchWithdrawals", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchWithdrawals", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " fetchWithdrawals() is only supported for the generation 2 API"))
 	}
@@ -3562,9 +3522,7 @@ func (this *Bithumb) fetchDepositBody(ch chan any, id any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchDeposit", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchDeposit", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " fetchDeposit() is only supported for the generation 2 API"))
 	}
@@ -3638,9 +3596,7 @@ func (this *Bithumb) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchDeposits", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchDeposits", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " fetchDeposits() is only supported for the generation 2 API"))
 	}
@@ -3709,9 +3665,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan any, code string, optional
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "createDepositAddress", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "createDepositAddress", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " createDepositAddress() is only supported for the generation 2 API"))
 	}
@@ -3765,9 +3719,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan any, code string, optionalA
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchDepositAddress", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchDepositAddress", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " fetchDepositAddress() is only supported for the generation 2 API"))
 	}
@@ -3822,9 +3774,7 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var generationparamsGenerationVariable []any = this.HandleOptionIntegerAndParams(params, "fetchDepositAddresses", "generation", 2)
-	generation := GetValue(generationparamsGenerationVariable, 0)
-	paramsGeneration := GetValue(generationparamsGenerationVariable, 1)
+	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchDepositAddresses", "generation", 2)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " fetchDepositAddresses() is only supported for the generation 2 API"))
 	}

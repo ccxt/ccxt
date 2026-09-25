@@ -272,7 +272,10 @@ class coinex extends \ccxt\async\coinex {
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params, 'spot');
         Async\await($this->authenticate($type));
-        $url = $this->urls['api']['ws'][$type];
+        $url = $this->safe_string($this->urls['api']['ws'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
         $activeCurrencies = $this->filter_by($this->currencies_by_id, 'active', true);
         $activeCurrenciesById = $this->index_by($activeCurrencies, 'id');
@@ -449,7 +452,10 @@ class coinex extends \ccxt\async\coinex {
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params, 'spot');
         Async\await($this->authenticate($type));
-        $url = $this->urls['api']['ws'][$type];
+        $url = $this->safe_string($this->urls['api']['ws'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscribedSymbols = array();
         $messageHash = 'myTrades';
         if ($market !== null) {
@@ -714,7 +720,10 @@ class coinex extends \ccxt\async\coinex {
             $messageHashes[] = 'tickers';
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchTickers', $market, $params);
-        $url = $this->urls['api']['ws'][$type];
+        $url = $this->safe_string($this->urls['api']['ws'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionHashes = array( 'all@ticker' );
         $subscribe = array(
             'method' => 'state.subscribe',
@@ -785,7 +794,10 @@ class coinex extends \ccxt\async\coinex {
             $messageHashes[] = 'trades';
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params($callerMethodName, $market, $paramsCallerMethodName);
-        $url = $this->urls['api']['ws'][$type];
+        $url = $this->safe_string($this->urls['api']['ws'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         // const subscriptionHashes = [ 'trades' ];
         $subscribe = array(
             'method' => 'deals.subscribe',
@@ -853,7 +865,10 @@ class coinex extends \ccxt\async\coinex {
             'id' => $this->request_id(),
         );
         // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
-        $url = $this->urls['api']['ws'][$type];
+        $url = $this->safe_string($this->urls['api']['ws'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $orderbooks = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $paramsMarketType), $messageHashes));
         if ($this->newUpdates) {
             return $orderbooks;
@@ -1012,7 +1027,10 @@ class coinex extends \ccxt\async\coinex {
             'params' => array( 'market_list' => $marketList ),
             'id' => $this->request_id(),
         );
-        $url = $this->urls['api']['ws'][$type];
+        $url = $this->safe_string($this->urls['api']['ws'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = $this->deep_extend($message, $paramsMarketType);
         $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
         $limitResolved = $limit;
@@ -1335,7 +1353,10 @@ class coinex extends \ccxt\async\coinex {
             $messageHashes[] = 'bidsasks';
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $market, $params);
-        $url = $this->urls['api']['ws'][$type];
+        $url = $this->safe_string($this->urls['api']['ws'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionHashes = array( 'all@bidsasks' );
         $subscribe = array(
             'method' => 'bbo.subscribe',
@@ -1496,7 +1517,10 @@ class coinex extends \ccxt\async\coinex {
     }
 
     private function do_authenticate(string $type) {
-        $url = $this->urls['api']['ws'][$type];
+        $url = $this->safe_string($this->urls['api']['ws'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $client = $this->client($url);
         $time = $this->milliseconds();
         $timestamp = (string) $time;

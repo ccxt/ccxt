@@ -1782,7 +1782,7 @@ public partial class foxbit : Exchange
         }
         IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
         string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        var paramsNetworkCode = networkCodeparamsNetworkCodeVariable[1];
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
         if ((networkCode != null))
         {
             request["network_code"] = this.networkCodeToId(networkCode, code);

@@ -298,7 +298,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             (this.authenticate(type)).join();
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            if (java.util.Objects.equals(url, null))
+            {
+                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+            }
             // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
             List<Object> activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
             Map<String,Object> activeCurrenciesById = this.indexBy(activeCurrencies, "id");
@@ -501,7 +505,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             (this.authenticate(type)).join();
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            if (java.util.Objects.equals(url, null))
+            {
+                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+            }
             List<Object> subscribedSymbols = new ArrayList<Object>(Arrays.asList());
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(market, null))
@@ -794,7 +802,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchTickers", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            if (java.util.Objects.equals(url, null))
+            {
+                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+            }
             List<String> subscriptionHashes = new ArrayList<String>(Arrays.asList("all@ticker"));
             Map<String, Object> subscribe = Helpers.newMap(
                 "method", "state.subscribe",
@@ -803,7 +815,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 ),
                 "id", this.requestId()
             );
-            Object result = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, paramsMarketType), subscriptionHashes, null)).join();
+            Object result = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, paramsMarketType), subscriptionHashes, null)).join();
             if (this.newUpdates)
             {
                 return result;
@@ -880,7 +892,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, paramsCallerMethodName, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            if (java.util.Objects.equals(url, null))
+            {
+                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+            }
             // const subscriptionHashes = [ 'trades' ];
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "deals.subscribe" );
@@ -889,7 +905,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 }} );
                 put( "id", Coinex.this.requestId() );
             }};
-            Object trades = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, paramsMarketType), messageHashes, null)).join();
+            Object trades = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, paramsMarketType), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 return trades;
@@ -964,8 +980,12 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 put( "id", Coinex.this.requestId() );
             }};
             // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256());
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
-            io.github.ccxt.ws.WsOrderBook orderbooks = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, this.deepExtend(subscribe, paramsMarketType), messageHashes, null)).join();
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            if (java.util.Objects.equals(url, null))
+            {
+                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+            }
+            io.github.ccxt.ws.WsOrderBook orderbooks = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, paramsMarketType), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 return orderbooks;
@@ -1149,7 +1169,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 ),
                 "id", this.requestId()
             );
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            if (java.util.Objects.equals(url, null))
+            {
+                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+            }
             Map<String,Object> request = this.deepExtend(message, paramsMarketType);
             List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, request)).join();
             Long limitResolved = limit;
@@ -1489,7 +1513,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            if (java.util.Objects.equals(url, null))
+            {
+                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+            }
             List<String> subscriptionHashes = new ArrayList<String>(Arrays.asList("all@bidsasks"));
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "bbo.subscribe" );
@@ -1498,7 +1526,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 }} );
                 put( "id", Coinex.this.requestId() );
             }};
-            Object result = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, paramsMarketType), subscriptionHashes, null)).join();
+            Object result = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, paramsMarketType), subscriptionHashes, null)).join();
             if (this.newUpdates)
             {
                 return result;
@@ -1670,7 +1698,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
+            if (java.util.Objects.equals(url, null))
+            {
+                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+            }
             Client client = this.client(url);
             Long time = this.milliseconds();
             String timestamp = String.valueOf(time);

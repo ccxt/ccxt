@@ -1017,9 +1017,7 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 	if tokenAddress == nil {
 		panic(ccxt.BadRequest(this.Id + " approve() could not resolve the base token address from /metadata/obv3"))
 	}
-	var spenderparamsSpenderVariable []any = this.HandleOptionStringAndParams2(params, "approve", "spender", "transferToProxySpender", executorAddress)
-	var spender *string = ccxt.SafeStringPtr(ccxt.GetValue(spenderparamsSpenderVariable, 0))
-	var paramsSpender map[string]any = ccxt.MapTyped(ccxt.GetValue(spenderparamsSpenderVariable, 1))
+	spender, paramsSpender := this.HandleOptionStringAndParams2(params, "approve", "spender", "transferToProxySpender", executorAddress)
 	if spender == nil {
 		panic(ccxt.BadRequest(this.Id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender"))
 	}

@@ -2123,7 +2123,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
             var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
@@ -2137,10 +2137,10 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 put( "amount", amount );
             }};
             Map<String, Object> response = null;
-            if (Helpers.inOp(paramsWithdrawTag, "payment_method_id"))
+            if (((Map<?, ?>)paramsWithdrawTag).containsKey("payment_method_id"))
             {
                 response = (this.privatePostWithdrawalsPaymentMethod(this.extend(request, paramsWithdrawTag))).join();
-            } else if (Helpers.inOp(paramsWithdrawTag, "coinbase_account_id"))
+            } else if (((Map<?, ?>)paramsWithdrawTag).containsKey("coinbase_account_id"))
             {
                 response = (this.privatePostWithdrawalsCoinbaseAccount(this.extend(request, paramsWithdrawTag))).join();
             } else

@@ -165,7 +165,10 @@ class poloniex extends \ccxt\async\poloniex {
         if ($isPrivate) {
             $publicOrPrivate = 'private';
         }
-        $url = $this->urls['api']['ws'][$publicOrPrivate];
+        $url = $this->safe_string($this->urls['api']['ws'], $publicOrPrivate);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscribe = array(
             'event' => 'subscribe',
             'channel' => array(
