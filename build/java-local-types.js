@@ -3631,7 +3631,8 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             }
         }
         if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
-            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && info?.tupleOk?.(parent.parent.right, parent.elements.indexOf (n)) !== true) {
             if (info?.destructureOk?.(parent.parent, parent.elements.indexOf (n)) === true) {
                 continue; // a typed Pair slot read of the narrowed type
             }
@@ -3655,8 +3656,9 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
                 let ok;
-                if (info?.writeOnly === true) {
-                    ok = false; // only the family's own writeOk decides
+                if (info?.writeOkOnly === true || info?.writeOnly === true) {
+                    // families whose writes print with no checkcast: only writeOk proves them
+                    ok = false;
                 } else if (javaType === 'String') {
                     // the narrowed declaration can only take writes whose printed Java is
                     // statically String (isStaticallyStringExpression) or a same-family
@@ -5381,7 +5383,8 @@ function collectionIsSafeToNarrow (printer, declaration, sourceName, javaType, i
             return false; // `as any` -> ((Object)x); `as T[]` -> a List<String> cast
         }
         if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
-            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && info?.tupleOk?.(parent.parent.right, parent.elements.indexOf (n)) !== true) {
             return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
         if (ts.isDeleteExpression (parent)) {
@@ -15142,4 +15145,180 @@ export function installJavaMapLocals (transpiler) {
         return printed.slice (0, at) + head + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
+
+// ===== 51. fixed `boolean` parameters print `Boolean` =====
+// Every printed declaration of these (method, position) slots is annotated `boolean`, has no
+// default and never writes it, so base and overrides print `Boolean` together.
+const JAVA_BOOLEAN_FIXED_PARAMS = {
+    'createOrderSettlementData': [ 0 ],
+    'enableDemoTrading': [ 0 ],
+    'getListenKey': [ 0 ],
+    'opinionOrderRawAmounts': [ 0 ],
+    'parseSxbetV3BookSides': [ 1 ],
+    'setPositionMode': [ 0 ],
+    'setSandboxMode': [ 0 ],
+};
+
+function javaBooleanFixedParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
+        || !ts.isIdentifier (method.name ?? {}) || node.initializer !== undefined) {
+        return undefined;
+    }
+    const positions = JAVA_BOOLEAN_FIXED_PARAMS[method.name.text];
+    const index = method.parameters.indexOf (node);
+    const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
+    if (positions === undefined || !positions.includes (index) || fileName.includes ('/ts/src/test/')
+        || !printer.javaIsPrintedMethod (method)) {
+        return undefined;
+    }
+    const annotation = node.type === undefined ? '' : node.type.getText ().replace (/\s/g, '');
+    if (annotation !== 'boolean' || !ts.isIdentifier (node.name) || node.dotDotDotToken !== undefined || printer.javaParameterIsWritten (node)) {
+        throw new Error (`java boolean param ${method.name.text}#${index} (${fileName}) is not a read-only boolean`);
+    }
+    return 'Boolean';
+}
+
+// the argument prints a Java boolean/Boolean already: a literal, a primitive boolean expression,
+// or a local/parameter declared Boolean/boolean
+function javaBooleanArgumentIsTyped (printer, arg) {
+    const bare = unwrapParens (arg);
+    if (bare === undefined) {
+        return false;
+    }
+    if (bare.kind === ts.SyntaxKind.TrueKeyword || bare.kind === ts.SyntaxKind.FalseKeyword || bare.kind === ts.SyntaxKind.NullKeyword) {
+        return true;
+    }
+    if (ts.isIdentifier (bare)) {
+        return [ 'boolean', 'Boolean' ].includes (printer.javaDeclaredBooleanKind (bare));
+    }
+    return javaPrimitiveBooleanExpression (printer, bare);
+}
+
+// a comparison, `!x` or a primitive-boolean base call: Java prints a primitive boolean
+function javaPrimitiveBooleanExpression (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return false;
+    }
+    if (ts.isPrefixUnaryExpression (value)) {
+        return value.operator === ts.SyntaxKind.ExclamationToken;
+    }
+    if (ts.isBinaryExpression (value)) {
+        return JAVA_COMPARISON_OPERATORS.has (value.operatorToken.kind);
+    }
+    return ts.isCallExpression (value) && printer.javaCallBooleanKind (value) === 'boolean';
+}
+
+const JAVA_COMPARISON_OPERATORS = new Set ([
+    ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsToken,
+    ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken,
+    ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.GreaterThanEqualsToken,
+]);
+
+// the argument sits at a table slot of a `this.m (...)` / `super.m (...)` call
+function javaBooleanFixedSlotArgument (arg) {
+    const call = arg?.parent;
+    if (call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)) {
+        return false;
+    }
+    const positions = JAVA_BOOLEAN_FIXED_PARAMS[call.expression.name.text];
+    return positions !== undefined && positions.includes (call.arguments.indexOf (arg));
+}
+
+export function installJavaBooleanFixedParams (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterType !== 'function' || printer._javaBooleanFixedParamsPatched) {
+        return;
+    }
+    printer._javaBooleanFixedParamsPatched = true;
+    const upstreamType = printer.javaNativeParameterType.bind (printer);
+    printer.javaNativeParameterType = function (node) {
+        return javaBooleanFixedParamType (printer, node) ?? upstreamType (node);
+    };
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
+        if (type !== 'Boolean') {
+            return upstreamTyped (arg, type);
+        }
+        if (javaBooleanArgumentIsTyped (printer, arg)) {
+            return true;
+        }
+        if (!javaBooleanFixedSlotArgument (arg)) {
+            return upstreamTyped (arg, type);
+        }
+        throw new Error (`java boolean param: argument ${arg.getText ()} is not a proven boolean`);
+    };
+}
+
+// `let x = await this.isUTAEnabled ()` / `let x = undefined`: an Object local whose every write is
+// null, a boolean literal, a primitive-boolean base call, that awaited call or element 0 of a
+// Pair<Boolean, ...> handler prints `Boolean` (safeBool* are declared Object in Java: excluded).
+function javaAwaitedUtaCall (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined || !ts.isAwaitExpression (value) || !ts.isCallExpression (value.expression)) {
+        return false;
+    }
+    const callee = value.expression.expression;
+    if (!ts.isPropertyAccessExpression (callee) || callee.expression.kind !== ts.SyntaxKind.ThisKeyword || callee.name.text !== 'isUTAEnabled') {
+        return false;
+    }
+    const declaration = printer.getChecker ().getResolvedSignature (value.expression)?.declaration?.resolve ();
+    return declaration?.name?.text === 'isUTAEnabled' && declaration.type?.getText ().replace (/\s/g, '') === 'Promise<boolean>';
+}
+
+export function javaBooleanLocalWrite (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return false;
+    }
+    if (value.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (value) && value.text === 'undefined')) {
+        return true;
+    }
+    return isBooleanLiteralNode (value) || javaAwaitedUtaCall (printer, value) || javaPrimitiveBooleanExpression (printer, value);
+}
+
+export function installJavaBooleanWriteLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaBooleanWriteLocalsPatched) {
+        return;
+    }
+    printer._javaBooleanWriteLocalsPatched = true;
+    const retyped = new WeakSet ();
+    // only these handlers print `Pair<Boolean, ...>`; handleParamBool* print List<Object> (slot 0 Object)
+    const pairBool = new Set (['handleOptionBoolAndParams', 'handleOptionBoolAndParams2']);
+    const tupleOk = (right, index) => index === 0 && printer.javaBooleanBoxTupleElement (right, 0)
+        && pairBool.has (unwrapParens (right)?.expression?.name?.text);
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || !javaBooleanLocalWrite (printer, declaration.initializer)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || (at !== 0 && printed.charAt (at - 1) !== '\n')) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+            ok = isSafeToNarrow (printer, declaration, declaration.name.text, 'Boolean', isProFile, {
+                writeOk: (rhs) => javaBooleanLocalWrite (printer, rhs),
+                tupleOk,
+                writeOkOnly: true,
+            });
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        retyped.add (declaration);
+        return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Boolean ') + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (retyped.has (declaration) ? 'Boolean' : undefined));
 }
