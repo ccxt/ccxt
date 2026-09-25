@@ -208,9 +208,9 @@ public partial class blofin : ccxt.blofin
         IList<object> callerMethodNameparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         string? callerMethodName = (string)callerMethodNameparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)callerMethodNameparamsCallerMethodNameVariable[1]);
-        IList<object> channelNameparamsChannelVariable = (IList<object>)this.handleOptionStringAndParams(paramsCallerMethodName, callerMethodName, "channel", "books");
-        string? channelName = (string)channelNameparamsChannelVariable[0];
-        var paramsChannel = channelNameparamsChannelVariable[1];
+        (string?, object) channelNameparamsChannelVariable = this.handleOptionStringAndParams(paramsCallerMethodName, callerMethodName, "channel", "books");
+        string? channelName = channelNameparamsChannelVariable.Item1;
+        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelNameparamsChannelVariable.Item2);
         // due to some problem, temporarily disable other channels
         if (!(channelName == "books"))
         {

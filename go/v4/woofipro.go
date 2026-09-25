@@ -1870,7 +1870,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = DerefScalar(this.SafeString(market, "symbol"))
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
@@ -4641,9 +4641,9 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 	var requestParams map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(access, "public") {
+	if access == "public" {
 		url = Add(url, pathWithParams)
-		if len(ObjectKeys(requestParams)) > 0 {
+		if len(requestParams) > 0 {
 			url = Add(url, "?"+this.Urlencode(requestParams))
 		}
 	} else {
@@ -4681,7 +4681,7 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 			auth = Add(auth, requestBody)
 			AddElementToObject(requestHeaders, "content-type", "application/json")
 		} else {
-			if len(ObjectKeys(requestParams)) > 0 {
+			if len(requestParams) > 0 {
 				url = Add(url, "?"+this.Urlencode(requestParams))
 				auth = Add(auth, "?"+this.Rawencode(requestParams))
 			}

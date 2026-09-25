@@ -421,7 +421,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         url = self.urls['api']['ws']
         message = {
             'action': 'subscribe',

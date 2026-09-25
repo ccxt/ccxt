@@ -1528,7 +1528,7 @@ class bitget(ccxt.async_support.bitget):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             marketId = self.safe_string(market, 'id')
             messageHash = messageHash + ':' + symbolResolved
         uta, paramsUta = self.handle_option_bool_and_params(paramsTrigger, 'watchOrders', 'uta', False)
@@ -2016,7 +2016,7 @@ class bitget(ccxt.async_support.bitget):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash = messageHash + ':' + symbolResolved
         type, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
         uta, paramsUta = self.handle_option_bool_and_params(paramsMarketType, 'watchMyTrades', 'uta', False)

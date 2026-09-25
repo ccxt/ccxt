@@ -1033,7 +1033,7 @@ public partial class backpack : ccxt.backpack
         string messageHash = ("orderbook:" + symbol);
         if ((nonce == null))
         {
-            int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
+            int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
             // the rest API is very delayed
             // usually it takes at least 9 deltas to resolve
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 10);
@@ -1133,7 +1133,7 @@ public partial class backpack : ccxt.backpack
         {
             market = this.market(symbol);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : symbol;
+        object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
         string topic = "account.orderUpdate";
         string messageHash = "orders";
         if ((market != null))

@@ -3904,7 +3904,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 				for j := 0; j < GetArrayLength(childChains); j++ {
 					var networkId any = GetValue(childChains, j)
 					networkId = Replace(networkId, code, "")
-					var networkCode *string = this.NetworkIdToCode(networkId, currency["code"])
+					var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 					var networkInfo map[string]any = SafeMapTyped(response, networkId)
 					var networkObject map[string]any = map[string]any{}
 					var withdrawFee *float64 = this.SafeNumber(networkInfo, "withdrawalFee")
@@ -4647,7 +4647,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	var implodedPath string = this.ImplodeParams(path, params)
 	var bodyJson any = nil
 	var signedHeaders any = nil
-	if (IsEqual(api, "public")) || (IsEqual(api, "swapPublic")) {
+	if ((api == "public")) || ((api == "swapPublic")) {
 		url = Add(url, "/"+implodedPath)
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))

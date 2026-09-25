@@ -971,7 +971,7 @@ public class Btcbox extends BtcboxApi
         String url = ((((apiUrl + "/") + this.version) + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }
@@ -1030,7 +1030,7 @@ public class Btcbox extends BtcboxApi
         throw new ExchangeError(feedback) ;
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Object config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {

@@ -4356,7 +4356,7 @@ impl KucoinCore {
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
-            let mut _netIdTmp: Value = self.network_code_to_id(networkCode, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
+            let mut _netIdTmp: Value = self.network_code_to_id(networkCode, &[self.safe_string_k(currency, "code", &[])]);
             if (_netIdTmp != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), to_lower(&_netIdTmp)); }
             }
@@ -4414,7 +4414,7 @@ impl KucoinCore {
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
-            let mut _netIdTmp: Value = self.network_code_to_id(networkCode, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
+            let mut _netIdTmp: Value = self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]);
             if (_netIdTmp != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), to_lower(&_netIdTmp)); }
             }
@@ -4540,7 +4540,7 @@ impl KucoinCore {
         let mut networkId: Value = self.safe_string_k(fee.clone(), "chain", &[]);
         let mut currencyId: Value = self.safe_string_k(fee, "currency", &[]);
         let mut currencyResolved: Value = self.safe_currency(currencyId, &[currency]);
-        let mut networkCode: Value = self.network_id_to_code(&[networkId, currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
+        let mut networkCode: Value = self.network_id_to_code(&[networkId, self.safe_string_k(currencyResolved, "code", &[])]);
         if (networkCode != Value::Null) {
             add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5621,7 +5621,7 @@ impl KucoinCore {
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), self.network_code_to_id(networkCode, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])); }; // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])])); }; // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
         let __ws_arg_15 = self.extend(request, &[paramsNetworkCode]);
         let mut response: Value = self.private_post_deposit_address_create(&[__ws_arg_15]).await;
@@ -5699,7 +5699,7 @@ impl KucoinCore {
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(paramsRequest.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (networkCode != Value::Null) {
-            let mut _netIdTmp: Value = self.network_code_to_id(networkCode, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
+            let mut _netIdTmp: Value = self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]);
             if (_netIdTmp != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), to_lower(&_netIdTmp)); }
             }
@@ -6190,9 +6190,8 @@ impl KucoinCore {
         let mut takeProfitPrice: Value = triggerPricestopLossPricetakeProfitPriceVariable.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
         let mut tradeType: Option<String> = self.safe_string_k(paramsSync.clone(), "tradeType", &[]).as_str().map(str::to_owned); // keep it for backward compatibility
         let mut isTriggerOrder: bool = (triggerPrice != Value::Null) || (stopLossPrice != Value::Null) || (takeProfitPrice != Value::Null);
-        let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsSync.clone()]);
-        let mut marginMode: Option<String> = self.safe_string(marginResult, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode.is_some());
+        let mut marginMode: Value = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsSync.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode != Value::Null);
         // don't omit anything before calling createOrderRequest
         let mut orderRequest: Value = self.create_spot_order_request(symbol, type_var, side, amount, &[price, paramsSync]);
         let mut response: Value = Value::Null;
@@ -10330,7 +10329,7 @@ impl KucoinCore {
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
-            let mut _netIdTmp: Value = self.network_code_to_id(networkCode.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
+            let mut _netIdTmp: Value = self.network_code_to_id(networkCode.clone(), &[self.safe_string_k(currency.clone(), "code", &[])]);
             if (_netIdTmp != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), to_lower(&_netIdTmp)); }
             }
@@ -11596,15 +11595,15 @@ impl KucoinCore {
         let mut transferTypeOption: Value = transferTypeOptionparamsTransferTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsTransferType: Value = transferTypeOptionparamsTransferTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (transferTypeOption.as_str() == Some("PARENT_TO_SUB")) {
-            if !(in_op(&paramsTransferType, &Value::Str("toUserId".into()))) {
+            if !(matches!(&paramsTransferType, Value::Dict(__d) if __d.contains_key("toUserId"))) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a toUserId param for PARENT_TO_SUB transfers".into()))));
             }
         }  else if (transferTypeOption.as_str() == Some("SUB_TO_PARENT")) {
-            if !(in_op(&paramsTransferType, &Value::Str("fromUserId".into()))) {
+            if !(matches!(&paramsTransferType, Value::Dict(__d) if __d.contains_key("fromUserId"))) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a fromUserId param for SUB_TO_PARENT transfers".into()))));
             }
         }
-        if !(in_op(&paramsTransferType, &Value::Str("clientOid".into()))) {
+        if !(matches!(&paramsTransferType, Value::Dict(__d) if __d.contains_key("clientOid"))) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOid".into(), self.uuid(&[])); }
         }
         let mut fromId: Value = self.convert_type_to_account(fromAccount.clone());
@@ -12180,6 +12179,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __config_empty = indexmap::IndexMap::new();
+        let config = config.as_map().unwrap_or(&__config_empty);
         let mut versions: Value = self.safe_dict_k(self.options.clone(), "versions", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -12194,14 +12195,14 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
 })]);
         let mut defaultVersion: Value = self.safe_string(methodVersions, path, &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]);
         let mut version: Option<String> = self.safe_string_k(params, "version", &[defaultVersion]).as_str().map(str::to_owned);
-        if (version.as_deref() == Some("v3")) && (in_op(&config, &Value::Str("v3".into()))) {
-            return config.as_map().and_then(|__m| __m.get("v3")).cloned().unwrap_or(Value::Null);
-        }  else if (version.as_deref() == Some("v2")) && (in_op(&config, &Value::Str("v2".into()))) {
-            return config.as_map().and_then(|__m| __m.get("v2")).cloned().unwrap_or(Value::Null);
-        }  else if (version.as_deref() == Some("v1")) && (in_op(&config, &Value::Str("v1".into()))) {
-            return config.as_map().and_then(|__m| __m.get("v1")).cloned().unwrap_or(Value::Null);
+        if (version.as_deref() == Some("v3")) && (config.contains_key("v3")) {
+            return config.get("v3").cloned().unwrap_or(Value::Null);
+        }  else if (version.as_deref() == Some("v2")) && (config.contains_key("v2")) {
+            return config.get("v2").cloned().unwrap_or(Value::Null);
+        }  else if (version.as_deref() == Some("v1")) && (config.contains_key("v1")) {
+            return config.get("v1").cloned().unwrap_or(Value::Null);
         }
-        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
+        return (match config.get("cost") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Int(1) });
 
     Value::Null
 }
@@ -12504,9 +12505,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("fetchBorrowRateHistories".into()), &[params.clone()]);
-        let mut marginMode: Option<String> = self.safe_string(marginResult, Value::Int(0), &[Value::Str("cross".into())]).as_str().map(str::to_owned);
-        let mut isIsolated: Value = (Value::Bool(marginMode.as_deref() == Some("isolated"))); // true-isolated, false-cross
+        let mut marginMode: Value = self.handle_margin_mode_and_params(Value::Str("fetchBorrowRateHistories".into()), &[params.clone(), Value::Str("cross".into())]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut isIsolated: Value = (Value::Bool(marginMode.as_str() == Some("isolated"))); // true-isolated, false-cross
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("isIsolated".to_string(), isIsolated);
@@ -12573,9 +12573,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("fetchBorrowRateHistories".into()), &[params.clone()]);
-        let mut marginMode: Option<String> = self.safe_string(marginResult, Value::Int(0), &[Value::Str("cross".into())]).as_str().map(str::to_owned);
-        let mut isIsolated: Value = (Value::Bool(marginMode.as_deref() == Some("isolated"))); // true-isolated, false-cross
+        let mut marginMode: Value = self.handle_margin_mode_and_params(Value::Str("fetchBorrowRateHistories".into()), &[params.clone(), Value::Str("cross".into())]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut isIsolated: Value = (Value::Bool(marginMode.as_str() == Some("isolated"))); // true-isolated, false-cross
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

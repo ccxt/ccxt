@@ -3137,7 +3137,7 @@ class hitbtc extends Exchange {
             }
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        $symbolResolved = ($market === null) ? $symbol : $market['symbol'];
+        $symbolResolved = ($market === null) ? $symbol : $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($sorted, $symbolResolved, $since, $limit);
     }
 

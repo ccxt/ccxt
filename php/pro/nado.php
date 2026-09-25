@@ -649,7 +649,7 @@ class nado extends \ccxt\async\nado {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash .= ':' . $symbolResolved;
             $productId = $this->parse_to_int($market['id']);
         }
@@ -733,7 +733,7 @@ class nado extends \ccxt\async\nado {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash .= ':' . $symbolResolved;
             $productId = $this->parse_to_int($market['id']);
         }

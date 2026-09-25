@@ -177,7 +177,7 @@ class extended(ccxt.async_support.extended):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash += ':' + symbolResolved
         orders = await self.watch_private(messageHash, {
             'symbol': symbolResolved,
@@ -279,7 +279,7 @@ class extended(ccxt.async_support.extended):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash += ':' + symbolResolved
         trades = await self.watch_private(messageHash, {
             'symbol': symbolResolved,

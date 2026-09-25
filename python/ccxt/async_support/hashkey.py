@@ -2055,7 +2055,7 @@ class hashkey(Exchange, ImplicitAPI):
             request['addressExt'] = tagWithdrawTag
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is not None:
-            request['chainType'] = self.network_code_to_id(networkCode, currency['code'])
+            request['chainType'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
         response = await self.privatePostApiV1AccountWithdraw(self.extend(request, paramsNetworkCode))
         #
         #     {

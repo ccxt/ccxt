@@ -3225,7 +3225,7 @@ public class Bydfi extends BydfiApi
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
                     put( "paginationDirection", "backward" );
                 }});
-                Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchTransfers", Helpers.toStringArg(currency.get("code")), since, limit, paramsPaginate, maxLimit, true)).join();
+                Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchTransfers", this.safeString(currency, "code"), since, limit, paramsPaginate, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3389,7 +3389,7 @@ public class Bydfi extends BydfiApi
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
                     put( "paginationDirection", "backward" );
                 }});
-                Object paginatedResponse = (this.fetchPaginatedCallDynamic(methodName, Helpers.toStringArg(currency.get("code")), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), paramsPaginate, maxLimit, true)).join();
+                Object paginatedResponse = (this.fetchPaginatedCallDynamic(methodName, this.safeString(currency, "code"), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), paramsPaginate, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
             Map<String, Object> request = new HashMap<String, Object>() {{

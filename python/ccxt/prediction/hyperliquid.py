@@ -2049,7 +2049,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 raise ExchangeError(feedback)
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config={}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
         if ('byType' in config) and ('type' in params):
             type = params['type']
             byType = config['byType']

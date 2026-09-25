@@ -698,10 +698,10 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 throw new ArgumentsRequired((this.id + " createTrailingAmountOrderWs() requires a trailingAmount argument")) ;
             }
-            ((Map<String, Object>)parameters).put("trailingAmount", trailingAmount);
+            parameters.put("trailingAmount", trailingAmount);
             if (!java.util.Objects.equals(trailingTriggerPrice, null))
             {
-                ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
+                parameters.put("trailingTriggerPrice", trailingTriggerPrice);
             }
             if (!java.util.Objects.equals(this.has.get("createTrailingAmountOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTrailingAmountOrderWs"), false))
             {
@@ -735,10 +735,10 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 throw new ArgumentsRequired((this.id + " createTrailingPercentOrderWs() requires a trailingPercent argument")) ;
             }
-            ((Map<String, Object>)parameters).put("trailingPercent", trailingPercent);
+            parameters.put("trailingPercent", trailingPercent);
             if (!java.util.Objects.equals(trailingTriggerPrice, null))
             {
-                ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
+                parameters.put("trailingTriggerPrice", trailingTriggerPrice);
             }
             if (!java.util.Objects.equals(this.has.get("createTrailingPercentOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTrailingPercentOrderWs"), false))
             {
@@ -1267,10 +1267,10 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 throw new ArgumentsRequired((this.id + " createTrailingAmountOrder() requires a trailingAmount argument")) ;
             }
-            ((Map<String, Object>)parameters).put("trailingAmount", trailingAmount);
+            parameters.put("trailingAmount", trailingAmount);
             if (!java.util.Objects.equals(trailingTriggerPrice, null))
             {
-                ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
+                parameters.put("trailingTriggerPrice", trailingTriggerPrice);
             }
             if (!java.util.Objects.equals(this.has.get("createTrailingAmountOrder"), null) && !java.util.Objects.equals(this.has.get("createTrailingAmountOrder"), false))
             {
@@ -1304,10 +1304,10 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 throw new ArgumentsRequired((this.id + " createTrailingPercentOrder() requires a trailingPercent argument")) ;
             }
-            ((Map<String, Object>)parameters).put("trailingPercent", trailingPercent);
+            parameters.put("trailingPercent", trailingPercent);
             if (!java.util.Objects.equals(trailingTriggerPrice, null))
             {
-                ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
+                parameters.put("trailingTriggerPrice", trailingTriggerPrice);
             }
             if (!java.util.Objects.equals(this.has.get("createTrailingPercentOrder"), null) && !java.util.Objects.equals(this.has.get("createTrailingPercentOrder"), false))
             {

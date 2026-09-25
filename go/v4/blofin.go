@@ -1492,7 +1492,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Blofin) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -1721,7 +1721,7 @@ func (this *Blofin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	accountType, paramsAccountType := this.HandleOptionStringAndParams2(params, "fetchBalance", "accountType", "type")
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
-	if !IsEqual(accountType, nil) && !IsEqual(accountType, "swap") {
+	if !IsEqual(accountType, nil) && (accountType == nil || *accountType != "swap") {
 		var options map[string]any = SafeMapTyped(this.Options, "accountsByType")
 		var parsedAccountType *string = this.SafeString(options, accountType, accountType)
 		request["accountType"] = parsedAccountType
@@ -4026,11 +4026,11 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + request
 	// const type = this.getPathAuthenticationType (path);
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if !this.IsEmpty(query) {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var signedHeaders map[string]any = map[string]any{

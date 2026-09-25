@@ -1284,7 +1284,7 @@ func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return nil
 	}()
@@ -1507,7 +1507,7 @@ func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return nil
 	}()

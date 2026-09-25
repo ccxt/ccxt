@@ -2287,7 +2287,7 @@ func (this *Hibachi) Sign(path string, optionalArgs ...any) any {
 	if hasJsonBody {
 		bodyResult = this.Json(params)
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		headersValue["Authorization"] = this.ApiKey
 	}
@@ -2820,7 +2820,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["contractId"] = market["numericId"]
-		symbolResolved = market["symbol"]
+		symbolResolved = DerefScalar(this.SafeString(market, "symbol"))
 	}
 	if since != nil {
 		request["startTime"] = this.ParseToInt(Divide(since, 1000))

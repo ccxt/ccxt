@@ -1285,7 +1285,7 @@ public class Bit2c extends Bit2cApi
             String auth = this.urlencode(query);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<?>)new ArrayList<Object>(query.keySet())).size() > 0)
+                if (query.size() > 0)
                 {
                     url = (url + ("?" + auth));
                 }

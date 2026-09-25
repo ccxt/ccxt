@@ -3203,7 +3203,7 @@ public class Ndax extends NdaxApi
                     query = this.omit(query, "pending2faToken");
                 }
             }
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -3234,7 +3234,7 @@ public class Ndax extends NdaxApi
                 bodySigned = this.json(query);
             } else
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

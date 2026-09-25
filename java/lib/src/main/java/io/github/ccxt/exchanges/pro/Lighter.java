@@ -778,7 +778,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", ("trade/" + market.get("id")) );
             }};
-            String messageHash = this.getMessageHash("trade", Helpers.toStringArg(market.get("symbol")), (String) null);
+            String messageHash = this.getMessageHash("trade", this.safeString(market, "symbol"), (String) null);
             List<Object> trades = (List<Object>) (this.subscribePublic(messageHash, Helpers.toMapArg(this.extend(request, parameters)))).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -807,7 +807,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", ("trade/" + market.get("id")) );
             }};
-            String subMessageHash = this.getMessageHash("trade", Helpers.toStringArg(market.get("symbol")), (String) null);
+            String subMessageHash = this.getMessageHash("trade", this.safeString(market, "symbol"), (String) null);
             String messageHash = ("unsubscribe:" + subMessageHash);
             return (this.unsubscribe(messageHash, Helpers.toMapArg(this.extend(request, parameters)))).join();
         });
@@ -1014,12 +1014,12 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
             var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             Object messageHash = this.getMessageHash("myTrades", (String) null, (String) null);
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
-                messageHash = this.getMessageHash("myTrades", Helpers.toStringArg(symbolResolved), (String) null);
+                symbolResolved = this.safeString(market, "symbol");
+                messageHash = this.getMessageHash("myTrades", symbolResolved, (String) null);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", ("account_all_trades/" + Lighter.this.numberToString(accountIndex)) );
@@ -1030,7 +1030,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1115,7 +1115,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
         return this.safeLiquidation(Helpers.newMap(
             "info", liquidation,
-            "symbol", ((Map<String, Object>)market).get("symbol"),
+            "symbol", market.get("symbol"),
             "contracts", contracts,
             "contractSize", contractSize,
             "price", price,
@@ -1385,7 +1385,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                messageHash = this.getMessageHash("orders", Helpers.toStringArg(market.get("symbol")), (String) null);
+                messageHash = this.getMessageHash("orders", this.safeString(market, "symbol"), (String) null);
                 request.put("channel", ((("account_orders/" + market.get("id")) + "/") + this.numberToString(accountIndex)));
             } else
             {
@@ -1429,7 +1429,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                subMessageHash = this.getMessageHash("orders", Helpers.toStringArg(market.get("symbol")), (String) null);
+                subMessageHash = this.getMessageHash("orders", this.safeString(market, "symbol"), (String) null);
                 request.put("channel", ((("account_orders/" + market.get("id")) + "/") + this.numberToString(accountIndex)));
             } else
             {

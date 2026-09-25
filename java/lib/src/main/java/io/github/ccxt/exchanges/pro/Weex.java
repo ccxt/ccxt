@@ -434,7 +434,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             symbol = null;
         } else
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = market.get("symbol");
         }
         return this.safeTicker(Helpers.newMap(
             "symbol", symbol,
@@ -675,7 +675,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             symbol = null;
         } else
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = market.get("symbol");
         }
         Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", (Object) null); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         String side = null;
@@ -814,7 +814,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "unWatchOHLCV");
+            parameters.put("callerMethodName", "unWatchOHLCV");
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), parameters)).join();
         });
 
@@ -1318,7 +1318,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             symbol = null;
         } else
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = market.get("symbol");
         }
         return this.safeTicker(Helpers.newMap(
             "symbol", symbol,

@@ -2476,7 +2476,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	}
 	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
-		if !IsEqual(methodName, "fetchCanceledAndClosedOrders") {
+		if methodName != "fetchCanceledAndClosedOrders" {
 			panic(BadRequest(Add(Add(this.Id+" ", methodName), "() does not support trigger orders")))
 		}
 		if market == nil {
@@ -2973,7 +2973,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id string, symbol any, typeVar 
 		}
 		if stopLossPrice != nil {
 			request["slTriggerPx"] = func() any {
-				if !IsEqual(symbolResolved, "") {
+				if symbolResolved != "" {
 					return this.PriceToPrecision(symbolResolved, stopLossPrice)
 				}
 				return this.NumberToString(stopLossPrice)
@@ -2981,7 +2981,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id string, symbol any, typeVar 
 		}
 		if takeProfitPrice != nil {
 			request["tpTriggerPx"] = func() any {
-				if !IsEqual(symbolResolved, "") {
+				if symbolResolved != "" {
 					return this.PriceToPrecision(symbolResolved, takeProfitPrice)
 				}
 				return this.NumberToString(takeProfitPrice)
@@ -3927,7 +3927,7 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + requestPath
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
 		var dateTime *string = this.Iso8601(timestamp)

@@ -2452,13 +2452,13 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 	var amountPrecision any = nil
 	var pricePrecision any = nil
 	// hard coded amount and price precisions from fetchOptionMarkets
-	if IsEqual(base, "BTC") {
+	if base == "BTC" {
 		amountPrecision = this.ParseNumber("0.01")
 		pricePrecision = this.ParseNumber("5")
-	} else if IsEqual(base, "ETH") {
+	} else if base == "ETH" {
 		amountPrecision = this.ParseNumber("0.1")
 		pricePrecision = this.ParseNumber("0.1")
-	} else if IsEqual(base, "SOL") {
+	} else if base == "SOL" {
 		amountPrecision = this.ParseNumber("1")
 		pricePrecision = this.ParseNumber("0.01")
 	}
@@ -4415,7 +4415,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	if market != nil {
-		marketType = GetValue(market, "type")
+		marketType = DerefScalar(this.SafeString(market, "type"))
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -5203,16 +5203,16 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	var isContract bool = (InOp(order, "tpslMode"))
-	var marketType any = nil
+	var marketType *string = nil
 	if market != nil {
-		marketType = GetValue(market, "type")
+		marketType = this.SafeString(market, "type")
 	} else {
-		marketType = func() string {
+		marketType = SafeStringPtr(func() string {
 			if isContract {
 				return "contract"
 			}
 			return "spot"
-		}()
+		}())
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -6488,7 +6488,7 @@ func (this *Bybit) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalA
 		currentCategoryqueryVariable := this.GetBybitType("cancelOrders", market, query)
 		currentCategory = GetValue(currentCategoryqueryVariable, 0)
 		query = GetValue(currentCategoryqueryVariable, 1)
-		if IsEqual(currentCategory, "inverse") {
+		if currentCategory == "inverse" {
 			panic(NotSupported(this.Id + " cancelOrdersForSymbols does not allow inverse orders"))
 		}
 		if (category != nil) && (!IsEqual(category, currentCategory)) {
@@ -10191,7 +10191,7 @@ func (this *Bybit) ParseTradingFee(fee any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(fee, "symbol")
 	var defaultType any = "contract"
 	if market != nil {
-		defaultType = GetValue(market, "type")
+		defaultType = DerefScalar(this.SafeString(market, "type"))
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, nil, defaultType)
 	return map[string]any{
@@ -11228,7 +11228,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any 
 		if market["spot"] == true {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
-		symbol = market["symbol"]
+		symbol = DerefScalar(this.SafeString(market, "symbol"))
 	}
 
 	data := (<-this.GetLeverageTiersPaginatedAsync(symbol, this.Extend(map[string]any{
@@ -12578,11 +12578,11 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = this.ImplodeHostname(apiUrl) + "/" + path
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Rawencode(params))
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		this.CheckRequiredCredentials()
 		var isOpenapi bool = (GetIndexOf(url, "openapi") >= 0)
 		var isV3UnifiedMargin bool = (GetIndexOf(url, "unified/v3") >= 0)

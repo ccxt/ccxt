@@ -255,11 +255,11 @@ public partial class whitebit : ccxt.whitebit
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -842,12 +842,12 @@ public partial class whitebit : ccxt.whitebit
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         var client = this.client(url);
         this.setBalanceCache(client, type, messageHash);
-        IList<object> fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = (IList<object>)this.handleOptionBoolAndParams(paramsMarketType, "watchBalance", "fetchBalanceSnapshot", true);
-        bool? fetchBalanceSnapshot = (bool?)fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable[0];
-        IDictionary<string, object> paramsFetchBalanceSnapshot = ((IDictionary<string, object>)fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable[1]);
-        IList<object> awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable = (IList<object>)this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", true);
-        bool? awaitBalanceSnapshot = (bool?)awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable[0];
-        IDictionary<string, object> paramsAwaitBalanceSnapshot = ((IDictionary<string, object>)awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable[1]);
+        (bool?, object) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsMarketType, "watchBalance", "fetchBalanceSnapshot", true);
+        bool? fetchBalanceSnapshot = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.Item1;
+        IDictionary<string, object> paramsFetchBalanceSnapshot = ((IDictionary<string, object>)fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.Item2);
+        (bool?, object) awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", true);
+        bool? awaitBalanceSnapshot = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.Item1;
+        IDictionary<string, object> paramsAwaitBalanceSnapshot = ((IDictionary<string, object>)awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.Item2);
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));

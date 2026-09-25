@@ -3847,11 +3847,11 @@ func (this *Gate) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		AddElementToObject(request, "limit", limit)
 	}
 	var response any = nil
-	if IsEqual(typeVar, "swap") {
+	if typeVar != nil && *typeVar == "swap" {
 
 		response = (<-this.PrivateFuturesGetSettleAccountBook(this.Extend(request, requestParams))).Raw
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "future") {
+	} else if typeVar != nil && *typeVar == "future" {
 
 		response = (<-this.PrivateDeliveryGetSettleAccountBook(this.Extend(request, requestParams)))
 		PanicOnError(response)
@@ -3948,7 +3948,7 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	//         'with_id': true, // return order book ID
 	//     };
 	//
-	requestqueryVariable := this.PrepareRequest(market, market["type"], params)
+	requestqueryVariable := this.PrepareRequest(market, this.SafeString(market, "type"), params)
 	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
 	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 	if limit != nil {
@@ -4297,16 +4297,16 @@ func (this *Gate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var requestParams map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 1))
 	var response []any = nil
 	AddElementToObject(request, "timezone", "utc0") // default to utc
-	if IsEqual(typeVar, "spot") || IsEqual(typeVar, "margin") {
+	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 
 		response = ListTyped(PanicOnError((<-this.PublicSpotGetTickers(this.Extend(request, requestParams))).Raw))
-	} else if IsEqual(typeVar, "swap") {
+	} else if typeVar != nil && *typeVar == "swap" {
 
 		response = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleTickers(this.Extend(request, requestParams))).Raw))
-	} else if IsEqual(typeVar, "future") {
+	} else if typeVar != nil && *typeVar == "future" {
 
 		response = ListTyped(PanicOnError((<-this.PublicDeliveryGetSettleTickers(this.Extend(request, requestParams))).Raw))
-	} else if IsEqual(typeVar, "option") {
+	} else if typeVar != nil && *typeVar == "option" {
 		this.CheckRequiredArgument("fetchTickers", symbolsNormalized, "symbols")
 		var marketId *string = this.SafeString(market, "id")
 		var optionParts []string = Split(marketId, "-")
@@ -4384,7 +4384,7 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.PrivateUnifiedGetAccounts(this.Extend(request, paramsUnifiedAccount)))
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "spot") {
+	} else if typeVar != nil && *typeVar == "spot" {
 		if marginMode != nil && *marginMode == "spot" {
 
 			response = (<-this.PrivateSpotGetAccounts(this.Extend(request, requestQuery))).Raw
@@ -4400,26 +4400,26 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		} else {
 			panic(NotSupported(this.Id + " fetchBalance() not support this marginMode"))
 		}
-	} else if IsEqual(typeVar, "funding") {
+	} else if typeVar != nil && *typeVar == "funding" {
 
 		response = (<-this.PrivateMarginGetFundingAccounts(this.Extend(request, requestQuery)))
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "swap") {
+	} else if typeVar != nil && *typeVar == "swap" {
 
 		response = (<-this.PrivateFuturesGetSettleAccounts(this.Extend(request, requestQuery))).Raw
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "future") {
+	} else if typeVar != nil && *typeVar == "future" {
 
 		response = (<-this.PrivateDeliveryGetSettleAccounts(this.Extend(request, requestQuery)))
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "option") {
+	} else if typeVar != nil && *typeVar == "option" {
 
 		response = (<-this.PrivateOptionsGetAccounts(this.Extend(request, requestQuery)))
 		PanicOnError(response)
 	} else {
 		panic(NotSupported(this.Id + " fetchBalance() not support this market type"))
 	}
-	var contract bool = ((IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) || (IsEqual(typeVar, "option")))
+	var contract bool = (((typeVar != nil && *typeVar == "swap")) || ((typeVar != nil && *typeVar == "future")) || ((typeVar != nil && *typeVar == "option")))
 	if contract {
 		response = []any{response}
 	}
@@ -4618,7 +4618,7 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var result any = map[string]any{
 		"info": response,
 	}
-	var isolated bool = (marginMode != nil && *marginMode == "margin") && IsEqual(typeVar, "spot")
+	var isolated bool = (marginMode != nil && *marginMode == "margin") && (typeVar != nil && *typeVar == "spot")
 	var data any = response
 	if InOp(data, "balances") {
 		var flatBalances []any = []any{}
@@ -4889,7 +4889,7 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Gate) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -5197,14 +5197,14 @@ func (this *Gate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsOmitted)
-	var contract bool = (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) || (IsEqual(typeVar, "option"))
+	var contract bool = ((typeVar != nil && *typeVar == "swap")) || ((typeVar != nil && *typeVar == "future")) || ((typeVar != nil && *typeVar == "option"))
 	if contract {
 		var contractQuery any = nil
 		requestcontractQueryVariable := this.PrepareRequest(market, typeVar, paramsMarketType)
 		request = GetValue(requestcontractQueryVariable, 0)
 		contractQuery = GetValue(requestcontractQueryVariable, 1)
 		query = func() any {
-			if IsEqual(typeVar, "option") {
+			if typeVar != nil && *typeVar == "option" {
 				return this.Omit(contractQuery, "order_id")
 			}
 			return contractQuery
@@ -5228,19 +5228,19 @@ func (this *Gate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))
 	}
 	var response any = nil
-	if IsEqual(typeVar, "spot") || IsEqual(typeVar, "margin") {
+	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 
 		response = (<-this.PrivateSpotGetMyTrades(this.Extend(request, query))).Raw
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "swap") {
+	} else if typeVar != nil && *typeVar == "swap" {
 
 		response = (<-this.PrivateFuturesGetSettleMyTradesTimerange(this.Extend(request, query))).Raw
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "future") {
+	} else if typeVar != nil && *typeVar == "future" {
 
 		response = (<-this.PrivateDeliveryGetSettleMyTrades(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "option") {
+	} else if typeVar != nil && *typeVar == "option" {
 
 		response = (<-this.PrivateOptionsGetMyTrades(this.Extend(request, query)))
 		PanicOnError(response)
@@ -6963,7 +6963,7 @@ func (this *Gate) FetchOrderRequest(id any, optionalArgs ...any) any {
 		return paramsOmitted
 	}()
 	typeVar, query := this.HandleMarketTypeAndParams("fetchOrder", market, paramsOrder)
-	var contract bool = (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) || (IsEqual(typeVar, "option"))
+	var contract bool = ((typeVar != nil && *typeVar == "swap")) || ((typeVar != nil && *typeVar == "future")) || ((typeVar != nil && *typeVar == "option"))
 	requestrequestParamsVariable := func() any {
 		if contract {
 			return this.PrepareRequest(market, typeVar, query)
@@ -7165,9 +7165,9 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if market != nil {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return symbol
 	}()
@@ -7214,7 +7214,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	trigger := GetValue(triggerparamsTriggerVariable, 0)
 	var paramsTrigger map[string]any = MapTyped(GetValue(triggerparamsTriggerVariable, 1))
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, paramsTrigger)
-	var spot bool = (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin"))
+	var spot bool = ((typeVar != nil && *typeVar == "spot")) || ((typeVar != nil && *typeVar == "margin"))
 	var request any = map[string]any{}
 	var query any = map[string]any{}
 	requestqueryVariable := func() any {
@@ -7281,9 +7281,9 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if market != nil {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return symbol
 	}()
@@ -7548,7 +7548,7 @@ func (this *Gate) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"is_stop_order", "stop", "trigger"}))
 	typeVar, query := this.HandleMarketTypeAndParams("cancelOrder", market, paramsOmitted)
 	requestrequestParamsVariable := func() any {
-		if IsEqual(typeVar, "spot") || IsEqual(typeVar, "margin") {
+		if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 			return this.SpotOrderPrepareRequest(market, trigger, query)
 		}
 		return this.PrepareRequest(market, typeVar, query)
@@ -7557,7 +7557,7 @@ func (this *Gate) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	requestParams := GetValue(requestrequestParamsVariable, 1)
 	AddElementToObject(request, "order_id", id)
 	var response any = nil
-	if IsEqual(typeVar, "spot") || IsEqual(typeVar, "margin") {
+	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 		if trigger != nil && *trigger == true {
 
 			response = (<-this.PrivateSpotDeletePriceOrdersOrderId(this.Extend(request, requestParams)))
@@ -7567,7 +7567,7 @@ func (this *Gate) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 			response = (<-this.PrivateSpotDeleteOrdersOrderId(this.Extend(request, requestParams)))
 			PanicOnError(response)
 		}
-	} else if IsEqual(typeVar, "swap") {
+	} else if typeVar != nil && *typeVar == "swap" {
 		if trigger != nil && *trigger == true {
 
 			response = (<-this.PrivateFuturesDeleteSettlePriceOrdersOrderId(this.Extend(request, requestParams)))
@@ -7577,7 +7577,7 @@ func (this *Gate) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 			response = (<-this.PrivateFuturesDeleteSettleOrdersOrderId(this.Extend(request, requestParams)))
 			PanicOnError(response)
 		}
-	} else if IsEqual(typeVar, "future") {
+	} else if typeVar != nil && *typeVar == "future" {
 		if trigger != nil && *trigger == true {
 
 			response = (<-this.PrivateDeliveryDeleteSettlePriceOrdersOrderId(this.Extend(request, requestParams)))
@@ -7587,7 +7587,7 @@ func (this *Gate) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 			response = (<-this.PrivateDeliveryDeleteSettleOrdersOrderId(this.Extend(request, requestParams)))
 			PanicOnError(response)
 		}
-	} else if IsEqual(typeVar, "option") {
+	} else if typeVar != nil && *typeVar == "option" {
 
 		response = (<-this.PrivateOptionsDeleteOrdersOrderId(this.Extend(request, requestParams)))
 		PanicOnError(response)
@@ -7858,7 +7858,7 @@ func (this *Gate) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	typeVar, query := this.HandleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted)
 	requestrequestParamsVariable := func() any {
-		if IsEqual(typeVar, "spot") {
+		if typeVar != nil && *typeVar == "spot" {
 			return this.MultiOrderSpotPrepareRequest(market, trigger, query)
 		}
 		return this.PrepareRequest(market, typeVar, query)
@@ -7866,7 +7866,7 @@ func (this *Gate) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	request := GetValue(requestrequestParamsVariable, 0)
 	requestParams := GetValue(requestrequestParamsVariable, 1)
 	var response any = nil
-	if IsEqual(typeVar, "spot") || IsEqual(typeVar, "margin") {
+	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 		if trigger != nil && *trigger == true {
 
 			response = (<-this.PrivateSpotDeletePriceOrders(this.Extend(request, requestParams)))
@@ -7876,7 +7876,7 @@ func (this *Gate) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			response = (<-this.PrivateSpotDeleteOrders(this.Extend(request, requestParams)))
 			PanicOnError(response)
 		}
-	} else if IsEqual(typeVar, "swap") {
+	} else if typeVar != nil && *typeVar == "swap" {
 		if trigger != nil && *trigger == true {
 
 			response = (<-this.PrivateFuturesDeleteSettlePriceOrders(this.Extend(request, requestParams)))
@@ -7886,7 +7886,7 @@ func (this *Gate) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			response = (<-this.PrivateFuturesDeleteSettleOrders(this.Extend(request, requestParams)))
 			PanicOnError(response)
 		}
-	} else if IsEqual(typeVar, "future") {
+	} else if typeVar != nil && *typeVar == "future" {
 		if trigger != nil && *trigger == true {
 
 			response = (<-this.PrivateDeliveryDeleteSettlePriceOrders(this.Extend(request, requestParams)))
@@ -7896,7 +7896,7 @@ func (this *Gate) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			response = (<-this.PrivateDeliveryDeleteSettleOrders(this.Extend(request, requestParams)))
 			PanicOnError(response)
 		}
-	} else if IsEqual(typeVar, "option") {
+	} else if typeVar != nil && *typeVar == "option" {
 
 		response = (<-this.PrivateOptionsDeleteOrders(this.Extend(request, requestParams)))
 		PanicOnError(response)
@@ -8314,7 +8314,7 @@ func (this *Gate) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
 	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchPosition() supports contract markets only"))
 	}
-	requestparamsValueVariable := this.PrepareRequest(market, market["type"], params)
+	requestparamsValueVariable := this.PrepareRequest(market, this.SafeString(market, "type"), params)
 	var request map[string]any = MapTyped(GetValue(requestparamsValueVariable, 0))
 	var paramsValue map[string]any = MapTyped(GetValue(requestparamsValueVariable, 1))
 	var extendedRequest map[string]any = this.Extend(request, paramsValue)
@@ -8435,7 +8435,7 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositions", market, params)
 	var typeVar any = marketType
-	if (IsEqual(marketType, nil)) || (IsEqual(marketType, "spot")) {
+	if (IsEqual(marketType, nil)) || ((marketType != nil && *marketType == "spot")) {
 		typeVar = "swap" // default to swap
 	}
 	// prepareRequest leaves request empty and params untouched for options
@@ -8562,14 +8562,14 @@ func (this *Gate) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	requestrequestParamsVariable := this.PrepareRequest(nil, typeVar, query)
 	var request map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 0))
 	var requestParams map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 1))
-	if !IsEqual(typeVar, "future") && !IsEqual(typeVar, "swap") {
+	if (typeVar == nil || *typeVar != "future") && (typeVar == nil || *typeVar != "swap") {
 		panic(BadRequest(this.Id + " fetchLeverageTiers only supports swap and future"))
 	}
 	var response []any = nil
-	if IsEqual(typeVar, "swap") {
+	if typeVar != nil && *typeVar == "swap" {
 
 		response = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleContracts(this.Extend(request, requestParams))).Raw))
-	} else if IsEqual(typeVar, "future") {
+	} else if typeVar != nil && *typeVar == "future" {
 
 		response = ListTyped(PanicOnError((<-this.PublicDeliveryGetSettleContracts(this.Extend(request, requestParams))).Raw))
 	} else {
@@ -8701,11 +8701,11 @@ func (this *Gate) fetchMarketLeverageTiersBody(ch chan any, symbol string, optio
 	requestrequestParamsVariable := this.PrepareRequest(market, typeVar, query)
 	var request map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 0))
 	var requestParams map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 1))
-	if !IsEqual(typeVar, "future") && !IsEqual(typeVar, "swap") {
+	if (typeVar == nil || *typeVar != "future") && (typeVar == nil || *typeVar != "swap") {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers only supports swap and future"))
 	}
 	var response []any = nil
-	if IsEqual(typeVar, "swap") {
+	if typeVar != nil && *typeVar == "swap" {
 		//
 		//     [
 		//         {
@@ -9218,7 +9218,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 		endPart = (Add("/", pathImploded))
 	}
 	var entirePath any = Add(Add("/", typeVar), endPart)
-	if (IsEqual(typeVar, "subAccounts")) || (IsEqual(typeVar, "withdrawals")) {
+	if ((typeVar == "subAccounts")) || ((typeVar == "withdrawals")) {
 		entirePath = endPart
 	}
 	var url any = GetValue(GetValue(GetValue(this.Urls, "api"), authentication), typeVar)
@@ -9226,7 +9226,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 		panic(NotSupported(Add(Add(this.Id+" does not have a testnet for the ", typeVar), " market type.")))
 	}
 	url = Add(url, entirePath)
-	if IsEqual(authentication, "public") {
+	if authentication == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
@@ -9235,7 +9235,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 		var queryString string = ""
 		var rawQueryString string = ""
 		var requiresURLEncoding bool = false
-		if ((IsEqual(typeVar, "futures")) || (IsEqual(typeVar, "delivery"))) && (method == "POST") {
+		if (((typeVar == "futures")) || ((typeVar == "delivery"))) && (method == "POST") {
 			var pathParts []string = Split(pathImploded, "/")
 			var secondPart *string = this.SafeString(pathParts, 1, "")
 			requiresURLEncoding = (func() int {
@@ -9268,7 +9268,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 			}
 		} else {
 			var urlQueryParams map[string]any = MapTyped(this.SafeDict(query, "query", map[string]any{}))
-			if len(ObjectKeys(urlQueryParams)) > 0 {
+			if len(urlQueryParams) > 0 {
 				queryString = this.Urlencode(urlQueryParams)
 				url = Add(url, "?"+queryString)
 			}
@@ -9679,15 +9679,15 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if market != nil {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return symbol
 	}()
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchMySettlementHistory", market, params)
-	var isOption bool = IsEqual(typeVar, "option")
-	var isFuture bool = IsEqual(typeVar, "future")
+	var isOption bool = (typeVar != nil && *typeVar == "option")
+	var isFuture bool = (typeVar != nil && *typeVar == "future")
 	if !isOption && !isFuture {
 		panic(NotSupported(this.Id + " fetchMySettlementHistory() supports option and future markets only"))
 	}
@@ -11027,11 +11027,11 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 		AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))
 	}
 	var response any = nil
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.PrivateFuturesGetSettlePositionClose(this.Extend(request, paramsValue))).Raw
 		PanicOnError(response)
-	} else if IsEqual(marketType, "future") {
+	} else if marketType != nil && *marketType == "future" {
 
 		response = (<-this.PrivateDeliveryGetSettlePositionClose(this.Extend(request, paramsValue)))
 		PanicOnError(response)

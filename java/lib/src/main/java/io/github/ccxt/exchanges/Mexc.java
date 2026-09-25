@@ -5346,7 +5346,7 @@ public class Mexc extends MexcApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -6594,7 +6594,7 @@ public class Mexc extends MexcApi
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             Object network = this.safeString2(paramsWithdrawTag, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-            network = this.networkCodeToId((String) (network), Helpers.toStringArg(currency.get("code")));
+            network = this.networkCodeToId((String) (network), this.safeString(currency, "code"));
             this.checkAddress(address);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", currency.get("id") );
@@ -7001,11 +7001,10 @@ public class Mexc extends MexcApi
          */
         String defaultType = this.safeString(this.options, "defaultType");
         Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
-        Object marginMode = null;
-        Object paramsMarginMode = null;
-        List<Object> marginModeparamsMarginModeVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
-        marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-        paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+        List<Object> marginModeValueparamsMarginModeVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        var marginModeValue = ((List<Object>) marginModeValueparamsMarginModeVariable).get(0);
+        var paramsMarginMode = ((List<Object>) marginModeValueparamsMarginModeVariable).get(1);
+        Object marginMode = marginModeValue;
         if ((java.util.Objects.equals(defaultType, "margin")) || (java.util.Objects.equals(isMargin, true)))
         {
             marginMode = "isolated";
@@ -7208,7 +7207,7 @@ public class Mexc extends MexcApi
                 }
             }
             String paramsEncoded = "";
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)urlParams).keySet())).size() > 0)
+            if (((Map<String, Object>)urlParams).size() > 0)
             {
                 paramsEncoded = this.urlencode(urlParams);
                 url = (url + ("?" + paramsEncoded));
@@ -7239,7 +7238,7 @@ public class Mexc extends MexcApi
             Object paramsOmitted = this.omit(paramsValue, this.extractParams(pathValue));
             if (java.util.Objects.equals(access, "public"))
             {
-                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsOmitted).keySet())).size() > 0)
+                if (((Map<String, Object>)paramsOmitted).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(paramsOmitted)));
                 }
@@ -7261,7 +7260,7 @@ public class Mexc extends MexcApi
                 } else
                 {
                     Map<String,Object> paramsSorted = this.keysort(paramsOmitted);
-                    if (((List<?>)new ArrayList<Object>(paramsSorted.keySet())).size() > 0)
+                    if (paramsSorted.size() > 0)
                     {
                         auth = Helpers.add(auth, this.urlencode(paramsSorted));
                         url = (url + ("?" + auth));

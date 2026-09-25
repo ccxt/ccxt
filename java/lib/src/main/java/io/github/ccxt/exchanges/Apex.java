@@ -2357,7 +2357,7 @@ public class Apex extends ApexApi
         String signBody = body;
         if (!java.util.Objects.equals(((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase(), "POST"))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 signPath = (signPath + ("?" + this.rawencode(parameters)));
                 url = (url + ("?" + this.rawencode(parameters)));

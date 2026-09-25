@@ -2787,7 +2787,7 @@ public class Coinex extends CoinexApi
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -3822,7 +3822,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             Map<String, Object> request = Helpers.newMap(
                 "ccy", currency.get("id"),
-                "chain", this.networkCodeToId(network, Helpers.toStringArg(currency.get("code")))
+                "chain", this.networkCodeToId(network, this.safeString(currency, "code"))
             );
             Map<String, Object> response = (this.v2PrivatePostAssetsRenewalDepositAddress(this.extend(request, paramsOmitted))).join();
             //
@@ -3871,7 +3871,7 @@ public class Coinex extends CoinexApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress() requires a \"network\" parameter")) ;
             }
-            request.put("chain", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")))); // required for on-chain, not required for inter-user transfer
+            request.put("chain", this.networkCodeToId(networkCode, this.safeString(currency, "code"))); // required for on-chain, not required for inter-user transfer
             Map<String, Object> response = (this.v2PrivateGetAssetsDepositAddress(this.extend(request, paramsNetworkCode))).join();
             //
             //     {
@@ -4931,7 +4931,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chain", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")))); // required for on-chain, not required for inter-user transfer
+                request.put("chain", this.networkCodeToId(networkCode, this.safeString(currency, "code"))); // required for on-chain, not required for inter-user transfer
             }
             Map<String, Object> response = (this.v2PrivatePostAssetsWithdraw(this.extend(request, paramsNetworkCode))).join();
             //
@@ -5066,7 +5066,7 @@ public class Coinex extends CoinexApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -6374,7 +6374,7 @@ public class Coinex extends CoinexApi
             }
         } else if (java.util.Objects.equals(requestUrl, "public") || java.util.Objects.equals(requestUrl, "perpetualPublic"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

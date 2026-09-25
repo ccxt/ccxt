@@ -2406,7 +2406,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var networkId *string = this.SafeString2(transaction, "network", "method")
 	var status *string = this.SafeString(transaction, "status")
 	var withdrawId *string = this.SafeString(transaction, "wid")
-	var networkCode *string = this.NetworkIdToCode(networkId, currencyResolved["code"])
+	var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currencyResolved, "code"))
 	var networkCodeUpper *string = func() *string {
 		if networkCode != nil {
 			return SafeStringPtr(strings.ToUpper(*networkCode))
@@ -2483,7 +2483,7 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + endpoint
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		// bitso rejects a nonce that is not higher than the previous one (error 104)
 		var nonce string = ToString(this.IncrementingNonce())

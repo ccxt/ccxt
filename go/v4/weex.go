@@ -5162,7 +5162,7 @@ func (this *Weex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	var isolatedShortLeverage *float64 = this.SafeNumber(paramsMarginMode, "isolatedShortLeverage")
 	var crossLeverage *float64 = this.SafeNumber(paramsMarginMode, "crossLeverage")
 	if (isolatedLongLeverage == nil) && (isolatedShortLeverage == nil) && (crossLeverage == nil) {
-		if IsEqual(marginMode, "isolated") {
+		if marginMode != nil && *marginMode == "isolated" {
 			request["isolatedLongLeverage"] = leverage
 			request["isolatedShortLeverage"] = leverage
 		} else {
@@ -5449,7 +5449,7 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 			endpoint += "?" + this.Urlencode(query)
 		}
 	}
-	var isPrivate bool = (IsEqual(api, "private")) || (IsEqual(api, "contractPrivate"))
+	var isPrivate bool = ((api == "private")) || ((api == "contractPrivate"))
 	var hasJsonBody bool = isPrivate && ((method == "POST") || isBatch)
 	var requestBody any = body
 	if hasJsonBody {

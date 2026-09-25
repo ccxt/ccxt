@@ -582,7 +582,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 if (!Boolean.TRUE.equals(index))
                 {
                     linear = (((String)marketType).indexOf("_vanilla") >= 0);
-                    inverse = !Helpers.isTrue(linear);
+                    inverse = !Boolean.TRUE.equals(linear);
                     String settleTime = this.safeString(market, "lastTradingTime");
                     type = (((java.util.Objects.equals(settleTime, null)))) ? "swap" : "future";
                     expiry = this.parse8601(settleTime);
@@ -625,7 +625,7 @@ public class Krakenfutures extends KrakenfuturesApi
                         settleId = quoteId;
                         inverse = false;
                     }
-                    linear = !Helpers.isTrue(inverse);
+                    linear = !Boolean.TRUE.equals(inverse);
                     symbol = ((((base + "/") + quote) + ":") + settle);
                     if (Boolean.TRUE.equals(future))
                     {
@@ -4421,7 +4421,7 @@ public class Krakenfutures extends KrakenfuturesApi
         if (java.util.Objects.equals(path, "batchorder"))
         {
             postData = ("json=" + this.json(paramsOmitted2));
-        } else if (((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsOmitted2).keySet())).size() > 0)
+        } else if (((Map<String, Object>)paramsOmitted2).size() > 0)
         {
             if (((Map<?, ?>)paramsOmitted2).containsKey("orderIds"))
             {

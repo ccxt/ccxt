@@ -2249,7 +2249,7 @@ export default class hibachi extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['contractId'] = market['numericId'];
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         if (since !== undefined) {
             request['startTime'] = this.parseToInt (since / 1000);

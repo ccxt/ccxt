@@ -1918,7 +1918,7 @@ public class Lbank extends LbankApi
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -3592,7 +3592,7 @@ public class Lbank extends LbankApi
         }
         if (java.util.Objects.equals(Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(this.keysort(query))));
             }

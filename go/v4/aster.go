@@ -5389,11 +5389,11 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *baseApiUrl + "/" + path
-	if (IsEqual(api, "fapiPublic")) || (IsEqual(api, "sapiPublic")) {
+	if ((api == "fapiPublic")) || ((api == "sapiPublic")) {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Rawencode(params))
 		}
-	} else if (IsEqual(api, "fapiPrivate")) || (IsEqual(api, "sapiPrivate")) {
+	} else if ((api == "fapiPrivate")) || ((api == "sapiPrivate")) {
 		this.CheckRequiredCredentials()
 		var nonce int64 = this.Milliseconds() * 1000
 		// Sign using EIP-712 typed data per the AsterSignTransaction spec

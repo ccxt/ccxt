@@ -869,7 +869,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String topic = "ohlcv";
             String name = "kline";
             String subHash = ((((market.get("id") + "@") + name) + "_") + interval);
-            ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m"))))));
+            parameters.put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m"))))));
             return (this.unwatchPublic(subHash, (String) (market.get("symbol")), topic, parameters)).join();
         });
 

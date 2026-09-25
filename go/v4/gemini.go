@@ -2653,7 +2653,7 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code string,
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddresses() requires a network parameter"))
 	}
-	var networkId any = this.NetworkCodeToId(networkCode, currency["code"])
+	var networkId any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	var request map[string]any = map[string]any{
 		"network": networkId,
 	}
@@ -2683,7 +2683,7 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) any {
 	var url string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var headersSigned any = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var apiKey any = this.ApiKey
 		if GetIndexOf(apiKey, "account") < 0 {
@@ -2716,7 +2716,7 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) any {
 	}
 	url = *apiUrl + url
 	var headersResolved any = func() any {
-		if IsEqual(api, "private") {
+		if api == "private" {
 			return headersSigned
 		}
 		return headers

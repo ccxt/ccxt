@@ -1551,7 +1551,7 @@ public class Weex extends WeexApi
         String marketId = this.safeString(ticker, "symbol");
         String markPrice = this.safeString(ticker, "markPrice");
         String marketType = "spot";
-        if ((!java.util.Objects.equals(markPrice, null)) || ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))))
+        if ((!java.util.Objects.equals(markPrice, null)) || ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("contract"), true))))
         {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = "swap";
@@ -2119,7 +2119,7 @@ public class Weex extends WeexApi
             isSpot = java.util.Objects.equals(tradeMarketType, "spot");
         } else
         {
-            isSpot = ((Map<String, Object>)market).get("spot");
+            isSpot = market.get("spot");
         }
         Map<String, Object> fee = null;
         String commission = this.safeString(trade, "commission");
@@ -2866,10 +2866,10 @@ public class Weex extends WeexApi
             Helpers.addElementToObject(parameters, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             if (Boolean.TRUE.equals(isMarketOrder))
             {
-                ((Map<String, Object>)parameters).put("type", "STOP_MARKET");
+                parameters.put("type", "STOP_MARKET");
             } else
             {
-                ((Map<String, Object>)parameters).put("type", "STOP");
+                parameters.put("type", "STOP");
             }
             // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
             if (Boolean.TRUE.equals(hasStopLoss))
@@ -5260,7 +5260,7 @@ public class Weex extends WeexApi
         Boolean isBatch = (((String)path).indexOf("batch") >= 0);
         if (!Boolean.TRUE.equals(isBatch) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 endpoint = (endpoint + ("?" + this.urlencode(query)));
             }

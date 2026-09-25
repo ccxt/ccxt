@@ -1647,7 +1647,7 @@ export default class bitget extends bitgetRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             marketId = this.safeString (market, 'id');
             messageHash = messageHash + ':' + symbolResolved;
         }
@@ -2176,7 +2176,7 @@ export default class bitget extends bitgetRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash = messageHash + ':' + symbolResolved;
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);

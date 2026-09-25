@@ -4595,10 +4595,10 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 		return body
 	}()
 	var privateHeaders any = nil
-	if (IsEqual(api, "private")) || (access != nil && *access == "private") {
+	if ((api == "private")) || (access != nil && *access == "private") {
 		this.CheckRequiredCredentials()
 		var auth any = postData + "/api/"
-		if !IsEqual(api, "private") {
+		if api != "private" {
 			auth = Add(auth, Add(api, "/"))
 		}
 		auth = Add(auth, endpoint)                                       // 1

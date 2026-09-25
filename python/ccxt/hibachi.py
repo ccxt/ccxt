@@ -2123,7 +2123,7 @@ class hibachi(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['contractId'] = market['numericId']
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         if since is not None:
             request['startTime'] = self.parse_to_int(since / 1000)
         if limit is not None:

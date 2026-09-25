@@ -1351,7 +1351,7 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 		requestBody = this.Json(params)
 	}
 	var privateHeaders any = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var secret []byte = this.Base64ToBinary(this.Secret)

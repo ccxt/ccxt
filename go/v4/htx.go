@@ -4024,7 +4024,7 @@ func (this *Htx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	result = this.SortBy(result, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(result, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(result, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Htx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -4597,15 +4597,15 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}()
 	isMultiAssetMode, paramsMultiAsset := this.HandleOptionBoolAndParams(paramsSubType, "fetchBalance", "multiAssetMode", false)
 	var request map[string]any = map[string]any{}
-	var spot bool = (IsEqual(typeVar, "spot"))
-	var future bool = (IsEqual(typeVar, "future"))
-	var swap bool = (IsEqual(typeVar, "swap"))
+	var spot bool = ((typeVar != nil && *typeVar == "spot"))
+	var future bool = ((typeVar != nil && *typeVar == "future"))
+	var swap bool = ((typeVar != nil && *typeVar == "swap"))
 	var inverse bool = (IsEqual(subType, "inverse"))
 	var linear bool = (IsEqual(subType, "linear"))
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBalance", paramsMultiAsset)
 	var isolated bool = (marginMode != nil && *marginMode == "isolated")
 	var cross bool = (marginMode != nil && *marginMode == "cross")
-	var margin bool = (IsEqual(typeVar, "margin")) || (spot && (cross || isolated))
+	var margin bool = ((typeVar != nil && *typeVar == "margin")) || (spot && (cross || isolated))
 	var response any = nil
 	if isMultiAssetMode || (linear && (swap || future)) {
 
@@ -6335,7 +6335,7 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 			feeCurrency = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
 		} else {
 			feeCurrency = func() any {
-				if IsEqual(side, "sell") {
+				if side == "sell" {
 					return marketResolved["quote"]
 				}
 				return marketResolved["base"]
@@ -6560,11 +6560,11 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	} else {
 		request["client-order-id"] = clientOrderId
 	}
-	if IsEqual(marginMode, "cross") {
+	if marginMode != nil && *marginMode == "cross" {
 		request["source"] = "super-margin-api"
-	} else if IsEqual(marginMode, "isolated") {
+	} else if marginMode != nil && *marginMode == "isolated" {
 		request["source"] = "margin-api"
-	} else if IsEqual(marginMode, "c2c") {
+	} else if marginMode != nil && *marginMode == "c2c" {
 		request["source"] = "c2c-margin-api"
 	}
 	var isMarketBuy bool = (orderType == "market") && (IsEqual(side, "buy"))
@@ -8990,7 +8990,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Htx) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -9373,13 +9373,13 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 	}
 	if IsString(api) {
 		// signing implementation for the old endpoints
-		if (IsEqual(api, "public")) || (IsEqual(api, "private")) {
+		if ((api == "public")) || ((api == "private")) {
 			url += this.Version
-		} else if (IsEqual(api, "v2Public")) || (IsEqual(api, "v2Private")) {
+		} else if ((api == "v2Public")) || ((api == "v2Private")) {
 			url += "v2"
 		}
 		url += "/" + this.ImplodeParams(path, params)
-		if (IsEqual(api, "private")) || (IsEqual(api, "v2Private")) {
+		if ((api == "private")) || ((api == "v2Private")) {
 			this.CheckRequiredCredentials()
 			var timestamp string = this.Ymdhms(this.Nonce(), "T")
 			var request map[string]any = map[string]any{

@@ -2189,7 +2189,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToDict(this.parseTransactionFees(response));
     }
 
-    public virtual Dictionary<string, object> parseTransactionFees(object response, object codes = null)
+    public virtual Dictionary<string, object> parseTransactionFees(IList<object> response, object codes = null)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> currencies = this.indexBy(response, "currency");
@@ -2621,9 +2621,9 @@ public partial class bitstamp : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));

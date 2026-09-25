@@ -141,9 +141,9 @@ public partial class p2b : ccxt.p2b
         }
         IDictionary<string, object> watchTickerOptions = this.safeDict(this.options, "watchTicker");
         string? name = this.safeString(watchTickerOptions, "name", "state"); // or price
-        IList<object> nameOptionparamsNameVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTicker", "name", name);
-        var nameOption = nameOptionparamsNameVariable[0];
-        IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameOptionparamsNameVariable[1]);
+        (string?, object) nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "name", name);
+        object nameOption = nameOptionparamsNameVariable.Item1;
+        IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameOptionparamsNameVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         ((IDictionary<string,object>)(this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null))[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         object tickerSubs = (this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null);
@@ -173,9 +173,9 @@ public partial class p2b : ccxt.p2b
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         IDictionary<string, object> watchTickerOptions = this.safeDict(this.options, "watchTicker");
         string? name = this.safeString(watchTickerOptions, "name", "state"); // or price
-        IList<object> nameOptionparamsNameVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTickers", "name", name);
-        var nameOption = nameOptionparamsNameVariable[0];
-        IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameOptionparamsNameVariable[1]);
+        (string?, object) nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "name", name);
+        object nameOption = nameOptionparamsNameVariable.Item1;
+        IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameOptionparamsNameVariable.Item2);
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)

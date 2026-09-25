@@ -3890,7 +3890,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 	var queryKeys []string = ObjectKeys(query)
 	var queryKeysLength int = len(queryKeys)
 	var hasQuery bool = (queryKeysLength > 0)
-	if IsEqual(api, "public") {
+	if api == "public" {
 		requestHeaders = map[string]any{
 			"OPEN-API-PARTNER": "CCXT",
 		}

@@ -733,7 +733,7 @@ class gemini extends \ccxt\async\gemini {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : null;
         $messageHash = 'orders';
         $orders = Async\await($this->watch($url, $messageHash, null, $messageHash));
         $limitResolved = $limit;

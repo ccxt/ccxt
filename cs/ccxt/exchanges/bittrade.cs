@@ -1309,7 +1309,7 @@ public partial class bittrade : Exchange
             }
         }
         result = this.sortBy(result, "timestamp");
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(result, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limitVar));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(result, this.safeString(market, "symbol"), since, limitVar));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1935,9 +1935,9 @@ public partial class bittrade : Exchange
         if (((type == "market")) && ((side == "buy")))
         {
             string? quoteAmount = null;
-            IList<object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (IList<object>)this.handleOptionBoolAndParams(paramsOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[0];
-            var paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1];
+            (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
+            object paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2;
             double? cost = this.safeNumber(paramsRequiresPrice, "cost");
             paramsOrder = this.omit(paramsRequiresPrice, "cost");
             if ((cost != null))

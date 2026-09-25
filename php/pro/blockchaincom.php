@@ -467,7 +467,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $url = $this->urls['api']['ws'];
         $message = array(

@@ -2359,14 +2359,14 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 		}
 		return headers
 	}()
-	var isSignedBody bool = (IsEqual(api, "private")) && ((method == "POST") || (method == "PUT"))
+	var isSignedBody bool = ((api == "private")) && ((method == "POST") || (method == "PUT"))
 	var signedBody string = this.Json(params)
 	var requestBody any = body
 	if isSignedBody {
 		requestBody = signedBody
 	}
 	AddElementToObject(requestHeaders, "X-BITOPRO-API", "ccxt")
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		if (method == "POST") || (method == "PUT") {
 			var payload string = this.StringToBase64(signedBody)
@@ -2389,7 +2389,7 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(requestHeaders, "X-BITOPRO-PAYLOAD", payload)
 			AddElementToObject(requestHeaders, "X-BITOPRO-SIGNATURE", signature)
 		}
-	} else if (IsEqual(api, "public")) && (method == "GET") {
+	} else if ((api == "public")) && (method == "GET") {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}

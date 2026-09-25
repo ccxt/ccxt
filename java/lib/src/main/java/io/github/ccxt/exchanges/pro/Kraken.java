@@ -851,7 +851,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            ((Map<String, Object>)parameters).put("event_trigger", "bbo");
+            parameters.put("event_trigger", "bbo");
             Object ticker = (this.watchMultiHelper("bidask", "ticker", symbolsNormalized, (Object) null, parameters)).join();
             if (this.newUpdates)
             {
@@ -1418,7 +1418,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("snap_trades", true);
+            parameters.put("snap_trades", true);
             return (this.watchPrivate("myTrades", symbol, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 

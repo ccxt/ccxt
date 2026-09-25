@@ -1674,7 +1674,7 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + requestPath
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isPrivate bool = (IsEqual(api, "private"))
+	var isPrivate bool = ((api == "private"))
 	var privateHeaders map[string]any = map[string]any{
 		"X-API-Token": this.Secret,
 	}
@@ -1687,7 +1687,7 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 	if isPrivatePost {
 		requestBody = this.Json(query)
 	}
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}

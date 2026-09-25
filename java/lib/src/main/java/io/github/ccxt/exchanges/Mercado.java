@@ -1209,7 +1209,7 @@ public class Mercado extends MercadoApi
             List<Object> ordersRaw = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = this.parseOrders(ordersRaw, market, since, limit, new HashMap<String, Object>() {{}});
             Object trades = this.ordersToTrades(orders);
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(trades, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1249,7 +1249,7 @@ public class Mercado extends MercadoApi
         if (Boolean.TRUE.equals(isPublic))
         {
             url = Helpers.add(url, this.implodeParams(path, parameters));
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

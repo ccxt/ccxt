@@ -1233,7 +1233,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var isSpot bool = (typeVar != nil && *typeVar == "spot")
 		var settle *string = func() *string {
-			if (settleId != nil) && (!IsEqual(settleId, "")) {
+			if (settleId != nil) && ((settleId != "")) {
 				return this.SafeCurrencyCode(settleId)
 			}
 			return nil
@@ -1862,9 +1862,9 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	} else {
 		side = DerefScalar(this.SafeString(trade, "type"))
-		if IsEqual(side, "1") {
+		if side == "1" {
 			side = "sell"
-		} else if IsEqual(side, "0") {
+		} else if side == "0" {
 			side = "buy"
 		} else {
 			side = nil
@@ -3838,7 +3838,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	url += this.Version + "/"
 	url += this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isPrivatePost bool = (!IsEqual(api, "public")) && (method == "POST")
+	var isPrivatePost bool = ((api != "public")) && (method == "POST")
 	// an empty POST triggers an API0020 error, so empty requests send a dummy object
 	// https://github.com/ccxt/ccxt/issues/6846
 	var emptyPostBody string = this.Urlencode(map[string]any{
@@ -3853,7 +3853,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 		requestBody = postBody
 	}
 	var privateHeaders any = nil
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
@@ -3875,7 +3875,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(privateHeaders, "Content-Type", contentType)
 		}
 		var authBody any = ""
-		if (requestBody != nil) && (!IsEqual(requestBody, "")) {
+		if (requestBody != nil) && ((requestBody != "")) {
 			authBody = requestBody
 		}
 		var auth any = Add(Add(Add(Add(Add(Add(Add(xAuth, method), strings.Replace(url, "https://", "", 1)), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody)
@@ -3883,7 +3883,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 		AddElementToObject(privateHeaders, "X-Auth-Signature", signature)
 	}
 	var requestHeaders any = func() any {
-		if IsEqual(api, "public") {
+		if api == "public" {
 			return headers
 		}
 		return privateHeaders

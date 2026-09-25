@@ -1083,7 +1083,7 @@ class pacifica(ccxt.async_support.pacifica):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash = messageHash + ':' + symbolResolved
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'

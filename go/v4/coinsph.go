@@ -2871,7 +2871,7 @@ func (this *Coinsph) Sign(path string, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var endpoint string = this.ImplodeParams(path, params)
 	url = Add(Add(url, "/"), endpoint)
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		AddElementToObject(query, "timestamp", this.Milliseconds())
 		var recvWindow *int64 = this.SafeInteger(query, "recvWindow")

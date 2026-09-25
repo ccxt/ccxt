@@ -907,9 +907,9 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         int maxLimit = 300;
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -933,9 +933,9 @@ public partial class btse : Exchange
             // the endpoint accepts timestamps in seconds
             request["start"] = this.parseToInt(((double?)since / 1000));
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchOHLCV", "until");
-        Int64? until = (Int64?)untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(paramsPaginate, "fetchOHLCV", "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         if (!(until == null))
         {
             if ((since != null))
@@ -1066,9 +1066,9 @@ public partial class btse : Exchange
         }
         string? period = null;
         object paramsPeriod = null;
-        IList<object> periodparamsPeriodVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchFundingRateHistory", "period");
-        period = (string)periodparamsPeriodVariable[0];
-        paramsPeriod = periodparamsPeriodVariable[1];
+        (string?, object) periodparamsPeriodVariable = this.handleOptionStringAndParams(parameters, "fetchFundingRateHistory", "period");
+        period = periodparamsPeriodVariable.Item1;
+        paramsPeriod = periodparamsPeriodVariable.Item2;
         if ((period == null))
         {
             period = "7D";
@@ -1089,9 +1089,9 @@ public partial class btse : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", period },
         };
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPeriod, "fetchFundingRateHistory", "until");
-        Int64? until = (Int64?)untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(paramsPeriod, "fetchFundingRateHistory", "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1RecentFundingHistory(this.extend(request, paramsUntil));
         //
         //     {
@@ -1187,9 +1187,9 @@ public partial class btse : Exchange
             response = this.safeList(walletResponse, "data", new List<object>() {});
         } else
         {
-            IList<object> walletparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet", "CROSS@");
-            string? wallet = (string)walletparamsWalletVariable[0];
-            IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletparamsWalletVariable[1]);
+            (string?, object) walletparamsWalletVariable = this.handleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet", "CROSS@");
+            string? wallet = walletparamsWalletVariable.Item1;
+            IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletparamsWalletVariable.Item2);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "wallet", wallet },
             };
@@ -1745,9 +1745,9 @@ public partial class btse : Exchange
             request["limit"] = Math.Min(limit.Value, 500); // the endpoint supports a maximum of 500 trades
         }
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchTrades", "until");
-        Int64? until = (Int64?)untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(parameters, "fetchTrades", "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Trades(this.extend(request, paramsUntil));
         //
         //     {
@@ -2192,9 +2192,9 @@ public partial class btse : Exchange
         {
             string? quoteAmount = null;
             bool? createMarketBuyOrderRequiresPrice = true;
-            IList<object> createMarketBuyOrderRequiresPricequeryVariable = (IList<object>)this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPricequeryVariable[0];
-            query = createMarketBuyOrderRequiresPricequeryVariable[1];
+            (bool?, object) createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryVariable.Item1;
+            query = createMarketBuyOrderRequiresPricequeryVariable.Item2;
             string? cost = this.safeString(query, "cost");
             query = this.omit(query, "cost");
             if ((cost != null))
@@ -2396,13 +2396,13 @@ public partial class btse : Exchange
         if ((positionMode == null))
         {
             bool? hedged = false;
-            IList<object> hedgedqueryVariable = (IList<object>)this.handleOptionBoolAndParams(query, "createOrder", "hedged", hedged);
-            hedged = (bool?)hedgedqueryVariable[0];
-            query = hedgedqueryVariable[1];
+            (bool?, object) hedgedqueryVariable = this.handleOptionBoolAndParams(query, "createOrder", "hedged", hedged);
+            hedged = hedgedqueryVariable.Item1;
+            query = hedgedqueryVariable.Item2;
             string? marginMode = "cross";
-            IList<object> marginModequeryVariable = (IList<object>)this.handleOptionStringAndParams(query, "createOrder", "marginMode", marginMode);
-            marginMode = (string)marginModequeryVariable[0];
-            query = marginModequeryVariable[1];
+            (string?, object) marginModequeryVariable = this.handleOptionStringAndParams(query, "createOrder", "marginMode", marginMode);
+            marginMode = marginModequeryVariable.Item1;
+            query = marginModequeryVariable.Item2;
             if (marginMode == "isolated")
             {
                 if ((hedged == true))
@@ -3200,9 +3200,9 @@ public partial class btse : Exchange
         {
             request["pageSize"] = limit;
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsOmitted, methodName, "until");
-        Int64? until = (Int64?)untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(paramsOmitted, methodName, "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         if (!(until == null))
         {
             request["endTime"] = until;
@@ -3442,9 +3442,9 @@ public partial class btse : Exchange
         {
             request["pageSize"] = limit;
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsOmitted, "fetchLedger", "until");
-        Int64? until = (Int64?)untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(paramsOmitted, "fetchLedger", "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         if (!(until == null))
         {
             request["endTime"] = until;
@@ -3967,9 +3967,9 @@ public partial class btse : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.futuresRequestId(market) },
         };
-        IList<object> orderTypeparamsOrderTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "closePosition", "type", "market");
-        string? orderType = (string)orderTypeparamsOrderTypeVariable[0];
-        IDictionary<string, object> paramsOrderType = ((IDictionary<string, object>)orderTypeparamsOrderTypeVariable[1]);
+        (string?, object) orderTypeparamsOrderTypeVariable = this.handleOptionStringAndParams(parameters, "closePosition", "type", "market");
+        string? orderType = orderTypeparamsOrderTypeVariable.Item1;
+        IDictionary<string, object> paramsOrderType = ((IDictionary<string, object>)orderTypeparamsOrderTypeVariable.Item2);
         string typeUpper = orderType.ToUpper();
         request["orderType"] = typeUpper;
         if (typeUpper == "LIMIT")
@@ -4090,9 +4090,9 @@ public partial class btse : Exchange
         // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
         // verified live - a bare call on a cross account silently changes the
         // isolated leverage only, so the unified marginMode param is translated here
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters);
-        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters);
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         if ((marginMode != null))
         {
             request["marginMode"] = marginMode.ToUpper();

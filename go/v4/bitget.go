@@ -7519,7 +7519,7 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 		marketType = "contract"
 	}
 	if market != nil {
-		marketType = GetValue(market, "type")
+		marketType = DerefScalar(this.SafeString(market, "type"))
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
@@ -7929,11 +7929,11 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 		}
 		if postOnly == true {
 			request["timeInForce"] = "post_only"
-		} else if IsEqual(timeInForce, "GTC") {
+		} else if timeInForce == "GTC" {
 			request["timeInForce"] = "gtc"
-		} else if IsEqual(timeInForce, "FOK") {
+		} else if timeInForce == "FOK" {
 			request["timeInForce"] = "fok"
-		} else if IsEqual(timeInForce, "IOC") {
+		} else if timeInForce == "IOC" {
 			request["timeInForce"] = "ioc"
 		}
 	}
@@ -8043,11 +8043,11 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	}
 	if postOnly == true {
 		request["force"] = "post_only"
-	} else if IsEqual(timeInForce, "GTC") {
+	} else if timeInForce == "GTC" {
 		request["force"] = "GTC"
-	} else if IsEqual(timeInForce, "FOK") {
+	} else if timeInForce == "FOK" {
 		request["force"] = "FOK"
-	} else if IsEqual(timeInForce, "IOC") {
+	} else if timeInForce == "IOC" {
 		request["force"] = "IOC"
 	}
 	paramsMarketType = this.Omit(paramsMarketType, []any{"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"})
@@ -11943,7 +11943,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 
@@ -12397,7 +12397,7 @@ func (this *Bitget) ParseFundingHistories(contracts any, optionalArgs ...any) an
 	var sorted []any = this.SortBy(result, "timestamp")
 	var symbol any = nil
 	if market != nil {
-		symbol = GetValue(market, "symbol")
+		symbol = DerefScalar(this.SafeString(market, "symbol"))
 	}
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }

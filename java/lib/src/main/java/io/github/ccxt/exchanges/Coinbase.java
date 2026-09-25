@@ -3551,7 +3551,7 @@ public class Coinbase extends CoinbaseApi
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -5066,7 +5066,7 @@ public class Coinbase extends CoinbaseApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            var requestparamsValueVariable = (this.prepareAccountRequestWithCurrencyCode(Helpers.toStringArg(currency.get("code")), (Long) null, parameters)).join();
+            var requestparamsValueVariable = (this.prepareAccountRequestWithCurrencyCode(this.safeString(currency, "code"), (Long) null, parameters)).join();
             var request = ((List<Object>) requestparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
             Map<String, Object> response = (this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, paramsValue))).join();
@@ -6228,7 +6228,7 @@ public class Coinbase extends CoinbaseApi
         String savedPath = fullPath;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 fullPath = (fullPath + ("?" + this.urlencodeWithArrayRepeat(query)));
             }
@@ -6256,7 +6256,7 @@ public class Coinbase extends CoinbaseApi
                 String payload = "";
                 if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
-                    if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                    if (Helpers.objectKeys(query).size() > 0)
                     {
                         requestBody = this.json(query);
                         payload = requestBody;
@@ -6265,7 +6265,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     if (!Boolean.TRUE.equals(isV3))
                     {
-                        if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                        if (Helpers.objectKeys(query).size() > 0)
                         {
                             payload = (payload + ("?" + this.urlencode(query)));
                         }
@@ -6328,7 +6328,7 @@ public class Coinbase extends CoinbaseApi
                 );
                 if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
-                    if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                    if (Helpers.objectKeys(query).size() > 0)
                     {
                         requestBody = this.json(query);
                     }

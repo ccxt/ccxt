@@ -1061,11 +1061,11 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *apiUrl + "/" + this.Version + "/" + path
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Urlencode(params))
 		}
-	} else if IsEqual(api, "webApi") {
+	} else if api == "webApi" {
 		url = Add(Add(GetValue(this.Urls, "www"), "/"), path)
 	} else {
 		this.CheckRequiredCredentials()

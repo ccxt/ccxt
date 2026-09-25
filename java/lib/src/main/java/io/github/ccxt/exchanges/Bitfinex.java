@@ -3708,7 +3708,7 @@ public class Bitfinex extends BitfinexApi
         Map<String, Object> requestHeaders = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

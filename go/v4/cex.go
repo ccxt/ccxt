@@ -2227,7 +2227,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
 	var request map[string]any = map[string]any{
 		"accountId":  accountId,
 		"currency":   currency["id"],
-		"blockchain": this.NetworkCodeToId(networkCode, currency["code"]),
+		"blockchain": this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")),
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetDepositAddress(this.Extend(request, paramsNetworkCode))).Raw))
@@ -2257,7 +2257,7 @@ func (this *Cex) ParseDepositAddress(depositAddress any, optionalArgs ...any) an
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": currencyResolved["code"],
-		"network":  this.NetworkIdToCode(this.SafeString(depositAddress, "blockchain"), currencyResolved["code"]),
+		"network":  this.NetworkIdToCode(this.SafeString(depositAddress, "blockchain"), this.SafeString(currencyResolved, "code")),
 		"address":  address,
 		"tag":      nil,
 	}
@@ -2279,7 +2279,7 @@ func (this *Cex) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if method == "GET" {
 			if len(ObjectKeys(query)) > 0 {
 				url += "?" + this.Urlencode(query)

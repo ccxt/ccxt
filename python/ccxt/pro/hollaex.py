@@ -198,7 +198,7 @@ class hollaex(ccxt.async_support.hollaex):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash += ':' + market['id']
         trades = await self.watch_private(messageHash, params)
         limitResolved = limit
@@ -278,7 +278,7 @@ class hollaex(ccxt.async_support.hollaex):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash += ':' + market['id']
         orders = await self.watch_private(messageHash, params)
         limitResolved = limit

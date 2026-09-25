@@ -2629,7 +2629,7 @@ class whitebit extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         if ($limit !== null) {
             $request['limit'] = min($limit, 100); // default 50 max 100
         }

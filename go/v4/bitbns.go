@@ -1656,14 +1656,14 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 	if !(InOp(GetValue(urls, "api"), api)) {
 		panic(ExchangeError(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", api), " endpoints")))
 	}
-	if !IsEqual(api, "www") {
+	if api != "www" {
 		this.CheckRequiredCredentials()
 	}
 	var apiKeyHeaders map[string]any = map[string]any{
 		"X-BITBNS-APIKEY": this.ApiKey,
 	}
 	var requestHeaders any = func() any {
-		if !IsEqual(api, "www") {
+		if api != "www" {
 			return apiKeyHeaders
 		}
 		return headers

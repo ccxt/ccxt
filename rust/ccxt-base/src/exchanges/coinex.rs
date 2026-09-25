@@ -4679,7 +4679,7 @@ impl CoinexCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("chain".to_string(), self.network_code_to_id(network, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]));
+                m.insert("chain".to_string(), self.network_code_to_id(network, &[self.safe_string_k(currency.clone(), "code", &[])]));
             m
         });
         let __ws_arg_40 = self.extend(request, &[paramsOmitted]);
@@ -4733,7 +4733,7 @@ impl CoinexCore {
         if (networkCode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires a \"network\" parameter".into()))));
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), self.network_code_to_id(networkCode, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])); }; // required for on-chain, not required for inter-user transfer
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])])); }; // required for on-chain, not required for inter-user transfer
         let __ws_arg_41 = self.extend(request, &[paramsNetworkCode]);
         let mut response: Value = self.v2_private_get_assets_deposit_address(&[__ws_arg_41]).await;
         //
@@ -5840,7 +5840,7 @@ impl CoinexCore {
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), self.network_code_to_id(networkCode, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])); }; // required for on-chain, not required for inter-user transfer
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("chain".into(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])])); }; // required for on-chain, not required for inter-user transfer
         }
         let __ws_arg_56 = self.extend(request, &[paramsNetworkCode]);
         let mut response: Value = self.v2_private_post_assets_withdraw(&[__ws_arg_56]).await;
@@ -5988,7 +5988,7 @@ impl CoinexCore {
         }
         }
         let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
 
     Value::Null
 }

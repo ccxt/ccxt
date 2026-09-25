@@ -1848,13 +1848,13 @@ func (this *Btcmarkets) Sign(path string, optionalArgs ...any) any {
 	var requestBody any = nil
 	var request string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var secret []byte = this.Base64ToBinary(this.Secret)
 		var auth any = method + request + nonce
 		if (method == "GET") || (method == "DELETE") {
-			if len(ObjectKeys(query)) > 0 {
+			if len(query) > 0 {
 				request += "?" + this.Urlencode(query)
 			}
 		} else {
@@ -1870,8 +1870,8 @@ func (this *Btcmarkets) Sign(path string, optionalArgs ...any) any {
 			"BM-AUTH-TIMESTAMP": nonce,
 			"BM-AUTH-SIGNATURE": signature,
 		}
-	} else if IsEqual(api, "public") {
-		if len(ObjectKeys(query)) > 0 {
+	} else if api == "public" {
+		if len(query) > 0 {
 			request += "?" + this.Urlencode(query)
 		}
 	}

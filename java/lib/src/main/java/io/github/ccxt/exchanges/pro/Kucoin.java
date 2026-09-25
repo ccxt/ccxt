@@ -2335,7 +2335,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             Object messageHash = "orders";
             if (!java.util.Objects.equals(symbolResolved, null))
             {
@@ -2800,7 +2800,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             if (!java.util.Objects.equals(market, null))
             {
                 messageHash = ((messageHash + ":") + market.get("symbol"));
@@ -2853,7 +2853,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

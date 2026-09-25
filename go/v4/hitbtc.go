@@ -1281,13 +1281,13 @@ func (this *Hitbtc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		return this.SafeString(accountsByType, typeVar, typeVar)
 	}()
 	var response map[string]any = nil
-	if IsEqual(account, "wallet") {
+	if account != nil && *account == "wallet" {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetWalletBalance(paramsOmitted)).Raw))
-	} else if IsEqual(account, "spot") {
+	} else if account != nil && *account == "spot" {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetSpotBalance(paramsOmitted)).Raw))
-	} else if IsEqual(account, "derivatives") {
+	} else if account != nil && *account == "derivatives" {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesBalance(paramsOmitted)).Raw))
 	} else {
@@ -2972,10 +2972,10 @@ func (this *Hitbtc) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var request map[string]any = MapTyped(GetValue(requestparamsValueVariable, 0))
 	var paramsValue map[string]any = MapTyped(GetValue(requestparamsValueVariable, 1))
 	var response map[string]any = nil
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostFuturesOrder(this.Extend(request, paramsValue))).Raw))
-	} else if (IsEqual(marketType, "margin")) || (!IsEqual(marginMode, nil)) {
+	} else if ((marketType != nil && *marketType == "margin")) || (!IsEqual(marginMode, nil)) {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostMarginOrder(this.Extend(request, paramsValue))).Raw))
 	} else {
@@ -3606,11 +3606,11 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		}
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if market == nil {
 			return symbol
 		}
-		return market["symbol"]
+		return this.SafeString(market, "symbol")
 	}()
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit)
@@ -4705,7 +4705,7 @@ func (this *Hitbtc) Sign(path string, optionalArgs ...any) any {
 		}
 		return this.Json(params)
 	}()
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
 		var payload []any = []any{method, "/api/3/" + implodedPath}

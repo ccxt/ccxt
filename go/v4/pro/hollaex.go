@@ -261,7 +261,7 @@ func (this *Hollaex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 	}
 
@@ -372,7 +372,7 @@ func (this *Hollaex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 	}
 

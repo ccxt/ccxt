@@ -4810,7 +4810,7 @@ func (this *Mexc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var isMargin *bool = this.SafeBool(paramsMarketType, "margin", false)
 	var paramsOmitted2 any = this.Omit(paramsMarketType, []any{"margin", "marginMode"})
 	var response map[string]any = nil
-	if (marginMode != nil) || (isMargin != nil && *isMargin == true) || (IsEqual(marketType, "margin")) {
+	if (marginMode != nil) || (isMargin != nil && *isMargin == true) || ((marketType == "margin")) {
 		var parsedSymbols any = nil
 		var symbol *string = this.SafeString(paramsOmitted2, "symbol")
 		if symbol == nil {
@@ -4831,10 +4831,10 @@ func (this *Mexc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var paramsOmitted any = this.Omit(paramsOmitted2, []any{"symbol", "symbols"})
 
 		response = MapTyped(PanicOnError((<-this.SpotPrivateGetMarginIsolatedAccount(this.Extend(request, paramsOmitted))).Raw))
-	} else if IsEqual(marketType, "spot") {
+	} else if marketType == "spot" {
 
 		response = MapTyped(PanicOnError((<-this.SpotPrivateGetAccount(this.Extend(request, paramsOmitted2))).Raw))
-	} else if IsEqual(marketType, "swap") {
+	} else if marketType == "swap" {
 
 		response = MapTyped(PanicOnError((<-this.ContractPrivateGetAccountAssets(this.Extend(request, paramsOmitted2))).Raw))
 	} else {
@@ -5576,7 +5576,7 @@ func (this *Mexc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 
@@ -6931,7 +6931,7 @@ func (this *Mexc) withdrawBody(ch chan any, code string, amount any, address any
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network any = DerefScalar(this.SafeString2(paramsWithdrawTag, "network", "netWork")) // this line allows the user to specify either ERC20 or ETH
 	network = DerefScalar(this.SafeString(networks, network, network))                       // handle ETH > ERC-20 alias
-	network = this.NetworkCodeToId(network, currency["code"])
+	network = this.NetworkCodeToId(network, this.SafeString(currency, "code"))
 	this.CheckAddress(address)
 	var request map[string]any = map[string]any{
 		"coin":    currency["id"],
@@ -7386,11 +7386,8 @@ func (this *Mexc) HandleMarginModeAndParams(methodName any, optionalArgs ...any)
 	_ = defaultValue
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)
-	var marginMode any = nil
-	var paramsMarginMode any = nil
-	marginModeparamsMarginModeVariable := TupleSlice(this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue))
-	marginMode = GetValue(marginModeparamsMarginModeVariable, 0)
-	paramsMarginMode = GetValue(marginModeparamsMarginModeVariable, 1)
+	marginModeValue, paramsMarginMode := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
+	var marginMode any = marginModeValue
 	if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true) {
 		marginMode = "isolated"
 	}
@@ -7660,7 +7657,7 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 				requestBody = auth
 			} else {
 				var paramsSorted map[string]any = this.Keysort(paramsOmitted)
-				if len(ObjectKeys(paramsSorted)) > 0 {
+				if len(paramsSorted) > 0 {
 					auth = Add(auth, this.Urlencode(paramsSorted))
 					url = Add(url, Add("?", auth))
 				}

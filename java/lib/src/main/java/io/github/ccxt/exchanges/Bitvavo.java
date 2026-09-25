@@ -3120,7 +3120,7 @@ public class Bitvavo extends BitvavoApi
         Boolean getOrDelete = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
         if (Boolean.TRUE.equals(getOrDelete))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -3131,7 +3131,7 @@ public class Bitvavo extends BitvavoApi
             String payload = "";
             if (!Boolean.TRUE.equals(getOrDelete))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     requestBody = this.json(query);
                     payload = requestBody;
@@ -3189,11 +3189,11 @@ public class Bitvavo extends BitvavoApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((Helpers.inOp(config, "noMarket")) && !(Helpers.inOp(parameters, "market")))
+        if ((config.containsKey("noMarket")) && !(Helpers.inOp(parameters, "market")))
         {
-            return Helpers.GetValue(config, "noMarket");
+            return config.get("noMarket");
         }
         return this.safeNumber(config, "cost", 1);
     }

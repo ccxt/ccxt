@@ -2605,7 +2605,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 		marginModequeryVariable := TupleSlice(this.HandleOptionStringAndParams(query, "createOrder", "marginMode", marginMode))
 		marginMode = GetValue(marginModequeryVariable, 0)
 		query = GetValue(marginModequeryVariable, 1)
-		if IsEqual(marginMode, "isolated") {
+		if marginMode == "isolated" {
 			if hedged == true {
 				panic(BadRequest(this.Id + " createOrder() cannot use isolated margin with hedged positions"))
 			}
@@ -4633,7 +4633,7 @@ func (this *Btse) Sign(path string, optionalArgs ...any) any {
 			url += "?" + queryString
 		}
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var nonce any = this.Nonce()
 		var bodyString string = this.Json(query)

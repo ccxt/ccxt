@@ -4903,11 +4903,11 @@ func (this *Delta) Sign(path string, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Seconds(), 10)
 		requestHeaders = map[string]any{

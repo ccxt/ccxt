@@ -1398,7 +1398,7 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 	var url any = this.ImplodeHostname(apiUrl) + "/"
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if (IsEqual(api, "public")) || (IsEqual(api, "markets")) {
+	if ((api == "public")) || ((api == "markets")) {
 		url = Add(url, this.ImplodeParams(path, params))
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))

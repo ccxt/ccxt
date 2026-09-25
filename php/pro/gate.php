@@ -438,7 +438,7 @@ class gate extends \ccxt\async\gate {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             if ($market['swap'] !== true) {
                 throw new NotSupported($this->id . ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
             }

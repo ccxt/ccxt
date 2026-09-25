@@ -1372,7 +1372,7 @@ public partial class xt : ccxt.xt
             Int64? nonce = this.safeInteger(orderbook, "nonce");
             if ((nonce == null))
             {
-                int cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
+                int cacheLength = ((orderbook as ccxt.pro.OrderBook).cache?.Count ?? 0);
                 object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
                 if (isEqual(cacheLength, snapshotDelay))
                 {

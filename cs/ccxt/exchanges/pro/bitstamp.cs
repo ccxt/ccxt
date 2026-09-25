@@ -181,7 +181,7 @@ public partial class bitstamp : ccxt.bitstamp
         string messageHash = ("orderbook:" + symbol);
         if ((nonce == null))
         {
-            int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
+            int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 6);

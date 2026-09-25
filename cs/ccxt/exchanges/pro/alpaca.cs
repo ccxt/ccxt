@@ -308,11 +308,11 @@ public partial class alpaca : ccxt.alpaca
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -442,12 +442,12 @@ public partial class alpaca : ccxt.alpaca
             await this.loadMarkets();
         }
         string messageHash = "orders";
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = ("orders:" + (symbolResolved));
+            symbolResolved = this.safeString(market, "symbol");
+            messageHash = ("orders:" + symbolResolved);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "listen" },

@@ -331,7 +331,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             (this.authenticate(parameters)).join();
@@ -525,7 +525,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             (this.authenticate(parameters)).join();

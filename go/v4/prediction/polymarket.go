@@ -1127,7 +1127,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 			var outcomeLabel any = ccxt.GetValue(outcomeLabels, oi)
 			var clobTokenId any = ccxt.GetValue(clobTokenIds, oi)
 			var outcomePrice *float64 = this.SafeNumber(outcomePrices, oi)
-			if (ccxt.IsEqual(clobTokenId, nil)) || (ccxt.IsEqual(clobTokenId, "")) {
+			if (ccxt.IsEqual(clobTokenId, nil)) || ((clobTokenId == "")) {
 				continue
 			}
 			var outcomeHandle any = this.SlugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel)

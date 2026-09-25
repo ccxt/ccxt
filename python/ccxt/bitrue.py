@@ -2804,7 +2804,7 @@ class bitrue(Exchange, ImplicitAPI):
         }
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is not None:
-            request['chainName'] = self.network_code_to_id(networkCode, currency['code'])
+            request['chainName'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
         if tagWithdrawTag is not None:
             request['tag'] = tagWithdrawTag
         response = self.spotV1PrivatePostWithdrawCommit(self.extend(request, paramsNetworkCode))
@@ -3223,7 +3223,7 @@ class bitrue(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('byLimit' in config) and ('limit' in params):

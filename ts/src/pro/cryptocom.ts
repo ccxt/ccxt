@@ -461,7 +461,7 @@ export default class cryptocom extends cryptocomRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         let messageHash = 'user.trade';
         messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
@@ -837,7 +837,7 @@ export default class cryptocom extends cryptocomRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         let messageHash = 'user.order';
         messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;

@@ -3259,10 +3259,12 @@ impl BitvavoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (in_op(&config, &Value::Str("noMarket".into()))) && !(in_op(&params, &Value::Str("market".into()))) {
-            return config.as_map().and_then(|__m| __m.get("noMarket")).cloned().unwrap_or(Value::Null);
+        let __config_empty = indexmap::IndexMap::new();
+        let config = config.as_map().unwrap_or(&__config_empty);
+        if (config.contains_key("noMarket")) && !(in_op(&params, &Value::Str("market".into()))) {
+            return config.get("noMarket").cloned().unwrap_or(Value::Null);
         }
-        return self.safe_number_k(config, "cost", &[Value::Int(1)]);
+        return (match config.get("cost") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Int(1) }, _ => Value::Int(1) });
 
     Value::Null
 }

@@ -1799,7 +1799,7 @@ class kucoin(ccxt.async_support.kucoin):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         messageHash = 'orders'
         if symbolResolved is not None:
             messageHash = messageHash + ':' + symbolResolved
@@ -2198,7 +2198,7 @@ class kucoin(ccxt.async_support.kucoin):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         if market is not None:
             messageHash = messageHash + ':' + market['symbol']
         marketType, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)

@@ -1322,7 +1322,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) any {
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(api, "public") {
+	if api == "public" {
 		url += ".json"
 	} else {
 		this.CheckRequiredCredentials()
@@ -1333,7 +1333,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) any {
 		}, params)
 		var auth string = this.Urlencode(query)
 		if method == "GET" {
-			if len(ObjectKeys(query)) > 0 {
+			if len(query) > 0 {
 				url += "?" + auth
 			}
 		} else {

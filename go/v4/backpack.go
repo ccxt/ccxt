@@ -1492,7 +1492,7 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 
@@ -1984,7 +1984,7 @@ func (this *Backpack) withdrawBody(ch chan any, code string, amount any, address
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(params)
 	var networkCode *string = SafeStringPtr(GetValue(networkCodequeryVariable, 0))
 	var query map[string]any = MapTyped(GetValue(networkCodequeryVariable, 1))
-	var networkId any = this.NetworkCodeToId(networkCode, currency["code"])
+	var networkId any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))
 	}
@@ -2160,7 +2160,7 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code string, optional
 	}
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
-		"blockchain": this.NetworkCodeToId(networkCode, currency["code"]),
+		"blockchain": this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")),
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWapiV1CapitalDepositAddress(this.Extend(request, paramsNetworkCode))).Raw))
@@ -2993,7 +2993,7 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	}()
 	var headersSigned any = nil
 	var bodySigned *string = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var ts string = ToString(this.Nonce())
 		var recvWindow *string = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
@@ -3033,13 +3033,13 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	}
 	url = Add(url, endpoint)
 	var headersResolved any = func() any {
-		if IsEqual(api, "private") {
+		if api == "private" {
 			return headersSigned
 		}
 		return headers
 	}()
 	var bodyResolved *string = body
-	if (IsEqual(api, "private")) && (method != "GET") {
+	if ((api == "private")) && (method != "GET") {
 		bodyResolved = bodySigned
 	}
 	return map[string]any{

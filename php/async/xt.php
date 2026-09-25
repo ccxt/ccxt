@@ -2064,7 +2064,7 @@ class xt extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 's');
-        $marketType = ($market !== null) ? $market['type'] : null;
+        $marketType = ($market !== null) ? $this->safe_string($market, 'type') : null;
         $hasSpotKeys = (is_array($ticker) && array_key_exists('cv' ?? '', $ticker)) || (is_array($ticker) && array_key_exists('aq' ?? '', $ticker));
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
@@ -2405,7 +2405,7 @@ class xt extends Exchange {
         //    }
         //
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
-        $marketType = ($market !== null) ? $market['type'] : null;
+        $marketType = ($market !== null) ? $this->safe_string($market, 'type') : null;
         $hasSpotKeys = (is_array($trade) && array_key_exists('b' ?? '', $trade)) || (is_array($trade) && array_key_exists('bizType' ?? '', $trade)) || (is_array($trade) && array_key_exists('oi' ?? '', $trade));
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
@@ -4990,7 +4990,7 @@ class xt extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function fetch_funding_interval(string $symbol, $params = array()): PromiseInterface {

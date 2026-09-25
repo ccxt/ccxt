@@ -1479,7 +1479,7 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = DerefScalar(this.SafeString(market, "symbol"))
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
@@ -4015,9 +4015,9 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 	}
 	var url any = Add(Add(*apiUrl+"/", version), "/")
 	var paramsSorted map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
-	if IsEqual(access, "public") {
+	if access == "public" {
 		url = Add(url, pathWithParams)
-		if len(ObjectKeys(paramsSorted)) > 0 {
+		if len(paramsSorted) > 0 {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
 		}
 	} else {
@@ -4061,7 +4061,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 			auth = Add(auth, signedBody)
 			signedHeaders["content-type"] = "application/json"
 		} else {
-			if len(ObjectKeys(paramsSigned)) > 0 {
+			if len(paramsSigned) > 0 {
 				url = Add(url, "?"+this.Urlencode(paramsSigned))
 				auth = Add(auth, "?"+this.Rawencode(paramsSigned))
 			}

@@ -686,7 +686,7 @@ func (this *Zaif) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var numTrades int = len(trades)
 	if numTrades == 1 {
 		var firstTrade map[string]any = SafeMapTyped(trades, 0)
-		if len(ObjectKeys(firstTrade)) == 0 {
+		if len(firstTrade) == 0 {
 			trades = []any{}
 		}
 	}
@@ -1093,15 +1093,15 @@ func (this *Zaif) Sign(path string, optionalArgs ...any) any {
 	}
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/"
-	if IsEqual(api, "public") {
+	if api == "public" {
 		url += "api/" + this.Version + "/" + this.ImplodeParams(path, params)
-	} else if IsEqual(api, "fapi") {
+	} else if api == "fapi" {
 		url += "fapi/" + this.Version + "/" + this.ImplodeParams(path, params)
 	} else {
 		this.CheckRequiredCredentials()
-		if IsEqual(api, "ecapi") {
+		if api == "ecapi" {
 			url += "ecapi"
-		} else if IsEqual(api, "tlapi") {
+		} else if api == "tlapi" {
 			url += "tlapi"
 		} else {
 			url += "tapi"

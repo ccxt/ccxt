@@ -4260,7 +4260,7 @@ public class Pacifica extends PacificaApi
         String host = (String) this.implodeHostname(baseApiUrl);
         String url = ((((host + "/api/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
-        Integer paramsLen = ((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsOmitted).keySet())).size();
+        Integer paramsLen = ((Map<String, Object>)paramsOmitted).size();
         Map<String, Object> headersValue = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
@@ -4285,7 +4285,7 @@ public class Pacifica extends PacificaApi
         );
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
         String cost = this.safeString(config, "cost", "1");
         Double costNumber = this.parseNumber(cost);

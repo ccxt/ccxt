@@ -3328,7 +3328,7 @@ export default class bybit extends Exchange {
             marketType = (category === 'spot') ? 'spot' : 'contract';
         }
         if (market !== undefined) {
-            marketType = market['type'];
+            marketType = this.safeString (market, 'type');
         }
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = marketResolved['symbol'];
@@ -4042,7 +4042,7 @@ export default class bybit extends Exchange {
         const isContract = ('tpslMode' in order);
         let marketType: Str = undefined;
         if (market !== undefined) {
-            marketType = market['type'];
+            marketType = this.safeString (market, 'type');
         } else {
             marketType = isContract ? 'contract' : 'spot';
         }
@@ -8097,7 +8097,7 @@ export default class bybit extends Exchange {
         const marketId = this.safeString (fee, 'symbol');
         let defaultType: Str = 'contract';
         if (market !== undefined) {
-            defaultType = market['type'];
+            defaultType = this.safeString (market, 'type');
         }
         const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
         return {
@@ -8939,7 +8939,7 @@ export default class bybit extends Exchange {
             if (market['spot'] === true) {
                 throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported for spot market');
             }
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
         }
         const data = await this.getLeverageTiersPaginated (symbol, this.extend ({ 'paginate': true, 'paginationCalls': 200 }, params));
         const symbolsNormalized: Strings = this.marketSymbols (symbols);

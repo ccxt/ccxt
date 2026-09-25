@@ -3387,9 +3387,9 @@ public partial class aster : Exchange
                 request["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
             }
         }
-        IList<object> tifOptionparamsTifOptionVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
-        string? tifOption = (string)tifOptionparamsTifOptionVariable[0];
-        IDictionary<string, object> paramsTifOption = ((IDictionary<string, object>)tifOptionparamsTifOptionVariable[1]);
+        (string?, object) tifOptionparamsTifOptionVariable = this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
+        string? tifOption = tifOptionparamsTifOptionVariable.Item1;
+        IDictionary<string, object> paramsTifOption = ((IDictionary<string, object>)tifOptionparamsTifOptionVariable.Item2);
         bool tifIsMissing = timeInForceIsRequired && ((this.safeString(parameters, "timeInForce") == null)) && ((this.safeString(request, "timeInForce") == null));
         List<object> omitKeys = new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"};
         object requestParams = null;
@@ -4333,9 +4333,9 @@ public partial class aster : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> methodOptionparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "method");
-        string? methodOption = (string)methodOptionparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable[1]);
+        (string?, object) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(parameters, "fetchPositions", "method");
+        string? methodOption = methodOptionparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable.Item2);
         string? defaultMethod = methodOption;
         if ((defaultMethod == null))
         {
@@ -4620,7 +4620,7 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         await this.loadLeverageBrackets(false, parameters);
         Dictionary<string, object> response = await this.fapiPrivateGetV4Account(parameters);
-        bool? filterClosed = ((bool?)getValue(this.handleOptionBoolAndParams(parameters, "fetchAccountPositions", "filterClosed", false), 0));
+        bool? filterClosed = this.handleOptionBoolAndParams(parameters, "fetchAccountPositions", "filterClosed", false).Item1;
         List<object> result = this.parseAccountPositions(response, filterClosed);
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));

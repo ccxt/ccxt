@@ -1747,7 +1747,7 @@ public class Aster extends AsterApi
             }
             List<Object> response = null;
             Boolean sinceDefined = !java.util.Objects.equals(since, null);
-            Boolean untilDefined = (((Map<?, ?>)parameters).containsKey("until"));
+            Boolean untilDefined = (parameters.containsKey("until"));
             if (Boolean.TRUE.equals(sinceDefined))
             {
                 ((Map<String, Object>)request).put("startTime", since);
@@ -5146,7 +5146,7 @@ public class Aster extends AsterApi
         String url = ((baseApiUrl + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPublic") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiPublic"))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.rawencode(parameters)));
             }

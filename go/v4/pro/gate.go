@@ -581,7 +581,7 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan any, status string, optional
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		if ccxt.GetValue(market, "swap") != true {
 			panic(ccxt.NotSupported(this.Id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets"))
 		}
@@ -1831,7 +1831,7 @@ func (this *Gate) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	typeVarqueryVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchPositions", market, params))
 	typeVar = ccxt.GetValue(typeVarqueryVariable, 0)
 	query = ccxt.GetValue(typeVarqueryVariable, 1)
-	if ccxt.IsEqual(typeVar, "spot") {
+	if typeVar == "spot" {
 		typeVar = "swap"
 	}
 	var typeId any = this.GetSupportedMapping(typeVar, map[string]any{
@@ -2108,7 +2108,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var isInverse bool = (subType != nil && *subType == "inverse")
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
 	// uid required for non spot markets
-	var requiresUid bool = (!ccxt.IsEqual(typeVar, "spot"))
+	var requiresUid bool = ((typeVar != "spot"))
 
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribePrivateAsync(url, messageHash, payload, channel, query, requiresUid))))
 	var limitResolved *int64 = limit

@@ -1445,7 +1445,7 @@ public class Backpack extends BackpackApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -1876,7 +1876,7 @@ public class Backpack extends BackpackApi
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")));
+            Object networkId = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
             if (java.util.Objects.equals(networkId, null))
             {
                 throw new BadRequest((this.id + " withdraw() requires a network parameter")) ;
@@ -2051,7 +2051,7 @@ public class Backpack extends BackpackApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = Helpers.newMap(
-                "blockchain", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")))
+                "blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code"))
             );
             Map<String, Object> response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, paramsNetworkCode))).join();
             return this.parseDepositAddress((Map<String, Object>) (response), currency);

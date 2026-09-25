@@ -1612,7 +1612,7 @@ class binance extends \ccxt\async\binance {
         }
         $marketType = $fallbackType;
         if ($market !== null) {
-            $marketType = $market['type'];
+            $marketType = $this->safe_string($market, 'type');
         }
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $side = $this->safe_string_lower($trade, 'S');

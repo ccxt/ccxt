@@ -566,7 +566,7 @@ export default class nado extends nadoRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash += ':' + symbolResolved;
             productId = this.parseToInt (market['id']);
         }
@@ -642,7 +642,7 @@ export default class nado extends nadoRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash += ':' + symbolResolved;
             productId = this.parseToInt (market['id']);
         }

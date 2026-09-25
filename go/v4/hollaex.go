@@ -2530,7 +2530,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 	var url string = *apiUrl + requestPath
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var defaultExpires *int64 = this.SafeInteger2(this.Options, "api-expires", "expires", this.ParseToInt(Divide(this.Timeout, 1000)))
 		var expires any = this.Sum(this.Seconds(), defaultExpires)

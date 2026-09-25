@@ -3004,7 +3004,7 @@ class poloniex(Exchange, ImplicitAPI):
                     for j in range(0, len(childChains)):
                         networkId = childChains[j]
                         networkId = networkId.replace(code, '')
-                        networkCode = self.network_id_to_code(networkId, currency['code'])
+                        networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
                         networkInfo = self.safe_dict(response, networkId)
                         networkObject = {}
                         withdrawFee = self.safe_number(networkInfo, 'withdrawalFee')

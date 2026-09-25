@@ -1429,11 +1429,11 @@ public class Modetrade extends ModetradeApi
                 return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "page", 25L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 request.put("symbol", market.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1480,7 +1480,7 @@ public class Modetrade extends ModetradeApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbolResolved), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -3787,7 +3787,7 @@ public class Modetrade extends ModetradeApi
         if (java.util.Objects.equals(access, "public"))
         {
             url = (url + pathWithParams);
-            if (((List<?>)new ArrayList<Object>(paramsSorted.keySet())).size() > 0)
+            if (paramsSorted.size() > 0)
             {
                 url = (url + ("?" + this.urlencode(paramsSorted)));
             }
@@ -3842,7 +3842,7 @@ public class Modetrade extends ModetradeApi
                 signedHeaders.put("content-type", "application/json");
             } else
             {
-                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsSigned).keySet())).size() > 0)
+                if (((Map<String, Object>)paramsSigned).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(paramsSigned)));
                     auth = (auth + ("?" + this.rawencode(paramsSigned)));

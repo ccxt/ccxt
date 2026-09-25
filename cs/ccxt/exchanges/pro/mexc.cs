@@ -818,9 +818,9 @@ public partial class mexc : ccxt.mexc
         object orderbook = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            IList<object> frequencyparamsFrequencyVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
-            string? frequency = (string)frequencyparamsFrequencyVariable[0];
-            IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable[1]);
+            (string?, object) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
+            string? frequency = frequencyparamsFrequencyVariable.Item1;
+            IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable.Item2);
             string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
             orderbook = await this.watchSpotPublic(channel, messageHash, paramsFrequency);
         } else
@@ -960,7 +960,7 @@ public partial class mexc : ccxt.mexc
         bool shouldReturn = false;
         if ((nonce == null))
         {
-            int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
+            int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
             if (isEqual(cacheLength, snapshotDelay))
             {
@@ -989,7 +989,7 @@ public partial class mexc : ccxt.mexc
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public virtual void handleBooksideDelta(object bookside, object bidasks)
+    public virtual void handleBooksideDelta(object bookside, IList<object> bidasks)
     {
         //
         //    [{
@@ -997,9 +997,9 @@ public partial class mexc : ccxt.mexc
         //        "v": "0.000000"
         //    }]
         //
-        for (int i = 0; i < getArrayLength(bidasks); i++)
+        for (int i = 0; i < (bidasks?.Count ?? 0); i++)
         {
-            object bidask = getValue(bidasks, i);
+            object bidask = (bidasks != null && i < bidasks.Count ? bidasks[i] : null);
             if (((bidask is IList<object>) || (bidask.GetType().IsGenericType && bidask.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 (bookside as IOrderBookSide).storeArray(bidask);
@@ -1184,10 +1184,10 @@ public partial class mexc : ccxt.mexc
         {
             market = this.market(symbol);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null;
+        string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         if ((symbol != null))
         {
-            messageHash = ((messageHash + ":") + (symbolResolved));
+            messageHash = ((messageHash + ":") + symbolResolved);
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -1391,10 +1391,10 @@ public partial class mexc : ccxt.mexc
         {
             market = this.market(symbol);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null;
+        string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         if ((symbol != null))
         {
-            messageHash = ((messageHash + ":") + (symbolResolved));
+            messageHash = ((messageHash + ":") + symbolResolved);
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -2059,9 +2059,9 @@ public partial class mexc : ccxt.mexc
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
-            IList<object> frequencyparamsFrequencyVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
-            string? frequency = (string)frequencyparamsFrequencyVariable[0];
-            IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable[1]);
+            (string?, object) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
+            string? frequency = frequencyparamsFrequencyVariable.Item1;
+            IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable.Item2);
             string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
             ((IDictionary<string,object>)paramsFrequency)["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, paramsFrequency});

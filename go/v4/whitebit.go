@@ -3320,9 +3320,9 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		market = this.Market(symbol)
 		request["market"] = market["id"]
 	}
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if market != nil {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return symbol
 	}()

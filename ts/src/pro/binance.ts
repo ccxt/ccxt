@@ -1569,7 +1569,7 @@ export default class binance extends binanceRest {
         }
         let marketType: Str = fallbackType;
         if (market !== undefined) {
-            marketType = market['type'];
+            marketType = this.safeString (market, 'type');
         }
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         let side = this.safeStringLower (trade, 'S');

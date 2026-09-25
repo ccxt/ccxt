@@ -1470,7 +1470,7 @@ public partial class derive : Exchange
             });
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
     /**
@@ -2135,9 +2135,9 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, paramsPaginate, "page", 500));
@@ -2564,9 +2564,9 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500));
@@ -2810,9 +2810,9 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500));
@@ -3198,9 +3198,9 @@ public partial class derive : Exchange
 
     public virtual List<object> handleDeriveWalletAddress(string methodName, object parameters)
     {
-        IList<object> deriveWalletAddressparamsDeriveWalletAddressVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "deriveWalletAddress");
-        string? deriveWalletAddress = (string)deriveWalletAddressparamsDeriveWalletAddressVariable[0];
-        IDictionary<string, object> paramsDeriveWalletAddress = ((IDictionary<string, object>)deriveWalletAddressparamsDeriveWalletAddressVariable[1]);
+        (string?, object) deriveWalletAddressparamsDeriveWalletAddressVariable = this.handleOptionStringAndParams(parameters, methodName, "deriveWalletAddress");
+        string? deriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable.Item1;
+        IDictionary<string, object> paramsDeriveWalletAddress = ((IDictionary<string, object>)deriveWalletAddressparamsDeriveWalletAddressVariable.Item2);
         if (((deriveWalletAddress != null)) && (!(deriveWalletAddress == "")))
         {
             this.options["deriveWalletAddress"] = deriveWalletAddress; // saving in options

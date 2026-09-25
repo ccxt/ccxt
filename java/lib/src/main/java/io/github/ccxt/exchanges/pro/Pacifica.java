@@ -1439,11 +1439,11 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
             Map<String, Object> market = null;
             String messageHash = "order";
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = ((messageHash + ":") + symbolResolved);
             }
             Boolean isTestnet = this.isSandboxModeEnabled;
@@ -1471,7 +1471,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

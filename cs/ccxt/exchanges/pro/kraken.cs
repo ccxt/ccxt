@@ -1528,7 +1528,7 @@ public partial class kraken : ccxt.kraken
                     Dictionary<string, object> newRawOrder = this.extend(GetValue(previousOrder, "info"), GetValue(newOrder, "info"));
                     newOrder = this.parseWsOrder(newRawOrder);
                 }
-                int length = getArrayLength(stored);
+                int length = (stored?.Count ?? 0);
                 if ((length == limit) && ((previousOrder == null)))
                 {
                     object first = getValue(stored, 0);

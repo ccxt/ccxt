@@ -1709,7 +1709,7 @@ const MATH_LOCAL_ENTRIES = {
 const LENGTH_LOCAL_ENTRY = {
     type: 'Integer',
     prefixes: [ 'Helpers.getArrayLength(', '((String)' ],
-    match: /^\(\(List<\?>\)[^;]*\)\.size\(\)/,
+    match: /^(\(\(List<\?>\)[^;]*\)|Helpers\.objectKeys\([^;]*\)|[\w.]+|\(\((?:java\.util\.)?Map<String, Object>\)[\w.]+\))\.size\(\)/,
 };
 
 // the printed initializer must be the shape the entry's type was derived from: a fixed
@@ -11090,7 +11090,7 @@ function joinListElementType (printer, node) {
     }
 }
 
-// ===== 16. default-valued `Strings` parameters answer their printed List<String> =====
+// ===== 16. default-valued `Strings` / `Dict` parameters answer their printed List<String> / Map =====
 // A split core prints `symbols: Strings = undefined` as `List<String> symbols` (the async
 // body copy too; writes go through toStringListArg), so its counter reads join as String.
 export function installJavaStringListParamTypes (transpiler) {
@@ -11113,7 +11113,7 @@ export function installJavaStringListParamTypes (transpiler) {
         } catch (e) {
             return undefined;
         }
-        return type === 'java.util.List<String>' ? type : undefined;
+        return type === 'java.util.List<String>' || type === 'java.util.Map<String, Object>' ? type : undefined;
     };
     printer._javaStringListParamTypesPatched = true;
 }
@@ -11990,6 +11990,7 @@ export function installJavaNullScalarLocalTypes (transpiler) {
         return;
     }
     printer._javaNullScalarPatched = true;
+    const retyped = new WeakMap ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = upstream (node, identation);
@@ -12010,8 +12011,14 @@ export function installJavaNullScalarLocalTypes (transpiler) {
         } catch (e) {
             return printed;
         }
-        return type === undefined ? printed : printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
+        if (type === undefined) {
+            return printed;
+        }
+        retyped.set (declaration, type);
+        return printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
     };
+    // this section retypes after the declared-local observer: publish so core-argument conversions see it
+    publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
 }
 
 // ===== 25. omit of a Map =====
@@ -13628,5 +13635,36 @@ export function patchJavaWsListStreamLocals (transpiler) {
             return printed;
         }
         return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, `${JAVA_ARRAY_TYPE} `) + `(${JAVA_ARRAY_TYPE}) ` + rhs;
+    };
+}
+
+// ===== 34. `Object.keys (m).length` counts the map, not a copy =====
+// The List branch of printJavaLength casts the key list; the helper already returns a
+// List<Object>, and a native key copy of a Map has exactly `m.size()` elements.
+const OBJECT_KEYS_NATIVE_COPY_SIZE = /^new java\.util\.ArrayList<Object>\(([\w.]+|\(\((?:java\.util\.)?Map<String, Object>\)[\w.]+\))\.keySet\(\)\)$/;
+function isObjectKeysCallNode (node) {
+    return node !== undefined && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
+        && node.expression.name.text === 'keys' && ts.isIdentifier (node.expression.expression)
+        && node.expression.expression.text === 'Object' && node.arguments.length === 1;
+}
+export function patchJavaObjectKeysLength (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printJavaLength !== 'function' || printer._javaObjectKeysLengthPatched) {
+        return;
+    }
+    printer._javaObjectKeysLengthPatched = true;
+    const upstream = printer.printJavaLength.bind (printer);
+    printer.printJavaLength = function (expression, leftSide) {
+        const out = upstream (expression, leftSide);
+        if (typeof out !== 'string' || typeof leftSide !== 'string' || out !== `((java.util.List<?>)${leftSide}).size()`
+            || !isObjectKeysCallNode (expression)) {
+            return out;
+        }
+        const copy = OBJECT_KEYS_NATIVE_COPY_SIZE.exec (leftSide);
+        if (copy !== null) {
+            return `${copy[1]}.size()`;
+        }
+        // leftSide is the printed Object.keys call itself, so this prefix means the helper call
+        return leftSide.startsWith ('Helpers.objectKeys(') ? `${leftSide}.size()` : out;
     };
 }

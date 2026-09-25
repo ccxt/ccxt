@@ -2393,7 +2393,7 @@ export default class bigone extends Exchange {
         }
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
-            request['gateway_name'] = this.networkCodeToId (networkCode, currency['code']);
+            request['gateway_name'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         }
         // requires write permission on the wallet
         const response = await this.privatePostWithdrawals (this.extend (request, paramsNetworkCode));

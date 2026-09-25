@@ -1866,7 +1866,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 
@@ -1934,7 +1934,7 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	method = GetValue(methodparamsMethodVariable, 0)
 	paramsMethod = GetValue(methodparamsMethodVariable, 1)
 	var response any = []any{}
-	if IsEqual(method, "privateGetV2Orders") {
+	if method == "privateGetV2Orders" {
 		//
 		//     [
 		//         {
@@ -1967,7 +1967,7 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.PrivateGetV2Orders(this.Extend(request, paramsMethod))).Raw
 		PanicOnError(response)
-	} else if IsEqual(method, "privateGetV2HistoryOrders") {
+	} else if method == "privateGetV2HistoryOrders" {
 
 		response = (<-this.PrivateGetV2HistoryOrders(this.Extend(request, paramsMethod))).Raw
 		PanicOnError(response)
@@ -3775,7 +3775,7 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + endpoint
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = strconv.FormatInt(this.Microseconds(), 10)
 		var timestamp string = ToString(this.GetTimestamp())

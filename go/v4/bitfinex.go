@@ -3913,7 +3913,7 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var request any = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsEqual(api, "v1") {
+	if api == "v1" {
 		request = Add(api, request)
 	} else {
 		request = Add(this.Version, request)
@@ -3925,12 +3925,12 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 	var url any = Add(*apiUrl+"/", request)
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		// bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
 		var nonce string = ToString(this.IncrementingNonce())

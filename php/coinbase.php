@@ -4327,7 +4327,7 @@ class coinbase extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        list($request, $paramsValue) = $this->prepare_account_request_with_currency_code($currency['code'], null, $params);
+        list($request, $paramsValue) = $this->prepare_account_request_with_currency_code($this->safe_string($currency, 'code'), null, $params);
         $response = $this->v2PrivateGetAccountsAccountIdAddresses($this->extend($request, $paramsValue));
         //
         //    {

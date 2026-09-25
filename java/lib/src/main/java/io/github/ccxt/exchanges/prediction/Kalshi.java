@@ -1188,7 +1188,7 @@ public class Kalshi extends KalshiApi
         //
         Map<String, Object> marketAny = market;
         Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
-        String outcomeLabel = (((!java.util.Objects.equals(market, null) && !java.util.Objects.equals(market, null)))) ? this.safeString(market, "label", this.safeString(((Map<String, Object>)market).get("info"), "outcomeLabel", "YES")) : "YES";
+        String outcomeLabel = (((!java.util.Objects.equals(market, null) && !java.util.Objects.equals(market, null)))) ? this.safeString(market, "label", this.safeString(market.get("info"), "outcomeLabel", "YES")) : "YES";
         Boolean isNo = java.util.Objects.equals(outcomeLabel.toUpperCase(), "NO");
         Long timestamp = this.parse8601(this.safeString(raw, "updated_time"));
         String outcome = this.safeString(outcomeObj, "outcome");

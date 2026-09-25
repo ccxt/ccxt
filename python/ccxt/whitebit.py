@@ -2370,7 +2370,7 @@ class whitebit(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         if limit is not None:
             request['limit'] = min(limit, 100)  # default 50 max 100
         response = self.v4PrivatePostTradeAccountOrderHistory(self.extend(request, params))

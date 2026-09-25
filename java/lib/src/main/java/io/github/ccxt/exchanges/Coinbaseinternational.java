@@ -1501,7 +1501,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            ((Map<String, Object>)parameters).put("type", "WITHDRAW");
+            parameters.put("type", "WITHDRAW");
             return (this.fetchDepositsWithdrawals(code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1531,7 +1531,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            ((Map<String, Object>)parameters).put("type", "DEPOSIT");
+            parameters.put("type", "DEPOSIT");
             return (this.fetchDepositsWithdrawals(code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2857,7 +2857,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String savedPath = ("/api" + fullPath);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 fullPath = (fullPath + ("?" + this.urlencodeWithArrayRepeat(query)));
             }
@@ -2868,7 +2868,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + fullPath);
-        Boolean hasSignedBody = Boolean.TRUE.equals(signed) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (((List<?>)Helpers.objectKeys(query)).size() > 0);
+        Boolean hasSignedBody = Boolean.TRUE.equals(signed) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (Helpers.objectKeys(query).size() > 0);
         String signedBody = "";
         if (Boolean.TRUE.equals(hasSignedBody))
         {

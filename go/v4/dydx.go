@@ -3169,7 +3169,7 @@ func (this *Dydx) Sign(path string, optionalArgs ...any) any {
 	var paramsSorted map[string]any = this.Keysort(paramsOmitted)
 	url = Add(url, "/"+pathWithParams)
 	if method == "GET" {
-		if len(ObjectKeys(paramsSorted)) > 0 {
+		if len(paramsSorted) > 0 {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
 		}
 	} else {

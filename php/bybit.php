@@ -3316,7 +3316,7 @@ class bybit extends Exchange {
             $marketType = ($category === 'spot') ? 'spot' : 'contract';
         }
         if ($market !== null) {
-            $marketType = $market['type'];
+            $marketType = $this->safe_string($market, 'type');
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $marketResolved['symbol'];
@@ -4029,7 +4029,7 @@ class bybit extends Exchange {
         $isContract = (is_array($order) && array_key_exists('tpslMode' ?? '', $order));
         $marketType = null;
         if ($market !== null) {
-            $marketType = $market['type'];
+            $marketType = $this->safe_string($market, 'type');
         } else {
             $marketType = $isContract ? 'contract' : 'spot';
         }
@@ -8081,7 +8081,7 @@ class bybit extends Exchange {
         $marketId = $this->safe_string($fee, 'symbol');
         $defaultType = 'contract';
         if ($market !== null) {
-            $defaultType = $market['type'];
+            $defaultType = $this->safe_string($market, 'type');
         }
         $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
         return array(
@@ -8923,7 +8923,7 @@ class bybit extends Exchange {
             if ($market['spot'] === true) {
                 throw new NotSupported($this->id . ' fetchLeverageTiers() is not supported for spot market');
             }
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
         }
         $data = $this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 200 ), $params));
         $symbolsNormalized = $this->market_symbols($symbols);

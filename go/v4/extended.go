@@ -1476,11 +1476,11 @@ func (this *Extended) ParseFundingHistories(histories []any, optionalArgs ...any
 			return nil
 		}(), market))
 	}
-	var symbol any = func() any {
+	var symbol *string = func() *string {
 		if market == nil {
 			return nil
 		}
-		return GetValue(market, "symbol")
+		return this.SafeString(market, "symbol")
 	}()
 	return this.FilterBySymbolSinceLimit(result, symbol, since, limit)
 }
@@ -4489,7 +4489,7 @@ func (this *Extended) GetExtendedDecimalToBase16(value any) any {
 		result = Add(GetValue(hexChars, remainder), result)
 		decimalString = Precise.StringDiv(decimalString, "16", 0)
 	}
-	if IsEqual(result, "") {
+	if result == "" {
 		return "0"
 	}
 	return result

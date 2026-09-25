@@ -2209,7 +2209,7 @@ public class Bitopro extends BitoproApi
                 ((Map<String, Object>)requestHeaders).put("X-BITOPRO-SIGNATURE", signature);
             } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -2226,7 +2226,7 @@ public class Bitopro extends BitoproApi
             }
         } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public") && java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

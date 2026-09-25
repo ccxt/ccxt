@@ -2048,9 +2048,9 @@ public partial class tokocrypto : Exchange
                 object precision = getValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
                 object quoteAmount = null;
                 bool? createMarketBuyOrderRequiresPrice = true;
-                IList<object> createMarketBuyOrderRequiresPriceparamsRequestVariable = (IList<object>)this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequestVariable[0];
-                paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable[1];
+                (bool?, object) createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item1;
+                paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item2;
                 double? cost = this.safeNumber2(paramsRequest, "cost", "quoteOrderQty");
                 paramsRequest = this.omit(paramsRequest, new List<object>() {"cost", "quoteOrderQty"});
                 if ((cost != null))
@@ -2812,9 +2812,9 @@ public partial class tokocrypto : Exchange
         {
             request["addressTag"] = tagWithdrawTag;
         }
-        IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
-        string? networkCode = (string)networkCodequeryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)networkCodequeryVariable[1]);
+        (string?, object) networkCodequeryVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
+        string? networkCode = networkCodequeryVariable.Item1;
+        IDictionary<string, object> query = ((IDictionary<string, object>)networkCodequeryVariable.Item2);
         string? networkId = this.networkCodeToId(networkCode, code);
         if ((networkId != null))
         {
@@ -3032,13 +3032,13 @@ public partial class tokocrypto : Exchange
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !(inOp(parameters, "coin")))
         {
-            return getValue(config, "noCoin");
+            return ((IDictionary<string,object>)config)["noCoin"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
-            return getValue(config, "noSymbol");
+            return ((IDictionary<string,object>)config)["noSymbol"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !(inOp(parameters, "poolId")))
         {
-            return getValue(config, "noPoolId");
+            return ((IDictionary<string,object>)config)["noPoolId"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
             object limit = getValue(parameters, "limit");

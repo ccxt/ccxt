@@ -4401,7 +4401,7 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var url any = nil
-	if IsEqual(api, "root") {
+	if api == "root" {
 		var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "public")
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -4415,7 +4415,7 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 		url = this.ImplodeHostname(baseApiUrl2) + "/api/" + this.Version + "/" + path
 	}
 	var authHeaders map[string]any = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		authHeaders = map[string]any{
 			"Authorization": this.CreateAuth(params),
 		}
@@ -4434,7 +4434,7 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 		}
 		url = Add(url, "?"+this.Rawencode(params))
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		return map[string]any{
 			"url":     url,
 			"method":  method,

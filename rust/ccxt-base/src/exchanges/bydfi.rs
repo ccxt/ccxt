@@ -3669,7 +3669,7 @@ impl BydfiCore {
                     m.insert("paginationDirection".to_string(), Value::Str("backward".into()));
                 m
             })]);
-            let mut paginatedResponse: Value = self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), since.clone(), limit.clone(), paramsPaginate, maxLimit, Value::Bool(true)]).await;
+            let mut paginatedResponse: Value = self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[self.safe_string_k(currency.clone(), "code", &[]), since.clone(), limit.clone(), paramsPaginate, maxLimit, Value::Bool(true)]).await;
             return self.sort_by(paginatedResponse, Value::Str("timestamp".into()), &[]);
         }
         let mut request: Value = Value::Map({
@@ -3844,7 +3844,7 @@ impl BydfiCore {
                     m.insert("paginationDirection".to_string(), Value::Str("backward".into()));
                 m
             })]);
-            let mut paginatedResponse: Value = self.fetch_paginated_call_dynamic(methodName, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), since.clone(), limit.clone(), paramsPaginate, maxLimit, Value::Bool(true)]).await;
+            let mut paginatedResponse: Value = self.fetch_paginated_call_dynamic(methodName, &[self.safe_string_k(currency.clone(), "code", &[]), since.clone(), limit.clone(), paramsPaginate, maxLimit, Value::Bool(true)]).await;
             return self.sort_by(paginatedResponse, Value::Str("timestamp".into()), &[]);
         }
         let mut request: Value = Value::Map({

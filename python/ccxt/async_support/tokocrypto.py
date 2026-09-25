@@ -2627,7 +2627,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
         if ('noCoin' in config) and not ('coin' in params):
             return config['noCoin']
         elif ('noSymbol' in config) and not ('symbol' in params):

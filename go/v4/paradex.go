@@ -4535,7 +4535,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Paradex) Sign(path string, optionalArgs ...any) any {
@@ -4563,11 +4563,11 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = this.ImplodeHostname(baseApiUrl) + "/" + this.ImplodeParams(pathValue, params)
 	var query any = this.Omit(params, this.ExtractParams(pathValue))
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		var privateHeaders map[string]any = map[string]any{
 			"Accept":          "application/json",
 			"PARADEX-PARTNER": this.SafeString(this.Options, "broker", "CCXT"),

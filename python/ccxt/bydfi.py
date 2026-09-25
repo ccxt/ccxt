@@ -2550,7 +2550,7 @@ class bydfi(Exchange, ImplicitAPI):
         if paginate is True:
             maxLimit = 50
             paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
-            paginatedResponse = self.fetch_paginated_call_dynamic('fetchTransfers', currency['code'], since, limit, paramsPaginate, maxLimit, True)
+            paginatedResponse = self.fetch_paginated_call_dynamic('fetchTransfers', self.safe_string(currency, 'code'), since, limit, paramsPaginate, maxLimit, True)
             return self.sort_by(paginatedResponse, 'timestamp')
         request = {
             'asset': currency['id'],
@@ -2675,7 +2675,7 @@ class bydfi(Exchange, ImplicitAPI):
         if paginate is True:
             maxLimit = 50
             paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
-            paginatedResponse = self.fetch_paginated_call_dynamic(methodName, currency['code'], since, limit, paramsPaginate, maxLimit, True)
+            paginatedResponse = self.fetch_paginated_call_dynamic(methodName, self.safe_string(currency, 'code'), since, limit, paramsPaginate, maxLimit, True)
             return self.sort_by(paginatedResponse, 'timestamp')
         request = {
             'asset': currency['id'],

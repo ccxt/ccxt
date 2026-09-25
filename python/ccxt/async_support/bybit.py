@@ -3223,7 +3223,7 @@ class bybit(Exchange, ImplicitAPI):
         if category is not None:
             marketType = 'spot' if (category == 'spot') else 'contract'
         if market is not None:
-            marketType = market['type']
+            marketType = self.safe_string(market, 'type')
         marketResolved = self.safe_market(marketId, market, None, marketType)
         symbol = marketResolved['symbol']
         amountString = self.safe_string_n(trade, ['execQty', 'orderQty', 'size'])
@@ -3891,7 +3891,7 @@ class bybit(Exchange, ImplicitAPI):
         isContract = ('tpslMode' in order)
         marketType = None
         if market is not None:
-            marketType = market['type']
+            marketType = self.safe_string(market, 'type')
         else:
             marketType = 'contract' if isContract else 'spot'
         marketResolved = self.safe_market(marketId, market, None, marketType)
@@ -7616,7 +7616,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         marketId = self.safe_string(fee, 'symbol')
         defaultType = 'contract'
         if market is not None:
-            defaultType = market['type']
+            defaultType = self.safe_string(market, 'type')
         symbol = self.safe_symbol(marketId, market, None, defaultType)
         return {
             'info': fee,
@@ -8405,7 +8405,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             market = self.market(symbols[0])
             if market['spot'] is True:
                 raise NotSupported(self.id + ' fetchLeverageTiers() is not supported for spot market')
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
         data = await self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 200}, params))
         symbolsNormalized = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbolsNormalized, 'symbol')

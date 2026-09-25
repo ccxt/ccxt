@@ -2936,11 +2936,11 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 			var takeProfitOrderType *string = this.SafeString(takeProfit, "type", "limit")
 			var takeProfitOrderLimitPrice *string = this.SafeString2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice)
 			grouping = DerefScalar(this.SafeString(orderParams, "grouping", "normalTpsl"))
-			if IsEqual(grouping, "positionTpsl") {
+			if grouping == "positionTpsl" {
 				amount = SafeStringPtr("0")
 				stopLossOrderType = SafeStringPtr("market")
 				takeProfitOrderType = SafeStringPtr("market")
-			} else if IsEqual(grouping, "normalTpsl") {
+			} else if grouping == "normalTpsl" {
 				orderReq = append(orderReq, mainOrderObj)
 			} else {
 				panic(NotSupported(this.Id + " only support grouping normalTpsl and positionTpsl."))

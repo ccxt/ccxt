@@ -1115,11 +1115,11 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var marketId *string = this.SafeString(trade, "s")
-	var defaultType any = nil
+	var defaultType *string = nil
 	if market == nil {
-		defaultType = ccxt.DerefScalar(this.SafeString(this.Options, "defaultType", "spot"))
+		defaultType = this.SafeString(this.Options, "defaultType", "spot")
 	} else {
-		defaultType = ccxt.GetValue(market, "type")
+		defaultType = this.SafeString(market, "type")
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, nil, defaultType)
 	var side *string = this.SafeStringLower(trade, "S")
@@ -2292,7 +2292,7 @@ func (this *Aster) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 	}
 	var messageHash any = "orders"
 	var typeVar any = nil
@@ -2356,7 +2356,7 @@ func (this *Aster) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 	}
 	var messageHash any = "myTrades"
 	var typeVar any = nil

@@ -1526,7 +1526,7 @@ public class Bitflyer extends BitflyerApi
         request = Helpers.add(request, path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 request = (request + ("?" + this.urlencode(parameters)));
             }
@@ -1544,7 +1544,7 @@ public class Bitflyer extends BitflyerApi
             String nonce = String.valueOf(this.nonce());
             Object content = new ArrayList<Object>(Arrays.asList(nonce, java.util.Objects.requireNonNullElse(method, "GET"), request));
             Object auth = String.join("", (List<String>)content);
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {

@@ -1290,7 +1290,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var orders any = this.ParseOrders(ordersRaw, market, since, limit)
 	var trades any = this.OrdersToTrades(orders)
 
-	ch <- this.FilterBySymbolSinceLimit(trades, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(trades, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Mercado) OrdersToTrades(orders any) any {
@@ -1329,7 +1329,7 @@ func (this *Mercado) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + "/"
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isPublic bool = (IsEqual(api, "public")) || (IsEqual(api, "v4Public")) || (IsEqual(api, "v4PublicNet"))
+	var isPublic bool = ((api == "public")) || ((api == "v4Public")) || ((api == "v4PublicNet"))
 	var privateBody *string = nil
 	var privateHeaders any = nil
 	if isPublic {

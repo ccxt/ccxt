@@ -1138,7 +1138,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String low = null;
         String open = null;
         String volume = null;
-        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
+        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : market.get("symbol");
         if ((ticker instanceof List))
         {
             last = this.safeString(ticker, 4);
@@ -2652,7 +2652,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 request = (request + ("?" + this.urlencode(query)));
             }
@@ -2670,7 +2670,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             String payload = "";
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     requestBody = this.json(query);
                     payload = requestBody;
@@ -2719,7 +2719,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         return null;
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Object config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {

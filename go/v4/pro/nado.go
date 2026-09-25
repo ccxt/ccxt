@@ -672,7 +672,7 @@ func (this *Nado) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ticker := (<-this.WatchPublicAsync(streamType, market, messageHash, params))
 	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
-		if ccxt.IsEqual(messageHash, "ticker") {
+		if messageHash == "ticker" {
 
 			ch <- this.FilterByArray(ticker, "symbol", symbolsNormalized)
 			return nil
@@ -767,7 +767,7 @@ func (this *Nado) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ticker := (<-this.WatchPublicAsync(streamType, market, messageHash, params))
 	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
-		if ccxt.IsEqual(messageHash, "bidask") {
+		if messageHash == "bidask" {
 
 			ch <- this.FilterByArray(ticker, "symbol", symbolsNormalized)
 			return nil
@@ -863,7 +863,7 @@ func (this *Nado) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 		productId = this.ParseToInt(market["id"])
 	}
@@ -974,7 +974,7 @@ func (this *Nado) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 		productId = this.ParseToInt(market["id"])
 	}

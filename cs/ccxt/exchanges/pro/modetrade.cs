@@ -777,12 +777,12 @@ public partial class modetrade : ccxt.modetrade
         }
         object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
         string messageHash = topic;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = messageHash + (":" + (symbolResolved));
+            symbolResolved = this.safeString(market, "symbol");
+            messageHash = messageHash + (":" + symbolResolved);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -826,12 +826,12 @@ public partial class modetrade : ccxt.modetrade
         }
         object paramsOmitted = this.omit(parameters, "stop");
         string messageHash = "myTrades";
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = messageHash + (":" + (symbolResolved));
+            symbolResolved = this.safeString(market, "symbol");
+            messageHash = messageHash + (":" + symbolResolved);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },

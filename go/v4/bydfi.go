@@ -3343,7 +3343,7 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 			"paginationDirection": "backward",
 		})
 
-		var paginatedResponse []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", currency["code"], since, limit, paramsPaginate, maxLimit, true))))
+		var paginatedResponse []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", this.SafeString(currency, "code"), since, limit, paramsPaginate, maxLimit, true))))
 
 		ch <- this.SortBy(paginatedResponse, "timestamp")
 		return nil
@@ -3539,7 +3539,7 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar string, code
 			"paginationDirection": "backward",
 		})
 
-		var paginatedResponse []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync(methodName, currency["code"], since, limit, paramsPaginate, maxLimit, true))))
+		var paginatedResponse []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync(methodName, this.SafeString(currency, "code"), since, limit, paramsPaginate, maxLimit, true))))
 
 		ch <- this.SortBy(paginatedResponse, "timestamp")
 		return nil
@@ -3707,7 +3707,7 @@ func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
 	}
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		if method == "GET" {

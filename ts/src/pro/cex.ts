@@ -554,7 +554,7 @@ export default class cex extends cexRest {
         };
         const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, subscriptionHash, request);
-        return this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (orders, this.safeString (market, 'symbol'), since, limit);
     }
 
     handleTransaction (client: Client, message: Dict) {

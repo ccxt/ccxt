@@ -2976,8 +2976,8 @@ public class Bitstamp extends BitstampApi
             amount = this.safeString(transaction, "amount");
         } else if (!java.util.Objects.equals(currency, null))
         {
-            amount = this.safeString(transaction, ((Map<String, Object>)currency).get("id"), amount);
-            feeCurrency = ((Map<String, Object>)currency).get("code");
+            amount = this.safeString(transaction, currency.get("id"), amount);
+            feeCurrency = currency.get("code");
         } else if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(currencyId, null)))
         {
             amount = this.safeString(transaction, currencyId, amount);
@@ -3638,7 +3638,7 @@ public class Bitstamp extends BitstampApi
             "id", null,
             "timestamp", null,
             "datetime", null,
-            "currency", ((Map<String, Object>)currency).get("code"),
+            "currency", currency.get("code"),
             "amount", null,
             "fromAccount", null,
             "toAccount", null,
@@ -3679,7 +3679,7 @@ public class Bitstamp extends BitstampApi
             put( "foo", "bar" );
         }});
         String postBody = emptyPostBody;
-        if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+        if (Helpers.objectKeys(query).size() > 0)
         {
             postBody = this.urlencode(query);
         }
@@ -3691,7 +3691,7 @@ public class Bitstamp extends BitstampApi
         Map<String, Object> privateHeaders = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

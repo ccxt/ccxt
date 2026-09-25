@@ -1856,7 +1856,7 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var marketType any = fallbackType
 	if market != nil {
-		marketType = ccxt.GetValue(market, "type")
+		marketType = ccxt.DerefScalar(this.SafeString(market, "type"))
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, nil, marketType)
 	var side *string = this.SafeStringLower(trade, "S")
@@ -6108,7 +6108,7 @@ func (this *Binance) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	// the same stream the old raw-type ordering produced in every case
 	if (ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(typeVar, "margin")) {
 		typeVar = func() string {
-			if ccxt.IsEqual(subType, "inverse") {
+			if subType == "inverse" {
 				return "delivery"
 			}
 			return "future"

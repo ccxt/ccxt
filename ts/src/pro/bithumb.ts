@@ -912,7 +912,7 @@ export default class bithumb extends bithumbRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash = messageHash + ':' + symbolResolved;
         }
         const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);

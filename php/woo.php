@@ -2875,7 +2875,7 @@ class woo extends Exchange {
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         $request = array(
             'token' => $currency['id'],
-            'network' => $this->network_code_to_id($networkCode, $currency['code']),
+            'network' => $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')),
         );
         $response = $this->v3PrivateGetAssetWalletDeposit($this->extend($request, $paramsNetworkCode));
         //
@@ -3409,7 +3409,7 @@ class woo extends Exchange {
         }
         $paramsOmitted = $this->omit($paramsWithdrawTag, 'network');
         $request['token'] = $currency['id'];
-        $request['network'] = $this->network_code_to_id($network, $currency['code']);
+        $request['network'] = $this->network_code_to_id($network, $this->safe_string($currency, 'code'));
         $response = $this->v3PrivatePostAssetWalletWithdraw($this->extend($request, $paramsOmitted));
         //
         //     {

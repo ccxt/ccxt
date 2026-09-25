@@ -2753,13 +2753,13 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) any {
 				typeVar = "market"
 			}
 		}
-		if IsEqual(side, "1") {
+		if side == "1" {
 			side = "open long"
-		} else if IsEqual(side, "2") {
+		} else if side == "2" {
 			side = "open short"
-		} else if IsEqual(side, "3") {
+		} else if side == "3" {
 			side = "close long"
-		} else if IsEqual(side, "4") {
+		} else if side == "4" {
 			side = "close short"
 		}
 		timestamp = this.SafeInteger(order, "insert_time")
@@ -5194,12 +5194,9 @@ func (this *Digifinex) HandleMarginModeAndParams(methodName any, optionalArgs ..
 	_ = defaultValue
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)
-	var marginMode any = nil
-	var paramsMarginMode any = nil
-	marginModeparamsMarginModeVariable := TupleSlice(this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue))
-	marginMode = GetValue(marginModeparamsMarginModeVariable, 0)
-	paramsMarginMode = GetValue(marginModeparamsMarginModeVariable, 1)
-	if marginMode != nil {
+	marginModeValue, paramsMarginMode := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
+	var marginMode any = marginModeValue
+	if !IsEqual(marginMode, nil) {
 		if !IsEqual(marginMode, "cross") {
 			panic(NotSupported(this.Id + " only cross margin is supported"))
 		}
@@ -5384,8 +5381,8 @@ func (this *Digifinex) addMarginBody(ch chan any, symbol string, amount any, opt
 	var side *string = this.SafeString(params, "side")
 	this.CheckRequiredArgument("addMargin", side, "side", []any{"long", "short"})
 
-	var retRes437815 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
-	ch <- BoxAbsent(retRes437815)
+	var retRes437715 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
+	ch <- BoxAbsent(retRes437715)
 	return nil
 }
 
@@ -5413,8 +5410,8 @@ func (this *Digifinex) reduceMarginBody(ch chan any, symbol string, amount any, 
 	var side *string = this.SafeString(params, "side")
 	this.CheckRequiredArgument("reduceMargin", side, "side", []any{"long", "short"})
 
-	var retRes439515 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
-	ch <- BoxAbsent(retRes439515)
+	var retRes439415 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
+	ch <- BoxAbsent(retRes439415)
 	return nil
 }
 func (this *Digifinex) ModifyMarginHelperAsync(symbol string, amount any, typeVar any, optionalArgs ...any) <-chan any {

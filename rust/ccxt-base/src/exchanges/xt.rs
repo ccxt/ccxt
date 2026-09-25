@@ -3296,7 +3296,7 @@ impl XtCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "s", &[]);
-        let mut marketType: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut marketType: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "type", &[]) } else { Value::Null });
         let mut hasSpotKeys: bool = (matches!(&ticker, Value::Dict(__d) if __d.contains_key("cv"))) || (matches!(&ticker, Value::Dict(__d) if __d.contains_key("aq")));
         if (marketType == Value::Null) {
             marketType = (if hasSpotKeys { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
@@ -3671,7 +3671,7 @@ impl XtCore {
         //    }
         //
         let mut marketId: Value = self.safe_string2(trade.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]);
-        let mut marketType: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut marketType: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "type", &[]) } else { Value::Null });
         let mut hasSpotKeys: bool = (matches!(&trade, Value::Dict(__d) if __d.contains_key("b"))) || (matches!(&trade, Value::Dict(__d) if __d.contains_key("bizType"))) || (matches!(&trade, Value::Dict(__d) if __d.contains_key("oi")));
         if (marketType == Value::Null) {
             marketType = (if hasSpotKeys { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
@@ -6586,7 +6586,7 @@ impl XtCore {
         }
         }
         let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
 
     Value::Null
 }

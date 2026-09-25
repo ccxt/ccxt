@@ -162,7 +162,7 @@ class bingx(ccxt.async_support.bingx):
         else:
             url = self.safe_string(self.urls['api']['ws'], marketType)
         dataType = market['id'] + '@ticker'
-        messageHash = self.get_message_hash('ticker', market['symbol'])
+        messageHash = self.get_message_hash('ticker', self.safe_string(market, 'symbol'))
         uuid = self.uuid()
         request = {
             'id': uuid,
@@ -192,7 +192,7 @@ class bingx(ccxt.async_support.bingx):
             await self.load_markets()
         market = self.market(symbol)
         dataType = market['id'] + '@ticker'
-        subMessageHash = self.get_message_hash('ticker', market['symbol'])
+        subMessageHash = self.get_message_hash('ticker', self.safe_string(market, 'symbol'))
         messageHash = 'unsubscribe::' + subMessageHash
         topic = 'ticker'
         methodName = 'unWatchTicker'
@@ -416,7 +416,7 @@ class bingx(ccxt.async_support.bingx):
             await self.load_markets()
         market = self.market(symbol)
         dataType = market['id'] + '@trade'
-        subMessageHash = self.get_message_hash('trade', market['symbol'])
+        subMessageHash = self.get_message_hash('trade', self.safe_string(market, 'symbol'))
         messageHash = 'unsubscribe::' + subMessageHash
         topic = 'trades'
         methodName = 'unWatchTrades'
@@ -554,7 +554,7 @@ class bingx(ccxt.async_support.bingx):
         options = self.safe_dict(self.options, 'watchOrderBook', {})
         depth = self.safe_integer(options, 'depth', 100)
         subscriptionHash = market['id'] + '@' + 'depth' + self.number_to_string(depth)
-        messageHash = self.get_message_hash('orderbook', market['symbol'])
+        messageHash = self.get_message_hash('orderbook', self.safe_string(market, 'symbol'))
         uuid = self.uuid()
         request = {
             'id': uuid,
@@ -886,7 +886,7 @@ class bingx(ccxt.async_support.bingx):
         options = self.safe_dict(self.options, marketType, {})
         timeframes = self.safe_dict(options, 'timeframes', {})
         rawTimeframe = self.safe_string(timeframes, timeframe, timeframe)
-        messageHash = self.get_message_hash('ohlcv', market['symbol'], timeframe)
+        messageHash = self.get_message_hash('ohlcv', self.safe_string(market, 'symbol'), timeframe)
         subscriptionHash = market['id'] + '@kline_' + rawTimeframe
         uuid = self.uuid()
         request = {
@@ -955,7 +955,7 @@ class bingx(ccxt.async_support.bingx):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         type, paramsMarketType = self.handle_market_type_and_params('watchOrders', market, params)
         subType = self.handle_sub_type_and_params('watchOrders', market, paramsMarketType, 'linear')[0]
         isSpot = (type == 'spot')
@@ -1019,7 +1019,7 @@ class bingx(ccxt.async_support.bingx):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         type, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
         subType = self.handle_sub_type_and_params('watchMyTrades', market, paramsMarketType, 'linear')[0]
         isSpot = (type == 'spot')

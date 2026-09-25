@@ -411,7 +411,7 @@ export default class alpaca extends alpacaRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash = 'orders:' + symbolResolved;
         }
         const request: Dict = {

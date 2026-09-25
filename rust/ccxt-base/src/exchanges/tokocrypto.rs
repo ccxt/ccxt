@@ -3410,15 +3410,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (in_op(&config, &Value::Str("noCoin".into()))) && !(in_op(&params, &Value::Str("coin".into()))) {
-            return config.as_map().and_then(|__m| __m.get("noCoin")).cloned().unwrap_or(Value::Null);
-        }  else if (in_op(&config, &Value::Str("noSymbol".into()))) && !(in_op(&params, &Value::Str("symbol".into()))) {
-            return config.as_map().and_then(|__m| __m.get("noSymbol")).cloned().unwrap_or(Value::Null);
-        }  else if (in_op(&config, &Value::Str("noPoolId".into()))) && !(in_op(&params, &Value::Str("poolId".into()))) {
-            return config.as_map().and_then(|__m| __m.get("noPoolId")).cloned().unwrap_or(Value::Null);
-        }  else if (in_op(&config, &Value::Str("byLimit".into()))) && (in_op(&params, &Value::Str("limit".into()))) {
+        let __config_empty = indexmap::IndexMap::new();
+        let config = config.as_map().unwrap_or(&__config_empty);
+        if (config.contains_key("noCoin")) && !(in_op(&params, &Value::Str("coin".into()))) {
+            return config.get("noCoin").cloned().unwrap_or(Value::Null);
+        }  else if (config.contains_key("noSymbol")) && !(in_op(&params, &Value::Str("symbol".into()))) {
+            return config.get("noSymbol").cloned().unwrap_or(Value::Null);
+        }  else if (config.contains_key("noPoolId")) && !(in_op(&params, &Value::Str("poolId".into()))) {
+            return config.get("noPoolId").cloned().unwrap_or(Value::Null);
+        }  else if (config.contains_key("byLimit")) && (in_op(&params, &Value::Str("limit".into()))) {
             let mut limit: Value = crate::value::get_value_k(&params, "limit");
-            let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::from(vec![])]);
+            let mut byLimit: Value = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1081: bool = true;
@@ -3430,7 +3432,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        return self.safe_integer_k(config, "cost", &[Value::Int(1)]);
+        return (match config.get("cost") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(1) } }, _ => Value::Int(1) });
 
     Value::Null
 }

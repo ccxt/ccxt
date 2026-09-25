@@ -2464,7 +2464,7 @@ class kucoin(Exchange, ImplicitAPI):
         }
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            _netIdTmp = self.network_code_to_id(networkCode, currency['code'])
+            _netIdTmp = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
             if _netIdTmp is not None:
                 request['chain'] = _netIdTmp.lower()
         response = self.privateGetWithdrawalsQuotas(self.extend(request, paramsNetworkCode))
@@ -2496,7 +2496,7 @@ class kucoin(Exchange, ImplicitAPI):
         }
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            _netIdTmp = self.network_code_to_id(networkCode, currency['code'])
+            _netIdTmp = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
             if _netIdTmp is not None:
                 request['chain'] = _netIdTmp.lower()
         response = self.privateGetWithdrawalsQuotas(self.extend(request, paramsNetworkCode))
@@ -2584,7 +2584,7 @@ class kucoin(Exchange, ImplicitAPI):
         networkId = self.safe_string(fee, 'chain')
         currencyId = self.safe_string(fee, 'currency')
         currencyResolved = self.safe_currency(currencyId, currency)
-        networkCode = self.network_id_to_code(networkId, currencyResolved['code'])
+        networkCode = self.network_id_to_code(networkId, self.safe_string(currencyResolved, 'code'))
         if networkCode is not None:
             result['networks'][networkCode] = {
                 'withdraw': minWithdrawFee,
@@ -3493,7 +3493,7 @@ class kucoin(Exchange, ImplicitAPI):
         }
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode, currency['code'])  # docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+            request['chain'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))  # docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         response = self.privatePostDepositAddressCreate(self.extend(request, paramsNetworkCode))
         # {"code":"260000","msg":"Deposit address already exists."}
         #
@@ -3550,7 +3550,7 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, paramsRequest = self.handle_network_code_and_params(paramsRequest)
         if networkCode is not None:
-            _netIdTmp = self.network_code_to_id(networkCode, currency['code'])
+            _netIdTmp = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
             if _netIdTmp is not None:
                 request['chain'] = _netIdTmp.lower()
         version = self.options['versions']['private']['GET']['deposit-addresses']
@@ -3944,8 +3944,7 @@ class kucoin(Exchange, ImplicitAPI):
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(paramsSync)
         tradeType = self.safe_string(paramsSync, 'tradeType')  # keep it for backward compatibility
         isTriggerOrder = (triggerPrice is not None) or (stopLossPrice is not None) or (takeProfitPrice is not None)
-        marginResult = self.handle_margin_mode_and_params('createOrder', paramsSync)
-        marginMode = self.safe_string(marginResult, 0)
+        marginMode = self.handle_margin_mode_and_params('createOrder', paramsSync)[0]
         isMarginOrder = tradeType == 'MARGIN_TRADE' or marginMode is not None
         # don't omit anything before calling createOrderRequest
         orderRequest = self.create_spot_order_request(symbol, type, side, amount, price, paramsSync)
@@ -7219,7 +7218,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['memo'] = tagWithdrawTag
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is not None:
-            _netIdTmp = self.network_code_to_id(networkCode, currency['code'])
+            _netIdTmp = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
             if _netIdTmp is not None:
                 request['chain'] = _netIdTmp.lower()
         amountString = self.currency_to_precision(code, amount, networkCode)
@@ -8646,7 +8645,7 @@ class kucoin(Exchange, ImplicitAPI):
         items = self.safe_list_2(data, 'items', 'dataList', [])
         return self.parse_ledger(items, currency, since, limit)
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
         versions = self.safe_dict(self.options, 'versions', {})
         apiVersions = self.safe_dict(versions, api, {})
         methodVersions = self.safe_dict(apiVersions, method, {})
@@ -8905,8 +8904,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        marginResult = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params)
-        marginMode = self.safe_string(marginResult, 0, 'cross')
+        marginMode = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params, 'cross')[0]
         isIsolated = (marginMode == 'isolated')  # true-isolated, false-cross
         request = {
             'isIsolated': isIsolated,
@@ -8957,8 +8955,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        marginResult = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params)
-        marginMode = self.safe_string(marginResult, 0, 'cross')
+        marginMode = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params, 'cross')[0]
         isIsolated = (marginMode == 'isolated')  # true-isolated, false-cross
         currency = self.currency(code)
         request = {

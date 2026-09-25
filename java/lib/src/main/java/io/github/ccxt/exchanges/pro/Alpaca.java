@@ -486,11 +486,11 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String messageHash = "orders";
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = ("orders:" + symbolResolved);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -505,7 +505,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
