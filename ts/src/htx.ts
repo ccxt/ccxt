@@ -1546,7 +1546,9 @@ export default class htx extends Exchange {
         if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
-        const [ types, paramsTypes ] = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
+        let types: Dict = {};
+        let paramsTypes: Dict = {};
+        [ types, paramsTypes ] = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
         let allMarkets: List = [];
         let promises: List = [];
         const keys = Object.keys (types);

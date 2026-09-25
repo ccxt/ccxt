@@ -10695,7 +10695,9 @@ function joinParameterReadType (printer, identifier) {
     }
     let printed;
     try {
-        printed = printer.javaNativeParameterType (declaration);
+        // a defaulted parameter of a full-arity core prints its optional-slot type
+        printed = printer.javaNativeParameterType (declaration)
+            ?? (typeof printer.javaOptionalParameterType === 'function' ? printer.javaOptionalParameterType (declaration) : undefined);
     } catch (e) {
         return undefined;
     }
