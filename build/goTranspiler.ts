@@ -1706,31 +1706,75 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
     }
 }
 
-// `if ... InOp(m, k) ... {` -> `if _, ok := m[k]; ... ok ... {` on a map local the method creates (the
-// native map-write receiver proof, so no other goroutine sees it) with a string key; the read has no
-// side effect and a nil map reads ok=false like the helper. Other shapes, or `ok` in the func, keep InOp.
+// every write of a map local is a map producer owned by this call or its caller (never a this.* map)
+const GO_INOP_READ_INIT = /^(?:(?:ccxt\.)?map\[string\]any\{|(?:ccxt\.)?GetArgMap\(optionalArgs, \d+, (?:map\[string\]any\{\}|nil)\)$|this\.(?:Extend|DeepExtend|IndexBy)\(|(?:ccxt\.)?MapTyped\(this\.Omit\(\w+, |nil$)/;
+
+// InOp only reads, and a Go read of a nil map answers ok=false like the helper, so the receiver
+// needs a static map[string]any that no other goroutine can write: no go/Spawn/unawaited Async here
+function goInOpReadReceiver (maskedFunc: string, decl: any, name: string, declOf: (name: string) => any): boolean {
+    if ((decl === undefined) || (decl.index === undefined) || (decl.type !== 'map[string]any')) {
+        return false;
+    }
+    const n = goAccessEscape (name);
+    if (/\bgo\s+\w|\bSpawn\(|\bDelay\(/.test (maskedFunc)
+        || /^(?![^\n]*<-)[^\n]*\w+Async\(/m.test (maskedFunc)
+        || new RegExp ('&\\s*' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,[^=\\n]*)?:=|,\\s*' + n + '\\s*(?:,[^=\\n]*)?=(?!=)|(?:^|[^\\w.])' + n + '\\s*,[^=\\n]*=(?!=)', 'm').test (maskedFunc)) {
+        return false;
+    }
+    const writes = [ decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim () ];
+    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
+        writes.push (w[1].trim ());
+    }
+    return writes.every ((init: string) => {
+        // element 1 of a base handle*(..., params) tuple is that params map or a fresh copy
+        const tuple = /^(?:ccxt\.)?MapTyped\((?:ccxt\.)?GetValue\((\w+), 1\)\)$/.exec (init);
+        const holder = (tuple === null) ? undefined : declOf (tuple[1]);
+        return GO_INOP_READ_INIT.test (init) || ((holder !== undefined) && (holder.index !== undefined)
+            && /^\s*var\s+\w+\s+\[\]any\s*=\s*this\.(?:HandleWithdrawTagAndParams|HandleParamString2?|HandleParamBool)\(/.test (holder.line));
+    });
+}
+
+// `InOp(m, k)` in an `if` condition or a `var x bool =` initialiser -> native lookup on a proven read
+// receiver with a string key: `if _, ok := m[k]; ok {` for a lone call, else a comma-ok closure.
 function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc: string,
     declOf: (name: string) => any, typeAt: (name: string, k: number) => string | undefined): boolean {
     const cond = /^(\s*(?:\} else )?if )([^;{}]*) \{$/.exec (masked[k]);
+    const boolInit = /^\s*var \w+ bool = [^;{}]*$/.test (masked[k]);
     const calls = [ ...masked[k].matchAll (/(?<![\w.])(?:ccxt\.)?InOp\(/g) ];
-    if ((cond === null) || (calls.length !== 1) || /\bok\b/.test (maskedFunc)) {
+    if (((cond === null) && !boolInit) || (calls.length === 0)) {
         return false;
     }
-    const at = calls[0].index;
-    const call = /^(?:ccxt\.)?InOp\((\w+), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
-    if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
+    const found: any[] = [];
+    for (const c of calls) {
+        const at = c.index;
+        const call = /^(?:ccxt\.)?InOp\((\w+), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
+        if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
+            continue;
+        }
+        const [ , name, key ] = call;
+        if ((typeAt (name, k) !== 'map[string]any') || !goInOpReadReceiver (maskedFunc, declOf (name), name, declOf)) {
+            continue;
+        }
+        if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
+            continue;
+        }
+        found.push ({ at, 'length': call[0].length, name, key });
+    }
+    if (found.length === 0) {
         return false;
     }
-    const [ , name, key ] = call;
-    if ((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf)) {
-        return false;
+    if ((cond !== null) && (calls.length === 1) && !/\bok\b/.test (maskedFunc)) {
+        const { at, length, name, key } = found[0];
+        let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + length);
+        rest = rest.replace (/(^|[^\w)\]])\(ok\)/g, '$1ok');
+        lines[k] = cond[1] + '_, ok := ' + name + '[' + key + ']; ' + rest;
+        return true;
     }
-    if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
-        return false;
+    let line = lines[k];
+    for (const { at, length, name, key } of found.reverse ()) {
+        line = line.substring (0, at) + 'func() bool { _, ok := ' + name + '[' + key + ']; return ok }()' + line.substring (at + length);
     }
-    let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + call[0].length);
-    rest = rest.replace (/(^|[^\w)\]])\(ok\)/g, '$1ok');
-    lines[k] = cond[1] + '_, ok := ' + name + '[' + key + ']; ' + rest;
+    lines[k] = line;
     return true;
 }
 
