@@ -1,9 +1,7 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
+import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
-// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API
-import ts from 'typescript6';
 
 // task payload posted by csharpTranspiler.ts#webworkerTranspile (structured clone)
 interface CsharpWorkerTask {
@@ -37,15 +35,15 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
         // byPathOldProgram), then the by-path cache used by transpileCSharpByPath.
         // `context` is private on the Transpiler type and `byPathOldProgram` is untyped,
         // so go through `any` — same runtime access the plain-JS worker made.
-        const program: ts.Program | undefined = (transpiler as any).context?.program ?? (transpiler as any).byPathOldProgram;
+        const program = (transpiler as any).context?.program ?? (transpiler as any).byPathOldProgram;
         const sourceFile = node.getSourceFile ();
         if (!program || program.getSourceFile (sourceFile.fileName) !== sourceFile) {
             return undefined; // in-memory program (examples/tests) — let the base printer decide
         }
         const { expression, argumentExpression } = node;
-        const type = program.getTypeChecker ().getTypeAtLocation (argumentExpression);
-        const isUnion = ((type.flags & ts.TypeFlags.Union) !== 0) && Array.isArray ((type as ts.UnionType).types);
-        if (isUnion && (type as ts.UnionType).types.some ((t) => csharp.isStringType (t.flags))) {
+        const type = csharp.getChecker ().getTypeAtLocation (argumentExpression);
+        const parts: any[] | undefined = ts.typeParts (type);
+        if (type.isUnionType () && parts !== undefined && parts.some ((t) => csharp.isStringType (t.flags))) {
             const expressionAsString = csharp.printNode (expression, 0);
             const argumentAsString = csharp.printNode (argumentExpression, 0);
             const cast = ts.isStringLiteralLike (argumentExpression) ? '' : '(string)';
@@ -97,7 +95,7 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
             return undefined; // `Promise` with no type argument
         }
         const type = csharp.getChecker ().getTypeFromTypeNode (typeNode);
-        const members = type.isUnion () ? type.types : [ type ];
+        const members = type.isUnionType () ? ts.typeParts (type) : [ type ];
         let nullable = false;
         let sawBoolean = false;
         let sawOther = false;
@@ -169,7 +167,7 @@ function booleanReturnValueType (csharp: any, node: any, scope: any): string | u
         value = value.expression;
     }
     if (value?.kind === ts.SyntaxKind.CallExpression && value.expression?.kind === ts.SyntaxKind.Identifier
-        && CSHARP_BOOLEAN_RETURN_CALLS.has (value.expression.escapedText)) {
+        && CSHARP_BOOLEAN_RETURN_CALLS.has (value.expression.text)) {
         return csharp.BOOLEAN_KEYWORD;
     }
     return csharpTypeOfValue (csharp, node, { scope, stack: new Set (), depth: 0 });

@@ -1,6 +1,4 @@
 import Transpiler from "ast-transpiler";
-// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
-import ts from "typescript6";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
@@ -19,6 +17,7 @@ import { execFileSync } from 'child_process';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
+import { ts } from './csharp-local-types.js';
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
@@ -674,7 +673,7 @@ function predictionSourceFiles () {
 // (build/java-worker.ts, which imports it from this module) — same precedent as
 // patchJavaPropertyTypes(), and it keeps the ast-transpiler pin untouched.
 //
-// Uses `typescript6` — the same 6.x line that ast-transpiler bundles — so SyntaxKind
+// Uses the generator's own typescript (build/csharp-local-types.js `ts`) so SyntaxKind
 // values agree with the AST nodes the printer hands us.
 // ============================================================================
 
@@ -735,11 +734,11 @@ function isBaseStringAccessorCall (printer: any, node: any): boolean {
     if (!isThisCall (node)) {
         return false;
     }
-    const name = node.expression.name.escapedText;
+    const name = node.expression.name.text;
     if (!STRING_ACCESSORS.has (name)) {
         return false;
     }
-    const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve ();
     return declaration !== undefined && ACCESSOR_DECLARATION_FILE.test (declaration.getSourceFile ().fileName);
 }
 
@@ -805,12 +804,12 @@ function isStaticallyStringExpression (printer: any, node: any, selfName: string
             if (!ts.isPropertyAccessExpression (callee)) {
                 return false;
             }
-            const method = String (callee.name.escapedText);
+            const method = String (callee.name.text);
             if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
                 return STRING_RETURNING_BASE_METHODS.has (method);
             }
             return callee.expression.kind === ts.SyntaxKind.Identifier
-                && (callee.expression as any).escapedText === 'Precise'
+                && (callee.expression as any).text === 'Precise'
                 && PRECISE_STRING_STATICS.has (method);
         }
         default:
@@ -841,10 +840,10 @@ function typeIsPossiblyNumeric (type: any): boolean {
         return true;
     }
     if (flags & ts.TypeFlags.Union) {
-        return type.types.some ((member: any) => typeIsPossiblyNumeric (member));
+        return ts.typeParts (type).some ((member: any) => typeIsPossiblyNumeric (member));
     }
     if (flags & ts.TypeFlags.Intersection) {
-        return type.types.some ((member: any) => typeIsPossiblyNumeric (member));
+        return ts.typeParts (type).some ((member: any) => typeIsPossiblyNumeric (member));
     }
     return false;
 }
@@ -905,7 +904,7 @@ function plusWriteRightIsSafe (printer: any, right: any, sourceName: string): bo
     let level0;
     while (node !== undefined && ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
         const left = unwrapParensAll (node.left);
-        if (left !== undefined && ts.isIdentifier (left) && left.escapedText === sourceName) {
+        if (left !== undefined && ts.isIdentifier (left) && left.text === sourceName) {
             level0 = node;
             break;
         }
@@ -961,7 +960,7 @@ function isProvablyStringExpression (printer: any, node: any, selfName: string |
         case ts.SyntaxKind.NullKeyword:
             return true;
         case ts.SyntaxKind.Identifier:
-            return node.escapedText === 'undefined' || node.escapedText === selfName;
+            return node.text === 'undefined' || node.text === selfName;
         case ts.SyntaxKind.ParenthesizedExpression:
             return isProvablyStringExpression (printer, node.expression, selfName, nested);
         case ts.SyntaxKind.ConditionalExpression:
@@ -979,12 +978,12 @@ function isProvablyStringExpression (printer: any, node: any, selfName: string |
                 return false;
             }
             // escapedText is a branded `__String` on the typed node; it is a plain string at runtime
-            const method = String (callee.name.escapedText);
+            const method = String (callee.name.text);
             if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
                 return STRING_RETURNING_BASE_METHODS.has (method);
             }
             return callee.expression.kind === ts.SyntaxKind.Identifier
-                && (callee.expression as any).escapedText === 'Precise'
+                && (callee.expression as any).text === 'Precise'
                 && PRECISE_STRING_STATICS.has (method);
         }
         default:
@@ -1079,7 +1078,7 @@ function identifierIndex (scope: any): Map<string, any[]> {
     const index = new Map<string, any[]> ();
     const visit = (n: any) => {
         if (n.kind === ts.SyntaxKind.Identifier) {
-            const name = n.escapedText;
+            const name = n.text;
             let list = index.get (name);
             if (list === undefined) {
                 list = [];
@@ -1087,16 +1086,16 @@ function identifierIndex (scope: any): Map<string, any[]> {
             }
             list.push (n);
         }
-        ts.forEachChild (n, visit);
+        n?.forEachChild (visit);
     };
-    ts.forEachChild (scope, visit);
+    scope?.forEachChild (visit);
     return index;
 }
 
 // resolves to an `async` method (or one declared to return a Promise — an overload
 // signature carries the return type but not the modifier)
 function isAsyncMethodCall (printer: any, callNode: any): boolean {
-    const declaration = printer.getChecker ().getResolvedSignature (callNode)?.declaration;
+    const declaration = printer.getChecker ().getResolvedSignature (callNode)?.declaration?.resolve ();
     if (declaration === undefined) {
         return false;
     }
@@ -1105,7 +1104,7 @@ function isAsyncMethodCall (printer: any, callNode: any): boolean {
     }
     const returnType = declaration.type;
     return returnType !== undefined && ts.isTypeReferenceNode (returnType)
-        && ts.isIdentifier (returnType.typeName) && returnType.typeName.escapedText === 'Promise';
+        && ts.isIdentifier (returnType.typeName) && returnType.typeName.text === 'Promise';
 }
 
 // env-gated calibration trace (same convention as the module's
@@ -1143,7 +1142,7 @@ function wsPostProcessReverts (declaration: any): boolean {
     if (ts.isPropertyAccessExpression (callee)) {
         return callee.expression.kind === ts.SyntaxKind.ThisKeyword;
     }
-    return ts.isIdentifier (callee) && callee.escapedText === 'Helpers';
+    return ts.isIdentifier (callee) && callee.text === 'Helpers';
 }
 
 // reject the refinement when a later use needs the local to stay `Object`
@@ -1301,19 +1300,19 @@ const stringWriteInProgress = new Set<any> ();
 function resolvesToMethodNamed (printer: any, node: any, name: string): boolean {
     let declaration;
     try {
-        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve ();
     } catch (e) {
         declaration = undefined;
     }
     return declaration !== undefined && ts.isMethodDeclaration (declaration)
-        && declaration.name !== undefined && declaration.name.escapedText === name;
+        && declaration.name !== undefined && declaration.name.text === name;
 }
 
 // the single local binding an identifier reads, or undefined
 function referencedLocalDeclaration (printer: any, identifier: any): any {
     let declaration;
     try {
-        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration;
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
     } catch (e) {
         declaration = undefined;
     }
@@ -1359,13 +1358,13 @@ function receiverIsProvablyString (printer: any, node: any, sourceName: string, 
         return true;
     }
     if (ts.isIdentifier (value)) {
-        return value.escapedText === sourceName || referencedLocalEmitsString (printer, value);
+        return value.text === sourceName || referencedLocalEmitsString (printer, value);
     }
-    if (ts.isAsExpression (value) || ts.isTypeAssertionExpression (value)) {
+    if (ts.isAsExpression (value) || ts.isTypeAssertion (value)) {
         return value.type !== undefined && value.type.kind === ts.SyntaxKind.StringKeyword;
     }
     if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
-        const method = String (value.expression.name.escapedText);
+        const method = String (value.expression.name.text);
         // never-null String results of any receiver (a null receiver throws, exactly
         // like the TS expression they print)
         return method === 'toString' || method === 'toLowerCase' || method === 'toUpperCase';
@@ -1375,7 +1374,7 @@ function receiverIsProvablyString (printer: any, node: any, sourceName: string, 
 
 // `this.<name>(…)` whose printed Java is `public String <name>(…)` on every declaration
 function isStringDeclaredThisCall (printer: any, node: any): boolean {
-    const method = String (node.expression.name.escapedText);
+    const method = String (node.expression.name.text);
     if (STRING_DECLARED_BASE_CALLS.has (method)) {
         return true;
     }
@@ -1395,7 +1394,7 @@ function isProvablyNonNullStringOperand (printer: any, node: any, sourceName: st
         return plusChainIsValuePreserving (printer, value, sourceName, depth + 1);
     }
     if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
-        const method = String (value.expression.name.escapedText);
+        const method = String (value.expression.name.text);
         return method === 'toLowerCase' || method === 'toUpperCase' || method === 'toString';
     }
     return false;
@@ -1417,7 +1416,7 @@ function plusChainIsValuePreserving (printer: any, node: any, sourceName: string
         if (left.kind === ts.SyntaxKind.StringLiteral || left.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
             return true;
         }
-        if (ts.isIdentifier (left) && (left.escapedText === sourceName || referencedLocalEmitsString (printer, left))) {
+        if (ts.isIdentifier (left) && (left.text === sourceName || referencedLocalEmitsString (printer, left))) {
             return isProvablyNonNullStringOperand (printer, spine.right, sourceName, depth + 1);
         }
         return false;
@@ -1441,9 +1440,9 @@ function isProvablyStringReassignment (printer: any, node: any, sourceName: stri
         return elementAccessHasStringElements (value);
     }
     if (ts.isIdentifier (value)) {
-        return value.escapedText === sourceName || referencedLocalEmitsString (printer, value);
+        return value.text === sourceName || referencedLocalEmitsString (printer, value);
     }
-    if (ts.isAsExpression (value) || ts.isTypeAssertionExpression (value)) {
+    if (ts.isAsExpression (value) || ts.isTypeAssertion (value)) {
         return value.type !== undefined && value.type.kind === ts.SyntaxKind.StringKeyword;
     }
     if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
@@ -1453,7 +1452,7 @@ function isProvablyStringReassignment (printer: any, node: any, sourceName: stri
         if (value.expression.expression.kind === ts.SyntaxKind.ThisKeyword) {
             return isStringDeclaredThisCall (printer, value);
         }
-        const method = String (value.expression.name.escapedText);
+        const method = String (value.expression.name.text);
         if (!STRING_RESULT_METHOD_CALLS.has (method)) {
             return false;
         }
@@ -1477,7 +1476,7 @@ function javaLocalType (printer: any, declaration: any): string | undefined {
         return undefined;
     }
     // scan by the SOURCE name: ReservedKeywordsReplacements renames the printed one
-    const sourceName = declaration.name.escapedText;
+    const sourceName = declaration.name.text;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
     const plusRelaxationAllowed = !wsPostProcessReverts (declaration);
@@ -1554,7 +1553,7 @@ export function patchJavaLocalTypes (transpiler: any): void {
                 return printed;
             }
             const symbol = printer.getChecker ().getSymbolAtLocation (node.left);
-            const declaration = symbol?.valueDeclaration;
+            const declaration = symbol?.valueDeclaration?.resolve ();
             const javaType = (declaration !== undefined) ? narrowed.get (declaration) : undefined;
             if (javaType !== 'String') {
                 return printed;
@@ -1627,7 +1626,7 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
     if (current.kind === ts.SyntaxKind.Identifier) {
         let declaration;
         try {
-            declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration;
+            declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration?.resolve ();
         } catch (e) {
             return undefined;
         }
@@ -1637,7 +1636,7 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
         // the Java printer renames the identifiers captured by an object literal in place
         // (`baseId` -> `finalBaseId`, declared `final Object finalBaseId = baseId`), so a
         // renamed use site is NOT the type the local's own declaration was emitted with
-        if (String (current.escapedText) !== String (declaration.name?.escapedText)) {
+        if (String (current.text) !== String (declaration.name?.text)) {
             return undefined;
         }
         return 'String';
@@ -1646,12 +1645,12 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
         const callee = current.expression;
         if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) {
             const receiver = callee.expression;
-            const name = String (callee.name?.escapedText);
+            const name = String (callee.name?.text);
             const onThis = receiver?.kind === ts.SyntaxKind.ThisKeyword || receiver?.kind === ts.SyntaxKind.SuperKeyword;
             if (onThis && JAVA_STRING_RUNTIME_METHODS.has (name)) {
                 return 'String';
             }
-            if (receiver?.kind === ts.SyntaxKind.Identifier && receiver.escapedText === 'Precise' && JAVA_STRING_PRECISE_METHODS.has (name)) {
+            if (receiver?.kind === ts.SyntaxKind.Identifier && receiver.text === 'Precise' && JAVA_STRING_PRECISE_METHODS.has (name)) {
                 return 'String';
             }
         }
@@ -1750,7 +1749,7 @@ function ss02FamilyInitializer (declaration: any): any {
     if (!isThisCall (initializer)) {
         return undefined;
     }
-    const name = String ((initializer as any).expression.name.escapedText);
+    const name = String ((initializer as any).expression.name.text);
     return name.startsWith ('safeString') ? { name, node: initializer } : undefined;
 }
 
@@ -1809,7 +1808,7 @@ function ss02ScanUses (printer: any, declaration: any, sourceName: string, isPro
 function ss02LocalDecision (printer: any, identifier: any): any {
     try {
         const symbol = printer.getChecker ().getSymbolAtLocation (identifier);
-        const declaration = symbol?.valueDeclaration;
+        const declaration = symbol?.valueDeclaration?.resolve ();
         if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
             return undefined;
         }
@@ -1836,9 +1835,9 @@ function ss02WriteInfo (printer: any, parent: any, sourceName: string): any {
             if (isBaseStringAccessorCall (printer, right)) {
                 info.shape = 'base-accessor';
             } else if (ts.isPropertyAccessExpression (right.expression)) {
-                const method = String (right.expression.name.escapedText);
+                const method = String (right.expression.name.text);
                 const isThis = right.expression.expression.kind === ts.SyntaxKind.ThisKeyword;
-                const isPrecise = ts.isIdentifier (right.expression.expression) && (right.expression.expression as any).escapedText === 'Precise';
+                const isPrecise = ts.isIdentifier (right.expression.expression) && (right.expression.expression as any).text === 'Precise';
                 info.shape = (isThis ? 'this-call:' : (isPrecise ? 'precise:' : 'call:')) + method;
                 info.resolvesToMethod = isThis ? resolvesToMethodNamed (printer, right, method) : false;
                 info.stringDeclared = isThis ? isStringDeclaredThisCall (printer, right) : false;
@@ -1856,8 +1855,8 @@ function ss02WriteInfo (printer: any, parent: any, sourceName: string): any {
             info.stringElements = elementAccessHasStringElements (right);
         } else if (ts.isIdentifier (right)) {
             info.shape = 'identifier';
-            info.target = String (right.escapedText);
-            info.targetSelf = right.escapedText === sourceName;
+            info.target = String (right.text);
+            info.targetSelf = right.text === sourceName;
             info.targetDecision = ss02LocalDecision (printer, right);
         } else if (ts.isConditionalExpression (right)) {
             info.shape = 'ternary';
@@ -1893,7 +1892,7 @@ function ss02Record (printer: any, declaration: any, javaType: string | undefine
     try {
         const candidate = ss02FamilyInitializer (declaration);
         if (candidate === undefined) return;
-        const sourceName = String (declaration.name.escapedText);
+        const sourceName = String (declaration.name.text);
         const fileName = declaration.getSourceFile ().fileName;
         const isProFile = /[\\/]pro[\\/]/.test (fileName);
         const isPredictionFile = /[\\/]prediction[\\/]/.test (fileName);
