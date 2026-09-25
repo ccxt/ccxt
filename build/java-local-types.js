@@ -13290,9 +13290,9 @@ function longLimitRetypeMember (lines, from, to) {
             }
             if (/\b(?:catch|->)\b/.test (code) && !code.includes (`toLongOrNull(${name})`)) { ok = false; break; }
             if (!longLimitUseOk (lines[j], name, boxChanges)) { ok = false; why = lines[j].trim (); break; }
-            if (code.includes (`Helpers.toLongOrNull(${name})`)) fed = true;
+            if (longLimitFeeds (code, name)) fed = true;
         }
-        if (process.env.JAVA_LONG_LIMIT_DEBUG && !(ok && fed) && lines.slice (from, to).some ((l) => l.includes (`toLongOrNull(${name})`))) {
+        if (process.env.JAVA_LONG_LIMIT_DEBUG && !(ok && fed) && lines.slice (from, to).some ((l) => longLimitFeeds (longLimitCodeOnly (l), name))) {
             console.log (`long-limit reject ${name}: ${lines[i].trim ()} || ${why}`);
         }
         if (!ok || !fed) continue;
@@ -13433,7 +13433,7 @@ function longLimitPromotes (a, b) {
 }
 
 function longLimitRetypeGroups (lines, from, to) {
-    if (!lines.slice (from, to).some ((l) => l.includes ('Helpers.toLongOrNull('))) return false;
+    if (!lines.slice (from, to).some ((l) => l.includes ('Helpers.toLongOrNull(') || l.includes ('Helpers.multiply('))) return false;
     const declRe = /^(\s*)(Integer|Object) ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
     const typeCache = new Map ();
     const ctx = {
@@ -13548,7 +13548,7 @@ function longLimitRetypeGroups (lines, from, to) {
                     ok = !group.has (target) && ctx.declType (target) === 'Object';
                 }
                 if (!ok) {
-                    if (process.env.JAVA_LONG_LIMIT_DEBUG && lines.slice (from, to).some ((l) => l.includes (`toLongOrNull(${name})`))) {
+                    if (process.env.JAVA_LONG_LIMIT_DEBUG && lines.slice (from, to).some ((l) => longLimitFeeds (longLimitCodeOnly (l), name))) {
                         console.log (`long-group reject ${name}: ${lines[j].trim ()}`);
                     }
                     group.delete (name);
@@ -13562,7 +13562,7 @@ function longLimitRetypeGroups (lines, from, to) {
     const parent = new Map ([ ...group ].map ((n) => [ n, n ]));
     const find = (n) => (parent.get (n) === n ? n : find (parent.get (n)));
     for (const [ name, ws ] of typed) for (const [ , , n ] of ws) for (const a of n.atoms) parent.set (find (a), find (name));
-    const fed = new Set ([ ...group ].filter ((n) => lines.slice (from, to).some ((l) => l.includes (`Helpers.toLongOrNull(${n})`))).map (find));
+    const fed = new Set ([ ...group ].filter ((n) => lines.slice (from, to).some ((l) => longLimitFeeds (longLimitCodeOnly (l), n))).map (find));
     let changed = false;
     for (const [ name, ws ] of typed) {
         if (!fed.has (find (name))) continue;
@@ -13574,8 +13574,21 @@ function longLimitRetypeGroups (lines, from, to) {
     return changed;
 }
 
+// a Long slot: a toLongOrNull argument or a bare Helpers.multiply operand (section 56)
+function longLimitFeeds (code, name) {
+    if (code.includes (`Helpers.toLongOrNull(${name})`)) return true;
+    const re = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, 'g');
+    let m;
+    while ((m = re.exec (code)) !== null) {
+        const before = code.slice (0, m.index);
+        const after = code.slice (m.index + name.length);
+        if ((/Helpers\.multiply\($/.test (before) && /^, /.test (after)) || (/, $/.test (before) && /^\)/.test (after) && longLimitCallee (code, m.index) === 'Helpers.multiply')) return true;
+    }
+    return false;
+}
+
 export function nativeJavaLongLimitLocals (content) {
-    if (!content.includes ('Helpers.toLongOrNull(')) {
+    if (!content.includes ('Helpers.toLongOrNull(') && !content.includes ('Helpers.multiply(')) {
         return content;
     }
     const lines = content.split ('\n');
@@ -13587,8 +13600,161 @@ export function nativeJavaLongLimitLocals (content) {
     for (let s = 0; s < starts.length; s++) {
         const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
         if (longLimitRetypeMember (lines, starts[s], to)) changed = true;
+        if (nativeJavaLongMultiplyMember (lines, starts[s], to)) changed = true;
     }
     return changed ? lines.join ('\n') : content;
+}
+
+// ===== 56. Helpers.multiply on non-null integral operands prints a native long product =====
+// The helper widens Integer to Long and returns a Long product for integral operands (null -> null),
+// so `a * b` over non-null int/long values with at least one long side is the same value and box.
+function longMultiplyMemberCtx (lines, from, to) {
+    const cache = new Map ();
+    const ctx = {
+        declType: (name) => {
+            if (!cache.has (name)) {
+                const d = longLimitDeclarations (lines, from, to, name);
+                cache.set (name, d.length === 1 ? d[0].type.replace (/^final\s+/, '') : undefined);
+            }
+            return cache.get (name);
+        },
+    };
+    const writes = new Map ();
+    // every write of a boxed local is a non-null integral value
+    const nonNull = (name, seen = new Set ()) => {
+        if (seen.has (name)) return false;
+        seen.add (name);
+        if (writes.has (name)) return writes.get (name);
+        let ok = [ 'Long', 'Integer' ].includes (ctx.declType (name));
+        const decl = new RegExp (`^\\s*(?:final\\s+)?(?:Long|Integer) ${name} = (.*?);(\\s*//.*)?$`);
+        const write = new RegExp (`^\\s*${name} = (.*?);(\\s*//.*)?$`);
+        const other = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b|->`);
+        let declared = false;
+        for (let j = from + 1; j < to && ok; j++) {
+            const code = longLimitCodeOnly (lines[j]);
+            if (!new RegExp (`(?<![\\w$.])${name}\\b`).test (code)) continue;
+            if (other.test (code)) { ok = false; break; }
+            const m = decl.exec (lines[j]) ?? write.exec (lines[j]);
+            if (m === null) {
+                // any other write shape (split line, inline branch) is unproven
+                if (new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`).test (code)) { ok = false; break; }
+                continue;
+            }
+            declared = declared || decl.test (lines[j]);
+            ok = longMultiplyNonNullValue (ctx, m[1].trim (), (n) => nonNull (n, seen));
+        }
+        ok = ok && declared;
+        writes.set (name, ok);
+        return ok;
+    };
+    return { ctx, nonNull };
+}
+
+// a printed value that is never null and integral
+function longMultiplyNonNullValue (ctx, value, nonNull) {
+    const e = longLimitStrip (value);
+    const t = longLimitSplitTernary (e);
+    if (t !== undefined) {
+        const guard = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond).replace (/^!\((.*)\)$/, '!$1'));
+        return [ [ t.whenTrue, true ], [ t.whenFalse, false ] ].every (([ arm, isTrue ]) =>
+            (guard !== null && longLimitStrip (arm) === guard[2] && (guard[1] === '!') === isTrue
+                && [ 'Long', 'Integer', 'long', 'int' ].includes (ctx.declType (guard[2])))
+            || longMultiplyNonNullValue (ctx, arm, nonNull));
+    }
+    const x = longMultiplyKind (ctx, e, nonNull);
+    return x !== undefined;
+}
+
+// 'int' | 'long' for a non-null integral operand (text is the printed operand)
+function longMultiplyKind (ctx, text, nonNull) {
+    const e = longLimitStrip (text);
+    if (LONG_LIMIT_INT.test (e)) return 'intlit';
+    if (/^-?\d+L$/.test (e)) return 'long';
+    // BaseExchange declares `int parseTimeframe (Object)`
+    if (/^this\.parseTimeframe\((?:[A-Za-z_]\w*|java\.util\.Objects\.requireNonNullElse\([A-Za-z_]\w*, "\w+"\))\)$/.test (e)) return 'int';
+    if (/^this\.(?:milliseconds|seconds)\(\)$/.test (e)) return 'long';
+    if (/^[A-Za-z_]\w*$/.test (e)) {
+        const t = ctx.declType (e);
+        if (t === 'int') return 'int';
+        if (t === 'long') return 'long';
+        if (t === 'Long' && nonNull (e)) return 'long';
+        if (t === 'Integer' && nonNull (e)) return 'int';
+        return undefined;
+    }
+    const ops = longLimitOperands (e);
+    if (ops !== undefined && ops.length === 2 && e.slice (ops[0].length, ops[0].length + 3) === ' * ') {
+        const ks = ops.map ((o) => longMultiplyKind (ctx, o, nonNull));
+        return (!ks.includes (undefined) && ks.includes ('long')) ? 'long' : undefined;
+    }
+    const x = longLimitType (ctx, e, new Set (), true);
+    if (x === undefined || x.ternary !== undefined || x.atoms.length !== 0) return undefined;
+    // a primitive expression over names: every boxed name in it must be non-null too
+    const names = e.replace (/\(long\) /g, '').match (/(?<![\w$.])[A-Za-z_]\w*(?![\w(])/g) ?? [];
+    if (!names.every ((n) => [ 'int', 'long' ].includes (ctx.declType (n)) || nonNull (n))) return undefined;
+    if (x.kind === 'long') return 'long';
+    return undefined;
+}
+
+// same-length copy with string contents and a trailing comment blanked
+function longMultiplyMask (line) {
+    const masked = line.replace (/"(?:[^"\\]|\\.)*"/g, (m) => '"' + '_'.repeat (m.length - 2) + '"');
+    const c = masked.indexOf ('//');
+    return c === -1 ? masked : masked.slice (0, c) + ' '.repeat (masked.length - c);
+}
+
+// [start, end) spans of the two top-level arguments of the call whose '(' is at `open`
+function longMultiplyArgSpans (mask, open) {
+    let depth = 0;
+    const spans = [];
+    let last = open + 1;
+    for (let k = open; k < mask.length; k++) {
+        const ch = mask[k];
+        if (ch === '(') depth++;
+        else if (ch === ')') {
+            depth--;
+            if (depth === 0) { spans.push ([ last, k ]); return { spans, close: k }; }
+        } else if (ch === ',' && depth === 1) { spans.push ([ last, k ]); last = k + 1; }
+    }
+    return undefined;
+}
+
+function nativeJavaLongMultiplyMember (lines, from, to) {
+    let state;
+    let changed = false;
+    for (let j = from + 1; j < to; j++) {
+        if (!lines[j].includes ('Helpers.multiply(')) continue;
+        state = state ?? longMultiplyMemberCtx (lines, from, to);
+        let line = lines[j];
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (let k = mask0.indexOf ('Helpers.multiply('); k !== -1; k = mask0.indexOf ('Helpers.multiply(', k + 1)) starts.push (k);
+        // innermost (rightmost) first, so an outer call sees the native inner product
+        for (const start of starts.reverse ()) {
+            const mask = longMultiplyMask (line);
+            const open = start + 'Helpers.multiply'.length;
+            const call = longMultiplyArgSpans (mask, open);
+            if (call === undefined || call.spans.length !== 2) continue;
+            // a ternary arm would change the other arm's unboxing
+            if (/[?:]\s*$/.test (mask.slice (0, start)) || /^\s*[?:]/.test (mask.slice (call.close + 1))) continue;
+            const args = call.spans.map (([ x, y ]) => line.slice (x, y).trim ());
+            const kinds = args.map ((x) => longMultiplyKind (state.ctx, x, state.nonNull));
+            if (kinds.includes (undefined)) continue;
+            // an all-int product widens its int local so the value is computed in long
+            const allInt = !kinds.includes ('long');
+            const printed = args.map ((x, k) => {
+                const e = longLimitStrip (x);
+                if (kinds[k] === 'intlit') return e + 'L';
+                if (allInt && k === 0 && kinds[1] === 'int') {
+                    return /^[A-Za-z_]\w*$/.test (e) && state.ctx.declType (e) === 'int' ? `((long) ${e})` : undefined;
+                }
+                return x;
+            });
+            if (printed.includes (undefined)) continue;
+            line = line.slice (0, start) + `(${printed[0]} * ${printed[1]})` + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed;
 }
 
 // ===== 33. element writes on a local Map that is never a ConcurrentHashMap =====
