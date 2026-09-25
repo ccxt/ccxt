@@ -1065,8 +1065,8 @@ public partial class bitget : ccxt.bitget
             ccxt.pro.IOrderBook storedOrderBook = this.getOrderBook(this.orderbooks, symbol);
             List<object> asks = this.safeList2(rawOrderBook, "asks", "a", new List<object>() {});
             List<object> bids = this.safeList2(rawOrderBook, "bids", "b", new List<object>() {});
-            this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
-            this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
+            this.handleDeltas(storedOrderBook?.asks, asks);
+            this.handleDeltas(storedOrderBook?.bids, bids);
             storedOrderBook["timestamp"] = timestamp;
             storedOrderBook["datetime"] = this.iso8601(timestamp);
             bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
@@ -1076,8 +1076,8 @@ public partial class bitget : ccxt.bitget
             Int64? responseChecksum = this.safeInteger(rawOrderBook, "checksum");
             if (!isSnapshot && ((checksum == true)) && ((responseChecksum != null)))
             {
-                object storedAsks = getValue(storedOrderBook, "asks");
-                object storedBids = getValue(storedOrderBook, "bids");
+                ccxt.pro.IAsks storedAsks = storedOrderBook?.asks;
+                ccxt.pro.IBids storedBids = storedOrderBook?.bids;
                 int asksLength = getArrayLength(storedAsks);
                 int bidsLength = getArrayLength(storedBids);
                 List<object> payloadArray = new List<object>() {};

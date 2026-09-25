@@ -865,8 +865,8 @@ public partial class phemex : ccxt.phemex
                 IDictionary<string, object> changes = this.safeDict2(message, "book", "orderbook_p", new Dictionary<string, object>() {});
                 List<object> asks = this.safeList(changes, "asks", new List<object>() {});
                 List<object> bids = this.safeList(changes, "bids", new List<object>() {});
-                this.customHandleDeltas(getValue(orderbook, "asks"), asks, market);
-                this.customHandleDeltas(getValue(orderbook, "bids"), bids, market);
+                this.customHandleDeltas(orderbook?.asks, asks, market);
+                this.customHandleDeltas(orderbook?.bids, bids, market);
                 orderbook["nonce"] = nonce;
                 orderbook["timestamp"] = timestamp;
                 orderbook["datetime"] = this.iso8601(timestamp);

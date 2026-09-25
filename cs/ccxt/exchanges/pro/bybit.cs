@@ -1147,8 +1147,8 @@ public partial class bybit : ccxt.bybit
         {
             List<object> asks = this.safeList(data, "a", new List<object>() {});
             List<object> bids = this.safeList(data, "b", new List<object>() {});
-            this.handleDeltas(getValue(orderbook, "asks"), asks);
-            this.handleDeltas(getValue(orderbook, "bids"), bids);
+            this.handleDeltas(orderbook?.asks, asks);
+            this.handleDeltas(orderbook?.bids, bids);
             orderbook["timestamp"] = timestamp;
             orderbook["datetime"] = this.iso8601(timestamp);
         }

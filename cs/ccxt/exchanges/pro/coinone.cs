@@ -129,8 +129,8 @@ public partial class coinone : ccxt.coinone
         orderbook["symbol"] = symbol;
         List<object> asks = this.safeList(data, "asks", new List<object>() {});
         List<object> bids = this.safeList(data, "bids", new List<object>() {});
-        this.handleDeltas(getValue(orderbook, "asks"), asks);
-        this.handleDeltas(getValue(orderbook, "bids"), bids);
+        this.handleDeltas(orderbook?.asks, asks);
+        this.handleDeltas(orderbook?.bids, bids);
         orderbook["timestamp"] = timestamp;
         orderbook["datetime"] = this.iso8601(timestamp);
         string messageHash = ("orderbook:" + symbol);

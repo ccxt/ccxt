@@ -1038,8 +1038,8 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-            this.handleDeltas(getValue(orderbook, "asks"), this.safeList(message, "asks", new List<object>() {}));
-            this.handleDeltas(getValue(orderbook, "bids"), this.safeList(message, "bids", new List<object>() {}));
+            this.handleDeltas(orderbook?.asks, this.safeList(message, "asks", new List<object>() {}));
+            this.handleDeltas(orderbook?.bids, this.safeList(message, "bids", new List<object>() {}));
             orderbook["timestamp"] = null;
             orderbook["datetime"] = null;
             orderbook["symbol"] = symbol;
