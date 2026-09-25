@@ -10694,7 +10694,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // (`const keys = this.sort (…)` -> `List<string> keys = …`): the element box is that scalar or
         // null, so the declaration names it behind the exact cast back
         const typedListElement = (elementType === undefined) ? typedListElementReadType (csharp, declaration.initializer) : undefined;
-        const tupleElement0 = (elementType === undefined && typedListElement === undefined) ? handleTupleElement0ReadType (declaration.initializer) : undefined;
+        const tupleElement0 = (elementType === undefined && typedListElement === undefined) ? handleTupleElement0ReadType (csharp, declaration.initializer) : undefined;
         // `this.handleOption (method, key, <literal>)` / `this.safeValue (this.options, key,
         // <literal>)` whose option key's writer census is the default literal's own kind
         const optionsDefaultType = optionsLiteralDefaultCastType (declaration.initializer);
@@ -12519,16 +12519,33 @@ function destructuredStringHelperElement0 (call, helper) {
     return (argument === undefined || isUndefinedLiteral (argument) || isStringLiteral (argument)) ? 'string?' : undefined;
 }
 
-// `this.<helper> (...)[0]`: the same element-0 box the destructured form names
-function handleTupleElement0ReadType (initializer) {
+// `this.<helper> (...)[0]`, or `t[0]` of a local `t` holding that call and never rewritten or
+// mutated: the same element-0 box the destructured form names
+function handleTupleElement0ReadType (csharp, initializer) {
     if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.argumentExpression?.kind !== ts.SyntaxKind.NumericLiteral || initializer.argumentExpression.text !== '0') {
         return undefined;
     }
-    const helper = destructuredHandleCallName (initializer.expression);
+    let call = initializer.expression;
+    if (call?.kind === ts.SyntaxKind.Identifier) {
+        const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
+        const index = (scope === undefined) ? undefined : indexScope (csharp, scope);
+        const name = call.escapedText;
+        const declarations = index?.declarations.get (name) ?? [];
+        if (declarations.length !== 1 || index.parameterNames.has (name) || index.blockedNames.has (name) || declarations[0].getStart () > initializer.getStart ()) {
+            return undefined;
+        }
+        for (const use of index.identifiers.get (name) ?? []) {
+            if (use !== declarations[0].name && !isNotAUse (use) && receiverUseIsWrite (use)) {
+                return undefined;
+            }
+        }
+        call = declarations[0].initializer;
+    }
+    const helper = destructuredHandleCallName (call);
     if (helper === undefined) {
         return undefined;
     }
-    return DESTRUCTURED_DECLARATION_ELEMENT0[helper] ?? destructuredStringHelperElement0 (initializer.expression, helper);
+    return DESTRUCTURED_DECLARATION_ELEMENT0[helper] ?? destructuredStringHelperElement0 (call, helper);
 }
 
 function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
