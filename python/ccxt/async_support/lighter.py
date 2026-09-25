@@ -584,7 +584,7 @@ class lighter(Exchange, ImplicitAPI):
             r = Precise.string_mul(r, n)
         return r
 
-    def hash_message(self, message: str):
+    def hash_message(self, message: str) -> str:
         binaryMessage = self.encode(message)
         binaryMessageLength = self.binary_length(binaryMessage)
         x19 = self.base16_to_binary('19')
@@ -592,7 +592,7 @@ class lighter(Exchange, ImplicitAPI):
         prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object):
+    def sign_hash(self, hash: object, privateKey: object) -> str:
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -600,14 +600,14 @@ class lighter(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_l1_and_prepare_tx_info(self, txInfo: object, message: object, privateKey: object):
+    def sign_l1_and_prepare_tx_info(self, txInfo: object, message: object, privateKey: object) -> str:
         hashMessage = self.hash_message(message)
         signature = self.sign_hash(hashMessage, privateKey)
         decTxInfo = self.parse_json(txInfo)
         decTxInfo['L1Sig'] = signature
         return self.json(decTxInfo)
 
-    async def handle_builder_fee_approval(self, accountIndex: float, apiKeyIndex: float):
+    async def handle_builder_fee_approval(self, accountIndex: float, apiKeyIndex: float) -> bool:
         buildFee = self.safe_bool(self.options, 'builderFee', True)
         if buildFee is not True:
             return False
@@ -2278,7 +2278,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'limit': 'limit',
             'market': 'market',
@@ -2292,7 +2292,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_order_type_integer(self, typeInteger: object):
+    def parse_order_type_integer(self, typeInteger: Int) -> Str:
         if typeInteger is None:
             return None
         types = {
@@ -2308,7 +2308,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, str(typeInteger))
 
-    def parse_order_time_in_force(self, tif: object):
+    def parse_order_time_in_force(self, tif: Str) -> Str:
         timeInForces = {
             'immediate-or-cancel': 'IOC',
             'good-till-time': 'GTC',

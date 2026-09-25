@@ -583,7 +583,7 @@ class derive(ccxt.async_support.derive):
                     fee = self.safe_value(order, 'fee')
                     if fee is not None:
                         parsed['fee'] = fee
-                    fees = self.safe_value(order, 'fees')
+                    fees = self.safe_list(order, 'fees')
                     if fees is not None:
                         parsed['fees'] = fees
                     parsed['trades'] = self.safe_value(order, 'trades')

@@ -770,7 +770,7 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(newPositions, 'positions::' + symbol)
         client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position: object, market: Market = None):
+    def parse_ws_position(self, position: object, market: Market = None) -> Position:
         # same as REST api
         return self.parse_position(position, market)
 
@@ -886,7 +886,7 @@ class grvt(ccxt.async_support.grvt):
         # same as REST api
         return self.parse_order(order, market)
 
-    def handle_error_message(self, client: Client, response: object) -> Bool:
+    def handle_error_message(self, client: Client, response: dict) -> Bool:
         #
         #    {
         #        "jsonrpc": "2.0",

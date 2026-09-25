@@ -590,7 +590,7 @@ class blofin(ccxt.async_support.blofin):
             messageHash = channelName + ':' + position['symbol']
             client.resolve(position, messageHash)
 
-    def parse_ws_position(self, position: object, market: Market = None) -> Position:
+    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         return self.parse_position(position, market)
 
     async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:

@@ -246,7 +246,7 @@ class bithumb(ccxt.async_support.bithumb):
         self.tickers[symbol] = ticker
         client.resolve(self.tickers[symbol], messageHash)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
         #        "symbol" : "BTC_KRW",           // 통화코드

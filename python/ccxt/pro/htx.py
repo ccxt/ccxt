@@ -409,7 +409,7 @@ class htx(ccxt.async_support.htx):
         interval = self.safe_string(parts, 3)
         timeframe = self.find_timeframe(interval)
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
@@ -572,7 +572,7 @@ class htx(ccxt.async_support.htx):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         timestamp = self.safe_integer(message, 'ts')
-        params = self.safe_value(subscription, 'params')
+        params = self.safe_dict(subscription, 'params')
         attempts = self.safe_integer(subscription, 'numAttempts', 0)
         market = self.market(symbol)
         url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
@@ -898,7 +898,7 @@ class htx(ccxt.async_support.htx):
                 channel = prefix + '.' + '*'
         return [channel, messageHash]
 
-    def get_v5_linear_channel_and_message_hash(self, topic: Str, market: Market = None, params: dict = {}):
+    def get_v5_linear_channel_and_message_hash(self, topic: Str, market: Market = None, params: dict = {}) -> list[object]:
         contractCode = None
         if market is not None:
             contractCode = market['id']

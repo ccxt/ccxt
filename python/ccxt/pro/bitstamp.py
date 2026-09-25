@@ -526,7 +526,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         stored.append(trade)
         client.resolve(stored, channel)
 
-    def parse_ws_my_trade(self, trade: object, market: Market = None) -> Trade:
+    def parse_ws_my_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "id": 635698396,

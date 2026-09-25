@@ -661,7 +661,7 @@ class bitget(ccxt.async_support.bitget):
         timeframe = self.find_timeframe(interval, timeframes)
         if timeframe is None:
             return
-        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)

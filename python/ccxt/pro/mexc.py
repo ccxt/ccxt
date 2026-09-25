@@ -348,7 +348,7 @@ class mexc(ccxt.async_support.mexc):
             client.resolve(ticker, messageHash)
         client.resolve(result, topic)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # protobuf ticker
         # "bidprice": "93387.28",  // Best bid price
         # "bidquantity": "3.73485", // Best bid quantity
@@ -1878,7 +1878,7 @@ class mexc(ccxt.async_support.mexc):
                 if symbol in self.fundingRates:
                     del self.fundingRates[symbol]
 
-    async def authenticate(self, subscriptionHash: Str, params: dict = {}):
+    async def authenticate(self, subscriptionHash: Str, params: dict = {}) -> Str:
         # we only need one listenKey since ccxt shares connections
         listenKey = self.safe_string(self.options, 'listenKey')
         if listenKey is not None:

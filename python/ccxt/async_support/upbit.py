@@ -848,7 +848,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(tickers, symbols)
 
-    def ids_query_strings(self, ids: Strings, maxQueryLength: float):
+    def ids_query_strings(self, ids: Strings, maxQueryLength: float) -> list[str]:
         if ids is None:
             return []
         idsString = ''

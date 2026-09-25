@@ -1818,7 +1818,7 @@ class grvt(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def load_account_infos(self):
+    async def load_account_infos(self) -> bool:
         if self.safe_string(self.options, 'userMainAccountId') is not None:
             return False
         promises = []

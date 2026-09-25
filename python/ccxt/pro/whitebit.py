@@ -207,7 +207,7 @@ class whitebit(ccxt.async_support.whitebit):
         #  }
         #
         params = self.safe_list(message, 'params', [])
-        isSnapshot = self.safe_value(params, 0)
+        isSnapshot = self.safe_bool(params, 0)
         marketId = self.safe_string(params, 2)
         market = self.safe_market(marketId)
         symbol = market['symbol']
@@ -676,7 +676,7 @@ class whitebit(ccxt.async_support.whitebit):
             'trades': None,
         }, market)
 
-    def parse_ws_order_type(self, status: object):
+    def parse_ws_order_type(self, status: object) -> str:
         statuses = {
             '1': 'limit',
             '2': 'market',
@@ -896,7 +896,7 @@ class whitebit(ccxt.async_support.whitebit):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def authenticate(self, params: dict = {}):
+    async def authenticate(self, params: dict = {}) -> float:
         self.check_required_credentials()
         url = self.urls['api']['ws']
         client = self.client(url)

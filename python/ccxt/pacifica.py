@@ -572,14 +572,14 @@ class pacifica(Exchange, ImplicitAPI):
             },
         })
 
-    def initialize_client(self):
+    def initialize_client(self) -> bool:
         try:
             self.handle_builder_fee_approval()
         except Exception as e:
             return False
         return True
 
-    def handle_builder_fee_approval(self):
+    def handle_builder_fee_approval(self) -> bool:
         if self.isSandboxModeEnabled:  # At this stage, building codes are mostly only on the mainnet.
             return False
         buildFee = self.safe_bool(self.options, 'builderFee', True)
@@ -976,7 +976,7 @@ class pacifica(Exchange, ImplicitAPI):
             settings = self.fetch_account_settings(params)
             self.options['settings'] = settings
 
-    def parse_account_settings(self, settings: list[object]) -> dict:
+    def parse_account_settings(self, settings: list[dict]) -> dict:
         settingsLen = len(settings)
         if settingsLen == 0:
             return {}
@@ -1599,10 +1599,7 @@ class pacifica(Exchange, ImplicitAPI):
         else:
             operationType = 'create_order'
             sigPayload['reduce_only'] = reduceOnly
-            if timeInForce is None:
-                sigPayload['tif'] = 'GTC'
-            else:
-                sigPayload['tif'] = timeInForce
+            sigPayload['tif'] = timeInForce
         if isTakeProfitOrder:
             tpPayload = {
                 'stop_price': self.price_to_precision(symbol, takeProfitPrice),
@@ -2306,7 +2303,7 @@ class pacifica(Exchange, ImplicitAPI):
         orders = self.parse_orders(data, market, since, limit)
         return orders
 
-    def add_pagination_cursor_to_result(self, response: dict) -> list[object]:
+    def add_pagination_cursor_to_result(self, response: dict) -> list[dict]:
         data = self.safe_list(response, 'data', [])
         paginationCursor = self.safe_string(response, 'next_cursor')
         hasMore = self.safe_bool(response, 'has_more', False)
@@ -2403,7 +2400,7 @@ class pacifica(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def map_time_in_force(self, tifRaw: Str):
+    def map_time_in_force(self, tifRaw: Str) -> str:
         tifMap = {
             'GTC': 'GTC',
             'IOC': 'IOC',
@@ -2416,7 +2413,7 @@ class pacifica(Exchange, ImplicitAPI):
         tif = None
         if tifRaw is not None:
             tif = tifRaw.upper()
-        return self.safe_string(tifMap, tif)
+        return self.safe_string(tifMap, tif, 'GTC')
 
     def map_side(self, sideRaw: Str):
         sideMap = {
@@ -3270,7 +3267,7 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, params)
         return self.privatePostAccountBuilderCodesApprove(self.extend(request, params))
 
-    def fetch_builder_approvals(self, address: str):
+    def fetch_builder_approvals(self, address: str) -> dict:
         request = {
             'account': address,
         }

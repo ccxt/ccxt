@@ -3474,7 +3474,7 @@ class whitebit(Exchange, ImplicitAPI):
             'amount': self.safe_number(contract, 'fundingAmount'),
         }
 
-    def parse_funding_histories(self, contracts: object, market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
+    def parse_funding_histories(self, contracts: list[dict], market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
         result = []
         for i in range(0, len(contracts)):
             contract = self.safe_dict(contracts, i)

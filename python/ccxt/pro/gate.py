@@ -1032,7 +1032,7 @@ class gate(ccxt.async_support.gate):
             symbol = self.safe_symbol(marketId, None, '_', marketType)
             parsed = self.parse_ohlcv(ohlcv)
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+            stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
@@ -2028,7 +2028,7 @@ class gate(ccxt.async_support.gate):
         else:
             return baseUrl
 
-    def get_type_by_market(self, market: Market):
+    def get_type_by_market(self, market: Market) -> Str:
         if market is None:
             return None
         if market['spot'] is True:
@@ -2046,7 +2046,7 @@ class gate(ccxt.async_support.gate):
         else:
             return url
 
-    def get_market_type_by_url(self, url: str):
+    def get_market_type_by_url(self, url: str) -> str:
         findBy = {
             'op-': 'option',
             'delivery': 'future',

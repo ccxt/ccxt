@@ -358,7 +358,7 @@ class cex(ccxt.async_support.cex):
         if messageHash is not None:
             client.resolve(ticker, messageHash)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #  public
         #    {
@@ -745,7 +745,7 @@ class cex(ccxt.async_support.cex):
         messageHash = 'orders:' + symbol
         client.resolve(storedOrders, messageHash)
 
-    def parse_ws_order_update(self, order: object, market: Market = None):
+    def parse_ws_order_update(self, order: dict, market: Market = None):
         #
         #      {
         #          "id": "150714937",
@@ -968,7 +968,7 @@ class cex(ccxt.async_support.cex):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def pair_to_symbol(self, pair: object):
+    def pair_to_symbol(self, pair: object) -> str:
         parts = pair.split(':')
         baseId = self.safe_string(parts, 0)
         quoteId = self.safe_string(parts, 1)

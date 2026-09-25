@@ -1294,7 +1294,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_ledger_entry_type(self, type: Str):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
             'Trade': 'trade',
             'Deposit': 'transaction',

@@ -174,7 +174,7 @@ class woofipro(ccxt.async_support.woofipro):
         message = self.extend(request, params)
         return await self.watch_public(topic, message)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol": "PERP_BTC_USDC",
@@ -868,7 +868,7 @@ class woofipro(ccxt.async_support.woofipro):
                 self.handle_my_trade(client, data)
             self.handle_order(client, data, topic)
 
-    def handle_order(self, client: Client, message: dict, topic: object):
+    def handle_order(self, client: Client, message: dict, topic: Str):
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')

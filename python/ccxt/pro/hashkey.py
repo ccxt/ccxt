@@ -67,7 +67,7 @@ class hashkey(ccxt.async_support.hashkey):
         url = self.get_private_url(listenKey)
         return await self.watch(url, messageHash, None, messageHash)
 
-    def get_private_url(self, listenKey: object):
+    def get_private_url(self, listenKey: object) -> str:
         return self.urls['api']['ws']['private'] + '/' + listenKey
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
@@ -639,7 +639,7 @@ class hashkey(ccxt.async_support.hashkey):
         symbol = parsed['symbol']
         client.resolve(parsed, messageHash + ':' + symbol)
 
-    def parse_ws_position(self, position: object, market: Market = None) -> Position:
+    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         marketId = self.safe_string(position, 's')
         market = self.safe_market(marketId)
         timestamp = self.safe_integer(position, 'E')

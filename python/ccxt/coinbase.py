@@ -2857,7 +2857,7 @@ class coinbase(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    def find_account_id(self, code: Str, params: dict = {}):
+    def find_account_id(self, code: Str, params: dict = {}) -> Str:
         if self.markets is None:
             self.load_markets()
         self.load_accounts(False, params)
@@ -5170,7 +5170,7 @@ class coinbase(Exchange, ImplicitAPI):
                         self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                         self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
                         raise ExchangeError(feedback)
-        advancedTrade = self.options['advanced']
+        advancedTrade = self.safe_bool(self.options, 'advanced')
         if not ('data' in response) and (advancedTrade is not True):
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
         return None

@@ -231,11 +231,11 @@ class kucoin(ccxt.async_support.kucoin):
             client.subscriptions[requestId] = subscribeHash
         return await self.watch_multiple(url, messageHashes, message, [subscribeHash], subscription)
 
-    async def get_uta_url(self):
+    async def get_uta_url(self) -> str:
         utaToken = await self.authenticate_uta()
         return self.urls['api']['ws']['private'] + '?token=' + utaToken
 
-    async def authenticate_uta(self):
+    async def authenticate_uta(self) -> Str:
         self.check_required_credentials()
         utaToken = self.safe_string(self.options, 'utaToken')
         lastUpdate = self.safe_integer(self.options, 'utaTokenLastUpdate', 0)
@@ -2230,7 +2230,7 @@ class kucoin(ccxt.async_support.kucoin):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def get_my_trades_message_hash_suffix(self, topic: object):
+    def get_my_trades_message_hash_suffix(self, topic: object) -> str:
         suffix = '-spot'
         if topic.find('contractMarket') >= 0:
             suffix = '-contract'

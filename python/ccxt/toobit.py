@@ -1482,7 +1482,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_bids_asks_custom(response, symbols)
 
-    def parse_bids_asks_custom(self, tickers: object, symbols: Strings = None, params: dict = {}) -> Tickers:
+    def parse_bids_asks_custom(self, tickers: list[dict], symbols: Strings = None, params: dict = {}) -> Tickers:
         results = []
         for i in range(0, len(tickers)):
             parsedTicker = self.parse_bid_ask_custom(tickers[i])

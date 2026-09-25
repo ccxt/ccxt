@@ -1811,14 +1811,14 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return await self.privatePostExchange(request)
 
-    async def initialize_client(self):
+    async def initialize_client(self) -> bool:
         try:
             await asyncio.gather(*[self.handle_builder_fee_approval(), self.set_ref(), self.is_unified_enabled('fetchBalance', None, False, {})])  # for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         except Exception as e:
             return False
         return True
 
-    async def handle_builder_fee_approval(self):
+    async def handle_builder_fee_approval(self) -> bool:
         buildFee = self.safe_bool(self.options, 'builderFee', True)
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
         if approvedBuilderFee is True:

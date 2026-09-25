@@ -484,7 +484,7 @@ class toobit(ccxt.async_support.toobit):
             client.resolve(parsed, messageHash)
         client.resolve(newTickers, 'tickers')
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         return self.parse_ticker(ticker, market)
 
     def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -1164,7 +1164,7 @@ class toobit(ccxt.async_support.toobit):
         listenKeyRefreshRate = self.safe_integer(self.options['ws'], 'listenKeyRefreshRate', 1200000)
         self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
 
-    def get_user_stream_url(self):
+    def get_user_stream_url(self) -> str:
         return self.urls['api']['ws']['common'] + '/api/v1/ws/' + self.options['ws']['listenKey']
 
     def handle_error_message(self, client: Client, message: dict) -> Bool:

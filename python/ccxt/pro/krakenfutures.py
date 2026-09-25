@@ -1020,7 +1020,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             messageHash = self.get_message_hash('bidask', None, symbol)
             client.resolve(ticker, messageHash)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
         #        "time": 1680811086487,

@@ -328,7 +328,7 @@ class bingx(ccxt.async_support.bingx):
             'info': message,
         }, market)
 
-    def get_order_book_limit_by_market_type(self, marketType: str, limit: Int = None):
+    def get_order_book_limit_by_market_type(self, marketType: str, limit: Int = None) -> float:
         if limit is None:
             limit = 100
         else:

@@ -1889,7 +1889,7 @@ class gate(Exchange, ImplicitAPI):
                 underlyings.append(name)
         return underlyings
 
-    def prepare_request(self, market: Market = None, type: Str = None, params: dict = {}):
+    def prepare_request(self, market: Market = None, type: Str = None, params: dict = {}) -> list:
         """
  @ignore
         Fills request params contract, settle, currency_pair, market and account where applicable
@@ -1919,7 +1919,7 @@ class gate(Exchange, ImplicitAPI):
                 request['settle'] = settle
         return [request, params]
 
-    def spot_order_prepare_request(self, market: Market = None, trigger: Bool = False, params: dict = {}):
+    def spot_order_prepare_request(self, market: Market = None, trigger: Bool = False, params: dict = {}) -> list:
         """
  @ignore
         Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
@@ -1937,7 +1937,7 @@ class gate(Exchange, ImplicitAPI):
             request['currency_pair'] = market['id']  # Should always be set for non-trigger
         return [request, query]
 
-    def multi_order_spot_prepare_request(self, market: Market = None, trigger: Bool = False, params: dict = {}):
+    def multi_order_spot_prepare_request(self, market: Market = None, trigger: Bool = False, params: dict = {}) -> list:
         """
  @ignore
         Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
@@ -2707,7 +2707,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_funding_histories(response, symbol, since, limit)
 
-    def parse_funding_histories(self, response: object, symbol: object, since: Int, limit: Int) -> list[FundingHistory]:
+    def parse_funding_histories(self, response: object, symbol: Str, since: Int, limit: Int) -> list[FundingHistory]:
         result = []
         for i in range(0, len(response)):
             entry = self.safe_dict(response, i)

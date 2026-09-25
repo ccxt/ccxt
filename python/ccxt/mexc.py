@@ -2414,7 +2414,7 @@ class mexc(Exchange, ImplicitAPI):
             order['amount'] = amount
         return order
 
-    def create_swap_order(self, market: object, type: object, side: object, amount: object, price: Num = None, marginMode: Str = None, params={}):
+    def create_swap_order(self, market: object, type: object, side: object, amount: object, price: Num = None, marginMode: Str = None, params={}) -> Order:
         """
  @ignore
         create a trade order
@@ -5591,7 +5591,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_transaction_fees(response, codes)
 
-    def parse_transaction_fees(self, response: list[object], codes: Strings = None) -> dict:
+    def parse_transaction_fees(self, response: list[dict], codes: Strings = None) -> dict:
         withdrawFees = {}
         for i in range(0, len(response)):
             entry = response[i]

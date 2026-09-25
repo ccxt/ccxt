@@ -974,7 +974,7 @@ class onetrading(ccxt.async_support.onetrading):
         # update balance
         balanceKeys = ['locked', 'unlocked', 'spent', 'spent_on_fees', 'credited', 'deducted']
         for i in range(0, len(balanceKeys)):
-            newBalance = self.safe_value(update, balanceKeys[i])
+            newBalance = self.safe_dict(update, balanceKeys[i])
             if newBalance is not None:
                 self.update_balance(newBalance)
         client.resolve(self.balance, 'balance')

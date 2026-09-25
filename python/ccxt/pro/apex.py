@@ -256,7 +256,7 @@ class apex(ccxt.async_support.apex):
             message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    def get_ws_public_url(self):
+    def get_ws_public_url(self) -> str:
         # apex appends a millisecond timestamp to the WS URL for connection-time
         # signing. CCXT's client manager keys clients by URL, so recomputing the
         # timestamp on every watch* call would open a new connection each time.
@@ -268,7 +268,7 @@ class apex(ccxt.async_support.apex):
             self.options['wsPublicUrl'] = url
         return url
 
-    def get_ws_private_url(self):
+    def get_ws_private_url(self) -> str:
         url = self.safe_string(self.options, 'wsPrivateUrl')
         if url is None:
             timeStamp = str(self.milliseconds())

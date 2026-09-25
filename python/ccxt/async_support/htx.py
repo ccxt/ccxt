@@ -3043,7 +3043,7 @@ class htx(Exchange, ImplicitAPI):
         #
         typeId = self.safe_string(account, 'type')
         accountsById = self.safe_dict(self.options, 'accountsById', {})
-        type = self.safe_value(accountsById, typeId, typeId)
+        type = self.safe_string(accountsById, typeId, typeId)
         return {
             'info': account,
             'id': self.safe_string(account, 'id'),
@@ -3218,7 +3218,7 @@ class htx(Exchange, ImplicitAPI):
         keysLength = len(keys)
         if keysLength == 0:
             raise ExchangeError(self.id + ' networkIdToCode() - markets need to be loaded at first')
-        networkTitle = self.safe_value(self.options['networkNamesByChainIds'], networkId, networkId)
+        networkTitle = self.safe_string(self.options['networkNamesByChainIds'], networkId, networkId)
         return super(htx, self).network_id_to_code(networkTitle, currencyCode)
 
     def network_code_to_id(self, networkCode: Str, currencyCode: Str = None) -> Str:
@@ -3235,7 +3235,7 @@ class htx(Exchange, ImplicitAPI):
             return uniqueNetworkIds[networkCode]
         else:
             networkTitle = super(htx, self).network_code_to_id(networkCode, currencyCode)
-            return self.safe_value(uniqueNetworkIds, networkTitle, networkTitle)
+            return self.safe_string(uniqueNetworkIds, networkTitle, networkTitle)
 
     async def fetch_balance(self, params: dict = {}) -> Balances:
         """
@@ -5737,7 +5737,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_cancel_orders(data)
 
-    def parse_cancel_orders(self, orders: object):
+    def parse_cancel_orders(self, orders: dict):
         #
         #    {
         #        "success": [

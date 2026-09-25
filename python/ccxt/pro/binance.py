@@ -280,7 +280,7 @@ class binance(ccxt.async_support.binance):
             return 'public'
         return 'market'
 
-    def get_private_ws_url(self, type: Str, listenKey: Str):
+    def get_private_ws_url(self, type: Str, listenKey: Str) -> str:
         if type == 'future':
             return self.get_ws_url(type, 'private') + '?listenKey=' + listenKey
         return self.urls['api']['ws'][type] + '/' + listenKey
@@ -455,7 +455,7 @@ class binance(ccxt.async_support.binance):
         client.resolve([liquidation], 'liquidations')
         client.resolve([liquidation], 'liquidations::' + symbol)
 
-    def parse_ws_liquidation(self, liquidation: object, market: Market = None):
+    def parse_ws_liquidation(self, liquidation: dict, market: Market = None):
         #
         # future
         #    {
@@ -599,7 +599,7 @@ class binance(ccxt.async_support.binance):
             return newLiquidations
         return self.filter_by_symbols_since_limit(self.liquidations, symbols, since, limit)
 
-    def handle_my_liquidation(self, client: Client, message: object):
+    def handle_my_liquidation(self, client: Client, message: dict):
         #
         #    {
         #        "s":"BTCUSDT",              // Symbol
@@ -1087,7 +1087,7 @@ class binance(ccxt.async_support.binance):
             # fetch the snapshot in a separate async call
             self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
-    def handle_subscription_status(self, client: Client, message: object):
+    def handle_subscription_status(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "result": null,
@@ -2275,7 +2275,7 @@ class binance(ccxt.async_support.binance):
             newDict[result['symbol']] = result
             return newDict
 
-    def parse_ws_ticker(self, message: object, marketType: object):
+    def parse_ws_ticker(self, message: object, marketType: object) -> Ticker:
         # markPrice
         #   {
         #       "e": "markPriceUpdate",   // Event type
@@ -2615,7 +2615,7 @@ class binance(ccxt.async_support.binance):
             client.reject(e, messageHash)
             raise e
 
-    def handle_user_data_stream_subscribe(self, client: Client, message: object):
+    def handle_user_data_stream_subscribe(self, client: Client, message: dict):
         #
         #   {
         #     "id": 1,
@@ -3360,7 +3360,7 @@ class binance(ccxt.async_support.binance):
         # index it positionally instead, so no receiver is declared-but-unread
         return [type, subType, params]
 
-    def get_market_type(self, method: object, market: object, params: dict = {}):
+    def get_market_type(self, method: object, market: object, params: dict = {}) -> str:
         type = None
         type, params = self.handle_market_type_and_params(method, market, params)
         subType = None
@@ -4698,7 +4698,7 @@ class binance(ccxt.async_support.binance):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, accountType + ':positions')
 
-    def parse_ws_position(self, position: object, market: Market = None):
+    def parse_ws_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "s": "BTCUSDT", // Symbol
@@ -5072,7 +5072,7 @@ class binance(ccxt.async_support.binance):
                 fee = self.safe_value(order, 'fee')
                 if fee is not None:
                     parsed['fee'] = fee
-                fees = self.safe_value(order, 'fees')
+                fees = self.safe_list(order, 'fees')
                 if fees is not None:
                     parsed['fees'] = fees
                 parsed['trades'] = self.safe_value(order, 'trades')
@@ -5090,7 +5090,7 @@ class binance(ccxt.async_support.binance):
         self.handle_balance(client, message)
         self.handle_positions(client, message)
 
-    def handle_options_account_update(self, client: Client, message: object):
+    def handle_options_account_update(self, client: Client, message: dict):
         #
         # BALANCE_POSITION_UPDATE (options user data stream)
         #
@@ -5157,7 +5157,7 @@ class binance(ccxt.async_support.binance):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, accountType + ':positions')
 
-    def handle_ws_error(self, client: Client, message: object):
+    def handle_ws_error(self, client: Client, message: dict):
         #
         #    {
         #        "error": {
@@ -5196,7 +5196,7 @@ class binance(ccxt.async_support.binance):
         if (codeString is not None) and (codeString[0] == '5'):
             client.reset(message)
 
-    def handle_event_stream_terminated(self, client: Client, message: object):
+    def handle_event_stream_terminated(self, client: Client, message: dict):
         #
         #    {
         #        e: 'eventStreamTerminated',

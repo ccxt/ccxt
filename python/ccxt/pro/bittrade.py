@@ -342,7 +342,7 @@ class bittrade(ccxt.async_support.bittrade):
         try:
             symbol = self.safe_string(subscription, 'symbol')
             limit = self.safe_integer(subscription, 'limit')
-            params = self.safe_value(subscription, 'params')
+            params = self.safe_dict(subscription, 'params')
             api = self.safe_string(self.options, 'api', 'api')
             hostname = {'hostname': self.hostname}
             url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)

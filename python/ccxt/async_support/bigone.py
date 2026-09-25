@@ -1102,7 +1102,7 @@ class bigone(Exchange, ImplicitAPI):
             result.append([self.parse_number(price), self.parse_number(amount)])
         return result
 
-    def parse_contract_order_book(self, orderbook: object, symbol: str, limit: Int = None) -> OrderBook:
+    def parse_contract_order_book(self, orderbook: dict, symbol: str, limit: Int = None) -> OrderBook:
         responseBids = self.safe_dict(orderbook, 'bids')
         responseAsks = self.safe_dict(orderbook, 'asks')
         bids = self.parse_contract_bids_asks(responseBids)
