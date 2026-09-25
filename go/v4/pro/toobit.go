@@ -343,7 +343,7 @@ func (this *Toobit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchOHLCV")
+	params["callerMethodName"] = "watchOHLCV"
 
 	var result map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, since, limit, params))))
 

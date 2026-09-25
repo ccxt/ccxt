@@ -2015,7 +2015,7 @@ func (this *Mexc) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	if ccxt.GetValue(market, "spot") == true {
 		channel = ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"])
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
-		ccxt.AddElementToObject(params, "unsubscribed", true)
+		params["unsubscribed"] = true
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, params)
 	} else {
 		channel = "unsub.ticker"
@@ -2175,7 +2175,7 @@ func (this *Mexc) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	if ccxt.GetValue(market, "spot") == true {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("spot@public.kline.v3.api.pb@", market["id"]), "@"), timeframeId))
-		ccxt.AddElementToObject(params, "unsubscribed", true)
+		params["unsubscribed"] = true
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, params)
 	} else {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap")
@@ -2271,7 +2271,7 @@ func (this *Mexc) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	if ccxt.GetValue(market, "spot") == true {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.deals.v3.api.pb@100ms@", market["id"]))
-		ccxt.AddElementToObject(params, "unsubscribed", true)
+		params["unsubscribed"] = true
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, params)
 	} else {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap")

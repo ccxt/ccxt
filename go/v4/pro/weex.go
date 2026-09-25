@@ -869,7 +869,7 @@ func (this *Weex) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = timeframe
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "unWatchOHLCV")
+	params["callerMethodName"] = "unWatchOHLCV"
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)))
 	return nil

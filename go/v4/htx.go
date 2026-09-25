@@ -6458,7 +6458,7 @@ func (this *Htx) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost 
 	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
-	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
+	params["createMarketBuyOrderRequiresPrice"] = false
 
 	var retRes504015 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
 	ch <- BoxAbsent(retRes504015)

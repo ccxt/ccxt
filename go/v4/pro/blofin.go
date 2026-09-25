@@ -109,7 +109,7 @@ func (this *Blofin) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
+	params["callerMethodName"] = "watchTrades"
 
 	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
@@ -224,7 +224,7 @@ func (this *Blofin) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchOrderBook")
+	params["callerMethodName"] = "watchOrderBook"
 
 	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
@@ -338,7 +338,7 @@ func (this *Blofin) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchTicker")
+	params["callerMethodName"] = "watchTicker"
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 
@@ -538,7 +538,7 @@ func (this *Blofin) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchOHLCV")
+	params["callerMethodName"] = "watchOHLCV"
 
 	var result map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, since, limit, params))))
 
@@ -724,7 +724,7 @@ func (this *Blofin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	ccxt.AddElementToObject(params, "callerMethodName", "watchOrders")
+	params["callerMethodName"] = "watchOrders"
 	var symbolsArray any = func() any {
 		if symbol != nil {
 			return []any{symbol}

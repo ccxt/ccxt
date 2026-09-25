@@ -2877,7 +2877,7 @@ func (this *Bithumb) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	AddElementToObject(params, "state", "done")
+	params["state"] = "done"
 
 	var orders []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, params))))
 
@@ -2916,7 +2916,7 @@ func (this *Bithumb) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	AddElementToObject(params, "state", "cancel")
+	params["state"] = "cancel"
 
 	var orders []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, params))))
 

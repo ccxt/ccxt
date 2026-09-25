@@ -9947,7 +9947,7 @@ func (this *Exchange) createTrailingAmountOrderWsBody(ch chan any, symbol any, t
 	}
 	AddElementToObject(params, "trailingAmount", trailingAmount)
 	if trailingTriggerPrice != nil {
-		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
+		params["trailingTriggerPrice"] = *trailingTriggerPrice
 	}
 	if !IsEqual(this.Has["createTrailingAmountOrderWs"], nil) && !IsEqual(this.Has["createTrailingAmountOrderWs"], false) {
 
@@ -9991,7 +9991,7 @@ func (this *Exchange) createTrailingPercentOrderWsBody(ch chan any, symbol any, 
 	}
 	AddElementToObject(params, "trailingPercent", trailingPercent)
 	if trailingTriggerPrice != nil {
-		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
+		params["trailingTriggerPrice"] = *trailingTriggerPrice
 	}
 	if !IsEqual(this.Has["createTrailingPercentOrderWs"], nil) && !IsEqual(this.Has["createTrailingPercentOrderWs"], false) {
 
@@ -10772,7 +10772,7 @@ func (this *Exchange) createTrailingAmountOrderBody(ch chan any, symbol any, typ
 	}
 	AddElementToObject(params, "trailingAmount", trailingAmount)
 	if trailingTriggerPrice != nil {
-		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
+		params["trailingTriggerPrice"] = *trailingTriggerPrice
 	}
 	if !IsEqual(this.Has["createTrailingAmountOrder"], nil) && !IsEqual(this.Has["createTrailingAmountOrder"], false) {
 
@@ -10816,7 +10816,7 @@ func (this *Exchange) createTrailingPercentOrderBody(ch chan any, symbol any, ty
 	}
 	AddElementToObject(params, "trailingPercent", trailingPercent)
 	if trailingTriggerPrice != nil {
-		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
+		params["trailingTriggerPrice"] = *trailingTriggerPrice
 	}
 	if !IsEqual(this.Has["createTrailingPercentOrder"], nil) && !IsEqual(this.Has["createTrailingPercentOrder"], false) {
 
