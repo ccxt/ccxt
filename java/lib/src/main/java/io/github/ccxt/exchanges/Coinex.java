@@ -4928,7 +4928,7 @@ public class Coinex extends CoinexApi
             }
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
-            var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
+            Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 request.put("chain", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")))); // required for on-chain, not required for inter-user transfer
@@ -5340,7 +5340,7 @@ public class Coinex extends CoinexApi
             }
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarginMode), 1);
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            var paramsUntil = ((List<Object>) requestUntilparamsUntilVariable).get(1);
             Map<String, Object> response = (this.v2PrivateGetAssetsTransferHistory(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {

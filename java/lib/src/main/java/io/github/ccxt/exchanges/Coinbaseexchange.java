@@ -1582,7 +1582,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 request.put("granularity", java.util.Objects.requireNonNullElse(timeframe, "1m"));
             }
             Object until = this.safeValue2(paramsPaginate, "until", "end");
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             // https://docs.pro.coinbase.com/#get-historic-rates max = 300
             Object cappedLimit = (((java.util.Objects.equals(limit, null)))) ? 300 : Math.min(300, limit);
             Object limitResolved = (((!java.util.Objects.equals(since, null)))) ? cappedLimit : limit;

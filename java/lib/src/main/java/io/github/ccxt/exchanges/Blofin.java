@@ -2227,7 +2227,7 @@ public class Blofin extends BlofinApi
             List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsPaginate, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
             String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
             Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
-            Object query = this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
+            Map<String, Object> query = (Map<String, Object>) this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(isTpSl, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslPending")))
             {
@@ -3285,10 +3285,10 @@ public class Blofin extends BlofinApi
                 throw new ArgumentsRequired((this.id + " fetchLeverages() requires a symbols argument")) ;
             }
             String marginMode = null;
-            Object query = null;
+            Map<String, Object> query = null;
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverages", parameters, (String) null);
             marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
-            query = ((List<Object>) marginModequeryVariable).get(1);
+            query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 marginMode = this.safeString(query, "marginMode", "cross"); // cross as default marginMode
@@ -3356,10 +3356,10 @@ public class Blofin extends BlofinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String marginMode = null;
-            Object query = null;
+            Map<String, Object> query = null;
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters, (String) null);
             marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
-            query = ((List<Object>) marginModequeryVariable).get(1);
+            query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 marginMode = this.safeString(query, "marginMode", "cross"); // cross as default marginMode
@@ -3548,7 +3548,7 @@ public class Blofin extends BlofinApi
             List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsPaginate, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
             String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
             Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
-            Object query = this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
+            Map<String, Object> query = (Map<String, Object>) this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(isTrigger, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslHistory")))
             {

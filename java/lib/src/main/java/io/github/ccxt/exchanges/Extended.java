@@ -1615,7 +1615,7 @@ public class Extended extends ExtendedApi
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Long until = this.safeInteger(paramsPaginate, "until", this.milliseconds());
             Long endTime = this.safeInteger(paramsPaginate, "endTime", until);
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(Helpers.multiply(limitResolved, 60), 60), 1000))) : since;
             Map<String, Object> request = Helpers.newMap(
                 "market", market.get("id"),
@@ -3152,10 +3152,10 @@ public class Extended extends ExtendedApi
                 paramsBuilder = this.omit(parameters, new ArrayList<Object>(Arrays.asList("builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId")));
             } else
             {
-                Object paramsBuilderFeeRate = null;
+                Map<String, Object> paramsBuilderFeeRate = null;
                 List<Object> builderFeeRateparamsBuilderFeeRateVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
                 builderFeeRate = (String) ((List<Object>) builderFeeRateparamsBuilderFeeRateVariable).get(0);
-                paramsBuilderFeeRate = ((List<Object>) builderFeeRateparamsBuilderFeeRateVariable).get(1);
+                paramsBuilderFeeRate = (Map<String, Object>) ((List<Object>) builderFeeRateparamsBuilderFeeRateVariable).get(1);
                 List<Object> builderIdparamsBuilderVariable = (List<Object>) this.handleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId", (String) null);
                 builderId = (String) ((List<Object>) builderIdparamsBuilderVariable).get(0);
                 paramsBuilder = ((List<Object>) builderIdparamsBuilderVariable).get(1);

@@ -2857,7 +2857,7 @@ public class Upbit extends UpbitApi
                 {
                     throw new ArgumentsRequired((this.id + " withdraw() requires a network argument")) ;
                 }
-                Object paramsOmitted = this.omit(paramsTag, new ArrayList<Object>(Arrays.asList("network")));
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsTag, new ArrayList<Object>(Arrays.asList("network")));
                 request.put("net_type", network);
                 request.put("currency", currency.get("id"));
                 request.put("address", address);

@@ -205,8 +205,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Integer symbolsLength = ((List<?>)symbolsList).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTickers");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
-            var paramsCallerMethodName = ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Object paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
+            Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsCallerMethodName, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -265,8 +265,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Integer symbolsLength = ((List<?>)symbolsList).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchTickers");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
-            var paramsCallerMethodName = ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Object paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
+            Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsCallerMethodName, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -367,8 +367,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Integer symbolsLength = ((List<?>)symbolsList).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchMarkPrices");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
-            var paramsCallerMethodName = ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Object paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
+            Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsCallerMethodName, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -432,8 +432,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Integer symbolsLength = ((List<?>)symbolsList).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchMarkPrices");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
-            var paramsCallerMethodName = ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Object paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
+            Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsCallerMethodName, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -779,8 +779,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Integer symbolsLength = ((List<?>)symbolsNormalized).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
-            var paramsCallerMethodName = ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Object paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
+            Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsCallerMethodName, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -839,8 +839,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Integer symbolsLength = ((List<?>)symbolsNormalized).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchTradesForSymbols");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
-            var paramsCallerMethodName = ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Object paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
+            Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsCallerMethodName, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -1140,8 +1140,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Integer symbolsLength = ((List<?>)symbolsNormalized).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
-            var paramsCallerMethodName = ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Object paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
+            Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsCallerMethodName, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -1199,8 +1199,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Integer symbolsLength = ((List<?>)symbolsNormalized).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
-            var paramsCallerMethodName = ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Object paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
+            Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsCallerMethodName, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -1213,7 +1213,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 put( "params", subscriptionArgs );
             }};
             Object limit = this.safeNumber(paramsOmitted, "limit", (Object) null);
-            Object paramsOmitted2 = this.omit(paramsOmitted, "limit");
+            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, "limit");
             if (java.util.Objects.equals(limit, null) || (!Helpers.isEqual(limit, 5) && !Helpers.isEqual(limit, 10) && !Helpers.isEqual(limit, 20)))
             {
                 limit = 20;
@@ -1349,8 +1349,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOHLCVForSymbols");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
-            var paramsCallerMethodName = ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Object paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
+            Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsCallerMethodName, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
@@ -1425,8 +1425,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
             List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
             String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
-            var paramsCallerMethodName = ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-            Object paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
+            Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsCallerMethodName, "callerMethodName");
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;

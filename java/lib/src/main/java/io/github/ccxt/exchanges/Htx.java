@@ -3751,7 +3751,7 @@ public class Htx extends HtxApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            Object paramsUntil = null;
+            Map<String, Object> paramsUntil = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -3771,7 +3771,7 @@ public class Htx extends HtxApi
                 }
                 List<Object> requestparamsUntilVariable = (List<Object>) this.handleUntilOption("end-time", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
                 request = (Map<String, Object>) ((List<Object>) requestparamsUntilVariable).get(0);
-                paramsUntil = ((List<Object>) requestparamsUntilVariable).get(1);
+                paramsUntil = (Map<String, Object>) ((List<Object>) requestparamsUntilVariable).get(1);
                 response = (this.spotPrivateGetV1OrderMatchresults(this.extend(request, paramsUntil))).join();
             } else
             {
@@ -3785,7 +3785,7 @@ public class Htx extends HtxApi
                 }
                 List<Object> requestparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
                 request = (Map<String, Object>) ((List<Object>) requestparamsUntilVariable).get(0);
-                paramsUntil = ((List<Object>) requestparamsUntilVariable).get(1);
+                paramsUntil = (Map<String, Object>) ((List<Object>) requestparamsUntilVariable).get(1);
                 if (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true))
                 {
                     request.put("contract_code", this.safeString(market, "id"));
@@ -4076,7 +4076,7 @@ public class Htx extends HtxApi
                 put( "period", Htx.this.safeString(Htx.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             String priceType = this.safeString2(paramsPaginate, "priceType", "price");
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("priceType", "price")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("priceType", "price")));
             List<Object> untilparamsUntilVariable = (List<Object>) this.handleParamInteger(paramsOmitted, "until", (Long) null);
             Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
@@ -4187,7 +4187,7 @@ public class Htx extends HtxApi
                 request.put("symbol", market.get("id"));
                 List<Object> useHistoricalparamsHistoricalVariable = (List<Object>) this.handleOptionBoolAndParams(paramsUntil, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
                 Boolean useHistorical = (Boolean) ((List<Object>) useHistoricalparamsHistoricalVariable).get(0);
-                var paramsHistorical = ((List<Object>) useHistoricalparamsHistoricalVariable).get(1);
+                Map<String, Object> paramsHistorical = (Map<String, Object>) ((List<Object>) useHistoricalparamsHistoricalVariable).get(1);
                 if (!Boolean.TRUE.equals(useHistorical))
                 {
                     if (!java.util.Objects.equals(limit, null))
@@ -4907,7 +4907,7 @@ public class Htx extends HtxApi
                 Boolean takeProfit = (Boolean) this.safeBool(paramsMarketType, "takeProfit", (Object) null);
                 Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", (Object) null);
                 Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
-                Object paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
                 String clientOrderId = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
                 Object paramsClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id"))) : paramsOmitted;
                 if (java.util.Objects.equals(clientOrderId, null))
@@ -5230,7 +5230,7 @@ public class Htx extends HtxApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object paramsUntil = null;
+            Map<String, Object> paramsUntil = null;
             Map<String, Object> response = null;
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
             Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit", (Object) null);
@@ -5245,14 +5245,14 @@ public class Htx extends HtxApi
             }
             List<Object> requestparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
             request = (Map<String, Object>) ((List<Object>) requestparamsUntilVariable).get(0);
-            paramsUntil = ((List<Object>) requestparamsUntilVariable).get(1);
+            paramsUntil = (Map<String, Object>) ((List<Object>) requestparamsUntilVariable).get(1);
             if (java.util.Objects.equals(market.get("linear"), true))
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
                     request.put("limit", limit);
                 }
-                List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchContractOrders", Helpers.toMapArg(paramsUntil), (String) null);
+                List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchContractOrders", paramsUntil, (String) null);
                 String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
                 Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
                 request.put("margin_mode", (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode);
@@ -5591,7 +5591,7 @@ public class Htx extends HtxApi
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -5624,7 +5624,7 @@ public class Htx extends HtxApi
                 {
                     request.put("size", limit);
                 }
-                Object paramsOmitted = this.omit(paramsSubType, "account-id");
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "account-id");
                 response = (this.spotPrivateGetV1OrderOpenOrders(this.extend(request, paramsOmitted))).join();
             } else
             {
@@ -5648,7 +5648,7 @@ public class Htx extends HtxApi
                 Boolean stopLoss = (Boolean) this.safeBool(paramsSubType, "stopLoss", (Object) null);
                 Boolean takeProfit = (Boolean) this.safeBool(paramsSubType, "takeProfit", (Object) null);
                 Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
-                Object paramsOmitted = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
                 if (Boolean.TRUE.equals(isLinear))
                 {
                     if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(trailing, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)))
@@ -7812,7 +7812,7 @@ public class Htx extends HtxApi
                 Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", (Object) null);
                 Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsMarketType, "stopLossTakeProfit", (Object) null);
                 Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", false);
-                Object paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
                 if (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true))
                 {
                     response = (this.contractPrivatePostV5TradeCancelAllOrders(this.extend(request, paramsOmitted))).join();
@@ -8374,7 +8374,7 @@ public class Htx extends HtxApi
             }
             List<Object> networkCodeparamsNetworkVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsTag);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkVariable).get(0);
-            var paramsNetwork = ((List<Object>) networkCodeparamsNetworkVariable).get(1);
+            Map<String, Object> paramsNetwork = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 request.put("chain", this.networkCodeToId(networkCode, code));
@@ -8543,7 +8543,7 @@ public class Htx extends HtxApi
             );
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("transfer", (Map<String, Object>) null, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Object fromAccountId = this.convertTypeToAccount(fromAccount);
             Object toAccountId = this.convertTypeToAccount(toAccount);
             Boolean toCross = java.util.Objects.equals(toAccountId, "cross");

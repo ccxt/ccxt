@@ -1371,11 +1371,11 @@ public class Binance extends BinanceApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100L);
             Long maxEntriesPerRequest = (Long) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(0);
-            var paramsMaxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(1);
+            Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(1);
             String pageKey = "ccxtPageKey";
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, Helpers.toMapArg(paramsMaxEntriesPerRequest), pageKey, maxEntriesPerRequest)).join();
+                return (this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
             Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1399,12 +1399,12 @@ public class Binance extends BinanceApi
                 request.put("startDate", this.yyyymmdd(since));
             }
             Long until = this.safeInteger(paramsMaxEntriesPerRequest, "until");
-            Object paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "until");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMaxEntriesPerRequest, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endDate", this.yyyymmdd(until));
             }
-            Object wallet = (this.fetchWallet("fetchOrders", Helpers.toMapArg(paramsOmitted))).join();
+            Object wallet = (this.fetchWallet("fetchOrders", paramsOmitted)).join();
             request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted))).join();
             //
@@ -1674,11 +1674,11 @@ public class Binance extends BinanceApi
             paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100L);
             Long maxEntriesPerRequest = (Long) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(0);
-            var paramsMaxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(1);
+            Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(1);
             String pageKey = "ccxtPageKey";
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, Helpers.toMapArg(paramsMaxEntriesPerRequest), pageKey, maxEntriesPerRequest)).join();
+                return (this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
             Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1704,12 +1704,12 @@ public class Binance extends BinanceApi
                 request.put("startDate", this.yyyymmdd(since));
             }
             Long until = this.safeInteger(paramsMaxEntriesPerRequest, "until");
-            Object paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "until");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMaxEntriesPerRequest, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endDate", this.yyyymmdd(until));
             }
-            Object wallet = (this.fetchWallet("fetchMyTrades", Helpers.toMapArg(paramsOmitted))).join();
+            Object wallet = (this.fetchWallet("fetchMyTrades", paramsOmitted)).join();
             request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted))).join();
             //

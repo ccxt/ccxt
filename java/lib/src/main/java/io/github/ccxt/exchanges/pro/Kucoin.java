@@ -2353,10 +2353,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             } else
             {
                 Boolean trigger = (Boolean) this.safeBool2(paramsUta, "stop", "trigger", (Object) null);
-                Object paramsOmitted = this.omit(paramsUta, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-                List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, Helpers.toMapArg(paramsOmitted), (Object) null);
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUta, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+                List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, (Object) null);
                 String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-                Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+                var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
                 Object isFuturesMethod = ((!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin")));
                 Object url = (this.negotiate(true, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
                 Object topic = "/spotMarket/tradeOrders";
@@ -3055,7 +3055,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
             List<Object> utaOptionparamsUtaVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchBalance", "uta", uta);
             Boolean utaOption = (Boolean) ((List<Object>) utaOptionparamsUtaVariable).get(0);
-            var paramsUta = ((List<Object>) utaOptionparamsUtaVariable).get(1);
+            Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             String defaultType = "spot";
             if (Boolean.TRUE.equals(utaOption))
             {
@@ -3067,7 +3067,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 defaultType = this.safeString(this.options, "defaultType", defaultType);
                 type = this.safeString(paramsUta, "type", defaultType);
             }
-            Object paramsOmitted = this.omit(paramsUta, "type");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUta, "type");
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String uniformType = this.safeString(accountsByType, type, type);
             Object isClassicFuturesMethod = (java.util.Objects.equals(uniformType, "contract"));

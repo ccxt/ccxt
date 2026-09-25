@@ -1316,7 +1316,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("limit", limit);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_time", until);
@@ -1410,7 +1410,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("count", limit);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_ts", until);
@@ -1490,7 +1490,7 @@ public class Cryptocom extends CryptocomApi
             Object now = this.microseconds();
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long until = this.safeInteger(paramsPaginate, "until", now);
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start_ts", (since - (((long) duration) * 1000L)));
@@ -1774,7 +1774,7 @@ public class Cryptocom extends CryptocomApi
         Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
         List<Object> marginModeparamsValueVariable = (List<Object>) this.customHandleMarginModeAndParams("createOrder", paramsMarketType);
         String marginMode = (String) ((List<Object>) marginModeparamsValueVariable).get(0);
-        var paramsValue = ((List<Object>) marginModeparamsValueVariable).get(1);
+        Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) marginModeparamsValueVariable).get(1);
         if ((java.util.Objects.equals(marketType, "margin")) || (!java.util.Objects.equals(marginMode, null)))
         {
             request.put("spot_margin", "MARGIN");
@@ -1882,7 +1882,7 @@ public class Cryptocom extends CryptocomApi
         {
             request.put("type", uppercaseType);
         }
-        Object paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
+        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 
@@ -2157,7 +2157,7 @@ public class Cryptocom extends CryptocomApi
             String quoteAmount = null;
             List<Object> createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable).get(0);
-            var paramsCreateMarketBuy = ((List<Object>) createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable).get(1);
+            Map<String, Object> paramsCreateMarketBuy = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable).get(1);
             Double cost = this.safeNumber2(paramsCreateMarketBuy, "cost", "notional", (Object) null);
             paramsMarketBuy = this.omit(paramsCreateMarketBuy, "cost");
             if (!java.util.Objects.equals(cost, null))
@@ -2530,7 +2530,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("limit", limit);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_time", until);
@@ -2627,7 +2627,7 @@ public class Cryptocom extends CryptocomApi
             }
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
-            var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
+            Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             Object networkId = this.networkCodeToId(networkCode, code);
             if (!java.util.Objects.equals(networkId, null))
             {
@@ -3309,10 +3309,10 @@ public class Cryptocom extends CryptocomApi
         Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
         Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "margin");
         String marginMode = null;
-        Object paramsMarginMode = null;
+        Map<String, Object> paramsMarginMode = null;
         List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams(methodName, paramsOmitted, (String) null);
         marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-        paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+        paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
         if (!java.util.Objects.equals(marginMode, null))
         {
             if (!java.util.Objects.equals(marginMode, "cross"))
@@ -3702,10 +3702,10 @@ public class Cryptocom extends CryptocomApi
                 market = this.market(symbol);
             }
             String type = null;
-            Object paramsMarketType = null;
+            Map<String, Object> paramsMarketType = null;
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters, (Object) null);
             type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             this.checkRequiredArgument("fetchSettlementHistory", type, "type", new ArrayList<Object>(Arrays.asList("future", "option", "WARRANT", "FUTURE")));
             if (java.util.Objects.equals(type, "option"))
             {
@@ -3922,7 +3922,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("count", limit);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_ts", until);

@@ -2395,7 +2395,7 @@ public class Hashkey extends HashkeyApi
             }
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
-            var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
+            Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 request.put("chainType", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))));
@@ -3106,10 +3106,10 @@ public class Hashkey extends HashkeyApi
         request.put("side", (((String)((String)side)).toUpperCase() + suffix));
         List<Object> timeInForceParamparamsTimeInForceVariable = (List<Object>) this.handleParamString(paramsReduceOnly, "timeInForce", (String) null);
         String timeInForceParam = (String) ((List<Object>) timeInForceParamparamsTimeInForceVariable).get(0);
-        var paramsTimeInForce = ((List<Object>) timeInForceParamparamsTimeInForceVariable).get(1);
+        Map<String, Object> paramsTimeInForce = (Map<String, Object>) ((List<Object>) timeInForceParamparamsTimeInForceVariable).get(1);
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForceParam, "LIMIT_MAKER"), paramsTimeInForce);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         String timeInForce = timeInForceParam;
         if (Helpers.isTrue(postOnly))
         {
@@ -3592,7 +3592,7 @@ public class Hashkey extends HashkeyApi
             List<Object> response = null;
             List<Object> accountIdparamsAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(paramsMethodName, methodNameOption, "accountId", (String) null);
             String accountId = (String) ((List<Object>) accountIdparamsAccountIdVariable).get(0);
-            var paramsAccountId = ((List<Object>) accountIdparamsAccountIdVariable).get(1);
+            Map<String, Object> paramsAccountId = (Map<String, Object>) ((List<Object>) accountIdparamsAccountIdVariable).get(1);
             if (!java.util.Objects.equals(accountId, null))
             {
                 request.put("subAccountId", accountId);

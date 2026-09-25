@@ -3741,7 +3741,7 @@ public class Coinbase extends CoinbaseApi
                     String total = null;
                     List<Object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(0);
-                    var paramsRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(1);
+                    Map<String, Object> paramsRequiresPrice = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(1);
                     Double cost = this.safeNumber(paramsRequiresPrice, "cost", (Object) null);
                     paramsMarketBuy = this.omit(paramsRequiresPrice, "cost");
                     if (!java.util.Objects.equals(cost, null))
@@ -4575,7 +4575,7 @@ public class Coinbase extends CoinbaseApi
                 put( "granularity", Coinbase.this.safeString(Coinbase.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end");
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Object requestedDuration = Helpers.multiply(limitValue, duration);
             String sinceString = null;
@@ -4967,14 +4967,14 @@ public class Coinbase extends CoinbaseApi
                 put( "currency", currency.get("id") );
             }};
             String accountId = this.safeString2(paramsWithdrawTag, "account_id", "accountId");
-            Object paramsOmitted = this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
             if (java.util.Objects.equals(accountId, null))
             {
                 if (java.util.Objects.equals(code, null))
                 {
                     throw new ArgumentsRequired((this.id + " withdraw() requires an account_id (or accountId) parameter OR a currency code argument")) ;
                 }
-                accountId = (this.findAccountId((String) (code), Helpers.toMapArg(paramsOmitted))).join();
+                accountId = (this.findAccountId((String) (code), paramsOmitted)).join();
                 if (java.util.Objects.equals(accountId, null))
                 {
                     throw new ExchangeError(((this.id + " withdraw() could not find account id for ") + code)) ;

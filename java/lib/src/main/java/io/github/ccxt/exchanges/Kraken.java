@@ -2684,7 +2684,7 @@ public class Kraken extends KrakenApi
         {
             request.put("oflags", flags);
         }
-        Object paramsOmitted3 = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset")));
+        Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset")));
         return new ArrayList<Object>(Arrays.asList(request, paramsOmitted3));
     }
 

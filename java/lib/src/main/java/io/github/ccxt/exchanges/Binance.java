@@ -6966,7 +6966,7 @@ public class Binance extends BinanceApi
             Integer maxLimit = 1000;
             String price = this.safeString(paramsPaginate, "price");
             Long until = this.safeInteger(paramsPaginate, "until");
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("price", "until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("price", "until")));
             Object limitRequested = limit;
             if (!java.util.Objects.equals(since, null) && !java.util.Objects.equals(until, null) && java.util.Objects.equals(limit, null))
             {
@@ -7462,7 +7462,7 @@ public class Binance extends BinanceApi
                 Integer maxLimitForContractHistorical = ((Boolean.TRUE.equals(isHistoricalEndpoint))) ? 500 : 1000;
                 request.put("limit", (((java.util.Objects.equals(isFutureOrSwap, true)))) ? Helpers.mathMin(limit, maxLimitForContractHistorical) : limit); // default = 500, maximum = 1000
             }
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until", "fetchTradesMethod")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until", "fetchTradesMethod")));
             if (java.util.Objects.equals(method, null))
             {
                 if (java.util.Objects.equals(market.get("option"), true))
@@ -9604,7 +9604,7 @@ public class Binance extends BinanceApi
                 request.put("icebergQty", this.amountToPrecision(symbol, icebergAmount));
             }
         }
-        Object requestParams = this.omit(paramsStp, omitKeys);
+        Map<String, Object> requestParams = (Map<String, Object>) this.omit(paramsStp, omitKeys);
         return (Map<String, Object>) (this.extend(request, requestParams));
     }
 
@@ -10445,7 +10445,7 @@ public class Binance extends BinanceApi
             Boolean isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparamsPapiVariable).get(0);
             Map<String, Object> paramsPapi = (Map<String, Object>) ((List<Object>) isPortfolioMarginparamsPapiVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(paramsPapi, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
-            Object paramsOmitted = this.omit(paramsPapi, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPapi, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Boolean isPortfolioMarginConditional = (Boolean.TRUE.equals(isPortfolioMargin) && Boolean.TRUE.equals(isConditional));
             String orderIdRequest = "orderId";
             if (java.util.Objects.equals(isPortfolioMarginConditional, true))
@@ -10682,10 +10682,10 @@ public class Binance extends BinanceApi
 
             Map<String, Object> market = null;
             Object stock = null;
-            Object paramsStock = null;
+            Map<String, Object> paramsStock = null;
             List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "stock", false);
             stock = ((List<Object>) stockparamsStockVariable).get(0);
-            paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
+            paramsStock = (Map<String, Object>) ((List<Object>) stockparamsStockVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -10696,10 +10696,10 @@ public class Binance extends BinanceApi
             }
             if (java.util.Objects.equals(stock, true))
             {
-                ((Map<String, Object>)paramsStock).put("stock", true);
-                ((Map<String, Object>)paramsStock).put("orderStatus", "FILLED");
+                paramsStock.put("stock", true);
+                paramsStock.put("orderStatus", "FILLED");
             }
-            List<Order> orders = (this.fetchOrders(symbol, since, (Long) null, Helpers.toMapArg(paramsStock))).join();
+            List<Order> orders = (this.fetchOrders(symbol, since, (Long) null, paramsStock)).join();
             List<Object> filteredOrders = this.filterBy(orders, "status", "closed");
             return this.filterBySinceLimit(filteredOrders, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -10737,10 +10737,10 @@ public class Binance extends BinanceApi
 
             Map<String, Object> market = null;
             Object stock = null;
-            Object paramsStock = null;
+            Map<String, Object> paramsStock = null;
             List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCanceledOrders", "stock", false);
             stock = ((List<Object>) stockparamsStockVariable).get(0);
-            paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
+            paramsStock = (Map<String, Object>) ((List<Object>) stockparamsStockVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -10751,10 +10751,10 @@ public class Binance extends BinanceApi
             }
             if (java.util.Objects.equals(stock, true))
             {
-                ((Map<String, Object>)paramsStock).put("stock", true);
-                ((Map<String, Object>)paramsStock).put("orderStatus", "CANCELED");
+                paramsStock.put("stock", true);
+                paramsStock.put("orderStatus", "CANCELED");
             }
-            List<Order> orders = (this.fetchOrders(symbol, since, (Long) null, Helpers.toMapArg(paramsStock))).join();
+            List<Order> orders = (this.fetchOrders(symbol, since, (Long) null, paramsStock)).join();
             List<Object> filteredOrders = this.filterBy(orders, "status", "canceled");
             return this.filterBySinceLimit(filteredOrders, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -10792,10 +10792,10 @@ public class Binance extends BinanceApi
 
             Map<String, Object> market = null;
             Object stock = null;
-            Object paramsStock = null;
+            Map<String, Object> paramsStock = null;
             List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "stock", false);
             stock = ((List<Object>) stockparamsStockVariable).get(0);
-            paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
+            paramsStock = (Map<String, Object>) ((List<Object>) stockparamsStockVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -10806,10 +10806,10 @@ public class Binance extends BinanceApi
             }
             if (java.util.Objects.equals(stock, true))
             {
-                ((Map<String, Object>)paramsStock).put("stock", true);
-                ((Map<String, Object>)paramsStock).put("orderStatus", "FILLED,CANCELED");
+                paramsStock.put("stock", true);
+                paramsStock.put("orderStatus", "FILLED,CANCELED");
             }
-            List<Order> orders = (this.fetchOrders(symbol, since, (Long) null, Helpers.toMapArg(paramsStock))).join();
+            List<Order> orders = (this.fetchOrders(symbol, since, (Long) null, paramsStock)).join();
             List<Object> canceledOrders = this.filterBy(orders, "status", "canceled");
             List<Object> closedOrders = this.filterBy(orders, "status", "closed");
             List<Object> filteredOrders = (List<Object>) this.arrayConcat(canceledOrders, closedOrders);
@@ -11813,19 +11813,19 @@ public class Binance extends BinanceApi
             }
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> currency = null;
             List<Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> legalMoney = (Map<String, Object>) this.safeDict(this.options, "legalMoney", new HashMap<String, Object>() {{}});
             Boolean fiatOnly = (Boolean) this.safeBool(paramsPaginate, "fiat", false);
-            Object paramsOmitted = this.omit(paramsPaginate, "fiatOnly");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, "fiatOnly");
             Long until = this.safeInteger(paramsOmitted, "until");
-            Object paramsOmitted2 = this.omit(paramsOmitted, "until");
+            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, "until");
             if ((java.util.Objects.equals(fiatOnly, true)) || ((!java.util.Objects.equals(code, null)) && (legalMoney.containsKey(code))))
             {
                 if (!java.util.Objects.equals(code, null))
@@ -12933,7 +12933,7 @@ public class Binance extends BinanceApi
             }
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
-            var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
+            Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 request.put("network", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))));
@@ -13431,15 +13431,15 @@ public class Binance extends BinanceApi
             }
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", market, paramsPaginate, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            Object paramsOmitted = this.omit(paramsSubType, "type");
+            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "type");
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
             }
             Long until = this.safeInteger(paramsOmitted, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(paramsOmitted, "endTime", until); // exchange-specific in milliseconds
-            Object paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if (!java.util.Objects.equals(endTime, null))
             {
                 request.put("endTime", endTime);
@@ -13515,8 +13515,8 @@ public class Binance extends BinanceApi
             String type = this.safeString(parameters, "type", defaultType);
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", (Map<String, Object>) null, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            Object query = this.omit(paramsSubType, "type");
+            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> query = (Map<String, Object>) this.omit(paramsSubType, "type");
             List<Object> response = null;
             if (this.isLinear(type, subType))
             {
@@ -14190,14 +14190,14 @@ public class Binance extends BinanceApi
                 String type = this.safeString(parameters, "type", defaultType);
                 Map<String, Object> query = (Map<String, Object>) this.omit(parameters, "type");
                 String subType = null;
-                Object paramsSubType = null;
+                Map<String, Object> paramsSubType = null;
                 List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("loadLeverageBrackets", (Map<String, Object>) null, parameters, "linear");
                 subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-                paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+                paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
                 Boolean isPortfolioMargin = null;
                 List<Object> isPortfolioMarginparamsSubTypeVariable = (List<Object>) this.handleOptionBoolAndParams2(paramsSubType, "loadLeverageBrackets", "papi", "portfolioMargin", false);
                 isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparamsSubTypeVariable).get(0);
-                paramsSubType = ((List<Object>) isPortfolioMarginparamsSubTypeVariable).get(1);
+                paramsSubType = (Map<String, Object>) ((List<Object>) isPortfolioMarginparamsSubTypeVariable).get(1);
                 List<Object> response = null;
                 if (this.isLinear(type, subType))
                 {
@@ -14603,10 +14603,10 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             String defaultMethod = null;
-            Object paramsMethod = null;
+            Map<String, Object> paramsMethod = null;
             List<Object> defaultMethodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositions", "method", (String) null);
             defaultMethod = (String) ((List<Object>) defaultMethodparamsMethodVariable).get(0);
-            paramsMethod = ((List<Object>) defaultMethodparamsMethodVariable).get(1); // check if there is a key in options|params
+            paramsMethod = (Map<String, Object>) ((List<Object>) defaultMethodparamsMethodVariable).get(1); // check if there is a key in options|params
             if (java.util.Objects.equals(defaultMethod, null))
             {
                 // check if .options['fetchPositions'] dict exist at all
@@ -14623,13 +14623,13 @@ public class Binance extends BinanceApi
             }
             if (java.util.Objects.equals(defaultMethod, "positionRisk"))
             {
-                return (this.fetchPositionsRisk(symbols, Helpers.toMapArg(paramsMethod))).join();
+                return (this.fetchPositionsRisk(symbols, paramsMethod)).join();
             } else if (java.util.Objects.equals(defaultMethod, "account"))
             {
-                return (this.fetchAccountPositions(symbols, Helpers.toMapArg(paramsMethod))).join();
+                return (this.fetchAccountPositions(symbols, paramsMethod)).join();
             } else if (java.util.Objects.equals(defaultMethod, "option"))
             {
-                return (this.fetchOptionPositions(symbols, Helpers.toMapArg(paramsMethod))).join();
+                return (this.fetchOptionPositions(symbols, paramsMethod)).join();
             } else
             {
                 throw new NotSupported((((this.id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"") + defaultMethod) + "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")) ;
@@ -14953,7 +14953,7 @@ public class Binance extends BinanceApi
             Map<String, Object> paramsPapi = (Map<String, Object>) ((List<Object>) isPortfolioMarginparamsPapiVariable).get(1);
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsPapi), 1);
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            var paramsUntil = ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)requestUntil).put("startTime", since);
@@ -14964,7 +14964,7 @@ public class Binance extends BinanceApi
             }
             String defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "future");
             String type = this.safeString(paramsUntil, "type", defaultType);
-            Object paramsOmitted = this.omit(paramsUntil, "type");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUntil, "type");
             List<Object> response = null;
             if (this.isLinear(type, subType))
             {
@@ -16902,16 +16902,16 @@ public class Binance extends BinanceApi
             }};
             Map<String, Object> response = null;
             Boolean isPortfolioMargin = null;
-            Object paramsPapi = null;
+            Map<String, Object> paramsPapi = null;
             List<Object> isPortfolioMarginparamsPapiVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "repayCrossMargin", "papi", "portfolioMargin", false);
             isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparamsPapiVariable).get(0);
-            paramsPapi = ((List<Object>) isPortfolioMarginparamsPapiVariable).get(1);
+            paramsPapi = (Map<String, Object>) ((List<Object>) isPortfolioMarginparamsPapiVariable).get(1);
             if (Boolean.TRUE.equals(isPortfolioMargin))
             {
                 String method = null;
                 List<Object> methodparamsPapiVariable = (List<Object>) this.handleOptionStringAndParams2(paramsPapi, "repayCrossMargin", "repayCrossMarginMethod", "method", (String) null);
                 method = (String) ((List<Object>) methodparamsPapiVariable).get(0);
-                paramsPapi = ((List<Object>) methodparamsPapiVariable).get(1);
+                paramsPapi = (Map<String, Object>) ((List<Object>) methodparamsPapiVariable).get(1);
                 if (java.util.Objects.equals(method, "papiPostMarginRepayDebt"))
                 {
                     response = (this.papiPostMarginRepayDebt(this.extend(request, paramsPapi))).join();
@@ -17152,7 +17152,7 @@ public class Binance extends BinanceApi
             }
             Long until = this.safeInteger(paramsPaginate, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(paramsPaginate, "endTime", until); // exchange-specific in milliseconds
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if ((!java.util.Objects.equals(endTime, null)) && ((endTime == null || endTime != 0)))
             {
                 request.put("endTime", endTime);
