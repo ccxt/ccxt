@@ -2655,7 +2655,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Object getNetworkCodeForCurrency(String currencyCode, Map<String, Object> parameters)
+    public String getNetworkCodeForCurrency(String currencyCode, Map<String, Object> parameters)
     {
         Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", (Object) null);
         String defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
@@ -2714,7 +2714,7 @@ public class Lbank extends LbankApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "assetCode", currency.get("id") );
             }};
-            Object network = this.getNetworkCodeForCurrency((String) (code), (Map<String, Object>) (parameters));
+            String network = this.getNetworkCodeForCurrency((String) (code), (Map<String, Object>) (parameters));
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
             if (!java.util.Objects.equals(network, null))
             {

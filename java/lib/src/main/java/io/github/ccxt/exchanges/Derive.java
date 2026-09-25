@@ -1612,7 +1612,7 @@ public class Derive extends DeriveApi
         return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak(), "hex");
     }
 
-    public Object signOrder(Object order, Object privateKey)
+    public String signOrder(Object order, Object privateKey)
     {
         Object hashOrder = this.hashOrderMessage(order);
         return this.signHash((hashOrder == null ? null : ((String)hashOrder).substring(Math.max(((String)hashOrder).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
@@ -1628,7 +1628,7 @@ public class Derive extends DeriveApi
         return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
-    public Object signHash(Object hash, Object privateKey)
+    public String signHash(Object hash, Object privateKey)
     {
         this.checkRequiredCredentials(true);
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
@@ -1638,7 +1638,7 @@ public class Derive extends DeriveApi
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
-    public Object signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, Object privateKey)
     {
         return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
     }
@@ -1718,7 +1718,7 @@ public class Derive extends DeriveApi
             List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("createOrder", (Map<String, Object>) (paramsMaxFee));
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
             var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
-            Object signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
+            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
             Map<String, Object> request = Helpers.newMap(
                 "instrument_name", market.get("id"),
                 "direction", orderSide,
@@ -1909,7 +1909,7 @@ public class Derive extends DeriveApi
             List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("editOrder", (Map<String, Object>) (paramsDeriveSubaccountId));
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
             var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
-            Object signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
+            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
             Map<String, Object> request = Helpers.newMap(
                 "instrument_name", market.get("id"),
                 "order_id_to_cancel", id,
@@ -3384,7 +3384,7 @@ public class Derive extends DeriveApi
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
             {
                 String now = String.valueOf(this.milliseconds());
-                Object signature = this.signMessage(now, this.privateKey);
+                String signature = this.signMessage(now, this.privateKey);
                 postHeaders.put("X-LyraWallet", this.safeString(this.options, "deriveWalletAddress"));
                 postHeaders.put("X-LyraTimestamp", now);
                 postHeaders.put("X-LyraSignature", signature);

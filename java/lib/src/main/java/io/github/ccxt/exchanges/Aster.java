@@ -4896,12 +4896,12 @@ public class Aster extends AsterApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public Object signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, Object privateKey)
     {
         return this.signHash(this.keccakMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
     }
 
-    public Object signWithdrawPayload(Object withdrawPayload, Object network)
+    public String signWithdrawPayload(Object withdrawPayload, Object network)
     {
         Long chainId = this.safeInteger(withdrawPayload, "chainId");
         Map<String, Object> domain = new HashMap<String, Object>() {{
@@ -4948,7 +4948,7 @@ public class Aster extends AsterApi
             put( "aster chain", "Mainnet" );
         }};
         Object msg = this.ethEncodeStructuredData(domain, messageTypes, request);
-        Object signature = this.signMessage(msg, this.privateKey);
+        String signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
 
@@ -5126,7 +5126,7 @@ public class Aster extends AsterApi
         return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
-    public Object signHash(Object hash, Object privateKey)
+    public String signHash(Object hash, Object privateKey)
     {
         this.checkRequiredCredentials(true);
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
@@ -5228,7 +5228,7 @@ public class Aster extends AsterApi
                 );
             }
             Object encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
-            Object signature = this.signMessage(encodedMessage, this.privateKey);
+            String signature = this.signMessage(encodedMessage, this.privateKey);
             String queryString = (((paramString + "&") + "signature=") + signature);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {

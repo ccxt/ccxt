@@ -857,7 +857,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 subscriptionHash = spotSubHash;
             }
-            Object url = this.getUserStreamUrl();
+            String url = this.getUserStreamUrl();
             Client client = this.client(url);
             this.setBalanceCache(client, marketType, subscriptionHash, paramsMarketType);
             client.future((type + ":fetchBalanceSnapshot"));
@@ -1009,7 +1009,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 messageHash = ((messageHash + ":") + symbolValue);
             }
-            Object url = this.getUserStreamUrl();
+            String url = this.getUserStreamUrl();
             List<Object> orders = (this.<List<Object>>watch(url, messageHash, parameters, messageHash, null)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -1148,7 +1148,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 messageHash = ((messageHash + ":") + symbolValue);
             }
-            Object url = this.getUserStreamUrl();
+            String url = this.getUserStreamUrl();
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, parameters, messageHash, null)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -1256,7 +1256,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 messageHash = ("::" + String.join(",", (List<String>)symbolsNormalized));
             }
             messageHash = ((type + ":positions") + messageHash);
-            Object url = this.getUserStreamUrl();
+            String url = this.getUserStreamUrl();
             Client client = this.client(url);
             this.setPositionsCache(client, type, symbolsNormalized);
             Object cache = this.safeValue(this.positions, type);
@@ -1510,7 +1510,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "lastAuthenticatedTime", this.milliseconds());
             } catch(Exception error)
             {
-                Object url = this.getUserStreamUrl();
+                String url = this.getUserStreamUrl();
                 Client client = this.client(url);
                 List<Object> messageHashes = Helpers.objectKeys(client.futures);
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -1530,7 +1530,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     }
 
-    public Object getUserStreamUrl()
+    public String getUserStreamUrl()
     {
         return ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "common") + "/api/v1/ws/") + this.safeString(this.options.get("ws"), "listenKey"));
     }

@@ -1712,7 +1712,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     }
 
-    public Object getPrivateUrl(Object type)
+    public String getPrivateUrl(Object type)
     {
         Map<String, Object> listenKeyOptions = (Map<String, Object>) this.safeDict(this.options, "listenKey", new HashMap<String, Object>() {{}});
         String listenKey = this.safeString(listenKeyOptions, java.util.Objects.requireNonNullElse(type, "spot"));
@@ -1748,7 +1748,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 throw new ArgumentsRequired((this.id + " watchBalance() requires a market type")) ;
             }
             (this.authenticate(typeMarketType, Helpers.toMapArg(paramsMarketType))).join();
-            Object url = this.getPrivateUrl(typeMarketType);
+            String url = this.getPrivateUrl(typeMarketType);
             Client client = this.client(url);
             this.setBalanceCache(client, typeMarketType);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
@@ -1917,7 +1917,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String type = "swap";
             (this.authenticate(type, parameters)).join();
-            Object url = this.getPrivateUrl(type);
+            String url = this.getPrivateUrl(type);
             Client client = this.client(url);
             this.setPositionsCache(client);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -2171,7 +2171,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 messageHash = (messageHash + ("::" + symbolResolved));
             }
-            Object url = this.getPrivateUrl(typeMarketType);
+            String url = this.getPrivateUrl(typeMarketType);
             Client client = this.client(url);
             this.setBalanceCache(client, typeMarketType);
             List<Object> orders = (this.<List<Object>>watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), null, new ArrayList<Object>(Arrays.asList(typeMarketType)), null)).join();
@@ -2228,7 +2228,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 messageHash = (messageHash + ("::" + symbolResolved));
             }
-            Object url = this.getPrivateUrl(typeMarketType);
+            String url = this.getPrivateUrl(typeMarketType);
             Client client = this.client(url);
             this.setBalanceCache(client, typeMarketType);
             List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), null, new ArrayList<Object>(Arrays.asList(typeMarketType)), null)).join();

@@ -1127,7 +1127,7 @@ public class Opinion extends OpinionApi
 
     }
 
-    public Object signOpinionOrder(Map<String, Object> order, Object exchangeAddress)
+    public String signOpinionOrder(Map<String, Object> order, Object exchangeAddress)
     {
         Map<String, Object> domain = new HashMap<String, Object>() {{
             put( "name", "OPINION CTF Exchange" );
@@ -1305,7 +1305,7 @@ public class Opinion extends OpinionApi
                 put( "side", sideInt );
                 put( "signatureType", signatureType );
             }};
-            Object signature = this.signOpinionOrder((Map<String, Object>) (order), exchangeAddress);
+            String signature = this.signOpinionOrder((Map<String, Object>) (order), exchangeAddress);
             Object signatureNo0x = this.remove0xPrefix(signature);
             Map<String, Object> orderBody = this.extend(Helpers.newMap(
                 "salt", salt,
@@ -1858,7 +1858,7 @@ public class Opinion extends OpinionApi
         }});
     }
 
-    public Object hashMessage(Object message)
+    public String hashMessage(Object message)
     {
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
@@ -1883,7 +1883,7 @@ public class Opinion extends OpinionApi
         return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
     }
 
-    public Object signApiKeyAuth(Object walletAddress, Object action, Object timestamp)
+    public String signApiKeyAuth(Object walletAddress, Object action, Object timestamp)
     {
         // EIP-712 signature used to create/get/delete an API key (wallet-authenticated key management)
         Map<String, Object> domain = new HashMap<String, Object>() {{
@@ -2046,7 +2046,7 @@ public class Opinion extends OpinionApi
      * @description builds the websocket url - the venue authenticates the whole connection with the apiKey passed as a query parameter, for public and private channels alike
      * @returns {string} the websocket url
      */
-    public Object opinionWsUrl()
+    public String opinionWsUrl()
     {
         Boolean hasDirectApiKey = !this.isEmptyString(this.apiKey);
         Object apiKey = ((Boolean.TRUE.equals(hasDirectApiKey))) ? this.apiKey : this.safeString(this.options, "apiKey");
@@ -2082,7 +2082,7 @@ public class Opinion extends OpinionApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadApiKey()).join();
-            Object url = this.opinionWsUrl();
+            String url = this.opinionWsUrl();
             String subscriptionKey = ((channel + ":") + this.numberToString(marketId));
             Map<String, Object> subscribeMsg = Helpers.newMap(
                 "action", "SUBSCRIBE",
@@ -2174,7 +2174,7 @@ public class Opinion extends OpinionApi
             String channel = "market.depth.diff";
             String messageHash = ("orderbook::" + sym);
             (this.loadApiKey()).join();
-            Object url = this.opinionWsUrl();
+            String url = this.opinionWsUrl();
             Client client = this.client(url);
             String subscriptionKey = ((channel + ":") + this.numberToString(marketId));
             Boolean isNewSubscription = java.util.Objects.equals(this.safeValue(client.subscriptions, subscriptionKey), null);

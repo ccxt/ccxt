@@ -15859,8 +15859,8 @@ public class Binance extends BinanceApi
             Map<String, Object> info = (Map<String, Object>) this.safeDict((networks == null || currentNetworkCode == null ? null : networks.get(currentNetworkCode)), "info", new HashMap<String, Object>() {{}});
             String siteUrl = this.safeString(info, "contractAddressUrl");
             // check if url matches the field's value
-            Object baseDomain = this.getBaseDomainFromUrl(siteUrl);
-            if (!java.util.Objects.equals(siteUrl, null) && !java.util.Objects.equals(baseDomain, null) && ((String)depositUrl).startsWith(((String)baseDomain)))
+            String baseDomain = this.getBaseDomainFromUrl(siteUrl);
+            if (!java.util.Objects.equals(siteUrl, null) && !java.util.Objects.equals(baseDomain, null) && ((String)depositUrl).startsWith(baseDomain))
             {
                 networkCode = currentNetworkCode;
             }
@@ -15868,7 +15868,7 @@ public class Binance extends BinanceApi
         return networkCode;
     }
 
-    public Object getBaseDomainFromUrl(String url)
+    public String getBaseDomainFromUrl(String url)
     {
         if (java.util.Objects.equals(url, null))
         {

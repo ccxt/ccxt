@@ -352,7 +352,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         return url;
     }
 
-    public Object getWsPrivateUrl()
+    public String getWsPrivateUrl()
     {
         String url = this.safeString(this.options, "wsPrivateUrl");
         if (java.util.Objects.equals(url, null))
@@ -751,7 +751,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 symbolResolved = this.symbol(symbol);
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            Object url = this.getWsPrivateUrl();
+            String url = this.getWsPrivateUrl();
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             List<Object> trades = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList("myTrades")), parameters)).join();
             Long limitResolved = limit;
@@ -797,7 +797,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 messageHash = ("::" + String.join(",", (List<String>)(List<String>)(symbolsNormalized2)));
             }
-            Object url = this.getWsPrivateUrl();
+            String url = this.getWsPrivateUrl();
             messageHash = ("positions" + messageHash);
             Client client = this.client(url);
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
@@ -846,7 +846,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 symbolResolved = this.symbol(symbol);
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            Object url = this.getWsPrivateUrl();
+            String url = this.getWsPrivateUrl();
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             List<String> topics = new ArrayList<String>(Arrays.asList("orders"));
             List<Object> orders = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();

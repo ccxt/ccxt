@@ -815,7 +815,7 @@ public class Sxbet extends SxbetApi
      * @param {Uint8Array} encoded the output of this.ethEncodeStructuredData (domain, types, message)
      * @returns {string} the 32-byte digest to ecdsa-sign, in '0x'-prefixed hex form
      */
-    public Object hashEip712Digest(Object encoded)
+    public String hashEip712Digest(Object encoded)
     {
         return ("0x" + this.hash(encoded, keccak(), "hex"));
     }
@@ -829,7 +829,7 @@ public class Sxbet extends SxbetApi
      * @param {string} privateKey the signer's private key
      * @returns {string} a '0x'-prefixed 65-byte hex signature (r‖s‖v)
      */
-    public Object signDigest(Object digest, Object privateKey)
+    public String signDigest(Object digest, Object privateKey)
     {
         Map<String,Object> signature = ecdsa((digest == null ? null : ((String)digest).substring(Math.max(((String)digest).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
@@ -1024,8 +1024,8 @@ public class Sxbet extends SxbetApi
                 "deadline", deadline
             );
             Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
-            Object digest = this.hashEip712Digest(encoded);
-            Object signature = this.signDigest(digest, this.privateKey);
+            String digest = this.hashEip712Digest(encoded);
+            String signature = this.signDigest(digest, this.privateKey);
             Map<String, Object> request = Helpers.newMap(
                 "owner", owner,
                 "spender", spender,
@@ -1174,8 +1174,8 @@ public class Sxbet extends SxbetApi
                 put( "isMakerBettingOutcomeOne", isMakerBettingOutcomeOne );
             }};
             Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
-            Object digest = this.hashEip712Digest(encoded);
-            Object orderSignature = this.signDigest(digest, this.privateKey);
+            String digest = this.hashEip712Digest(encoded);
+            String orderSignature = this.signDigest(digest, this.privateKey);
             Map<String, Object> orderItem = Helpers.newMap(
                 "marketHash", marketHash,
                 "maker", maker,

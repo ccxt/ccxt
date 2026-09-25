@@ -2889,7 +2889,7 @@ public class Backpack extends BackpackApi
         );
     }
 
-    public Object generateBatchPayload(Object parameters, Object ts, Object recvWindow, Object instruction)
+    public String generateBatchPayload(Object parameters, Object ts, Object recvWindow, Object instruction)
     {
         String payload = "";
         for (var i = 0; i < Helpers.getArrayLength(parameters); i++)

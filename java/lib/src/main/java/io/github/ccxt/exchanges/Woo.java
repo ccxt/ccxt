@@ -5493,7 +5493,7 @@ public class Woo extends WooApi
         }};
     }
 
-    public Object defaultNetworkCodeForCurrency(Object code)
+    public String defaultNetworkCodeForCurrency(Object code)
     {
         Map<String, Object> currencyItem = this.currency((String) (code));
         Object networks = currencyItem.get("networks");

@@ -3454,7 +3454,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Object getCurrencyName(Object code)
+    public String getCurrencyName(Object code)
     {
         /**
          * @ignore
@@ -3488,7 +3488,7 @@ public class Bitstamp extends BitstampApi
             {
                 throw new NotSupported((((this.id + " fiat fetchDepositAddress() for ") + code) + " is not supported!")) ;
             }
-            Object name = this.getCurrencyName(code);
+            String name = this.getCurrencyName(code);
             // the per-currency implicit methods (privatePostBtcAddress etc.) all route
             // through request(), called here directly to avoid dynamic dispatch
             Object response = (this.request((name + "_address/"), "private", "POST", parameters, (Object) null, (Object) null, new HashMap<String, Object>() {{}})).join();
@@ -3541,7 +3541,7 @@ public class Bitstamp extends BitstampApi
             Object response = null;
             if (!this.isFiat((String) (code)))
             {
-                Object name = this.getCurrencyName(code);
+                String name = this.getCurrencyName(code);
                 if (java.util.Objects.equals(code, "XRP"))
                 {
                     if (!java.util.Objects.equals(tagWithdrawTag, null))

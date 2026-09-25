@@ -98,13 +98,13 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         return BaseExchange.supplyAsync(() -> {
 
             Object listenKey = (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Object url = this.getPrivateUrl((String) (listenKey));
+            String url = this.getPrivateUrl((String) (listenKey));
             return (this.watch(url, messageHash, null, messageHash, null)).join();
         });
 
     }
 
-    public Object getPrivateUrl(String listenKey)
+    public String getPrivateUrl(String listenKey)
     {
         String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
         if (java.util.Objects.equals(wsUrl, null))
@@ -767,7 +767,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                     ((List<Object>)messageHashes).add(((messageHash + ":") + symbol));
                 }
             }
-            Object url = this.getPrivateUrl((String) (listenKey));
+            String url = this.getPrivateUrl((String) (listenKey));
             Object positions = (this.watchMultiple((String) (url), messageHashes, null, messageHashes, null)).join();
             if (this.newUpdates)
             {
@@ -873,7 +873,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String type = "spot";
             String typeMarketType = (String) ((List<Object>)this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, type)).get(0);
             String messageHash = ("balance:" + typeMarketType);
-            Object url = this.getPrivateUrl((String) (listenKey));
+            String url = this.getPrivateUrl((String) (listenKey));
             Client client = this.client(url);
             this.setBalanceCache(client, typeMarketType, messageHash);
             Boolean fetchBalanceSnapshot = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (this.options), "watchBalance", "fetchBalanceSnapshot", true)).get(0);
@@ -1059,7 +1059,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", (String) (listenKey), parameters);
             } catch(Exception error)
             {
-                Object url = this.getPrivateUrl((String) (listenKey));
+                String url = this.getPrivateUrl((String) (listenKey));
                 Client client = this.client(url);
                 Helpers.addElementToObject(this.options, "listenKey", null);
                 client.reject(error);

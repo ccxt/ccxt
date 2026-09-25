@@ -809,7 +809,7 @@ public class Lighter extends LighterApi
         return r;
     }
 
-    public Object hashMessage(Object message)
+    public String hashMessage(Object message)
     {
         Object binaryMessage = this.encode(message);
         Object binaryMessageLength = this.binaryLength(binaryMessage);
@@ -819,7 +819,7 @@ public class Lighter extends LighterApi
         return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
-    public Object signHash(Object hash, Object privateKey)
+    public String signHash(Object hash, Object privateKey)
     {
         this.checkRequiredCredentials(true);
         Map<String,Object> signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
@@ -831,8 +831,8 @@ public class Lighter extends LighterApi
 
     public String signL1AndPrepareTxInfo(Object txInfo, Object message, Object privateKey)
     {
-        Object hashMessage = this.hashMessage(message);
-        Object signature = this.signHash(hashMessage, privateKey);
+        String hashMessage = this.hashMessage(message);
+        String signature = this.signHash(hashMessage, privateKey);
         Object decTxInfo = this.parseJson(txInfo);
         Helpers.addElementToObject(decTxInfo, "L1Sig", signature);
         return this.json(decTxInfo);

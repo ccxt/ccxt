@@ -568,7 +568,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 Long requestId = this.requestId(url);
                 String now = String.valueOf(this.milliseconds());
-                Object signature = this.signMessage(now, this.privateKey);
+                String signature = this.signMessage(now, this.privateKey);
                 String deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "id", requestId );

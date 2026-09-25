@@ -389,7 +389,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //
         Map<String, Object> entry = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String coin = this.safeString(entry, "coin");
-        Object marketId = this.coinToMarketId((String) (coin));
+        String marketId = this.coinToMarketId((String) (coin));
         Map<String, Object> market = this.market(marketId);
         String symbol = (String) market.get("symbol");
         List<Object> rawData = (List<Object>) this.safeList(entry, "levels", new ArrayList<Object>(Arrays.asList()));
@@ -695,8 +695,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 String name = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object marketId = this.coinToMarketId(name);
-                Map<String, Object> market = this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, "swap");
+                String marketId = this.coinToMarketId(name);
+                Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "swap");
                 String symbol = (String) market.get("symbol");
                 Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(Helpers.newMap(
                     "price", this.safeNumber(mids, name, (Object) null)
@@ -740,8 +740,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String coin = this.safeString(data, "coin");
-        Object marketId = this.coinToMarketId((String) (coin));
-        Map<String, Object> market = this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        String marketId = this.coinToMarketId((String) (coin));
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         Map<String, Object> ctx = (Map<String, Object>) this.safeDict(data, "ctx", new HashMap<String, Object>() {{}});
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(ctx, market);
@@ -924,7 +924,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         Map<String, Object> first = (Map<String, Object>) this.safeDict(entry, 0, new HashMap<String, Object>() {{}});
         String coin = this.safeString(first, "coin");
-        Object marketId = this.coinToMarketId((String) (coin));
+        String marketId = this.coinToMarketId((String) (coin));
         Map<String, Object> market = this.market(marketId);
         String symbol = (String) market.get("symbol");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
@@ -983,8 +983,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String price = this.safeString(trade, "px");
         String amount = this.safeString(trade, "sz");
         String coin = this.safeString(trade, "coin");
-        Object marketId = this.coinToMarketId((String) (coin));
-        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+        String marketId = this.coinToMarketId((String) (coin));
+        Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
         String id = this.safeString(trade, "tid");
         String side = this.safeString(trade, "side");
@@ -1117,7 +1117,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String base = this.safeString(data, "s");
-        Object marketId = this.coinToMarketId((String) (base));
+        String marketId = this.coinToMarketId((String) (base));
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String timeframe = this.safeString(data, "i");
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
@@ -1839,7 +1839,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //        }
         //
         String coin = this.safeString(subscription, "coin");
-        Object marketId = this.coinToMarketId((String) (coin));
+        String marketId = this.coinToMarketId((String) (coin));
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String subMessageHash = ("orderbook:" + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
@@ -1854,7 +1854,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     {
         //
         String coin = this.safeString(subscription, "coin");
-        Object marketId = this.coinToMarketId((String) (coin));
+        String marketId = this.coinToMarketId((String) (coin));
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String subMessageHash = ("trade:" + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
@@ -1882,7 +1882,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     {
         //
         String coin = this.safeString(subscription, "coin");
-        Object marketId = this.coinToMarketId((String) (coin));
+        String marketId = this.coinToMarketId((String) (coin));
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String subMessageHash = ("ticker:" + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
@@ -1896,7 +1896,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     public void handleOHLCVUnsubscription(Client client, Map<String, Object> subscription)
     {
         String coin = this.safeString(subscription, "coin");
-        Object marketId = this.coinToMarketId((String) (coin));
+        String marketId = this.coinToMarketId((String) (coin));
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String interval = this.safeString(subscription, "interval");
         Object timeframe = this.findTimeframe(interval, (Object) null);

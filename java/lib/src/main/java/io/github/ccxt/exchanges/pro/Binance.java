@@ -249,7 +249,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return (((String)client.url).indexOf("/stream") > -1) || (((String)client.url).indexOf("demo-stream") > -1);
     }
 
-    public Object stream(String type, String subscriptionHash, Long numSubscriptions)
+    public String stream(String type, String subscriptionHash, Long numSubscriptions)
     {
         Object streamBySubscriptionsHash = this.safeDict(this.options, "streamBySubscriptionsHash", this.createSafeDictionary());
         String stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
@@ -326,7 +326,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return "market";
     }
 
-    public Object getPrivateWsUrl(String type, String listenKey)
+    public String getPrivateWsUrl(String type, String listenKey)
     {
         if (java.util.Objects.equals(listenKey, null))
         {
@@ -354,14 +354,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return baseUrl;
     }
 
-    public Object getStockTickerFromSymbol(String symbol)
+    public String getStockTickerFromSymbol(String symbol)
     {
         Map<String, Object> market = this.market(symbol);
         String base = this.safeString2(market, "base", "id");
         return (((java.util.Objects.equals(base, null)))) ? null : ((String)base).toLowerCase();
     }
 
-    public Object getStockUnifiedSymbol(String stockSymbol, String quote)
+    public String getStockUnifiedSymbol(String stockSymbol, String quote)
     {
         if (java.util.Objects.equals(stockSymbol, null))
         {
@@ -730,7 +730,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "subType", subType );
             }}, paramsValue))).join();
             Object listenKey = Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get(type)), "listenKey");
-            Object url = this.getPrivateWsUrl(type, (String) (listenKey));
+            String url = this.getPrivateWsUrl(type, (String) (listenKey));
             List<String> message = null;
             List<Object> newLiquidations = (List<Object>) (this.watchMultiple((String) (url), messageHashes, message, new ArrayList<Object>(Arrays.asList(type)), null)).join();
             if (this.newUpdates)
@@ -2777,7 +2777,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 List<String> stockMessageHashes = new ArrayList<String>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)stockSymbols).size(); i++)
                 {
-                    Object stockTicker = this.getStockTickerFromSymbol((String) ((stockSymbols == null || i < 0 || i >= stockSymbols.size() ? null : stockSymbols.get(i))));
+                    String stockTicker = this.getStockTickerFromSymbol((String) ((stockSymbols == null || i < 0 || i >= stockSymbols.size() ? null : stockSymbols.get(i))));
                     ((List<Object>)stockStreams).add((stockTicker + "@quote"));
                     stockMessageHashes.add(("stock:quote:" + (stockSymbols == null || i < 0 || i >= stockSymbols.size() ? null : stockSymbols.get(i))));
                 }
@@ -5494,7 +5494,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 stockBaseSymbol = this.safeString(order, "symbol");
             }
             String stockQuote = this.safeString(order, "q", "USDC");
-            Object stockSymbol = this.getStockUnifiedSymbol((String) (stockBaseSymbol), stockQuote);
+            String stockSymbol = this.getStockUnifiedSymbol((String) (stockBaseSymbol), stockQuote);
             String stockRawStatus = this.safeStringLower(order, "s");
             Map<String, Object> statuses = new HashMap<String, Object>() {{
                 put( "accepted", "open" );
@@ -5783,7 +5783,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, i, new HashMap<String, Object>() {{}});
             String stockSymbol = this.safeString(rate, "s");
-            Object symbol = this.getStockUnifiedSymbol((String) (stockSymbol), "USDC");
+            String symbol = this.getStockUnifiedSymbol((String) (stockSymbol), "USDC");
             if (java.util.Objects.equals(symbol, null))
             {
                 continue;
@@ -5799,7 +5799,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 "info", rate
             ), (Map<String, Object>) null);
             Helpers.addElementToObject(this.tickers, symbol, parsed);
-            tickers.put((String)symbol, parsed);
+            tickers.put(symbol, parsed);
             client.resolve(parsed, ("stock:price:" + symbol));
         }
         client.resolve(tickers, "stock:price");
@@ -5808,7 +5808,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     public void handleStockQuote(Client client, Map<String, Object> message)
     {
         String stockSymbol = this.safeString(message, "s");
-        Object symbol = this.getStockUnifiedSymbol((String) (stockSymbol), "USDC");
+        String symbol = this.getStockUnifiedSymbol((String) (stockSymbol), "USDC");
         if (java.util.Objects.equals(symbol, null))
         {
             return;
@@ -5994,7 +5994,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 urlType = "optionPrivate";
             }
-            Object url = this.getPrivateWsUrl(urlType, (String) (Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get(type)), "listenKey")));
+            String url = this.getPrivateWsUrl(urlType, (String) (Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get(type)), "listenKey")));
             Client client = this.client(url);
             this.setBalanceCache(client, type, isPortfolioMargin);
             this.setPositionsCache(client, type, symbolsNormalized, isPortfolioMargin);

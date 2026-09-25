@@ -787,7 +787,7 @@ public class Polymarket extends PolymarketApi
      * @param {string} tag the tag label or slug
      * @returns {string} the gamma tag slug
      */
-    public Object tagToSlug(Object tag)
+    public String tagToSlug(Object tag)
     {
         String lower = ((String)tag).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -2695,8 +2695,8 @@ public class Polymarket extends PolymarketApi
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         Long signatureType = (Long) this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
-        Object eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
-        Object funder = this.ethChecksumAddress(this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress)));
+        String eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
+        String funder = this.ethChecksumAddress(this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress)));
         // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
         Object defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
         String salt = this.safeString(parameters, "salt", this.numberToString(defaultSalt));
@@ -2742,8 +2742,8 @@ public class Polymarket extends PolymarketApi
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
-        Object maker = funder;
-        Object signer = eoa;
+        String maker = funder;
+        String signer = eoa;
         if ((signatureType != null && signatureType == 3))
         {
             signer = funder;
@@ -3562,7 +3562,7 @@ public class Polymarket extends PolymarketApi
                 Object address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
                 String timestamp = String.valueOf(this.seconds());
                 Long nonce = this.safeInteger(parameters, "nonce", 0);
-                Object l1signature = this.signClobAuth(address, timestamp, nonce);
+                String l1signature = this.signClobAuth(address, timestamp, nonce);
                 headersValue = this.extend(headersValue, new HashMap<String, Object>() {{
                     put( "POLY_ADDRESS", address );
                     put( "POLY_SIGNATURE", l1signature );
@@ -3627,12 +3627,12 @@ public class Polymarket extends PolymarketApi
         return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 
-    public Object hashMessage(Object message)
+    public String hashMessage(Object message)
     {
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public Object ethChecksumAddress(Object address)
+    public String ethChecksumAddress(Object address)
     {
         // EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
         // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
@@ -3676,7 +3676,7 @@ public class Polymarket extends PolymarketApi
         return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
     }
 
-    public Object signClobAuth(Object address, Object timestamp, Object nonce)
+    public String signClobAuth(Object address, Object timestamp, Object nonce)
     {
         // EIP-712 ClobAuth signature used for L1 auth (creating/deriving L2 api credentials)
         Map<String, Object> domain = new HashMap<String, Object>() {{

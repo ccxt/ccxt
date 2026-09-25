@@ -1079,7 +1079,7 @@ public class Predictfun extends PredictfunApi
      * @param {string} [text] the raw title or outcome label
      * @returns {string} the same text with '$' removed and thousands separators closed up
      */
-    public Object stripPriceFormatting(String text)
+    public String stripPriceFormatting(String text)
     {
         if (java.util.Objects.equals(text, null))
         {
@@ -1123,7 +1123,7 @@ public class Predictfun extends PredictfunApi
      * @param {int} [marketCount] how many markets the topic carries
      * @returns {string} the title to append, or the slug itself when the topic holds a single market
      */
-    public Object titleForMarketSymbol(String topicSlug, String title, Long marketCount)
+    public String titleForMarketSymbol(String topicSlug, String title, Long marketCount)
     {
         // a topic holding one market needs nothing to tell its markets apart, and the title there
         // only restates the slug in another spelling - the venue writes the same window as
@@ -1245,7 +1245,7 @@ public class Predictfun extends PredictfunApi
         String title = this.safeString(rawMarket, "title", marketId);
         List<Object> topicMarkets = (List<Object>) this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList()));
         Integer marketCount = ((List<?>)topicMarkets).size();
-        Object symbolTitle = this.titleForMarketSymbol((String) (topicSlug), (String) (title), Helpers.toLongOrNull(marketCount));
+        String symbolTitle = this.titleForMarketSymbol((String) (topicSlug), (String) (title), Helpers.toLongOrNull(marketCount));
         Object marketSymbol = this.slugToMarketSymbol((String) (topicSlug), (String) (symbolTitle));
         String tradingStatus = this.safeString(rawMarket, "tradingStatus");
         String status = this.safeString(rawMarket, "status");
@@ -1274,7 +1274,7 @@ public class Predictfun extends PredictfunApi
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
             String rawLabel = this.safeStringUpper(rawOutcome, "name");
-            Object label = this.stripPriceFormatting((String) (rawLabel));
+            String label = this.stripPriceFormatting((String) (rawLabel));
             String tokenId = this.safeString(rawOutcome, "onChainId");
             String outcomeHandle = ((marketSymbol + ":") + label);
             Boolean winner = null;
@@ -1936,7 +1936,7 @@ public class Predictfun extends PredictfunApi
      * @param {string} message the message to hash
      * @returns {string} the 0x prefixed hash
      */
-    public Object hashMessage(Object message)
+    public String hashMessage(Object message)
     {
         Object binaryMessage = this.encode(message);
         Object binaryMessageLength = this.binaryLength(binaryMessage);
@@ -1955,7 +1955,7 @@ public class Predictfun extends PredictfunApi
      * @param {string} privateKey the wallet private key
      * @returns {string} the 65 byte signature, 0x prefixed
      */
-    public Object signHash(Object hash, Object privateKey)
+    public String signHash(Object hash, Object privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
@@ -2008,7 +2008,7 @@ public class Predictfun extends PredictfunApi
             {
                 throw new AuthenticationError((this.id + " authenticate() got an auth reply without the \"message\" field to sign")) ;
             }
-            Object signature = this.signHash(this.hashMessage(message), this.privateKey);
+            String signature = this.signHash(this.hashMessage(message), this.privateKey);
             Map<String, Object> request = Helpers.newMap(
                 "signer", this.walletAddress,
                 "message", message,
@@ -3312,7 +3312,7 @@ public class Predictfun extends PredictfunApi
                 "subscribeHash", topic,
                 "messageHashes", this.orderBookMessageHashes((String) (marketId))
             );
-            Object url = this.socketUrl();
+            String url = this.socketUrl();
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), topic, subscription)).join();
             return orderbook.limit();
         }).thenApply(PredictionOrderBook::new);
@@ -3375,7 +3375,7 @@ public class Predictfun extends PredictfunApi
                 put( "subscribeHash", topic );
             }};
             String messageHash = ("unsubscribe::orderbook::" + this.safeOutcomeSymbol((String) (null), outcomeObj));
-            Object url = this.socketUrl();
+            String url = this.socketUrl();
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
         });
 
@@ -3664,7 +3664,7 @@ public class Predictfun extends PredictfunApi
                 put( "requestId", requestId );
                 put( "params", new ArrayList<Object>(Arrays.asList(topic)) );
             }};
-            Object url = this.socketUrl();
+            String url = this.socketUrl();
             Client client = this.client(url);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", Predictfun.this.numberToString(requestId) );
@@ -3741,7 +3741,7 @@ public class Predictfun extends PredictfunApi
                 put( "subscribeHash", "walletEvents" );
             }};
             String messageHash = ("unsubscribe::" + channel);
-            Object url = this.socketUrl();
+            String url = this.socketUrl();
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
         });
 
@@ -3754,7 +3754,7 @@ public class Predictfun extends PredictfunApi
      * @description the socket endpoint carrying the api key the venue demands on the handshake
      * @returns {string} the url to connect to
      */
-    public Object socketUrl()
+    public String socketUrl()
     {
         Object urls = this.urls.get("api");
         String base = this.safeString(urls, "ws");
@@ -4105,7 +4105,7 @@ public class Predictfun extends PredictfunApi
         {
             eventHandle = this.shortenSlug((String) (topicSlug));
         }
-        Object label = this.stripPriceFormatting(this.safeStringUpper(details, "outcomeName"));
+        String label = this.stripPriceFormatting(this.safeStringUpper(details, "outcomeName"));
         return Helpers.newMap(
             "outcome", null,
             "outcomeId", null,

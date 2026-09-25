@@ -3824,7 +3824,7 @@ public class Weex extends WeexApi
         {
             this.handleOrderOrPositionError(errorCode, errorMessage, (Map<String, Object>) (order));
         }
-        Object orderMarketId = this.fromSandboxMarketId(this.safeString(order, "symbol"));
+        String orderMarketId = this.fromSandboxMarketId(this.safeString(order, "symbol"));
         String positionSide = this.safeString(order, "positionSide");
         String orderMarketType = "swap";
         if (java.util.Objects.equals(positionSide, null))
@@ -4566,8 +4566,8 @@ public class Weex extends WeexApi
         {
             this.handleOrderOrPositionError(errorCode, errorMessage, (Map<String, Object>) (position));
         }
-        Object marketId = this.fromSandboxMarketId(this.safeString2(position, "symbol", "coinId")); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
-        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, "contract");
+        String marketId = this.fromSandboxMarketId(this.safeString2(position, "symbol", "coinId")); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
         Long timestamp = this.safeInteger(position, "createdTime");
         String marginType = this.safeString2(position, "marginType", "marginMode");
         String marginMode = "cross";
@@ -5208,7 +5208,7 @@ public class Weex extends WeexApi
      * @param {object} market a unified market structure
      * @returns {string} the market id for the request
      */
-    public Object toSandboxMarketId(Map<String, Object> market)
+    public String toSandboxMarketId(Map<String, Object> market)
     {
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         String baseId = this.safeString(market, "baseId");
@@ -5228,7 +5228,7 @@ public class Weex extends WeexApi
      * @param {string} [marketId] a market id from an exchange response
      * @returns {string} the live market id
      */
-    public Object fromSandboxMarketId(String marketId)
+    public String fromSandboxMarketId(String marketId)
     {
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         if ((!java.util.Objects.equals(sandboxMode, true)) || (java.util.Objects.equals(marketId, null)))

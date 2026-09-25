@@ -563,7 +563,7 @@ public class Bithumb extends BithumbApi
         return this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)market.get("precision")).get("amount"), DECIMAL_PLACES);
     }
 
-    public Object getGen2MarketId(Map<String, Object> market)
+    public String getGen2MarketId(Map<String, Object> market)
     {
         String marketId = this.safeString(market, "id");
         if ((!java.util.Objects.equals(marketId, null)) && (((String)marketId).indexOf("-") >= 0))
