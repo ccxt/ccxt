@@ -12559,11 +12559,27 @@ function handleTupleElement0ReadType (csharp, initializer) {
         }
         call = declarations[0].initializer;
     }
-    const helper = destructuredHandleCallName (call);
+    const helper = destructuredAuditedCallName (call);
     if (helper === undefined) {
         return undefined;
     }
     return destructuredHelperElement0Type (call, helper);
+}
+
+// `this.<name>(...)` whose name is a handle-family member or an audited tuple helper of the tables below
+function destructuredAuditedCallName (node) {
+    const handle = destructuredHandleCallName (node);
+    if (handle !== undefined) {
+        return handle;
+    }
+    const callee = node?.kind === ts.SyntaxKind.CallExpression ? node.expression : undefined;
+    const name = (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) ? callee.name?.escapedText : undefined;
+    if (typeof name !== 'string') {
+        return undefined;
+    }
+    const audited = Object.prototype.hasOwnProperty.call (DESTRUCTURED_ELEMENT0_TYPES, name)
+        || Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, name) || DESTRUCTURED_DICT_HELPERS.includes (name);
+    return audited ? name : undefined;
 }
 
 // the element-0 box of an audited tuple helper call (see the element-0 / string / dict tables)
@@ -12582,7 +12598,7 @@ function destructuredHelperElement0Type (call, helper) {
 
 // the C# type retypeDestructuredElement0 declares slot `slot` of `const [ ... ] = this.<helper> (...)` with
 function destructuredSlotType (csharp, scope, declaration, slot, context) {
-    const helper = destructuredHandleCallName (declaration.initializer);
+    const helper = destructuredAuditedCallName (declaration.initializer);
     if (helper === undefined || scope === undefined) {
         return undefined;
     }
@@ -13403,10 +13419,10 @@ export function installCsharpLocalTypes (transpiler) {
         // `const [a, b] = this.handleM (...)` — the printer emits a `var abVariable = <call>;`
         // holder and one casted read per element; type the holder per the proof above
         if (declaration.name?.kind === ts.SyntaxKind.ArrayBindingPattern) {
-            if (destructuredHandleCallName (declaration.initializer) === undefined) {
-                return printed;
-            }
             const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+            if (destructuredHandleCallName (declaration.initializer) === undefined) {
+                return (destructuredAuditedCallName (declaration.initializer) === undefined) ? printed : retypeDestructuredElement0 (csharp, scope, declaration, printed);
+            }
             return retypeElement1Params (csharp, declaration, retypeDestructuredElement0 (csharp, scope, declaration, retypeDestructuringTemp (csharp, scope, printed) ?? printed));
         }
         const info = csharpLocalDeclaration (csharp, declaration);
