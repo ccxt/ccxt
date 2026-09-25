@@ -2316,7 +2316,7 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code any, amount any, ad
 		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCrypto(this.Extend(request, paramsWithdrawTag))).Raw))
 	}
 	if response == nil {
-		panic(ExchangeError(Add(this.Id+" withdraw() error: ", this.Json(response))))
+		panic(ExchangeError(this.Id + " withdraw() error: " + this.Json(response)))
 	}
 
 	ch <- this.ParseTransaction(response, currency)
@@ -2838,7 +2838,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, op
 	}
 	return nil
 }
-func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2847,22 +2847,22 @@ func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var requestHeaders any = headers
 	var requestBody any = body
-	var request any = Add("/", this.ImplodeParams(path, params))
+	var request string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
 		if len(ObjectKeys(query)) > 0 {
-			request = Add(request, "?"+this.Urlencode(query))
+			request += "?" + this.Urlencode(query)
 		}
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(this.ImplodeHostname(apiUrl), request)
+	var url string = this.ImplodeHostname(apiUrl) + request
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
@@ -2873,7 +2873,7 @@ func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
 				payload = requestBody
 			}
 		}
-		var what *string = SafeStringPtr(Add(Add(nonce+method, request), payload))
+		var what *string = SafeStringPtr(Add(nonce+method+request, payload))
 		var secret any = nil
 
 		{
@@ -2950,7 +2950,7 @@ func (this *Coinbaseexchange) requestBody(ch chan any, path any, optionalArgs ..
 	PanicOnError(response)
 	if !IsString(response) {
 		if InOp(response, "message") {
-			panic(ExchangeError(Add(this.Id+" ", this.Json(response))))
+			panic(ExchangeError(this.Id + " " + this.Json(response)))
 		}
 	}
 

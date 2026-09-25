@@ -2672,7 +2672,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 	var markets []any = SafeListTyped(response, "data")
 	var numMarkets int = len(markets)
 	if numMarkets < 1 {
-		panic(OperationFailed(Add(this.Id+" fetchMarkets() returned an empty response: ", this.Json(response))))
+		panic(OperationFailed(this.Id + " fetchMarkets() returned an empty response: " + this.Json(response)))
 	}
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
@@ -3443,7 +3443,7 @@ func (this *Htx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	if InOp(response, "tick") {
 		if (IsEqual(GetValue(response, "tick"), nil)) || (IsEqual(GetValue(response, "tick"), nil)) {
-			panic(BadSymbol(Add(this.Id+" fetchOrderBook() returned empty response: ", this.Json(response))))
+			panic(BadSymbol(this.Id + " fetchOrderBook() returned empty response: " + this.Json(response)))
 		}
 		var tick map[string]any = SafeMapTyped(response, "tick")
 		var timestamp *int64 = this.SafeInteger(tick, "ts", this.SafeInteger(response, "ts"))
@@ -3453,7 +3453,7 @@ func (this *Htx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		ch <- result
 		return nil
 	}
-	panic(ExchangeError(Add(this.Id+" fetchOrderBook() returned unrecognized response: ", this.Json(response))))
+	panic(ExchangeError(this.Id + " fetchOrderBook() returned unrecognized response: " + this.Json(response)))
 }
 func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -9456,7 +9456,7 @@ func (this *Htx) ParseBorrowInterest(info any, optionalArgs ...any) any {
 func (this *Htx) Nonce() any {
 	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
 }
-func (this *Htx) Sign(path any, optionalArgs ...any) any {
+func (this *Htx) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -9469,8 +9469,8 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var signedHeaders any = nil
 	var signedBody any = nil
-	var pathString any = path
-	var url any = "/"
+	var pathString string = path
+	var url string = "/"
 	var isArrayParams bool = IsArray(params)
 	var query any = nil
 	if isArrayParams {
@@ -9481,11 +9481,11 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 	if IsString(api) {
 		// signing implementation for the old endpoints
 		if (IsEqual(api, "public")) || (IsEqual(api, "private")) {
-			url = Add(url, this.Version)
+			url += this.Version
 		} else if (IsEqual(api, "v2Public")) || (IsEqual(api, "v2Private")) {
-			url = Add(url, "v2")
+			url += "v2"
 		}
-		url = Add(url, Add("/", this.ImplodeParams(path, params)))
+		url += "/" + this.ImplodeParams(path, params)
 		if (IsEqual(api, "private")) || (IsEqual(api, "v2Private")) {
 			this.CheckRequiredCredentials()
 			var timestamp string = this.Ymdhms(this.Nonce(), "T")
@@ -9507,7 +9507,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 			auth += "&" + this.Urlencode(map[string]any{
 				"Signature": signature,
 			})
-			url = Add(url, "?"+auth)
+			url += "?" + auth
 			if method == "POST" {
 				var bodyRequest any = nil
 				if isArrayParams {
@@ -9526,12 +9526,12 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 			}
 		} else {
 			if (!IsEqual(query, nil)) && (len(ObjectKeys(query)) > 0) {
-				url = Add(url, "?"+this.Urlencode(query))
+				url += "?" + this.Urlencode(query)
 			}
 		}
-		url = Add(this.ImplodeParams(GetValue(GetValue(this.Urls, "api"), api), map[string]any{
+		url = this.ImplodeParams(GetValue(GetValue(this.Urls, "api"), api), map[string]any{
 			"hostname": this.Hostname,
-		}), url)
+		}) + url
 	} else {
 		// signing implementation for the new endpoints
 		// const [ type, access ] = api;
@@ -9548,10 +9548,10 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		hostname = hostnames
-		url = Add(url, this.ImplodeParams(path, params))
+		url += this.ImplodeParams(path, params)
 		if access != nil && *access == "public" {
 			if (!IsEqual(query, nil)) && (len(ObjectKeys(query)) > 0) {
-				url = Add(url, "?"+this.Urlencode(query))
+				url += "?" + this.Urlencode(query)
 			}
 		} else if access != nil && *access == "private" {
 			this.CheckRequiredCredentials()
@@ -9559,13 +9559,13 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 				var options map[string]any = SafeMapTyped(this.Options, "broker")
 				var id *string = this.SafeString(options, "id", "AA03022abc")
 				if !isArrayParams {
-					if (GetIndexOf(pathString, "cancel") == OpNeg(1)) && EndsWith(pathString, "order") {
+					if (strings.Index(pathString, "cancel") == OpNeg(1)) && strings.HasSuffix(pathString, "order") {
 						// swap order placement
 						var channelCode *string = this.SafeString(params, "channel_code")
 						if channelCode == nil {
 							AddElementToObject(params, "channel_code", id)
 						}
-					} else if EndsWith(pathString, "orders/place") {
+					} else if strings.HasSuffix(pathString, "orders/place") {
 						// spot order placement
 						var clientOrderId *string = this.SafeString(params, "client-order-id")
 						if clientOrderId == nil {
@@ -9595,7 +9595,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 			auth += "&" + this.Urlencode(map[string]any{
 				"Signature": signature,
 			})
-			url = Add(url, "?"+auth)
+			url += "?" + auth
 			if method == "POST" {
 				var bodyRequest any = nil
 				if isArrayParams {
@@ -9617,9 +9617,9 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		var finalHostname any = hostname // java req
-		url = Add(this.ImplodeParams(GetValue(GetValue(this.Urls, "api"), typeVar), map[string]any{
+		url = this.ImplodeParams(GetValue(GetValue(this.Urls, "api"), typeVar), map[string]any{
 			"hostname": finalHostname,
-		}), url)
+		}) + url
 	}
 	var headersResolved any = func() any {
 		if signedHeaders != nil {

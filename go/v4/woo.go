@@ -3499,7 +3499,7 @@ func (this *Woo) GetDedicatedNetworkId(currency any, params any) any {
 	}()
 	if IsEqual(networkEntry, nil) {
 		var supportedNetworks []string = ObjectKeys(GetValue(currency, "networks"))
-		panic(BadRequest(Add(this.Id+"  can not determine a network code, please provide unified \"network\" param, one from the following: ", this.Json(supportedNetworks))))
+		panic(BadRequest(this.Id + "  can not determine a network code, please provide unified \"network\" param, one from the following: " + this.Json(supportedNetworks)))
 	}
 	var currentyNetworkId *string = this.SafeString(networkEntry, "currencyNetworkId")
 	return []any{currentyNetworkId, paramsNetworkCode}
@@ -4253,7 +4253,7 @@ func (this *Woo) ParseMarginLoan(info any, optionalArgs ...any) any {
 func (this *Woo) Nonce() any {
 	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
 }
-func (this *Woo) Sign(path any, optionalArgs ...any) any {
+func (this *Woo) Sign(path string, optionalArgs ...any) any {
 	section := GetArg(optionalArgs, 0, "public")
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4268,7 +4268,7 @@ func (this *Woo) Sign(path any, optionalArgs ...any) any {
 	var requestBody any = nil
 	var version any = GetValue(section, 0)
 	var access any = GetValue(section, 1)
-	var pathWithParams any = this.ImplodeParams(path, params)
+	var pathWithParams string = this.ImplodeParams(path, params)
 	var url any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), access))
 	url = Add(url, Add(Add("/", version), "/"))
 	var paramsSorted map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
@@ -4284,12 +4284,12 @@ func (this *Woo) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		if (method == "POST") && ((IsEqual(path, "trade/algoOrder")) || (IsEqual(path, "trade/order"))) {
+		if (method == "POST") && ((path == "trade/algoOrder") || (path == "trade/order")) {
 			var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 			if isSandboxMode == nil || *isSandboxMode != true {
 				var applicationId string = "bc830de7-50f3-460b-9ee0-f430f83f9dad"
 				var brokerId *string = this.SafeString(this.Options, "brokerId", applicationId)
-				var isTrigger bool = (GetIndexOf(path, "algo") > -1)
+				var isTrigger bool = (strings.Index(path, "algo") > -1)
 				if isTrigger {
 					paramsSorted["brokerId"] = brokerId
 				} else {
@@ -4362,7 +4362,7 @@ func (this *Woo) HandleErrors(httpCode any, reason any, url any, method any, hea
 	var success *bool = this.SafeBool(response, "success")
 	var errorCode *string = this.SafeString(response, "code")
 	if success == nil || *success != true {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
+		var feedback string = this.Id + " " + this.Json(response)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 	}

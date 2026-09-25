@@ -2340,7 +2340,7 @@ func (this *Bitopro) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	ch <- this.ParseDepositWithdrawFees(data, codes, "currency")
 	return nil
 }
-func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
+func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2349,9 +2349,9 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add("/", this.ImplodeParams(path, params))
+	var url string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestHeaders any = func() any {
 		if headers == nil {
@@ -2360,7 +2360,7 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 		return headers
 	}()
 	var isSignedBody bool = (IsEqual(api, "private")) && ((method == "POST") || (method == "PUT"))
-	var signedBody any = this.Json(params)
+	var signedBody string = this.Json(params)
 	var requestBody any = body
 	if isSignedBody {
 		requestBody = signedBody
@@ -2376,13 +2376,13 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(requestHeaders, "X-BITOPRO-SIGNATURE", signature)
 		} else if (method == "GET") || (method == "DELETE") {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+this.Urlencode(query))
+				url += "?" + this.Urlencode(query)
 			}
 			var nonce int64 = this.Milliseconds()
 			var rawData map[string]any = map[string]any{
 				"nonce": nonce,
 			}
-			var data any = this.Json(rawData)
+			var data string = this.Json(rawData)
 			var payload string = this.StringToBase64(data)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
 			AddElementToObject(requestHeaders, "X-BITOPRO-APIKEY", this.ApiKey)
@@ -2391,14 +2391,14 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 		}
 	} else if (IsEqual(api, "public")) && (method == "GET") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	url = Add(apiUrl, url)
+	url = *apiUrl + url
 	return map[string]any{
 		"url":     url,
 		"method":  method,

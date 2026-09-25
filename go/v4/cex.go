@@ -2270,7 +2270,7 @@ func (this *Cex) ParseDepositAddress(depositAddress any, optionalArgs ...any) an
 		"tag":      nil,
 	}
 }
-func (this *Cex) Sign(path any, optionalArgs ...any) any {
+func (this *Cex) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2285,15 +2285,15 @@ func (this *Cex) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", this.ImplodeParams(path, params))
+	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if method == "GET" {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+this.Urlencode(query))
+				url += "?" + this.Urlencode(query)
 			}
 		} else {
-			var bodyJson any = this.Json(query)
+			var bodyJson string = this.Json(query)
 			var headersJson map[string]any = map[string]any{
 				"Content-Type": "application/json",
 			}
@@ -2307,8 +2307,8 @@ func (this *Cex) Sign(path any, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var seconds string = strconv.FormatInt(this.Seconds(), 10)
-		var bodySigned any = this.Json(query)
-		var auth any = Add(Add(path, seconds), bodySigned)
+		var bodySigned string = this.Json(query)
+		var auth string = path + seconds + bodySigned
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")
 		var headersSigned map[string]any = map[string]any{
 			"Content-Type":     "application/json",

@@ -3320,7 +3320,7 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	ch <- this.ParseDepositWithdrawFees(response, codes, "symbol")
 	return nil
 }
-func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
+func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3329,16 +3329,16 @@ func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var requestHeaders any = headers
 	var requestBody any = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var url any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
+	var url string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var getOrDelete bool = (method == "GET") || (method == "DELETE")
 	if getOrDelete {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	}
 	if IsEqual(api, "private") {
@@ -3351,7 +3351,7 @@ func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		var auth *string = SafeStringPtr(Add(Add(timestamp+method, url), payload))
+		var auth *string = SafeStringPtr(Add(timestamp+method+url, payload))
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		var accessWindow *string = this.SafeString2(this.Options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000")
 		requestHeaders = map[string]any{
@@ -3368,7 +3368,7 @@ func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	url = Add(apiUrl, url)
+	url = *apiUrl + url
 	return map[string]any{
 		"url":     url,
 		"method":  method,

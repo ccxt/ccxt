@@ -4657,7 +4657,7 @@ func (this *Poloniex) addMarginBody(ch chan any, symbol any, amount any, optiona
 func (this *Poloniex) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Poloniex) Sign(path any, optionalArgs ...any) any {
+func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4676,11 +4676,11 @@ func (this *Poloniex) Sign(path any, optionalArgs ...any) any {
 		AddElementToObject(params, "symbol", this.EncodeURIComponent(GetValue(params, "symbol"))) // handle symbols like 索拉拉/USDT'
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var implodedPath any = this.ImplodeParams(path, params)
+	var implodedPath string = this.ImplodeParams(path, params)
 	var bodyJson any = nil
 	var signedHeaders any = nil
 	if (IsEqual(api, "public")) || (IsEqual(api, "swapPublic")) {
-		url = Add(url, Add("/", implodedPath))
+		url = Add(url, "/"+implodedPath)
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
@@ -4688,8 +4688,8 @@ func (this *Poloniex) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
 		var auth any = method + "\n" // eslint-disable-line quotes
-		url = Add(url, Add("/", implodedPath))
-		auth = Add(auth, Add("/", implodedPath))
+		url = Add(url, "/"+implodedPath)
+		auth = Add(auth, "/"+implodedPath)
 		if (method == "POST") || (method == "PUT") || (method == "DELETE") {
 			auth = Add(auth, "\n") // eslint-disable-line quotes
 			if len(ObjectKeys(query)) > 0 {

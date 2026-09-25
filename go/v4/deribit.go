@@ -5050,7 +5050,7 @@ func (this *Deribit) ParseOpenInterest(interest any, optionalArgs ...any) any {
 func (this *Deribit) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Deribit) Sign(path any, optionalArgs ...any) any {
+func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

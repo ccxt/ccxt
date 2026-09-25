@@ -5169,7 +5169,7 @@ func (this *Myriad) HandleErrors(code any, reason any, url any, method any, head
  * @param {string} [body] the request body
  * @returns {object} a dict with url, method, body and headers
  */
-func (this *Myriad) Sign(path any, optionalArgs ...any) any {
+func (this *Myriad) Sign(path string, optionalArgs ...any) any {
 	api := ccxt.GetArg(optionalArgs, 0, "myriad")
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
@@ -5188,12 +5188,12 @@ func (this *Myriad) Sign(path any, optionalArgs ...any) any {
 	}()
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "myriad"))
-	var url any = ccxt.Add(*baseUrl+"/", this.ImplodeParams(path, params))
+	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
 		var querystring string = this.Urlencode(query)
 		if querystring != "" {
-			url = ccxt.Add(url, "?"+querystring)
+			url += "?" + querystring
 		}
 	}
 	var existingHeaders any = func() any {

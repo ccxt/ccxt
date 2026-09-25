@@ -3816,7 +3816,7 @@ func (this *Lbank) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	return result
 }
-func (this *Lbank) Sign(path any, optionalArgs ...any) any {
+func (this *Lbank) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3832,20 +3832,20 @@ func (this *Lbank) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/"+this.Version+"/", this.ImplodeParams(path, params))
+	var url string = *apiUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	// Every spot endpoint ends with ".do"
 	if GetValue(api, 0) == "spot" {
-		url = Add(url, ".do")
+		url += ".do"
 	} else {
 		var contractUrl *string = this.SafeString(GetValue(this.Urls, "api"), "contract")
 		if contractUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
-		url = Add(*contractUrl+"/", this.ImplodeParams(path, params))
+		url = *contractUrl + "/" + this.ImplodeParams(path, params)
 	}
 	if GetValue(api, 1) == "public" {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(this.Keysort(query)))
+			url += "?" + this.Urlencode(this.Keysort(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()

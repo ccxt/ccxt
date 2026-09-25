@@ -6704,7 +6704,7 @@ func (this *Coinbase) Nonce() any {
 	}
 	return Subtract(this.Milliseconds(), timeDifference)
 }
-func (this *Coinbase) Sign(path any, optionalArgs ...any) any {
+func (this *Coinbase) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -6724,19 +6724,19 @@ func (this *Coinbase) Sign(path any, optionalArgs ...any) any {
 	if isV3 {
 		pathPart = "api/v3"
 	}
-	var fullPath any = Add("/"+pathPart+"/", this.ImplodeParams(path, params))
+	var fullPath string = "/" + pathPart + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var savedPath any = fullPath
+	var savedPath string = fullPath
 	if method == "GET" {
 		if len(ObjectKeys(query)) > 0 {
-			fullPath = Add(fullPath, "?"+this.UrlencodeWithArrayRepeat(query))
+			fullPath += "?" + this.UrlencodeWithArrayRepeat(query)
 		}
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url *string = SafeStringPtr(Add(apiUrl, fullPath))
+	var url string = *apiUrl + fullPath
 	if signed {
 		var authorization *string = this.SafeString(this.Headers, "Authorization")
 		var authorizationString any = nil
@@ -6796,7 +6796,7 @@ func (this *Coinbase) Sign(path any, optionalArgs ...any) any {
 				var nonce any = this.Nonce()
 				var timestamp int64 = this.ParseToInt(Divide(nonce, 1000))
 				var timestampString string = strconv.FormatInt(timestamp, 10)
-				var auth *string = SafeStringPtr(Add(Add(timestampString+method, savedPath), payload))
+				var auth *string = SafeStringPtr(Add(timestampString+method+savedPath, payload))
 				var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 				requestHeaders = map[string]any{
 					"CB-ACCESS-KEY":       this.ApiKey,
@@ -6906,7 +6906,7 @@ func (this *Coinbase) HandleErrors(code any, reason any, url any, method any, he
 	}
 	var advancedTrade *bool = this.SafeBool(this.Options, "advanced")
 	if !(InOp(response, "data")) && (advancedTrade == nil || *advancedTrade != true) {
-		panic(ExchangeError(Add(this.Id+" failed due to a malformed response ", this.Json(response))))
+		panic(ExchangeError(this.Id + " failed due to a malformed response " + this.Json(response)))
 	}
 	return nil
 }

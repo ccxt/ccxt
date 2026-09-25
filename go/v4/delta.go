@@ -4883,7 +4883,7 @@ func (this *Delta) ParseADLRank(info any, optionalArgs ...any) any {
 		"datetime":   datetime,
 	}
 }
-func (this *Delta) Sign(path any, optionalArgs ...any) any {
+func (this *Delta) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4894,18 +4894,18 @@ func (this *Delta) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var requestPath any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
+	var requestPath string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(apiUrl, requestPath)
+	var url string = *apiUrl + requestPath
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestBody any = nil
 	var requestHeaders any = nil
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -4914,12 +4914,12 @@ func (this *Delta) Sign(path any, optionalArgs ...any) any {
 			"api-key":   this.ApiKey,
 			"timestamp": timestamp,
 		}
-		var auth any = Add(method+timestamp, requestPath)
+		var auth any = method + timestamp + requestPath
 		if method == "GET" {
 			if len(ObjectKeys(query)) > 0 {
 				var queryString string = "?" + this.Urlencode(query)
 				auth = Add(auth, queryString)
-				url = Add(url, queryString)
+				url += queryString
 			}
 		} else {
 			requestBody = this.Json(query)

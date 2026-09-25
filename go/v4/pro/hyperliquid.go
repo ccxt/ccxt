@@ -1987,13 +1987,13 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message any) any {
 	var payload map[string]any = ccxt.MapTyped(this.SafeDict(response, "payload", map[string]any{}))
 	var status *string = this.SafeString(payload, "status")
 	if (status != nil) && (status == nil || *status != "ok") {
-		error := ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(payload)))
+		error := ccxt.ExchangeError(this.Id + " " + this.Json(payload))
 		client.(ccxt.ClientInterface).Reject(error, id)
 		return true
 	}
 	var typeVar *string = this.SafeString(payload, "type")
 	if typeVar != nil && *typeVar == "error" {
-		error := ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(payload)))
+		error := ccxt.ExchangeError(this.Id + " " + this.Json(payload))
 		client.(ccxt.ClientInterface).Reject(error, id)
 		return true
 	}

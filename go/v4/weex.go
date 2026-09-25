@@ -4067,7 +4067,7 @@ func (this *Weex) HandleOrderOrPositionError(errorCode any, errorMessage any, or
 		// some endpoints could return an empty string if there is no error
 		return
 	}
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(order)))
+	var feedback string = this.Id + " " + this.Json(order)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessageValue, feedback)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCodeValue, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessageValue, feedback)
@@ -5508,7 +5508,7 @@ func (this *Weex) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options.Store("sandboxMode", enable)
 }
-func (this *Weex) Sign(path any, optionalArgs ...any) any {
+func (this *Weex) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -5519,12 +5519,12 @@ func (this *Weex) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var endpoint any = this.ImplodeParams(path, params)
+	var endpoint string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isBatch bool = (GetIndexOf(path, "batch") >= 0)
+	var isBatch bool = (strings.Index(path, "batch") >= 0)
 	if !isBatch && ((method == "GET") || (method == "DELETE")) {
 		if len(ObjectKeys(query)) > 0 {
-			endpoint = Add(endpoint, "?"+this.Urlencode(query))
+			endpoint += "?" + this.Urlencode(query)
 		}
 	}
 	var isPrivate bool = (IsEqual(api, "private")) || (IsEqual(api, "contractPrivate"))
@@ -5536,12 +5536,12 @@ func (this *Weex) Sign(path any, optionalArgs ...any) any {
 	var requestHeaders map[string]any = nil
 	if isPrivate {
 		var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-		if (sandboxMode != nil && *sandboxMode == true) && (GetIndexOf(path, "capi/v3/sim/") != 0) {
-			panic(NotSupported(Add(Add(this.Id+" ", path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")))
+		if (sandboxMode != nil && *sandboxMode == true) && (strings.Index(path, "capi/v3/sim/") != 0) {
+			panic(NotSupported(this.Id + " " + path + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets"))
 		}
 		this.CheckRequiredCredentials()
 		var timestamp *string = this.NumberToString(this.Nonce())
-		var payload any = Add(*timestamp+method+"/", endpoint)
+		var payload any = *timestamp + method + "/" + endpoint
 		if hasJsonBody {
 			payload = Add(payload, requestBody)
 		}

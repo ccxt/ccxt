@@ -3036,7 +3036,7 @@ func (this *Upbit) withdrawBody(ch chan any, code any, amount any, address any, 
 func (this *Upbit) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Upbit) Sign(path any, optionalArgs ...any) any {
+func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3045,16 +3045,16 @@ func (this *Upbit) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = this.ImplodeParams(GetValue(GetValue(this.Urls, "api"), api), map[string]any{
+	var url string = this.ImplodeParams(GetValue(GetValue(this.Urls, "api"), api), map[string]any{
 		"hostname": this.Hostname,
 	})
-	url = Add(url, Add("/"+this.Version+"/", this.ImplodeParams(path, params)))
+	url += "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if method != "POST" {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	}
 	var hasBody bool = (IsEqual(api, "private")) && (method != "GET") && (method != "DELETE")

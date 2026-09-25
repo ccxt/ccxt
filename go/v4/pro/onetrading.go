@@ -500,7 +500,7 @@ func (this *Onetrading) HandleDelta(orderbook any, delta any) {
 		var asks any = ccxt.GetValue(orderbook, "asks")
 		asks.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	} else {
-		panic(ccxt.NotSupported(ccxt.Add(this.Id+" watchOrderBook () received unknown change type ", this.Json(delta))))
+		panic(ccxt.NotSupported(this.Id + " watchOrderBook () received unknown change type " + this.Json(delta)))
 	}
 }
 func (this *Onetrading) HandleDeltas(orderbook any, deltas any) {
@@ -1379,7 +1379,7 @@ func (this *Onetrading) HandleHeartbeat(client any, message map[string]any) any 
 	return message
 }
 func (this *Onetrading) HandleErrorMessage(client any, message any) any {
-	panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(message))))
+	panic(ccxt.ExchangeError(this.Id + " " + this.Json(message)))
 }
 func (this *Onetrading) HandleMessage(client any, message any) {
 	var error *string = this.SafeString(message, "error")

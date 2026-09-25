@@ -7258,7 +7258,7 @@ func (this *Xt) HandleErrors(code any, reason any, url any, method any, headers 
 	}
 	return nil
 }
-func (this *Xt) Sign(path any, optionalArgs ...any) any {
+func (this *Xt) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -7271,13 +7271,13 @@ func (this *Xt) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var signed bool = IsEqual(GetValue(api, 0), "private")
 	var endpoint any = GetValue(api, 1)
-	var request any = Add("/", this.ImplodeParams(path, params))
-	var payload any = nil
+	var request string = "/" + this.ImplodeParams(path, params)
+	var payload string
 	if (IsEqual(endpoint, "spot")) || (IsEqual(endpoint, "user")) {
 		if signed {
-			payload = Add("/"+this.Version, request)
+			payload = "/" + this.Version + request
 		} else {
-			payload = Add("/"+this.Version+"/public", request)
+			payload = "/" + this.Version + "/public" + request
 		}
 	} else {
 		payload = request
@@ -7298,7 +7298,7 @@ func (this *Xt) Sign(path any, optionalArgs ...any) any {
 		var defaultRecvWindow *string = this.SafeString(this.Options, "recvWindow")
 		var recvWindow *string = this.SafeString(query, "recvWindow", defaultRecvWindow)
 		var timestamp *string = this.NumberToString(this.Nonce())
-		if (IsEqual(payload, "/v4/order")) || (IsEqual(payload, "/future/trade/v1/order/create")) || (IsEqual(payload, "/future/trade/v1/entrust/create-plan")) || (IsEqual(payload, "/future/trade/v1/entrust/create-profit")) || (IsEqual(payload, "/future/trade/v1/order/create-batch")) {
+		if (payload == "/v4/order") || (payload == "/future/trade/v1/order/create") || (payload == "/future/trade/v1/entrust/create-plan") || (payload == "/future/trade/v1/entrust/create-profit") || (payload == "/future/trade/v1/order/create-batch") {
 			var id string = "CCXT"
 			if IsEqual(query, nil) {
 				panic(NullResponse(this.Id + " sign() returned empty body"))
@@ -7312,7 +7312,7 @@ func (this *Xt) Sign(path any, optionalArgs ...any) any {
 				AddElementToObject(query, "media", id)
 			}
 		}
-		var isUndefinedBody bool = ((method == "GET") || (IsEqual(path, "order/{orderId}")) || (IsEqual(path, "ws-token")))
+		var isUndefinedBody bool = ((method == "GET") || (path == "order/{orderId}") || (path == "ws-token"))
 		if (method == "PUT") && (IsEqual(endpoint, "spot")) {
 			isUndefinedBody = false
 		}

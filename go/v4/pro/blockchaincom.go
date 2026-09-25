@@ -222,8 +222,8 @@ func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
 	//
 	var event *string = this.SafeString(message, "event")
 	if event != nil && *event == "rejected" {
-		var jsonMessage any = this.Json(message)
-		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", jsonMessage)))
+		var jsonMessage string = this.Json(message)
+		panic(ccxt.ExchangeError(this.Id + " " + jsonMessage))
 	} else if event != nil && *event == "updated" {
 		var marketId *string = this.SafeString(message, "symbol")
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
@@ -242,7 +242,7 @@ func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
 		stored.(ccxt.Appender).Append(ohlcv)
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	} else if event == nil || *event != "subscribed" {
-		panic(ccxt.NotSupported(ccxt.Add(this.Id+" ", this.Json(message))))
+		panic(ccxt.NotSupported(this.Id + " " + this.Json(message)))
 	}
 }
 
@@ -631,7 +631,7 @@ func (this *Blockchaincom) HandleOrders(client any, message map[string]any) {
 	if event != nil && *event == "subscribed" {
 		return
 	} else if event != nil && *event == "rejected" {
-		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(message))))
+		panic(ccxt.ExchangeError(this.Id + " " + this.Json(message)))
 	} else if event != nil && *event == "snapshot" {
 		var orders []any = ccxt.SafeListTyped(message, "orders")
 		for i := 0; i < len(orders); i++ {
@@ -871,7 +871,7 @@ func (this *Blockchaincom) HandleMessage(client any, message any) {
 		ccxt.CallDynamically(handler, client, message)
 		return
 	}
-	panic(ccxt.NotSupported(ccxt.Add(this.Id+" received an unsupported message: ", this.Json(message))))
+	panic(ccxt.NotSupported(this.Id + " received an unsupported message: " + this.Json(message)))
 }
 func (this *Blockchaincom) HandleAuthenticationMessage(client any, message map[string]any) {
 	//
@@ -884,7 +884,7 @@ func (this *Blockchaincom) HandleAuthenticationMessage(client any, message map[s
 	//
 	var event *string = this.SafeString(message, "event")
 	if event == nil || *event != "subscribed" {
-		panic(ccxt.AuthenticationError(ccxt.Add(this.Id+" received an authentication error: ", this.Json(message))))
+		panic(ccxt.AuthenticationError(this.Id + " received an authentication error: " + this.Json(message)))
 	}
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
 	if !ccxt.IsEqual(future, nil) {

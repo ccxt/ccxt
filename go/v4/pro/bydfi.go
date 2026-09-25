@@ -1350,7 +1350,7 @@ func (this *Bydfi) HandleErrorMessage(client any, message any) {
 	//
 	var code *string = this.SafeString(message, "code")
 	var msg *string = this.SafeString(message, "msg")
-	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+	var feedback string = this.Id + " " + this.Json(message)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], msg, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], msg, feedback)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

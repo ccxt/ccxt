@@ -3368,7 +3368,7 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 func (this *Ndax) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Ndax) Sign(path any, optionalArgs ...any) any {
+func (this *Ndax) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3385,16 +3385,16 @@ func (this *Ndax) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", this.ImplodeParams(path, params))
+	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
-		if IsEqual(path, "Authenticate") {
+		if path == "Authenticate" {
 			var auth any = Add(Add(this.Login, ":"), this.Password)
 			var auth64 string = this.StringToBase64(auth)
 			headersSigned = map[string]any{
 				"Authorization": "Basic " + auth64,
 			}
-		} else if IsEqual(path, "Authenticate2FA") {
+		} else if path == "Authenticate2FA" {
 			var pending2faToken *string = this.SafeString(this.Options, "pending2faToken")
 			if pending2faToken != nil {
 				headersSigned = map[string]any{
@@ -3404,7 +3404,7 @@ func (this *Ndax) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -3429,7 +3429,7 @@ func (this *Ndax) Sign(path any, optionalArgs ...any) any {
 			bodySigned = this.Json(query)
 		} else {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+this.Urlencode(query))
+				url += "?" + this.Urlencode(query)
 			}
 		}
 	}

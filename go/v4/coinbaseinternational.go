@@ -3055,7 +3055,7 @@ func (this *Coinbaseinternational) withdrawBody(ch chan any, code any, amount an
 	ch <- this.ParseTransaction(response, currency)
 	return nil
 }
-func (this *Coinbaseinternational) Sign(path any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3064,7 +3064,7 @@ func (this *Coinbaseinternational) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var version *string = this.SafeString(api, 0)
 	var signed bool = (this.SafeString(api, 1) != nil && *this.SafeString(api, 1) == "private")
@@ -3082,7 +3082,7 @@ func (this *Coinbaseinternational) Sign(path any, optionalArgs ...any) any {
 	}
 	var url *string = SafeStringPtr(Add(apiUrl, fullPath))
 	var hasSignedBody bool = signed && (method != "GET") && (len(ObjectKeys(query)) > 0)
-	var signedBody any = ""
+	var signedBody string = ""
 	if hasSignedBody {
 		signedBody = this.Json(query)
 	}
@@ -3094,7 +3094,7 @@ func (this *Coinbaseinternational) Sign(path any, optionalArgs ...any) any {
 	if signed {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
-		var payload any = signedBody
+		var payload string = signedBody
 		var auth *string = SafeStringPtr(Add(Add(nonce+method, savedPath), payload))
 		var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), sha256, "base64")
 		signedHeaders = map[string]any{

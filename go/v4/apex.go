@@ -2537,7 +2537,7 @@ func (this *Apex) ParsePosition(position any, optionalArgs ...any) any {
 		"percentage":                  nil,
 	})
 }
-func (this *Apex) Sign(path any, optionalArgs ...any) any {
+func (this *Apex) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2548,18 +2548,18 @@ func (this *Apex) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), "/"), path)
+	var url string = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)) + "/" + path
 	var headersValue map[string]any = map[string]any{
 		"User-Agent":   "apex-CCXT",
 		"Accept":       "application/json",
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
-	var signPath any = Add("/api/", path)
+	var signPath string = "/api/" + path
 	var signBody any = body
 	if strings.ToUpper(method) != "POST" {
 		if len(ObjectKeys(params)) > 0 {
-			signPath = Add(signPath, "?"+this.Rawencode(params))
-			url = Add(url, "?"+this.Rawencode(params))
+			signPath += "?" + this.Rawencode(params)
+			url += "?" + this.Rawencode(params)
 		}
 	} else {
 		var sortedQuery map[string]any = this.Keysort(params)
@@ -2568,7 +2568,7 @@ func (this *Apex) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		var messageString any = Add(timestamp+strings.ToUpper(method), signPath)
+		var messageString any = timestamp + strings.ToUpper(method) + signPath
 		if signBody != nil {
 			messageString = Add(messageString, signBody)
 		}

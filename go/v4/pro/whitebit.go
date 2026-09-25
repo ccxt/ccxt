@@ -1345,7 +1345,7 @@ func (this *Whitebit) HandleErrorMessage(client any, message any) any {
 			// try block:
 			if !ccxt.IsEqual(error, nil) {
 				var code *string = this.SafeString(message, "code")
-				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+				var feedback string = this.Id + " " + this.Json(message)
 				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "exact"), code, feedback)
 			}
 			return nil

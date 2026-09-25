@@ -606,7 +606,7 @@ func (this *P2b) HandleMessage(client any, message any) {
 func (this *P2b) HandleErrorMessage(client any, message any) any {
 	var error *string = this.SafeString(message, "error")
 	if error != nil {
-		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" error: ", this.Json(error))))
+		panic(ccxt.ExchangeError(this.Id + " error: " + this.Json(error)))
 	}
 	return false
 }

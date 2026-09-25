@@ -2146,7 +2146,7 @@ func (this *Luno) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalArg
 	ch <- this.AssignDefaultDepositWithdrawFees(result, currency)
 	return nil
 }
-func (this *Luno) Sign(path any, optionalArgs ...any) any {
+func (this *Luno) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2161,11 +2161,11 @@ func (this *Luno) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/"+this.Version+"/", this.ImplodeParams(path, params))
+	var url string = *apiUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestHeaders any = nil
 	if len(ObjectKeys(query)) > 0 {
-		url = Add(url, "?"+this.Urlencode(query))
+		url += "?" + this.Urlencode(query)
 	}
 	if (IsEqual(api, "private")) || (IsEqual(api, "exchangePrivate")) {
 		this.CheckRequiredCredentials()
@@ -2193,7 +2193,7 @@ func (this *Luno) HandleErrors(httpCode any, reason any, url any, method any, he
 	}
 	var error any = this.SafeValue(response, "error")
 	if !IsEqual(error, nil) {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
+		var feedback string = this.Id + " " + this.Json(response)
 		var errorCode *string = this.SafeString(response, "error_code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

@@ -6601,7 +6601,7 @@ func (this *Coinex) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 func (this *Coinex) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Coinex) Sign(path any, optionalArgs ...any) any {
+func (this *Coinex) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -6612,7 +6612,7 @@ func (this *Coinex) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var pathValue any = this.ImplodeParams(path, params)
+	var pathValue string = this.ImplodeParams(path, params)
 	var version any = GetValue(api, 0)
 	var requestUrl any = GetValue(api, 1)
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), requestUrl)
@@ -6623,7 +6623,7 @@ func (this *Coinex) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(pathValue))
 	var nonce string = ToString(this.Nonce())
 	if method == "POST" {
-		var parts []string = Split(pathValue, "/")
+		var parts []string = strings.Split(pathValue, "/")
 		var firstPart *string = this.SafeString(parts, 0, "")
 		var numParts int = len(parts)
 		var lastPart *string = this.SafeString(parts, numParts-1, "")

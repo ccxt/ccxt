@@ -8640,7 +8640,7 @@ func (this *Okx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransfers(transfers, currency, since, limit, params)
 	return nil
 }
-func (this *Okx) Sign(path any, optionalArgs ...any) any {
+func (this *Okx) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -8652,21 +8652,21 @@ func (this *Okx) Sign(path any, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var isArray bool = IsArray(params)
-	var request any = Add("/api/"+this.Version+"/", this.ImplodeParams(path, params))
+	var request string = "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var url any = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "rest")), request)
+	var url string = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "rest")) + request
 	var privateHeaders any = nil
 	var hasJsonBody bool = false
 	var jsonBody any = nil
 	// const type = this.getPathAuthenticationType (path);
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		// inject id in implicit api call
-		if (method == "POST") && ((IsEqual(path, "trade/batch-orders")) || (IsEqual(path, "trade/order-algo")) || (IsEqual(path, "trade/order"))) {
+		if (method == "POST") && ((path == "trade/batch-orders") || (path == "trade/order-algo") || (path == "trade/order")) {
 			var brokerId *string = this.SafeString(this.Options, "brokerId", "6b9ad766b55dBCDE")
 			if IsArray(params) {
 				for i := 0; i < GetArrayLength(params); i++ {
@@ -8703,7 +8703,7 @@ func (this *Okx) Sign(path any, optionalArgs ...any) any {
 		if method == "GET" {
 			if len(ObjectKeys(query)) > 0 {
 				var urlencodedQuery string = "?" + this.Urlencode(query)
-				url = Add(url, urlencodedQuery)
+				url += urlencodedQuery
 				auth = Add(auth, urlencodedQuery)
 			}
 		} else {

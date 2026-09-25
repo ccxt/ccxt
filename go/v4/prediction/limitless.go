@@ -3075,8 +3075,8 @@ func (this *Limitless) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 	var failed []any = ccxt.SafeListTyped(response, "failed")
 	var failedLethgn int = len(failed)
 	if failedLethgn > 0 {
-		var message any = this.Json(response)
-		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" cancelOrders failed: ", message))
+		var message string = this.Json(response)
+		var feedback string = this.Id + " cancelOrders failed: " + message
 		panic(ccxt.OrderNotFound(feedback))
 	}
 
@@ -4013,7 +4013,7 @@ func (this *Limitless) Nonce() any {
  * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
-func (this *Limitless) Sign(path any, optionalArgs ...any) any {
+func (this *Limitless) Sign(path string, optionalArgs ...any) any {
 	api := ccxt.GetArg(optionalArgs, 0, "limitless")
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
@@ -4038,16 +4038,16 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 	}()
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "limitless"))
-	var url any = ccxt.Add("/", this.ImplodeParams(path, params))
+	var url string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var querystring string = this.UrlencodeWithArrayRepeat(query)
 	if (method == "GET") && (querystring != "") {
-		url = ccxt.Add(url, "?"+querystring)
+		url += "?" + querystring
 	}
 	var headersValue any = headers
 	var bodyValue any = body
 	if ccxt.IsEqual(access, "private") {
-		var bodyString any = ""
+		var bodyString string = ""
 		if ccxt.IsEqual(headersValue, nil) {
 			headersValue = map[string]any{}
 		}
@@ -4079,7 +4079,7 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 		headersKey[headerKey] = this.ApiKey
 		headersValue = this.Extend(headersValue, headersKey)
 	}
-	url = ccxt.Add(baseUrl, url)
+	url = *baseUrl + url
 	return map[string]any{
 		"url":     url,
 		"method":  method,

@@ -967,7 +967,7 @@ func (this *BaseExchange) EnableDemoTrading(enable any) {
 	}
 	this.Options.Store("enableDemoTrading", enable)
 }
-func (this *BaseExchange) Sign(path any, optionalArgs ...any) any {
+func (this *BaseExchange) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4977,7 +4977,7 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 				// try block:
 				this.SetLastRestRequestTimestamp()
 
-				var request any = this.DerivedExchange.Sign(path, api, method, paramsMaxRetriesOnFailureDelay, headers, body)
+				var request any = this.DerivedExchange.Sign(StringArg(path), api, method, paramsMaxRetriesOnFailureDelay, headers, body)
 				PanicOnError(request)
 				if fetchData != nil {
 					AddElementToObject(fetchData, "request", request)

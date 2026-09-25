@@ -362,7 +362,7 @@ func (this *Independentreserve) HandleMessage(client any, message any) {
 		ccxt.CallDynamically(handler, client, message)
 		return
 	}
-	panic(ccxt.NotSupported(ccxt.Add(this.Id+" received an unsupported message: ", this.Json(message))))
+	panic(ccxt.NotSupported(this.Id + " received an unsupported message: " + this.Json(message)))
 }
 
 func NewIndependentreserve(userConfig map[string]any) *Independentreserve {

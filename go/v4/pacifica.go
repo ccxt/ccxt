@@ -4577,7 +4577,7 @@ func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, he
 	}
 	return nil
 }
-func (this *Pacifica) Sign(path any, optionalArgs ...any) any {
+func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4586,7 +4586,7 @@ func (this *Pacifica) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var requestBody any = body
 	var isTestnet bool = this.IsSandboxModeEnabled
@@ -4594,15 +4594,15 @@ func (this *Pacifica) Sign(path any, optionalArgs ...any) any {
 	if isTestnet {
 		urlKey = "test"
 	}
-	var host any = this.ImplodeHostname(GetValue(GetValue(this.Urls, urlKey), api))
-	var url any = Add(Add(Add(Add(host, "/api/"), this.Version), "/"), this.ImplodeParams(path, params))
+	var host string = this.ImplodeHostname(GetValue(GetValue(this.Urls, urlKey), api))
+	var url string = host + "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
 	var paramsLen int = len(ObjectKeys(paramsOmitted))
 	var headersValue map[string]any = map[string]any{
 		"Content-Type": "application/json",
 	}
 	if (method == "GET") && (paramsLen > 0) {
-		url = Add(url, "?"+this.Urlencode(paramsOmitted))
+		url += "?" + this.Urlencode(paramsOmitted)
 		headersValue["Accept"] = "*/*"
 	}
 	if method == "POST" {

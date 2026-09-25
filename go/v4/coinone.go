@@ -1628,7 +1628,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	ch <- result
 	return nil
 }
-func (this *Coinone) Sign(path any, optionalArgs ...any) any {
+func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1639,13 +1639,13 @@ func (this *Coinone) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var request any = this.ImplodeParams(path, params)
+	var request string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = *apiUrl + "/"
+	var url string = *apiUrl + "/"
 	var isPublic bool = (IsEqual(api, "public")) || (IsEqual(api, "v2Public"))
 	if IsEqual(api, "v2Public") {
 		var apiUrl2 *string = this.SafeString(GetValue(this.Urls, "api"), "v2Public")
@@ -1669,13 +1669,13 @@ func (this *Coinone) Sign(path any, optionalArgs ...any) any {
 	var requestBody any = nil
 	var requestHeaders any = nil
 	if isPublic {
-		url = Add(url, request)
+		url += request
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		url = Add(url, request)
+		url += request
 		// the v2.1 api requires a uuid nonce, the older apis use a numeric one
 		var nonce *string = nil
 		if IsEqual(api, "v2_1Private") {
@@ -1683,7 +1683,7 @@ func (this *Coinone) Sign(path any, optionalArgs ...any) any {
 		} else {
 			nonce = SafeStringPtr(ToString(this.Nonce()))
 		}
-		var json any = this.Json(this.Extend(map[string]any{
+		var json string = this.Json(this.Extend(map[string]any{
 			"access_token": this.ApiKey,
 			"nonce":        nonce,
 		}, params))

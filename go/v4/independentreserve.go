@@ -1525,7 +1525,7 @@ func (this *Independentreserve) Nonce() any {
 	// the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
 	return this.Milliseconds()
 }
-func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
+func (this *Independentreserve) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1540,10 +1540,10 @@ func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", path)
+	var url string = *apiUrl + "/" + path
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?"+this.Urlencode(params))
+			url += "?" + this.Urlencode(params)
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -1566,7 +1566,7 @@ func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
 			var key string = GetValue(keys, i).(string)
 			query[key] = GetValue(params, key)
 		}
-		var signedBody any = this.Json(query)
+		var signedBody string = this.Json(query)
 		var signedHeaders map[string]any = map[string]any{
 			"Content-Type": "application/json",
 		}

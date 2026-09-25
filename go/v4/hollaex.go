@@ -2505,7 +2505,7 @@ func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	ch <- this.ParseDepositWithdrawFees(coins, codes, "symbol")
 	return nil
 }
-func (this *Hollaex) Sign(path any, optionalArgs ...any) any {
+func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2517,17 +2517,17 @@ func (this *Hollaex) Sign(path any, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var requestPath any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
+	var requestPath string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	if (method == "GET") || (method == "DELETE") {
 		if len(ObjectKeys(query)) > 0 {
-			requestPath = Add(requestPath, "?"+this.Urlencode(query))
+			requestPath += "?" + this.Urlencode(query)
 		}
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url *string = SafeStringPtr(Add(apiUrl, requestPath))
+	var url string = *apiUrl + requestPath
 	var requestBody any = nil
 	var requestHeaders any = nil
 	if IsEqual(api, "private") {
@@ -2535,7 +2535,7 @@ func (this *Hollaex) Sign(path any, optionalArgs ...any) any {
 		var defaultExpires *int64 = this.SafeInteger2(this.Options, "api-expires", "expires", this.ParseToInt(Divide(this.Timeout, 1000)))
 		var expires any = this.Sum(this.Seconds(), defaultExpires)
 		var expiresString string = ToString(expires)
-		var auth any = Add(Add(method, requestPath), expiresString)
+		var auth any = method + requestPath + expiresString
 		requestHeaders = map[string]any{
 			"api-key":     this.ApiKey,
 			"api-expires": expiresString,

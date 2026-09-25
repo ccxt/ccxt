@@ -3785,7 +3785,7 @@ func (this *Bullish) ParseOpenInterest(interest any, optionalArgs ...any) any {
 		"quoteVolume":        nil,
 	}, market)
 }
-func (this *Bullish) Sign(path any, optionalArgs ...any) any {
+func (this *Bullish) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3794,23 +3794,23 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var requestHeaders any = headers
 	var requestBody any = body
 	var request any = this.Omit(params, this.ExtractParams(path))
-	var endpoint any = Add("/", this.ImplodeParams(path, params))
+	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(apiUrl, endpoint)
+	var url string = *apiUrl + endpoint
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var nonce string = strconv.FormatInt(this.Microseconds(), 10)
 		var timestamp string = ToString(this.GetTimestamp())
 		if method == "GET" {
-			var payload *string = SafeStringPtr(Add(timestamp+nonce+method+"/trading-api/", path))
+			var payload string = timestamp + nonce + method + "/trading-api/" + path
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 			requestHeaders = map[string]any{
 				"BX-TIMESTAMP": timestamp,
@@ -3819,7 +3819,7 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 			}
 		} else if method == "POST" {
 			requestBody = this.Json(params)
-			var payload *string = SafeStringPtr(Add(Add(timestamp+nonce+method+"/trading-api/", path), requestBody))
+			var payload *string = SafeStringPtr(Add(timestamp+nonce+method+"/trading-api/"+path, requestBody))
 			var digest any = this.Hash(this.Encode(payload), sha256, "hex")
 			var signature string = this.Hmac(this.Encode(digest), this.Encode(this.Secret), sha256, "hex")
 			requestHeaders = map[string]any{
@@ -3834,7 +3834,7 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 				AddElementToObject(requestHeaders, "BX-RATE-LIMIT-TOKEN", rateLimitToken)
 			}
 		}
-		if IsEqual(path, "v1/users/hmac/login") {
+		if path == "v1/users/hmac/login" {
 			requestHeaders = func() any {
 				if IsEqual(requestHeaders, nil) {
 					return map[string]any{}
@@ -3859,7 +3859,7 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 	if method == "GET" {
 		var query string = this.Urlencode(request)
 		if len(query) > 0 {
-			url = Add(url, "?"+query)
+			url += "?" + query
 		}
 	}
 	return map[string]any{

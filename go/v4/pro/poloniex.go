@@ -1679,7 +1679,7 @@ func (this *Poloniex) HandleErrorMessage(client any, message any) any {
 				// try block:
 				var error *string = this.SafeString(first, "message")
 				var code *string = this.SafeString(first, "code")
-				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+				var feedback string = this.Id + " " + this.Json(message)
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 				panic(ccxt.ExchangeError(feedback))
@@ -1708,7 +1708,7 @@ func (this *Poloniex) HandleAuthenticate(client any, message any) any {
 	if success != nil && *success == true {
 		client.(ccxt.ClientInterface).Resolve(message, messageHash)
 	} else {
-		error := ccxt.AuthenticationError(ccxt.Add(this.Id+" ", this.Json(message)))
+		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

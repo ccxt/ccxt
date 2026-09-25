@@ -2915,7 +2915,7 @@ func (this *Opinion) HandleErrors(code any, reason any, url any, method any, hea
  * @param {string} [body] the request body
  * @returns {object} a dict with url, method, body and headers
  */
-func (this *Opinion) Sign(path any, optionalArgs ...any) any {
+func (this *Opinion) Sign(path string, optionalArgs ...any) any {
 	api := ccxt.GetArg(optionalArgs, 0, "opinion")
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
@@ -2940,7 +2940,7 @@ func (this *Opinion) Sign(path any, optionalArgs ...any) any {
 	}()
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "opinion"))
-	var url any = ccxt.Add(*baseUrl+"/", this.ImplodeParams(path, params))
+	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var existingHeaders any = func() any {
 		if !ccxt.IsEqual(headers, nil) {
@@ -2953,10 +2953,10 @@ func (this *Opinion) Sign(path any, optionalArgs ...any) any {
 		"Content-Type": "application/json",
 	}, existingHeaders)
 	if ccxt.IsEqual(access, "private") {
-		if ccxt.IsEqual(path, "auth/api-key") {
+		if path == "auth/api-key" {
 			// wallet-signature scheme: no apiKey involved, the signature itself is the credential
 			if (ccxt.IsEqual(this.WalletAddress, nil)) || (ccxt.IsEqual(this.PrivateKey, nil)) {
-				panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", path), " requires a walletAddress and privateKey")))
+				panic(ccxt.ArgumentsRequired(this.Id + " " + path + " requires a walletAddress and privateKey"))
 			}
 			var actionByMethod map[string]any = map[string]any{
 				"POST":   "create",
@@ -2979,7 +2979,7 @@ func (this *Opinion) Sign(path any, optionalArgs ...any) any {
 				return this.SafeString(this.Options, "apiKey")
 			}()
 			if ccxt.IsEqual(apiKey, nil) {
-				panic(ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id+" ", path), " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")))
+				panic(ccxt.AuthenticationError(this.Id + " " + path + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first"))
 			}
 			headersExtended["apikey"] = apiKey
 		}
@@ -2987,7 +2987,7 @@ func (this *Opinion) Sign(path any, optionalArgs ...any) any {
 	var bodyValue any = body
 	if method == "GET" {
 		if len(ccxt.ObjectKeys(query)) > 0 {
-			url = ccxt.Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else {
 		bodyValue = this.Json(query)

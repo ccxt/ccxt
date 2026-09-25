@@ -1787,7 +1787,7 @@ func (this *Phemex) HandleAuthenticate(client any, message map[string]any) {
 	if status != nil && *status == "success" {
 		client.(ccxt.ClientInterface).Resolve(message, messageHash)
 	} else {
-		error := ccxt.AuthenticationError(ccxt.Add(this.Id+" ", this.Json(message)))
+		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
