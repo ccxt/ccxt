@@ -1782,7 +1782,7 @@ export default class weex extends Exchange {
         if (realizedPnl !== undefined) {
             tradeMarketType = 'swap';
         }
-        const marketResolved: Market = (market === undefined) ? this.safeMarket (tradeMarketId, undefined, undefined, tradeMarketType) : market;
+        const marketResolved: Market = this.safeMarket ((market === undefined) ? tradeMarketId : undefined, market, undefined, tradeMarketType);
         let isSpot: Bool = undefined;
         if (market === undefined) {
             isSpot = tradeMarketType === 'spot';
@@ -3187,7 +3187,7 @@ export default class weex extends Exchange {
         if (positionSide === undefined) {
             orderMarketType = 'spot';
         }
-        const marketResolved: Market = (market === undefined) ? this.safeMarket (orderMarketId, undefined, undefined, orderMarketType) : market;
+        const marketResolved: Market = this.safeMarket ((market === undefined) ? orderMarketId : undefined, market, undefined, orderMarketType);
         const timestamp = this.safeIntegerN (order, [ 'transactTime', 'time', 'createTime' ]);
         const rawStatus = this.safeStringLower2 (order, 'status', 'algoStatus'); // algo (trigger) order payloads carry algoStatus instead of status
         const triggerPrice = this.omitZero (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
