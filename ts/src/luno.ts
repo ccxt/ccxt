@@ -1345,9 +1345,7 @@ export default class luno extends Exchange {
             'pair': market['id'],
         };
         let response: NullableDict = undefined;
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         if (type === 'market') {
             request['type'] = side.toUpperCase ();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges

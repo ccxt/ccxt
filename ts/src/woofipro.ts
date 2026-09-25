@@ -2108,9 +2108,7 @@ export default class woofipro extends Exchange {
         }
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
         let response: NullableDict = undefined;
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('editOrder', side, 'side');
         if (isConditional) {
             response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
         } else {

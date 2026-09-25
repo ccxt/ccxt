@@ -681,9 +681,7 @@ export default class coinspot extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const sideUpper = side.toUpperCase ();
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');

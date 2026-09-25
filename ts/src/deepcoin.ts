@@ -3069,7 +3069,7 @@ export default class deepcoin extends Exchange {
      * @param {string[]|undefined} [params.positionIds] list of position ids to close (for batch closing)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

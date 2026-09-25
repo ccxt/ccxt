@@ -18,7 +18,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import Exchange from '../abstract/prediction/limitless.js';
-import type { int,
+import type { OrderSide, OrderType, int,
     Int, Str, Num, Dict, List,
     Strings,
     Market, PredictionOrderBook, OHLCV,
@@ -2054,7 +2054,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         const accounts = await this.loadAccounts ();
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -2108,9 +2108,7 @@ export default class limitless extends Exchange {
             'buy': 0,
             'sell': 1,
         };
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const sideValue = this.safeInteger (sides, side.toLowerCase ());
         const rank = this.safeDict (accountInfo, 'rank');
         // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
@@ -2344,7 +2342,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
         }

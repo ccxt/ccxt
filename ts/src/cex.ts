@@ -1308,9 +1308,7 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             'clientOrderId': this.uuid (),
             'currency1': market['baseId'],

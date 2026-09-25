@@ -7,7 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFillable, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import type Client from '../base/ws/Client.js';
-import type { Balances, Dict, Endpoint, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -878,7 +878,7 @@ export default class sxbet extends Exchange {
      * @param {string} [params.externalUserId] partner attribution id echoed back on order, fill and trade reads
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         this.checkRequiredCredentials ();
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
