@@ -822,10 +822,10 @@ public class Lighter extends LighterApi
     public Object signHash(Object hash, Object privateKey)
     {
         this.checkRequiredCredentials(true);
-        Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
-        Object r = Helpers.GetValue(signature, "r");
-        Object s = Helpers.GetValue(signature, "s");
-        String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
+        Map<String,Object> signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
+        Object r = signature.get("r");
+        Object s = signature.get("s");
+        String v = this.intToBase16(this.sum(27, signature.get("v")));
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 

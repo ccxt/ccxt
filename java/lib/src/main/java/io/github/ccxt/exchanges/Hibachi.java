@@ -1577,10 +1577,10 @@ public class Hibachi extends HibachiApi
         {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             Object hash = this.hash(message, sha256(), "hex");
-            Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
-            Object r = Helpers.GetValue(signature, "r");
-            Object s = Helpers.GetValue(signature, "s");
-            String v = this.intToBase16(Helpers.GetValue(signature, "v"));
+            Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
+            Object r = signature.get("r");
+            Object s = signature.get("s");
+            String v = this.intToBase16(signature.get("v"));
             return Helpers.add(Helpers.add((((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r)), (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))), Helpers.padStart(v, ((Number)2).intValue(), ((String)"0").charAt(0)));
         }
     }

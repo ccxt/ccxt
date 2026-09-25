@@ -1448,13 +1448,13 @@ public class Dydx extends DydxApi
 
     public Object signHash(Object hash, Object privateKey)
     {
-        Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
-        Object r = Helpers.GetValue(signature, "r");
-        Object s = Helpers.GetValue(signature, "s");
+        Map<String,Object> signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
+        Object r = signature.get("r");
+        Object s = signature.get("s");
         return new HashMap<String, Object>() {{
             put( "r", (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r)) );
             put( "s", (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s)) );
-            put( "v", Dydx.this.sum(27, Helpers.GetValue(signature, "v")) );
+            put( "v", Dydx.this.sum(27, signature.get("v")) );
         }};
     }
 

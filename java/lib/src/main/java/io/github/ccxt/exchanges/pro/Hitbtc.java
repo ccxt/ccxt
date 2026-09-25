@@ -432,7 +432,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String defaultMethod = this.safeString(options, "method", "ticker/{speed}/batch");
             String method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
             String speed = this.safeString(parameters, "speed", "1s");
-            Object name = this.implodeParams(method, new HashMap<String, Object>() {{
+            String name = (String) this.implodeParams(method, new HashMap<String, Object>() {{
                 put( "speed", speed );
             }});
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "speed")));
@@ -611,7 +611,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
             String method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
             String speed = this.safeString(parameters, "speed", "100ms");
-            Object name = this.implodeParams(method, new HashMap<String, Object>() {{
+            String name = (String) this.implodeParams(method, new HashMap<String, Object>() {{
                 put( "speed", speed );
             }});
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "speed")));

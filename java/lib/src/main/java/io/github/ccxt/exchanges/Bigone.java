@@ -2275,7 +2275,7 @@ public class Bigone extends BigoneApi
                 put( "sub", Bigone.this.apiKey );
                 put( "nonce", nonce );
             }};
-            Object token = jwt(request, this.encode(this.secret), sha256());
+            String token = jwt(request, this.encode(this.secret), sha256());
             headersValue.put("Authorization", ("Bearer " + token));
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {

@@ -1295,7 +1295,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolValue = this.symbol(symbol);
+            String symbolValue = this.symbol(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String name = ("candle" + interval);
             Object ohlcv = (this.subscribe("public", name, name, (String) (symbolValue), parameters)).join();

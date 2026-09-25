@@ -100,7 +100,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -196,7 +196,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -266,7 +266,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -366,7 +366,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -435,7 +435,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "trading");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "trading");
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             String messageHash = "myTrades";
             if (java.util.Objects.equals(this.markets, null))
@@ -479,7 +479,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "trading");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "trading");
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {

@@ -703,13 +703,13 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
-            Object paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String channel = "orders";
             if (java.util.Objects.equals(trigger, true))
             {
                 channel = "orders-algo";
             }
-            Object orders = (this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, Helpers.toMapArg(paramsOmitted))).join();
+            Object orders = (this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, paramsOmitted)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;

@@ -136,8 +136,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String topic = ("kline_" + interval);
             String messageHash = ((("ohlcv:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -243,8 +243,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
             String topic = "realtimes";
             String messageHash = ("ticker:" + symbolValue);
             return (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
@@ -311,8 +311,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
             String topic = "trade";
             String messageHash = ("trades:" + symbolValue);
             Object trades = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
@@ -395,8 +395,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
             String topic = "depth";
             String messageHash = ("orderbook:" + symbolValue);
             Object orderbook = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
