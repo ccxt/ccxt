@@ -714,6 +714,200 @@ function goTypedNilSelfTest (): string[] {
     return problems;
 }
 
+// IsEqual(x, nil) on an `any` local is `x == nil` unless the box can hold a nil scalar pointer,
+// a typed-nil map/slice or a nil *sync.Map (derefScalar/IsEqual fold those to nil). Every write
+// must come from a producer below that never yields one; any other write keeps the helper.
+const GO_ANY_NIL_SAFE_CALLS = new Set ([
+    'this.Extend', 'this.DeepExtend', 'this.Account', 'this.IndexBy', 'this.GroupBy', 'this.SortBy',
+    'this.Milliseconds', 'this.Seconds', 'this.Uuid', 'this.Json', 'this.ParseToInt', 'this.Sum', 'this.ParseJson',
+    'Add', 'Subtract', 'Multiply', 'Divide', 'mathMin', 'mathMax', 'ParseInt', 'GetArrayLength',
+    'NewArrayCache', 'NewArrayCacheByTimestamp', 'NewArrayCacheBySymbolById', 'NewArrayCacheBySymbolBySide',
+]);
+// SafeDict/SafeList* return a non-nil container or their default: safe with a nil/literal default
+const GO_ANY_NIL_SAFE_DEFAULTED = new Set ([
+    'this.SafeDict', 'this.SafeDict2', 'this.SafeDictN', 'this.SafeList', 'this.SafeList2', 'this.SafeListN',
+]);
+// DerefScalar folds these scalar-pointer results into a plain value or untyped nil
+const GO_ANY_NIL_DEREF_INNER = /^this\.(?:Safe(?:String|Integer|Number|Float|Bool|Timestamp)\w*|SafeCurrencyCode|NumberToString|PriceToPrecision|AmountToPrecision|Iso8601|Parse8601)\(/;
+const GO_ANY_NIL_SCALAR_TYPES = new Set (['string', 'int64', 'float64', 'bool', 'int']);
+
+// the top-level comma-separated arguments of a call text starting at `open` ('('), or undefined
+// when the call does not close exactly at the end of `text`
+function goCallArgsSpanningText (text: string, open: number): string[] | undefined {
+    const args: string[] = [];
+    let depth = 0;
+    let start = open + 1;
+    for (let i = open; i < text.length; i++) {
+        const char = text[i];
+        if (char === '"') {
+            i++;
+            while ((i < text.length) && (text[i] !== '"')) { if (text[i] === '\\') { i++; } i++; }
+        } else if ((char === '(') || (char === '{') || (char === '[')) {
+            depth++;
+        } else if ((char === ')') || (char === '}') || (char === ']')) {
+            depth--;
+            if (depth === 0) {
+                if (i !== text.length - 1) {
+                    return undefined;
+                }
+                const last = text.slice (start, i).trim ();
+                if (last.length) { args.push (last); }
+                return args;
+            }
+        } else if ((char === ',') && (depth === 1)) {
+            args.push (text.slice (start, i).trim ());
+            start = i + 1;
+        }
+    }
+    return undefined;
+}
+
+function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>): boolean {
+    const text = rhs.replace (/\bccxt\./g, '').trim ();
+    if (/^(?:nil|true|false|-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?|"(?:[^"\\]|\\.)*")$/.test (text)) {
+        return true;
+    }
+    if (/^(?:map\[string\]any|\[\]any)\{/.test (text)) {
+        const args = goCallArgsSpanningText (text, text.indexOf ('{'));
+        return (args !== undefined) || !/\}\s*$/.test (text) && text.endsWith ('{');
+    }
+    if (/^\w+$/.test (text)) {
+        return scalarLocals.has (text);
+    }
+    const call = /^((?:this\.)?\w+)\(/.exec (text);
+    if (!call) {
+        return false;
+    }
+    const args = goCallArgsSpanningText (text, call[0].length - 1);
+    if (args === undefined) {
+        return false;
+    }
+    if (call[1] === 'DerefScalar') {
+        return (args.length === 1) && GO_ANY_NIL_DEREF_INNER.test (args[0]) && (goCallArgsSpanningText (args[0], args[0].indexOf ('(')) !== undefined);
+    }
+    if (GO_ANY_NIL_SAFE_CALLS.has (call[1])) {
+        return true;
+    }
+    if (GO_ANY_NIL_SAFE_DEFAULTED.has (call[1])) {
+        const keys = (call[1].endsWith ('2')) ? 3 : 2;
+        if (args.length <= keys) {
+            return true;
+        }
+        return (args.length === keys + 1) && /^(?:nil|map\[string\]any\{\}|\[\]any\{\})$/.test (args[keys]);
+    }
+    return false;
+}
+
+function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
+    if (fn.indexOf (isEqualFn) < 0) {
+        return fn;
+    }
+    const helper = isEqualFn.replace (/[.(]/g, '\\$&');
+    const sigEnd = fn.indexOf ('{');
+    const signature = fn.slice (0, sigEnd);
+    const commentState = { 'inBlockComment': false };
+    const lines = fn.split ('\n');
+    const code = lines.map ((line) => stripGoLiterals (line, commentState));
+    const scalarLocals = new Set<string> ();
+    for (const line of code) {
+        const decl = /^\s*var (\w+) (\w+) = /.exec (line);
+        if (decl && GO_ANY_NIL_SCALAR_TYPES.has (decl[2])) {
+            scalarLocals.add (decl[1]);
+        }
+    }
+    for (const name of Array.from (scalarLocals)) {
+        const count = code.filter ((line) => new RegExp ('(?<![.\\w])' + name + '\\b[^=\\n]*:=|\\bvar ' + name + ' ').test (line)).length;
+        if ((count !== 1) || new RegExp ('[(,]\\s*' + name + ' ').test (signature)) {
+            scalarLocals.delete (name);
+        }
+    }
+    const verdict = new Map<string, boolean> ();
+    const provable = (name: string): boolean => {
+        if (verdict.has (name)) {
+            return verdict.get (name);
+        }
+        let ok = !new RegExp ('[(,]\\s*' + name + ' ').test (signature);
+        let decls = 0;
+        const mention = new RegExp ('(?<![.\\w])' + name + '(?!\\w)');
+        for (let i = 0; ok && (i < lines.length); i++) {
+            const line = code[i];
+            if (!mention.test (line)) {
+                continue;
+            }
+            const decl = new RegExp ('^\\s*var ' + name + ' any(?: = (.*))?$').exec (line);
+            if (decl) {
+                decls++;
+                const raw = new RegExp ('^\\s*var ' + name + ' any = (.*)$').exec (lines[i]);
+                ok = (decl[1] === undefined) || ((raw !== null) && goAnyNilSafeWrite (raw[1], scalarLocals));
+                continue;
+            }
+            if (new RegExp ('&' + name + '\\b|(?<![.\\w])' + name + '\\s*(?:\\+\\+|--|[-+*/%|&^]=|:=)|\\bvar ' + name + '\\b|,\\s*' + name + '\\s*(?:,[^=\\n]*)?:?=[^=]|(?<![.\\w])' + name + '\\s*,[\\w\\s,]*:?=[^=]|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (line)) {
+                ok = false;
+                continue;
+            }
+            const write = new RegExp ('^\\s*' + name + ' = (.*)$').exec (lines[i]);
+            if (write) {
+                ok = goAnyNilSafeWrite (write[1], scalarLocals);
+                continue;
+            }
+            if (new RegExp ('(?<![.\\w=!<>])' + name + '\\s*=[^=]').test (line)) {
+                ok = false;
+            }
+        }
+        ok = ok && (decls === 1);
+        verdict.set (name, ok);
+        return ok;
+    };
+    return fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + '(\\w+), nil\\)', 'g'), ((m: string, not: string, name: string) => {
+        if (!provable (name)) {
+            return m;
+        }
+        return '(' + name + ((not === '!') ? ' != nil)' : ' == nil)');
+    }) as any);
+}
+
+export function goAnyLocalNativeNilCompares (content: string, isEqualFn: string): string {
+    const ranges = goFuncBlockRanges (content);
+    for (let i = ranges.length - 1; i >= 0; i--) {
+        const block = content.slice (ranges[i].start, ranges[i].end);
+        const rewritten = goAnyLocalNilCompareText (block, isEqualFn);
+        if (rewritten !== block) {
+            content = content.slice (0, ranges[i].start) + rewritten + content.slice (ranges[i].end);
+        }
+    }
+    return content;
+}
+
+function goAnyLocalNilSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const pass = (text: string): string => goAnyLocalNativeNilCompares (text, 'IsEqual(');
+    const f = (body: string): string => pass ('\nfunc (this *X) f(p any) any {\n' + body + '\treturn nil\n}\n');
+    ok (f ('\tvar a any = nil\n\tif true {\n\t\ta = this.SafeDict(p, "x")\n\t} else {\n\t\ta = []any{1}\n\t}\n\tif !IsEqual(a, nil) {\n\t\treturn a\n\t}\n').indexOf ('if (a != nil) {') >= 0, 'SafeDict/literal writes compare natively');
+    ok (f ('\tvar s any = DerefScalar(this.SafeString(p, "s"))\n\tvar n int64 = this.Milliseconds()\n\ts = n\n\tif IsEqual(s, nil) {\n\t}\n').indexOf ('if (s == nil) {') >= 0, 'DerefScalar of a scalar accessor and a scalar local are safe');
+    ok (f ('\tvar m any = map[string]any{\n\t\t"a": 1,\n\t}\n\tif IsEqual(m, nil) {\n\t}\n').indexOf ('if (m == nil) {') >= 0, 'a multi-line literal is safe');
+    const keep = [
+        '\tvar v any = this.SafeString(p, "v")\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = this.SafeValue(p, "v")\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = MapTyped(p)\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = this.FilterBy(p, "a", "b")\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = this.SafeDict(p, "v", p)\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = nil\n\tv, _ = this.Two(p)\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = nil\n\tAppendToArray(&v, 1)\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = nil\n\tfunc() {\n\t\tv = this.SafeInteger(p, "a")\n\t}()\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = nil\n\tif true {\n\t\tvar v any = p\n\t\t_ = v\n\t}\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = this.Extend(p).X\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar q *string = nil\n\tvar v any = q\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = DerefScalar(this.SafeValue(p, "a"))\n\tif IsEqual(v, nil) {\n\t}\n',
+    ];
+    keep.forEach ((body, index) => ok (f (body).indexOf ('IsEqual(v, nil)') >= 0, 'unproven write must keep the helper #' + index));
+    ok (pass ('\nfunc (this *X) f(v any) any {\n\tif IsEqual(v, nil) {\n\t}\n}\n').indexOf ('IsEqual(v, nil)') >= 0, 'a parameter keeps the helper');
+    const ws = goAnyLocalNativeNilCompares ('\nfunc (this *X) f() any {\n\tvar c any = ccxt.NewArrayCache(1)\n\tif !ccxt.IsEqual(c, nil) {\n\t}\n}\n', 'ccxt.IsEqual(');
+    ok (ws.indexOf ('if (c != nil) {') >= 0, 'the package-qualified helper is rewritten');
+    ok (pass (ws) === ws, 'a second application is a no-op');
+    return problems;
+}
+
 // Self-test for the same-file pointer-returning method rule: the boxed local keeps the
 // deref-aware helper, a scalar-returning or unknown method and a typed local keep the native
 // comparison, the reassignment form is caught too and a second application is a no-op.
@@ -4610,7 +4804,7 @@ ${constStatements.join('\n')}
                 this.createGeneratedHeader().join('\n'),
             ]).join("\n");
 
-            const file = goPointerLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual('), 'IsEqual(');
+            const file = goAnyLocalNativeNilCompares (goPointerLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual('), 'IsEqual('), 'IsEqual(');
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
             this.writeGeneratedOnce (goExchangeBase, file);
@@ -4719,7 +4913,7 @@ ${constStatements.join('\n')}
             ].join('\n');
             // `shims` ends with the single trailing newline gofmt wants at EOF
             // (the caller-fed `any` parameters keep the helper here too — see goParamNativeNilCompares)
-            const file = goPointerLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (fileHeader + '\n' + structDef + methods + shims, 'IsEqual('), 'IsEqual('), 'IsEqual(');
+            const file = goAnyLocalNativeNilCompares (goPointerLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (fileHeader + '\n' + structDef + methods + shims, 'IsEqual('), 'IsEqual('), 'IsEqual('), 'IsEqual(');
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
@@ -5962,6 +6156,7 @@ ${caseStatements.join('\n')}
         content = goPointerLocalNativeNilCompares (content, isWs ? 'ccxt.IsEqual(' : 'IsEqual(');
         // typed locals compare natively (goTypedNativeNilCompares)
         content = goTypedNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
+        content = goAnyLocalNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
 
         if (!isWs) {
             content = this.regexAll(content, [
@@ -7233,7 +7428,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goAnyLocalNilSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
