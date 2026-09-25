@@ -17283,11 +17283,111 @@ function orderBookSideRead (csharp, node) {
     if (arm.parent?.kind === ts.SyntaxKind.ConditionalExpression && arm.parent.condition !== arm) {
         return undefined;
     }
-    const receiver = referenceDeclaredCSharpType (csharp, node.expression);
+    const receiver = referenceDeclaredCSharpType (csharp, node.expression) ?? orderBookParameterReference (csharp, node.expression);
     if (ORDERBOOK_LOCAL_TYPES.indexOf (receiver) < 0) {
         return undefined;
     }
     return { property: key.text, type: ORDERBOOK_SIDE_PROPERTIES[key.text] };
+}
+
+// a parameter annotated with the ws OrderBook class (`orderbook: Ob`) prints ccxt.pro.IOrderBook when
+// it is never reassigned and every ts/src declaration of the method annotates that position the same
+// way (C# overrides are invariant); the callers hold IOrderBook / OrderBook values
+const orderBookParameterDecisions = new WeakMap ();
+
+function orderBookParameterType (csharp, parameter) {
+    if (parameter?.kind !== ts.SyntaxKind.Parameter || parameter.initializer !== undefined || parameter.dotDotDotToken !== undefined) {
+        return undefined;
+    }
+    const cached = orderBookParameterDecisions.get (parameter);
+    if (cached !== undefined) {
+        return (cached === null) ? undefined : cached;
+    }
+    let result = null;
+    try {
+        result = orderBookParameterProof (csharp, parameter) ? 'ccxt.pro.IOrderBook' : null;
+    } catch (e) {
+        result = null;
+    }
+    orderBookParameterDecisions.set (parameter, result);
+    return (result === null) ? undefined : result;
+}
+
+function orderBookParameterProof (csharp, parameter) {
+    const owner = parameter.parent;
+    if (owner?.kind !== ts.SyntaxKind.MethodDeclaration || owner.body === undefined || owner.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const fileName = owner.getSourceFile ().fileName.replace (/\\/g, '/');
+    if (!/(^|\/)ts\/src\//.test (fileName) || fileName.includes ('/test/')) {
+        return false;
+    }
+    const annotation = parameter.type;
+    if (annotation?.kind !== ts.SyntaxKind.TypeReference || annotation.typeName?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const checker = csharp.getChecker ();
+    const symbol = checker.getTypeAtLocation (parameter)?.getSymbol?.();
+    const declaration = symbol?.declarations?.[0]?.resolve?.();
+    const declaringFile = (declaration?.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (symbol?.name !== 'OrderBook' || declaration?.kind !== ts.SyntaxKind.ClassDeclaration || !declaringFile.endsWith ('ts/src/base/ws/OrderBook.ts')) {
+        return false;
+    }
+    if (csharpParameterIsWritten (csharp, owner, parameter)) {
+        return false;
+    }
+    const name = owner.name.text;
+    const position = owner.parameters.indexOf (parameter);
+    const alias = annotation.typeName.text;
+    const corpus = csharpCorpus ();
+    const declared = corpus.declarations.get (name);
+    if (declared === undefined) {
+        return false;
+    }
+    // the class chain both ways: an ancestor or a descendant declaring the name overrides it
+    const ancestors = (start) => {
+        const seen = new Set ();
+        const queue = [ start ];
+        while (queue.length > 0) {
+            for (const parent of corpus.parents.get (queue.pop ()) ?? []) {
+                if (!seen.has (parent)) {
+                    seen.add (parent);
+                    queue.push (parent);
+                }
+            }
+        }
+        return seen;
+    };
+    const declaringRel = path.relative (process.cwd (), owner.getSourceFile ().fileName);
+    const chain = ancestors (declaringRel);
+    const signatureRe = new RegExp ('^\\s+(?:(?:public|protected|private|override|async|static)\\s+)*' + name + '\\s*\\(([^)]*)\\)', 'gm');
+    for (const rel of declared) {
+        if (!rel.startsWith ('ts/src/') || rel.includes ('/test/')) {
+            continue;
+        }
+        if ((rel !== declaringRel) && !chain.has (rel) && !ancestors (rel).has (declaringRel)) {
+            continue;
+        }
+        const text = fs.readFileSync (path.join (process.cwd (), rel), 'utf8');
+        let match;
+        while ((match = signatureRe.exec (text)) !== null) {
+            const slot = match[1].split (',')[position];
+            if (slot === undefined || slot.split (':')[1]?.trim () !== alias) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function orderBookParameterReference (csharp, node) {
+    let declaration;
+    try {
+        declaration = resolveReference (csharp, node);
+    } catch (e) {
+        return undefined;
+    }
+    return (declaration?.kind === ts.SyntaxKind.Parameter) ? orderBookParameterType (csharp, declaration) : undefined;
 }
 
 export function installCsharpOrderBookSideReads (transpiler) {
@@ -17295,6 +17395,8 @@ export function installCsharpOrderBookSideReads (transpiler) {
     if (!csharp || typeof csharp.printElementAccessExpression !== 'function' || csharp._orderBookSideReadsPatched) {
         return;
     }
+    const upstreamParameterType = csharp.printParameterType.bind (csharp);
+    csharp.printParameterType = (node) => orderBookParameterType (csharp, node) ?? upstreamParameterType (node);
     const upstream = csharp.printElementAccessExpression.bind (csharp);
     csharp.printElementAccessExpression = (node, identation) => {
         let read;

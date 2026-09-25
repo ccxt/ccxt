@@ -938,7 +938,7 @@ export default class backpack extends backpackRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override handleBookDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: Ob, delta: any) {
         const timestamp = this.parseToInt (this.safeInteger (delta, 'T', 0) / 1000);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);

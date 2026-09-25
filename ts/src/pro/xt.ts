@@ -165,7 +165,7 @@ export default class xt extends xtRest {
         return cache.length;
     }
 
-    override handleBookDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: Ob, delta: any) {
         orderbook['nonce'] = this.safeInteger2 (delta, 'i', 'u');
         const obAsks: Dict[] = this.safeList (delta, 'a', []);
         const obBids: Dict[] = this.safeList (delta, 'b', []);

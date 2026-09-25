@@ -275,7 +275,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    override handleBookDelta (orderbook: any, message: any) {
+    override handleBookDelta (orderbook: Ob, message: any) {
         //
         //  create
         //     {
