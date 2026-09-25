@@ -10910,6 +10910,12 @@ impl std::ops::DerefMut for ${coreName} {
             /in_op\(&get_value\(&exchange, &Value::Str\("markets"\.to_string\(\)\)\), &(\w+)(?:\.clone\(\))?\)/g,
             'crate::tests_support::shared::market_exists(&exchange, &$1)',
         );
+        // Same guard when the printer proved the key a string and emitted
+        // `in_op`'s (Dict, Str) arm natively.
+        content = content.replace(
+            /matches!\(\(&get_value\(&exchange, &Value::Str\("markets"\.(?:to_string|into)\(\)\)\), &(\w+)\), \(Value::Dict\(__d\), Value::Str\(__k\)\) if __d\.contains_key\(__k\.as_ref\(\)\)\)/g,
+            'crate::tests_support::shared::market_exists(&exchange, &$1)',
+        );
         content = this.splitAddElementBorrowConflicts(content);
         content = this.splitGetValueMutAdds(content);
         content = this.rewriteSelfFieldMutCloneCast(content);
