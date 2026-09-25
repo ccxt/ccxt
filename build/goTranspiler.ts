@@ -958,6 +958,167 @@ function goAnyLocalNilSelfTest (): string[] {
     return problems;
 }
 
+// IsEqual(x, "lit") is `x == "lit"` on a box that never holds a *string/*any (the helper derefs
+// those) or a *sync.Map; on a `*string` local it is the helper's nil-guarded compare. Every
+// write must be proven below; parameters and unknown producers keep the helper.
+const GO_STRING_CMP_SAFE_CALLS = new Set ([
+    'GetValue', 'Add', 'Subtract', 'Multiply', 'Divide', 'ParseInt', 'GetArrayLength', 'mathMin', 'mathMax',
+    'ToUpper', 'ToLower', 'ToString', 'Replace', 'JsonStringify', 'StringArg', 'Json',
+    'this.Json', 'this.Uuid', 'this.Milliseconds', 'this.Seconds', 'this.Extend', 'this.DeepExtend',
+]);
+// producers whose Go result is `any` or `string`, so `x := <call>` compares with a string constant
+const GO_STRING_CMP_BOX_CALLS = new Set ([
+    'GetValue', 'Add', 'ToUpper', 'ToLower', 'ToString', 'Replace', 'JsonStringify', 'StringArg', 'Json',
+    'this.Json', 'this.Uuid', 'GetArg', 'DerefScalar',
+]);
+const GO_STRING_PTR_TUPLE_CALL = /^(?:this|base|this\.Exchange|this\.BaseExchange)\.Handle(?:MarketType|SubType|MarginMode|OptionString)AndParams2?\(/;
+const GO_STRING_CMP_PLAIN_ARG = /^(?:nil|true|false|""|-?\d+(?:\.\d+)?|map\[string\]any\{\}|\[\]any\{\})$/;
+
+// true when the masked right-hand side cannot yield a pointer box; `ident` judges bare names
+function goStringCmpSafeWrite (rhs: string, ident: (name: string) => boolean, boxOnly: boolean): boolean {
+    const text = rhs.replace (/\bccxt\./g, '').trim ();
+    if (text === '""') {
+        return true;
+    }
+    if (/^(?:nil|true|false|-?\d+(?:\.\d+)?)$/.test (text) || /^(?:map\[string\]any|\[\]any)\{/.test (text)) {
+        return !boxOnly;
+    }
+    if (/^\w+$/.test (text)) {
+        return !boxOnly && ident (text);
+    }
+    const call = /^((?:this\.)?\w+)\(/.exec (text);
+    const args = call ? goCallArgsSpanningText (text, call[0].length - 1) : undefined;
+    if ((call === null) || (args === undefined)) {
+        return false;
+    }
+    if (boxOnly && !GO_STRING_CMP_BOX_CALLS.has (call[1])) {
+        return false;
+    }
+    if (call[1] === 'DerefScalar') {
+        return (args.length === 1) && GO_ANY_NIL_DEREF_INNER.test (args[0]) && (goCallArgsSpanningText (args[0], args[0].indexOf ('(')) !== undefined);
+    }
+    if (call[1] === 'GetArg') {
+        return (args.length === 3) && GO_STRING_CMP_PLAIN_ARG.test (args[2]);
+    }
+    return GO_STRING_CMP_SAFE_CALLS.has (call[1]);
+}
+
+function goStringLiteralCompareText (fn: string, isEqualFn: string): string {
+    if (fn.indexOf (isEqualFn) < 0) {
+        return fn;
+    }
+    const helper = isEqualFn.replace (/[.(]/g, '\\$&');
+    const signature = fn.slice (0, fn.indexOf ('{'));
+    const signatureLine = signature.split ('\n').length - 1;
+    const commentState = { 'inBlockComment': false };
+    const code = fn.split ('\n').map ((line) => stripGoLiterals (line, commentState));
+    const kinds = new Map<string, string> ();
+    const kindOf = (name: string): string => {
+        const known = kinds.get (name);
+        if (known !== undefined) {
+            return known;
+        }
+        kinds.set (name, 'no');
+        const param = new RegExp ('[(,]\\s*' + name + ' (\\S+?)[,)]').exec (signature);
+        const declRe = new RegExp ('\\bvar ' + name + '\\b|(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\b[^{]*[(,]\\s*' + name + ' ');
+        const declLines = code.map ((line, index) => index).filter ((index) => (index > signatureLine) && declRe.test (code[index]));
+        let kind = 'no';
+        if (param) {
+            kind = (!declLines.length && /^(?:string|int64|float64|bool|int)$/.test (param[1])) ? 'scalar' : 'no';
+            kinds.set (name, kind);
+            return kind;
+        }
+        if (declLines.length !== 1) {
+            return kind;
+        }
+        const declIndex = declLines[0];
+        const decl = code[declIndex];
+        const safeIdent = (other: string): boolean => (other !== name) && (kindOf (other) !== 'no') && (kindOf (other) !== 'ptr');
+        let match: RegExpExecArray | null;
+        if (new RegExp ('^\\s*var ' + name + ' (?:string|int64|float64|bool|int) = ').test (decl)) {
+            kind = 'scalar';
+        } else if (new RegExp ('^\\s*var ' + name + ' \\*string(?: = |$)').test (decl)) {
+            kind = 'ptr';
+        } else if ((match = new RegExp ('^\\s*' + name + ', \\w+ := (.*)$').exec (decl)) && GO_STRING_PTR_TUPLE_CALL.test (match[1]) && (goCallArgsSpanningText (match[1], match[1].indexOf ('(')) !== undefined)) {
+            kind = 'ptr';
+        } else if ((match = new RegExp ('^\\s*var ' + name + ' any(?: = (.*))?$').exec (decl))) {
+            kind = ((match[1] === undefined) || goStringCmpSafeWrite (match[1], safeIdent, false)) ? 'box' : 'no';
+        } else if ((match = new RegExp ('^\\s*' + name + ' := (.*)$').exec (decl))) {
+            kind = goStringCmpSafeWrite (match[1], safeIdent, true) ? 'box' : 'no';
+        }
+        if (kind === 'box') {
+            const mention = new RegExp ('(?<![.\\w])' + name + '(?!\\w)');
+            const unsafe = new RegExp ('&' + name + '\\b|(?<![.\\w])' + name + '\\s*(?:\\+\\+|--|[-+*/%|&^]=)|,\\s*' + name + '\\s*(?:,[^=\\n]*)?=[^=]|(?<![.\\w])' + name + '\\s*,[\\w\\s,]*=[^=]');
+            for (let i = 0; (kind === 'box') && (i < code.length); i++) {
+                if ((i === declIndex) || !mention.test (code[i])) {
+                    continue;
+                }
+                const write = new RegExp ('^\\s*' + name + ' = (.*)$').exec (code[i]);
+                if (unsafe.test (code[i])) {
+                    kind = 'no';
+                } else if (write) {
+                    kind = goStringCmpSafeWrite (write[1], safeIdent, false) ? 'box' : 'no';
+                } else if (new RegExp ('(?<![.\\w=!<>])' + name + '\\s*=[^=]').test (code[i])) {
+                    kind = 'no';
+                }
+            }
+        }
+        kinds.set (name, kind);
+        return kind;
+    };
+    return fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + '(\\w+), (\"(?:[^\"\\\\]|\\\\.)*\")\\)', 'g'), ((m: string, not: string, name: string, literal: string) => {
+        const kind = kindOf (name);
+        if (kind === 'box') {
+            return '(' + name + ((not === '!') ? ' != ' : ' == ') + literal + ')';
+        }
+        if (kind === 'ptr') {
+            return (not === '!') ? '(' + name + ' == nil || *' + name + ' != ' + literal + ')' : '(' + name + ' != nil && *' + name + ' == ' + literal + ')';
+        }
+        return m;
+    }) as any);
+}
+
+export function goStringLiteralNativeCompares (content: string, isEqualFn: string): string {
+    const ranges = goFuncBlockRanges (content);
+    for (let i = ranges.length - 1; i >= 0; i--) {
+        const block = content.slice (ranges[i].start, ranges[i].end);
+        const rewritten = goStringLiteralCompareText (block, isEqualFn);
+        if (rewritten !== block) {
+            content = content.slice (0, ranges[i].start) + rewritten + content.slice (ranges[i].end);
+        }
+    }
+    return content;
+}
+
+function goStringLiteralSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const f = (body: string, sig = 'p any'): string => goStringLiteralNativeCompares ('\nfunc (this *X) f(' + sig + ', optionalArgs ...any) any {\n' + body + '\treturn nil\n}\n', 'IsEqual(');
+    ok (f ('\tapi := GetArg(optionalArgs, 0, "public")\n\tif IsEqual(api, "private") || !IsEqual(api, "v2") {\n\t}\n').indexOf ('if (api == "private") || (api != "v2") {') >= 0, 'GetArg with a literal default compares natively');
+    ok (f ('\tvar t any = "spot"\n\tvar u string = "x"\n\tif true {\n\t\tt = DerefScalar(this.SafeString(p, "type"))\n\t} else {\n\t\tt = u\n\t}\n\tt = GetValue(p, 0)\n\tif IsEqual(t, "swap") {\n\t}\n').indexOf ('if (t == "swap") {') >= 0, 'literal/DerefScalar/string-local/GetValue writes compare natively');
+    ok (f ('\tm, q := this.HandleMarketTypeAndParams("f", nil, p)\n\t_ = q\n\tif IsEqual(m, "spot") && !IsEqual(m, "swap") {\n\t}\n').indexOf ('if (m != nil && *m == "spot") && (m == nil || *m != "swap") {') >= 0, 'a *string tuple result gets the nil-guarded compare');
+    ok (f ('\tvar s *string = this.SafeString(p, "a")\n\tif IsEqual(s, "a") {\n\t}\n').indexOf ('(s != nil && *s == "a")') >= 0, 'a *string local gets the nil-guarded compare');
+    const keep = [
+        '\tvar v any = this.SafeString(p, "v")\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = "a"\n\tv = this.GetMarketType("f", p)\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = "a"\n\tvar s *string = nil\n\tv = s\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = "a"\n\tv, _ = this.Two(p)\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = nil\n\tif true {\n\t\tvar v any = p\n\t\t_ = v\n\t}\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tv := GetArg(optionalArgs, 0, this.SafeString(p, "a"))\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tv := this.Milliseconds()\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = func() any {\n\t\treturn p\n\t}()\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = DerefScalar(p)\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = "a"\n\tAppendToArray(&v, 1)\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = "a"\n\tvar w any = v\n\tw = p\n\tv = w\n\tif IsEqual(v, "a") {\n\t}\n',
+    ];
+    keep.forEach ((body, index) => ok (f (body).indexOf ('IsEqual(v, "a")') >= 0, 'unproven write must keep the helper #' + index));
+    ok (f ('\tif IsEqual(p, "a") {\n\t}\n').indexOf ('IsEqual(p, "a")') >= 0, 'an any parameter keeps the helper');
+    const ws = goStringLiteralNativeCompares ('\nfunc (this *X) f(optionalArgs ...any) any {\n\tapi := ccxt.GetArg(optionalArgs, 0, "public")\n\tif ccxt.IsEqual(api, "x") {\n\t}\n}\n', 'ccxt.IsEqual(');
+    ok (ws.indexOf ('if (api == "x") {') >= 0, 'the package-qualified helper is rewritten');
+    ok (goStringLiteralNativeCompares (ws, 'ccxt.IsEqual(') === ws, 'a second application is a no-op');
+    return problems;
+}
+
 // Self-test for the same-file pointer-returning method rule: the boxed local keeps the
 // deref-aware helper, a scalar-returning or unknown method and a typed local keep the native
 // comparison, the reassignment form is caught too and a second application is a no-op.
@@ -6686,6 +6847,7 @@ ${caseStatements.join('\n')}
         // typed locals compare natively (goTypedNativeNilCompares)
         content = goTypedNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
         content = goAnyLocalNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
+        content = goStringLiteralNativeCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
 
         if (!isWs) {
             content = this.regexAll(content, [
@@ -7957,7 +8119,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goAnyLocalNilSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
