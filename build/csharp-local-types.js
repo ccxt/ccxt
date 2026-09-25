@@ -13239,8 +13239,11 @@ function element1ParamsRead (csharp, node) {
     } catch (e) {
         return false;
     }
-    return element1ParamsBinding (csharp, declaration);
+    return element1TypedBindings.has (declaration);
 }
+
+// binding elements whose declaration line was printed typed: the one proof omit receivers read
+const element1TypedBindings = new WeakSet ();
 
 function retypeElement1Params (csharp, declaration, printed) {
     const element = declaration.name?.elements?.[1];
@@ -13248,8 +13251,12 @@ function retypeElement1Params (csharp, declaration, printed) {
         return printed;
     }
     const name = csharp.printNode (element.name, 0);
-    // the last tuple element is printed without its `;` (the statement printer adds it)
-    const re = new RegExp ('^([ \\t]*)var ' + name + ' = (\\w+Variable\\[1\\])(;?)$', 'm');
+    // the read is `tmp[1]` or `((IList<object>) tmp)[1]`; the last element has no `;` yet
+    const re = new RegExp ('^([ \\t]*)var ' + name + ' = (\\w+Variable\\[1\\]|\\(\\(IList<object>\\) \\w+Variable\\)\\[1\\])(;?)$', 'm');
+    if (!re.test (printed)) {
+        return printed;
+    }
+    element1TypedBindings.add (element);
     return printed.replace (re, (all, indent, read, semi) => indent + CSHARP_ELEMENT_1_TYPE + ' ' + name + ' = ((' + CSHARP_ELEMENT_1_TYPE + ')' + read + ')' + semi);
 }
 
