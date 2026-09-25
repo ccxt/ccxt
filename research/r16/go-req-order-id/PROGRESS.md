@@ -17,8 +17,9 @@
   prediction kalshi/opinion/polymarket/predictfun/sxbet fetchOrder `id: Str` -> `id: string` (all use id as required).
 - EXCLUDED (genuinely optional): withdraw address (kraken: documented "not required, can be '' or undefined"),
   transfer fromAccount (extended: documented "defaults to the authenticated account id").
-- Fixtures: fixfix.py quoted 73 integer ids in 28 static request/response files (21 exchanges); strfixtures bad 0.
+- Fixtures: fixfix.py quoted 75 integer ids in 30 (incl. prediction binance/hyperliquid) static request/response files (21 exchanges); strfixtures bad 0.
   JS request+response tests pass for those 21 + btse weex upbit dydx apex extended kraken; tsc 0; lint 0 errors.
 - Replays (tr.mjs, 18 files) rc0; unified sigs now `id string` etc.; new StringArg only at forwarding callers
   (kraken transfer(code), bithumb cancelUnifiedOrder GetValue(order,"id")).
 - GATE: ts/src edited -> root-only --targets all on head below.
+- HEAD for root all-langs gate: see git log (strfixtures bad 0).
