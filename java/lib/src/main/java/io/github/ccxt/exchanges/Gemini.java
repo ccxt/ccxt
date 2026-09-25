@@ -1562,8 +1562,8 @@ public class Gemini extends GeminiApi
         String quote = null;
         if ((!java.util.Objects.equals(marketId, null)) && (java.util.Objects.equals(market, null)))
         {
-            Object idLength = Helpers.subtract(marketId.length(), 0);
-            if (Helpers.isEqual(idLength, 7))
+            Long idLength = (((long) marketId.length()) - 0L);
+            if ((idLength != null && idLength == 7))
             {
                 baseId = (marketId == null ? null : ((String)marketId).substring(0, Math.min(4, ((String)marketId).length())));
                 quoteId = (marketId == null ? null : ((String)marketId).substring(Math.min(4, ((String)marketId).length()), Math.min(7, ((String)marketId).length())));
@@ -1770,7 +1770,7 @@ public class Gemini extends GeminiApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit_trades", Helpers.mathMin(limit, 500));
+                request.put("limit_trades", Math.min(limit, 500));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -2507,7 +2507,7 @@ public class Gemini extends GeminiApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("timestamp", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("timestamp", this.parseToInt((((double) since) / ((double) 1000))));
             }
             List<Object> response = (this.privatePostV1Mytrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);

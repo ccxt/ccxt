@@ -877,7 +877,7 @@ public class Dydx extends DydxApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000));
+                request.put("limit", Math.min(limit, 1000));
             }
             Map<String, Object> response = (this.indexerGetTradesPerpetualMarketMarket(this.extend(request, parameters))).join();
             //
@@ -975,7 +975,7 @@ public class Dydx extends DydxApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000));
+                request.put("limit", Math.min(limit, 1000));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -2150,7 +2150,7 @@ public class Dydx extends DydxApi
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
             }
             String idString = String.valueOf(id);
-            if (!java.util.Objects.equals(id, null) && Helpers.isGreaterThan(((String)idString).indexOf("-"), -1))
+            if (!java.util.Objects.equals(id, null) && ((String)idString).indexOf("-") > -1)
             {
                 throw new NotSupported((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
             }

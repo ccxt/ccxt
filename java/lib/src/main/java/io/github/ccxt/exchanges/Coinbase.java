@@ -2491,7 +2491,7 @@ public class Coinbase extends CoinbaseApi
             Long timestamp = this.safeInteger(options, "timestamp");
             Long expires = this.safeInteger(options, "expires", 1000);
             Long now = this.milliseconds();
-            if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isGreaterThan(((now - timestamp)), expires)))
+            if ((java.util.Objects.equals(timestamp, null)) || (((expires == null || ((now - timestamp)) > expires))))
             {
                 List<Object> promises = new ArrayList<Object>(Arrays.asList(this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters)));
                 Object promisesResult = (Helpers.promiseAll(promises)).join();
@@ -5188,7 +5188,7 @@ public class Coinbase extends CoinbaseApi
             String sinceString = null;
             if (!java.util.Objects.equals(since, null))
             {
-                sinceString = this.numberToString(this.parseToInt(Helpers.divide(since, 1000)));
+                sinceString = this.numberToString(this.parseToInt((((double) since) / ((double) 1000))));
             } else
             {
                 String now = String.valueOf(this.seconds());
@@ -5308,11 +5308,11 @@ public class Coinbase extends CoinbaseApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("start", this.numberToString(this.parseToInt(Helpers.divide(since, 1000))));
+                request.put("start", this.numberToString(this.parseToInt((((double) since) / ((double) 1000)))));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000));
+                request.put("limit", Math.min(limit, 1000));
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchTrades", "until");

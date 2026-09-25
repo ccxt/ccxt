@@ -1998,7 +1998,7 @@ public class Digifinex extends DigifinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", (((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))) ? Helpers.mathMin(limit, 100) : limit);
+                request.put("limit", (((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))) ? Math.min(limit, 100) : limit);
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -2117,7 +2117,7 @@ public class Digifinex extends DigifinexApi
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object limit = limit3;
+            Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2132,7 +2132,7 @@ public class Digifinex extends DigifinexApi
                 request.put("granularity", timeframe);
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("limit", Helpers.mathMin(limit, 100));
+                    request.put("limit", Math.min(limit, 100));
                 }
                 response = (this.publicSwapGetPublicCandles(this.extend(request, parameters))).join();
             } else
@@ -2162,7 +2162,7 @@ public class Digifinex extends DigifinexApi
                             Long endByUntil = this.parseToInt((((double) until) / ((double) 1000)));
                             if (!java.util.Objects.equals(limit, null))
                             {
-                                Object endByLimit = this.sum(startTime, Helpers.multiply(limit, duration));
+                                Object endByLimit = this.sum(startTime, (limit * ((long) duration)));
                                 request.put("end_time", Helpers.mathMin(endByLimit, endByUntil));
                             } else
                             {
@@ -2174,7 +2174,7 @@ public class Digifinex extends DigifinexApi
                             {
                                 throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a limit argument")) ;
                             }
-                            request.put("end_time", this.sum(startTime, Helpers.multiply(limit, duration)));
+                            request.put("end_time", this.sum(startTime, (limit * ((long) duration))));
                         }
                     }
                 }
@@ -3256,7 +3256,7 @@ public class Digifinex extends DigifinexApi
                 request.put("market", marketType);
                 if (!java.util.Objects.equals(since, null))
                 {
-                    request.put("start_time", this.parseToInt(Helpers.divide(since, 1000))); // default 3 days from now, max 30 days
+                    request.put("start_time", this.parseToInt((((double) since) / ((double) 1000)))); // default 3 days from now, max 30 days
                 }
             }
             if (!java.util.Objects.equals(market, null))
@@ -3547,7 +3547,7 @@ public class Digifinex extends DigifinexApi
                 request.put("market", marketType);
                 if (!java.util.Objects.equals(since, null))
                 {
-                    request.put("start_time", this.parseToInt(Helpers.divide(since, 1000))); // default 3 days from now, max 30 days
+                    request.put("start_time", this.parseToInt((((double) since) / ((double) 1000)))); // default 3 days from now, max 30 days
                 }
             }
             String marketIdRequest = "symbol";
@@ -3759,7 +3759,7 @@ public class Digifinex extends DigifinexApi
                 request.put("market", marketType);
                 if (!java.util.Objects.equals(since, null))
                 {
-                    request.put("start_time", this.parseToInt(Helpers.divide(since, 1000))); // default 3 days from now, max 30 days
+                    request.put("start_time", this.parseToInt((((double) since) / ((double) 1000)))); // default 3 days from now, max 30 days
                 }
             }
             String currencyIdRequest = "currency_mark";
@@ -3965,7 +3965,7 @@ public class Digifinex extends DigifinexApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("size", Helpers.mathMin(500, limit));
+                request.put("size", Math.min(500, limit));
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "deposit"))

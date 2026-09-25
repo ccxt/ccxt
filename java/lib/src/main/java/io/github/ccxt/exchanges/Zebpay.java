@@ -2801,7 +2801,7 @@ public class Zebpay extends ZebpayApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         parameters = this.omit(parameters, "defaultType");
-        Boolean isV1 = Helpers.isGreaterThan(Helpers.getIndexOf(path, "v1/"), -1);
+        Boolean isV1 = Helpers.getIndexOf(path, "v1/") > -1;
         String marketType = "spot";
         if (Boolean.TRUE.equals(isV1))
         {

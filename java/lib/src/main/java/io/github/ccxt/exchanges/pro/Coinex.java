@@ -602,7 +602,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "market");
-        Boolean isSpot = Helpers.isGreaterThan(((String)client.url).indexOf("spot"), -1);
+        Boolean isSpot = ((String)client.url).indexOf("spot") > -1;
         String defaultType = "swap";
         if (Boolean.TRUE.equals(isSpot))
         {
@@ -670,7 +670,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         List<Object> trades = (List<Object>) this.safeList(data, "deal_list", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(data, "market");
-        Boolean isSpot = Helpers.isGreaterThan(((String)client.url).indexOf("spot"), -1);
+        Boolean isSpot = ((String)client.url).indexOf("spot") > -1;
         String defaultType = "swap";
         if (Boolean.TRUE.equals(isSpot))
         {
@@ -1197,7 +1197,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //         "id": null
         //     }
         //
-        Boolean isSpot = Helpers.isGreaterThan(((String)client.url).indexOf("spot"), -1);
+        Boolean isSpot = ((String)client.url).indexOf("spot") > -1;
         String defaultType = "swap";
         if (Boolean.TRUE.equals(isSpot))
         {

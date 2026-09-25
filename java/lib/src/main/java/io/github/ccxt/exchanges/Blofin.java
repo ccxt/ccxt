@@ -1542,7 +1542,7 @@ public class Blofin extends BlofinApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("before", Helpers.mathMax(Helpers.subtract(since, 1), 0));
+                request.put("before", Math.max((since - 1L), 0));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2702,7 +2702,7 @@ public class Blofin extends BlofinApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("before", Helpers.mathMax(Helpers.subtract(since, 1), 0));
+                request.put("before", Math.max((since - 1L), 0));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2780,7 +2780,7 @@ public class Blofin extends BlofinApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("before", Helpers.mathMax(Helpers.subtract(since, 1), 0));
+                request.put("before", Math.max((since - 1L), 0));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2845,7 +2845,7 @@ public class Blofin extends BlofinApi
         {
             return null;
         }
-        if (Helpers.isGreaterThan(((String)chainId).indexOf("("), -1))
+        if (((String)chainId).indexOf("(") > -1)
         {
             // php-safe suffix extraction: split instead of index arithmetic,
             // because a stored strpos result and a two-argument slice do not
@@ -3574,7 +3574,7 @@ public class Blofin extends BlofinApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 100));
+                request.put("limit", Math.min(limit, 100));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3840,7 +3840,7 @@ public class Blofin extends BlofinApi
             {
                 Object entry = (symbolsList == null || i < 0 || i >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(i));
                 Map<String, Object> entryMarket = (Map<String, Object>) this.market(entry);
-                if (Helpers.isGreaterThan(i, 0))
+                if (i > 0)
                 {
                     instIds = ((instIds + ",") + ((Map<String, Object>)entryMarket).get("id"));
                 } else

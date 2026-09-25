@@ -2405,7 +2405,7 @@ public class Mexc extends MexcApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
-            Object limit = limit3;
+            Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2479,7 +2479,7 @@ public class Mexc extends MexcApi
             {
                 if (!java.util.Objects.equals(since, null))
                 {
-                    request.put("start", this.parseToInt(Helpers.divide(since, 1000)));
+                    request.put("start", this.parseToInt((((double) since) / ((double) 1000))));
                 }
                 if (!java.util.Objects.equals(until, null))
                 {
@@ -3834,7 +3834,7 @@ public class Mexc extends MexcApi
                         request.put("end_time", this.sum(since, maxTimeTillEnd));
                     } else
                     {
-                        if (Helpers.isGreaterThan((Helpers.subtract(end, since)), maxTimeTillEnd))
+                        if (((maxTimeTillEnd == null || ((end - since)) > maxTimeTillEnd)))
                         {
                             throw new BadRequest((this.id + " end is invalid, i.e. exceeds allowed 90 days.")) ;
                         } else
@@ -6542,7 +6542,7 @@ final String finalRiskIncrVol = riskIncrVol;
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isGreaterThan(limit, 1000))
+                if ((limit > 1000))
                 {
                     throw new ExchangeError("This exchange supports a maximum limit of 1000") ;
                 }
@@ -6625,7 +6625,7 @@ final String finalRiskIncrVol = riskIncrVol;
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isGreaterThan(limit, 1000))
+                if ((limit > 1000))
                 {
                     throw new ExchangeError("This exchange supports a maximum limit of 1000") ;
                 }
@@ -7236,7 +7236,7 @@ final String finalRiskIncrVol = riskIncrVol;
                 }
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    if (Helpers.isGreaterThan(limit, 100))
+                    if ((limit > 100))
                     {
                         throw new ExchangeError("This exchange supports a maximum limit of 50") ;
                     }

@@ -1612,7 +1612,7 @@ final Object finalOi = oi;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
-            Object limit = limit3;
+            Long limit = limit3;
             (this.loadOutcome((String) (outcome))).join();
             Object outcomeObj = this.outcome((String) (outcome));
             String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
@@ -1636,11 +1636,11 @@ final Object finalOi = oi;
             Object tf = this.parseTimeframe(timeframe);
             if (!java.util.Objects.equals(since, null))
             {
-                Long sinceS = this.parseToInt(Helpers.divide(since, 1000));
+                Long sinceS = this.parseToInt((((double) since) / ((double) 1000)));
                 request.put("start_ts", sinceS);
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    Object end = this.sum(sinceS, Helpers.multiply(limit, tf));
+                    Object end = this.sum(sinceS, (limit * ((long) tf)));
                     request.put("end_ts", (((Helpers.isLessThan(end, now)))) ? end : now);
                 } else
                 {
@@ -1818,7 +1818,7 @@ final Object finalOi = oi;
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000));
+                request.put("limit", Math.min(limit, 1000));
             }
             Map<String, Object> response = (this.kalshiPublicGetMarketsTrades(this.extend(request, parameters))).join();
             List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));

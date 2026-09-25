@@ -1396,7 +1396,7 @@ public class Ndax extends NdaxApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("FromDate", this.ymdhms(Helpers.subtract(now, Helpers.multiply(Helpers.multiply(duration, limit), 1000))));
+                    request.put("FromDate", this.ymdhms((now - ((((long) duration) * limit) * 1000L))));
                     request.put("ToDate", this.ymdhms(now));
                 }
             } else
@@ -1407,7 +1407,7 @@ public class Ndax extends NdaxApi
                     request.put("ToDate", this.ymdhms(now));
                 } else
                 {
-                    request.put("ToDate", this.ymdhms(this.sum(since, Helpers.multiply(Helpers.multiply(duration, limit), 1000))));
+                    request.put("ToDate", this.ymdhms(this.sum(since, ((((long) duration) * limit) * 1000L))));
                 }
             }
             List<Object> response = (this.publicGetGetTickerHistory(this.extend(request, parameters))).join();
@@ -2391,7 +2391,7 @@ public class Ndax extends NdaxApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("StartTimeStamp", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("StartTimeStamp", this.parseToInt((((double) since) / ((double) 1000))));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2744,7 +2744,7 @@ public class Ndax extends NdaxApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("StartTimeStamp", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("StartTimeStamp", this.parseToInt((((double) since) / ((double) 1000))));
             }
             if (!java.util.Objects.equals(limit, null))
             {

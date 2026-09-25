@@ -1500,7 +1500,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             return -1;
         }
-        if (Helpers.isLessThan(nonce, (firstDeltaStart - 1L)))
+        if (((nonce == null || nonce < (firstDeltaStart - 1L))))
         {
             return -1;
         }
@@ -1513,7 +1513,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 return Helpers.getArrayLength(cache);
             }
-            if ((Helpers.isGreaterThanOrEqual(nonce, (deltaStart - 1L))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
+            if ((((nonce != null && nonce >= (deltaStart - 1L)))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
             {
                 return i;
             }

@@ -160,7 +160,7 @@ public class Lbank extends LbankApi
                                 put( "cost", 2.5 );
                             }} );
                             put( "withdrawConfigs", new HashMap<String, Object>() {{
-                                put( "cost", Helpers.multiply(2.5, 1.5) );
+                                put( "cost", (2.5 * 1.5) );
                             }} );
                             put( "timestamp", new HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
@@ -1478,7 +1478,7 @@ public class Lbank extends LbankApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("size", Helpers.mathMin(limit, 600));
+                request.put("size", Math.min(limit, 600));
             } else
             {
                 request.put("size", 600); // max
@@ -4228,7 +4228,7 @@ public class Lbank extends LbankApi
         String pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (var i = 0; Helpers.isLessThan(i, numLines); i++)
         {
-            Object start = Helpers.multiply(i, lineLength);
+            Long start = (((long) i) * ((long) lineLength));
             Object end = this.sum(start, lineLength);
             pem = (pem + (Helpers.slice(this.secret, start, end) + "\n")); // eslint-disable-line
         }

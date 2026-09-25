@@ -139,7 +139,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Boolean isBusiness = (java.util.Objects.equals(access, "business"));
         Boolean isPublic = (java.util.Objects.equals(access, "public"));
         Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-        if (Boolean.TRUE.equals(isBusiness) || (Helpers.isGreaterThan(((String)channel).indexOf("candle"), -1)) || (java.util.Objects.equals(channel, "orders-algo")))
+        if (Boolean.TRUE.equals(isBusiness) || (((String)channel).indexOf("candle") > -1) || (java.util.Objects.equals(channel, "orders-algo")))
         {
             return (String) (((url + "/business") + sandboxSuffix));
         } else if (Boolean.TRUE.equals(isPublic))
@@ -1930,7 +1930,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 if (Helpers.isEqual(limit, 1))
                 {
                     depth = "bbo-tbt";
-                } else if (Helpers.isGreaterThan(limit, 1) && Helpers.isLessThanOrEqual(limit, 5))
+                } else if ((limit > 1) && (limit <= 5))
                 {
                     depth = "books5";
                 } else if (Helpers.isEqual(limit, 50))
@@ -3858,7 +3858,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         } else if (Helpers.isTrue(channel.startsWith(((String)"bbo"))) || Helpers.isTrue(channel.startsWith(((String)"book"))))
         {
             this.handleUnsubscriptionOrderBook(client, symbol, channel);
-        } else if (Helpers.isGreaterThan(((String)channel).indexOf("tickers"), -1))
+        } else if (((String)channel).indexOf("tickers") > -1)
         {
             this.handleUnsubscriptionTicker(client, symbol, channel);
         } else if (Helpers.isTrue(channel.startsWith(((String)"candle"))))

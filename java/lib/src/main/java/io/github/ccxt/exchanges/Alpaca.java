@@ -679,12 +679,12 @@ public class Alpaca extends AlpacaApi
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
-            Object jetlagStrStart = Helpers.subtract(timestamp.length(), 6);
+            Long jetlagStrStart = (((long) timestamp.length()) - 6L);
             if (java.util.Objects.equals(timestamp, null))
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
-            Object jetlagStrEnd = Helpers.subtract(timestamp.length(), 3);
+            Long jetlagStrEnd = (((long) timestamp.length()) - 3L);
             if (java.util.Objects.equals(timestamp, null))
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
@@ -1185,7 +1185,7 @@ public class Alpaca extends AlpacaApi
                     for (var i = 1; Helpers.isLessThan(i, paginationCalls); i++)
                     {
                         Integer ohlcvsLength = ((List<?>)ohlcvs).size();
-                        if ((java.util.Objects.equals(pageToken, null)) || ((!java.util.Objects.equals(limit, null)) && (Helpers.isGreaterThanOrEqual(ohlcvsLength, limit))))
+                        if ((java.util.Objects.equals(pageToken, null)) || ((!java.util.Objects.equals(limit, null)) && (((ohlcvsLength != null && ohlcvsLength >= limit)))))
                         {
                             break;
                         }
@@ -3143,8 +3143,8 @@ public class Alpaca extends AlpacaApi
             } else
             {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
-                Object baseLength = Helpers.subtract(positionSymbol.length(), 3);
-                if ((Helpers.isGreaterThan(baseLength, 0)) && (java.util.Objects.equals(Helpers.slice(positionSymbol, baseLength, null), "USD")))
+                Long baseLength = (((long) positionSymbol.length()) - 3L);
+                if (((baseLength != null && baseLength > 0)) && (java.util.Objects.equals(Helpers.slice(positionSymbol, baseLength, null), "USD")))
                 {
                     baseId = Helpers.slice(positionSymbol, 0, baseLength);
                 }

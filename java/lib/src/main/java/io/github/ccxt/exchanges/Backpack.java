@@ -1311,7 +1311,7 @@ public class Backpack extends BackpackApi
                 request.put("startTime", startTime);
             } else
             {
-                request.put("startTime", this.parseToInt(Helpers.divide(since, 1000))); // convert milliseconds to seconds
+                request.put("startTime", this.parseToInt((((double) since) / ((double) 1000)))); // convert milliseconds to seconds
             }
             String price = this.safeString(parameters, "price");
             if (!java.util.Objects.equals(price, null))
@@ -1563,7 +1563,7 @@ public class Backpack extends BackpackApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
+                request.put("limit", Math.min(limit, 1000)); // api maximum 1000
             }
             List<Object> response = (this.publicGetApiV1FundingRates(this.extend(request, parameters))).join();
             //
@@ -1639,7 +1639,7 @@ public class Backpack extends BackpackApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
+                request.put("limit", Math.min(limit, 1000)); // api maximum 1000
             }
             List<Object> response = null;
             Long offset = this.safeInteger(parameters, "offset");

@@ -1030,7 +1030,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             return -1;
         }
-        if (Helpers.isLessThan(nonce, (firstDeltaNonce - 1L)))
+        if (((nonce == null || nonce < (firstDeltaNonce - 1L))))
         {
             return -1;
         }
@@ -2743,7 +2743,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         if (java.util.Objects.equals(msg, "PONG"))
         {
             this.handlePong(client, (Map<String, Object>) (message));
-        } else if (Helpers.isGreaterThan(((String)msg).indexOf("@"), -1))
+        } else if (((String)msg).indexOf("@") > -1)
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)msg).split(java.util.regex.Pattern.quote("@"))));
             String channel = this.safeString(parts, 1);

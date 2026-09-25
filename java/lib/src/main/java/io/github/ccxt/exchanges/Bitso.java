@@ -1124,13 +1124,13 @@ public class Bitso extends BitsoApi
                 if (!java.util.Objects.equals(limit, null))
                 {
                     int duration = this.parseTimeframe(timeframe);
-                    request.put("end", this.sum(since, Helpers.multiply(Helpers.multiply(duration, limit), 1000)));
+                    request.put("end", this.sum(since, ((((long) duration) * limit) * 1000L)));
                 }
             } else if (!java.util.Objects.equals(limit, null))
             {
                 Long now = this.milliseconds();
                 request.put("end", now);
-                request.put("start", Helpers.subtract(now, Helpers.multiply((((long) this.parseTimeframe(timeframe)) * 1000L), limit)));
+                request.put("start", (now - ((((long) this.parseTimeframe(timeframe)) * 1000L) * limit)));
             }
             Map<String, Object> response = (this.publicGetOhlc(this.extend(request, parameters))).join();
             //

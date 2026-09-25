@@ -949,7 +949,7 @@ public class Btcmarkets extends BtcmarketsApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 200)); // default is 10, max 200
+                request.put("limit", Math.min(limit, 200)); // default is 10, max 200
             }
             List<Object> response = (this.publicGetMarketsMarketIdCandles(this.extend(request, parameters))).join();
             //

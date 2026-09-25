@@ -2109,7 +2109,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         }};
         Object result = this.safeValue2(message, "result", "info");
         String channel = this.safeString(result, "channel");
-        if ((!java.util.Objects.equals(channel, null)) && Helpers.isGreaterThan(((String)channel).indexOf("user.trade"), -1))
+        if ((!java.util.Objects.equals(channel, null)) && ((String)channel).indexOf("user.trade") > -1)
         {
             // channel might be user.trade.BTC_USDT
             this.handleTrades(client, (Map<String, Object>) (result));

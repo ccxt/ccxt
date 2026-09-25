@@ -1363,7 +1363,7 @@ public class Bitfinex extends BitfinexApi
                 }
                 String type = this.safeString(balance, 0);
                 String currencyId = this.safeStringLower(balance, 1, "");
-                Object start = Helpers.subtract(currencyId.length(), 2);
+                Long start = (((long) currencyId.length()) - 2L);
                 Boolean isDerivativeCode = java.util.Objects.equals(Helpers.slice(currencyId, start, null), "f0");
                 // this will only filter the derivative codes if the requestedType is 'derivatives'
                 Boolean derivativeCondition = (!Boolean.TRUE.equals(isDerivative) || Boolean.TRUE.equals(isDerivativeCode));
@@ -1571,7 +1571,7 @@ public class Bitfinex extends BitfinexApi
         if (java.util.Objects.equals(type, "derivatives"))
         {
             currencyId = this.safeString(underlying, 0, transferId);
-            Object start = Helpers.subtract(((String)((String)currencyId)).length(), 2);
+            Long start = (((long) ((String)((String)currencyId)).length()) - 2L);
             Boolean isDerivativeCode = java.util.Objects.equals(Helpers.slice(((String)currencyId), start, null), "F0");
             if (!Boolean.TRUE.equals(isDerivativeCode))
             {
@@ -2069,7 +2069,7 @@ public class Bitfinex extends BitfinexApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 10000)); // default 120, max 10000
+                request.put("limit", Math.min(limit, 10000)); // default 120, max 10000
             }
             request.put("sort", sort);
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
@@ -4660,7 +4660,7 @@ public class Bitfinex extends BitfinexApi
             Integer ratesLength = ((List<?>)rawRates).size();
             for (var i = 0; (ratesLength != null && i < ratesLength); i++)
             {
-                Object index = Helpers.subtract(Helpers.subtract(ratesLength, i), 1);
+                Long index = ((((long) ratesLength) - ((long) i)) - 1L);
                 Object valueAtIndex = Helpers.GetValue(rawRates, index);
                 ((List<Object>)reversedArray).add(valueAtIndex);
             }

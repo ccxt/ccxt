@@ -969,7 +969,7 @@ public class Indodax extends IndodaxApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("from", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
+                request.put("from", (Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000)))))));
             } else
             {
                 int duration = this.parseTimeframe(timeframe);

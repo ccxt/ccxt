@@ -1457,14 +1457,14 @@ public class Grvt extends GrvtApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Math.min(limit, 1000));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
+                ((Map<String, Object>)request).put("start_time", this.numberToString((since * 1000000L)));
             }
             Map<String, Object> response = (this.publicMarketPostFullV1TradeHistory(this.extend(request, parameters))).join();
             //
@@ -1658,14 +1658,14 @@ public class Grvt extends GrvtApi
             ((Map<String, Object>)request).put("type", this.safeString(priceTypeMap, selectedPriceType));
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Math.min(limit, 1000));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
+                ((Map<String, Object>)request).put("start_time", this.numberToString((since * 1000000L)));
             }
             Map<String, Object> response = (this.publicMarketPostFullV1Kline(this.extend(request, parameters))).join();
             //
@@ -1780,14 +1780,14 @@ public class Grvt extends GrvtApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Math.min(limit, 1000));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
+                ((Map<String, Object>)request).put("start_time", this.numberToString((since * 1000000L)));
             }
             Map<String, Object> response = (this.publicMarketPostFullV1Funding(this.extend(request, parameters))).join();
             //
@@ -2021,14 +2021,14 @@ public class Grvt extends GrvtApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Math.min(limit, 1000));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
+                ((Map<String, Object>)request).put("start_time", this.numberToString((since * 1000000L)));
             }
             Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
             if (java.util.Objects.equals(useTransfersEndpoint, true))
@@ -2114,14 +2114,14 @@ public class Grvt extends GrvtApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Math.min(limit, 1000));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
+                ((Map<String, Object>)request).put("start_time", this.numberToString((since * 1000000L)));
             }
             Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
             if (java.util.Objects.equals(useTransfersEndpoint, true))
@@ -2395,14 +2395,14 @@ public class Grvt extends GrvtApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Math.min(limit, 1000));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
+                ((Map<String, Object>)request).put("start_time", this.numberToString((since * 1000000L)));
             }
             Map<String, Object> response = (this.privateTradingPostFullV1TransferHistory(this.extend(request, parameters))).join();
             //
@@ -3166,14 +3166,14 @@ public class Grvt extends GrvtApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Math.min(limit, 1000));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
+                ((Map<String, Object>)request).put("start_time", this.numberToString((since * 1000000L)));
             }
             Map<String, Object> response = (this.privateTradingPostFullV1FillHistory(this.extend(request, parameters))).join();
             //
@@ -3635,14 +3635,14 @@ public class Grvt extends GrvtApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Math.min(limit, 1000));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
+                ((Map<String, Object>)request).put("start_time", this.numberToString((since * 1000000L)));
             }
             Map<String, Object> response = (this.privateTradingPostFullV1FundingPaymentHistory(this.extend(request, parameters))).join();
             //
@@ -3753,14 +3753,14 @@ public class Grvt extends GrvtApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Math.min(limit, 1000));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
+                ((Map<String, Object>)request).put("start_time", this.numberToString((since * 1000000L)));
             }
             Map<String, Object> response = (this.privateTradingPostFullV1OrderHistory(this.extend(request, parameters))).join();
             //

@@ -220,7 +220,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Integer length = ((List<?>)trades).size();
         for (var j = 0; (length != null && j < length); j++)
         {
-            Object index = Helpers.subtract(Helpers.subtract(length, j), 1);
+            Long index = ((((long) length) - ((long) j)) - 1L);
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, index)), market);
             stored.append(parsed);
         }
@@ -799,7 +799,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         String timeframeId = this.safeString(topicParts, 1);
         Object timeframe = this.findTimeframe(timeframeId);
         String marketId = this.safeString(topicParts, (((long) topicLength) - 1L));
-        Boolean isSpot = Helpers.isGreaterThan(((String)client.url).indexOf("spot"), -1);
+        Boolean isSpot = ((String)client.url).indexOf("spot") > -1;
         String marketType = "contract";
         if (Boolean.TRUE.equals(isSpot))
         {

@@ -719,7 +719,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 // builder-deployed perp dexs start at 110000
                 Map<String, Object> dex = (Map<String, Object>) this.safeDict(fetchDexes, i, new HashMap<String, Object>() {{}});
-                Object secondPart = Helpers.multiply((Helpers.subtract(i, 1)), 10000);
+                Long secondPart = (((((long) i) - 1L)) * 10000L);
                 Object offset = this.sum(110000, secondPart);
                 Helpers.addElementToObject(perpDexesOffset, ((Map<String, Object>)dex).get("name"), offset);
             }
@@ -746,7 +746,7 @@ public class Hyperliquid extends HyperliquidApi
                 Object maxIteration = this.sum(maxLimit, 1);
                 for (var i = 1; Helpers.isLessThan(i, maxIteration); i++)
                 {
-                    if (Helpers.isGreaterThanOrEqual(i, fetchDexesLength))
+                    if ((fetchDexesLength == null || i >= fetchDexesLength))
                     {
                         break;
                     }
@@ -1879,7 +1879,7 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     // optimization if limit is provided
                     Long timeframeInMilliseconds = (((long) this.parseTimeframe(timeframe)) * 1000L);
-                    since = this.sum(until, Helpers.multiply(Helpers.multiply(timeframeInMilliseconds, limit), -1));
+                    since = this.sum(until, Helpers.multiply((timeframeInMilliseconds * limit), -1));
                     if (Helpers.isLessThan(since, 0))
                     {
                         since = 0;
@@ -4123,7 +4123,7 @@ final Object finalClientOrderId = clientOrderId;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Long since = since3;
-            Object limit = limit3;
+            Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -6956,11 +6956,11 @@ final Object finalClientOrderId = clientOrderId;
             String code = this.safeString(hip3Dict, "code", coin);
             return ((((code + "/") + quote) + ":") + quote);
         }
-        if (Helpers.isGreaterThan(((String)coin).indexOf("/"), -1) || Helpers.isGreaterThan(((String)coin).indexOf("@"), -1))
+        if (((String)coin).indexOf("/") > -1 || ((String)coin).indexOf("@") > -1)
         {
             return coin;  // spot
         }
-        if (Helpers.isGreaterThan(((String)coin).indexOf(":"), -1))
+        if (((String)coin).indexOf(":") > -1)
         {
             coin = (String) (Helpers.replace(((String)coin), ":", "-")); // hip3
         }

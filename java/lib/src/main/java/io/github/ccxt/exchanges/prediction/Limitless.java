@@ -1498,7 +1498,7 @@ public class Limitless extends LimitlessApi
             for (var i = 0; i < ((List<?>)slugs).size(); i++)
             {
                 Object slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
-                Object detailIndex = Helpers.multiply(i, 2);
+                Long detailIndex = (((long) i) * 2L);
                 Object detail = Helpers.GetValue(responses, detailIndex);
                 Object book = Helpers.GetValue(responses, this.sum(detailIndex, 1));
                 Map<String, Object> tickerInput = new HashMap<String, Object>() {{
@@ -1560,7 +1560,7 @@ public class Limitless extends LimitlessApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 100));
+                request.put("limit", Math.min(limit, 100));
             }
             Map<String, Object> response = (this.limitlessPublicGetMarketsSlugEvents(this.extend(request, parameters))).join();
             //

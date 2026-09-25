@@ -1160,8 +1160,8 @@ public class Bitopro extends BitoproApi
             } else
             {
                 Long timeframeInMilliseconds = (((long) timeframeInSeconds) * 1000L);
-                alignedSince = Helpers.multiply((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, timeframeInMilliseconds))))), timeframeInMilliseconds);
-                request.put("from", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
+                alignedSince = Helpers.multiply((Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) timeframeInMilliseconds)))))), timeframeInMilliseconds);
+                request.put("from", (Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000)))))));
                 request.put("to", this.sum(((Map<String, Object>)request).get("from"), Helpers.multiply(limit, timeframeInSeconds)));
             }
             Map<String, Object> response = (this.publicGetTradingHistoryPair(this.extend(request, parameters))).join();

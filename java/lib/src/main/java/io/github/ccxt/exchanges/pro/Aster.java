@@ -110,7 +110,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     public String getAccountTypeFromUrl(Object url)
     {
-        if (Helpers.isGreaterThan(((String)url).indexOf("fstream"), -1))
+        if (((String)url).indexOf("fstream") > -1)
         {
             return "swap";
         }
@@ -1992,7 +1992,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Long lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, type, 0);
             Map<String, Object> listenKeyRefreshRateOptions = (Map<String, Object>) this.safeDict(this.options, "listenKeyRefreshRate", new HashMap<String, Object>() {{}});
             Long listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
-            if (Helpers.isGreaterThan((time - lastAuthenticatedTime), listenKeyRefreshRate))
+            if (((listenKeyRefreshRate == null || (time - lastAuthenticatedTime) > listenKeyRefreshRate)))
             {
                 // single-flight leader election on a never-dialed client, see
                 // https://github.com/ccxt/ccxt/issues/29393: concurrent watch

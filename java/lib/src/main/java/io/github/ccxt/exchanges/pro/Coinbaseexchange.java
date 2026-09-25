@@ -1379,8 +1379,8 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             put( "done", "handleOrder");
             put( "error", "handleErrorMessage");
         }};
-        Object length = Helpers.subtract(((String)client.url).length(), 0);
-        Boolean authenticated = java.util.Objects.equals(Helpers.GetValue(client.url, Helpers.subtract(length, 1)), "?");
+        Long length = (((long) ((String)client.url).length()) - 0L);
+        Boolean authenticated = java.util.Objects.equals(Helpers.GetValue(client.url, (length - 1L)), "?");
         Object method = this.safeValue(methods, type);
         if (java.util.Objects.equals(method, null))
         {

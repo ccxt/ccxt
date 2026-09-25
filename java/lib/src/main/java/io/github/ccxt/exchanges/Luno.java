@@ -921,7 +921,7 @@ public class Luno extends LunoApi
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(limit, null) && Helpers.isLessThanOrEqual(limit, 100))
+            if (!java.util.Objects.equals(limit, null) && (limit <= 100))
             {
                 response = (this.publicGetOrderbookTop(this.extend(request, parameters))).join();
             } else

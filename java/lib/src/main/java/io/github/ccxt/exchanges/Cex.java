@@ -874,7 +874,7 @@ public class Cex extends CexApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("pageSize", Helpers.mathMin(limit, 10000)); // has a bug, still returns more trades
+                request.put("pageSize", Math.min(limit, 10000)); // has a bug, still returns more trades
             }
             Map<String, Object> response = (this.publicPostGetTradeHistory(this.extend(request, parameters))).join();
             //

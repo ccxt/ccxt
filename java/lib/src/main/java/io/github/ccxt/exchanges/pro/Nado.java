@@ -2126,7 +2126,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         // on a string, breaking every ws parser with a TypeError
         if (value.length() > 13)
         {
-            return this.parseToInt(Helpers.slice(value, 0, Helpers.subtract(value.length(), 6)));
+            return this.parseToInt(Helpers.slice(value, 0, (((long) value.length()) - 6L)));
         }
         return this.safeInteger(message, key);
     }

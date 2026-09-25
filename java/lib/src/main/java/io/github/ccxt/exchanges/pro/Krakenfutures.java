@@ -934,7 +934,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Integer length = ((List<?>)trades).size();
                 for (var i = 0; (length != null && i < length); i++)
                 {
-                    Object index = Helpers.subtract((((long) length) - 1L), i); // need reverse to correct chronology
+                    Long index = ((((long) length) - 1L) - ((long) i)); // need reverse to correct chronology
                     Object item = Helpers.GetValue(trades, index);
                     Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (item));
                     tradesArray.append(trade);

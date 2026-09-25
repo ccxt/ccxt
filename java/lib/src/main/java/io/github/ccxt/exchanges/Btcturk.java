@@ -944,7 +944,7 @@ public class Btcturk extends BtcturkApi
             request.put("to", this.parseToInt(((((double) until) / ((double) 1000)))));
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
             } else if (java.util.Objects.equals(limit, null))
             {
                 limit = 100; // default value
@@ -960,7 +960,7 @@ public class Btcturk extends BtcturkApi
                 Object limitSeconds = Helpers.multiply(seconds, (Helpers.subtract(limit, 1)));
                 if (!java.util.Objects.equals(since, null))
                 {
-                    Object to = Helpers.add(this.parseToInt(Helpers.divide(since, 1000)), limitSeconds);
+                    Object to = Helpers.add(this.parseToInt((((double) since) / ((double) 1000))), limitSeconds);
                     request.put("to", Helpers.mathMin(((Map<String, Object>)request).get("to"), to));
                 } else
                 {
@@ -1255,7 +1255,7 @@ public class Btcturk extends BtcturkApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("startTime", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
+                request.put("startTime", (Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000)))))));
             }
             Map<String, Object> response = (this.privateGetAllOrders(this.extend(request, parameters))).join();
             // {

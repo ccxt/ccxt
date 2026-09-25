@@ -1004,7 +1004,7 @@ final String finalTokenId = tokenId;
             for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
                 Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                Object priceIndex = Helpers.multiply(i, 2);
+                Long priceIndex = (((long) i) * 2L);
                 Object priceResponse = Helpers.GetValue(responses, priceIndex);
                 Object bookResponse = Helpers.GetValue(responses, this.sum(priceIndex, 1));
                 Map<String, Object> response = new HashMap<String, Object>() {{

@@ -467,7 +467,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         List<Object> sequenceNumberRange = (List<Object>) this.safeList(data, "sequenceNumberRange", new ArrayList<Object>(Arrays.asList()));
         if (((List<?>)sequenceNumberRange).size() > 0)
         {
-            Object lastIndex = Helpers.subtract(((List<?>)sequenceNumberRange).size(), 1);
+            Long lastIndex = (((long) ((List<?>)sequenceNumberRange).size()) - 1L);
             parsed.put("nonce", this.safeInteger(sequenceNumberRange, lastIndex));
         }
         orderbook.reset(parsed);

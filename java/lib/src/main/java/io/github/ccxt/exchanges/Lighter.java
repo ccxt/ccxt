@@ -1940,7 +1940,7 @@ public class Lighter extends LighterApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 100));
+                request.put("limit", Math.min(limit, 100));
             }
             Map<String, Object> response = (this.publicGetOrderBookOrders(this.extend(request, parameters))).join();
             //
@@ -2275,7 +2275,7 @@ public class Lighter extends LighterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object since = since3;
+            Long since = since3;
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
@@ -2301,7 +2301,7 @@ public class Lighter extends LighterApi
                 } else if (!java.util.Objects.equals(limit, null))
                 {
                     int duration = this.parseTimeframe(timeframe);
-                    endTs = this.sum(since, Helpers.multiply(Helpers.multiply(duration, limit), 1000));
+                    endTs = this.sum(since, ((((long) duration) * limit) * 1000L));
                 } else
                 {
                     endTs = now;
@@ -2312,7 +2312,7 @@ public class Lighter extends LighterApi
                 Integer defaultLimit = 100;
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    startTs = Helpers.subtract(endTs, Helpers.multiply((((long) this.parseTimeframe(timeframe)) * 1000L), limit));
+                    startTs = Helpers.subtract(endTs, ((((long) this.parseTimeframe(timeframe)) * 1000L) * limit));
                 } else
                 {
                     startTs = Helpers.subtract(endTs, ((((long) this.parseTimeframe(timeframe)) * 1000L) * ((long) defaultLimit)));
@@ -3106,7 +3106,7 @@ public class Lighter extends LighterApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 100));
+                request.put("limit", Math.min(limit, 100));
             }
             Map<String, Object> response = (this.privateGetAccountInactiveOrders(this.extend(request, parameters))).join();
             //
@@ -4074,7 +4074,7 @@ public class Lighter extends LighterApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 100));
+                request.put("limit", Math.min(limit, 100));
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "fetchMyTrades", "until", "from");

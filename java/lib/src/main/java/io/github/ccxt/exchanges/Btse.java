@@ -1018,7 +1018,7 @@ public class Btse extends BtseApi
             if (!java.util.Objects.equals(since, null))
             {
                 // the endpoint accepts timestamps in seconds
-                request.put("start", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("start", this.parseToInt((((double) since) / ((double) 1000))));
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
@@ -1032,8 +1032,8 @@ public class Btse extends BtseApi
                     // if so, just omit until for correct paginated calls for not to get an error from the exchange
                     int duration = this.parseTimeframe(timeframe);
                     Long maxDelta = ((((long) duration) * ((long) maxLimit)) * 1000L); // parseTimeframe returns seconds, the difference below is in milliseconds
-                    Object difference = Helpers.subtract(until, since);
-                    if (Helpers.isLessThan(difference, maxDelta))
+                    Long difference = (until - since);
+                    if ((maxDelta != null && (difference == null || difference < maxDelta)))
                     {
                         request.put("end", this.parseToInt((((double) until) / ((double) 1000))));
                     }
@@ -1127,7 +1127,7 @@ public class Btse extends BtseApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("depth", Helpers.mathMin(limit, 50)); // the endpoint supports a maximum depth of 50
+                request.put("depth", Math.min(limit, 50)); // the endpoint supports a maximum depth of 50
             }
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Orderbook(this.extend(request, parameters))).join();
             //
@@ -1209,12 +1209,12 @@ public class Btse extends BtseApi
                 period = "7D";
                 if (!java.util.Objects.equals(since, null))
                 {
-                    Object age = Helpers.subtract(this.milliseconds(), since);
+                    Long age = (this.milliseconds() - since);
                     Integer day = 86400000;
-                    if (Helpers.isGreaterThan(age, (14L * ((long) day))))
+                    if ((age != null && age > (14L * ((long) day))))
                     {
                         period = "1M";
-                    } else if (Helpers.isGreaterThan(age, (7L * ((long) day))))
+                    } else if ((age != null && age > (7L * ((long) day))))
                     {
                         period = "2W";
                     }
@@ -1542,7 +1542,7 @@ public class Btse extends BtseApi
                         Helpers.addElementToObject(Helpers.GetValue(tiersList, j), "minNotional", 0);
                     } else
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(tiersList, j), "minNotional", Helpers.GetValue(Helpers.GetValue(tiersList, Helpers.subtract(j, 1)), "maxNotional"));
+                        Helpers.addElementToObject(Helpers.GetValue(tiersList, j), "minNotional", Helpers.GetValue(Helpers.GetValue(tiersList, (((long) j) - 1L)), "maxNotional"));
                     }
                 }
                 // php copies arrays by value, so the mutated list must be written back explicitly
@@ -2087,7 +2087,7 @@ public class Btse extends BtseApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 500)); // the endpoint supports a maximum of 500 trades
+                request.put("limit", Math.min(limit, 500)); // the endpoint supports a maximum of 500 trades
             }
             // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
             Long until = null;

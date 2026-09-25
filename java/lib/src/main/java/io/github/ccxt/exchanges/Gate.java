@@ -2102,7 +2102,7 @@ public class Gate extends GateApi
         List<Object> marketIdBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("_"))));
         String base = null;
         String expiry = this.safeString(optionParts, 1);
-        if (Helpers.isGreaterThan(((String)symbol).indexOf("/"), -1))
+        if (((String)symbol).indexOf("/") > -1)
         {
             base = this.safeString(symbolBase, 0);
         } else
@@ -2165,7 +2165,7 @@ public class Gate extends GateApi
 
     public Object safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
     {
-        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(((String)marketId).indexOf("-C"), -1)) || (Helpers.isGreaterThan(((String)marketId).indexOf("-P"), -1)));
+        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((((String)marketId).indexOf("-C") > -1) || (((String)marketId).indexOf("-P") > -1));
         if (Boolean.TRUE.equals(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
@@ -4030,7 +4030,7 @@ public class Gate extends GateApi
             if (!java.util.Objects.equals(since, null))
             {
                 // from should be integer
-                ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                ((Map<String, Object>)request).put("from", this.parseToInt((((double) since) / ((double) 1000))));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -4999,7 +4999,7 @@ public class Gate extends GateApi
             if (!java.util.Objects.equals(since, null))
             {
                 int duration = this.parseTimeframe(timeframe);
-                ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                ((Map<String, Object>)request).put("from", this.parseToInt((((double) since) / ((double) 1000))));
                 Object distance = Helpers.multiply((Helpers.subtract(limit, 1)), duration);
                 Object toTimestamp = this.sum(((Map<String, Object>)request).get("from"), distance);
                 Long currentTimestamp = this.seconds();
@@ -5148,7 +5148,7 @@ public class Gate extends GateApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                ((Map<String, Object>)request).put("from", this.parseToInt((((double) since) / ((double) 1000))));
             }
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
@@ -5310,11 +5310,11 @@ public class Gate extends GateApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000)); // default 100, max 1000
+                ((Map<String, Object>)request).put("limit", Math.min(limit, 1000)); // default 100, max 1000
             }
             if (!java.util.Objects.equals(since, null) && (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)))
             {
-                ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                ((Map<String, Object>)request).put("from", this.parseToInt((((double) since) / ((double) 1000))));
             }
             List<Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("type"), "spot") || java.util.Objects.equals(((Map<String, Object>)market).get("type"), "margin"))
@@ -5557,7 +5557,7 @@ public class Gate extends GateApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                ((Map<String, Object>)request).put("from", this.parseToInt((((double) since) / ((double) 1000))));
             }
             if (!java.util.Objects.equals(until, null))
             {
@@ -5920,7 +5920,7 @@ final String finalPointFee = pointFee;
             }
             if (!java.util.Objects.equals(since, null))
             {
-                Long start = this.parseToInt(Helpers.divide(since, 1000));
+                Long start = this.parseToInt((((double) since) / ((double) 1000)));
                 request.put("from", start);
                 request.put("to", this.sum(start, (((30L * 24L) * 60L) * 60L)));
             }
@@ -5999,7 +5999,7 @@ final String finalPointFee = pointFee;
             }
             if (!java.util.Objects.equals(since, null))
             {
-                Long start = this.parseToInt(Helpers.divide(since, 1000));
+                Long start = this.parseToInt((((double) since) / ((double) 1000)));
                 request.put("from", start);
                 request.put("to", this.sum(start, (((30L * 24L) * 60L) * 60L)));
             }
@@ -7749,7 +7749,7 @@ final Object finalRebate = rebate;
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                ((Map<String, Object>)request).put("from", this.parseToInt((((double) since) / ((double) 1000))));
             }
             if (!java.util.Objects.equals(until, null))
             {
@@ -7832,7 +7832,7 @@ final Object finalRebate = rebate;
         {
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                ((Map<String, Object>)request).put("from", this.parseToInt((((double) since) / ((double) 1000))));
             }
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
@@ -9998,7 +9998,7 @@ final Object finalI = i;
         Object authentication = Helpers.GetValue(api, 0); // public, private
         Object type = Helpers.GetValue(api, 1); // spot, margin, future, delivery
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean containsSettle = Helpers.isGreaterThan(Helpers.getIndexOf(path, "settle"), -1);
+        Boolean containsSettle = Helpers.getIndexOf(path, "settle") > -1;
         if (Boolean.TRUE.equals(containsSettle) && (java.util.Objects.equals(((String)path).endsWith("batch_cancel_orders"), true)))
         {
             // special case where we need to extract the settle from the path
@@ -10333,7 +10333,7 @@ final Object finalI = i;
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
             }
             List<Object> response = (this.publicFuturesGetSettleContractStats(this.extend(request, parameters))).join();
             //
@@ -12058,7 +12058,7 @@ final Object finalI = i;
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                ((Map<String, Object>)request).put("from", this.parseToInt((((double) since) / ((double) 1000))));
             }
             if (!java.util.Objects.equals(until, null))
             {

@@ -1333,7 +1333,7 @@ public class Woo extends WooApi
         Long timestamp = null;
         if (!java.util.Objects.equals(timestampString, null))
         {
-            if (Helpers.isGreaterThan(((String)timestampString).indexOf("."), -1))
+            if (((String)timestampString).indexOf(".") > -1)
             {
                 timestamp = this.safeTimestamp2(trade, "executed_timestamp", "executedTimestamp");
             } else
@@ -2721,7 +2721,7 @@ public class Woo extends WooApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("size", Helpers.mathMin(limit, 500));
+                request.put("size", Math.min(limit, 500));
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
@@ -3401,11 +3401,11 @@ public class Woo extends WooApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000));
+                request.put("limit", Math.min(limit, 1000));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("after", Helpers.subtract(since, 1)); // #27793
+                request.put("after", (since - 1L)); // #27793
             }
             Long until = this.safeInteger(parameters, "until");
             parameters = (Map<String, Object>) this.omit(parameters, "until");
@@ -3988,7 +3988,7 @@ public class Woo extends WooApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("size", Helpers.mathMin(limit, 1000));
+                request.put("size", Math.min(limit, 1000));
             }
             String transactionType = this.safeString(parameters, "type");
             parameters = this.omit(parameters, "type");
@@ -4813,7 +4813,7 @@ public class Woo extends WooApi
                 {
                     String applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
                     String brokerId = this.safeString(this.options, "brokerId", applicationId);
-                    Boolean isTrigger = Helpers.isGreaterThan(Helpers.getIndexOf(path, "algo"), -1);
+                    Boolean isTrigger = Helpers.getIndexOf(path, "algo") > -1;
                     if (Boolean.TRUE.equals(isTrigger))
                     {
                         ((Map<String, Object>)parameters).put("brokerId", brokerId);
@@ -5000,7 +5000,7 @@ public class Woo extends WooApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("size", Helpers.mathMin(limit, 500));
+                request.put("size", Math.min(limit, 500));
             }
             Map<String, Object> response = (this.v3PrivateGetFuturesFundingFeeHistory(this.extend(request, parameters))).join();
             //
@@ -5937,7 +5937,7 @@ public class Woo extends WooApi
         Long timestamp = null;
         if (!java.util.Objects.equals(timestampString, null))
         {
-            if (Helpers.isGreaterThan(((String)timestampString).indexOf("."), -1))
+            if (((String)timestampString).indexOf(".") > -1)
             {
                 timestamp = this.safeTimestamp(position, "timestamp");
             } else

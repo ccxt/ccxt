@@ -1069,7 +1069,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         } else if ((!java.util.Objects.equals(deltaEnd, null)) && ((deltaEnd == null || (nonce != null && nonce >= deltaEnd))))
         {
             return;
-        } else if ((!java.util.Objects.equals(deltaStart, null)) && (Helpers.isGreaterThanOrEqual(nonce, (deltaStart - 1L))))
+        } else if ((!java.util.Objects.equals(deltaStart, null)) && (((nonce != null && nonce >= (deltaStart - 1L)))))
         {
             this.handleDelta(storedOrderBook, delta);
         } else
@@ -1100,7 +1100,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> delta = (Map<String, Object>) this.safeDict(cache, i);
             Long deltaStart = this.safeInteger(delta, "U");
             Long deltaEnd = this.safeInteger(delta, "u");
-            if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(deltaStart, null)) && (!java.util.Objects.equals(deltaEnd, null)) && (Helpers.isGreaterThanOrEqual(nonce, (deltaStart - 1L))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
+            if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(deltaStart, null)) && (!java.util.Objects.equals(deltaEnd, null)) && (((nonce != null && nonce >= (deltaStart - 1L)))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
             {
                 return i;
             }

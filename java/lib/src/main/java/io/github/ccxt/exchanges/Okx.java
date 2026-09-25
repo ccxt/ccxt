@@ -68,7 +68,7 @@ public class Okx extends OkxApi
             put( "name", "OKX" );
             put( "countries", new ArrayList<Object>(Arrays.asList("CN", "US")) );
             put( "version", "v5" );
-            put( "rateLimit", Helpers.multiply(100, 1.1) );
+            put( "rateLimit", (100 * 1.1) );
             put( "pro", true );
             put( "certified", true );
             put( "has", new HashMap<String, Object>() {{
@@ -2457,7 +2457,7 @@ public class Okx extends OkxApi
         List<Object> optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         String base = null;
-        if (Helpers.isGreaterThan(((String)symbol).indexOf("/"), -1))
+        if (((String)symbol).indexOf("/") > -1)
         {
             base = this.safeString(symbolBase, 0);
         } else
@@ -4049,7 +4049,7 @@ public class Okx extends OkxApi
             }
             int duration = this.parseTimeframe(timeframe);
             String bar = this.safeString(this.timeframes, timeframe, timeframe);
-            if ((java.util.Objects.equals(timezone, "UTC")) && (Helpers.isGreaterThanOrEqual(duration, 21600)))
+            if ((java.util.Objects.equals(timezone, "UTC")) && ((duration >= 21600)))
             {
                 bar = (bar + timezone.toLowerCase());
             }
@@ -4067,13 +4067,13 @@ public class Okx extends OkxApi
                 Long durationInMilliseconds = (((long) duration) * 1000L);
                 // switch to history candles if since is past the cutoff for current candles
                 Long historyBorder = (now - ((((1440L - 1L)) * durationInMilliseconds)));
-                if (Helpers.isLessThan(since, historyBorder))
+                if ((historyBorder != null && since < historyBorder))
                 {
                     defaultType = "HistoryCandles";
                     Integer maxLimit = ((isMarkOrIndex)) ? 100 : 300;
                     limit = Helpers.mathMin(limit, maxLimit);
                 }
-                Object startTime = Helpers.mathMax(Helpers.subtract(since, 1), 0);
+                Object startTime = Math.max((since - 1L), 0);
                 request.put("before", startTime);
                 request.put("after", this.sum(since, Helpers.multiply(durationInMilliseconds, limit)));
             }
@@ -4210,7 +4210,7 @@ public class Okx extends OkxApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("before", Helpers.mathMax(Helpers.subtract(since, 1), 0));
+                request.put("before", Math.max((since - 1L), 0));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -7883,7 +7883,7 @@ public class Okx extends OkxApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("before", Helpers.mathMax(Helpers.subtract(since, 1), 0));
+                request.put("before", Math.max((since - 1L), 0));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -8049,7 +8049,7 @@ public class Okx extends OkxApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("before", Helpers.mathMax(Helpers.subtract(since, 1), 0));
+                request.put("before", Math.max((since - 1L), 0));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -10753,7 +10753,7 @@ public class Okx extends OkxApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("before", Helpers.subtract(since, 1));
+                request.put("before", (since - 1L));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -11570,7 +11570,7 @@ public class Okx extends OkxApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("before", Helpers.subtract(since, 1));
+                request.put("before", (since - 1L));
             }
             if (!java.util.Objects.equals(limit, null))
             {

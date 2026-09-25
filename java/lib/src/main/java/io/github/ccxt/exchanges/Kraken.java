@@ -1553,7 +1553,7 @@ public class Kraken extends KrakenApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                Long scaledSince = this.parseToInt(Helpers.divide(since, 1000));
+                Long scaledSince = this.parseToInt((((double) since) / ((double) 1000)));
                 if (java.util.Objects.equals(parsedTimeframe, null))
                 {
                     throw new ExchangeError((this.id + " fetchOHLCV() missing parsedTimeframe")) ;
@@ -1711,7 +1711,7 @@ public class Kraken extends KrakenApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("start", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("start", this.parseToInt((((double) since) / ((double) 1000))));
             }
             String until = this.safeString2(parameters, "until", "till");
             if (!java.util.Objects.equals(until, null))
@@ -2034,7 +2034,7 @@ public class Kraken extends KrakenApi
             // https://github.com/ccxt/ccxt/issues/5677
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("since", this.numberToString(this.parseToInt(Helpers.divide(since, 1000)))); // expected to be in seconds
+                request.put("since", this.numberToString(this.parseToInt((((double) since) / ((double) 1000))))); // expected to be in seconds
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2282,7 +2282,7 @@ public class Kraken extends KrakenApi
             }};
             Object orderRequest = this.orderRequest("createOrder", (String) (symbol), (String) (type), (Map<String, Object>) (request), amount, price, parameters);
             String flags = this.safeString(((List<Object>)orderRequest).get(0), "oflags", "");
-            Boolean isUsingCost = Helpers.isGreaterThan(((String)flags).indexOf("viqc"), -1);
+            Boolean isUsingCost = ((String)flags).indexOf("viqc") > -1;
             Map<String, Object> response = (this.privatePostAddOrder(this.extend(((List<Object>)orderRequest).get(0), ((List<Object>)orderRequest).get(1)))).join();
             //
             //     {
@@ -2694,7 +2694,7 @@ public class Kraken extends KrakenApi
             price = this.safeString2(order, "limitprice", "price", price);
         }
         String flags = this.safeString(order, "oflags", "");
-        Boolean isPostOnly = Helpers.isGreaterThan(((String)flags).indexOf("post"), -1);
+        Boolean isPostOnly = ((String)flags).indexOf("post") > -1;
         Double average = this.safeNumber(order, "price");
         if (!java.util.Objects.equals(market, null))
         {
@@ -2851,7 +2851,7 @@ final String finalId = id;
         String cost = this.safeString(parameters, "cost");
         String flags = this.safeString(parameters, "oflags");
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "oflags"))));
-        Boolean isViqcOrder = (!java.util.Objects.equals(flags, null)) && (Helpers.isGreaterThan(((String)flags).indexOf("viqc"), -1)); // volume in quote currency
+        Boolean isViqcOrder = (!java.util.Objects.equals(flags, null)) && (((String)flags).indexOf("viqc") > -1); // volume in quote currency
         if (Boolean.TRUE.equals(isMarketOrder) && (!java.util.Objects.equals(cost, null) || Boolean.TRUE.equals(isViqcOrder)))
         {
             if (java.util.Objects.equals(cost, null) && (!java.util.Objects.equals(amount, null)))
@@ -3270,7 +3270,7 @@ final String finalId = id;
                 Object requestIds = new ArrayList<Object>(Arrays.asList());
                 for (var k = 0; (batchSize != null && k < batchSize); k++)
                 {
-                    Object index = this.sum(Helpers.multiply(j, batchSize), k);
+                    Object index = this.sum((((long) j) * batchSize), k);
                     if (Helpers.isLessThan(index, numTradeIds))
                     {
                         ((List<Object>)requestIds).add(Helpers.GetValue(tradeIds, index));
@@ -3415,7 +3415,7 @@ final String finalId = id;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("start", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("start", this.parseToInt((((double) since) / ((double) 1000))));
             }
             String until = this.safeString2(parameters, "until", "till");
             if (!java.util.Objects.equals(until, null))
@@ -3746,7 +3746,7 @@ final String finalId = id;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("start", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("start", this.parseToInt((((double) since) / ((double) 1000))));
             }
             Long userref = this.safeInteger(parameters, "userref");
             if (!java.util.Objects.equals(userref, null))
@@ -3867,7 +3867,7 @@ final String finalId = id;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("start", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("start", this.parseToInt((((double) since) / ((double) 1000))));
             }
             Long userref = this.safeInteger(parameters, "userref");
             if (!java.util.Objects.equals(userref, null))

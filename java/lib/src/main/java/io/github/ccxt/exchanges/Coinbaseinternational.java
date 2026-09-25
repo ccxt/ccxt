@@ -1455,7 +1455,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                Object newLimit = Helpers.mathMin(limit, 100);
+                Object newLimit = Math.min(limit, 100);
                 request.put("result_limit", newLimit);
             }
             String portfolios = null;
@@ -3124,7 +3124,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isGreaterThan(limit, 100))
+                if ((limit > 100))
                 {
                     throw new BadRequest((this.id + " fetchOpenOrders() maximum limit is 100")) ;
                 }
@@ -3246,7 +3246,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isGreaterThan(limit, 100))
+                if ((limit > 100))
                 {
                     throw new BadRequest((this.id + " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.")) ;
                 }

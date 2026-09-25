@@ -4234,7 +4234,7 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("size", Helpers.mathMin(limit, 2000)); // max 2000
+                request.put("size", Math.min(limit, 2000)); // max 2000
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
@@ -4412,7 +4412,7 @@ public class Htx extends HtxApi
                         calcualtedEnd = now;
                     } else
                     {
-                        Long start = this.parseToInt(Helpers.divide(since, 1000));
+                        Long start = this.parseToInt((((double) since) / ((double) 1000)));
                         request.put("from", start);
                         calcualtedEnd = this.sum(start, Helpers.multiply(duration, (Helpers.subtract(limit, 1))));
                     }
@@ -4508,7 +4508,7 @@ public class Htx extends HtxApi
                     // "from & to" only available for the this endpoint
                     if (!java.util.Objects.equals(since, null))
                     {
-                        request.put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                        request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
                     }
                     if (!java.util.Objects.equals(untilSeconds, null))
                     {
@@ -9810,7 +9810,7 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("limit", Helpers.mathMin(limit, 100)); // max 100
+                    request.put("limit", Math.min(limit, 100)); // max 100
                 }
                 if (!java.util.Objects.equals(since, null))
                 {

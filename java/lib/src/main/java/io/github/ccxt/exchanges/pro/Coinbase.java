@@ -1220,7 +1220,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Integer tradesLength = ((List<?>)currentTrades).size();
             for (var j = 0; (tradesLength != null && j < tradesLength); j++)
             {
-                Object item = Helpers.GetValue(currentTrades, Helpers.subtract(Helpers.subtract(tradesLength, j), 1));
+                Object item = Helpers.GetValue(currentTrades, ((((long) tradesLength) - ((long) j)) - 1L));
                 tradesArray.append(this.parseTrade(item));
             }
         }

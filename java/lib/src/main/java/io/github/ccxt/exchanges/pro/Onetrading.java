@@ -439,7 +439,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
-            Object limit = limit3;
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();

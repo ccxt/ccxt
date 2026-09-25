@@ -4768,7 +4768,7 @@ public Object describe()
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         Object uniqChars = (this.unique(this.stringToCharsArray(address)));
         Integer length = ((List<?>)uniqChars).size(); // py transpiler trick
-        if (java.util.Objects.equals(length, 1) || Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength) || Helpers.isGreaterThan(((String)address).indexOf(" "), -1))
+        if (java.util.Objects.equals(length, 1) || Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength) || ((String)address).indexOf(" ") > -1)
         {
             throw new InvalidAddress((((((this.id + " address is invalid or has less than ") + String.valueOf(this.minFundingAddressLength)) + " characters: \"") + String.valueOf(address)) + "\"")) ;
         }
@@ -12508,7 +12508,7 @@ public Object describe()
         final Long maxEntriesPerRequest3 = maxEntriesPerRequest2;
         return BaseExchange.supplyAsync(() -> {
             Object method = method3;
-            Object since = since3;
+            Long since = since3;
             Object parameters = parameters3;
             Object maxEntriesPerRequest = maxEntriesPerRequest3;
             Object maxCalls = 10;
@@ -12696,7 +12696,7 @@ public Object describe()
         final Long maxEntriesPerRequest3 = maxEntriesPerRequest2;
         return BaseExchange.supplyAsync(() -> {
             Object method = method3;
-            Object since = since3;
+            Long since = since3;
             Object parameters = parameters3;
             Object maxEntriesPerRequest = maxEntriesPerRequest3;
             Object maxCalls = 10;
@@ -12740,7 +12740,7 @@ public Object describe()
                 {
                     throw new ArgumentsRequired((this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
                 }
-                Double requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(until, since)), step))));
+                Double requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(((until - since)), step))));
                 if (Helpers.isGreaterThan(requiredCalls, maxCalls))
                 {
                     throw new BadRequest(((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + String.valueOf(maxCalls)) + " required calls is ") + String.valueOf(requiredCalls))) ;
@@ -12788,10 +12788,10 @@ public Object describe()
         final Long maxEntriesPerRequest3 = maxEntriesPerRequest2;
         return BaseExchange.supplyAsync(() -> {
             Object method = method3;
-            Object since = since3;
+            Long since = since3;
             Object parameters = parameters3;
             Object cursorReceived = cursorReceived3;
-            Object cursorIncrement = cursorIncrement3;
+            Long cursorIncrement = cursorIncrement3;
             Object maxEntriesPerRequest = maxEntriesPerRequest3;
             Object maxCalls = 10;
             List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
@@ -12870,7 +12870,7 @@ public Object describe()
                     cursorValue = null; // search for the cursor
                     for (var j = 0; (responseLength != null && j < responseLength); j++)
                     {
-                        Object index = Helpers.subtract(Helpers.subtract(responseLength, j), 1);
+                        Long index = ((((long) responseLength) - ((long) j)) - 1L);
                         Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, index);
                         Map<String, Object> info = (Map<String, Object>) this.safeDict(entry, "info");
                         Object cursor = (((java.util.Objects.equals(cursorReceived, null)))) ? null : this.safeValue(info, cursorReceived);
@@ -12889,7 +12889,7 @@ public Object describe()
                     {
                         throw new ArgumentsRequired((this.id + " fetchPaginatedCallCursor() requires a since argument")) ;
                     }
-                    if (!java.util.Objects.equals(lastTimestamp, null) && Helpers.isLessThan(lastTimestamp, since))
+                    if (!java.util.Objects.equals(lastTimestamp, null) && ((lastTimestamp == null || lastTimestamp < since)))
                     {
                         break;
                     }

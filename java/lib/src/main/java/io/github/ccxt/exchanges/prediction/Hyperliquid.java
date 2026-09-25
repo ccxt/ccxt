@@ -1106,7 +1106,7 @@ public class Hyperliquid extends HyperliquidApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Long since = since3;
-            Object limit = limit3;
+            Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
@@ -1528,7 +1528,7 @@ public class Hyperliquid extends HyperliquidApi
             return null;
         }
         Object colonIndex = ((String)outcomeInput).indexOf(":");
-        if (Helpers.isGreaterThan(colonIndex, -1) && Helpers.isLessThan(colonIndex, Helpers.subtract(((String)outcomeInput).length(), 1)))
+        if (Helpers.isGreaterThan(colonIndex, -1) && Helpers.isLessThan(colonIndex, (((long) ((String)outcomeInput).length()) - 1L)))
         {
             String side = ((String)Helpers.slice(outcomeInput, Helpers.add(colonIndex, 1), null)).toUpperCase();
             if (java.util.Objects.equals(side, "YES") || java.util.Objects.equals(side, "NO"))

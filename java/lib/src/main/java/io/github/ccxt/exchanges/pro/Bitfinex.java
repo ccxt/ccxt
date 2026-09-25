@@ -372,7 +372,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Integer ohlcvsLength = ((List<?>)ohlcvs).size();
         for (var i = 0; (ohlcvsLength != null && i < ohlcvsLength); i++)
         {
-            Object ohlcv = Helpers.GetValue(ohlcvs, Helpers.subtract(Helpers.subtract(ohlcvsLength, i), 1));
+            Object ohlcv = Helpers.GetValue(ohlcvs, ((((long) ohlcvsLength) - ((long) i)) - 1L));
             List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);
             stored.append(parsed);
         }
@@ -667,7 +667,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Integer length = ((List<?>)trades).size();
             for (var i = 0; (length != null && i < length); i++)
             {
-                Object index = Helpers.subtract(Helpers.subtract(length, i), 1);
+                Long index = ((((long) length) - ((long) i)) - 1L);
                 Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, index)), market);
                 stored.append(parsed);
             }
@@ -747,10 +747,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String type = this.safeString(trade, 6);
         if (!java.util.Objects.equals(type, null))
         {
-            if (Helpers.isGreaterThan(((String)type).indexOf("LIMIT"), -1))
+            if (((String)type).indexOf("LIMIT") > -1)
             {
                 type = "limit";
-            } else if (Helpers.isGreaterThan(((String)type).indexOf("MARKET"), -1))
+            } else if (((String)type).indexOf("MARKET") > -1)
             {
                 type = "market";
             }
@@ -1617,10 +1617,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }
         String remaining = Precise.stringAbs(this.safeString(order, 6));
         String type = this.safeString(order, 8, "");
-        if (Helpers.isGreaterThan(((String)type).indexOf("LIMIT"), -1))
+        if (((String)type).indexOf("LIMIT") > -1)
         {
             type = "limit";
-        } else if (Helpers.isGreaterThan(((String)type).indexOf("MARKET"), -1))
+        } else if (((String)type).indexOf("MARKET") > -1)
         {
             type = "market";
         }

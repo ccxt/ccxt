@@ -4984,10 +4984,10 @@ public class Kucoin extends KucoinApi
             if (Boolean.TRUE.equals(uta))
             {
                 String limitString = "20";
-                if ((java.util.Objects.equals(limit, null)) || (Helpers.isGreaterThanOrEqual(limit, 100)))
+                if ((java.util.Objects.equals(limit, null)) || ((limit >= 100)))
                 {
                     limitString = "FULL";
-                } else if (Helpers.isGreaterThan(limit, 20))
+                } else if ((limit > 20))
                 {
                     limitString = "100";
                 }
@@ -9584,7 +9584,7 @@ public class Kucoin extends KucoinApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("pageSize", Helpers.mathMin(1000, limit));
+                request.put("pageSize", Math.min(1000, limit));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -10760,10 +10760,10 @@ public class Kucoin extends KucoinApi
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(since, null) && Helpers.isLessThan(since, 1550448000000L))
+            if (!java.util.Objects.equals(since, null) && (since < 1550448000000L))
             {
                 // if since is earlier than 2019-02-18T00:00:00Z
-                request.put("startAt", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("startAt", this.parseToInt((((double) since) / ((double) 1000))));
                 response = (this.privateGetHistDeposits(this.extend(request, parameters))).join();
             } else
             {
@@ -10992,10 +10992,10 @@ public class Kucoin extends KucoinApi
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(since, null) && Helpers.isLessThan(since, 1550448000000L))
+            if (!java.util.Objects.equals(since, null) && (since < 1550448000000L))
             {
                 // if since is earlier than 2019-02-18T00:00:00Z
-                request.put("startAt", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("startAt", this.parseToInt((((double) since) / ((double) 1000))));
                 response = (this.privateGetHistWithdrawals(this.extend(request, parameters))).join();
             } else
             {
@@ -14815,7 +14815,7 @@ public class Kucoin extends KucoinApi
                 }
             } else if (!java.util.Objects.equals(type, null))
             {
-                if (Helpers.isGreaterThan(((String)type).indexOf("long"), -1))
+                if (((String)type).indexOf("long") > -1)
                 {
                     side = "long";
                 } else
