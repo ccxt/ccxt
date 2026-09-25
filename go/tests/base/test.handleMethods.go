@@ -95,11 +95,9 @@ func HelperTestHandleTypedOptions() {
 			},
 		},
 	}, map[string]any{}, exchange)
-	var marginModeparams1Variable []any = exchange.HandleMarginModeAndParams("fetchX", map[string]any{}, "cross")
-	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(marginModeparams1Variable, 0))
-	params1 := ccxt.GetValue(marginModeparams1Variable, 1)
+	marginMode, params1 := exchange.HandleMarginModeAndParams("fetchX", map[string]any{}, "cross")
 	Assert((marginMode != nil && *marginMode == "isolated"))
-	var utaparams2Variable []any = exchange.HandleOptionBoolAndParams(map[string]any{}, "fetchX", "uta", false)
+	utaparams2Variable := ccxt.TupleSlice(exchange.HandleOptionBoolAndParams(map[string]any{}, "fetchX", "uta", false))
 	uta := ccxt.GetValue(utaparams2Variable, 0)
 	params2 := ccxt.GetValue(utaparams2Variable, 1)
 	Assert(ccxt.IsEqual(uta, true))

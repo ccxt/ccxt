@@ -1738,9 +1738,7 @@ func (this *Bybit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"usdc":    "user.openapi.perp.trade",
 	}
 	var topic *string = this.SafeString(topicByMarket, this.GetPrivateType(url))
-	var executionFastparamsExecutionFastVariable []any = this.HandleOptionBoolAndParams(params, "watchMyTrades", "executionFast", false)
-	var executionFast bool = ccxt.GetValueBool(executionFastparamsExecutionFastVariable, 0, false)
-	var paramsExecutionFast map[string]any = ccxt.MapTyped(ccxt.GetValue(executionFastparamsExecutionFastVariable, 1))
+	executionFast, paramsExecutionFast := this.HandleOptionBoolAndParams(params, "watchMyTrades", "executionFast", false)
 	if executionFast {
 		topic = ccxt.SafeStringPtr("execution.fast")
 	}
@@ -1800,9 +1798,7 @@ func (this *Bybit) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"usdc":    "user.openapi.perp.trade",
 	}
 	var topic *string = this.SafeString(topicByMarket, this.GetPrivateType(url))
-	var executionFastparamsExecutionFastVariable []any = this.HandleOptionBoolAndParams(params, "watchMyTrades", "executionFast", false)
-	var executionFast bool = ccxt.GetValueBool(executionFastparamsExecutionFastVariable, 0, false)
-	var paramsExecutionFast map[string]any = ccxt.MapTyped(ccxt.GetValue(executionFastparamsExecutionFastVariable, 1))
+	executionFast, paramsExecutionFast := this.HandleOptionBoolAndParams(params, "watchMyTrades", "executionFast", false)
 	if executionFast {
 		topic = ccxt.SafeStringPtr("execution.fast")
 	}

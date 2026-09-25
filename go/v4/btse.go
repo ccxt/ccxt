@@ -968,9 +968,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var maxLimit int = 300
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		ch <- this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit)
@@ -2408,9 +2406,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol string, typeVar string
 	if needsQuoteSize {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice bool = true
-		var createMarketBuyOrderRequiresPricequeryVariable []any = this.HandleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-		createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPricequeryVariable, 0, false)
-		query = GetValue(createMarketBuyOrderRequiresPricequeryVariable, 1)
+		createMarketBuyOrderRequiresPrice, query = this.HandleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *string = this.SafeString(query, "cost")
 		query = this.Omit(query, "cost")
 		if cost != nil {
@@ -2602,7 +2598,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 	// if positionMode is provided, we will get it from params and send it as is
 	if positionMode == nil {
 		var hedged any = false
-		var hedgedqueryVariable []any = this.HandleOptionBoolAndParams(query, "createOrder", "hedged", hedged)
+		var hedgedqueryVariable []any = this.HandleOptionBoolAndParamsNullable(query, "createOrder", "hedged", hedged)
 		hedged = GetValue(hedgedqueryVariable, 0)
 		query = GetValue(hedgedqueryVariable, 1)
 		var marginMode any = "cross"
@@ -4519,9 +4515,7 @@ func (this *Btse) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	// the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
 	// verified live - a bare call on a cross account silently changes the
 	// isolated leverage only, so the unified marginMode param is translated here
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("setLeverage", params)
-	marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params)
 	if !IsEqual(marginMode, nil) {
 		request["marginMode"] = ToUpper(marginMode)
 	}

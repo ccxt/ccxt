@@ -2229,9 +2229,7 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol string, typeVar string
 	var paramsOrder any = paramsOmitted
 	if (typeVar == "market") && (side == "buy") {
 		var quoteAmount *string = nil
-		var createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable []any = this.HandleOptionBoolAndParams(paramsOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-		var createMarketBuyOrderRequiresPrice bool = GetValueBool(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 0, false)
-		var paramsRequiresPrice map[string]any = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 1))
+		createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(paramsOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
 		paramsOrder = this.Omit(paramsRequiresPrice, "cost")
 		if cost != nil {

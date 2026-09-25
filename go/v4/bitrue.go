@@ -2310,9 +2310,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol string, typeVar string, 
 			request["type"] = "IOC"
 		}
 		request["contractName"] = market["id"]
-		var createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-		var createMarketBuyOrderRequiresPrice bool = GetValueBool(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 0, false)
-		var paramsRequiresPrice map[string]any = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 1))
+		createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var isMarketBuyWithPrice bool = isMarket && (side == "buy") && createMarketBuyOrderRequiresPrice
 		var paramsNoCost any = paramsRequiresPrice
 		if isMarketBuyWithPrice {

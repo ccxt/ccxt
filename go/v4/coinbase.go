@@ -766,9 +766,7 @@ func (this *Coinbase) fetchAccountsV2Body(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchAccounts", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchAccounts", "paginate", false)
 	if paginate {
 
 		var retRes59919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchAccounts", nil, nil, nil, paramsPaginate, "next_starting_after", "starting_after", nil, 100))))
@@ -854,9 +852,7 @@ func (this *Coinbase) fetchAccountsV3Body(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchAccounts", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchAccounts", "paginate", false)
 	if paginate {
 
 		var retRes66919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchAccounts", nil, nil, nil, paramsPaginate, "cursor", "cursor", nil, 250))))
@@ -1892,9 +1888,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var usePrivateparamsUsePrivateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMarkets", "usePrivate", false)
-	var usePrivate bool = GetValueBool(usePrivateparamsUsePrivateVariable, 0, false)
-	var paramsUsePrivate map[string]any = MapTyped(GetValue(usePrivateparamsUsePrivateVariable, 1))
+	usePrivate, paramsUsePrivate := this.HandleOptionBoolAndParams(params, "fetchMarkets", "usePrivate", false)
 	var spotUnresolvedPromises []any = []any{}
 	if usePrivate {
 		spotUnresolvedPromises = append(spotUnresolvedPromises, EndpointRaw(this.V3PrivateGetBrokerageProducts(paramsUsePrivate)))
@@ -2752,9 +2746,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 		}()
 	}
 	var response map[string]any = nil
-	var usePrivateparamsUsePrivateVariable []any = this.HandleOptionBoolAndParams(paramsMarketType, "fetchTickers", "usePrivate", false)
-	var usePrivate bool = GetValueBool(usePrivateparamsUsePrivateVariable, 0, false)
-	var paramsUsePrivate map[string]any = MapTyped(GetValue(usePrivateparamsUsePrivateVariable, 1))
+	usePrivate, paramsUsePrivate := this.HandleOptionBoolAndParams(paramsMarketType, "fetchTickers", "usePrivate", false)
 	if usePrivate {
 
 		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageProducts(this.Extend(request, paramsUsePrivate))).Raw))
@@ -2919,9 +2911,7 @@ func (this *Coinbase) fetchTickerV3Body(ch chan any, symbol string, optionalArgs
 		"product_id": market["id"],
 		"limit":      1,
 	}
-	var usePrivateparamsUsePrivateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTicker", "usePrivate", false)
-	var usePrivate bool = GetValueBool(usePrivateparamsUsePrivateVariable, 0, false)
-	var paramsUsePrivate map[string]any = MapTyped(GetValue(usePrivateparamsUsePrivateVariable, 1))
+	usePrivate, paramsUsePrivate := this.HandleOptionBoolAndParams(params, "fetchTicker", "usePrivate", false)
 	var response map[string]any = nil
 	if usePrivate {
 
@@ -3309,9 +3299,7 @@ func (this *Coinbase) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
 	if paginate {
 
 		var retRes264419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, paramsPaginate, "next_starting_after", "starting_after", nil, 100))))
@@ -3983,9 +3971,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol string, typeVar string
 		}
 		if (GetValue(market, "spot") == true) && (side == "buy") {
 			var total any = nil
-			var createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-			var createMarketBuyOrderRequiresPrice bool = GetValueBool(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 0, false)
-			var paramsRequiresPrice map[string]any = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 1))
+			createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
 			paramsMarketBuy = this.Omit(paramsRequiresPrice, "cost")
 			if cost != nil {
@@ -4547,9 +4533,7 @@ func (this *Coinbase) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	if paginate {
 
 		var retRes369219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", nil, 1000))))
@@ -4774,9 +4758,7 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
 	if paginate {
 
 		var retRes386219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", nil, 100))))
@@ -4822,9 +4804,7 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "paginate", false)
 	if paginate {
 
 		var retRes388619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchClosedOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", nil, 1000))))
@@ -4913,9 +4893,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		}
 		return mathMin(limit, maxLimit)
 	}()
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		var retRes393019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limitValue, timeframe, paramsPaginate, maxLimit-1))))
@@ -4946,9 +4924,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		request["end"] = Precise.StringAdd(sinceString, ToString(requestedDuration))
 	}
 	var response map[string]any = nil
-	var usePrivateparamsUsePrivateVariable []any = this.HandleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "usePrivate", false)
-	var usePrivate bool = GetValueBool(usePrivateparamsUsePrivateVariable, 0, false)
-	var paramsUsePrivate map[string]any = MapTyped(GetValue(usePrivateparamsUsePrivateVariable, 1))
+	usePrivate, paramsUsePrivate := this.HandleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "usePrivate", false)
 	if usePrivate {
 
 		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageProductsProductIdCandles(this.Extend(request, paramsUsePrivate))).Raw))
@@ -5043,9 +5019,7 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		panic(ArgumentsRequired(this.Id + " fetchTrades() requires a `until` parameter when you use `since` argument"))
 	}
 	var response map[string]any = nil
-	var usePrivateparamsUsePrivateVariable []any = this.HandleOptionBoolAndParams(paramsUntil, "fetchTrades", "usePrivate", false)
-	var usePrivate bool = GetValueBool(usePrivateparamsUsePrivateVariable, 0, false)
-	paramsUsePrivate := GetValue(usePrivateparamsUsePrivateVariable, 1)
+	usePrivate, paramsUsePrivate := this.HandleOptionBoolAndParams(paramsUntil, "fetchTrades", "usePrivate", false)
 	if usePrivate {
 
 		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageProductsProductIdTicker(this.Extend(request, paramsUsePrivate))).Raw))
@@ -5108,9 +5082,7 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	if paginate {
 
 		var retRes408219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, "cursor", "cursor", nil, 250))))
@@ -5214,9 +5186,7 @@ func (this *Coinbase) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 		request["limit"] = limit
 	}
 	var response map[string]any = nil
-	var usePrivateparamsUsePrivateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrderBook", "usePrivate", false)
-	var usePrivate bool = GetValueBool(usePrivateparamsUsePrivateVariable, 0, false)
-	var paramsUsePrivate map[string]any = MapTyped(GetValue(usePrivateparamsUsePrivateVariable, 1))
+	usePrivate, paramsUsePrivate := this.HandleOptionBoolAndParams(params, "fetchOrderBook", "usePrivate", false)
 	if usePrivate {
 
 		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageProductBook(this.Extend(request, paramsUsePrivate))).Raw))

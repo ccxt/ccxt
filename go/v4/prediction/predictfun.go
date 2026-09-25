@@ -2249,9 +2249,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome string, typeVar str
 	// read through the extractor rather than off the instance, so one call can opt in without
 	// reconfiguring the exchange - and so the key is taken out of params instead of riding
 	// along into the request body
-	var warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "warnOnMarketOrderWithoutPrice", true)
-	var warnOnMarketOrderWithoutPrice bool = ccxt.GetValueBool(warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable, 0, false)
-	var paramsWarnOnMarketOrderWithoutPrice map[string]any = ccxt.MapTyped(ccxt.GetValue(warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable, 1))
+	warnOnMarketOrderWithoutPrice, paramsWarnOnMarketOrderWithoutPrice := this.HandleOptionBoolAndParams(params, "createOrder", "warnOnMarketOrderWithoutPrice", true)
 	if price == nil {
 		// a priceless limit order already threw above, so this is a market order
 		if warnOnMarketOrderWithoutPrice {

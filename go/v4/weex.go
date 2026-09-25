@@ -1950,9 +1950,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol string, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxHistoricalLimit int = 100
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 		var paramsExtended map[string]any = this.Extend(paramsPaginate, map[string]any{
 			"historical": true,
@@ -1963,9 +1961,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol string, optionalArg
 		return nil
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
-	var historicalparamsHistoricalVariable []any = this.HandleOptionBoolAndParams(paramsPaginate, "fetchOHLCV", "historical", false)
-	var historical bool = GetValueBool(historicalparamsHistoricalVariable, 0, false)
-	var paramsHistorical map[string]any = MapTyped(GetValue(historicalparamsHistoricalVariable, 1))
+	historical, paramsHistorical := this.HandleOptionBoolAndParams(paramsPaginate, "fetchOHLCV", "historical", false)
 	var timeframeOption map[string]any = SafeMapTyped(this.Options, "timeframes")
 	var contractTimeframes map[string]any = SafeMapTyped(timeframeOption, "contract")
 	var market map[string]any = this.Market(symbol)
@@ -2607,9 +2603,7 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 	}
 	var maxLimit int = 100
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	if paginate {
 
 		var retRes212619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPaginate, maxLimit))))
@@ -3386,9 +3380,7 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsMarketType, "fetchOpenOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsMarketType, "fetchOpenOrders", "paginate", false)
 	var maxLimit int = 100
 	if paginate {
 		if isSpot {
@@ -3665,9 +3657,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(NotSupported(this.Id + " fetchOrders() supports spot markets only"))
 	}
 	var maxLimit int = 1000
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	if paginate {
 
 		var retRes296419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, paramsPaginate, maxLimit))))
@@ -3754,9 +3744,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	if marketType != nil && *marketType == "spot" {
 		panic(NotSupported(this.Id + " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\""))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsMarketType, "fetchCanceledAndClosedOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsMarketType, "fetchCanceledAndClosedOrders", "paginate", false)
 	var maxLimit int = 1000
 	if paginate {
 
@@ -4118,9 +4106,7 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if isSpot && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument for spot markets"))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsMarketType, "fetchMyTrades", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsMarketType, "fetchMyTrades", "paginate", false)
 	var maxLimit int = 100
 	if paginate {
 
@@ -4227,9 +4213,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
 	var maxLimit int = 100
 	if paginate {
 
@@ -4430,9 +4414,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
 	if paginate {
 
 		var retRes359219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, 100))))
@@ -5172,9 +5154,7 @@ func (this *Weex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("setLeverage", params)
-	marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params)
 	if !IsEqual(marginMode, nil) {
 		request["marginType"] = this.EncodeMarginMode(marginMode)
 	}
@@ -5267,9 +5247,7 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("setPositionMode", params)
-	marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setPositionMode", params)
 	if IsEqual(marginMode, nil) {
 		panic(ArgumentsRequired(this.Id + " setPositionMode() also sets marginMode, so a marginMode parameter is required"))
 	}

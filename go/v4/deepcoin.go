@@ -887,9 +887,7 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxLimit int = 300
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 		var paramsExtended map[string]any = this.Extend(paramsPaginate, map[string]any{
 			"calculateUntil": true,
@@ -1315,9 +1313,7 @@ func (this *Deepcoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
 	if paginate {
 
 		var retRes102019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, paramsPaginate, "code", nil, 1, 50))))
@@ -1386,9 +1382,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
 	if paginate {
 
 		var retRes106719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, paramsPaginate, "code", nil, 1, 50))))
@@ -2078,9 +2072,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 	} else {
 		request["sz"] = this.AmountToPrecision(symbol, amount)
 		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsOrderType, keysToOmit))
-		var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("createOrder", paramsOmitted, "cross")
-		var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-		var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsOmitted, "cross")
 		request["tdMode"] = marginMode
 		mrgPosition, paramsMrgPosition := this.HandleOptionStringAndParams(paramsMarginMode, "createOrder", "mrgPosition", "merge")
 		paramsRequest = paramsMrgPosition
@@ -2156,9 +2148,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit trigger orders"))
 	}
 	var marginMode string = "cross"
-	var marginModeOptionparamsMarginModeVariable []any = this.HandleMarginModeAndParams("createOrder", params, marginMode)
-	var marginModeOption *string = SafeStringPtr(GetValue(marginModeOptionparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeOptionparamsMarginModeVariable, 1))
+	marginModeOption, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", params, marginMode)
 	var isCrossMargin int = 1
 	if marginModeOption != nil && *marginModeOption == "isolated" {
 		isCrossMargin = 0
@@ -2462,9 +2452,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchCanceledAndClosedOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchCanceledAndClosedOrders", "paginate", false)
 	if paginate {
 
 		var retRes196619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate))))
@@ -2907,9 +2895,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		}
 		return params
 	}()
-	var mergedparamsMergedVariable []any = this.HandleOptionBoolAndParams(paramsOmitted, "cancelAllOrders", "merged", true)
-	var merged bool = GetValueBool(mergedparamsMergedVariable, 0, false)
-	paramsMerged := GetValue(mergedparamsMergedVariable, 1)
+	merged, paramsMerged := this.HandleOptionBoolAndParams(paramsOmitted, "cancelAllOrders", "merged", true)
 	var isMergedMode int = func() int {
 		if merged {
 			return 1
@@ -3423,9 +3409,7 @@ func (this *Deepcoin) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	}
 	var market map[string]any = this.Market(symbol)
 	var marginMode string = "cross"
-	var marginModeOptionparamsMarginModeVariable []any = this.HandleMarginModeAndParams("setLeverage", params, marginMode)
-	var marginModeOption *string = SafeStringPtr(GetValue(marginModeOptionparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeOptionparamsMarginModeVariable, 1))
+	marginModeOption, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params, marginMode)
 	if (marginModeOption == nil || *marginModeOption != "cross") && (marginModeOption == nil || *marginModeOption != "isolated") {
 		panic(BadRequest(this.Id + " setLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
@@ -3748,9 +3732,7 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	if paginate {
 
 		var retRes296719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate))))

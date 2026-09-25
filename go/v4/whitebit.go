@@ -2747,9 +2747,7 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol string, typeVar string
 	if ioc && !isLimitOrder {
 		panic(NotSupported(this.Id + " createOrder() timeInForce IOC is only supported for limit orders"))
 	}
-	var marginModequeryVariable []any = this.HandleMarginModeAndParams("createOrder", paramsOmitted)
-	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(marginModequeryVariable, 1))
+	marginMode, query := this.HandleMarginModeAndParams("createOrder", paramsOmitted)
 	if postOnly {
 		request["postOnly"] = true
 	}
@@ -2991,9 +2989,7 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var requestType []any = []any{}
 	var requestParams any = paramsMarketType
 	if marketType != nil && *marketType == "spot" {
-		var isMarginparamsIsMarginVariable []any = this.HandleOptionBoolAndParams(paramsMarketType, "cancelAllOrders", "isMargin", false)
-		var isMargin bool = GetValueBool(isMarginparamsIsMarginVariable, 0, false)
-		var paramsIsMargin map[string]any = MapTyped(GetValue(isMarginparamsIsMarginVariable, 1))
+		isMargin, paramsIsMargin := this.HandleOptionBoolAndParams(paramsMarketType, "cancelAllOrders", "isMargin", false)
 		requestParams = paramsIsMargin
 		if isMargin {
 			requestType = append(requestType, "margin")
@@ -5429,9 +5425,7 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
 	var maxLimit int = 100
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
 		var retRes422019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, maxLimit))))
@@ -5527,9 +5521,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 		var nonce string = ToString(this.IncrementingNonce())
 		var secret string = this.Encode(this.Secret)
 		var request *string = SafeStringPtr(Add(Add("/"+"api"+"/", version), pathWithParams))
-		var nonceWindowrequestParamsVariable []any = this.HandleOptionBoolAndParams(params, "sign", "nonceWindow", false)
-		var nonceWindow bool = GetValueBool(nonceWindowrequestParamsVariable, 0, false)
-		requestParams := GetValue(nonceWindowrequestParamsVariable, 1)
+		nonceWindow, requestParams := this.HandleOptionBoolAndParams(params, "sign", "nonceWindow", false)
 		privateBody = this.Json(this.Extend(map[string]any{
 			"request":     request,
 			"nonce":       nonce,

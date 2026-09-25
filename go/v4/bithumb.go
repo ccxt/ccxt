@@ -1990,9 +1990,7 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			typeRequest = "price"
 			// for market buy it requires the amount of quote currency to spend
 			var cost any = DerefScalar(this.SafeString(paramsOrder, "cost"))
-			var createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable []any = this.HandleOptionBoolAndParams(this.Omit(paramsOrder, "cost"), "createOrder", "createMarketBuyOrderRequiresPrice", true)
-			var createMarketBuyOrderRequiresPrice bool = GetValueBool(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 0, false)
-			paramsRequiresPrice := GetValue(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 1)
+			createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(this.Omit(paramsOrder, "cost"), "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			paramsOrder = paramsRequiresPrice
 			if createMarketBuyOrderRequiresPrice {
 				if (price == nil) && (IsEqual(cost, nil)) {

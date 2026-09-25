@@ -1728,9 +1728,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		}
 		return 1440
 	}()
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		var retRes122119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
@@ -2502,9 +2500,7 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() is not supported for inverse swap markets"))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
 		var retRes187719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate))))
@@ -2609,9 +2605,7 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	if isInverse == true {
 		panic(NotSupported(this.Id + " fetchFundingHistory() is not supported for inverse swap markets"))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false)
 	if paginate {
 
 		var retRes195419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingHistory", symbol, since, limit, "24h", paramsPaginate))))
@@ -3244,9 +3238,7 @@ func (this *Bingx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var response map[string]any = nil
-	var standardparamsStandardVariable []any = this.HandleOptionBoolAndParams(params, "fetchBalance", "standard", false)
-	var standard bool = GetValueBool(standardparamsStandardVariable, 0, false)
-	var paramsStandard map[string]any = MapTyped(GetValue(standardparamsStandardVariable, 1))
+	standard, paramsStandard := this.HandleOptionBoolAndParams(params, "fetchBalance", "standard", false)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchBalance", nil, paramsStandard)
 	marketType, marketTypeQuery := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsSubType)
 	if standard {
@@ -3503,9 +3495,7 @@ func (this *Bingx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var standardparamsStandardVariable []any = this.HandleOptionBoolAndParams(params, "fetchPositions", "standard", false)
-	var standard bool = GetValueBool(standardparamsStandardVariable, 0, false)
-	var paramsStandard map[string]any = MapTyped(GetValue(standardparamsStandardVariable, 1))
+	standard, paramsStandard := this.HandleOptionBoolAndParams(params, "fetchPositions", "standard", false)
 	var response map[string]any = nil
 	if standard {
 
@@ -5727,9 +5717,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	var response map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchCanceledAndClosedOrders", market, paramsMarketType)
-	var standardparamsStandardVariable []any = this.HandleOptionBoolAndParams(paramsSubType, "fetchCanceledAndClosedOrders", "standard", false)
-	var standard bool = GetValueBool(standardparamsStandardVariable, 0, false)
-	var paramsStandard map[string]any = MapTyped(GetValue(standardparamsStandardVariable, 1))
+	standard, paramsStandard := this.HandleOptionBoolAndParams(paramsSubType, "fetchCanceledAndClosedOrders", "standard", false)
 	if standard {
 
 		response = MapTyped(PanicOnError((<-this.ContractV1PrivateGetAllOrders(this.Extend(request, paramsStandard))).Raw))
@@ -5914,9 +5902,7 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["toAccount"] = toId
 	}
 	var maxLimit int = 100
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	if paginate {
 
 		var retRes537819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPaginate, maxLimit))))

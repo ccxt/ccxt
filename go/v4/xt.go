@@ -1914,9 +1914,7 @@ func (this *Xt) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		var retRes149519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 1000))))
@@ -2728,9 +2726,7 @@ func (this *Xt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			response = MapTyped(PanicOnError((<-this.PrivateLinearGetFutureTradeV1OrderTradeList(this.Extend(request, paramsSubType))).Raw))
 		}
 	} else {
-		var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchMyTrades", paramsSubType)
-		var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-		var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchMyTrades", paramsSubType)
 		var marginOrSpotRequest string = "SPOT"
 		if marginMode != nil {
 			marginOrSpotRequest = "LEVER"
@@ -3273,9 +3269,7 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, sid
 		"type":   strings.ToUpper(typeVar),
 	}
 	var timeInForce *string = nil
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("createOrder", params)
-	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", params)
 	var marginOrSpotRequest string = "SPOT"
 	if marginMode != nil {
 		marginOrSpotRequest = "LEVER"
@@ -3419,9 +3413,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar string,
 	if isTrailing {
 		request["orderSide"] = ToUpper(side)
 		request["triggerPriceType"] = this.SafeString(paramsOmitted4, "triggerPriceType", "LATEST_PRICE")
-		var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("createOrder", paramsOmitted4, "cross")
-		var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-		var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsOmitted4, "cross")
 		request["positionType"] = func() string {
 			if marginMode != nil && *marginMode == "isolated" {
 				return "ISOLATED"
@@ -3818,9 +3810,7 @@ func (this *Xt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		response = MapTyped(PanicOnError((<-this.PrivateLinearGetFutureTradeV1OrderListHistory(this.Extend(request, paramsSubType))).Raw))
 	} else {
-		var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchOrders", paramsSubType)
-		var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-		var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchOrders", paramsSubType)
 		var marginOrSpotRequest string = "SPOT"
 		if marginMode != nil {
 			marginOrSpotRequest = "LEVER"
@@ -4067,9 +4057,7 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status string, optionalArgs
 			response = MapTyped(PanicOnError((<-this.PrivateLinearGetFutureTradeV1OrderList(this.Extend(request, paramsSubType))).Raw))
 		}
 	} else {
-		var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchOrdersByStatus", paramsSubType)
-		var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-		var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchOrdersByStatus", paramsSubType)
 		var marginOrSpotRequest string = "SPOT"
 		if marginMode != nil {
 			marginOrSpotRequest = "LEVER"
@@ -4623,9 +4611,7 @@ func (this *Xt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		response = MapTyped(PanicOnError((<-this.PrivateLinearPostFutureTradeV1OrderCancelAll(this.Extend(request, paramsSubType))).Raw))
 	} else {
-		var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("cancelAllOrders", paramsSubType)
-		var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-		var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("cancelAllOrders", paramsSubType)
 		var marginOrSpotRequest string = "SPOT"
 		if marginMode != nil {
 			marginOrSpotRequest = "LEVER"
@@ -5904,9 +5890,7 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
 		var retRes477719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "id", "id", 1, 200))))

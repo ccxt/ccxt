@@ -2719,9 +2719,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome string, typeVar stri
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
 	if isMarket && (side == "buy") {
 		var createMarketBuyOrderRequiresPrice bool = true
-		var createMarketBuyOrderRequiresPriceparamsValueVariable []any = this.HandleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-		createMarketBuyOrderRequiresPrice = ccxt.GetValueBool(createMarketBuyOrderRequiresPriceparamsValueVariable, 0, false)
-		paramsValue = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsValueVariable, 1)
+		createMarketBuyOrderRequiresPrice, paramsValue = this.HandleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *float64 = this.SafeNumber(paramsValue, "cost")
 		paramsValue = this.Omit(paramsValue, "cost")
 		if createMarketBuyOrderRequiresPrice {
