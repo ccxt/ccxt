@@ -6868,6 +6868,11 @@ function localIdentifierType (csharp, node) {
     if (bindings !== 1 || binding === undefined) {
         return undefined;
     }
+    if (binding.kind === ts.SyntaxKind.VariableDeclaration && binding.name?.kind === ts.SyntaxKind.ArrayBindingPattern && binding.getStart () < node.getStart ()) {
+        // a slot of a destructured audited tuple the declaration hook types
+        const slot = binding.name.elements.findIndex ((element) => element.name?.kind === ts.SyntaxKind.Identifier && element.name.escapedText === name);
+        return (slot < 0) ? undefined : destructuredSlotType (csharp, scope, binding, slot, { scope, stack: new Set (), depth: 0 });
+    }
     if (binding.kind !== ts.SyntaxKind.VariableDeclaration || binding.name?.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
     }
