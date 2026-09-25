@@ -2210,7 +2210,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	return nil
 }
 func (this *Bydfi) HandleSinceAndUntil(methodName string, optionalArgs ...any) any {
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
