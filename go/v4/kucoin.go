@@ -11235,11 +11235,11 @@ func (this *Kucoin) CalculateRateLimiterCost(api any, method any, path any, para
 	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
 	var defaultVersion *string = this.SafeString(methodVersions, path, GetValue(this.Options, "version"))
 	var version *string = this.SafeString(params, "version", defaultVersion)
-	if (version != nil && *version == "v3") && (InOp(config, "v3")) {
+	if _, ok := config["v3"]; (version != nil && *version == "v3") && ok {
 		return GetValue(config, "v3")
-	} else if (version != nil && *version == "v2") && (InOp(config, "v2")) {
+	} else if _, ok := config["v2"]; (version != nil && *version == "v2") && ok {
 		return GetValue(config, "v2")
-	} else if (version != nil && *version == "v1") && (InOp(config, "v1")) {
+	} else if _, ok := config["v1"]; (version != nil && *version == "v1") && ok {
 		return GetValue(config, "v1")
 	}
 	return this.SafeValue(config, "cost", 1)

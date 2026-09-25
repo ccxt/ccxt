@@ -1161,7 +1161,7 @@ func (this *Lighter) fetchNonceBody(ch chan any, accountIndex any, apiKeyIndex a
 	if (IsEqual(accountIndex, nil)) || (IsEqual(apiKeyIndex, nil)) {
 		panic(ArgumentsRequired(this.Id + " fetchNonce() requires accountIndex and apiKeyIndex."))
 	}
-	if InOp(params, "nonce") {
+	if _, ok := params["nonce"]; ok {
 
 		ch <- this.SafeInteger(params, "nonce")
 		return nil

@@ -870,7 +870,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 		var minAmount *float64 = this.SafeNumber(minAmountParts, 0)
 		var amountPrecisionString string = Replace(GetValue(cells, 2), "<td>", "")
 		var amountPrecisionParts []string = strings.Split(amountPrecisionString, " ")
-		var idLength int64 = Subtract(GetArrayLength(marketId), 0).(int64)
+		var idLength int64 = Subtract(len(marketId), 0).(int64)
 		var startingIndex int64 = idLength - 3
 		var pricePrecisionString string = Replace(GetValue(cells, 3), "<td>", "")
 		var pricePrecisionParts []string = strings.Split(pricePrecisionString, " ")

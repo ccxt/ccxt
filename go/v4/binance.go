@@ -7799,7 +7799,7 @@ func (this *Binance) EditContractOrderRequest(id any, symbol any, typeVar any, s
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	if (price == nil) && !(InOp(params, "priceMatch")) {
+	if _, ok := params["priceMatch"]; (price == nil) && !ok {
 		panic(ArgumentsRequired(this.Id + " editOrder() and editOrderWs() require a price argument for swap orders"))
 	}
 	var market map[string]any = this.Market(symbol)
