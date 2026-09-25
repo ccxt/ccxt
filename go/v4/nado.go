@@ -2365,7 +2365,7 @@ func (this *Nado) fetchFundingRateBody(ch chan any, symbol string, optionalArgs 
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var tickerId *string = this.SafeString(market["info"], "ticker_id")
@@ -2437,7 +2437,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingHistory() supports swap contracts only"))
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "fetchFundingHistory", "subaccount", "default")
@@ -2572,7 +2572,7 @@ func (this *Nado) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchOpenInterest() supports swap contracts only"))
 	}
 	var tickerId *string = this.SafeString(market["info"], "ticker_id")
@@ -3554,7 +3554,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		"datetime":            this.Iso8601(timestamp),
 		"lastTradeTimestamp":  lastTradeTimestamp,
 		"lastUpdateTimestamp": lastUpdateTimestamp,
-		"symbol":              GetValue(marketResolved, "symbol"),
+		"symbol":              marketResolved["symbol"],
 		"type":                "limit",
 		"timeInForce":         timeInForce,
 		"postOnly":            postOnly,

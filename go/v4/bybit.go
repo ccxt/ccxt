@@ -3894,16 +3894,16 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	request, paramsUntil = this.HandleUntilOption("end", request, paramsPaginate)
 	request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		request["category"] = "spot"
 
 		response = MapTyped(PanicOnError((<-this.PublicGetV5MarketKline(this.Extend(request, paramsUntil))).Raw))
 	} else {
 		var price *string = this.SafeString(paramsUntil, "price")
 		var paramsOmitted any = this.Omit(paramsUntil, "price")
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 			request["category"] = "linear"
-		} else if GetValue(market, "inverse") == true {
+		} else if market["inverse"] == true {
 			request["category"] = "inverse"
 		} else {
 			panic(NotSupported(this.Id + " fetchOHLCV() is not supported for option markets"))
@@ -4628,18 +4628,18 @@ func (this *Bybit) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 		"symbol": market["id"],
 	}
 	var defaultLimit int = 25
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		// limit: [1, 50]. Default: 1
 		defaultLimit = 50
 		request["category"] = "spot"
 	} else {
-		if GetValue(market, "option") == true {
+		if market["option"] == true {
 			// limit: [1, 25]. Default: 1
 			request["category"] = "option"
-		} else if GetValue(market, "linear") == true {
+		} else if market["linear"] == true {
 			// limit: [1, 500]. Default: 25
 			request["category"] = "linear"
-		} else if GetValue(market, "inverse") == true {
+		} else if market["inverse"] == true {
 			// limit: [1, 500]. Default: 25
 			request["category"] = "inverse"
 		}
@@ -5339,7 +5339,7 @@ func (this *Bybit) createMarketBuyOrderWithCostBody(ch chan any, symbol string, 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	var req map[string]any = map[string]any{
@@ -5382,7 +5382,7 @@ func (this *Bybit) createMarketSellOrderWithCostBody(ch chan any, symbol string,
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports UTA accounts only"))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
 	var req map[string]any = map[string]any{
@@ -5456,7 +5456,7 @@ func (this *Bybit) createOrderBody(ch chan any, symbol string, typeVar string, s
 	var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params, enableUnifiedAccount))
 	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || (this.SafeBool(params, "tradingStopEndpoint", false) != nil && *this.SafeBool(params, "tradingStopEndpoint", false))
 	var defaultMethod string
-	if (isTrailingOrder || (switchToOco == true)) && (GetValue(market, "spot") != true) {
+	if (isTrailingOrder || (switchToOco == true)) && (market["spot"] != true) {
 		defaultMethod = "privatePostV5PositionTradingStop"
 	} else {
 		defaultMethod = "privatePostV5OrderCreate"
@@ -5558,7 +5558,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		return nil
 	}()
 	if endpointIsTradingStop {
-		if hasStopLoss || hasTakeProfit || isTriggerOrder || (GetValue(market, "spot") == true) {
+		if hasStopLoss || hasTakeProfit || isTriggerOrder || (market["spot"] == true) {
 			panic(InvalidOrder(this.Id + " the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders"))
 		}
 		if isStopLossOrder || isTakeProfitOrder {
@@ -5627,7 +5627,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		} else if timeInForce != nil && *timeInForce == "ioc" {
 			request["timeInForce"] = "IOC"
 		}
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			// only works for spot market
 			if !IsEqual(triggerPrice, nil) {
 				request["orderFilter"] = "StopOrder"
@@ -5638,7 +5638,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var clientOrderId *string = this.SafeString(query, "clientOrderId")
 		if clientOrderId != nil {
 			request["orderLinkId"] = clientOrderId
-		} else if GetValue(market, "option") == true {
+		} else if market["option"] == true {
 			// mandatory field for options
 			request["orderLinkId"] = this.Uuid16()
 		}
@@ -5656,7 +5656,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	// if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
 	var isMarketBuyAndCostInferable bool = (lowerCaseType == "market") && (IsEqual(side, "buy")) && ((price != nil) || (cost != nil))
 	var isMarketOrder bool = (lowerCaseType == "market")
-	if (GetValue(market, "spot") == true) && isMarketOrder && (isUTA == true) && !isMarketBuyAndCostInferable {
+	if (market["spot"] == true) && isMarketOrder && (isUTA == true) && !isMarketBuyAndCostInferable {
 		// UTA account can specify the cost of the order on both sides
 		if (cost != nil) || (price != nil) {
 			request["marketUnit"] = "quoteCoin"
@@ -5672,7 +5672,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			request["marketUnit"] = "baseCoin"
 			request["qty"] = amountString
 		}
-	} else if (GetValue(market, "spot") == true) && isMarketOrder && (IsEqual(side, "buy")) {
+	} else if (market["spot"] == true) && isMarketOrder && (IsEqual(side, "buy")) {
 		// classic accounts
 		// for market buy it requires the amount of quote currency to spend
 		var createMarketBuyOrderRequiresPrice bool = true
@@ -5710,7 +5710,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	} else if isTriggerOrder && !endpointIsTradingStop {
 		var triggerDirection *string = this.SafeString(query, "triggerDirection")
 		query = this.Omit(query, []any{"triggerPrice", "stopPrice", "triggerDirection"})
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			if triggerDirection != nil {
 				panic(NotSupported(this.Id + " createOrder() : trigger order does not support triggerDirection for spot markets yet"))
 			}
@@ -5762,12 +5762,12 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				request["slLimitPrice"] = this.GetPrice(symbolValue, slLimitPrice)
 			} else {
 				// for spot market, we need to add this
-				if GetValue(market, "spot") == true {
+				if market["spot"] == true {
 					request["slOrderType"] = "Market"
 				}
 			}
 			// for spot market, we need to add this
-			if (GetValue(market, "spot") == true) && isMarketOrder {
+			if (market["spot"] == true) && isMarketOrder {
 				panic(InvalidOrder(this.Id + " createOrder(): attached stopLoss is not supported for spot market orders"))
 			}
 		}
@@ -5781,17 +5781,17 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				request["tpLimitPrice"] = this.GetPrice(symbolValue, tpLimitPrice)
 			} else {
 				// for spot market, we need to add this
-				if GetValue(market, "spot") == true {
+				if market["spot"] == true {
 					request["tpOrderType"] = "Market"
 				}
 			}
 			// for spot market, we need to add this
-			if (GetValue(market, "spot") == true) && isMarketOrder {
+			if (market["spot"] == true) && isMarketOrder {
 				panic(InvalidOrder(this.Id + " createOrder(): attached takeProfit is not supported for spot market orders"))
 			}
 		}
 	}
-	if (GetValue(market, "spot") != true) && (hedged != nil && *hedged == true) {
+	if (market["spot"] != true) && (hedged != nil && *hedged == true) {
 		if reduceOnly != nil && *reduceOnly == true {
 			query = this.Omit(query, "reduceOnly")
 		}
@@ -6208,7 +6208,7 @@ func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		// only works for spot market
 		var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 		request["orderFilter"] = func() string {
@@ -6222,7 +6222,7 @@ func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) any {
 		request["orderId"] = id
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			return MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 		}
 		return params
@@ -6695,7 +6695,7 @@ func (this *Bybit) fetchOrderClassicBody(ch chan any, id any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(NotSupported(this.Id + " fetchOrder() is not supported for spot markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -8829,7 +8829,7 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
 	var notional *string = nil
 	var contractSize *string = this.SafeString(marketResolved, "contractSize")
 	var markPrice *string = this.SafeString(position, "markPrice")
-	if GetValue(marketResolved, "inverse") == true {
+	if marketResolved["inverse"] == true {
 		notional = Precise.StringDiv(Precise.StringMul(size, contractSize), markPrice)
 	} else {
 		notional = this.SafeString2(position, "positionValue", "cumExitValue")
@@ -8858,7 +8858,7 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
 			collateralString = Precise.StringAdd(Precise.StringAdd(Precise.StringMul(difference, size), maintenanceMarginString), unrealisedPnl)
 		} else {
 			var bustPrice *string = this.SafeString(position, "bustPrice")
-			if GetValue(marketResolved, "linear") == true {
+			if marketResolved["linear"] == true {
 				// derived from the following formulas
 				//  (Entry price - Bust price) * Contracts = Collateral
 				//  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
@@ -9121,9 +9121,9 @@ func (this *Bybit) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 	}
 	request["buyLeverage"] = leverageString
 	request["sellLeverage"] = leverageString
-	if GetValue(market, "linear") == true {
+	if market["linear"] == true {
 		request["category"] = "linear"
-	} else if GetValue(market, "inverse") == true {
+	} else if market["inverse"] == true {
 		request["category"] = "inverse"
 	} else {
 		panic(NotSupported(this.Id + " setLeverage() only support linear and inverse market"))
@@ -9235,7 +9235,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan any, symbol s
 	}
 	var market map[string]any = this.Market(symbol)
 	var subType string = "inverse"
-	if GetValue(market, "linear") == true {
+	if market["linear"] == true {
 		subType = "linear"
 	}
 	var category *string = this.SafeString(params, "category", subType)
@@ -9330,7 +9330,7 @@ func (this *Bybit) fetchOpenInterestBody(ch chan any, symbol string, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") != true {
+	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var timeframe *string = this.SafeString(params, "interval", "1h")
@@ -9340,7 +9340,7 @@ func (this *Bybit) fetchOpenInterestBody(ch chan any, symbol string, optionalArg
 		panic(BadRequest(this.Id + " fetchOpenInterest() cannot use the " + *timeframe + " timeframe"))
 	}
 	var subType string = "inverse"
-	if GetValue(market, "linear") == true {
+	if market["linear"] == true {
 		subType = "linear"
 	}
 	var category *string = this.SafeString(params, "category", subType)
@@ -9430,7 +9430,7 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan any, symbol string, opti
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	if (GetValue(market, "spot") == true) || (GetValue(market, "option") == true) {
+	if (market["spot"] == true) || (market["option"] == true) {
 		panic(BadRequest(this.Id + " fetchOpenInterestHistory() symbol does not support market " + symbol))
 	}
 	var request map[string]any = map[string]any{
@@ -10106,9 +10106,9 @@ func (this *Bybit) fetchDerivativesMarketLeverageTiersBody(ch chan any, symbol s
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if GetValue(market, "linear") == true {
+	if market["linear"] == true {
 		request["category"] = "linear"
-	} else if GetValue(market, "inverse") == true {
+	} else if market["inverse"] == true {
 		request["category"] = "inverse"
 	}
 

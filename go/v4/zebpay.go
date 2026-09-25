@@ -680,7 +680,7 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2ExTradefee(this.Extend(request, params))).Raw))
 		//
@@ -817,7 +817,7 @@ func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 		request["limit"] = limit
 	}
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		//
 		//       {
 		//         "asks": [
@@ -873,7 +873,7 @@ func (this *Zebpay) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = MapTyped(PanicOnError((<-this.PublicSpotGetV2MarketTicker(this.Extend(request, params))).Raw))
 	} else {
@@ -986,7 +986,7 @@ func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until", "endtime", "endTime", "interval", "startTime"}))
 	var response map[string]any = nil
 	var limitResolved any = limit
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		if limit == nil {
 			limitResolved = 100
 		}
@@ -1091,11 +1091,11 @@ func (this *Zebpay) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if (GetValue(market, "spot") == true) && (limit != nil) {
+	if (market["spot"] == true) && (limit != nil) {
 		request["limit"] = limit
 	}
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = MapTyped(PanicOnError((<-this.PublicSpotGetV2MarketTrades(this.Extend(request, params))).Raw))
 	} else {
@@ -1397,7 +1397,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol string, typeVar string, 
 		"side":   strings.ToUpper(side),
 	}
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		requestqueryVariable := this.OrderRequest(symbol, typeVar, amount, request, price, query)
 		request = GetValue(requestqueryVariable, 0)
 		query = MapTyped(GetValue(requestqueryVariable, 1))
@@ -1504,7 +1504,7 @@ func (this *Zebpay) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
 	var request map[string]any = map[string]any{}
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		request["orderId"] = id
 
 		response = MapTyped(PanicOnError((<-this.PrivateSpotDeleteV2ExOrder(this.Extend(request, params))).Raw))
@@ -1616,7 +1616,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var response map[string]any = nil
 	var orders []any = []any{}
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		request["currentPage"] = 1
 		if limit != nil {
 			request["pageSize"] = limit
@@ -1699,7 +1699,7 @@ func (this *Zebpay) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		request["orderId"] = id
 
 		response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2ExOrder(this.Extend(request, params))).Raw))

@@ -3777,7 +3777,7 @@ func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan any, symbol strin
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false
@@ -3969,7 +3969,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol string, typeVar string
 		if isStop || isStopLoss || isTakeProfit {
 			panic(NotSupported(this.Id + " createOrder() only stop limit orders are supported"))
 		}
-		if (GetValue(market, "spot") == true) && (side == "buy") {
+		if (market["spot"] == true) && (side == "buy") {
 			var total any = nil
 			createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
@@ -6232,7 +6232,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
-	if GetValue(market, "future") == true {
+	if market["future"] == true {
 		var productId *string = this.SafeString(market, "product_id")
 		if productId == nil {
 			panic(ArgumentsRequired(this.Id + " fetchPosition() requires a \"product_id\" in params"))
@@ -6471,7 +6471,7 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
 		var market map[string]any = this.Market(symbol)
-		if (isSpot && (GetValue(market, "spot") == true)) || (!isSpot && (GetValue(market, "spot") != true)) {
+		if (isSpot && (market["spot"] == true)) || (!isSpot && (market["spot"] != true)) {
 			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,
 				"symbol":     symbol,

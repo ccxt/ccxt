@@ -239,7 +239,7 @@ func (this *Gate) createOrdersWsBody(ch chan any, orders any, optionalArgs ...an
 	var request any = this.CreateOrdersRequest(orders, params)
 	var firstOrder map[string]any = ccxt.MapTyped(ccxt.GetValue(orders, 0))
 	var market map[string]any = this.Market(firstOrder["symbol"])
-	if ccxt.GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " createOrdersWs is not supported for swap markets"))
 	}
 	// todo add swap support
@@ -640,7 +640,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var url any = this.GetUrlByMarket(market)
 	var isEuUrl bool = (ccxt.GetIndexOf(url, "gateeu") >= 0)
-	var isNonEuSpot bool = (ccxt.GetValue(market, "spot") == true) && !isEuUrl
+	var isNonEuSpot bool = (market["spot"] == true) && !isEuUrl
 	var intervalDefault string = "100ms"
 	if isNonEuSpot {
 		intervalDefault = "50"
@@ -650,7 +650,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	var messageHash string = "orderbook" + ":" + *symbolValue
 	// max 100 atm, max 50 for options
 	var defaultLimit int = 100
-	if (ccxt.GetValue(market, "spot") == true) || (ccxt.IsEqual(messageType, "options")) {
+	if (market["spot"] == true) || (ccxt.IsEqual(messageType, "options")) {
 		defaultLimit = 50
 	}
 	var limitResolved any = func() any {
@@ -659,7 +659,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 		}
 		return limit
 	}()
-	if ccxt.GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		// the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
 		var maxSpotLimit any = this.HandleOption("fetchOrderBook", "maxSpotLimit", 1000)
 		limitResolved = ccxt.MathMin(limitResolved, maxSpotLimit)
@@ -669,7 +669,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	if isEuUrl {
 		channel = "spot.order_book_update"
 		payload = []any{marketId, interval}
-	} else if ccxt.GetValue(market, "spot") == true {
+	} else if market["spot"] == true {
 		channel = "spot.obu"
 		var finalInterval *string = interval
 		if ccxt.IsEqual(limitResolved, 400) {
@@ -720,7 +720,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var isEuUrl bool = (ccxt.GetIndexOf(url, "gateeu") >= 0)
-	var isNonEuSpot bool = (ccxt.GetValue(market, "spot") == true) && !isEuUrl
+	var isNonEuSpot bool = (market["spot"] == true) && !isEuUrl
 	var intervalDefault string = "100ms"
 	if isNonEuSpot {
 		intervalDefault = "50"
@@ -731,7 +731,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	var limit any = this.SafeInteger(paramsInterval, "limit")
 	if ccxt.IsEqual(limit, nil) {
 		limit = func() int {
-			if ccxt.GetValue(market, "spot") == true {
+			if market["spot"] == true {
 				return 50
 			}
 			return 100
@@ -745,7 +745,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	if isEuUrl {
 		channel = "spot.order_book_update"
 		payload = []any{marketId, intervalOption}
-	} else if ccxt.GetValue(market, "spot") == true {
+	} else if market["spot"] == true {
 		channel = "spot.obu"
 		var finalInterval *string = intervalOption
 		if ccxt.IsEqual(limit, 400) {

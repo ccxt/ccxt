@@ -3759,7 +3759,7 @@ func (this *Okx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		"instId": market["id"],
 	}
 	var response any = nil
-	if GetValue(market, "option") == true {
+	if market["option"] == true {
 
 		response = (<-this.PublicGetPublicOptionTrades(this.Extend(request, paramsPaginate))).Raw
 		PanicOnError(response)
@@ -4418,7 +4418,7 @@ func (this *Okx) createMarketBuyOrderWithCostBody(ch chan any, symbol string, co
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot markets only"))
 	}
 	var req map[string]any = map[string]any{
@@ -4456,7 +4456,7 @@ func (this *Okx) createMarketSellOrderWithCostBody(ch chan any, symbol string, c
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot markets only"))
 	}
 	var req map[string]any = map[string]any{
@@ -4525,7 +4525,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		margin = this.SafeBool(params, "margin", false)
 	}
 	// position side / hedged options only apply to swap and future orders
-	var isSwapOrFuture bool = (contract != nil && *contract == true) && ((GetValue(market, "swap") == true) || (GetValue(market, "future") == true))
+	var isSwapOrFuture bool = (contract != nil && *contract == true) && ((market["swap"] == true) || (market["future"] == true))
 	positionSide, paramsPositionSide := this.HandleOptionStringAndParams(params, "createOrder", "positionSide")
 	var paramsSwapOrFuture any = params
 	if isSwapOrFuture {
@@ -4563,7 +4563,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		}()
 		AddElementToObject(request, "tdMode", tradeMode)
 	} else if contract != nil && *contract == true {
-		if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) {
+		if (market["swap"] == true) || (market["future"] == true) {
 			if positionSide != nil {
 				AddElementToObject(request, "posSide", positionSide)
 			} else {
@@ -8144,7 +8144,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	var side *string = this.SafeString2(position, "posSide", "direction")
 	var hedged bool = (side == nil || *side != "net")
 	var contracts *float64 = Float64PtrTyped(this.ParseNumber(contractsAbs))
-	if GetValue(marketResolved, "margin") == true {
+	if marketResolved["margin"] == true {
 		// margin position
 		if side != nil && *side == "net" {
 			var posCcy *string = this.SafeString(position, "posCcy")
@@ -8178,7 +8178,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	var contractSizeString *string = this.NumberToString(contractSize)
 	var markPriceString *string = this.SafeString(position, "markPx")
 	var notionalString *string = this.SafeString(position, "notionalUsd")
-	if GetValue(marketResolved, "inverse") == true {
+	if marketResolved["inverse"] == true {
 		notionalString = Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
 	}
 	var notional *float64 = Float64PtrTyped(this.ParseNumber(notionalString))
@@ -8202,7 +8202,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
 	} else if initialMarginString == nil {
-		if GetValue(marketResolved, "linear") == true {
+		if marketResolved["linear"] == true {
 			var initialMarginPercentageString *string = this.NumberToString(initialMarginPercentage)
 			initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 		} else {
@@ -8782,7 +8782,7 @@ func (this *Okx) fetchFundingRateBody(ch chan any, symbol string, optionalArgs .
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var ruleType *string = this.SafeString(marketInfo, "ruleType")
 	var isExtendedPerpetual bool = (ruleType != nil && *ruleType == "xperp") // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-	if (GetValue(market, "swap") != true) && !isExtendedPerpetual {
+	if (market["swap"] != true) && !isExtendedPerpetual {
 		panic(ExchangeError(this.Id + " fetchFundingRate() is only valid for swap markets or XPERP futures"))
 	}
 	var request map[string]any = map[string]any{
@@ -8845,7 +8845,7 @@ func (this *Okx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 			var marketInfo map[string]any = SafeMapTyped(market, "info")
 			var ruleType *string = this.SafeString(marketInfo, "ruleType")
 			var isExtendedPerpetual bool = (ruleType != nil && *ruleType == "xperp") // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-			if (GetValue(market, "swap") != true) && !isExtendedPerpetual {
+			if (market["swap"] != true) && !isExtendedPerpetual {
 				panic(BadRequest(Add(Add(this.Id+" fetchFundingRates() symbols must be swap markets or XPERP futures, ", GetValue(symbolsNormalized, i)), " is not")))
 			}
 		}
@@ -9663,7 +9663,7 @@ func (this *Okx) ParseMarginModification(data any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(data, "instId")
 	var responseMarket map[string]any = this.SafeMarket(marketId, market)
 	var code any = func() any {
-		if GetValue(responseMarket, "inverse") == true {
+		if responseMarket["inverse"] == true {
 			return responseMarket["base"]
 		}
 		return responseMarket["quote"]
@@ -9761,7 +9761,7 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan any, symbol string, option
 	}
 	var market map[string]any = this.Market(symbol)
 	var typeVar any = func() any {
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			return "MARGIN"
 		}
 		return this.ConvertToInstrumentType(market["type"])
@@ -10130,7 +10130,7 @@ func (this *Okx) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") != true {
+	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var typeVar any = this.ConvertToInstrumentType(market["type"])

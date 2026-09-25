@@ -1325,23 +1325,23 @@ func (this *Bitrue) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	}
 	var market map[string]any = this.Market(symbol)
 	var response any = map[string]any{}
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		var request map[string]any = map[string]any{
 			"contractName": market["id"],
 		}
 		if limit != nil {
 			request["limit"] = mathMin(limit, 100) // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
 		}
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 
 			response = (<-this.FapiV1PublicGetDepth(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if GetValue(market, "inverse") == true {
+		} else if market["inverse"] == true {
 
 			response = (<-this.DapiV1PublicGetDepth(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-	} else if GetValue(market, "spot") == true {
+	} else if market["spot"] == true {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
@@ -1485,21 +1485,21 @@ func (this *Bitrue) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 	var market map[string]any = this.Market(symbol)
 	var response any = nil
 	var data any = map[string]any{}
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		var request map[string]any = map[string]any{
 			"contractName": market["id"],
 		}
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 
 			response = (<-this.FapiV1PublicGetTicker(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if GetValue(market, "inverse") == true {
+		} else if market["inverse"] == true {
 
 			response = (<-this.DapiV1PublicGetTicker(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 		data = response
-	} else if GetValue(market, "spot") == true {
+	} else if market["spot"] == true {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
@@ -1591,7 +1591,7 @@ func (this *Bitrue) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var timeframes map[string]any = SafeMapTyped(this.Options, "timeframes")
 	var response any = nil
 	var data any = []any{}
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		var timeframesFuture map[string]any = SafeMapTyped(timeframes, "future")
 		var request map[string]any = map[string]any{
 			"contractName": market["id"],
@@ -1600,17 +1600,17 @@ func (this *Bitrue) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		if limit != nil {
 			request["limit"] = limit
 		}
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 
 			response = (<-this.FapiV1PublicGetKlines(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if GetValue(market, "inverse") == true {
+		} else if market["inverse"] == true {
 
 			response = (<-this.DapiV1PublicGetKlines(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 		data = response
-	} else if GetValue(market, "spot") == true {
+	} else if market["spot"] == true {
 		var timeframesSpot map[string]any = SafeMapTyped(timeframes, "spot")
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
@@ -1737,20 +1737,20 @@ func (this *Bitrue) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var first *string = this.SafeString(symbolsNormalized, 0)
 	var market map[string]any = this.Market(first)
 	var response any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		var request map[string]any = map[string]any{
 			"contractName": market["id"],
 		}
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 
 			response = (<-this.FapiV1PublicGetTicker(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if GetValue(market, "inverse") == true {
+		} else if market["inverse"] == true {
 
 			response = (<-this.DapiV1PublicGetTicker(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-	} else if GetValue(market, "spot") == true {
+	} else if market["spot"] == true {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
@@ -2044,7 +2044,7 @@ func (this *Bitrue) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market map[string]any = this.Market(symbol)
 	var response any = []any{}
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
@@ -2234,7 +2234,7 @@ func (this *Bitrue) createMarketBuyOrderWithCostBody(ch chan any, symbol string,
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports swap orders only"))
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false
@@ -2298,7 +2298,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol string, typeVar string, 
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		var isMarket bool = (uppercaseType == "MARKET")
 		var timeInForce *string = this.SafeStringLower(params, "timeInForce")
 		var postOnly bool = this.IsPostOnly(isMarket, nil, params)
@@ -2346,15 +2346,15 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol string, typeVar string, 
 		var leverage *string = this.SafeString(paramsNoCost, "leverage", "1")
 		request["leverage"] = this.ParseToNumeric(leverage)
 		var paramsSwap any = this.Omit(paramsNoCost, []any{"leverage", "reduceOnly", "reduce_only", "timeInForce"})
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 
 			response = MapTyped(PanicOnError((<-this.FapiV2PrivatePostOrder(this.Extend(request, paramsSwap))).Raw))
-		} else if GetValue(market, "inverse") == true {
+		} else if market["inverse"] == true {
 
 			response = MapTyped(PanicOnError((<-this.DapiV2PrivatePostOrder(this.Extend(request, paramsSwap))).Raw))
 		}
 		data = this.SafeDict(response, "data", map[string]any{})
-	} else if GetValue(market, "spot") == true {
+	} else if market["spot"] == true {
 		request["symbol"] = market["id"]
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 		var validOrderTypes any = this.SafeValue(market["info"], "orderTypes")
@@ -2452,23 +2452,23 @@ func (this *Bitrue) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	if origClientOrderId == nil {
 		request["orderId"] = id
 	} else {
-		if GetValue(market, "swap") == true {
+		if market["swap"] == true {
 			request["clientOrderId"] = origClientOrderId
 		} else {
 			request["origClientOrderId"] = origClientOrderId
 		}
 	}
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		request["contractName"] = market["id"]
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 
 			response = MapTyped(PanicOnError((<-this.FapiV2PrivateGetOrder(this.Extend(request, paramsOmitted))).Raw))
-		} else if GetValue(market, "inverse") == true {
+		} else if market["inverse"] == true {
 
 			response = MapTyped(PanicOnError((<-this.DapiV2PrivateGetOrder(this.Extend(request, paramsOmitted))).Raw))
 		}
 		data = this.SafeDict(response, "data", map[string]any{})
-	} else if GetValue(market, "spot") == true {
+	} else if market["spot"] == true {
 		request["orderId"] = id // spot market id is mandatory
 		request["symbol"] = market["id"]
 
@@ -2560,7 +2560,7 @@ func (this *Bitrue) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " fetchClosedOrders only support spot markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -2640,17 +2640,17 @@ func (this *Bitrue) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	var data any = []any{}
 	var request map[string]any = map[string]any{}
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		request["contractName"] = market["id"]
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 
 			response = MapTyped(PanicOnError((<-this.FapiV2PrivateGetOpenOrders(this.Extend(request, params))).Raw))
-		} else if GetValue(market, "inverse") == true {
+		} else if market["inverse"] == true {
 
 			response = MapTyped(PanicOnError((<-this.DapiV2PrivateGetOpenOrders(this.Extend(request, params))).Raw))
 		}
 		data = this.SafeList(response, "data", []any{})
-	} else if GetValue(market, "spot") == true {
+	} else if market["spot"] == true {
 		request["symbol"] = market["id"]
 
 		response = MapTyped(PanicOnError((<-this.SpotV1PrivateGetOpenOrders(this.Extend(request, params))).Raw))
@@ -2749,23 +2749,23 @@ func (this *Bitrue) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	if origClientOrderId == nil {
 		request["orderId"] = id
 	} else {
-		if GetValue(market, "swap") == true {
+		if market["swap"] == true {
 			request["clientOrderId"] = origClientOrderId
 		} else {
 			request["origClientOrderId"] = origClientOrderId
 		}
 	}
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		request["contractName"] = market["id"]
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 
 			response = MapTyped(PanicOnError((<-this.FapiV2PrivatePostCancel(this.Extend(request, paramsOmitted))).Raw))
-		} else if GetValue(market, "inverse") == true {
+		} else if market["inverse"] == true {
 
 			response = MapTyped(PanicOnError((<-this.DapiV2PrivatePostCancel(this.Extend(request, paramsOmitted))).Raw))
 		}
 		data = this.SafeDict(response, "data", map[string]any{})
-	} else if GetValue(market, "spot") == true {
+	} else if market["spot"] == true {
 		request["symbol"] = market["id"]
 
 		response = MapTyped(PanicOnError((<-this.SpotV1PrivateDeleteOrder(this.Extend(request, paramsOmitted))).Raw))
@@ -2828,14 +2828,14 @@ func (this *Bitrue) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
 	var data []any = []any{}
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		var request map[string]any = map[string]any{
 			"contractName": market["id"],
 		}
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 
 			response = MapTyped(PanicOnError((<-this.FapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Raw))
-		} else if GetValue(market, "inverse") == true {
+		} else if market["inverse"] == true {
 
 			response = MapTyped(PanicOnError((<-this.DapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Raw))
 		}
@@ -2908,19 +2908,19 @@ func (this *Bitrue) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(limitResolved, nil) {
 		request["limit"] = limitResolved
 	}
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		request["contractName"] = market["id"]
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 
 			response = (<-this.FapiV2PrivateGetMyTrades(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if GetValue(market, "inverse") == true {
+		} else if market["inverse"] == true {
 
 			response = (<-this.DapiV2PrivateGetMyTrades(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		}
 		data = this.SafeList(response, "data", []any{})
-	} else if GetValue(market, "spot") == true {
+	} else if market["spot"] == true {
 		request["symbol"] = market["id"]
 
 		response = (<-this.SpotV2PrivateGetMyTrades(this.Extend(request, params)))
@@ -3665,14 +3665,14 @@ func (this *Bitrue) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		"contractName": market["id"],
 		"leverage":     leverage,
 	}
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(NotSupported(this.Id + " setLeverage only support swap markets"))
 	}
-	if GetValue(market, "linear") == true {
+	if market["linear"] == true {
 
 		response = (<-this.FapiV2PrivatePostLevelEdit(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if GetValue(market, "inverse") == true {
+	} else if market["inverse"] == true {
 
 		response = (<-this.DapiV2PrivatePostLevelEdit(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -3733,7 +3733,7 @@ func (this *Bitrue) setMarginBody(ch chan any, symbol any, amount any, optionalA
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(NotSupported(this.Id + " setMargin only support swap markets"))
 	}
 	var response any = nil
@@ -3741,11 +3741,11 @@ func (this *Bitrue) setMarginBody(ch chan any, symbol any, amount any, optionalA
 		"contractName": market["id"],
 		"amount":       this.ParseToNumeric(amount),
 	}
-	if GetValue(market, "linear") == true {
+	if market["linear"] == true {
 
 		response = (<-this.FapiV2PrivatePostPositionMargin(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if GetValue(market, "inverse") == true {
+	} else if market["inverse"] == true {
 
 		response = (<-this.DapiV2PrivatePostPositionMargin(this.Extend(request, params))).Raw
 		PanicOnError(response)

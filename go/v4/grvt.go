@@ -3062,7 +3062,7 @@ func (this *Grvt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = GetValue(symbolsNormalized, i).(string)
 			var market map[string]any = this.Market(symbol)
-			if GetValue(market, "contract") != true {
+			if market["contract"] != true {
 				panic(BadRequest(this.Id + " fetchPositions() supports contract markets only"))
 			}
 			retRes236516 := request["base"]

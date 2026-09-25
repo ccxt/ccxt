@@ -2300,7 +2300,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		orderType = "FOK"
 	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", params)
-	if (GetValue(market, "spot") == true) && (marginMode == nil) {
+	if (market["spot"] == true) && (marginMode == nil) {
 		// The EXCHANGE prefix is only required for non margin spot markets
 		orderType = "EXCHANGE " + orderType
 	}
@@ -4931,7 +4931,7 @@ func (this *Bitfinex) setMarginBody(ch chan any, symbol any, amount any, optiona
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(NotSupported(this.Id + " setMargin() only support swap markets"))
 	}
 	var request map[string]any = map[string]any{
