@@ -3925,6 +3925,73 @@ export class RustTranspilerBuilder {
             });
     }
 
+    /**
+     * `starts_with(&X, &Value::Str("lit".into()))` -> native
+     * `matches!(&X, Value::Str(__s) if __s.starts_with("lit"))` (same for
+     * `ends_with`). The helper is exactly that match: `(Str(h), Str(p)) =>
+     * h.starts_with(p.as_ref())`, false for every other box — so a `Str`
+     * literal / `format!` / plain-place needle reproduces every arm:
+     *   needle `&Value::Str(format!(..).into())` -> `__s.starts_with(format!(..).as_str())`
+     *   needle `&Y` (a `Value` place)            -> `matches!((&X, &Y), (Value::Str(__h), Value::Str(__p)) if __h.starts_with(__p.as_ref()))`
+     * The haystack must be a place (`x` / `self.x`) the helper already borrowed
+     * — any other operand keeps the call. Runs last: the bool-slot passes key on
+     * the helper token, and the emission is a `bool` wherever the call was.
+     */
+    rewriteNativeStringAffixChecks(content: string): string {
+        const PLACE = /^&(?:self\.)?[A-Za-z_][A-Za-z0-9_]*$/;
+        const LIT = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)$/;
+        const FMT = /^&Value::Str\((format!\(.*\))\.into\(\)\)$/s;
+        const head = /(?<![A-Za-z0-9_:.])(starts_with|ends_with)\(/g;
+        let out = '';
+        let last = 0;
+        let m: RegExpExecArray | null;
+        while ((m = head.exec(content)) !== null) {
+            const open = m.index + m[0].length - 1;
+            const args = this.splitTopLevelCallArgs(content, open);
+            if (args === undefined || args.list.length !== 2) continue;
+            const [hay, needle] = args.list.map((a) => a.trim());
+            if (!PLACE.test(hay) || /__[shp]$/.test(hay)) continue;
+            const fn = m[1];
+            let native: string | undefined;
+            const lit = needle.match(LIT);
+            const fmt = lit === null ? needle.match(FMT) : null;
+            if (lit !== null) {
+                native = `matches!(${hay}, Value::Str(__s) if __s.${fn}(${lit[1]}))`;
+            } else if (fmt !== null && this.splitTopLevelCallArgs(fmt[1], 'format!'.length)?.end === fmt[1].length - 1) {
+                native = `matches!(${hay}, Value::Str(__s) if __s.${fn}(${fmt[1]}.as_str()))`;
+            } else if (PLACE.test(needle) && !/__[shp]$/.test(needle)) {
+                native = `matches!((${hay}, ${needle}), (Value::Str(__h), Value::Str(__p)) if __h.${fn}(__p.as_ref()))`;
+            }
+            if (native === undefined) continue;
+            out += content.slice(last, m.index) + native;
+            last = args.end + 1;
+            head.lastIndex = last;
+        }
+        return out + content.slice(last);
+    }
+
+    /** Top-level arguments of the call whose `(` sits at `open`, and the index of its `)`. */
+    private splitTopLevelCallArgs(src: string, open: number): { list: string[], end: number } | undefined {
+        if (src[open] !== '(') return undefined;
+        const list: string[] = [];
+        let depth = 0;
+        let start = open + 1;
+        for (let i = open; i < src.length; i++) {
+            const c = src[i];
+            if (c === '"') {
+                i++;
+                while (i < src.length && src[i] !== '"') { if (src[i] === '\\') i++; i++; }
+                continue;
+            }
+            if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') {
+                depth--;
+                if (depth === 0) { list.push(src.slice(start, i)); return { list, end: i }; }
+            } else if (c === ',' && depth === 1) { list.push(src.slice(start, i)); start = i + 1; }
+        }
+        return undefined;
+    }
+
     /** Classes that `errorHierarchy` gives at least one subclass. */
     private errorClassesWithSubclasses: Set<string> | undefined;
 
@@ -8952,6 +9019,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.typeSafeListLocals(rustContent);
                 // And `instanceof <errorClass>` whose class has no subclass.
                 rustContent = this.rewriteNativeErrorClassChecks(rustContent);
+                rustContent = this.rewriteNativeStringAffixChecks(rustContent);
                 // Last: a `.clone()` in a by-value slot whose local is dead
                 // afterwards moves instead of copying (B-32).
                 rustContent = this.dropDeadValueSlotClones(rustContent);
@@ -9672,6 +9740,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativePayloadAccessorDrops(finalFile);
         finalFile = this.typeSafeListLocals(finalFile);
         finalFile = this.rewriteNativeErrorClassChecks(finalFile);
+        finalFile = this.rewriteNativeStringAffixChecks(finalFile);
         // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
         finalFile = this.dropDeadValueSlotClones(finalFile);
         // And `while (true)` → `loop {` (rustc's `while_true` lint is an error
@@ -10967,6 +11036,7 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.wrapAssertInIsTrue(content);
         content = this.dropRedundantIsTrue(content);
         content = this.rewriteNativeErrorClassChecks(content);
+        content = this.rewriteNativeStringAffixChecks(content);
         return content;
     }
 
@@ -11522,6 +11592,7 @@ impl std::ops::DerefMut for ${coreName} {
 
             content = this.dropRedundantIsTrue(content);
             content = this.rewriteNativeErrorClassChecks(content);
+            content = this.rewriteNativeStringAffixChecks(content);
 
             const file = [
                 ...this.createGeneratedHeader(),
