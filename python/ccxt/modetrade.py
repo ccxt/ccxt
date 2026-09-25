@@ -2897,7 +2897,7 @@ class modetrade(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)

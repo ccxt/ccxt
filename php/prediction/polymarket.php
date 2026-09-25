@@ -2800,7 +2800,7 @@ class polymarket extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'gamma', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, mixed $api = 'gamma', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request $url and attaches HMAC-SHA256 authentication $headers for private endpoints

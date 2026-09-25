@@ -4040,7 +4040,7 @@ class myriad extends Exchange {
         throw new ExchangeError($feedback);
     }
 
-    public function sign(mixed $path, mixed $api = 'myriad', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, mixed $api = 'myriad', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request $url and attaches the apiKey header for private endpoints

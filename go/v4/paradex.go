@@ -4584,7 +4584,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
 	return nil
 }
-func (this *Paradex) Sign(path any, optionalArgs ...any) any {
+func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4596,18 +4596,18 @@ func (this *Paradex) Sign(path any, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var version any = this.Version
-	var pathValue any = path
-	if GetIndexOf(path, "v2/") == 0 {
-		pathValue = Replace(path, "v2/", "")
+	var pathValue string = path
+	if strings.Index(path, "v2/") == 0 {
+		pathValue = strings.Replace(path, "v2/", "", 1)
 	}
-	if GetIndexOf(path, "v2/") == 0 {
+	if strings.Index(path, "v2/") == 0 {
 		version = "v2"
 	}
-	var url any = Add(Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), version)), "/"), this.ImplodeParams(pathValue, params))
+	var url string = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), version)) + "/" + this.ImplodeParams(pathValue, params)
 	var query any = this.Omit(params, this.ExtractParams(pathValue))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else if IsEqual(api, "private") {
 		var privateHeaders map[string]any = map[string]any{
@@ -4616,12 +4616,12 @@ func (this *Paradex) Sign(path any, optionalArgs ...any) any {
 		}
 		var privateBody any = nil
 		// TODO: optimize
-		if IsEqual(pathValue, "auth") {
+		if pathValue == "auth" {
 			privateHeaders["PARADEX-STARKNET-ACCOUNT"] = GetValue(query, "account")
 			privateHeaders["PARADEX-STARKNET-SIGNATURE"] = GetValue(query, "signature")
 			privateHeaders["PARADEX-TIMESTAMP"] = ToString(GetValue(query, "timestamp"))
 			privateHeaders["PARADEX-SIGNATURE-EXPIRATION"] = ToString(GetValue(query, "expiration"))
-		} else if IsEqual(pathValue, "onboarding") {
+		} else if pathValue == "onboarding" {
 			privateHeaders["PARADEX-ETHEREUM-ACCOUNT"] = this.WalletAddress
 			privateHeaders["PARADEX-STARKNET-ACCOUNT"] = GetValue(query, "account")
 			privateHeaders["PARADEX-STARKNET-SIGNATURE"] = GetValue(query, "signature")
@@ -4636,11 +4636,11 @@ func (this *Paradex) Sign(path any, optionalArgs ...any) any {
 				panic(AuthenticationError(this.Id + " sign() requires an authToken, call authenticateRest() first"))
 			}
 			privateHeaders["Authorization"] = "Bearer " + *token
-			if (method == "POST") || (method == "PUT") || ((method == "DELETE") && (IsEqual(pathValue, "orders/batch"))) {
+			if (method == "POST") || (method == "PUT") || ((method == "DELETE") && (pathValue == "orders/batch")) {
 				privateHeaders["Content-Type"] = "application/json"
 				privateBody = this.Json(query)
 			} else {
-				url = Add(Add(url, "?"), this.Urlencode(query))
+				url = url + "?" + this.Urlencode(query)
 			}
 		}
 		// headers = {

@@ -3781,7 +3781,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut nonce: Value = to_string_val(&self.microseconds());
             let mut timestamp: Value = to_string_val(&self.get_timestamp());
             if (method.as_str() == Some("GET")) {
-                let mut payload: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, nonce).into()), method).into()), Value::Str("/trading-api/".into())).into()), &path);
+                let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, nonce).into()), method).into()), Value::Str("/trading-api/".into())).into()), path).into());
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
                 requestHeaders = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3792,7 +3792,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 });
             }  else if (method.as_str() == Some("POST")) {
                 requestBody = json_stringify(&params);
-                let mut payload: Value = Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, nonce).into()), method).into()), Value::Str("/trading-api/".into())).into()), &path), requestBody).into());
+                let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, nonce).into()), method).into()), Value::Str("/trading-api/".into())).into()), path).into()), requestBody).into());
                 let mut digest: Value = self.hash(self.encode(payload), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
                 let mut signature: Value = self.hmac(self.encode(digest), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
                 requestHeaders = Value::Map({

@@ -3732,7 +3732,7 @@ func (this *Bydfi) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bydfi) Sign(path any, optionalArgs ...any) any {
+func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3748,13 +3748,13 @@ func (this *Bydfi) Sign(path any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = apiUrl
-	var endpoint any = Add("/", path)
+	var endpoint string = "/" + path
 	var query string = ""
 	var sortedParams map[string]any = this.Keysort(params)
 	if method == "GET" {
 		query = this.Urlencode(sortedParams)
 		if len(query) != 0 {
-			endpoint = Add(endpoint, "?"+query)
+			endpoint += "?" + query
 		}
 	}
 	var requestBody any = nil

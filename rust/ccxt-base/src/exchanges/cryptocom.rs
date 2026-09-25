@@ -5104,7 +5104,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = add(&Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), &path);
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), path).into());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         if (access.as_deref() == Some("public")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
@@ -5119,7 +5119,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }), &[params.clone()]);
             let mut paramsKeys: Value = object_keys(&requestParams);
             let mut strSortKey: Value = self.params_to_string(requestParams, Value::Int(0));
-            let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&path, &nonce), self.apiKey.clone()).into()), strSortKey).into()), nonce).into());
+            let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, nonce).into()), self.apiKey.clone()).into()), strSortKey).into()), nonce).into());
             let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut paramsKeysLength: f64 = ((paramsKeys.len() as i64) as f64);
             requestBody = self.json(Value::Map({

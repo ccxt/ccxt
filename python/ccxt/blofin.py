@@ -2984,7 +2984,7 @@ class blofin(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], insideMsg, feedback)
         return None
 
-    def sign(self, path: object, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         apiUrl = self.safe_string(self.urls['api'], 'rest')

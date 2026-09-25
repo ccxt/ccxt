@@ -968,7 +968,7 @@ public class Btcbox extends BtcboxApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = Helpers.add((((apiUrl + "/") + this.version) + "/"), path);
+        String url = ((((apiUrl + "/") + this.version) + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)

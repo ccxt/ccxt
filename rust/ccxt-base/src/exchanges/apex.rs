@@ -2761,7 +2761,7 @@ impl ApexCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = add(&Value::Str(format!("{}{}", self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api)), Value::Str("/".into())).into()), &path);
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api)), Value::Str("/".into())).into()), path).into());
         let mut headersValue: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("User-Agent".to_string(), Value::Str("apex-CCXT".into()));
@@ -2769,7 +2769,7 @@ impl ApexCore {
                 m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
             m
         });
-        let mut signPath: Value = add(&Value::Str("/api/".into()), &path);
+        let mut signPath: Value = Value::Str(format!("{}{}", Value::Str("/api/".into()), path).into());
         let mut signBody: Value = body;
         if (to_upper(&method).as_str() != Some("POST")) {
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {

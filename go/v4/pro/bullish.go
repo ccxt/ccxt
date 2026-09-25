@@ -972,7 +972,7 @@ func (this *Bullish) HandleErrorMessage(client any, message any) {
 	//     }
 	//
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
-	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(data)))
+	var feedback string = this.Id + " " + this.Json(data)
 
 	{
 		func(this *Bullish) (ret_ any) {

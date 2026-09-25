@@ -234,7 +234,7 @@ func (this *Mudrex) Describe() any {
 		},
 	})
 }
-func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
+func (this *Mudrex) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -250,7 +250,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 	if base == nil {
 		panic(ExchangeError(Add(this.Id+" unknown API namespace: ", api)))
 	}
-	var url any = Add(*base+"/", this.ImplodeParams(path, params))
+	var url string = *base + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestHeaders map[string]any = map[string]any{}
 	if headers != nil {
@@ -270,9 +270,9 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 			var isSymbol *string = this.SafeString(query, "is_symbol")
 			if isSymbol != nil {
 				query = this.Omit(query, "is_symbol")
-				url = Add(url, "?"+this.Urlencode(map[string]any{
+				url += "?" + this.Urlencode(map[string]any{
 					"is_symbol": isSymbol,
-				}))
+				})
 			}
 			if (methodUpper == "DELETE") && this.IsEmpty(query) {
 				return map[string]any{
@@ -282,7 +282,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 					"headers": requestHeaders,
 				}
 			}
-			var bodyStr any = this.Json(query)
+			var bodyStr string = this.Json(query)
 			return map[string]any{
 				"url":     url,
 				"method":  methodUpper,
@@ -292,7 +292,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 		}
 	}
 	if len(ObjectKeys(query)) > 0 {
-		url = Add(url, "?"+this.Urlencode(query))
+		url += "?" + this.Urlencode(query)
 	}
 	return map[string]any{
 		"url":     url,

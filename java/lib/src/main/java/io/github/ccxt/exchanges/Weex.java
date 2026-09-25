@@ -5261,7 +5261,7 @@ public class Weex extends WeexApi
     {
         String endpoint = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean isBatch = (Helpers.getIndexOf(path, "batch") >= 0);
+        Boolean isBatch = (((String)path).indexOf("batch") >= 0);
         if (!Boolean.TRUE.equals(isBatch) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
@@ -5280,9 +5280,9 @@ public class Weex extends WeexApi
         if (Boolean.TRUE.equals(isPrivate))
         {
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            if ((java.util.Objects.equals(sandboxMode, true)) && ((Helpers.getIndexOf(path, "capi/v3/sim/") != 0)))
+            if ((java.util.Objects.equals(sandboxMode, true)) && ((((String)path).indexOf("capi/v3/sim/") != 0)))
             {
-                throw new NotSupported((Helpers.add((this.id + " "), path) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
+                throw new NotSupported((((this.id + " ") + path) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }
             this.checkRequiredCredentials(true);
             String timestamp = this.numberToString(this.nonce());

@@ -2970,7 +2970,7 @@ func (this *Backpack) Nonce() any {
 	}
 	return Subtract(this.Milliseconds(), timeDifference)
 }
-func (this *Backpack) Sign(path any, optionalArgs ...any) any {
+func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2981,7 +2981,7 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var endpoint any = Add("/", path)
+	var endpoint string = "/" + path
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -2994,7 +2994,7 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 		return this.Keysort(params)
 	}()
 	var headersSigned any = nil
-	var bodySigned any = nil
+	var bodySigned *string = nil
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var ts string = ToString(this.Nonce())
@@ -3003,7 +3003,7 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 		var optionPathInstructions map[string]any = SafeMapTyped(optionInstructions, path)
 		var instruction *string = this.SafeString(optionPathInstructions, method, "")
 		var payload any = ""
-		if (IsEqual(path, "api/v1/orders")) && (method == "POST") {
+		if (path == "api/v1/orders") && (method == "POST") {
 			payload = this.GenerateBatchPayload(sortedParams, ts, recvWindow, instruction)
 		} else {
 			var queryString string = this.Urlencode(sortedParams)
@@ -3023,14 +3023,14 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 			"X-Broker-Id": "1400",
 		}
 		if method != "GET" {
-			bodySigned = this.Json(sortedParams)
+			bodySigned = SafeStringPtr(this.Json(sortedParams))
 			AddElementToObject(headersSigned, "Content-Type", "application/json")
 		}
 	}
 	if method == "GET" {
 		var query string = this.Urlencode(sortedParams)
 		if len(query) != 0 {
-			endpoint = Add(endpoint, "?"+query)
+			endpoint += "?" + query
 		}
 	}
 	url = Add(url, endpoint)
@@ -3040,7 +3040,7 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 		}
 		return headers
 	}()
-	var bodyResolved any = body
+	var bodyResolved *string = body
 	if (IsEqual(api, "private")) && (method != "GET") {
 		bodyResolved = bodySigned
 	}

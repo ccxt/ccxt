@@ -7846,7 +7846,7 @@ func (this *Bingx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	}
 	return tiers
 }
-func (this *Bingx) Sign(path any, optionalArgs ...any) any {
+func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 	section := GetArg(optionalArgs, 0, "public")
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -7865,7 +7865,7 @@ func (this *Bingx) Sign(path any, optionalArgs ...any) any {
 	if (isSandbox != nil && *isSandbox == true) && (url == nil) {
 		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", typeVar), " endpoints")))
 	}
-	var pathValue any = this.ImplodeParams(path, params)
+	var pathValue string = this.ImplodeParams(path, params)
 	var versionIsTransfer bool = (IsEqual(version, "transfer"))
 	var versionIsAsset bool = (IsEqual(version, "asset"))
 	if versionIsTransfer || versionIsAsset {

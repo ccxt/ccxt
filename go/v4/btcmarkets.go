@@ -1833,7 +1833,7 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code any, amount any, address 
 func (this *Btcmarkets) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Btcmarkets) Sign(path any, optionalArgs ...any) any {
+func (this *Btcmarkets) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1846,16 +1846,16 @@ func (this *Btcmarkets) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var requestHeaders any = nil
 	var requestBody any = nil
-	var request any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
+	var request string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var secret []byte = this.Base64ToBinary(this.Secret)
-		var auth any = Add(Add(method, request), nonce)
+		var auth any = method + request + nonce
 		if (method == "GET") || (method == "DELETE") {
 			if len(ObjectKeys(query)) > 0 {
-				request = Add(request, "?"+this.Urlencode(query))
+				request += "?" + this.Urlencode(query)
 			}
 		} else {
 			requestBody = this.Json(query)
@@ -1872,14 +1872,14 @@ func (this *Btcmarkets) Sign(path any, optionalArgs ...any) any {
 		}
 	} else if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			request = Add(request, "?"+this.Urlencode(query))
+			request += "?" + this.Urlencode(query)
 		}
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url *string = SafeStringPtr(Add(apiUrl, request))
+	var url string = *apiUrl + request
 	var headersResult any = func() any {
 		if requestHeaders != nil {
 			return requestHeaders

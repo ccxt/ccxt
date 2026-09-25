@@ -3521,7 +3521,7 @@ class BaseExchange(object):
             self.urls = newUrls
         self.options['enableDemoTrading'] = enable
 
-    def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         return {'url': None, 'method': None, 'headers': None, 'body': None}
 
     def fetch_accounts(self, params: dict = {}):
@@ -5767,7 +5767,7 @@ class BaseExchange(object):
             return self.index_by(results, key)
         return results
 
-    def fetch2(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config={}):
+    def fetch2(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config={}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             self.throttle(cost)
@@ -5810,7 +5810,7 @@ class BaseExchange(object):
                     raise e
         return None  # this line is never reached, but exists for c# value return requirement
 
-    def request(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config={}):
+    def request(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config={}):
         return self.fetch2(path, api, method, params, headers, body, config)
 
     def load_accounts(self, reload=False, params: dict = {}):

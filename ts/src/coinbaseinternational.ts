@@ -2378,7 +2378,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const version = this.safeString (api, 0);
         const signed = this.safeString (api, 1) === 'private';
         let fullPath = '/' + version + '/' + this.implodeParams (path, params);

@@ -2954,7 +2954,7 @@ public class Tokocrypto extends TokocryptoApi
             throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
         }
         String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), java.util.Objects.requireNonNullElse(api, "public"));
-        url = (url + Helpers.add("/", path));
+        url = (url + ("/" + path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "wapi"))
         {
             url = (url + ".html");
@@ -3000,7 +3000,7 @@ public class Tokocrypto extends TokocryptoApi
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapi")) && (java.util.Objects.equals(path, "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
-            } else if ((java.util.Objects.equals(path, "batchOrders")) || (Helpers.getIndexOf(path, "sub-account") >= 0) || (java.util.Objects.equals(path, "capital/withdraw/apply")) || (Helpers.getIndexOf(path, "staking") >= 0))
+            } else if ((java.util.Objects.equals(path, "batchOrders")) || (((String)path).indexOf("sub-account") >= 0) || (java.util.Objects.equals(path, "capital/withdraw/apply")) || (((String)path).indexOf("staking") >= 0))
             {
                 query = this.rawencode(extendedParams);
             } else

@@ -1725,7 +1725,7 @@ func (this *Bitstamp) GetMarketFromTrade(trade any) any {
 	var currencyIds []string = ObjectKeys(tradeOmitted)
 	var numCurrencyIds int = len(currencyIds)
 	if numCurrencyIds > 2 {
-		panic(ExchangeError(Add(Add(Add(this.Id+" getMarketFromTrade() too many keys: ", this.Json(currencyIds)), " in the trade: "), this.Json(tradeOmitted))))
+		panic(ExchangeError(this.Id + " getMarketFromTrade() too many keys: " + this.Json(currencyIds) + " in the trade: " + this.Json(tradeOmitted)))
 	}
 	if numCurrencyIds == 2 {
 		var marketId any = Add(GetValue(currencyIds, 0), GetValue(currencyIds, 1))
@@ -3825,7 +3825,7 @@ func (this *Bitstamp) ParseTransferStatus(status *string) *string {
 func (this *Bitstamp) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Bitstamp) Sign(path any, optionalArgs ...any) any {
+func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3840,9 +3840,9 @@ func (this *Bitstamp) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = *apiUrl + "/"
-	url = Add(url, this.Version+"/")
-	url = Add(url, this.ImplodeParams(path, params))
+	var url string = *apiUrl + "/"
+	url += this.Version + "/"
+	url += this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var isPrivatePost bool = (!IsEqual(api, "public")) && (method == "POST")
 	// an empty POST triggers an API0020 error, so empty requests send a dummy object
@@ -3861,7 +3861,7 @@ func (this *Bitstamp) Sign(path any, optionalArgs ...any) any {
 	var privateHeaders any = nil
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -3884,7 +3884,7 @@ func (this *Bitstamp) Sign(path any, optionalArgs ...any) any {
 		if (requestBody != nil) && (!IsEqual(requestBody, "")) {
 			authBody = requestBody
 		}
-		var auth any = Add(Add(Add(Add(Add(Add(Add(xAuth, method), Replace(url, "https://", "")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody)
+		var auth any = Add(Add(Add(Add(Add(Add(Add(xAuth, method), strings.Replace(url, "https://", "", 1)), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody)
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(privateHeaders, "X-Auth-Signature", signature)
 	}

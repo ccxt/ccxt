@@ -5505,7 +5505,7 @@ func (this *Whitebit) ParseFundingRateHistory(info any, optionalArgs ...any) any
 func (this *Whitebit) Nonce() any {
 	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
 }
-func (this *Whitebit) Sign(path any, optionalArgs ...any) any {
+func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -5526,15 +5526,15 @@ func (this *Whitebit) Sign(path any, optionalArgs ...any) any {
 		return headers
 	}()
 	AddElementToObject(publicHeaders, "User-Agent", "ccxt/"+this.Id+"-"+this.Version)
-	var pathWithParams any = Add("/", this.ImplodeParams(path, params))
+	var pathWithParams string = "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(GetValue(GetValue(this.Urls, "api"), version), accessibility)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(apiUrl, pathWithParams)
+	var url string = *apiUrl + pathWithParams
 	if IsEqual(accessibility, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	}
 	var privateBody any = nil

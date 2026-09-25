@@ -1725,7 +1725,7 @@ impl BitflyerCore {
         if (api.as_str() == Some("private")) {
             request = Value::Str(format!("{}{}", request, Value::Str("me/".into())).into());
         }
-        request = add(&request, &path);
+        request = Value::Str(format!("{}{}", request, path).into());
         if (method.as_str() == Some("GET")) {
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params.clone(), &[])).into())).into());

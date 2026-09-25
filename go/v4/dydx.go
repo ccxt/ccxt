@@ -3158,7 +3158,7 @@ func (this *Dydx) GetWalletAddress() any {
 	}
 	panic(ArgumentsRequired(this.Id + " getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options."))
 }
-func (this *Dydx) Sign(path any, optionalArgs ...any) any {
+func (this *Dydx) Sign(path string, optionalArgs ...any) any {
 	section := GetArg(optionalArgs, 0, "public")
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3171,7 +3171,7 @@ func (this *Dydx) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var requestHeaders any = nil
 	var requestBody any = nil
-	var pathWithParams any = this.ImplodeParams(path, params)
+	var pathWithParams string = this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), section)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -3179,7 +3179,7 @@ func (this *Dydx) Sign(path any, optionalArgs ...any) any {
 	var url any = apiUrl
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
 	var paramsSorted map[string]any = this.Keysort(paramsOmitted)
-	url = Add(url, Add("/", pathWithParams))
+	url = Add(url, "/"+pathWithParams)
 	if method == "GET" {
 		if len(ObjectKeys(paramsSorted)) > 0 {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
@@ -3228,7 +3228,7 @@ func (this *Dydx) HandleErrors(httpCode any, reason any, url any, method any, he
 	if (errorCode != nil) && (errorCode == nil || *errorCode != "") {
 		var errorCodeNum any = this.ParseToNumeric(errorCode)
 		if IsGreaterThan(errorCodeNum, 0) {
-			var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
+			var feedback string = this.Id + " " + this.Json(response)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			panic(ExchangeError(feedback))

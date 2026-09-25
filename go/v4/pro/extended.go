@@ -1060,7 +1060,7 @@ func (this *Extended) HandleErrorMessage(client any, message any) any {
 	if ccxt.IsEqual(error, nil) {
 		return false
 	}
-	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+	var feedback string = this.Id + " " + this.Json(message)
 	var errorCode *string = this.SafeString(error, "code")
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 	var errorMessage *string = this.SafeString(error, "message")

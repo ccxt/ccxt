@@ -3646,7 +3646,7 @@ public class Bitrue extends BitrueApi
         String version = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
         String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 2);
         String url = null;
-        if ((java.util.Objects.equals(type, "api") && java.util.Objects.equals(version, "kline")) || (java.util.Objects.equals(type, "open") && Helpers.getIndexOf(path, "listenKey") >= 0))
+        if ((java.util.Objects.equals(type, "api") && java.util.Objects.equals(version, "kline")) || (java.util.Objects.equals(type, "open") && ((String)path).indexOf("listenKey") >= 0))
         {
             String apiUrl2 = this.safeString(((Map<String, Object>)this.urls).get("api"), type);
             if (java.util.Objects.equals(apiUrl2, null))
@@ -3699,7 +3699,7 @@ public class Bitrue extends BitrueApi
                 {
                     signPath = "/dapi";
                 }
-                signPath = Helpers.add((((signPath + "/") + version) + "/"), path);
+                signPath = ((((signPath + "/") + version) + "/") + path);
                 Object signMessage = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + signPath);
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {

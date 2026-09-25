@@ -4825,7 +4825,7 @@ impl WooCore {
                 if (isSandboxMode.as_bool() != Some(true)) {
                     let mut applicationId: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".into());
                     let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[applicationId]);
-                    let mut isTrigger: bool = get_index_of(&path, &Value::Str("algo".into())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
+                    let mut isTrigger: bool = Value::Int(path.as_str().and_then(|__s| __s.find("algo")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
                     if isTrigger {
                         add_element_to_object(&mut paramsSorted, &Value::Str("brokerId".into()), brokerId.clone());
                     }  else {

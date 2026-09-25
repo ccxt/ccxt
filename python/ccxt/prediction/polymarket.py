@@ -2482,7 +2482,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # unique when two identical orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: object, api: object = 'gamma', method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: object = 'gamma', method='GET', params: dict = {}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints

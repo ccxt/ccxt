@@ -486,7 +486,7 @@ func (this *Bitopro) Authenticate(url string) {
 	}
 	this.CheckRequiredCredentials()
 	var nonce int64 = this.Milliseconds()
-	var rawData any = this.Json(map[string]any{
+	var rawData string = this.Json(map[string]any{
 		"nonce":    nonce,
 		"identity": this.Login,
 	})

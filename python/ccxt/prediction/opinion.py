@@ -1981,7 +1981,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: object, api: object = 'opinion', method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: object = 'opinion', method='GET', params: dict = {}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request url and attaches the apikey/EIP-712 authentication headers for private endpoints

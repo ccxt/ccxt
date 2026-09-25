@@ -5232,7 +5232,7 @@ impl HashkeyCore {
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = add(&Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), &path);
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), path).into());
         let mut query: Value = Value::Null;
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);

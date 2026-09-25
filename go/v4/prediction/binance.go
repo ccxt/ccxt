@@ -2419,7 +2419,7 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
  * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
-func (this *Binance) Sign(path any, optionalArgs ...any) any {
+func (this *Binance) Sign(path string, optionalArgs ...any) any {
 	api := ccxt.GetArg(optionalArgs, 0, "sapi")
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
@@ -2438,7 +2438,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 	}()
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sapi"))
-	var url any = ccxt.Add(*baseUrl+"/", this.ImplodeParams(path, params))
+	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	this.CheckRequiredCredentials()
 	var extendedParams map[string]any = this.Extend(map[string]any{
@@ -2458,7 +2458,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 	}
 	var bodyValue any = body
 	if (method == "GET") || (method == "DELETE") {
-		url = ccxt.Add(ccxt.Add(url, "?"), querystring)
+		url = url + "?" + querystring
 	} else {
 		bodyValue = querystring
 		headersValue["Content-Type"] = "application/x-www-form-urlencoded"

@@ -3092,7 +3092,7 @@ class lighter(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: str, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = None
         if api == 'root':
             url = self.implode_hostname(self.urls['api']['public'])

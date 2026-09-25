@@ -3824,7 +3824,7 @@ func (this *Toobit) ParsePosition(position any, optionalArgs ...any) any {
 		"percentage":                  nil,
 	})
 }
-func (this *Toobit) Sign(path any, optionalArgs ...any) any {
+func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

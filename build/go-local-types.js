@@ -181,6 +181,10 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     // exchange_helpers.go — the hand-written method delegates to the package-level
     // IsDictionary predicate, so it is a real Go bool
     'this.IsDictionary': 'bool',
+    // exchange.go / exchange_misc.go: hand-written, a plain Go `string` on every return path
+    'this.Json': 'string',
+    'this.ImplodeParams': 'string',
+    'this.ImplodeHostname': 'string',
     // exchange_encode.go
     'this.Urlencode': 'string',
     // the array-repeat encoder is hand-written next to Urlencode with the same concrete
@@ -1913,6 +1917,7 @@ const EXCHANGE_RECEIVER_ALIASES = [
     'ToArray', 'SortBy', 'SortBy2', 'FilterBy', 'ExtractParams',
     'Capitalize', 'Uuid16', 'Uuid22', 'Yymmdd', 'PrecisionFromString',
     'Urlencode', 'Rawencode', 'Encode', 'Decode',
+    'Json', 'ImplodeParams',
     'Base16ToBinary', 'BinaryConcat', 'EthGetAddressFromPrivateKey',
 ];
 

@@ -1174,7 +1174,7 @@ func (this *Coinspot) HandleErrors(httpCode any, reason any, url any, method any
 	}
 	var status *string = this.SafeString(response, "status")
 	if status != nil && *status == "error" {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
+		var feedback string = this.Id + " " + this.Json(response)
 		panic(ExchangeError(feedback))
 	}
 	return nil
@@ -1183,7 +1183,7 @@ func (this *Coinspot) Nonce() any {
 	// the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
 	return this.Milliseconds()
 }
-func (this *Coinspot) Sign(path any, optionalArgs ...any) any {
+func (this *Coinspot) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1209,7 +1209,7 @@ func (this *Coinspot) Sign(path any, optionalArgs ...any) any {
 		}
 		return api
 	}()
-	var endpoint any = Add("/", this.ImplodeParams(path, params))
+	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var fullPath any = endpoint
 	if !IsEqual(version, nil) {
 		fullPath = Add(Add("/", version), endpoint)

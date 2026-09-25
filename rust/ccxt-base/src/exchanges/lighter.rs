@@ -4503,7 +4503,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (api.as_str() == Some("root")) {
             url = self.implode_hostname(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null));
         }  else {
-            url = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api)), Value::Str("/api/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), &path);
+            url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api)), Value::Str("/api/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), path).into());
         }
         let mut authHeaders: Value = Value::Null;
         if (api.as_str() == Some("private")) {

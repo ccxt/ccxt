@@ -1900,7 +1900,7 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function sign(mixed $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = '/' . $this->implode_params($path, $params);
         $apiUrl = $this->safe_string($this->urls['api'], $api);
         if ($apiUrl === null) {

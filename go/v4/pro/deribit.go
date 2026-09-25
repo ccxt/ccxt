@@ -1208,8 +1208,8 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName string, c
 	}
 	var extendedRequest map[string]any = this.DeepExtend(request, params)
 	var maxMessageByteLimit int64 = ccxt.Subtract(32768, 1).(int64) // 'Message Too Big: limit 32768B'
-	var jsonedText any = this.Json(extendedRequest)
-	if ccxt.IsGreaterThanOrEqual(ccxt.GetLength(jsonedText), maxMessageByteLimit) {
+	var jsonedText string = this.Json(extendedRequest)
+	if ccxt.IsGreaterThanOrEqual(len(jsonedText), maxMessageByteLimit) {
 		panic(ccxt.ExchangeError(this.Id + " requested subscription length over limit, try to reduce symbols amount"))
 	}
 
@@ -1278,7 +1278,7 @@ func (this *Deribit) HandleMessage(client any, message any) {
 	//
 	var error any = this.SafeValue(message, "error")
 	if !ccxt.IsEqual(error, nil) {
-		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(error))))
+		panic(ccxt.ExchangeError(this.Id + " " + this.Json(error)))
 	}
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel")
@@ -1303,7 +1303,7 @@ func (this *Deribit) HandleMessage(client any, message any) {
 			ccxt.CallDynamically(handler, client, message)
 			return
 		}
-		panic(ccxt.NotSupported(ccxt.Add(this.Id+" no handler found for this message ", this.Json(message))))
+		panic(ccxt.NotSupported(this.Id + " no handler found for this message " + this.Json(message)))
 	}
 	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	var accessToken *string = this.SafeString(result, "access_token")

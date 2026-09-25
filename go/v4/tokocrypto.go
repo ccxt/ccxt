@@ -3075,7 +3075,7 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
 	ch <- this.ParseTransaction(response, currency)
 	return nil
 }
-func (this *Tokocrypto) Sign(path any, optionalArgs ...any) any {
+func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3090,11 +3090,11 @@ func (this *Tokocrypto) Sign(path any, optionalArgs ...any) any {
 		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", api), " endpoints")))
 	}
 	var url any = GetValue(GetValue(GetValue(this.Urls, "api"), "rest"), api)
-	url = Add(url, Add("/", path))
+	url = Add(url, "/"+path)
 	if IsEqual(api, "wapi") {
 		url = Add(url, ".html")
 	}
-	var userDataStream bool = (IsEqual(path, "userDataStream")) || (IsEqual(path, "listenKey"))
+	var userDataStream bool = (path == "userDataStream") || (path == "listenKey")
 	if userDataStream {
 		if (!IsEqual(this.ApiKey, nil)) && (this.ApiKey != "") {
 			// v1 special case for userDataStream
@@ -3117,7 +3117,7 @@ func (this *Tokocrypto) Sign(path any, optionalArgs ...any) any {
 		} else {
 			panic(AuthenticationError(this.Id + " userDataStream endpoint requires `apiKey` credential"))
 		}
-	} else if (IsEqual(api, "private")) || ((IsEqual(api, "sapi")) && (!IsEqual(path, "system/status"))) || (IsEqual(api, "sapiV3")) || ((IsEqual(api, "wapi")) && (!IsEqual(path, "systemStatus"))) || (IsEqual(api, "dapiPrivate")) || (IsEqual(api, "dapiPrivateV2")) || (IsEqual(api, "fapiPrivate")) || (IsEqual(api, "fapiPrivateV2")) {
+	} else if (IsEqual(api, "private")) || ((IsEqual(api, "sapi")) && (path != "system/status")) || (IsEqual(api, "sapiV3")) || ((IsEqual(api, "wapi")) && (path != "systemStatus")) || (IsEqual(api, "dapiPrivate")) || (IsEqual(api, "dapiPrivateV2")) || (IsEqual(api, "fapiPrivate")) || (IsEqual(api, "fapiPrivateV2")) {
 		this.CheckRequiredCredentials()
 		var query any = nil
 		var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
@@ -3131,9 +3131,9 @@ func (this *Tokocrypto) Sign(path any, optionalArgs ...any) any {
 		if recvWindow != nil {
 			extendedParams["recvWindow"] = recvWindow
 		}
-		if (IsEqual(api, "sapi")) && (IsEqual(path, "asset/dust")) {
+		if (IsEqual(api, "sapi")) && (path == "asset/dust") {
 			query = this.UrlencodeWithArrayRepeat(extendedParams)
-		} else if (IsEqual(path, "batchOrders")) || (GetIndexOf(path, "sub-account") >= 0) || (IsEqual(path, "capital/withdraw/apply")) || (GetIndexOf(path, "staking") >= 0) {
+		} else if (path == "batchOrders") || (strings.Index(path, "sub-account") >= 0) || (path == "capital/withdraw/apply") || (strings.Index(path, "staking") >= 0) {
 			query = this.Rawencode(extendedParams)
 		} else {
 			query = this.Urlencode(extendedParams)

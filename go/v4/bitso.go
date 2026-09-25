@@ -2458,7 +2458,7 @@ func (this *Bitso) ParseTransactionStatus(status *string) *string {
 func (this *Bitso) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Bitso) Sign(path any, optionalArgs ...any) any {
+func (this *Bitso) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2471,23 +2471,23 @@ func (this *Bitso) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var requestHeaders any = headers
 	var requestBody any = body
-	var endpoint any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
+	var endpoint string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if (method == "GET") || (method == "DELETE") {
 		if len(ObjectKeys(query)) > 0 {
-			endpoint = Add(endpoint, "?"+this.Urlencode(query))
+			endpoint += "?" + this.Urlencode(query)
 		}
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url *string = SafeStringPtr(Add(apiUrl, endpoint))
+	var url string = *apiUrl + endpoint
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		// bitso rejects a nonce that is not higher than the previous one (error 104)
 		var nonce string = ToString(this.IncrementingNonce())
-		endpoint = Add("/api", endpoint)
+		endpoint = "/api" + endpoint
 		var content []any = []any{nonce, method, endpoint}
 		var request any = Join(content, "")
 		if (method != "GET") && (method != "DELETE") {
@@ -2526,7 +2526,7 @@ func (this *Bitso) HandleErrors(httpCode any, reason any, url any, method any, h
 			}
 		}
 		if !IsEqual(success, true) {
-			var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
+			var feedback string = this.Id + " " + this.Json(response)
 			var error map[string]any = SafeMapTyped(response, "error")
 			if error == nil {
 				panic(ExchangeError(feedback))

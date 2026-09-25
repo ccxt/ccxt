@@ -1045,7 +1045,7 @@ func (this *Btcbox) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 func (this *Btcbox) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Btcbox) Sign(path any, optionalArgs ...any) any {
+func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1060,7 +1060,7 @@ func (this *Btcbox) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/"+this.Version+"/", path)
+	var url any = *apiUrl + "/" + this.Version + "/" + path
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Urlencode(params))

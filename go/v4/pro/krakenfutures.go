@@ -2049,7 +2049,7 @@ func (this *Krakenfutures) HandleAuthenticate(client any, message any) any {
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {
-		error := ccxt.AuthenticationError(ccxt.Add(this.Id+" ", this.Json(message)))
+		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

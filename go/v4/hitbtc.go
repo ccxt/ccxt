@@ -4745,7 +4745,7 @@ func (this *Hitbtc) HandleErrors(code any, reason any, url any, method any, head
 	}
 	return nil
 }
-func (this *Hitbtc) Sign(path any, optionalArgs ...any) any {
+func (this *Hitbtc) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4757,12 +4757,12 @@ func (this *Hitbtc) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var implodedPath any = this.ImplodeParams(path, params)
+	var implodedPath string = this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", implodedPath)
+	var url any = *apiUrl + "/" + implodedPath
 	var getRequest any = nil
 	var keys []string = ObjectKeys(query)
 	var queryLength int = len(keys)
@@ -4784,7 +4784,7 @@ func (this *Hitbtc) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
-		var payload []any = []any{method, Add("/api/3/", implodedPath)}
+		var payload []any = []any{method, "/api/3/" + implodedPath}
 		if method == "GET" {
 			if getRequest != nil {
 				payload = append(payload, getRequest)

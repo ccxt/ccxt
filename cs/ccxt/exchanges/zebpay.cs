@@ -2191,7 +2191,7 @@ public partial class zebpay : Exchange
         string? bodySigned = null;
         Dictionary<string, object> headersSigned = null;
         object paramsOmitted = this.omit(parameters, "defaultType");
-        bool isV1 = getIndexOf(path, "v1/") > -1;
+        bool isV1 = ((string)path).IndexOf("v1/", StringComparison.Ordinal) > -1;
         string marketType = "spot";
         if (isV1)
         {

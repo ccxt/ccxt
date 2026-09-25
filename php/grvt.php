@@ -3303,7 +3303,7 @@ class grvt extends Exchange {
         return $requestId;
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestHeaders = $headers;
         $requestBody = $body;
         $requestPath = $path;

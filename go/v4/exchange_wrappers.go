@@ -715,7 +715,7 @@ func (this *ExchangeTyped) FetchWebEndpoint(method string, endpointMethod any, r
 	}
 	return res.Value, nil
 }
-func (this *ExchangeTyped) Fetch2(path any, options ...Fetch2Options) (map[string]any, error) {
+func (this *ExchangeTyped) Fetch2(path string, options ...Fetch2Options) (map[string]any, error) {
 
 	opts := Fetch2OptionsStruct{}
 
@@ -3837,7 +3837,7 @@ func (this *BaseExchangeTyped) FetchWebEndpoint(method string, endpointMethod an
 	}
 	return res.Value, nil
 }
-func (this *BaseExchangeTyped) Fetch2(path any, options ...Fetch2Options) (map[string]any, error) {
+func (this *BaseExchangeTyped) Fetch2(path string, options ...Fetch2Options) (map[string]any, error) {
 
 	opts := Fetch2OptionsStruct{}
 

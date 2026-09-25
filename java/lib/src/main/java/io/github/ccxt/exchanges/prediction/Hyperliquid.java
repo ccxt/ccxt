@@ -2718,7 +2718,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
             baseUrl = this.safeString(apiUrls, apiGroup, this.safeString(apiUrls, "public", ""));
         }
-        String url = Helpers.add((baseUrl + "/"), path);
+        String url = ((baseUrl + "/") + path);
         Object headersValue = headers;
         Object bodyValue = body;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "POST"), "POST"))

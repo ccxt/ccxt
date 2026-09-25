@@ -12093,7 +12093,7 @@ export default class bitget extends Exchange {
         return this.milliseconds () - timeDifference;
     }
 
-    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const pathPart = '/api';

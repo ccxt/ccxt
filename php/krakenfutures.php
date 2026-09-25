@@ -3816,7 +3816,7 @@ class krakenfutures extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $apiVersions = $this->safe_dict($this->options['versions'], $api, array());
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->version);

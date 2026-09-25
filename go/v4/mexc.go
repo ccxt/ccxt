@@ -7614,7 +7614,7 @@ func (this *Mexc) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 func (this *Mexc) Nonce() any {
 	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
 }
-func (this *Mexc) Sign(path any, optionalArgs ...any) any {
+func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -7623,15 +7623,14 @@ func (this *Mexc) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var requestHeaders any = headers
 	var requestBody any = body
 	var section *string = this.SafeString(api, 0)
 	var access *string = this.SafeString(api, 1)
-	pathValueparamsValueVariable := this.ResolvePath(path, params)
-	pathValue := GetValue(pathValueparamsValueVariable, 0)
-	paramsValue := GetValue(pathValueparamsValueVariable, 1)
+	var pathValue string = this.ImplodeParams(path, params)
+	var paramsValue any = this.Omit(params, this.ExtractParams(path))
 	var url any = nil
 	if (section != nil && *section == "spot") || (section != nil && *section == "broker") {
 		if section != nil && *section == "broker" {
@@ -7639,13 +7638,13 @@ func (this *Mexc) Sign(path any, optionalArgs ...any) any {
 			if apiUrl == nil {
 				panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 			}
-			url = Add(*apiUrl+"/", pathValue)
+			url = *apiUrl + "/" + pathValue
 		} else {
 			var apiUrl *string = this.SafeString(GetValue(GetValue(this.Urls, "api"), section), access)
 			if apiUrl == nil {
 				panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 			}
-			url = Add(*apiUrl+"/api/"+this.Version+"/", pathValue)
+			url = *apiUrl + "/api/" + this.Version + "/" + pathValue
 		}
 		var urlParams any = paramsValue
 		if access != nil && *access == "private" {
@@ -7688,7 +7687,7 @@ func (this *Mexc) Sign(path any, optionalArgs ...any) any {
 		if apiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
-		url = Add(*apiUrl+"/", this.ImplodeParams(pathValue, paramsValue))
+		url = *apiUrl + "/" + this.ImplodeParams(pathValue, paramsValue)
 		var paramsOmitted any = this.Omit(paramsValue, this.ExtractParams(pathValue))
 		if access != nil && *access == "public" {
 			if len(ObjectKeys(paramsOmitted)) > 0 {

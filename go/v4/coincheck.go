@@ -1286,7 +1286,7 @@ func (this *Coincheck) ParseTransaction(transaction any, optionalArgs ...any) an
 func (this *Coincheck) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Coincheck) Sign(path any, optionalArgs ...any) any {
+func (this *Coincheck) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1303,11 +1303,11 @@ func (this *Coincheck) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", this.ImplodeParams(path, params))
+	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -1315,7 +1315,7 @@ func (this *Coincheck) Sign(path any, optionalArgs ...any) any {
 		var queryString any = ""
 		if method == "GET" {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+this.Urlencode(this.Keysort(query)))
+				url += "?" + this.Urlencode(this.Keysort(query))
 			}
 		} else {
 			if len(ObjectKeys(query)) > 0 {
@@ -1323,7 +1323,7 @@ func (this *Coincheck) Sign(path any, optionalArgs ...any) any {
 				queryString = bodySigned
 			}
 		}
-		var auth *string = SafeStringPtr(Add(Add(nonce, url), queryString))
+		var auth *string = SafeStringPtr(Add(nonce+url, queryString))
 		headersSigned = map[string]any{
 			"Content-Type":     "application/x-www-form-urlencoded",
 			"ACCESS-KEY":       this.ApiKey,
@@ -1361,10 +1361,10 @@ func (this *Coincheck) HandleErrors(httpCode any, reason any, url any, method an
 	var success *bool = this.SafeBool(response, "success", true)
 	if success == nil || *success != true {
 		var error *string = this.SafeString(response, "error")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
+		var feedback string = this.Id + " " + this.Json(response)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
-		panic(ExchangeError(Add(this.Id+" ", this.Json(response))))
+		panic(ExchangeError(this.Id + " " + this.Json(response)))
 	}
 	return nil
 }

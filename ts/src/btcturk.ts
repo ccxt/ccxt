@@ -1080,7 +1080,7 @@ export default class btcturk extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         if (this.id === 'btctrader') {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }

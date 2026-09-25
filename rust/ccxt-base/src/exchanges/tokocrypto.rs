@@ -3237,7 +3237,7 @@ impl TokocryptoCore {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet/sandbox URL for ".into())).into()), api).into()), Value::Str(" endpoints".into()))));
         }
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &api);
-        url = Value::Str(format!("{}{}", url, add(&Value::Str("/".into()), &path)).into());
+        url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("/".into()), path).into())).into());
         if (api.as_str() == Some("wapi")) {
             url = Value::Str(format!("{}{}", url, Value::Str(".html".into())).into());
         }
@@ -3282,7 +3282,7 @@ impl TokocryptoCore {
             }
             if (api.as_str() == Some("sapi")) && (path.as_str() == Some("asset/dust")) {
                 query = self.urlencode_with_array_repeat(extendedParams.clone());
-            }  else if (path.as_str() == Some("batchOrders")) || (get_index_of(&path, &Value::Str("sub-account".into())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (path.as_str() == Some("capital/withdraw/apply")) || (get_index_of(&path, &Value::Str("staking".into())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+            }  else if (path.as_str() == Some("batchOrders")) || (Value::Int(path.as_str().and_then(|__s| __s.find("sub-account")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (path.as_str() == Some("capital/withdraw/apply")) || (Value::Int(path.as_str().and_then(|__s| __s.find("staking")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
                 query = self.rawencode(extendedParams.clone(), &[]);
             }  else {
                 query = self.urlencode(extendedParams, &[]);

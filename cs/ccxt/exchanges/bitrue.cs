@@ -3505,7 +3505,7 @@ public partial class bitrue : Exchange
         string? version = this.safeString(api, 1);
         string? access = this.safeString(api, 2);
         object url = null;
-        if ((type == "api" && version == "kline") || (type == "open" && getIndexOf(path, "listenKey") >= 0))
+        if ((type == "api" && version == "kline") || (type == "open" && ((string)path).IndexOf("listenKey", StringComparison.Ordinal) >= 0))
         {
             string? apiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
             if ((apiUrl2 == null))

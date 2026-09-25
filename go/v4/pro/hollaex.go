@@ -636,7 +636,7 @@ func (this *Hollaex) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if error != nil {
-				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+				var feedback string = this.Id + " " + this.Json(message)
 				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "exact"), error, feedback)
 			}
 			return nil

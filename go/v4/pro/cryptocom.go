@@ -1856,7 +1856,7 @@ func (this *Cryptocom) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if ((errorCode != nil) && (errorCode == nil || *errorCode != "")) && (errorCode == nil || *errorCode != "0") {
-				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+				var feedback string = this.Id + " " + this.Json(message)
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 				var messageString *string = this.SafeString(message, "message")
 				if messageString != nil {

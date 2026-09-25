@@ -1323,7 +1323,7 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $bodySigned = null;
         $headersSigned = null;
         $request = '/' . $this->version . '/';

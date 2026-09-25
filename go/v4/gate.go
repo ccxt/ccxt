@@ -9270,7 +9270,7 @@ func (this *Gate) Nonce() any {
 	}
 	return Subtract(this.Milliseconds(), timeDifference)
 }
-func (this *Gate) Sign(path any, optionalArgs ...any) any {
+func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -9284,11 +9284,11 @@ func (this *Gate) Sign(path any, optionalArgs ...any) any {
 	var authentication any = GetValue(api, 0) // public, private
 	var typeVar any = GetValue(api, 1)        // spot, margin, future, delivery
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var pathImploded any = nil
+	var pathImploded string
 	var bodyJson any = nil
 	var signedHeaders any = nil
-	var containsSettle bool = (GetIndexOf(path, "settle") > -1)
-	if containsSettle && (IsEqual(EndsWith(path, "batch_cancel_orders"), true)) {
+	var containsSettle bool = (strings.Index(path, "settle") > -1)
+	if containsSettle && (strings.HasSuffix(path, "batch_cancel_orders") == true) {
 		// special case where we need to extract the settle from the path
 		// but the body is an array of strings
 		var settle any = this.SafeDict(params, 0)
@@ -9310,7 +9310,7 @@ func (this *Gate) Sign(path any, optionalArgs ...any) any {
 		pathImploded = this.ImplodeParams(path, params)
 	}
 	var endPart any = nil
-	if IsEqual(pathImploded, "") {
+	if pathImploded == "" {
 		endPart = ""
 	} else {
 		endPart = (Add("/", pathImploded))

@@ -9461,7 +9461,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.safe_string(marginModes, marginMode, marginMode)
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         requestBody = None
         requestHeaders = None
         apiUrl = self.safe_string(self.urls['api'], api)

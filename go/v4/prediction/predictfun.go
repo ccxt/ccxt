@@ -2748,7 +2748,7 @@ func (this *Predictfun) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 	var rejected []any = ccxt.SafeListTypedDefault(response, "rejected", []any{})
 	var rejectedLength int = len(rejected)
 	if rejectedLength > 0 {
-		panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" cancelOrders() was refused for ", this.Json(rejected))))
+		panic(ccxt.OrderNotFound(this.Id + " cancelOrders() was refused for " + this.Json(rejected)))
 	}
 	// the venue reports hashes only, so each one becomes a row the shared order parser can
 	// read: it takes the hash off orderHash and the status through parseOrderStatus
@@ -3606,7 +3606,7 @@ func (this *Predictfun) OrderBookMessageHashes(marketId any) any {
  */
 func (this *Predictfun) HandleSubscriptionError(client any, message any, subscription any) {
 	var rawError map[string]any = ccxt.MapTyped(this.SafeDict(message, "error", map[string]any{}))
-	error := ccxt.ExchangeError(ccxt.Add(this.Id+" subscribe request rejected ", this.Json(rawError)))
+	error := ccxt.ExchangeError(this.Id + " subscribe request rejected " + this.Json(rawError))
 	// watch () registers a subscription before it sends and only sends while the hash is still
 	// unregistered, so a rejected request has to take its own entry down - otherwise a retry
 	// would skip the send and wait forever on a topic the venue never accepted
@@ -4641,7 +4641,7 @@ func (this *Predictfun) Nonce() any {
  * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
-func (this *Predictfun) Sign(path any, optionalArgs ...any) any {
+func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
 	// the venue authenticates every endpoint, so the key is required up front rather than
 	// per access level - a key-less request is answered with a 401 by the API gateway.
 	// the testnet is the exception, it is served without an API key at all
@@ -4668,11 +4668,11 @@ func (this *Predictfun) Sign(path any, optionalArgs ...any) any {
 	}()
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "predictfun"))
-	var url any = ccxt.Add(*baseUrl+"/", this.ImplodeParams(path, params))
+	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
 		if len(ccxt.ObjectKeys(query)) > 0 {
-			url = ccxt.Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	}
 	var existingHeaders any = func() any {

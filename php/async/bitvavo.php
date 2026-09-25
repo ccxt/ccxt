@@ -2818,7 +2818,7 @@ class bitvavo extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'symbol');
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestHeaders = $headers;
         $requestBody = $body;
         $query = $this->omit($params, $this->extract_params($path));

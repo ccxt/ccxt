@@ -2338,13 +2338,13 @@ public class Apex extends ApexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String url = Helpers.add((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"))) + "/"), path);
+        String url = ((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"))) + "/") + path);
         Map<String, Object> headersValue = new HashMap<String, Object>() {{
             put( "User-Agent", "apex-CCXT" );
             put( "Accept", "application/json" );
             put( "Content-Type", "application/x-www-form-urlencoded" );
         }};
-        String signPath = Helpers.add("/api/", path);
+        String signPath = ("/api/" + path);
         String signBody = body;
         if (!java.util.Objects.equals(((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase(), "POST"))
         {

@@ -1779,7 +1779,7 @@ func (this *Bingx) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if code != nil {
-				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+				var feedback string = this.Id + " " + this.Json(message)
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 			}
 			return nil

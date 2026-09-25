@@ -2733,7 +2733,7 @@ impl ZebpayCore {
         let mut bodySigned: Value = Value::Null;
         let mut headersSigned: Value = Value::Null;
         let mut paramsOmitted: Value = self.omit(params, Value::Str("defaultType".into()), &[]);
-        let mut isV1: bool = get_index_of(&path, &Value::Str("v1/".into())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
+        let mut isV1: bool = Value::Int(path.as_str().and_then(|__s| __s.find("v1/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
         let mut marketType: Value = Value::Str("spot".into());
         if isV1 {
             marketType = Value::Str("swap".into());

@@ -12679,7 +12679,7 @@ func (this *Bybit) ParseMarginModeType(marginMode *string) *string {
 	}
 	return this.SafeString(marginModes, marginMode, marginMode)
 }
-func (this *Bybit) Sign(path any, optionalArgs ...any) any {
+func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -12696,7 +12696,7 @@ func (this *Bybit) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(Add(this.ImplodeHostname(apiUrl), "/"), path)
+	var url any = this.ImplodeHostname(apiUrl) + "/" + path
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Rawencode(params))

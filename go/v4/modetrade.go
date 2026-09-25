@@ -4024,7 +4024,7 @@ func (this *Modetrade) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 func (this *Modetrade) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Modetrade) Sign(path any, optionalArgs ...any) any {
+func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 	section := GetArg(optionalArgs, 0, "public")
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4037,7 +4037,7 @@ func (this *Modetrade) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var version any = GetValue(section, 0)
 	var access any = GetValue(section, 1)
-	var pathWithParams any = this.ImplodeParams(path, params)
+	var pathWithParams string = this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), access)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -4052,12 +4052,12 @@ func (this *Modetrade) Sign(path any, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var isPostOrPut bool = (method == "POST") || (method == "PUT")
-		var isOrder bool = (IsEqual(path, "algo/order")) || (IsEqual(path, "order")) || (IsEqual(path, "batch-order"))
+		var isOrder bool = (path == "algo/order") || (path == "order") || (path == "batch-order")
 		if isPostOrPut && isOrder {
 			var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 			if isSandboxMode == nil || *isSandboxMode != true {
 				var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXTMODE")
-				if IsEqual(path, "batch-order") {
+				if path == "batch-order" {
 					var ordersList []any = SafeListTyped(paramsSorted, "orders")
 					for i := 0; i < len(ordersList); i++ {
 						AddElementToObject(GetValue(paramsSorted["orders"], i), "order_tag", brokerId)
@@ -4134,7 +4134,7 @@ func (this *Modetrade) HandleErrors(httpCode any, reason any, url any, method an
 	var success *bool = this.SafeBool(response, "success")
 	var errorCode *string = this.SafeString(response, "code")
 	if success == nil || *success != true {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
+		var feedback string = this.Id + " " + this.Json(response)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

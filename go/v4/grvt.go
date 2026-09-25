@@ -935,7 +935,7 @@ func (this *Grvt) initializeClientBody(ch chan any, optionalArgs ...any) any {
 				var authResult map[string]any = SafeMapTyped(authResponse, "result")
 				var ack *bool = this.SafeBool(authResult, "ack")
 				if ack == nil || *ack != true {
-					panic(ExchangeError(Add("Builder authorization failed, ", this.Json(authResponse))))
+					panic(ExchangeError("Builder authorization failed, " + this.Json(authResponse)))
 				}
 				this.Options.Store("approvedBuilderFee", true)
 				return nil
@@ -2558,7 +2558,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 			panic(ArgumentsRequired(this.Id + " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website"))
 		}
 		if length > 1 {
-			panic(ArgumentsRequired(Add(this.Id+" loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ", this.Json(subAccountIds))))
+			panic(ArgumentsRequired(this.Id + " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: " + this.Json(subAccountIds)))
 		}
 		var subAccountId *string = this.SafeString(subAccountIds, 0)
 		this.Options.Store("accountId", subAccountId)
@@ -4238,7 +4238,7 @@ func (this *Grvt) RequestId() int64 {
 	this.Options.Store("requestId", requestId)
 	return requestId
 }
-func (this *Grvt) Sign(path any, optionalArgs ...any) any {
+func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4251,18 +4251,18 @@ func (this *Grvt) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var requestHeaders any = headers
 	var requestBody any = body
-	var requestPath any = path
+	var requestPath string = path
 	var query any = this.Omit(params, this.ExtractParams(requestPath))
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(apiUrl, requestPath)
+	var url string = *apiUrl + requestPath
 	var queryString string = ""
 	if method == "GET" {
 		if len(ObjectKeys(query)) > 0 {
 			queryString = this.Urlencode(query)
-			url = Add(url, "?"+queryString)
+			url += "?" + queryString
 		}
 	} else if method == "POST" {
 		// the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
@@ -4284,12 +4284,12 @@ func (this *Grvt) Sign(path any, optionalArgs ...any) any {
 	if isPrivate == true {
 		this.CheckRequiredCredentials()
 		if queryString != "" {
-			requestPath = Add(Add(requestPath, "?"), queryString)
+			requestPath = requestPath + "?" + queryString
 		}
 		requestHeaders = map[string]any{
 			"Content-Type": "application/json",
 		}
-		if (IsEqual(EndsWith(requestPath, "auth/api_key/login"), true)) || (IsEqual(EndsWith(requestPath, "auth/wallet/login"), true)) {
+		if (IsEqual(strings.HasSuffix(requestPath, "auth/api_key/login"), true)) || (IsEqual(strings.HasSuffix(requestPath, "auth/wallet/login"), true)) {
 			AddElementToObject(requestHeaders, "Cookie", "rm=true;")
 		} else {
 			var accountId *string = this.SafeString(this.Options, "AuthAccountId")

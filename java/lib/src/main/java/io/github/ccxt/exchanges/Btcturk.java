@@ -1258,7 +1258,7 @@ public class Btcturk extends BtcturkApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = Helpers.add((apiUrl + "/"), path);
+        String url = ((apiUrl + "/") + path);
         Boolean isQueryMethod = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
         if (Boolean.TRUE.equals(isQueryMethod))
         {

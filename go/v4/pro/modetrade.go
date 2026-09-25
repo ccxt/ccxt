@@ -1609,7 +1609,7 @@ func (this *Modetrade) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if errorMessage != nil {
-				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+				var feedback string = this.Id + " " + this.Json(message)
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 			}
 			return false

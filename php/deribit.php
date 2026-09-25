@@ -4002,7 +4002,7 @@ class deribit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = '/' . 'api/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if (count($params) > 0) {

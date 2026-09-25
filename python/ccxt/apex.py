@@ -1890,7 +1890,7 @@ class apex(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         headersValue = {
             'User-Agent': 'apex-CCXT',

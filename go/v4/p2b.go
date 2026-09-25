@@ -1580,7 +1580,7 @@ func (this *P2b) ParseOrder(order any, optionalArgs ...any) any {
 		"trades": nil,
 	}, marketResolved)
 }
-func (this *P2b) Sign(path any, optionalArgs ...any) any {
+func (this *P2b) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1600,7 +1600,7 @@ func (this *P2b) Sign(path any, optionalArgs ...any) any {
 		}
 	}
 	if IsEqual(api, "private") {
-		AddElementToObject(paramsOmitted, "request", Add("/api/v2/", path))
+		AddElementToObject(paramsOmitted, "request", "/api/v2/"+path)
 		// p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
 		// the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
 		AddElementToObject(paramsOmitted, "nonce", ToString(this.IncrementingNonce()))
@@ -1611,7 +1611,7 @@ func (this *P2b) Sign(path any, optionalArgs ...any) any {
 			"X-TXC-PAYLOAD":   payload,
 			"X-TXC-SIGNATURE": this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512),
 		}
-		var bodyJson any = this.Json(paramsOmitted)
+		var bodyJson string = this.Json(paramsOmitted)
 		return map[string]any{
 			"url":     url,
 			"method":  method,

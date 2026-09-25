@@ -239,7 +239,7 @@ func (this *Revolutx) Describe() any {
 		},
 	})
 }
-func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
+func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -252,7 +252,7 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var requestHeaders any = nil
 	var requestBody any = nil
-	var implodedPath any = this.ImplodeParams(path, params)
+	var implodedPath string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var queryKeys []string = ObjectKeys(query)
 	var queryLength int = len(queryKeys)
@@ -275,7 +275,7 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 		} else {
 			requestBody = this.Json(query)
 		}
-		var requestPath any = Add("/api/", implodedPath)
+		var requestPath string = "/api/" + implodedPath
 		var bodyValue any = func() any {
 			if requestBody != nil {
 				return requestBody
@@ -288,7 +288,7 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 			}
 			return ""
 		}()
-		var message *string = SafeStringPtr(Add(Add(Add(timestamp+strings.ToUpper(method), requestPath), queryString), bodyString))
+		var message *string = SafeStringPtr(Add(timestamp+strings.ToUpper(method)+requestPath+queryString, bodyString))
 		var signature string = Eddsa(this.Encode(message), this.PrivateKey, ed25519)
 		requestHeaders = map[string]any{
 			"X-Revx-API-Key":   this.ApiKey,

@@ -3693,7 +3693,7 @@ export class BaseExchange {
         this.options['enableDemoTrading'] = enable;
     }
 
-    sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
 
@@ -6466,7 +6466,7 @@ export class BaseExchange {
         return results;
     }
 
-    async fetch2 (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config = {}): Promise<any> {
+    async fetch2 (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config = {}): Promise<any> {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
@@ -6521,7 +6521,7 @@ export class BaseExchange {
         return undefined; // this line is never reached, but exists for c# value return requirement
     }
 
-    async request (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config = {}): Promise<any> {
+    async request (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config = {}): Promise<any> {
         return await this.fetch2 (path, api, method, params, headers, body, config);
     }
 

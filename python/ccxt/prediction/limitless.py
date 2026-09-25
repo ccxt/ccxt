@@ -2893,7 +2893,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         # unique when two orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: object, api: object = 'limitless', method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: object = 'limitless', method='GET', params: dict = {}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request URL and attaches the lmts authentication headers for private endpoints

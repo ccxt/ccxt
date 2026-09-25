@@ -69,7 +69,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan any, symbols any, channel any
 		return symbolsMarket
 	}()
 	var marketIds any = this.MarketIds(symbolsNormalized)
-	var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), map[string]any{
+	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), map[string]any{
 		"hostname": this.Hostname,
 	})
 	var client ccxt.ClientInterface = this.Client(url)
@@ -509,10 +509,10 @@ func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel string, mes
 	if symbolResolved != nil {
 		messageHashResolved = ccxt.Add(messageHash+":", symbolResolved)
 	}
-	var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), map[string]any{
+	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), map[string]any{
 		"hostname": this.Hostname,
 	})
-	url = ccxt.Add(url, "/private")
+	url += "/private"
 	var client ccxt.ClientInterface = this.Client(url)
 	// Track private channel subscriptions to support multiple concurrent watches
 	var subscriptionsKey string = "upbitPrivateSubscriptions"

@@ -833,7 +833,7 @@ func (this *Paymium) Nonce() any {
 	// the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
 	return this.Milliseconds()
 }
-func (this *Paymium) Sign(path any, optionalArgs ...any) any {
+func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -898,7 +898,7 @@ func (this *Paymium) HandleErrors(httpCode any, reason any, url any, method any,
 	}
 	var errors any = this.SafeValue(response, "errors")
 	if !IsEqual(errors, nil) {
-		panic(ExchangeError(Add(this.Id+" ", this.Json(response))))
+		panic(ExchangeError(this.Id + " " + this.Json(response)))
 	}
 	return nil
 }

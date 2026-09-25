@@ -778,7 +778,7 @@ class btcbox(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
@@ -819,7 +819,7 @@ class btcbox(Exchange, ImplicitAPI):
         self.throw_exactly_matched_exception(self.exceptions, code, feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    async def request(self, path: object, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: object = {}):
+    async def request(self, path: str, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: object = {}):
         response = await self.fetch2(path, api, method, params, headers, body, config)
         if isinstance(response, str):
             # sometimes the exchange returns whitespace prepended to json

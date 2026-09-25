@@ -2331,7 +2331,7 @@ func (this *Latoken) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Latoken) Sign(path any, optionalArgs ...any) any {
+func (this *Latoken) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2340,22 +2340,22 @@ func (this *Latoken) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var requestHeaders any = headers
 	var requestBody any = body
-	var request any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
-	var requestString any = request
+	var request string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
+	var requestString string = request
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var urlencodedQuery string = this.Urlencode(query)
 	if method == "GET" {
 		if len(ObjectKeys(query)) > 0 {
-			requestString = Add(requestString, "?"+urlencodedQuery)
+			requestString += "?" + urlencodedQuery
 		}
 	}
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
-		var auth *string = SafeStringPtr(Add(Add(method, request), urlencodedQuery))
+		var auth string = method + request + urlencodedQuery
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
 		requestHeaders = map[string]any{
 			"X-LA-APIKEY":    this.ApiKey,
@@ -2371,7 +2371,7 @@ func (this *Latoken) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url *string = SafeStringPtr(Add(apiUrl, requestString))
+	var url string = *apiUrl + requestString
 	return map[string]any{
 		"url":     url,
 		"method":  method,

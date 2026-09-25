@@ -1304,7 +1304,7 @@ func (this *Bit2c) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 func (this *Bit2c) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Bit2c) Sign(path any, optionalArgs ...any) any {
+func (this *Bit2c) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1319,11 +1319,11 @@ func (this *Bit2c) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", this.ImplodeParams(path, params))
+	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var requestBody any = nil
 	var requestHeaders any = nil
 	if IsEqual(api, "public") {
-		url = Add(url, ".json")
+		url += ".json"
 	} else {
 		this.CheckRequiredCredentials()
 		// bit2c requires an increasing nonce per key
@@ -1334,7 +1334,7 @@ func (this *Bit2c) Sign(path any, optionalArgs ...any) any {
 		var auth string = this.Urlencode(query)
 		if method == "GET" {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+auth)
+				url += "?" + auth
 			}
 		} else {
 			requestBody = auth

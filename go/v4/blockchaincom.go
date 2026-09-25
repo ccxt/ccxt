@@ -1656,7 +1656,7 @@ func (this *Blockchaincom) fetchOrderBody(ch chan any, id any, optionalArgs ...a
 	ch <- this.ParseOrder(response)
 	return nil
 }
-func (this *Blockchaincom) Sign(path any, optionalArgs ...any) any {
+func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1665,14 +1665,14 @@ func (this *Blockchaincom) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
+	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var requestPath any = Add("/", this.ImplodeParams(path, params))
+	var requestPath string = "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(apiUrl, requestPath)
+	var url string = *apiUrl + requestPath
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var isPrivate bool = (IsEqual(api, "private"))
 	var privateHeaders map[string]any = map[string]any{
@@ -1689,13 +1689,13 @@ func (this *Blockchaincom) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else if isPrivate {
 		this.CheckRequiredCredentials()
 		if method == "GET" {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+this.Urlencode(query))
+				url += "?" + this.Urlencode(query)
 			}
 		} else {
 			privateHeaders["Content-Type"] = "application/json"
@@ -1722,7 +1722,7 @@ func (this *Blockchaincom) HandleErrors(code any, reason any, url any, method an
 	var errorCode *string = this.SafeString(response, "status")
 	var errorMessage *string = this.SafeString(response, "error")
 	if !IsEqual(code, nil) {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
+		var feedback string = this.Id + " " + this.Json(response)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 	}

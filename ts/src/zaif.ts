@@ -852,7 +852,7 @@ export default class zaif extends Exchange {
         return nonce.toFixed (8);
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const baseUrl: string = this.urls['api']['rest'];
         let url = baseUrl + '/';
         if (api === 'public') {

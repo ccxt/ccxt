@@ -2008,7 +2008,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             normalized = normalized[2:]
         return normalized.lower()
 
-    def sign(self, path: object, api: object = 'public', method='POST', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: object = 'public', method='POST', params: dict = {}, headers: object = None, body: object = None):
         apiGroup = api[0] if isinstance(api, list) else api
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         baseUrl: str

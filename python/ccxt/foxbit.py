@@ -1911,7 +1911,7 @@ class foxbit(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         version = api[0]
         urlPath = api[1]
         fullPath = '/rest/' + version + '/' + self.implode_params(path, params)

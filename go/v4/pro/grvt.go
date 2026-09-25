@@ -1217,13 +1217,13 @@ func (this *Grvt) HandleErrorMessage(client any, response any) any {
 	var error map[string]any = ccxt.SafeMapTyped(response, "error")
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
-		var body any = this.Json(response)
-		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
+		var body string = this.Json(response)
+		var feedback string = this.Id + " " + body
 		var message *string = this.SafeString(error, "message")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
-		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", body)))
+		panic(ccxt.ExchangeError(this.Id + " " + body))
 	}
 	return false
 }

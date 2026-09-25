@@ -3803,7 +3803,7 @@ class deribit(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         request = '/' + 'api/' + self.version + '/' + api + '/' + path
         if api == 'public':
             if len(params) > 0:

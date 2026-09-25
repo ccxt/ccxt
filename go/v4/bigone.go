@@ -2344,7 +2344,7 @@ func (this *Bigone) Nonce() any {
 	var exchangeTimeCorrection any = Multiply(this.SafeInteger(this.Options, "exchangeMillisecondsCorrection", 0), 1000000)
 	return this.Sum(this.Microseconds()*1000, exchangeTimeCorrection)
 }
-func (this *Bigone) Sign(path any, optionalArgs ...any) any {
+func (this *Bigone) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -2361,12 +2361,12 @@ func (this *Bigone) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var baseUrl any = this.ImplodeHostname(apiUrl)
-	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
+	var baseUrl string = this.ImplodeHostname(apiUrl)
+	var url string = baseUrl + "/" + this.ImplodeParams(path, params)
 	var headersValue map[string]any = map[string]any{}
 	if (IsEqual(api, "public")) || (IsEqual(api, "webExchange")) || (IsEqual(api, "contractPublic")) {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -2380,7 +2380,7 @@ func (this *Bigone) Sign(path any, optionalArgs ...any) any {
 		headersValue["Authorization"] = "Bearer " + token
 		if method == "GET" {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+this.Urlencode(query))
+				url += "?" + this.Urlencode(query)
 			}
 		} else if method == "POST" {
 			headersValue["Content-Type"] = "application/json"

@@ -4177,7 +4177,7 @@ export default class delta extends Exchange {
         } as ADL;
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = {}, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = {}, body: Str = undefined): Dict {
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         const apiUrl = this.safeString (this.urls['api'], api);
         if (apiUrl === undefined) {

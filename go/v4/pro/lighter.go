@@ -1802,7 +1802,7 @@ func (this *Lighter) HandleErrorMessage(client any, message any) any {
 			if !ccxt.IsEqual(error, nil) {
 				var code *string = this.SafeString(error, "code")
 				var errorMessage *string = this.SafeString(error, "message")
-				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+				var feedback string = this.Id + " " + this.Json(message)
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 				panic(ccxt.ExchangeError(feedback))

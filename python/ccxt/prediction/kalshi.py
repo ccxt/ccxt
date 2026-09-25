@@ -2372,7 +2372,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'info': rawEvent,
         })
 
-    def sign(self, path: object, api: object = 'kalshi', method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: object = 'kalshi', method='GET', params: dict = {}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request URL and attaches RSA-PSS SHA-256 authentication headers for private endpoints

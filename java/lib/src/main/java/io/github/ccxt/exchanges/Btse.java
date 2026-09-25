@@ -4452,7 +4452,7 @@ public class Btse extends BtseApi
             Object signPath = null;
             if (java.util.Objects.equals(((String)path).startsWith("public-api/"), true))
             {
-                signPath = Helpers.add("/", path);
+                signPath = ("/" + path);
             } else
             {
                 signPath = this.cleanPath(path);

@@ -4755,7 +4755,7 @@ public class Deribit extends DeribitApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String request = Helpers.add(((((("/" + "api/") + this.version) + "/") + java.util.Objects.requireNonNullElse(api, "public")) + "/"), path);
+        String request = (((((("/" + "api/") + this.version) + "/") + java.util.Objects.requireNonNullElse(api, "public")) + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)

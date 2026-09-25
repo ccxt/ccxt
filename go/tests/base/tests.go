@@ -365,7 +365,7 @@ func (this *testMainClass) testMethodBody(ch chan any, methodName any, exchange 
 		ch <- true
 		return nil
 	}
-	var argsStringified *string = SafeStringPtr(Add(Add("(", exchange.Json(args)), ")")) // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+	var argsStringified string = "(" + exchange.Json(args) + ")" // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
 	Dump(this.AddPadding("[INFO] TESTING", 25), name, methodName, argsStringified)
 	if EvalTruthy(IsSync()) {
 		CallMethodSync(this.TestFiles, methodName, exchange, skippedPropertiesForMethod, args)
@@ -459,7 +459,7 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 	var isPublic bool = GetArgBool(optionalArgs, 1, false)
 	_ = isPublic
 	var maxRetries int = 3
-	var argsStringified any = exchange.Json(args) // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+	var argsStringified string = exchange.Json(args) // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
 	for i := 0; i < maxRetries; i++ {
 
 		{
@@ -1402,7 +1402,7 @@ func (this *testMainClass) AssertPredictionEvents(exchange ccxt.ICoreExchange, e
 func (this *testMainClass) AssertPredictionEvent(exchange ccxt.ICoreExchange, event any) any {
 	// validates one PredictionEvent structure (id, event handle, markets each carrying an
 	// outcomes list, and the optional typed fields when present)
-	var logText any = Add(" event: ", exchange.Json(event))
+	var logText string = " event: " + exchange.Json(event)
 	Assert(IsEqual(exchange.IsDictionary(event), true), Add(Add(exchange.GetId(), " event should be a dict"), logText))
 	Assert(!IsEqual(exchange.SafeString(event, "id"), nil), Add(Add(exchange.GetId(), " event missing id"), logText))
 	Assert(!IsEqual(exchange.SafeString(event, "event"), nil), Add(Add(exchange.GetId(), " event missing the unified event handle"), logText))
@@ -1521,7 +1521,7 @@ func (this *testMainClass) testPredictionCreateCancelOrderBody(ch chan any, exch
 			placedId = exchange.SafeString(order, "id")
 			Assert(!IsEqual(placedId, nil), Add("createOrder returned no order id for ", exchange.GetId()))
 			var returnedOutcome any = ccxt.DerefScalar(exchange.SafeString(order, "outcome"))
-			Assert((IsEqual(returnedOutcome, nil)) || (IsEqual(returnedOutcome, outcome)), Add(Add(Add(Add(Add("createOrder outcome \"", exchange.Json(returnedOutcome)), "\" should match requested \""), outcome), "\" for "), exchange.GetId()))
+			Assert((IsEqual(returnedOutcome, nil)) || (IsEqual(returnedOutcome, outcome)), Add(Add(Add("createOrder outcome \""+exchange.Json(returnedOutcome)+"\" should match requested \"", outcome), "\" for "), exchange.GetId()))
 			return nil
 		}(this)
 

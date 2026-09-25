@@ -1379,7 +1379,7 @@ func (this *Bitbank) ParseTransaction(transaction any, optionalArgs ...any) any 
 func (this *Bitbank) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Bitbank) Sign(path any, optionalArgs ...any) any {
+func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -1395,7 +1395,7 @@ func (this *Bitbank) Sign(path any, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(this.ImplodeHostname(apiUrl), "/")
+	var url any = this.ImplodeHostname(apiUrl) + "/"
 	var requestBody any = nil
 	var requestHeaders any = nil
 	if (IsEqual(api, "public")) || (IsEqual(api, "markets")) {
@@ -1420,12 +1420,12 @@ func (this *Bitbank) Sign(path any, optionalArgs ...any) any {
 		} else {
 			auth = nonce
 		}
-		url = Add(url, Add(this.Version+"/", this.ImplodeParams(path, params)))
+		url = Add(url, this.Version+"/"+this.ImplodeParams(path, params))
 		if method == "POST" {
 			requestBody = this.Json(query)
 			auth = Add(auth, requestBody)
 		} else {
-			auth = Add(auth, Add("/"+this.Version+"/", path))
+			auth = Add(auth, "/"+this.Version+"/"+path)
 			if len(ObjectKeys(query)) > 0 {
 				query = this.Urlencode(query)
 				url = Add(url, Add("?", query))
@@ -1535,7 +1535,7 @@ func (this *Bitbank) HandleErrors(httpCode any, reason any, url any, method any,
 		var code *string = this.SafeString(data, "code")
 		var message *string = this.SafeString(errorMessages, code, "Error")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, message)
-		panic(ExchangeError(Add(this.Id+" ", this.Json(response))))
+		panic(ExchangeError(this.Id + " " + this.Json(response)))
 	}
 	return nil
 }

@@ -4564,7 +4564,7 @@ func (this *Krakenfutures) HandleErrors(code any, reason any, url any, method an
 	}
 	panic(ExchangeError(feedback))
 }
-func (this *Krakenfutures) Sign(path any, optionalArgs ...any) any {
+func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4586,32 +4586,32 @@ func (this *Krakenfutures) Sign(path any, optionalArgs ...any) any {
 	var endpoint any = Add(Add(version, "/"), this.ImplodeParams(path, paramsOmitted))
 	var paramsOmitted2 any = this.Omit(paramsOmitted, this.ExtractParams(path))
 	var query any = endpoint
-	var postData any = ""
-	if IsEqual(path, "batchorder") {
-		postData = Add("json=", this.Json(paramsOmitted2))
+	var postData string = ""
+	if path == "batchorder" {
+		postData = "json=" + this.Json(paramsOmitted2)
 	} else if len(ObjectKeys(paramsOmitted2)) > 0 {
 		if InOp(paramsOmitted2, "orderIds") {
 			postData = this.UrlencodeWithArrayRepeat(paramsOmitted2)
 		} else {
 			postData = this.Urlencode(paramsOmitted2)
 		}
-		query = Add(query, Add("?", postData))
+		query = Add(query, "?"+postData)
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url *string = SafeStringPtr(Add(apiUrl, query))
-	var requestBody any = func() any {
-		if IsEqual(path, "batchorder") {
-			return postData
+	var requestBody *string = func() *string {
+		if path == "batchorder" {
+			return SafeStringPtr(postData)
 		}
 		return body
 	}()
 	var privateHeaders any = nil
 	if (IsEqual(api, "private")) || (access != nil && *access == "private") {
 		this.CheckRequiredCredentials()
-		var auth any = Add(postData, "/api/")
+		var auth any = postData + "/api/"
 		if !IsEqual(api, "private") {
 			auth = Add(auth, Add(api, "/"))
 		}

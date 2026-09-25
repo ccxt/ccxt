@@ -4413,7 +4413,7 @@ public class Cryptocom extends CryptocomApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = Helpers.add((apiUrl + "/"), path);
+        String url = ((apiUrl + "/") + path);
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(access, "public"))
         {
@@ -4428,7 +4428,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> requestParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
             List<String> paramsKeys = new ArrayList<String>(requestParams.keySet());
             Object strSortKey = this.paramsToString(requestParams, 0);
-            String payload = (Helpers.add(Helpers.add(Helpers.add(path, nonce), this.apiKey), strSortKey) + nonce);
+            String payload = ((((path + nonce) + this.apiKey) + strSortKey) + nonce);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
             Integer paramsKeysLength = ((List<?>)paramsKeys).size();
             requestBody = this.json(Helpers.newMap(

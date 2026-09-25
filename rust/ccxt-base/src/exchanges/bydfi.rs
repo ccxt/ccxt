@@ -4012,7 +4012,7 @@ impl BydfiCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = apiUrl;
-        let mut endpoint: Value = add(&Value::Str("/".into()), &path);
+        let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), path).into());
         let mut query: Value = Value::Str("".into());
         let mut sortedParams: Value = self.keysort(params, &[]);
         if (method.as_str() == Some("GET")) {

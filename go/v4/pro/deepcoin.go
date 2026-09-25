@@ -1583,7 +1583,7 @@ func (this *Deepcoin) HandleErrorMessage(client any, message any) {
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription map[string]any = ccxt.SafeMapTyped(subscriptionsById, requestId)
 	var messageHash *string = this.SafeString(subscription, "subHash")
-	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
+	var feedback string = this.Id + " " + this.Json(message)
 
 	{
 		func(this *Deepcoin) (ret_ any) {

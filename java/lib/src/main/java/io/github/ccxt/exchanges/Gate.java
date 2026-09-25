@@ -8891,7 +8891,7 @@ public class Gate extends GateApi
         Object pathImploded = null;
         String bodyJson = null;
         Map<String, Object> signedHeaders = null;
-        Boolean containsSettle = Helpers.getIndexOf(path, "settle") > -1;
+        Boolean containsSettle = ((String)path).indexOf("settle") > -1;
         if (Boolean.TRUE.equals(containsSettle) && (java.util.Objects.equals(((String)path).endsWith("batch_cancel_orders"), true)))
         {
             // special case where we need to extract the settle from the path

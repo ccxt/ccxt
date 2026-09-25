@@ -9642,8 +9642,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut pathImploded: Value = Value::Null;
         let mut bodyJson: Value = Value::Null;
         let mut signedHeaders: Value = Value::Null;
-        let mut containsSettle: bool = get_index_of(&path, &Value::Str("settle".into())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        if containsSettle && (is_equal(&Value::Bool(ends_with(&path, &Value::Str("batch_cancel_orders".into()))), &Value::Bool(true))) {
+        let mut containsSettle: bool = Value::Int(path.as_str().and_then(|__s| __s.find("settle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
+        if containsSettle && (Value::Bool(ends_with(&path, &Value::Str("batch_cancel_orders".into()))).as_bool() == Some(true)) {
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
             let mut settle: Value = self.safe_dict(params.clone(), Value::Int(0), &[]);

@@ -3940,7 +3940,7 @@ class btse extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         $requestBody = null;
         $requestHeaders = null;
         $apiUrl = $this->safe_string($this->urls['api'], $api);

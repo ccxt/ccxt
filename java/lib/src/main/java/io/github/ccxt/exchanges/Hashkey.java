@@ -4876,7 +4876,7 @@ public class Hashkey extends HashkeyApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = Helpers.add((apiUrl + "/"), path);
+        String url = ((apiUrl + "/") + path);
         Object query = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {

@@ -3536,7 +3536,7 @@ public class Bullish extends BullishApi
             String timestamp = String.valueOf(this.getTimestamp());
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                Object payload = Helpers.add((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/"), path);
+                String payload = ((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/") + path);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 requestHeaders = Helpers.newMap(
                     "BX-TIMESTAMP", timestamp,
@@ -3546,7 +3546,7 @@ public class Bullish extends BullishApi
             } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
                 requestBody = this.json(parameters);
-                String payload = (Helpers.add((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/"), path) + requestBody);
+                String payload = (((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/") + path) + requestBody);
                 Object digest = this.hash(this.encode(payload), sha256(), "hex");
                 String signature = (String) this.hmac(this.encode(digest), this.encode(this.secret), sha256(), "hex");
                 requestHeaders = Helpers.newMap(

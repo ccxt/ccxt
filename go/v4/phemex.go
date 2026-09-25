@@ -5570,7 +5570,7 @@ func (this *Phemex) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 	}
 	return tiers
 }
-func (this *Phemex) Sign(path any, optionalArgs ...any) any {
+func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -5582,16 +5582,16 @@ func (this *Phemex) Sign(path any, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var requestPath any = Add("/", this.ImplodeParams(path, params))
-	var url any = requestPath
+	var requestPath string = "/" + this.ImplodeParams(path, params)
+	var url string = requestPath
 	var queryString string = ""
-	if (method == "GET") || (method == "DELETE") || (method == "PUT") || (IsEqual(url, "/positions/assign")) {
+	if (method == "GET") || (method == "DELETE") || (method == "PUT") || (url == "/positions/assign") {
 		if len(ObjectKeys(query)) > 0 {
 			queryString = this.UrlencodeWithArrayRepeat(query)
-			url = Add(url, "?"+queryString)
+			url += "?" + queryString
 		}
 	}
-	var requestBody any = nil
+	var requestBody *string = nil
 	var privateHeaders any = nil
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -5603,9 +5603,9 @@ func (this *Phemex) Sign(path any, optionalArgs ...any) any {
 			"x-phemex-access-token":   this.ApiKey,
 			"x-phemex-request-expiry": expiryString,
 		}
-		var payload any = ""
+		var payload string = ""
 		if method == "POST" {
-			var isOrderPlacement bool = (IsEqual(path, "g-orders")) || (IsEqual(path, "spot/orders")) || (IsEqual(path, "orders"))
+			var isOrderPlacement bool = (path == "g-orders") || (path == "spot/orders") || (path == "orders")
 			if isOrderPlacement {
 				if this.SafeString(params, "clOrdID") == nil {
 					var id *string = this.SafeString(this.Options, "brokerId", "CCXT123456")
@@ -5613,15 +5613,15 @@ func (this *Phemex) Sign(path any, optionalArgs ...any) any {
 				}
 			}
 			payload = this.Json(params)
-			requestBody = payload
+			requestBody = SafeStringPtr(payload)
 			AddElementToObject(privateHeaders, "Content-Type", "application/json")
 		}
-		var auth any = Add(Add(Add(requestPath, queryString), expiryString), payload)
+		var auth string = requestPath + queryString + expiryString + payload
 		AddElementToObject(privateHeaders, "x-phemex-request-signature", this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 	}
-	url = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), url)
+	url = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)) + url
 	var isPrivatePost bool = (IsEqual(api, "private")) && (method == "POST")
-	var bodyResolved any = body
+	var bodyResolved *string = body
 	if isPrivatePost {
 		bodyResolved = requestBody
 	}

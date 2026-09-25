@@ -1351,7 +1351,7 @@ class p2b extends Exchange {
         ), $marketResolved);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $baseUrl = $this->urls['api'][$api];
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $paramsOmitted = $this->omit($params, $this->extract_params($path));

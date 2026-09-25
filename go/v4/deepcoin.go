@@ -3948,7 +3948,7 @@ func (this *Deepcoin) closePositionBody(ch chan any, symbol any, optionalArgs ..
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Deepcoin) Sign(path any, optionalArgs ...any) any {
+func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -3959,18 +3959,18 @@ func (this *Deepcoin) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var requestPath any = path
+	var requestPath string = path
 	if method == "GET" {
 		var query string = this.Urlencode(params)
 		if len(query) > 0 {
-			requestPath = Add(requestPath, "?"+query)
+			requestPath += "?" + query
 		}
 	}
 	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url *string = SafeStringPtr(Add(*apiUrl+"/", requestPath))
+	var url string = *apiUrl + "/" + requestPath
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()

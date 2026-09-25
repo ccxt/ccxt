@@ -5195,7 +5195,7 @@ public class Aster extends AsterApi
             ), parameters);
             String paramString = null;
             Object paramsToEncode = null;
-            Boolean isApproveBuilder = (Helpers.getIndexOf(path, "/approveBuilder") >= 0);
+            Boolean isApproveBuilder = (((String)path).indexOf("/approveBuilder") >= 0);
             if (Boolean.TRUE.equals(isApproveBuilder))
             {
                 // domain['name'] = 'Aster';

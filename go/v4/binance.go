@@ -16111,7 +16111,7 @@ func (this *Binance) GetBaseDomainFromUrl(url any) any {
 	}
 	return *scheme + "//" + *domain + "/"
 }
-func (this *Binance) Sign(path any, optionalArgs ...any) any {
+func (this *Binance) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -16127,10 +16127,10 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", api), " endpoints")))
 	}
 	var url any = GetValue(GetValue(this.Urls, "api"), api)
-	url = Add(url, Add("/", path))
+	url = Add(url, "/"+path)
 	var signedHeaders any = nil
 	var signedBody any = nil
-	if IsEqual(path, "historicalTrades") {
+	if path == "historicalTrades" {
 		if (!IsEqual(this.ApiKey, nil)) && (this.ApiKey != "") {
 			signedHeaders = map[string]any{
 				"X-MBX-APIKEY": this.ApiKey,
@@ -16139,7 +16139,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 			panic(AuthenticationError(this.Id + " historicalTrades endpoint requires `apiKey` credential"))
 		}
 	}
-	var userDataStream bool = (IsEqual(path, "userDataStream")) || (IsEqual(path, "listenKey")) || (IsEqual(path, "userListenToken"))
+	var userDataStream bool = (path == "userDataStream") || (path == "listenKey") || (path == "userListenToken")
 	if userDataStream {
 		if (!IsEqual(this.ApiKey, nil)) && (this.ApiKey != "") {
 			// v1 special case for userDataStream
@@ -16153,12 +16153,12 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 		} else {
 			panic(AuthenticationError(this.Id + " userDataStream endpoint requires `apiKey` credential"))
 		}
-	} else if (IsEqual(api, "private")) || (IsEqual(api, "eapiPrivate")) || ((IsEqual(api, "sapi")) && (!IsEqual(path, "system/status"))) || (IsEqual(api, "sapiV2")) || (IsEqual(api, "sapiV3")) || (IsEqual(api, "sapiV4")) || (IsEqual(api, "dapiPrivate")) || (IsEqual(api, "dapiPrivateV2")) || (IsEqual(api, "fapiPrivate")) || (IsEqual(api, "fapiPrivateV2")) || (IsEqual(api, "fapiPrivateV3")) || ((IsEqual(api, "papiV2")) || (IsEqual(api, "papi")) && (!IsEqual(path, "ping"))) {
+	} else if (IsEqual(api, "private")) || (IsEqual(api, "eapiPrivate")) || ((IsEqual(api, "sapi")) && (path != "system/status")) || (IsEqual(api, "sapiV2")) || (IsEqual(api, "sapiV3")) || (IsEqual(api, "sapiV4")) || (IsEqual(api, "dapiPrivate")) || (IsEqual(api, "dapiPrivateV2")) || (IsEqual(api, "fapiPrivate")) || (IsEqual(api, "fapiPrivateV2")) || (IsEqual(api, "fapiPrivateV3")) || ((IsEqual(api, "papiV2")) || (IsEqual(api, "papi")) && (path != "ping")) {
 		this.CheckRequiredCredentials()
 		if (GetIndexOf(url, "testnet.binancefuture.com") > -1) && this.IsSandboxModeEnabled && (!IsEqual(this.SafeBool(this.Options, "disableFuturesSandboxWarning"), true)) {
 			panic(NotSupported(this.Id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead."))
 		}
-		if (method == "POST") && ((IsEqual(path, "order")) || (IsEqual(path, "sor/order"))) {
+		if (method == "POST") && ((path == "order") || (path == "sor/order")) {
 			// inject in implicit API calls
 			var newClientOrderId *string = this.SafeString(params, "newClientOrderId")
 			if newClientOrderId == nil {
@@ -16178,7 +16178,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 		}
 		var query any = nil
 		// handle batchOrders
-		if (IsEqual(path, "batchOrders")) && ((method == "POST") || (method == "PUT")) {
+		if (path == "batchOrders") && ((method == "POST") || (method == "PUT")) {
 			var batchOrders any = this.SafeList(params, "batchOrders", []any{})
 			var checkedBatchOrders any = batchOrders
 			if (method == "POST") && (IsEqual(api, "fapiPrivate")) {
@@ -16197,7 +16197,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 					AppendToArray(&checkedBatchOrders, batchOrder)
 				}
 			}
-			var queryBatch any = (this.Json(checkedBatchOrders))
+			var queryBatch string = (this.Json(checkedBatchOrders))
 			AddElementToObject(params, "batchOrders", queryBatch)
 		}
 		var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
@@ -16211,10 +16211,10 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 		if recvWindow != nil {
 			AddElementToObject(extendedParams, "recvWindow", recvWindow)
 		}
-		if (IsEqual(api, "sapi")) && (IsEqual(path, "asset/dust")) {
+		if (IsEqual(api, "sapi")) && (path == "asset/dust") {
 			query = this.UrlencodeWithArrayRepeat(extendedParams)
-		} else if (IsEqual(path, "batchOrders")) || (GetIndexOf(path, "sub-account") >= 0) || (IsEqual(path, "capital/withdraw/apply")) || (GetIndexOf(path, "staking") >= 0) || (GetIndexOf(path, "simple-earn") >= 0) {
-			if (method == "DELETE") && (IsEqual(path, "batchOrders")) {
+		} else if (path == "batchOrders") || (strings.Index(path, "sub-account") >= 0) || (path == "capital/withdraw/apply") || (strings.Index(path, "staking") >= 0) || (strings.Index(path, "simple-earn") >= 0) {
+			if (method == "DELETE") && (path == "batchOrders") {
 				var orderidlist any = this.SafeList(extendedParams, "orderidlist", []any{})
 				var origclientorderidlist []any = SafeList2Typed(extendedParams, "origclientorderidlist", "origClientOrderIdList")
 				extendedParams = this.Omit(extendedParams, []any{"orderidlist", "origclientorderidlist", "origClientOrderIdList"})
