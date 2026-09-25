@@ -773,8 +773,8 @@ export default class bingx extends bingxRest {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        const isSpot = (this.safeBool (market, 'spot', false));
-        const isInverse = (this.safeBool (market, 'inverse', false));
+        const isSpot = this.safeBool (market, 'spot', false);
+        const isInverse = this.safeBool (market, 'inverse', false);
         let timestamp: Str = 'T';
         if (isSpot) {
             timestamp = 't';

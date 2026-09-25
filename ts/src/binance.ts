@@ -14276,7 +14276,7 @@ export default class binance extends Exchange {
         const value = this.safeNumber2 (interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        const isInverse = (this.safeBool (market, 'inverse', false));
+        const isInverse = this.safeBool (market, 'inverse', false);
         const baseVolume = isInverse ? undefined : amount;
         return this.safeOpenInterest ({
             'symbol': this.safeSymbol (id, market, undefined, 'contract'),
