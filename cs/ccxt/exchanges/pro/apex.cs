@@ -259,7 +259,7 @@ public partial class apex : ccxt.apex
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public async virtual Task<object> watchTopics(object url, IList<object> messageHashes, object topics, object parameters = null)
+    public async virtual Task<object> watchTopics(object url, IList<object> messageHashes, IList<object> topics, object parameters = null)
     {
         // apex's server rejects a subscribe whose args include any
         // already-subscribed topic ("topic:already subscribed ..."). Since the
@@ -270,11 +270,11 @@ public partial class apex : ccxt.apex
         var client = this.client(url);
         List<object> newTopics = new List<object>() {};
         object newTopicsCount = 0;
-        for (int i = 0; i < getArrayLength(topics); i++)
+        for (int i = 0; i < (topics?.Count ?? 0); i++)
         {
             if (!(inOp(client.subscriptions, (messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null))))
             {
-                newTopics.Add(getValue(topics, i));
+                newTopics.Add((topics != null && i < topics.Count ? topics[i] : null));
                 newTopicsCount = add(newTopicsCount, 1);
             }
         }
@@ -389,11 +389,11 @@ public partial class apex : ccxt.apex
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 

@@ -1004,17 +1004,17 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.insertMissingCandles(sparse, timeframeInSeconds, alignedSince, limitResolved));
     }
 
-    public virtual object insertMissingCandles(object candles, object distance, object since, object limit)
+    public virtual object insertMissingCandles(IList<object> candles, object distance, object since, object limit)
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
-        int length = getArrayLength(candles);
+        int length = candles?.Count ?? 0;
         if ((length == 0))
         {
             return candles;
         }
         List<object> result = new List<object>() {};
-        object copyFrom = getValue(candles, 0);
+        object copyFrom = (candles != null && 0 < candles.Count ? candles[0] : null);
         object timestamp = null;
         if ((since == null))
         {
@@ -1024,7 +1024,7 @@ public partial class bitopro : Exchange
             timestamp = since;
         }
         object i = 0;
-        int candleLength = getArrayLength(candles);
+        int candleLength = candles?.Count ?? 0;
         object resultLength = 0;
         while ((isLessThan(resultLength, limit)) && (isLessThan(i, candleLength)))
         {

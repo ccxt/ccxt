@@ -2422,12 +2422,12 @@ public partial class kalshi : PredictionExchange
         {
             defaultTif = "good_till_canceled";
         }
-        IList<object> timeInForceparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif);
-        string? timeInForce = (string)timeInForceparamsTimeInForceVariable[0];
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable[1]);
-        IList<object> stpparamsSelfTradePreventionTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross");
-        string? stp = (string)stpparamsSelfTradePreventionTypeVariable[0];
-        IDictionary<string, object> paramsSelfTradePreventionType = ((IDictionary<string, object>)stpparamsSelfTradePreventionTypeVariable[1]);
+        (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif);
+        string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
+        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable.Item2);
+        (string?, object) stpparamsSelfTradePreventionTypeVariable = this.handleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross");
+        string? stp = stpparamsSelfTradePreventionTypeVariable.Item1;
+        IDictionary<string, object> paramsSelfTradePreventionType = ((IDictionary<string, object>)stpparamsSelfTradePreventionTypeVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", ticker },
             { "side", bookSide },

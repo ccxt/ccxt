@@ -1483,9 +1483,9 @@ public partial class toobit : Exchange
             request["limit"] = limit;
         }
         List<object> response = new List<object>() {};
-        IList<object> endpointparamsPriceVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price");
-        string? endpoint = (string)endpointparamsPriceVariable[0];
-        var paramsPrice = endpointparamsPriceVariable[1];
+        (string?, object) endpointparamsPriceVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price");
+        string? endpoint = endpointparamsPriceVariable.Item1;
+        object paramsPrice = endpointparamsPriceVariable.Item2;
         if ((endpoint == "index"))
         {
             response = await this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice));
@@ -1705,13 +1705,13 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseBidsAsksCustom(response, symbolsNormalized));
     }
 
-    public virtual object parseBidsAsksCustom(object tickers, IList<object> symbols = null, IDictionary<string, object>? parameters = null)
+    public virtual object parseBidsAsksCustom(IList<object> tickers, IList<object> symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> results = new List<object>() {};
-        for (int i = 0; i < getArrayLength(tickers); i++)
+        for (int i = 0; i < (tickers?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsedTicker = this.parseBidAskCustom(getValue(tickers, i));
+            Dictionary<string, object> parsedTicker = this.parseBidAskCustom((tickers != null && i < tickers.Count ? tickers[i] : null));
             Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);
             results.Add(ticker);
         }
@@ -1825,9 +1825,9 @@ public partial class toobit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
@@ -3113,9 +3113,9 @@ public partial class toobit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        IList<object> networkCodeparamsOmittedVariable = (IList<object>)this.handleNetworkCodeAndParams(this.extend(request, parameters));
-        string? networkCode = (string)networkCodeparamsOmittedVariable[0];
-        var paramsOmitted = networkCodeparamsOmittedVariable[1];
+        (string?, object) networkCodeparamsOmittedVariable = this.handleNetworkCodeAndParams(this.extend(request, parameters));
+        string? networkCode = networkCodeparamsOmittedVariable.Item1;
+        object paramsOmitted = networkCodeparamsOmittedVariable.Item2;
         if ((networkCode == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddress() : param[\"network\"] is required")) ;
@@ -3166,9 +3166,9 @@ public partial class toobit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkAddress(address);
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode == null))
         {
             throw new ArgumentsRequired ((this.id + " withdraw() : param[\"network\"] is required")) ;

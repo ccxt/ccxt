@@ -968,13 +968,13 @@ public partial class aster : ccxt.aster
             }
         }
         string? marketId = this.safeString(trade, "s");
-        object defaultType = null;
+        string? defaultType = null;
         if ((market == null))
         {
             defaultType = this.safeString(this.options, "defaultType", "spot");
         } else
         {
-            defaultType = getValue(market, "type");
+            defaultType = this.safeString(market, "type");
         }
         string? symbol = this.safeSymbol(marketId, market, null, defaultType);
         string? side = this.safeStringLower(trade, "S");
@@ -1998,11 +1998,11 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         string messageHash = "orders";
         string? type = null;
@@ -2016,7 +2016,7 @@ public partial class aster : ccxt.aster
         await this.authenticate(typeMarketType, paramsMarketType);
         if ((market != null))
         {
-            messageHash = messageHash + ("::" + (symbolResolved));
+            messageHash = messageHash + ("::" + symbolResolved);
         }
         string? url = this.getPrivateUrl(typeMarketType);
         var client = this.client(url);
@@ -2051,11 +2051,11 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         string messageHash = "myTrades";
         string? type = null;
@@ -2069,7 +2069,7 @@ public partial class aster : ccxt.aster
         await this.authenticate(typeMarketType, paramsMarketType);
         if ((market != null))
         {
-            messageHash = messageHash + ("::" + (symbolResolved));
+            messageHash = messageHash + ("::" + symbolResolved);
         }
         string? url = this.getPrivateUrl(typeMarketType);
         var client = this.client(url);

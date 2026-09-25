@@ -2539,16 +2539,16 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
         }
         Dictionary<string, object> response = await this.privateGetDepositsCoinAddress(this.extend(new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
-            { "net_type", this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)) },
+            { "net_type", this.networkCodeToId(networkCode, this.safeString(currency, "code")) },
         }, paramsNetworkCode));
         //
         //    {

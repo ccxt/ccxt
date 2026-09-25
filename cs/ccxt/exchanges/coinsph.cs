@@ -812,10 +812,10 @@ public partial class coinsph : Exchange
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
-            return getValue(config, "noSymbol");
+            return ((IDictionary<string,object>)config)["noSymbol"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbolAndNoSymbols")) && !(inOp(parameters, "symbol")) && !(inOp(parameters, "symbols")))
         {
-            return getValue(config, "noSymbolAndNoSymbols");
+            return ((IDictionary<string,object>)config)["noSymbolAndNoSymbols"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("byNumberOfSymbols")) && (inOp(parameters, "symbols")))
         {
             object symbols = getValue(parameters, "symbols");
@@ -1644,9 +1644,9 @@ public partial class coinsph : Exchange
             } else if (orderSide == "BUY")
             {
                 string? quoteAmount = null;
-                IList<object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (IList<object>)this.handleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[0];
-                IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1]);
+                (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
+                IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
                 double? cost = this.safeNumber2(paramsRequiresPrice, "cost", "quoteOrderQty");
                 paramsQuote = this.omit(paramsRequiresPrice, "cost");
                 if ((cost != null))

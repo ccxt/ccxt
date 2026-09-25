@@ -1131,15 +1131,15 @@ public partial class mercado : Exchange
         List<object> ordersRaw = this.safeList(responseData, "orders", new List<object>() {});
         IList<object> orders = this.parseOrders(ordersRaw, market, since, limit);
         List<object> trades = this.ordersToTrades(orders);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, this.safeString(market, "symbol"), since, limit));
     }
 
-    public virtual List<object> ordersToTrades(object orders)
+    public virtual List<object> ordersToTrades(IList<object> orders)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
-            List<object> trades = this.safeList(getValue(orders, i), "trades", new List<object>() {});
+            List<object> trades = this.safeList((orders != null && i < orders.Count ? orders[i] : null), "trades", new List<object>() {});
             for (int y = 0; y < trades.Count; y++)
             {
                 result.Add(trades[y]);

@@ -463,11 +463,11 @@ public partial class coinex : ccxt.coinex
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -482,7 +482,7 @@ public partial class coinex : ccxt.coinex
         string messageHash = "myTrades";
         if ((market != null))
         {
-            messageHash = messageHash + (":" + (symbolResolved));
+            messageHash = messageHash + (":" + symbolResolved);
             subscribedSymbols.Add((market.ContainsKey("id") ? market["id"] : null));
         } else
         {
@@ -965,11 +965,11 @@ public partial class coinex : ccxt.coinex
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -1069,11 +1069,11 @@ public partial class coinex : ccxt.coinex
         string messageHash = "orders";
         IDictionary<string, object> market = null;
         List<object> marketList = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, "spot");
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -1082,7 +1082,7 @@ public partial class coinex : ccxt.coinex
         if ((symbolResolved != null))
         {
             marketList = new List<object>() {(market != null && market.ContainsKey("id") ? market["id"] : null)};
-            messageHash = messageHash + (":" + (symbolResolved));
+            messageHash = messageHash + (":" + symbolResolved);
         } else
         {
             marketList = new List<object>() {};

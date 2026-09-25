@@ -383,13 +383,13 @@ public partial class bullish : ccxt.bullish
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual List<object> separateBidsOrAsks(object entry)
+    public virtual List<object> separateBidsOrAsks(IList<object> entry)
     {
         List<object> result = new List<object>() {};
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        for (int i = 0; i < getArrayLength(entry); i++)
+        for (int i = 0; i < (entry?.Count ?? 0); i++)
         {
             if (!isEqual(((Int64)i % 2L), 0))
             {

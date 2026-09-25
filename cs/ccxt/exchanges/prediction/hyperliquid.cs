@@ -1457,7 +1457,7 @@ public partial class hyperliquid : PredictionExchange
         {
             orderObj["c"] = clientOrderId;
         }
-        string? vaultAddressOption = ((string)getValue(this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress"), 0));
+        string? vaultAddressOption = this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress").Item1;
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Dictionary<string, object> orderAction = new Dictionary<string, object>() {
             { "type", "order" },
@@ -1588,7 +1588,7 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         cancelAction["cancels"] = cancelReq;
-        string? vaultAddressOption = ((string)getValue(this.handleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress"), 0));
+        string? vaultAddressOption = this.handleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress").Item1;
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Dictionary<string, object> signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1667,9 +1667,9 @@ public partial class hyperliquid : PredictionExchange
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchOpenOrders", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
         IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
-        IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders");
-        string? method = (string)methodparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
+        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders");
+        string? method = methodparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", method },
             { "user", userAddress },
@@ -2555,12 +2555,12 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual List<object> handlePublicAddress(string? methodName, object parameters)
     {
-        IList<object> userAuxparamsUserVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
-        string? userAux = (string)userAuxparamsUserVariable[0];
-        IDictionary<string, object> paramsUser = ((IDictionary<string, object>)userAuxparamsUserVariable[1]);
-        IList<object> userparamsAddressVariable = (IList<object>)this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
-        string? user = (string)userparamsAddressVariable[0];
-        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userparamsAddressVariable[1]);
+        (string?, object) userAuxparamsUserVariable = this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
+        string? userAux = userAuxparamsUserVariable.Item1;
+        IDictionary<string, object> paramsUser = ((IDictionary<string, object>)userAuxparamsUserVariable.Item2);
+        (string?, object) userparamsAddressVariable = this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
+        string? user = userparamsAddressVariable.Item1;
+        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userparamsAddressVariable.Item2);
         if ((user != null) && !(user == ""))
         {
             return new List<object>() {user, paramsAddress};

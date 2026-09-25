@@ -635,9 +635,9 @@ public partial class cryptomus : Exchange
             { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         int level = 0;
-        IList<object> levelOptionparamsLevelVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "level", level);
-        Int64? levelOption = (Int64?)levelOptionparamsLevelVariable[0];
-        IDictionary<string, object> paramsLevel = ((IDictionary<string, object>)levelOptionparamsLevelVariable[1]);
+        (Int64?, object) levelOptionparamsLevelVariable = this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "level", level);
+        Int64? levelOption = levelOptionparamsLevelVariable.Item1;
+        IDictionary<string, object> paramsLevel = ((IDictionary<string, object>)levelOptionparamsLevelVariable.Item2);
         request["level"] = levelOption;
         Dictionary<string, object> response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, paramsLevel));
         //
@@ -848,15 +848,15 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> response = null;
         if ((type == "market"))
         {
-            List<object> requiresPriceAndParams = this.handleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (bool?, object) requiresPriceAndParams = this.handleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             object paramsMarket = paramsCost;
             if (sideBuy)
             {
-                paramsMarket = (requiresPriceAndParams != null && 1 < requiresPriceAndParams.Count ? requiresPriceAndParams[1] : null);
+                paramsMarket = requiresPriceAndParams.Item2;
             }
             if (sideBuy)
             {
-                bool? createMarketBuyOrderRequiresPrice = ((bool?)(requiresPriceAndParams != null && 0 < requiresPriceAndParams.Count ? requiresPriceAndParams[0] : null));
+                bool? createMarketBuyOrderRequiresPrice = requiresPriceAndParams.Item1;
                 if ((createMarketBuyOrderRequiresPrice == true))
                 {
                     if (((price == null)) && ((cost == null)))
@@ -1282,11 +1282,11 @@ public partial class cryptomus : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseFeeTiers(object feeTiers, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseFeeTiers(IList<object> feeTiers, IDictionary<string, object> market = null)
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
-        for (int i = 0; i < getArrayLength(feeTiers); i++)
+        for (int i = 0; i < (feeTiers?.Count ?? 0); i++)
         {
             IDictionary<string, object> tier = this.safeDict(feeTiers, i);
             double? turnover = this.safeNumber(tier, "from_turnover");

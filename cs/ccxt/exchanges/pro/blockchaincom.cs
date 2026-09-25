@@ -471,11 +471,11 @@ public partial class blockchaincom : ccxt.blockchaincom
             await this.loadMarkets();
         }
         await this.authenticate();
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -799,11 +799,11 @@ public partial class blockchaincom : ccxt.blockchaincom
         (bookside as IOrderBookSide).storeArray(bookArray);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 

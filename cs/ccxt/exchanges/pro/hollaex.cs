@@ -219,11 +219,11 @@ public partial class hollaex : ccxt.hollaex
         }
         string messageHash = "usertrade";
         IDictionary<string, object> market = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
             messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         object trades = await this.watchPrivate(messageHash, parameters);
@@ -322,11 +322,11 @@ public partial class hollaex : ccxt.hollaex
         }
         string messageHash = "order";
         IDictionary<string, object> market = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
             messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         object orders = await this.watchPrivate(messageHash, parameters);

@@ -133,11 +133,11 @@ public partial class lighter : ccxt.lighter
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -686,7 +686,7 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", ("trade/" + ((market.ContainsKey("id") ? market["id"] : null))) },
         };
-        string? messageHash = this.getMessageHash("trade", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? messageHash = this.getMessageHash("trade", this.safeString(market, "symbol"));
         object trades = await this.subscribePublic(messageHash, this.extend(request, parameters));
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
@@ -711,7 +711,7 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", ("trade/" + ((market.ContainsKey("id") ? market["id"] : null))) },
         };
-        string? subMessageHash = this.getMessageHash("trade", (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? subMessageHash = this.getMessageHash("trade", this.safeString(market, "symbol"));
         string messageHash = ("unsubscribe:" + subMessageHash);
         return await this.unsubscribe(messageHash, this.extend(request, parameters));
     }
@@ -914,11 +914,11 @@ public partial class lighter : ccxt.lighter
         var accountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[0];
         var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         string? messageHash = this.getMessageHash("myTrades");
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
             messageHash = this.getMessageHash("myTrades", symbolResolved);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1269,7 +1269,7 @@ public partial class lighter : ccxt.lighter
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = this.getMessageHash("orders", (market.ContainsKey("symbol") ? market["symbol"] : null));
+            messageHash = this.getMessageHash("orders", this.safeString(market, "symbol"));
             request["channel"] = ((("account_orders/" + ((market.ContainsKey("id") ? market["id"] : null))) + "/") + this.numberToString(accountIndex));
         } else
         {
@@ -1309,7 +1309,7 @@ public partial class lighter : ccxt.lighter
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            subMessageHash = this.getMessageHash("orders", (market.ContainsKey("symbol") ? market["symbol"] : null));
+            subMessageHash = this.getMessageHash("orders", this.safeString(market, "symbol"));
             request["channel"] = ((("account_orders/" + ((market.ContainsKey("id") ? market["id"] : null))) + "/") + this.numberToString(accountIndex));
         } else
         {

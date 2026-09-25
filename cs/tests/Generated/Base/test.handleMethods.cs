@@ -106,23 +106,23 @@ public partial class BaseTest
                     } },
                 } },
             });
-            var marginModeparams1Variable = exchange.handleMarginModeAndParams("fetchX", new Dictionary<string, object>() {}, "cross");
-            var marginMode = ((IList<object>) marginModeparams1Variable)[0];
-            var params1 = ((IList<object>) marginModeparams1Variable)[1];
+            (string?, object) marginModeparams1Variable = exchange.handleMarginModeAndParams("fetchX", new Dictionary<string, object>() {}, "cross");
+            object marginMode = marginModeparams1Variable.Item1;
+            object params1 = marginModeparams1Variable.Item2;
             Assert(isEqual(marginMode, "isolated"));
-            var utaparams2Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "fetchX", "uta", false);
-            var uta = ((IList<object>) utaparams2Variable)[0];
-            var params2 = ((IList<object>) utaparams2Variable)[1];
+            (bool?, object) utaparams2Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "fetchX", "uta", false);
+            object uta = utaparams2Variable.Item1;
+            object params2 = utaparams2Variable.Item2;
             Assert(isEqual(uta, true));
-            var absentparams3Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {}, "fetchX", "absentKey", "fallback");
-            var absent = ((IList<object>) absentparams3Variable)[0];
-            var params3 = ((IList<object>) absentparams3Variable)[1];
+            (string?, object) absentparams3Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {}, "fetchX", "absentKey", "fallback");
+            object absent = absentparams3Variable.Item1;
+            object params3 = absentparams3Variable.Item2;
             Assert(isEqual(absent, "fallback"));
-            var fromParamsparams4Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {
+            (string?, object) fromParamsparams4Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {
             { "absentKey", "p" },
         }, "fetchX", "absentKey", "fallback");
-            var fromParams = ((IList<object>) fromParamsparams4Variable)[0];
-            var params4 = ((IList<object>) fromParamsparams4Variable)[1];
+            object fromParams = fromParamsparams4Variable.Item1;
+            object params4 = fromParamsparams4Variable.Item2;
             Assert(isEqual(fromParams, "p"));
             Assert(!(inOp(params4, "absentKey")));
             // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)

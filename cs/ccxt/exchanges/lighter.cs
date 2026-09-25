@@ -491,7 +491,7 @@ public partial class lighter : Exchange
         {
             return signer;
         }
-        string? libraryPath = ((string)getValue(this.handleOptionStringAndParams(parameters, "loadAccount", "libraryPath"), 0));
+        string? libraryPath = this.handleOptionStringAndParams(parameters, "loadAccount", "libraryPath").Item1;
         bool lighterPrivateKeyIsSet = ((privateKey != null)) && (!isEqual(privateKey, ""));
         if (lighterPrivateKeyIsSet && ((libraryPath != null)) && ((apiKeyIndex != null)) && ((accountIndex != null)))
         {
@@ -939,9 +939,9 @@ public partial class lighter : Exchange
         IList<object> nonceparamsNonceVariable = (IList<object>)this.handleOptionAndParams(paramsAccountIndex, "createOrder", "nonce");
         var nonce = nonceparamsNonceVariable[0];
         IDictionary<string, object> paramsNonce = ((IDictionary<string, object>)nonceparamsNonceVariable[1]);
-        IList<object> orderExpiryOptionparamsOrderExpiryVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsNonce, "createOrder", "orderExpiry", 0);
-        Int64? orderExpiryOption = (Int64?)orderExpiryOptionparamsOrderExpiryVariable[0];
-        IDictionary<string, object> paramsOrderExpiry = ((IDictionary<string, object>)orderExpiryOptionparamsOrderExpiryVariable[1]);
+        (Int64?, object) orderExpiryOptionparamsOrderExpiryVariable = this.handleOptionIntegerAndParams(paramsNonce, "createOrder", "orderExpiry", 0);
+        Int64? orderExpiryOption = orderExpiryOptionparamsOrderExpiryVariable.Item1;
+        IDictionary<string, object> paramsOrderExpiry = ((IDictionary<string, object>)orderExpiryOptionparamsOrderExpiryVariable.Item2);
         object orderExpiry = orderExpiryOption;
         if ((nonce != null))
         {
@@ -1108,7 +1108,7 @@ public partial class lighter : Exchange
             return ccxt.BaseExchange.ToInt64Value(nonceInOptions);
         }
         // avoid skipNonce for l1 operations
-        bool? skipNonce = ((bool?)getValue(this.handleOptionBoolAndParams(parameters, "fetchNonce", "skipNonce", true), 0));
+        bool? skipNonce = this.handleOptionBoolAndParams(parameters, "fetchNonce", "skipNonce", true).Item1;
         if ((skipNonce == true))
         {
             return ccxt.BaseExchange.ToInt64Value(this.milliseconds());
@@ -1131,9 +1131,9 @@ public partial class lighter : Exchange
         var accountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[0];
         var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
         ((IDictionary<string,object>)paramsAccountIndex)["accountIndex"] = accountIndex;
-        IList<object> groupingTypeparamsGroupingTypeVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsAccountIndex, method, "groupingType", 3);
-        Int64? groupingType = (Int64?)groupingTypeparamsGroupingTypeVariable[0];
-        IDictionary<string, object> paramsGroupingType = ((IDictionary<string, object>)groupingTypeparamsGroupingTypeVariable[1]); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        (Int64?, object) groupingTypeparamsGroupingTypeVariable = this.handleOptionIntegerAndParams(paramsAccountIndex, method, "groupingType", 3);
+        Int64? groupingType = groupingTypeparamsGroupingTypeVariable.Item1;
+        IDictionary<string, object> paramsGroupingType = ((IDictionary<string, object>)groupingTypeparamsGroupingTypeVariable.Item2); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         List<object> orderRequests = this.createOrderRequest(symbol, type, side, amount, price, paramsGroupingType);
         int totalOrderRequests = (orderRequests?.Count ?? 0);
         object apiKeyIndex = null;
@@ -2910,9 +2910,9 @@ public partial class lighter : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, paramsPaginate, "cursor", "cursor", null, 50));
@@ -3026,16 +3026,16 @@ public partial class lighter : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, paramsPaginate, "cursor", "cursor", null, 50));
         }
-        IList<object> addressparamsAddressVariable = (IList<object>)this.handleOptionStringAndParams2(paramsPaginate, "fetchDeposits", "address", "l1_address");
-        string? address = (string)addressparamsAddressVariable[0];
-        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)addressparamsAddressVariable[1]);
+        (string?, object) addressparamsAddressVariable = this.handleOptionStringAndParams2(paramsPaginate, "fetchDeposits", "address", "l1_address");
+        string? address = addressparamsAddressVariable.Item1;
+        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)addressparamsAddressVariable.Item2);
         if ((address == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDeposits() requires an address parameter")) ;
@@ -3102,9 +3102,9 @@ public partial class lighter : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, paramsPaginate, "cursor", "cursor", null, 50));
@@ -3308,9 +3308,9 @@ public partial class lighter : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", null, 50));
@@ -3333,9 +3333,9 @@ public partial class lighter : Exchange
         {
             request["limit"] = Math.Min(limit.Value, 100);
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams2(paramsApiKeyIndex, "fetchMyTrades", "until", "from");
-        Int64? until = (Int64?)untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams2(paramsApiKeyIndex, "fetchMyTrades", "until", "from");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         if (!(until == null))
         {
             request["from"] = until;
@@ -3483,9 +3483,9 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, "setLeverage", "marginMode", "margin_mode");
-        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleOptionStringAndParams2(parameters, "setLeverage", "marginMode", "margin_mode");
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         if ((marginMode == null))
         {
             throw new ArgumentsRequired ((this.id + " setLeverage() requires an marginMode parameter")) ;
