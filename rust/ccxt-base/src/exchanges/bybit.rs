@@ -5060,8 +5060,7 @@ impl BybitCore {
         let mut hasOptionSymbol: bool = false;
         if (symbols != Value::Null) {
             parsedSymbols = Value::from(vec![]);
-            let mut marketTypeInfo: Value = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[Value::Null, params.clone()]);
-            let mut defaultType: Value = marketTypeInfo.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); // don't omit here
+            let mut defaultType: Value = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[Value::Null, params.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); // don't omit here
             // we can't use marketSymbols here due to the conflicting ids between markets
             let mut currentType: Value = Value::Null;
             {

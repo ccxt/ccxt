@@ -583,8 +583,7 @@ impl BybitCore {
             if isSpot.as_bool() == Some(true) {
                 url = crate::value::get_value_k(&get_value(&url, &accessibility), "spot");
             }  else if (type_var.as_str() == Some("swap")) || (type_var.as_str() == Some("future")) {
-                let mut subTypeAndParams: Value = self.handle_sub_type_and_params(methodValue, &[market, params, Value::Str("linear".into())]);
-                let mut subType: Value = subTypeAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+                let mut subType: Value = self.handle_sub_type_and_params(methodValue, &[market, params, Value::Str("linear".into())]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 url = get_value(&get_value(&url, &accessibility), &subType);
             }  else {
                 // option

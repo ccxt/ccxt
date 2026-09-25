@@ -7874,14 +7874,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         self.load_unified_status(&[]).await;
         let mut market: Value = (if (symbol == Value::Null) { Value::Null } else { self.market(symbol.clone()) });
-        let mut result: Value = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), &[market.clone(), params.clone()]);
-        let mut type_var: Option<String> = self.safe_string(result, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut type_var: Value = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), &[market.clone(), params.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut trigger: Value = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("is_stop_order".into()), Value::Str("stop".into())]), &[Value::Bool(false)]);
         let mut requestrequestParamsVariable = self.fetch_order_request(id.clone(), &[symbol, params]);
         let mut request: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
+        if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
             if (trigger.as_bool() == Some(true)) {
                 let __ws_arg_45 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_spot_get_price_orders_order_id(&[__ws_arg_45]).await;
@@ -7889,7 +7888,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_46 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_spot_get_orders_order_id(&[__ws_arg_46]).await;
             }
-        }  else if (type_var.as_deref() == Some("swap")) {
+        }  else if (type_var.as_str() == Some("swap")) {
             if (trigger.as_bool() == Some(true)) {
                 let __ws_arg_47 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_futures_get_settle_price_orders_order_id(&[__ws_arg_47]).await;
@@ -7897,7 +7896,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_48 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_futures_get_settle_orders_order_id(&[__ws_arg_48]).await;
             }
-        }  else if (type_var.as_deref() == Some("future")) {
+        }  else if (type_var.as_str() == Some("future")) {
             if (trigger.as_bool() == Some(true)) {
                 let __ws_arg_49 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_delivery_get_settle_price_orders_order_id(&[__ws_arg_49]).await;
@@ -7905,7 +7904,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_50 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_delivery_get_settle_orders_order_id(&[__ws_arg_50]).await;
             }
-        }  else if (type_var.as_deref() == Some("option")) {
+        }  else if (type_var.as_str() == Some("option")) {
             let __ws_arg_51 = self.extend(request, &[requestParams]);
             response = self.private_options_get_orders_order_id(&[__ws_arg_51]).await;
         }  else {
@@ -7995,8 +7994,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             market = self.market(symbol.clone());
         }
         let mut symbolResolved: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { symbol });
-        let mut res: Value = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), &[market.clone(), paramsPaginate.clone()]);
-        let mut type_var: Value = self.safe_string(res, Value::Int(0), &[]);
+        let mut type_var: Value = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), &[market.clone(), paramsPaginate.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut useHistoricalparamsHistoricalVariable = self.handle_option_bool_and_params(paramsPaginate, Value::Str("fetchClosedOrders".into()), Value::Str("historical".into()), &[Value::Bool(false)]);
         let mut useHistorical: Value = useHistoricalparamsHistoricalVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsHistorical: Value = useHistoricalparamsHistoricalVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -8096,13 +8094,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbolResolved: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { symbol });
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut res: Value = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".into()), &[market.clone(), params.clone()]);
-        let mut type_var: Option<String> = self.safe_string(res, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut type_var: Value = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".into()), &[market.clone(), params.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         // don't omit here, omits done in prepareOrdersByStatusRequest
         let mut requestrequestParamsVariable = self.prepare_orders_by_status_request(status.clone(), &[symbolResolved.clone(), since.clone(), limit.clone(), params]);
         let mut request: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut spot: bool = (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin"));
+        let mut spot: bool = (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin"));
         let mut openStatus: bool = status.as_str() == Some("open");
         let mut openSpotOrders: bool = spot && openStatus && (trigger.as_bool() != Some(true));
         let mut response: Value = Value::Null;
@@ -8119,7 +8116,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_55 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_spot_get_price_orders(&[__ws_arg_55]).await;
             }
-        }  else if (type_var.as_deref() == Some("swap")) {
+        }  else if (type_var.as_str() == Some("swap")) {
             if (trigger.as_bool() == Some(true)) {
                 let __ws_arg_56 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_futures_get_settle_price_orders(&[__ws_arg_56]).await;
@@ -8127,7 +8124,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_57 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_futures_get_settle_orders(&[__ws_arg_57]).await;
             }
-        }  else if (type_var.as_deref() == Some("future")) {
+        }  else if (type_var.as_str() == Some("future")) {
             if (trigger.as_bool() == Some(true)) {
                 let __ws_arg_58 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_delivery_get_settle_price_orders(&[__ws_arg_58]).await;
@@ -8135,7 +8132,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_59 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_delivery_get_settle_orders(&[__ws_arg_59]).await;
             }
-        }  else if (type_var.as_deref() == Some("option")) {
+        }  else if (type_var.as_str() == Some("option")) {
             let __ws_arg_60 = self.extend(request, &[requestParams]);
             response = self.private_options_get_orders(&[__ws_arg_60]).await;
         }  else {
