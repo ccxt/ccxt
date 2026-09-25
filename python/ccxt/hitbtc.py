@@ -2622,7 +2622,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
+    def parse_transfer(self, transfer: dict | list, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #

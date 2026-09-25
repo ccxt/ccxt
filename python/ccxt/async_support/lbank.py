@@ -472,7 +472,7 @@ class lbank(Exchange, ImplicitAPI):
         values = list(grouped.values())
         return self.parse_currencies(values)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: list[dict]) -> CurrencyInterface:
         id = self.safe_string(rawCurrency[0], 'assetCode')  # first member is guaranteed
         code = self.safe_currency_code(id)
         networksRaw = rawCurrency

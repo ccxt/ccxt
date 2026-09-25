@@ -993,7 +993,7 @@ class ndax(Exchange, ImplicitAPI):
             candles = response
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict | list, market: Market = None) -> Trade:
         #
         # fetchTrades (public)
         #

@@ -1370,7 +1370,7 @@ class kraken(Exchange, ImplicitAPI):
         items = self.fetch_ledger_entries_by_ids([id], code, params)
         return items[0]
 
-    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict | list | str, market: Market = None) -> Trade:
         #
         # fetchTrades (public)
         #

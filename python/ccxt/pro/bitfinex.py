@@ -548,7 +548,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         self.tickers[symbol] = parsed
         client.resolve(parsed, messageHash)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+    def parse_ws_ticker(self, ticker: list, market: Market = None) -> Ticker:
         #
         #     [
         #         236.62,        // 1 BID float Price of last highest bid
@@ -1082,7 +1082,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
+    def parse_ws_order(self, order: list, market: Market = None) -> Order:
         #
         #   [
         #       97084883506, // order id
