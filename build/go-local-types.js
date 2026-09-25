@@ -6481,6 +6481,65 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoTupleParamsElement (goTranspiler);
     installCcxtGoElement1Params (goTranspiler);
     installCcxtGoLimitLocals (goTranspiler);
+    installCcxtGoDestructuredPointerBoxes (goTranspiler);
+}
+
+// ---------------------------------------------------------------------------------------------
+// An `any` local fed by a destructured call element (`const [ x, p ] = this.handleOptionIntegerAndParams (…)`
+// boxes CheckOptionInteger's *int64) may hold a pointer: native `x != 2` / `x != nil` compare the box,
+// so the printer's pointer proof must answer true and keep IsEqual. Ternary arms fed by one propagate.
+function ccxtGoCallDestructuredElement (decl) {
+    const pattern = decl?.parent;
+    const holder = pattern?.parent;
+    if ((decl?.kind !== ts.SyntaxKind.BindingElement) || (pattern?.kind !== ts.SyntaxKind.ArrayBindingPattern)
+        || (holder?.kind !== ts.SyntaxKind.VariableDeclaration) || (holder.name !== pattern)) {
+        return false;
+    }
+    let init = holder.initializer;
+    while ((init?.kind === ts.SyntaxKind.ParenthesizedExpression) || (init?.kind === ts.SyntaxKind.AwaitExpression)) {
+        init = init.expression;
+    }
+    return init?.kind === ts.SyntaxKind.CallExpression;
+}
+
+function installCcxtGoDestructuredPointerBoxes (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoDestructuredPointerBoxesInstalled
+        || (typeof goTranspiler.goAnyLocalHoldsPointer !== 'function')) {
+        return;
+    }
+    const shipped = goTranspiler.goAnyLocalHoldsPointer;
+    const visiting = new Set ();
+    goTranspiler.goAnyLocalHoldsPointer = function (decl) {
+        if (ccxtGoCallDestructuredElement (decl)) {
+            return true;
+        }
+        if (shipped.call (this, decl)) {
+            return true;
+        }
+        let init = (decl?.kind === ts.SyntaxKind.VariableDeclaration) ? decl.initializer : undefined;
+        while (init?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            init = init.expression;
+        }
+        if ((init?.kind !== ts.SyntaxKind.ConditionalExpression) || visiting.has (decl)) {
+            return false;
+        }
+        visiting.add (decl);
+        try {
+            return [ init.whenTrue, init.whenFalse ].some ((arm) => {
+                while (arm?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+                    arm = arm.expression;
+                }
+                if (arm?.kind !== ts.SyntaxKind.Identifier) {
+                    return false;
+                }
+                const armDecl = this.getChecker ().getSymbolAtLocation (arm)?.valueDeclaration;
+                return (this.goDeclaredTypeOfIdentifier (arm) === undefined) && this.goAnyLocalHoldsPointer (armDecl);
+            });
+        } finally {
+            visiting.delete (decl);
+        }
+    };
+    goTranspiler.__ccxtGoDestructuredPointerBoxesInstalled = true;
 }
 
 // ---------------------------------------------------------------------------------------------
