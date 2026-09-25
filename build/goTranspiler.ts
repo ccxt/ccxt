@@ -1410,7 +1410,7 @@ function goAccessInsideNilGuard (masked: string[], k: number, name: string): boo
 }
 
 function nativeTypedContainerAccess (content: string): string {
-    if (!/\b(?:GetArrayLength|GetValue|AddElementToObject)\(/.test (content)) {
+    if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|InOp)\(/.test (content)) {
         return content;
     }
     const lines = content.split ('\n');
@@ -1506,6 +1506,9 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
     for (let k = start + 1; k < end; k++) {
         let line = lines[k];
         const m = masked[k];
+        if (goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt)) {
+            continue;
+        }
         if (!/\b(?:GetArrayLength|GetValue|AddElementToObject)\(/.test (m)) {
             continue;
         }
@@ -1524,6 +1527,34 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
             lines[k] = line;
         }
     }
+}
+
+// `if ... InOp(m, k) ... {` -> `if _, ok := m[k]; ... ok ... {` on a map local the method creates (the
+// native map-write receiver proof, so no other goroutine sees it) with a string key; the read has no
+// side effect and a nil map reads ok=false like the helper. Other shapes, or `ok` in the func, keep InOp.
+function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc: string,
+    declOf: (name: string) => any, typeAt: (name: string, k: number) => string | undefined): boolean {
+    const cond = /^(\s*(?:\} else )?if )([^;{}]*) \{$/.exec (masked[k]);
+    const calls = [ ...masked[k].matchAll (/(?<![\w.])(?:ccxt\.)?InOp\(/g) ];
+    if ((cond === null) || (calls.length !== 1) || /\bok\b/.test (maskedFunc)) {
+        return false;
+    }
+    const at = calls[0].index;
+    const call = /^(?:ccxt\.)?InOp\((\w+), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
+    if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
+        return false;
+    }
+    const [ , name, key ] = call;
+    if ((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf)) {
+        return false;
+    }
+    if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
+        return false;
+    }
+    let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + call[0].length);
+    rest = rest.replace (/(^|[^\w)\]])\(ok\)/g, '$1ok');
+    lines[k] = cond[1] + '_, ok := ' + name + '[' + key + ']; ' + rest;
+    return true;
 }
 
 // ------------------------------------------------------------------------------------
