@@ -2452,7 +2452,13 @@ function structureKeyReadLocalType (printer, initializer) {
     }
     return { type: javaType, cast: '(' + javaType + ')', valuePrefixes: [
         '((Map<String, Object>)', '((java.util.Map<String, Object>)',
-        '((Map<?, ?>)', '((java.util.Map<?, ?>)', 'Helpers.GetValue(' ] };
+        '((Map<?, ?>)', '((java.util.Map<?, ?>)', 'Helpers.GetValue(', ...declaredMapReadPrefixes (printer, initializer) ] };
+}
+
+// `x.get(` on an identifier receiver: the printer emits it only for a receiver declared Map<String, Object>
+function declaredMapReadPrefixes (printer, initializer) {
+    const receiver = ts.isElementAccessExpression (initializer) ? initializer.expression : undefined;
+    return receiver !== undefined && ts.isIdentifier (receiver) ? [ `${receiver.text}.get(` ] : [];
 }
 
 // ===== string element reads =====
@@ -2623,7 +2629,8 @@ function stringElementReadLocalType (printer, initializer) {
     if (!proven) {
         return undefined;
     }
-    return { type: 'String', cast: '(String)', valuePrefixes: ELEMENT_READ_PREFIXES, strictPlus: true };
+    return { type: 'String', cast: '(String)', valuePrefixes: [ ...ELEMENT_READ_PREFIXES, ...declaredMapReadPrefixes (printer, initializer) ],
+        strictPlus: true };
 }
 
 function localInitializerType (printer, declaration, isProFile, narrowed) {
@@ -12739,4 +12746,29 @@ export function patchJavaStringListReturnLocals (transpiler) {
         };
     }
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
+
+// ===== 31. element reads on a declared Map receiver =====
+// `x[k]` prints `((java.util.Map<String, Object>)x).get(k)` when the checker proves a map; when x's
+// own declaration already prints Map<String, Object> / HashMap<String, Object> the cast is the identity.
+const JAVA_MAP_RECEIVER_CAST = '((java.util.Map<String, Object>)';
+
+export function patchJavaDeclaredMapReceiverCasts (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printCheckerTypedElementAccessRead !== 'function'
+        || typeof printer.javaDeclaredMapReceiver !== 'function' || printer._javaDeclaredMapReceiverCastsPatched) {
+        return;
+    }
+    printer._javaDeclaredMapReceiverCastsPatched = true;
+    const upstreamRead = printer.printCheckerTypedElementAccessRead.bind (printer);
+    printer.printCheckerTypedElementAccessRead = function (node) {
+        const printed = upstreamRead (node);
+        const receiver = node?.expression;
+        if (printed === undefined || receiver === undefined || !ts.isIdentifier (receiver)) {
+            return printed;
+        }
+        const head = `${JAVA_MAP_RECEIVER_CAST}${receiver.text}).get(`;
+        return printed.startsWith (head) && printer.javaDeclaredMapReceiver (receiver)
+            ? `${receiver.text}.get(` + printed.slice (head.length) : printed;
+    };
 }
