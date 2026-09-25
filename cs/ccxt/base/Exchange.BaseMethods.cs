@@ -397,7 +397,7 @@ public partial class BaseExchange
         this.positions = null;
     }
 
-    public virtual bool? safeBoolN(object dictionaryOrList, object keys, object defaultValue = null)
+    public virtual bool? safeBoolN(object dictionaryOrList, object keys, bool? defaultValue = null)
     {
         /**
          * @ignore
@@ -413,7 +413,7 @@ public partial class BaseExchange
         return ((bool?)((object)(defaultValue)));
     }
 
-    public virtual bool? safeBool2(object dictionaryOrList, object key1, object key2, object defaultValue = null)
+    public virtual bool? safeBool2(object dictionaryOrList, object key1, object key2, bool? defaultValue = null)
     {
         /**
          * @ignore
@@ -850,7 +850,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual IList<object> filterByLimit(object array, object limit = null, object key = null, object fromStart = null)
+    public virtual IList<object> filterByLimit(object array, object limit = null, object key = null, bool? fromStart = null)
     {
         key ??= "timestamp";
         fromStart ??= false;
@@ -869,7 +869,7 @@ public partial class BaseExchange
                         ascending = isLessThanOrEqual(first, last); // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
-                if (isTrue(fromStart))
+                if (fromStart == true)
                 {
                     object limitResolved = (isGreaterThan(limit, arrayLength)) ? arrayLength : limit;
                     if (ascending)
@@ -888,7 +888,7 @@ public partial class BaseExchange
         return this.toArray(array);
     }
 
-    public virtual IList<object> filterBySinceLimit(object array, object since = null, object limit = null, object key = null, object tail = null)
+    public virtual IList<object> filterBySinceLimit(object array, object since = null, object limit = null, object key = null, bool? tail = null)
     {
         key ??= "timestamp";
         tail ??= false;
@@ -912,17 +912,17 @@ public partial class BaseExchange
                 }
             }
         }
-        if (isTrue(tail) && (limit != null))
+        if (tail == true && (limit != null))
         {
             return this.toArray(this.arraySlice(result, prefixUnaryNeg(ref limit)));
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
-        bool shouldFilterFromStart = !isTrue(tail) && sinceIsDefined;
+        bool shouldFilterFromStart = tail != true && sinceIsDefined;
         return this.filterByLimit(result, limit, key, shouldFilterFromStart);
     }
 
-    public virtual IList<object> filterByValueSinceLimit(object array, object field, object value = null, object since = null, object limit = null, object key = null, object tail = null)
+    public virtual IList<object> filterByValueSinceLimit(object array, object field, object value = null, object since = null, object limit = null, object key = null, bool? tail = null)
     {
         key ??= "timestamp";
         tail ??= false;
@@ -950,7 +950,7 @@ public partial class BaseExchange
                 }
             }
         }
-        if (isTrue(tail) && (limit != null))
+        if (tail == true && (limit != null))
         {
             return this.toArray(this.arraySlice(result, prefixUnaryNeg(ref limit)));
         }
@@ -963,9 +963,9 @@ public partial class BaseExchange
      * @description set the sandbox mode for the exchange
      * @param {boolean} enabled true to enable sandbox mode, false to disable it
      */
-    public virtual void setSandboxMode(object enabled)
+    public virtual void setSandboxMode(bool? enabled)
     {
-        if (isTrue(enabled))
+        if (enabled == true)
         {
             if (((IDictionary<string, object>)this.urls).ContainsKey("test"))
             {
@@ -1006,13 +1006,13 @@ public partial class BaseExchange
      * @description enables or disables demo trading mode
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
-    public virtual void enableDemoTrading(object enable)
+    public virtual void enableDemoTrading(bool enable)
     {
         if (this.isSandboxModeEnabled)
         {
             throw new NotSupported ((this.id + " demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
         }
-        if (isTrue(enable))
+        if (enable)
         {
             ((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
             ((IDictionary<string,object>)this.urls)["api"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("demo") ? ((IDictionary<string, object>)this.urls)["demo"] : null);
@@ -1407,7 +1407,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " fetchLeverages() is not supported yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " setPositionMode() is not supported yet")) ;
@@ -3336,7 +3336,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " watchOHLCV() is not supported yet")) ;
     }
 
-    public virtual List<object> convertTradingViewToOHLCV(object ohlcvs, object timestamp = null, object open = null, object high = null, object low = null, object close = null, object volume = null, object ms = null)
+    public virtual List<object> convertTradingViewToOHLCV(object ohlcvs, object timestamp = null, object open = null, object high = null, object low = null, object close = null, object volume = null, bool? ms = null)
     {
         timestamp ??= "t";
         open ??= "o";
@@ -3354,12 +3354,12 @@ public partial class BaseExchange
         List<object> volumes = this.safeList(ohlcvs, volume, new List<object>() {});
         for (int i = 0; i < (timestamps?.Count ?? 0); i++)
         {
-            result.Add(new List<object>() {isTrue(ms) ? this.safeInteger(timestamps, i) : this.safeTimestamp(timestamps, i), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i)});
+            result.Add(new List<object>() {ms == true ? this.safeInteger(timestamps, i) : this.safeTimestamp(timestamps, i), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i)});
         }
         return result;
     }
 
-    public virtual Dictionary<string, object> convertOHLCVToTradingView(object ohlcvs, object timestamp = null, object open = null, object high = null, object low = null, object close = null, object volume = null, object ms = null)
+    public virtual Dictionary<string, object> convertOHLCVToTradingView(object ohlcvs, object timestamp = null, object open = null, object high = null, object low = null, object close = null, object volume = null, bool? ms = null)
     {
         timestamp ??= "t";
         open ??= "o";
@@ -3377,7 +3377,7 @@ public partial class BaseExchange
         result[(string)volume] = new List<object>() {};
         for (int i = 0; i < getArrayLength(ohlcvs); i++)
         {
-            object ts = isTrue(ms) ? getValue(getValue(ohlcvs, i), 0) : this.parseToInt(divide(getValue(getValue(ohlcvs, i), 0), 1000));
+            object ts = ms == true ? getValue(getValue(ohlcvs, i), 0) : this.parseToInt(divide(getValue(getValue(ohlcvs, i), 0), 1000));
             object resultTimestamp = getValue(result, timestamp);
             ((IList<object>)resultTimestamp).Add(ts);
             object resultOpen = getValue(result, open);
@@ -3532,7 +3532,7 @@ public partial class BaseExchange
     }
 
     // allowEmpty: false always returns string[] (throws on empty/undefined at runtime)
-    public virtual IList<object> marketSymbols(object symbols = null, object type = null, object allowEmpty = null, object sameTypeOnly = null, object sameSubTypeOnly = null)
+    public virtual IList<object> marketSymbols(object symbols = null, object type = null, object allowEmpty = null, bool? sameTypeOnly = null, bool? sameSubTypeOnly = null)
     {
         /**
         * @param {string[]|undefined} symbols list of unified symbols
@@ -3569,14 +3569,14 @@ public partial class BaseExchange
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            if (isTrue(sameTypeOnly) && ((marketType != null)))
+            if (sameTypeOnly == true && ((marketType != null)))
             {
                 if (!isEqual((market.ContainsKey("type") ? market["type"] : null), marketType))
                 {
                     throw new BadRequest ((((((this.id + " symbols must be of the same type, either ") + marketType) + " or ") + ((market.ContainsKey("type") ? market["type"] : null))) + ".")) ;
                 }
             }
-            if (isTrue(sameSubTypeOnly) && ((isLinearSubType != null)))
+            if (sameSubTypeOnly == true && ((isLinearSubType != null)))
             {
                 if (!isEqual((market.ContainsKey("linear") ? market["linear"] : null), isLinearSubType))
                 {
@@ -3693,7 +3693,7 @@ public partial class BaseExchange
         };
     }
 
-    public virtual object prioritizedNetworkAliases(object networkCode = null, object currencyCode = null, object allowDefault = null)
+    public virtual object prioritizedNetworkAliases(object networkCode = null, object currencyCode = null, bool? allowDefault = null)
     {
         /**
         * @method
@@ -3739,7 +3739,7 @@ public partial class BaseExchange
             } else if ((currencyCode != null))
             {
                 preferPrimary = false; // any other (token) currency uses secondary chain
-            } else if (isTrue(allowDefault))
+            } else if (allowDefault == true)
             {
                 preferPrimary = (isEqual(getValue(entry, "default"), "primary"));
             } else
@@ -3877,7 +3877,7 @@ public partial class BaseExchange
         return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, false);
     }
 
-    public virtual object selectNetworkKeyFromNetworks(object currencyCode, object networkCode, object indexedNetworkEntries, object isIndexedByUnifiedNetworkCode = null)
+    public virtual object selectNetworkKeyFromNetworks(object currencyCode, object networkCode, object indexedNetworkEntries, bool? isIndexedByUnifiedNetworkCode = null)
     {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         isIndexedByUnifiedNetworkCode ??= false;
@@ -3892,7 +3892,7 @@ public partial class BaseExchange
             } else
             {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-                object networkIdOrCode = isTrue(isIndexedByUnifiedNetworkCode) ? networkCode : this.networkCodeToId(networkCode, currencyCode);
+                object networkIdOrCode = isIndexedByUnifiedNetworkCode == true ? networkCode : this.networkCodeToId(networkCode, currencyCode);
                 if ((networkIdOrCode == null))
                 {
                     throw new NotSupported ((string)((((this.id + " - ") + (networkCode)) + " network was not found for ") + (currencyCode))) ;
@@ -3914,7 +3914,7 @@ public partial class BaseExchange
             {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 object defaultNetworkCode = this.defaultNetworkCode(currencyCode);
-                object defaultNetworkId = isTrue(isIndexedByUnifiedNetworkCode) ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
+                object defaultNetworkId = isIndexedByUnifiedNetworkCode == true ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
                 if ((defaultNetworkId == null))
                 {
                     throw new ExchangeError ((this.id + " selectNetworkKeyFromNetworks() missing defaultNetworkId")) ;
@@ -3954,7 +3954,7 @@ public partial class BaseExchange
         }))));
     }
 
-    public virtual IList<object> parseOHLCVs(object ohlcvs, object market = null, string timeframe = null, object since = null, object limit = null, object tail = null)
+    public virtual IList<object> parseOHLCVs(object ohlcvs, object market = null, string timeframe = null, object since = null, object limit = null, bool? tail = null)
     {
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -4016,13 +4016,13 @@ public partial class BaseExchange
         return tiers;
     }
 
-    public async virtual Task<object> loadTradingLimits(IList<object> symbols = null, object reload = null, object parameters = null)
+    public async virtual Task<object> loadTradingLimits(IList<object> symbols = null, bool? reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchTradingLimits") ? this.has["fetchTradingLimits"] : null), null) && (((this.has.ContainsKey("fetchTradingLimits") ? this.has["fetchTradingLimits"] : null) as bool?) != false))
         {
-            if (isTrue(reload) || !(this.options.ContainsKey("limitsLoaded")))
+            if (reload == true || !(this.options.ContainsKey("limitsLoaded")))
             {
                 Dictionary<string, object> response = ccxt.BaseExchange.FromDict(await this.FetchTradingLimits(symbols));
                 object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
@@ -4123,7 +4123,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual IList<object> parseTradesHelper(object isWs, object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    public virtual IList<object> parseTradesHelper(bool isWs, object trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);
@@ -4131,7 +4131,7 @@ public partial class BaseExchange
         for (int i = 0; i < (tradesArray?.Count ?? 0); i++)
         {
             Dictionary<string, object> parsed = null;
-            if (isTrue(isWs))
+            if (isWs)
             {
                 parsed = this.parseWsTrade(tradesArray[i], market);
             } else
@@ -4310,14 +4310,14 @@ public partial class BaseExchange
         return new List<object>() {value, paramsOmitted};
     }
 
-    public virtual List<object> handleParamBool(object parameters, object paramName, object defaultValue = null)
+    public virtual List<object> handleParamBool(object parameters, object paramName, bool? defaultValue = null)
     {
         bool? value = this.safeBool(parameters, paramName, defaultValue);
         object paramsOmitted = ((value != null)) ? this.omit(parameters, paramName) : parameters;
         return new List<object>() {value, paramsOmitted};
     }
 
-    public virtual List<object> handleParamBool2(object parameters, object paramName1, object paramName2, object defaultValue = null)
+    public virtual List<object> handleParamBool2(object parameters, object paramName1, object paramName2, bool? defaultValue = null)
     {
         bool? value = this.safeBool2(parameters, paramName1, paramName2, defaultValue);
         object paramsOmitted = ((value != null)) ? this.omit(parameters, new List<object>() {paramName1, paramName2}) : parameters;
@@ -4368,7 +4368,7 @@ public partial class BaseExchange
         return results;
     }
 
-    public virtual object getSymbolsForMarketType(string? marketType = null, string? subType = null, object symbolWithActiveStatus = null, object symbolWithUnknownStatus = null)
+    public virtual object getSymbolsForMarketType(string? marketType = null, string? subType = null, bool? symbolWithActiveStatus = null, bool? symbolWithUnknownStatus = null)
     {
         symbolWithActiveStatus ??= true;
         symbolWithUnknownStatus ??= true;
@@ -4383,11 +4383,11 @@ public partial class BaseExchange
             filteredMarkets = this.filterBy(filteredMarkets, "subType", subType);
         }
         List<object> activeStatuses = new List<object>() {};
-        if (isTrue(symbolWithActiveStatus))
+        if (symbolWithActiveStatus == true)
         {
             activeStatuses.Add(true);
         }
-        if (isTrue(symbolWithUnknownStatus))
+        if (symbolWithUnknownStatus == true)
         {
             activeStatuses.Add(null);
         }
@@ -4395,7 +4395,7 @@ public partial class BaseExchange
         return this.getListFromObjectValues(filteredMarkets, "symbol");
     }
 
-    public virtual object filterByArray(object objects, object key, object values = null, object indexed = null)
+    public virtual object filterByArray(object objects, object key, object values = null, bool? indexed = null)
     {
         indexed ??= true;
         IList<object> objectsValue = this.toArray(objects);
@@ -4403,7 +4403,7 @@ public partial class BaseExchange
         if (((values == null)) || ((values == null)) || (isEqual(values, false)) || (isEqual(values, 0)) || (isEqual(values, "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
-            if (isTrue(indexed))
+            if (indexed == true)
             {
                 return this.indexBy(objectsValue, key);
             } else
@@ -4420,14 +4420,14 @@ public partial class BaseExchange
             }
         }
         // return indexed ? this.indexBy (results, key) : results;
-        if (isTrue(indexed))
+        if (indexed == true)
         {
             return this.indexBy(results, key);
         }
         return results;
     }
 
-    public virtual object filterOutByArray(object objects, object key, object values = null, object indexed = null)
+    public virtual object filterOutByArray(object objects, object key, object values = null, bool? indexed = null)
     {
         indexed ??= true;
         IList<object> objectsValue = this.toArray(objects);
@@ -4435,7 +4435,7 @@ public partial class BaseExchange
         if (((values == null)) || ((values == null)) || (isEqual(values, false)) || (isEqual(values, 0)) || (isEqual(values, "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
-            if (isTrue(indexed))
+            if (indexed == true)
             {
                 return this.indexBy(objectsValue, key);
             } else
@@ -4452,7 +4452,7 @@ public partial class BaseExchange
             }
         }
         // return indexed ? this.indexBy (results, key) : results;
-        if (isTrue(indexed))
+        if (indexed == true)
         {
             return this.indexBy(results, key);
         }
@@ -4552,11 +4552,11 @@ public partial class BaseExchange
         return await this.fetch2(path, api, method, parameters, headers, body, config);
     }
 
-    public async virtual Task<object> loadAccounts(object reload = null, object parameters = null)
+    public async virtual Task<object> loadAccounts(bool? reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(reload))
+        if (reload == true)
         {
             this.accounts = ccxt.BaseExchange.FromAccountList(await this.FetchAccounts(parameters));
         } else
@@ -5726,7 +5726,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " createExpiredOptionMarket () is not supported yet")) ;
     }
 
-    public virtual bool isLeveragedCurrency(object currencyCode, object checkBaseCoin = null, object existingCurrencies = null)
+    public virtual bool isLeveragedCurrency(object currencyCode, bool? checkBaseCoin = null, object existingCurrencies = null)
     {
         checkBaseCoin ??= false;
         List<object> leverageSuffixes = new List<object>() {"2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"};
@@ -5736,7 +5736,7 @@ public partial class BaseExchange
             bool endsWithSuffix = ((string)currencyCode).EndsWith(leverageSuffix);
             if (endsWithSuffix)
             {
-                if (!isTrue(checkBaseCoin))
+                if (checkBaseCoin != true)
                 {
                     return true;
                 } else
@@ -6011,19 +6011,19 @@ public partial class BaseExchange
         return ((string?)((object)((currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null))));
     }
 
-    public virtual IList<object> filterBySymbolSinceLimit(object array, object symbol = null, object since = null, object limit = null, object tail = null)
+    public virtual IList<object> filterBySymbolSinceLimit(object array, object symbol = null, object since = null, object limit = null, bool? tail = null)
     {
         tail ??= false;
         return this.filterByValueSinceLimit(array, "symbol", symbol, since, limit, "timestamp", tail);
     }
 
-    public virtual IList<object> filterByCurrencySinceLimit(object array, string code = null, object since = null, object limit = null, object tail = null)
+    public virtual IList<object> filterByCurrencySinceLimit(object array, string code = null, object since = null, object limit = null, bool? tail = null)
     {
         tail ??= false;
         return this.filterByValueSinceLimit(array, "currency", code, since, limit, "timestamp", tail);
     }
 
-    public virtual IList<object> filterBySymbolsSinceLimit(object array, IList<object> symbols = null, Int64? since = null, Int64? limit = null, object tail = null)
+    public virtual IList<object> filterBySymbolsSinceLimit(object array, IList<object> symbols = null, Int64? since = null, Int64? limit = null, bool? tail = null)
     {
         tail ??= false;
         IList<object> result = ((IList<object>)this.filterByArray(array, "symbol", symbols, false));
@@ -6125,7 +6125,7 @@ public partial class BaseExchange
         return ((Dictionary<string, object>)((object)(this.filterByArray(results, "symbol", symbolsNormalized))));
     }
 
-    public virtual object parseDepositAddresses(object addresses, object codes = null, object indexed = null, object parameters = null)
+    public virtual object parseDepositAddresses(object addresses, object codes = null, bool? indexed = null, object parameters = null)
     {
         indexed ??= true;
         parameters ??= new Dictionary<string, object>();
@@ -6139,7 +6139,7 @@ public partial class BaseExchange
         {
             result = this.filterByArray(result, "currency", codes, false);
         }
-        if (isTrue(indexed))
+        if (indexed == true)
         {
             result = this.filterByArray(result, "currency", null, indexed);
         }
@@ -6245,7 +6245,7 @@ public partial class BaseExchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public virtual List<object> handleTriggerPricesAndParams(object symbol, object parameters, object omitParams = null)
+    public virtual List<object> handleTriggerPricesAndParams(object symbol, object parameters, bool? omitParams = null)
     {
         //
         omitParams ??= true;
@@ -6259,7 +6259,7 @@ public partial class BaseExchange
         List<object> keysToOmit = new List<object>() {};
         if ((triggerPrice != null))
         {
-            if (isTrue(omitParams))
+            if (omitParams == true)
             {
                 keysToOmit.Add("triggerPrice");
                 keysToOmit.Add("stopPrice");
@@ -6268,7 +6268,7 @@ public partial class BaseExchange
         }
         if ((stopLossPrice != null))
         {
-            if (isTrue(omitParams))
+            if (omitParams == true)
             {
                 keysToOmit.Add("stopLossPrice");
             }
@@ -6276,7 +6276,7 @@ public partial class BaseExchange
         }
         if ((takeProfitPrice != null))
         {
-            if (isTrue(omitParams))
+            if (omitParams == true)
             {
                 keysToOmit.Add("takeProfitPrice");
             }
@@ -6287,7 +6287,7 @@ public partial class BaseExchange
         return new List<object>() {triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted};
     }
 
-    public virtual List<object> handleTriggerDirectionAndParams(object parameters, object exchangeSpecificKey = null, object allowEmpty = null)
+    public virtual List<object> handleTriggerDirectionAndParams(object parameters, object exchangeSpecificKey = null, bool? allowEmpty = null)
     {
         /**
         * @ignore
@@ -6301,7 +6301,7 @@ public partial class BaseExchange
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
         // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
-        if (!this.inArray(triggerDirection, new List<object>() {"ascending", "descending", "up", "down", "above", "below"}) && !exchangeSpecificDefined && !isTrue(allowEmpty))
+        if (!this.inArray(triggerDirection, new List<object>() {"ascending", "descending", "up", "down", "above", "below"}) && !exchangeSpecificDefined && allowEmpty != true)
         {
             throw new ArgumentsRequired ((this.id + " createOrder() : trigger orders require params[\"triggerDirection\"] to be either \"ascending\" or \"descending\"")) ;
         }
@@ -6883,7 +6883,7 @@ public partial class BaseExchange
         }
     }
 
-    public virtual object filterByArrayPositions(object objects, object key, object values = null, object indexed = null)
+    public virtual object filterByArrayPositions(object objects, object key, object values = null, bool? indexed = null)
     {
         /**
         * @ignore
@@ -6894,7 +6894,7 @@ public partial class BaseExchange
         return this.filterByArray(objects, key, values, indexed);
     }
 
-    public virtual object filterByArrayTickers(object objects, object key, object values = null, object indexed = null)
+    public virtual object filterByArrayTickers(object objects, object key, object values = null, bool? indexed = null)
     {
         /**
         * @ignore
@@ -6905,7 +6905,7 @@ public partial class BaseExchange
         return this.filterByArray(objects, key, values, indexed);
     }
 
-    public virtual object filterByArrayADLRanks(object objects, object key, object values = null, object indexed = null)
+    public virtual object filterByArrayADLRanks(object objects, object key, object values = null, bool? indexed = null)
     {
         /**
         * @ignore
@@ -6935,7 +6935,7 @@ public partial class BaseExchange
         return new List<object>() {maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest};
     }
 
-    public async virtual Task<object> fetchPaginatedCallDynamic(object method, object symbol = null, object since = null, object limit = null, object parameters = null, object maxEntriesPerRequest = null, object removeRepeated = null)
+    public async virtual Task<object> fetchPaginatedCallDynamic(object method, object symbol = null, object since = null, object limit = null, object parameters = null, object maxEntriesPerRequest = null, bool? removeRepeated = null)
     {
         parameters ??= new Dictionary<string, object>();
         removeRepeated ??= true;
@@ -7358,7 +7358,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual object removeRepeatedElementsFromArray(object input, object fallbackToTimestamp = null)
+    public virtual object removeRepeatedElementsFromArray(object input, bool? fallbackToTimestamp = null)
     {
         fallbackToTimestamp ??= true;
         Dictionary<string, object> uniqueDic = new Dictionary<string, object>() {};
@@ -7366,7 +7366,7 @@ public partial class BaseExchange
         for (int i = 0; i < getArrayLength(input); i++)
         {
             object entry = getValue(input, i);
-            string? uniqValue = isTrue(fallbackToTimestamp) ? this.safeStringN(entry, new List<object>() {"id", "timestamp", 0}) : this.safeString(entry, "id");
+            string? uniqValue = fallbackToTimestamp == true ? this.safeStringN(entry, new List<object>() {"id", "timestamp", 0}) : this.safeString(entry, "id");
             if ((uniqValue != null) && !(((uniqValue != null) && (uniqueDic?.ContainsKey(uniqValue) == true))))
             {
                 uniqueDic[(string)uniqValue] = 1;
@@ -7838,14 +7838,14 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " unWatchBidsAsks () is not supported yet")) ;
     }
 
-    public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, object subHashIsPrefix = null)
+    public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, bool? subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
         if (((unsubHash != null)) && (inOp(client.subscriptions, unsubHash)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
-        if (!isTrue(subHashIsPrefix))
+        if (subHashIsPrefix != true)
         {
             if (((subHash != null)) && (inOp(client.subscriptions, subHash)))
             {

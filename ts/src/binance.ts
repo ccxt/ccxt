@@ -3804,6 +3804,7 @@ export default class binance extends Exchange {
         let fees: Dict = this.fees;
         let linear: Bool = undefined;
         let inverse: Bool = undefined;
+        let subType: SubType = undefined;
         let symbol = base + '/' + quote;
         let strike: Str = undefined;
         if (contract) {
@@ -3818,6 +3819,11 @@ export default class binance extends Exchange {
             contractSize = this.safeNumber2 (market, 'contractSize', 'unit', this.parseNumber ('1'));
             linear = settle === quote;
             inverse = settle === base;
+            if (linear === true) {
+                subType = 'linear';
+            } else if (inverse === true) {
+                subType = 'inverse';
+            }
             let feesType: Str = 'inverse';
             if (linear) {
                 feesType = 'linear';
@@ -3892,6 +3898,7 @@ export default class binance extends Exchange {
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
+            'subType': subType,
             'taker': fees['trading']['taker'],
             'maker': fees['trading']['maker'],
             'contractSize': contractSize,

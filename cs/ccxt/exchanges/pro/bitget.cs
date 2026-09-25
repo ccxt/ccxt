@@ -95,7 +95,7 @@ public partial class bitget : ccxt.bitget
         });
     }
 
-    public virtual List<object> getInstType(object methodName, IDictionary<string, object> market, object uta = null, object parameters = null)
+    public virtual List<object> getInstType(object methodName, IDictionary<string, object> market, bool? uta = null, object parameters = null)
     {
         uta ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -114,7 +114,7 @@ public partial class bitget : ccxt.bitget
         string? instTypeOption = (string)instTypeOptionparamsInstTypeVariable[0];
         IDictionary<string, object> paramsInstType = ((IDictionary<string, object>)instTypeOptionparamsInstTypeVariable[1]);
         string? instType = instTypeOption;
-        if (isTrue(uta) && ((instTypeOption != null)))
+        if (uta == true && ((instTypeOption != null)))
         {
             instType = instTypeOption.ToLower();
         }

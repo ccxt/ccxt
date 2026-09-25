@@ -3588,9 +3588,7 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 		var settle *string = SafeStringPtr(GetValue(market, "settle"))
 		if GetValue(market, "spot") == true {
 			var marginMode *string = nil
-			var marginModeparamsSubTypeVariable []any = this.HandleMarginModeAndParams("handleProductTypeAndParams", paramsSubType)
-			marginMode = SafeStringPtr(GetValue(marginModeparamsSubTypeVariable, 0))
-			paramsSubType = GetValue(marginModeparamsSubTypeVariable, 1)
+			marginMode, paramsSubType = this.HandleMarginModeAndParams("handleProductTypeAndParams", paramsSubType)
 			if marginMode != nil {
 				productType = SafeStringPtr("MARGIN")
 			} else {
@@ -3757,7 +3755,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 	var types []any = nil
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
 	var defaultMarkets []any = []any{"spot", "swap"}
-	if !IsEqual(fetchMarketsOptions, nil) {
+	if fetchMarketsOptions != nil {
 		types = ListTyped(this.SafeList(fetchMarketsOptions, "types", defaultMarkets))
 	} else {
 		// for backward-compatibility
@@ -4536,9 +4534,7 @@ func (this *Bitget) fetchMarketLeverageTiersBody(ch chan any, symbol string, opt
 	var productType *string = nil
 	var uta any = nil
 	var paramsMarginMode any = nil
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, "isolated")
-	marginMode = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	paramsMarginMode = GetValue(marginModeparamsMarginModeVariable, 1)
+	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, "isolated")
 	productTypeparamsMarginModeVariable := this.HandleProductTypeAndParams(market, paramsMarginMode)
 	productType = SafeStringPtr(GetValue(productTypeparamsMarginModeVariable, 0))
 	paramsMarginMode = GetValue(productTypeparamsMarginModeVariable, 1)
@@ -4776,9 +4772,7 @@ func (this *Bitget) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchDeposits", false))))
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(GetValue(utaparamsUTAVariable, 1))
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsUTA, "fetchDeposits", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsUTA, "fetchDeposits", "paginate", false)
 	if paginate {
 		if IsEqual(uta, true) {
 
@@ -5040,9 +5034,7 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchWithdrawals", false))))
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(GetValue(utaparamsUTAVariable, 1))
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsUTA, "fetchWithdrawals", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsUTA, "fetchWithdrawals", "paginate", false)
 	if paginate {
 		if IsEqual(uta, true) {
 
@@ -6256,9 +6248,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var paginate bool = false
 	var paramsPaginate any = nil
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = GetValue(paginateparamsPaginateVariable, 1)
+	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	if paginate {
 
 		var retRes427519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, paramsPaginate, "idLessThan", "idLessThan"))))
@@ -6291,9 +6281,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	if uta == true {
 		if productType != nil && *productType == "SPOT" {
 			var marginMode *string = nil
-			var marginModeparamsPaginateVariable []any = this.HandleMarginModeAndParams("fetchTrades", paramsPaginate)
-			marginMode = SafeStringPtr(GetValue(marginModeparamsPaginateVariable, 0))
-			paramsPaginate = GetValue(marginModeparamsPaginateVariable, 1)
+			marginMode, paramsPaginate = this.HandleMarginModeAndParams("fetchTrades", paramsPaginate)
 			if marginMode != nil {
 				productType = SafeStringPtr("MARGIN")
 			}
@@ -6456,9 +6444,7 @@ func (this *Bitget) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs
 		return nil
 	}
 	var marginMode *string = nil
-	var marginModeparamsUTAVariable []any = this.HandleMarginModeAndParams("fetchTradingFee", paramsUTA)
-	marginMode = SafeStringPtr(GetValue(marginModeparamsUTAVariable, 0))
-	paramsUTA = GetValue(marginModeparamsUTAVariable, 1)
+	marginMode, paramsUTA = this.HandleMarginModeAndParams("fetchTradingFee", paramsUTA)
 	if GetValue(market, "spot") == true {
 		if marginMode != nil {
 			request["businessType"] = "margin"
@@ -6519,9 +6505,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var marginMode *string = nil
 	var marketType *string = nil
 	var paramsMarginMode any = nil
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchTradingFees", params)
-	marginMode = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	paramsMarginMode = GetValue(marginModeparamsMarginModeVariable, 1)
+	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("fetchTradingFees", params)
 	marketType, paramsMarginMode = this.HandleMarketTypeAndParams("fetchTradingFees", nil, paramsMarginMode)
 	var uta any = nil
 	var utaparamsMarginModeVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "fetchTradingFees", false))))
@@ -6784,9 +6768,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var maxLimitForHistoryEndpoint int = 200 // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
 	var useHistoryEndpoint *bool = this.SafeBool(params, "useHistoryEndpoint", false)
 	var useHistoryEndpointForPagination *bool = this.SafeBool(params, "useHistoryEndpointForPagination", true)
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 		var limitForPagination int = func() int {
 			if useHistoryEndpointForPagination != nil && *useHistoryEndpointForPagination == true {
@@ -7028,9 +7010,7 @@ func (this *Bitget) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	uta = GetValue(utaparamsUTAVariable, 0)
 	paramsUTA = GetValue(utaparamsUTAVariable, 1)
 	marketType, paramsUTA = this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUTA)
-	var marginModeparamsUTAVariable []any = this.HandleMarginModeAndParams("fetchBalance", paramsUTA)
-	marginMode = SafeStringPtr(GetValue(marginModeparamsUTAVariable, 0))
-	paramsUTA = GetValue(marginModeparamsUTAVariable, 1)
+	marginMode, paramsUTA = this.HandleMarginModeAndParams("fetchBalance", paramsUTA)
 	if uta == true {
 		var assets any = nil
 		if marketType != nil && *marketType == "funding" {
@@ -7771,7 +7751,7 @@ func (this *Bitget) createOrderBody(ch chan any, symbol string, typeVar string, 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var marginParams any = this.HandleMarginModeAndParams("createOrder", params)
+	var marginParams any = TupleSlice(this.HandleMarginModeAndParams("createOrder", params))
 	var marginMode *string = SafeStringPtr(GetValue(marginParams, 0))
 	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
 	var stopLossTriggerPrice *float64 = this.SafeNumber(params, "stopLossPrice")
@@ -7859,9 +7839,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	paramsProductType = GetValue(productTypeparamsProductTypeVariable, 1)
 	if productType != nil && *productType == "SPOT" {
 		var marginMode *string = nil
-		var marginModeparamsProductTypeVariable []any = this.HandleMarginModeAndParams("createOrder", paramsProductType)
-		marginMode = SafeStringPtr(GetValue(marginModeparamsProductTypeVariable, 0))
-		paramsProductType = GetValue(marginModeparamsProductTypeVariable, 1)
+		marginMode, paramsProductType = this.HandleMarginModeAndParams("createOrder", paramsProductType)
 		if marginMode != nil {
 			productType = SafeStringPtr("MARGIN")
 		}
@@ -8002,9 +7980,7 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var marginMode *string = nil
 	var paramsMarketType any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("createOrder", market, params)
-	var marginModeparamsMarketTypeVariable []any = this.HandleMarginModeAndParams("createOrder", paramsMarketType)
-	marginMode = SafeStringPtr(GetValue(marginModeparamsMarketTypeVariable, 0))
-	paramsMarketType = GetValue(marginModeparamsMarketTypeVariable, 1)
+	marginMode, paramsMarketType = this.HandleMarginModeAndParams("createOrder", paramsMarketType)
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
 		"orderType": typeVar,
@@ -8214,9 +8190,7 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 		var quantity any = nil
 		var planType string
 		var createMarketBuyOrderRequiresPrice bool = true
-		var createMarketBuyOrderRequiresPriceparamsMarketTypeVariable []any = this.HandleOptionBoolAndParams(paramsMarketType, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-		createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsMarketTypeVariable, 0, false)
-		paramsMarketType = GetValue(createMarketBuyOrderRequiresPriceparamsMarketTypeVariable, 1)
+		createMarketBuyOrderRequiresPrice, paramsMarketType = this.HandleOptionBoolAndParams(paramsMarketType, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		if isMarketOrder && (IsEqual(side, "buy")) {
 			planType = "total"
 			var cost *float64 = this.SafeNumber(paramsMarketType, "cost")
@@ -8299,7 +8273,7 @@ func (this *Bitget) createUtaOrdersBody(ch chan any, orders any, optionalArgs ..
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
+		var marginResult any = TupleSlice(this.HandleMarginModeAndParams("createOrders", orderParams))
 		var currentMarginMode *string = SafeStringPtr(GetValue(marginResult, 0))
 		if currentMarginMode != nil {
 			if marginMode == nil {
@@ -8392,7 +8366,7 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
+		var marginResult any = TupleSlice(this.HandleMarginModeAndParams("createOrders", orderParams))
 		var currentMarginMode *string = SafeStringPtr(GetValue(marginResult, 0))
 		if currentMarginMode != nil {
 			if marginMode == nil {
@@ -8776,9 +8750,7 @@ func (this *Bitget) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var marginMode *string = nil
 	var response any = map[string]any{}
 	var paramsMarginMode any = nil
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("cancelOrder", params)
-	marginMode = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	paramsMarginMode = GetValue(marginModeparamsMarginModeVariable, 1)
+	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("cancelOrder", params)
 	var request map[string]any = map[string]any{}
 	var trailing *bool = this.SafeBool(paramsMarginMode, "trailing")
 	var trigger *bool = this.SafeBool2(paramsMarginMode, "stop", "trigger")
@@ -9037,9 +9009,7 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		return nil
 	}
 	var marginMode *string = nil
-	var marginModeparamsUTAVariable []any = this.HandleMarginModeAndParams("cancelOrders", paramsUTA)
-	marginMode = SafeStringPtr(GetValue(marginModeparamsUTAVariable, 0))
-	paramsUTA = GetValue(marginModeparamsUTAVariable, 1)
+	marginMode, paramsUTA = this.HandleMarginModeAndParams("cancelOrders", paramsUTA)
 	var trigger *bool = this.SafeBool2(paramsUTA, "stop", "trigger")
 	paramsUTA = this.Omit(paramsUTA, []any{"stop", "trigger"})
 	var orderIdList []any = []any{}
@@ -9147,9 +9117,7 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = this.Market(symbol)
 	var marginMode *string = nil
 	var paramsMarginMode any = nil
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("cancelAllOrders", params)
-	marginMode = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	paramsMarginMode = GetValue(marginModeparamsMarginModeVariable, 1)
+	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("cancelAllOrders", params)
 	var productType *string = nil
 	productTypeparamsMarginModeVariable := this.HandleProductTypeAndParams(market, paramsMarginMode)
 	productType = SafeStringPtr(GetValue(productTypeparamsMarginModeVariable, 0))
@@ -9223,7 +9191,7 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var resultList any = this.SafeListN(data, []any{"resultList", "successList", "list"})
 	var failureList []any = SafeList2Typed(data, "failure", "failureList")
 	var responseList any = nil
-	if (!IsEqual(resultList, nil)) && ((failureList != nil)) {
+	if ((resultList != nil)) && ((failureList != nil)) {
 		responseList = this.ArrayConcat(resultList, failureList)
 	} else {
 		responseList = resultList
@@ -9419,7 +9387,7 @@ func (this *Bitget) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		response = JsonParse(response)
 	}
 	var data any = this.SafeDict(response, "data")
-	if !IsEqual(data, nil) {
+	if data != nil {
 		if !IsArray(data) {
 
 			ch <- this.ParseOrder(data, market)
@@ -9486,9 +9454,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var marginMode *string = nil
 	var paramsMarginMode any = nil
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchOpenOrders", params)
-	marginMode = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	paramsMarginMode = GetValue(marginModeparamsMarginModeVariable, 1)
+	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("fetchOpenOrders", params)
 	var uta any = nil
 	var utaparamsMarginModeVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "fetchOpenOrders", false))))
 	uta = GetValue(utaparamsMarginModeVariable, 0)
@@ -9507,9 +9473,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		typeVar = this.SafeString(paramsMarginMode, "type", defaultType)
 	}
 	var paginate bool = false
-	var paginateparamsMarginModeVariable []any = this.HandleOptionBoolAndParams(paramsMarginMode, "fetchOpenOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsMarginModeVariable, 0, false)
-	paramsMarginMode = GetValue(paginateparamsMarginModeVariable, 1)
+	paginate, paramsMarginMode = this.HandleOptionBoolAndParams(paramsMarginMode, "fetchOpenOrders", "paginate", false)
 	if paginate {
 		var cursorReceived any = nil
 		var cursorSent any = nil
@@ -10062,13 +10026,9 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	var marketType *string = nil
 	marketType, paramsUTA = this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, paramsUTA)
 	var marginMode *string = nil
-	var marginModeparamsUTAVariable []any = this.HandleMarginModeAndParams("fetchCanceledAndClosedOrders", paramsUTA)
-	marginMode = SafeStringPtr(GetValue(marginModeparamsUTAVariable, 0))
-	paramsUTA = GetValue(marginModeparamsUTAVariable, 1)
+	marginMode, paramsUTA = this.HandleMarginModeAndParams("fetchCanceledAndClosedOrders", paramsUTA)
 	var paginate bool = false
-	var paginateparamsUTAVariable []any = this.HandleOptionBoolAndParams(paramsUTA, "fetchCanceledAndClosedOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsUTAVariable, 0, false)
-	paramsUTA = GetValue(paginateparamsUTAVariable, 1)
+	paginate, paramsUTA = this.HandleOptionBoolAndParams(paramsUTA, "fetchCanceledAndClosedOrders", "paginate", false)
 	if paginate {
 		var cursorReceived any = nil
 		if marketType != nil && *marketType == "spot" {
@@ -10399,9 +10359,7 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	paramsProductType = GetValue(productTypeparamsProductTypeVariable, 1)
 	if productType != nil && *productType == "SPOT" {
 		var marginMode *string = nil
-		var marginModeparamsProductTypeVariable []any = this.HandleMarginModeAndParams("fetchCanceledAndClosedOrders", paramsProductType)
-		marginMode = SafeStringPtr(GetValue(marginModeparamsProductTypeVariable, 0))
-		paramsProductType = GetValue(marginModeparamsProductTypeVariable, 1)
+		marginMode, paramsProductType = this.HandleMarginModeAndParams("fetchCanceledAndClosedOrders", paramsProductType)
 		if marginMode != nil {
 			productType = SafeStringPtr("MARGIN")
 		}
@@ -10410,9 +10368,7 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
 		"category": productType,
 	}
 	var paginate bool = false
-	var paginateparamsProductTypeVariable []any = this.HandleOptionBoolAndParams(paramsProductType, "fetchCanceledAndClosedOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsProductTypeVariable, 0, false)
-	paramsProductType = GetValue(paginateparamsProductTypeVariable, 1)
+	paginate, paramsProductType = this.HandleOptionBoolAndParams(paramsProductType, "fetchCanceledAndClosedOrders", "paginate", false)
 	if paginate {
 
 		var retRes788719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsProductType, "cursor", "cursor"))))
@@ -10579,9 +10535,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	uta = GetValue(utaparamsOmittedVariable, 0)
 	paramsOmitted = GetValue(utaparamsOmittedVariable, 1)
 	var paginate bool = false
-	var paginateparamsOmittedVariable []any = this.HandleOptionBoolAndParams(paramsOmitted, "fetchLedger", "paginate", false)
-	paginate = GetValueBool(paginateparamsOmittedVariable, 0, false)
-	paramsOmitted = GetValue(paginateparamsOmittedVariable, 1)
+	paginate, paramsOmitted = this.HandleOptionBoolAndParams(paramsOmitted, "fetchLedger", "paginate", false)
 	if paginate {
 		if uta == true {
 			// re-inject the resolved modes, the handle* helpers stripped them from params and the recursive paginated calls would silently fall back to the defaults
@@ -10636,9 +10590,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 			response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3AccountFundingFinancialRecords(this.Extend(request, paramsOmitted))).Raw))
 		} else {
 			var marginMode *string = nil
-			var marginModeparamsOmittedVariable []any = this.HandleMarginModeAndParams("fetchLedger", paramsOmitted)
-			marginMode = SafeStringPtr(GetValue(marginModeparamsOmittedVariable, 0))
-			paramsOmitted = GetValue(marginModeparamsOmittedVariable, 1)
+			marginMode, paramsOmitted = this.HandleMarginModeAndParams("fetchLedger", paramsOmitted)
 			if marketType != nil && *marketType == "spot" {
 				if marginMode != nil {
 					request["category"] = "MARGIN"
@@ -11086,12 +11038,8 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paginate bool = false
 	var marginMode *string = nil
-	var paginateparamsUTAVariable []any = this.HandleOptionBoolAndParams(paramsUTA, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsUTAVariable, 0, false)
-	paramsUTA = GetValue(paginateparamsUTAVariable, 1)
-	var marginModeparamsUTAVariable []any = this.HandleMarginModeAndParams("fetchMyTrades", paramsUTA)
-	marginMode = SafeStringPtr(GetValue(marginModeparamsUTAVariable, 0))
-	paramsUTA = GetValue(marginModeparamsUTAVariable, 1)
+	paginate, paramsUTA = this.HandleOptionBoolAndParams(paramsUTA, "fetchMyTrades", "paginate", false)
+	marginMode, paramsUTA = this.HandleMarginModeAndParams("fetchMyTrades", paramsUTA)
 	if paginate {
 		var cursorReceived any = nil
 		var cursorSent any = nil
@@ -11456,9 +11404,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paginate bool = false
 	var paramsPaginate any = nil
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchPositions", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = GetValue(paginateparamsPaginateVariable, 1)
+	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchPositions", "paginate", false)
 	if paginate {
 
 		var retRes884719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchPositions", nil, nil, nil, paramsPaginate, "endId", "idLessThan"))))
@@ -11952,9 +11898,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		result = ListTyped(this.SafeList(data, "resultList", []any{}))
 	} else {
 		var paginate bool = false
-		var paginateparamsProductTypeVariable []any = this.HandleOptionBoolAndParams(paramsProductType, "fetchFundingRateHistory", "paginate", false)
-		paginate = GetValueBool(paginateparamsProductTypeVariable, 0, false)
-		paramsProductType = GetValue(paginateparamsProductTypeVariable, 1)
+		paginate, paramsProductType = this.HandleOptionBoolAndParams(paramsProductType, "fetchFundingRateHistory", "paginate", false)
 		if paginate {
 
 			var retRes930223 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, paramsProductType, "pageNo", 100))))
@@ -12342,9 +12286,7 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchFundingHistory", false))))
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(GetValue(utaparamsUTAVariable, 1))
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsUTA, "fetchFundingHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsUTA, "fetchFundingHistory", "paginate", false)
 	if paginate {
 		if IsEqual(uta, true) {
 
@@ -12742,9 +12684,7 @@ func (this *Bitget) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	if uta == true {
 		if productType != nil && *productType == "SPOT" {
 			var marginMode *string = nil
-			var marginModeparamsProductTypeVariable []any = this.HandleMarginModeAndParams("setLeverage", paramsProductType)
-			marginMode = SafeStringPtr(GetValue(marginModeparamsProductTypeVariable, 0))
-			paramsProductType = GetValue(marginModeparamsProductTypeVariable, 1)
+			marginMode, paramsProductType = this.HandleMarginModeAndParams("setLeverage", paramsProductType)
 			if marginMode != nil {
 				productType = SafeStringPtr("MARGIN")
 			}
@@ -13639,9 +13579,7 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyLiquidations", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchMyLiquidations", "paginate", false)
 	if paginate {
 
 		var retRes1076519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyLiquidations", symbol, since, limit, paramsPaginate, "minId", "idLessThan"))))
@@ -13667,9 +13605,7 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 		AddElementToObject(requestUntil, "limit", limit)
 	}
 	var response map[string]any = nil
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchMyLiquidations", paramsUntil, "cross")
-	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchMyLiquidations", paramsUntil, "cross")
 	if marginMode != nil && *marginMode == "isolated" {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " fetchMyLiquidations() requires a symbol argument"))
@@ -14091,9 +14027,7 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchBorrowInterest", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchBorrowInterest", "paginate", false)
 	if paginate {
 
 		var retRes1115619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchBorrowInterest", symbol, since, limit, paramsPaginate, "minId", "idLessThan"))))
@@ -14119,9 +14053,7 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 		request["limit"] = limit
 	}
 	var response map[string]any = nil
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchBorrowInterest", paramsPaginate, "cross")
-	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBorrowInterest", paramsPaginate, "cross")
 	if marginMode != nil && *marginMode == "isolated" {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " fetchBorrowInterest() requires a symbol argument"))
@@ -14986,7 +14918,7 @@ func (this *Bitget) ParseLongShortRatio(info any, optionalArgs ...any) any {
 	}
 }
 func (this *Bitget) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
 	//

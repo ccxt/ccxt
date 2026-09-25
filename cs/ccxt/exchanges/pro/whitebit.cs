@@ -994,7 +994,7 @@ public partial class whitebit : ccxt.whitebit
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> watchMultipleSubscription(object messageHash, object method, object symbol, object isNested = null, object parameters = null)
+    public async virtual Task<object> watchMultipleSubscription(object messageHash, object method, object symbol, bool? isNested = null, object parameters = null)
     {
         isNested ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -1017,7 +1017,7 @@ public partial class whitebit : ccxt.whitebit
                 subscription[(string)marketId] = true;
             }
             marketIds = new List<object>() {marketId};
-            if (isTrue(isNested))
+            if (isNested == true)
             {
                 marketIds = new List<object>() {marketIds};
             }
@@ -1052,7 +1052,7 @@ public partial class whitebit : ccxt.whitebit
                 // resubscribe
                 List<object> marketIdsNew = new List<object>() {};
                 marketIdsNew = new List<object>(((IDictionary<string,object>)subscription).Keys);
-                if (isTrue(isNested))
+                if (isNested == true)
                 {
                     marketIdsNew = new List<object>() {marketIdsNew};
                 }

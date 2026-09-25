@@ -1880,7 +1880,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Object update = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}}, limit);
                 Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
-                Helpers.addElementToObject(orderbook, "symbol", symbol);
+                orderbook.put("symbol", symbol);
                 this.handleOrderBookMessage(client, (Map<String, Object>) (update), orderbook, messageHash, market);
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                 {

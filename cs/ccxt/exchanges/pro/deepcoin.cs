@@ -108,7 +108,7 @@ public partial class deepcoin : ccxt.deepcoin
         return newValue;
     }
 
-    public virtual Dictionary<string, object> createPublicRequest(IDictionary<string, object> market, object requestId, object topicID, object suffix = null, object unWatch = null)
+    public virtual Dictionary<string, object> createPublicRequest(IDictionary<string, object> market, object requestId, object topicID, object suffix = null, bool? unWatch = null)
     {
         suffix ??= "";
         unWatch ??= false;
@@ -118,7 +118,7 @@ public partial class deepcoin : ccxt.deepcoin
             marketId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
         }
         string action = "1"; // subscribe
-        if (isTrue(unWatch))
+        if (unWatch == true)
         {
             action = "0"; // unsubscribe
         }

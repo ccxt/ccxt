@@ -487,10 +487,10 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         String symbol = (String) market.get("symbol");
         String eventVar = this.safeString(message, "event");
         Map<String, Object> result = (Map<String, Object>) this.parseTicker(message, market);
-        Helpers.addElementToObject(result, "symbol", this.safeString(market, "symbol")); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
+        result.put("symbol", this.safeString(market, "symbol")); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         Long timestamp = this.safeInteger(message, "timestamp");
-        Helpers.addElementToObject(result, "timestamp", timestamp);
-        Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp)); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
+        result.put("timestamp", timestamp);
+        result.put("datetime", this.iso8601(timestamp)); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         Helpers.addElementToObject(this.tickers, symbol, result);
         if (!java.util.Objects.equals(eventVar, null))
         {

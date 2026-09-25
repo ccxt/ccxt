@@ -760,7 +760,7 @@ func (this *Cryptomus) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	//
 	var data any = this.SafeList(response, "data")
 	var dataList []any = []any{}
-	if !IsEqual(data, nil) {
+	if data != nil {
 		dataList = ArrayTyped(data)
 	}
 
@@ -924,23 +924,13 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol string, typeVar strin
 	var cost any = costParam
 	var response map[string]any = nil
 	if typeVar == "market" {
-		var requiresPriceAndParams []any = this.HandleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+		var requiresPriceAndParams any = TupleSlice(this.HandleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true))
 		var paramsMarket any = paramsCost
 		if sideBuy {
-			paramsMarket = func() any {
-				if 1 >= 0 && 1 < len(requiresPriceAndParams) {
-					return DerefScalar(requiresPriceAndParams[1])
-				}
-				return nil
-			}()
+			paramsMarket = GetValue(requiresPriceAndParams, 1)
 		}
 		if sideBuy {
-			var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(func() any {
-				if 0 >= 0 && 0 < len(requiresPriceAndParams) {
-					return DerefScalar(requiresPriceAndParams[0])
-				}
-				return nil
-			}())
+			var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(GetValue(requiresPriceAndParams, 0))
 			if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice {
 				if (price == nil) && (IsEqual(cost, nil)) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument"))

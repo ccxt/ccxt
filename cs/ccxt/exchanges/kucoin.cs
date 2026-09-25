@@ -2720,10 +2720,10 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
      * @returns {any} ignore
      */
-    public async virtual Task<bool> loadMigrationStatus(object force = null)
+    public async virtual Task<bool> loadMigrationStatus(bool? force = null)
     {
         force ??= false;
-        if (!(this.options.ContainsKey("hf")) || (isEqual((this.options.ContainsKey("hf") ? this.options["hf"] : null), null)) || isTrue(force))
+        if (!(this.options.ContainsKey("hf")) || (isEqual((this.options.ContainsKey("hf") ? this.options["hf"] : null), null)) || force == true)
         {
             Dictionary<string, object> result = await this.privateGetHfAccountsOpened();
             this.options["hf"] = this.safeBool(result, "data");
@@ -7192,7 +7192,7 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual string? handleTradeType(object isContractMarket = null, object marginMode = null, object isUnified = null, object parameters = null)
+    public virtual string? handleTradeType(object isContractMarket = null, object marginMode = null, bool? isUnified = null, object parameters = null)
     {
         isContractMarket ??= false;
         isUnified ??= false;
@@ -7206,7 +7206,7 @@ public partial class kucoin : Exchange
             } else if ((marginMode != null))
             {
                 tradeType = ((string)marginMode).ToUpper();
-                if (isTrue(isUnified))
+                if (isUnified == true)
                 {
                     if (tradeType == "ISOLATED")
                     {
@@ -12777,7 +12777,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -12785,7 +12785,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         string posMode = "0";
-        if (isTrue(hedged))
+        if (hedged)
         {
             posMode = "1";
         }

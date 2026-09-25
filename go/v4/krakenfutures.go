@@ -1109,9 +1109,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol string, optionalAr
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		var retRes91719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 2000))))
@@ -1222,9 +1220,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	if paginate {
 
 		var retRes100919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, paramsPaginate))))
@@ -2842,7 +2838,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 	if IsEqual(details, nil) {
 		details = order
 	}
-	if IsEqual(statusId, nil) {
+	if statusId == nil {
 		statusId = DerefScalar(this.SafeString(details, "status"))
 	}
 	// This may be incorrectly marked as "open" if only execution report is given,

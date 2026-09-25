@@ -821,7 +821,7 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 		settle = base
 	}
 	var splitBase any = base
-	if IsEqual(base, nil) {
+	if base == nil {
 		panic(ExchangeError(this.Id + " createExpiredOptionMarket() missing base"))
 	}
 	if GetIndexOf(base, "_") > -1 {
@@ -1185,9 +1185,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var instrumentsResponses []any = []any{}
 	var result []any = []any{}
 	var parsedMarkets map[string]any = map[string]any{}
-	var fetchAllMarketsparamsFetchAllMarketsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMarkets", "fetchAllMarkets", true)
-	var fetchAllMarkets bool = GetValueBool(fetchAllMarketsparamsFetchAllMarketsVariable, 0, false)
-	var paramsFetchAllMarkets map[string]any = MapTyped(GetValue(fetchAllMarketsparamsFetchAllMarketsVariable, 1))
+	fetchAllMarkets, paramsFetchAllMarkets := this.HandleOptionBoolAndParams(params, "fetchMarkets", "fetchAllMarkets", true)
 	if fetchAllMarkets {
 
 		instrumentsResponse := (<-this.PublicGetGetInstruments(paramsFetchAllMarkets)).Raw
@@ -1983,9 +1981,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		var retRes150319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 5000))))
@@ -4244,9 +4240,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	var maxEntriesPerRequest int = 744 // seems exchange returns max 744 items per request
 	var eachItemDuration string = "1h"
 	if paginate {
@@ -4406,9 +4400,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol string, optionalA
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchLiquidations", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchLiquidations", "paginate", false)
 	if paginate {
 
 		var retRes345019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLiquidations", symbol, since, limit, paramsPaginate, "continuation", "continuation", nil))))
@@ -5100,7 +5092,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Deribit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
 	//

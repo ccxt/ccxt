@@ -1175,7 +1175,7 @@ func (this *Lighter) fetchNonceBody(ch chan any, accountIndex any, apiKeyIndex a
 		return nil
 	}
 	// avoid skipNonce for l1 operations
-	var skipNonce *bool = SafeBoolPtr(GetValue(this.HandleOptionBoolAndParams(params, "fetchNonce", "skipNonce", true), 0))
+	var skipNonce *bool = SafeBoolPtr(GetValue(TupleSlice(this.HandleOptionBoolAndParams(params, "fetchNonce", "skipNonce", true)), 0))
 	if skipNonce != nil && *skipNonce {
 
 		ch <- this.Milliseconds()
@@ -3265,9 +3265,7 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	if paginate {
 
 		var retRes255019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, paramsPaginate, "cursor", "cursor", nil, 50))))
@@ -3319,7 +3317,7 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var rows []any = SafeListTypedDefault(response, "transfers", []any{})
 	var cursor *string = this.SafeString(response, "cursor")
 	var first any = this.SafeDict(rows, 0)
-	if (!IsEqual(first, nil)) && (cursor != nil) {
+	if ((first != nil)) && (cursor != nil) {
 		AddElementToObject(GetValue(rows, 0), "cursor", cursor)
 	}
 
@@ -3398,9 +3396,7 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
 	if paginate {
 
 		var retRes265319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, paramsPaginate, "cursor", "cursor", nil, 50))))
@@ -3453,7 +3449,7 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var data []any = SafeListTypedDefault(response, "deposits", []any{})
 	var cursor *string = this.SafeString(response, "cursor")
 	var first any = this.SafeDict(data, 0)
-	if (!IsEqual(first, nil)) && (cursor != nil) {
+	if ((first != nil)) && (cursor != nil) {
 		AddElementToObject(GetValue(data, 0), "cursor", cursor)
 	}
 
@@ -3490,9 +3486,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
 	if paginate {
 
 		var retRes271519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, paramsPaginate, "cursor", "cursor", nil, 50))))
@@ -3543,7 +3537,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	var data []any = SafeListTypedDefault(response, "withdraws", []any{})
 	var cursor *string = this.SafeString(response, "cursor")
 	var first any = this.SafeDict(data, 0)
-	if (!IsEqual(first, nil)) && (cursor != nil) {
+	if ((first != nil)) && (cursor != nil) {
 		AddElementToObject(GetValue(data, 0), "cursor", cursor)
 	}
 
@@ -3728,9 +3722,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	if paginate {
 
 		var retRes289419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", nil, 50))))
@@ -3805,7 +3797,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var nextCursor *string = this.SafeString(response, "next_cursor")
 	var first any = this.SafeDict(data, 0)
-	if (!IsEqual(first, nil)) && (nextCursor != nil) {
+	if ((first != nil)) && (nextCursor != nil) {
 		AddElementToObject(GetValue(data, 0), "next_cursor", nextCursor)
 	}
 
@@ -4466,7 +4458,7 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Lighter) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
 	//

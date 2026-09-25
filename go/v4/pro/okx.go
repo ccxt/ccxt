@@ -2311,9 +2311,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() type is required"))
 	}
 	var uppercaseType string = ccxt.ToUpper(typeVar)
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("watchMyTrades", paramsOmitted)
-	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = ccxt.MapTyped(ccxt.GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchMyTrades", paramsOmitted)
 	if uppercaseType == "SPOT" {
 		if marginMode != nil {
 			uppercaseType = "MARGIN"
@@ -2569,9 +2567,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() type is required"))
 	}
 	var uppercaseType string = ccxt.ToUpper(typeVar)
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("watchOrders", paramsOmitted)
-	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = ccxt.MapTyped(ccxt.GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchOrders", paramsOmitted)
 	if uppercaseType == "SPOT" {
 		if marginMode != nil {
 			uppercaseType = "MARGIN"

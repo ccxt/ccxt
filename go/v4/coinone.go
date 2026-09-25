@@ -1603,7 +1603,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		var secondPart *string = this.SafeString(parts, 1)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var depositAddress any = this.SafeDict(result, code)
-		if IsEqual(depositAddress, nil) {
+		if depositAddress == nil {
 			depositAddress = map[string]any{
 				"info":     value,
 				"currency": code,

@@ -841,15 +841,15 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             Map<String, Object> parsedSnapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, (Long) null, "bids", "asks", 0, 1, 2);
             orderbook.reset(parsedSnapshot);
-            Helpers.addElementToObject(orderbook, "symbol", symbol);
+            orderbook.put("symbol", symbol);
         } else
         {
             List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
             this.handleBookDeltas(orderbook, changes);
         }
-        Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "sequence"));
-        Helpers.addElementToObject(orderbook, "datetime", datetime);
-        Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
+        orderbook.put("nonce", this.safeInteger(message, "sequence"));
+        orderbook.put("datetime", datetime);
+        orderbook.put("timestamp", this.parse8601(datetime));
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         if (!java.util.Objects.equals(channel, null))
         {

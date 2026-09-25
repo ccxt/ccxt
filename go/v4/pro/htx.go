@@ -498,7 +498,7 @@ func (this *Htx) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var subMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".kline."), interval))
 	var topic string = "ohlcv"
-	ccxt.AddElementToObject(params, "symbolsAndTimeframes", []any{[]any{market["symbol"], timeframe}})
+	params["symbolsAndTimeframes"] = []any{[]any{market["symbol"], timeframe}}
 
 	ch <- ccxt.PanicOnError((<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params)))
 	return nil
@@ -1937,9 +1937,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}
 		return paramsSubType
 	}()
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("watchPositions", paramsPositions, "cross")
-	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = ccxt.MapTyped(ccxt.GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchPositions", paramsPositions, "cross")
 	var paramsRequest any = paramsMarginMode
 	var linear bool = (ccxt.IsEqual(subType, "linear"))
 	var swap bool = (ccxt.IsEqual(typeVar, "swap"))

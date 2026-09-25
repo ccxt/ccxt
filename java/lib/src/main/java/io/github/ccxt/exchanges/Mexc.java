@@ -2955,15 +2955,15 @@ public class Mexc extends MexcApi
             //     }
             //
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, Helpers.toMapArg(market));
-            Helpers.addElementToObject(order, "side", side);
-            Helpers.addElementToObject(order, "type", type);
+            order.put("side", side);
+            order.put("type", type);
             if (java.util.Objects.equals(this.safeString(order, "price"), null))
             {
-                Helpers.addElementToObject(order, "price", price);
+                order.put("price", price);
             }
             if (java.util.Objects.equals(this.safeString(order, "amount"), null))
             {
-                Helpers.addElementToObject(order, "amount", amount);
+                order.put("amount", amount);
             }
             return order;
         });

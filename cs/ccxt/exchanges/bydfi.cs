@@ -2775,7 +2775,7 @@ public partial class bydfi : Exchange
      * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT)
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol != null))
@@ -2787,7 +2787,7 @@ public partial class bydfi : Exchange
             await this.loadMarkets();
         }
         string positionType = "ONEWAY";
-        if (isTrue(hedged))
+        if (hedged)
         {
             positionType = "HEDGE";
         }

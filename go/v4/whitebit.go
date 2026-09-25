@@ -1471,7 +1471,7 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) a
 		var marketId string = GetValue(marketIds, i).(string)
 		var market any = GetValue(markets, marketId)
 		var marketSymbol *string = this.SafeString(market, "symbol")
-		if (IsEqual(market, nil)) || (IsEqual(market, nil)) || (marketSymbol == nil) || (marketSymbol != nil && *marketSymbol == "") {
+		if (IsEqual(market, nil)) || (marketSymbol == nil) || (marketSymbol != nil && *marketSymbol == "") {
 			continue
 		}
 		var symbol *string = marketSymbol
@@ -1494,9 +1494,9 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) a
 		var priceLimits any = this.SafeDict(limits, "price")
 		var costLimits any = this.SafeDict(limits, "cost")
 		// Validate that all required limits exist and are valid numbers
-		var hasAmountLimits bool = (!IsEqual(amountLimits, nil)) && (!IsEqual(amountLimits, nil)) && (this.SafeNumber(amountLimits, "min") != nil) && (this.SafeNumber(amountLimits, "max") != nil)
-		var hasPriceLimits bool = (!IsEqual(priceLimits, nil)) && (!IsEqual(priceLimits, nil)) && (this.SafeNumber(priceLimits, "min") != nil) && (this.SafeNumber(priceLimits, "max") != nil)
-		var hasCostLimits bool = (!IsEqual(costLimits, nil)) && (!IsEqual(costLimits, nil)) && (this.SafeNumber(costLimits, "min") != nil) && (this.SafeNumber(costLimits, "max") != nil)
+		var hasAmountLimits bool = ((amountLimits != nil)) && (this.SafeNumber(amountLimits, "min") != nil) && (this.SafeNumber(amountLimits, "max") != nil)
+		var hasPriceLimits bool = ((priceLimits != nil)) && (this.SafeNumber(priceLimits, "min") != nil) && (this.SafeNumber(priceLimits, "max") != nil)
+		var hasCostLimits bool = ((costLimits != nil)) && (this.SafeNumber(costLimits, "min") != nil) && (this.SafeNumber(costLimits, "max") != nil)
 		if (hasAmountLimits == true) && (hasPriceLimits == true) && (hasCostLimits == true) {
 			AddElementToObject(result, symbol, map[string]any{
 				"info": market,
@@ -1625,7 +1625,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 		for j := 0; j < len(feeKeys); j++ {
 			var feeKey string = GetValue(feeKeys, j).(string)
 			var fee any = this.SafeDict(feesData, feeKey)
-			if (!IsEqual(fee, nil) && !IsEqual(fee, nil)) && (this.SafeString(fee, "ticker") != nil && *this.SafeString(fee, "ticker") == code) {
+			if ((fee != nil)) && (this.SafeString(fee, "ticker") != nil && *this.SafeString(fee, "ticker") == code) {
 				feeData = fee
 				break
 			}
@@ -1646,7 +1646,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 		if !IsEqual(feeData, nil) {
 			var depositFee any = GetValue(feeData, "deposit")
 			var withdrawFee any = GetValue(feeData, "withdraw")
-			if (!IsEqual(depositFee, nil)) && (!IsEqual(depositFee, nil)) {
+			if !IsEqual(depositFee, nil) {
 				var depositFeeData map[string]any = map[string]any{
 					"fixed": this.SafeNumber(depositFee, "fixed"),
 				}
@@ -1659,7 +1659,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 				}
 				AddElementToObject(limits["deposit"], "fee", depositFeeData)
 			}
-			if (!IsEqual(withdrawFee, nil)) && (!IsEqual(withdrawFee, nil)) {
+			if !IsEqual(withdrawFee, nil) {
 				var withdrawFeeData map[string]any = map[string]any{
 					"fixed": this.SafeNumber(withdrawFee, "fixed"),
 				}
@@ -2747,9 +2747,7 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol string, typeVar string
 	if ioc && !isLimitOrder {
 		panic(NotSupported(this.Id + " createOrder() timeInForce IOC is only supported for limit orders"))
 	}
-	var marginModequeryVariable []any = this.HandleMarginModeAndParams("createOrder", paramsOmitted)
-	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(marginModequeryVariable, 1))
+	marginMode, query := this.HandleMarginModeAndParams("createOrder", paramsOmitted)
 	if postOnly {
 		request["postOnly"] = true
 	}
@@ -2991,9 +2989,7 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var requestType []any = []any{}
 	var requestParams any = paramsMarketType
 	if marketType != nil && *marketType == "spot" {
-		var isMarginparamsIsMarginVariable []any = this.HandleOptionBoolAndParams(paramsMarketType, "cancelAllOrders", "isMargin", false)
-		var isMargin bool = GetValueBool(isMarginparamsIsMarginVariable, 0, false)
-		var paramsIsMargin map[string]any = MapTyped(GetValue(isMarginparamsIsMarginVariable, 1))
+		isMargin, paramsIsMargin := this.HandleOptionBoolAndParams(paramsMarketType, "cancelAllOrders", "isMargin", false)
 		requestParams = paramsIsMargin
 		if isMargin {
 			requestType = append(requestType, "margin")
@@ -4394,7 +4390,7 @@ func (this *Whitebit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var records any = this.SafeList(response, "records", []any{})
 	var recordsList []any = []any{}
-	if !IsEqual(records, nil) {
+	if records != nil {
 		recordsList = ArrayTyped(records)
 	}
 
@@ -4881,7 +4877,7 @@ func (this *Whitebit) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	//
 	var records any = this.SafeList(response, "records")
 	var recordsList []any = []any{}
-	if !IsEqual(records, nil) {
+	if records != nil {
 		recordsList = ArrayTyped(records)
 	}
 
@@ -5429,9 +5425,7 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
 	var maxLimit int = 100
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
 		var retRes422019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, maxLimit))))
@@ -5527,9 +5521,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 		var nonce string = ToString(this.IncrementingNonce())
 		var secret string = this.Encode(this.Secret)
 		var request *string = SafeStringPtr(Add(Add("/"+"api"+"/", version), pathWithParams))
-		var nonceWindowrequestParamsVariable []any = this.HandleOptionBoolAndParams(params, "sign", "nonceWindow", false)
-		var nonceWindow bool = GetValueBool(nonceWindowrequestParamsVariable, 0, false)
-		requestParams := GetValue(nonceWindowrequestParamsVariable, 1)
+		nonceWindow, requestParams := this.HandleOptionBoolAndParams(params, "sign", "nonceWindow", false)
 		privateBody = this.Json(this.Extend(map[string]any{
 			"request":     request,
 			"nonce":       nonce,

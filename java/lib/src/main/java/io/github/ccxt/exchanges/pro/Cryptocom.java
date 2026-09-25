@@ -369,10 +369,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         if (java.util.Objects.equals(channel, "book"))
         {
             orderbook.reset(new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(orderbook, "symbol", symbol);
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-            Helpers.addElementToObject(orderbook, "nonce", nonce);
+            orderbook.put("symbol", symbol);
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", this.iso8601(timestamp));
+            orderbook.put("nonce", nonce);
         } else
         {
             books = this.safeDict(data, "update", new HashMap<String, Object>() {{}});
@@ -389,7 +389,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         }
         this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(books, "asks", new ArrayList<Object>(Arrays.asList())));
         this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(books, "bids", new ArrayList<Object>(Arrays.asList())));
-        Helpers.addElementToObject(orderbook, "nonce", nonce);
+        orderbook.put("nonce", nonce);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);

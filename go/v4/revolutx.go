@@ -1481,11 +1481,11 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["cursor"] = cursor
 	}
 	var orderStates any = this.SafeList2(params, "orderStates", "order_states")
-	if !IsEqual(orderStates, nil) {
+	if orderStates != nil {
 		request["order_states"] = Join(orderStates, ",")
 	}
 	var orderTypes any = this.SafeList2(params, "orderTypes", "order_types")
-	if !IsEqual(orderTypes, nil) {
+	if orderTypes != nil {
 		request["order_types"] = Join(orderTypes, ",")
 	}
 	var side *string = this.SafeString(params, "side")
@@ -1578,11 +1578,11 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["cursor"] = cursor
 	}
 	var orderStates any = this.SafeList2(params, "orderStates", "order_states")
-	if !IsEqual(orderStates, nil) {
+	if orderStates != nil {
 		request["order_states"] = Join(orderStates, ",")
 	}
 	var orderTypes any = this.SafeList2(params, "orderTypes", "order_types")
-	if !IsEqual(orderTypes, nil) {
+	if orderTypes != nil {
 		request["order_types"] = Join(orderTypes, ",")
 	}
 
@@ -1871,7 +1871,7 @@ func (this *Revolutx) HandleErrors(code any, reason any, url any, method any, he
 		if IsObject(response) {
 			errorMessage = DerefScalar(this.SafeString2(response, "message", "error"))
 		}
-		if !IsEqual(errorMessage, nil) {
+		if errorMessage != nil {
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 		}
 		return nil

@@ -2264,12 +2264,12 @@ public partial class limitless : PredictionExchange
         return this.safeString(sides, side, side);
     }
 
-    public virtual string? applyScale(object amount, object multiply = null)
+    public virtual string? applyScale(object amount, bool? multiply = null)
     {
         multiply ??= false;
         Int64? decimals = this.safeInteger(this.options, "usdcDecimals", 6);
         string? scale = this.numberToString(Math.Pow(Convert.ToDouble(10), Convert.ToDouble(decimals)));
-        if (isTrue(multiply))
+        if (multiply == true)
         {
             return Precise.stringMul(amount, scale);
         } else

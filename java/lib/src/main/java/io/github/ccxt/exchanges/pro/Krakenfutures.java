@@ -1434,9 +1434,9 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             io.github.ccxt.ws.OrderBookSide asksSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
             asksSide.store(price, qty);
         }
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(orderbook, "symbol", symbol);
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
+        orderbook.put("symbol", symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -1471,8 +1471,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
             bids.store(price, qty);
         }
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
         client.resolve(orderbook, messageHash);
     }
 

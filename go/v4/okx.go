@@ -2724,7 +2724,7 @@ func (this *Okx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var types any = []any{"spot", "future", "swap", "option"}
 	var fetchMarketsOption any = this.SafeDict(this.Options, "fetchMarkets")
-	if !IsEqual(fetchMarketsOption, nil) {
+	if fetchMarketsOption != nil {
 		types = this.SafeList(fetchMarketsOption, "types", types)
 	} else {
 		types = this.SafeList(this.Options, "fetchMarkets", types) // backward-support
@@ -2846,7 +2846,7 @@ func (this *Okx) ParseMarket(market any) any {
 		}
 		if future {
 			expiry = DerefScalar(this.SafeInteger(market, "expTime"))
-			if !IsEqual(expiry, nil) {
+			if expiry != nil {
 				var ymd string = this.Yymmdd(expiry)
 				symbol = Add(Add(symbol, "-"), ymd)
 			}
@@ -2854,7 +2854,7 @@ func (this *Okx) ParseMarket(market any) any {
 			expiry = DerefScalar(this.SafeInteger(market, "expTime"))
 			strikePrice = this.SafeString(market, "stk")
 			optionType = this.SafeString(market, "optType")
-			if !IsEqual(expiry, nil) {
+			if expiry != nil {
 				var ymd string = this.Yymmdd(expiry)
 				symbol = Add(Add(Add(Add(Add(Add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType)
 				optionType = SafeStringPtr(func() string {
@@ -3232,9 +3232,7 @@ func (this *Okx) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
-	var rpiparamsRpiVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrderBook", "rpi", false)
-	var rpi bool = GetValueBool(rpiparamsRpiVariable, 0, false)
-	var paramsRpi map[string]any = MapTyped(GetValue(rpiparamsRpiVariable, 1))
+	rpi, paramsRpi := this.HandleOptionBoolAndParams(params, "fetchOrderBook", "rpi", false)
 	method, paramsMethod := this.HandleOptionStringAndParams(paramsRpi, "fetchOrderBook", "method", "publicGetMarketBooks")
 	var defaultLimit int = func() int {
 		if method != nil && *method == "publicGetMarketBooksFull" {
@@ -3749,9 +3747,7 @@ func (this *Okx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	if paginate {
 
 		var retRes260519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, paramsPaginate, "tradeId", "after", nil, 100))))
@@ -3890,9 +3886,7 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		var retRes271819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 200))))
@@ -4047,9 +4041,7 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
 		var retRes283019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100))))
@@ -4540,7 +4532,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		paramsSwapOrFuture = paramsPositionSide
 	}
 	var usesHedged bool = isSwapOrFuture && (positionSide == nil)
-	var hedgedparamsHedgedOptionVariable []any = this.HandleOptionBoolAndParams(paramsSwapOrFuture, "createOrder", "hedged")
+	var hedgedparamsHedgedOptionVariable []any = this.HandleOptionBoolAndParamsNullable(paramsSwapOrFuture, "createOrder", "hedged")
 	hedged := GetValue(hedgedparamsHedgedOptionVariable, 0)
 	paramsHedgedOption := GetValue(hedgedparamsHedgedOptionVariable, 1)
 	var paramsHedged any = paramsSwapOrFuture
@@ -4621,9 +4613,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			// see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
 			if tgtCcy != nil && *tgtCcy == "quote_ccy" {
 				// quote_ccy: sz refers to units of quote currency
-				var createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable []any = this.HandleOptionBoolAndParams(orderParams, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-				var createMarketBuyOrderRequiresPrice bool = GetValueBool(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 0, false)
-				paramsRequiresPrice := GetValue(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 1)
+				createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(orderParams, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 				var notional any = DerefScalar(this.SafeNumber2(paramsRequiresPrice, "cost", "sz"))
 				orderParams = this.Omit(paramsRequiresPrice, []any{"cost", "sz"})
 				if createMarketBuyOrderRequiresPrice {
@@ -6073,9 +6063,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxLimit int = 100
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
 	if paginate {
 
 		var retRes458019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate, maxLimit))))
@@ -6471,9 +6459,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxLimit int = 100
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "paginate", false)
 	if paginate {
 
 		var retRes493619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, paramsPaginate, maxLimit))))
@@ -6676,9 +6662,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	if paginate {
 
 		var retRes511619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate))))
@@ -6806,9 +6790,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
 	if paginate {
 
 		var retRes521619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, paramsPaginate))))
@@ -6820,9 +6802,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	method = this.SafeString(paramsPaginate, "method", method)
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "method"))
 	var request map[string]any = map[string]any{}
-	var marginModeOptionparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchLedger", paramsOmitted)
-	marginModeOption := GetValue(marginModeOptionparamsMarginModeVariable, 0)
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeOptionparamsMarginModeVariable, 1))
+	marginModeOption, paramsMarginMode := this.HandleMarginModeAndParams("fetchLedger", paramsOmitted)
 	var marginMode any = func() any {
 		if IsEqual(marginModeOption, nil) {
 			return this.SafeString(paramsMarginMode, "mgnMode")
@@ -7350,9 +7330,7 @@ func (this *Okx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
 	if paginate {
 
 		var retRes567319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, paramsPaginate))))
@@ -7496,9 +7474,7 @@ func (this *Okx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
 	if paginate {
 
 		var retRes578419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, paramsPaginate))))
@@ -7805,9 +7781,7 @@ func (this *Okx) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	// cross as default marginMode
 	var defaultMarginMode *string = this.SafeString(params, "mgnMode", "cross")
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchLeverage", params, defaultMarginMode)
-	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchLeverage", params, defaultMarginMode)
 	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 		panic(BadRequest(this.Id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
@@ -9067,9 +9041,7 @@ func (this *Okx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 	var market map[string]any = this.Market(symbol)
 	// cross as default marginMode
 	var defaultMarginMode *string = this.SafeString(params, "mgnMode", "cross")
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("setLeverage", params, defaultMarginMode)
-	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params, defaultMarginMode)
 	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 		panic(BadRequest(this.Id + " setLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
@@ -9802,9 +9774,7 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan any, symbol string, option
 	}
 	// cross as default marginMode
 	var defaultMarginMode *string = this.SafeString(params, "tdMode", "cross")
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, defaultMarginMode)
-	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, defaultMarginMode)
 	var request map[string]any = map[string]any{
 		"instType": typeVar,
 		"tdMode":   marginMode,
@@ -9924,9 +9894,7 @@ func (this *Okx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 	}
 	// cross as default marginMode
 	var defaultMarginMode *string = this.SafeString(params, "mgnMode", "cross")
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchBorrowInterest", params, defaultMarginMode)
-	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBorrowInterest", params, defaultMarginMode)
 	var request map[string]any = map[string]any{
 		"mgnMode": marginMode,
 	}
@@ -11049,9 +11017,7 @@ func (this *Okx) closePositionBody(ch chan any, symbol string, optionalArgs ...a
 	var market map[string]any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var code *string = this.SafeString(params, "code")
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("closePosition", params, "cross")
-	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("closePosition", params, "cross")
 	var request map[string]any = map[string]any{
 		"instId":  market["id"],
 		"mgnMode": marginMode,

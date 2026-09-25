@@ -2467,7 +2467,6 @@ public partial class woo : Exchange
         string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "quantity"); // This is base amount
-        string? cost = this.safeString(order, "amount"); // This is quote amount
         string? orderType = this.safeStringLower(order, "type");
         string? status = this.safeString2(order, "status", "algoStatus");
         string? side = this.safeStringLower(order, "side");
@@ -2516,7 +2515,7 @@ public partial class woo : Exchange
             { "amount", amount },
             { "filled", filled },
             { "remaining", null },
-            { "cost", cost },
+            { "cost", null },
             { "trades", null },
             { "fee", new Dictionary<string, object>() {
                 { "cost", fee },
@@ -4356,11 +4355,11 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? hedgeMode = null;
-        if (isTrue(hedged))
+        if (hedged)
         {
             hedgeMode = "HEDGE_MODE";
         } else
@@ -5232,7 +5231,7 @@ public partial class woo : Exchange
         return this.safeString(networkKeys, 0);
     }
 
-    public override void setSandboxMode(object enable)
+    public override void setSandboxMode(bool? enable)
     {
         base.setSandboxMode(enable);
         this.options["sandboxMode"] = enable;

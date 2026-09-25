@@ -301,6 +301,8 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.HandleOptionStringAndParams2': '[]any',
     'this.HandleOptionBoolAndParams': '[]any',
     'this.HandleOptionBoolAndParams2': '[]any',
+    'this.HandleOptionBoolAndParamsNullable': '[]any',
+    'this.HandleOptionBoolAndParams2Nullable': '[]any',
     'this.HandleOptionIntegerAndParams': '[]any',
     'this.HandleOptionIntegerAndParams2': '[]any',
     'this.HandleParamString': '[]any',
@@ -2456,6 +2458,8 @@ export const CCXT_GO_ARRAY_BINDING_HOLDERS = [
     'HandleOptionStringAndParams2',
     'HandleOptionBoolAndParams',
     'HandleOptionBoolAndParams2',
+    'HandleOptionBoolAndParamsNullable',
+    'HandleOptionBoolAndParams2Nullable',
     'HandleOptionIntegerAndParams',
     'HandleOptionIntegerAndParams2',
     'HandleParamString',
@@ -6672,6 +6676,7 @@ const CCXT_GO_TUPLE_PARAMS_PRODUCERS = {
     'this.HandleOptionAndParams': 0, 'this.HandleOptionAndParams2': 0,
     'this.HandleOptionStringAndParams': 0, 'this.HandleOptionStringAndParams2': 0,
     'this.HandleOptionBoolAndParams': 0, 'this.HandleOptionBoolAndParams2': 0,
+    'this.HandleOptionBoolAndParamsNullable': 0, 'this.HandleOptionBoolAndParams2Nullable': 0,
 };
 
 // Go type of element `index` of a `this.<m> (..)` tuple, read off the checker's declared return
@@ -9428,15 +9433,28 @@ function installCcxtGoTupleParamsRebind (goTranspiler) {
 // return Go `(*string, map[string]any)` (go/v4/exchange_market_type.go). A destructuring whose printed element reads are already the
 // typed unwraps becomes `a, b := call`; every other use keeps the old `[]any` via TupleSlice(..).
 const CCXT_GO_TUPLE_RESULT_METHODS = [ 'handleMarketTypeAndParams', 'handleSubTypeAndParams',
-    'handleOptionStringAndParams', 'handleUntilOption' ];
+    'handleOptionStringAndParams', 'handleUntilOption', 'handleMarginModeAndParams',
+    'handleOptionBoolAndParams', 'handleOptionBoolAndParams2' ];
 // element 0 unwrap per method (element 1 is always the params map); default SafeStringPtr
-const CCXT_GO_TUPLE_RESULT_ELEMENT_0 = { 'handleUntilOption': 'MapTyped' };
+const CCXT_GO_TUPLE_RESULT_ELEMENT_0 = { 'handleUntilOption': 'MapTyped', 'handleOptionBoolAndParams': 'GetValueBool',
+    'handleOptionBoolAndParams2': 'GetValueBool' };
+// the `defaultValue: boolean` overload (a true/false literal default) returns Go (bool, map[string]any);
+// every other call resolves the `defaultValue?: Bool` overload, printed as <Name>Nullable with the []any result
+const CCXT_GO_TUPLE_BOOL_DEFAULT_SLOT = { 'handleOptionBoolAndParams': 3, 'handleOptionBoolAndParams2': 4 };
+
+function ccxtGoTupleBoolCallIsNullable (node) {
+    const slot = CCXT_GO_TUPLE_BOOL_DEFAULT_SLOT[node?.expression?.name?.text];
+    const arg = (slot === undefined) ? undefined : node.arguments[slot];
+    return (slot !== undefined) && (arg?.kind !== ts.SyntaxKind.TrueKeyword) && (arg?.kind !== ts.SyntaxKind.FalseKeyword);
+}
 
 function ccxtGoTupleResultCall (node) {
     const callee = node?.expression;
     return (node?.kind === ts.SyntaxKind.CallExpression) && (callee?.kind === ts.SyntaxKind.PropertyAccessExpression)
         && CCXT_GO_TUPLE_RESULT_METHODS.includes (callee.name?.text)
-        && ((callee.expression?.kind === ts.SyntaxKind.ThisKeyword) || isIdentifierNamed (callee.expression, 'exchange'));
+        && ((callee.expression?.kind === ts.SyntaxKind.ThisKeyword) || (callee.expression?.kind === ts.SyntaxKind.SuperKeyword)
+            || isIdentifierNamed (callee.expression, 'exchange'))
+        && !ccxtGoTupleBoolCallIsNullable (node);
 }
 
 function ccxtGoTupleResultFirst (call) {
@@ -9463,18 +9481,21 @@ function ccxtGoTupleResultJoin (printed, count, declare, untypedOk = false, firs
     }
     const names = [ '_', '_' ];
     for (let i = 1; i < lines.length; i++) {
-        const l = lines[i].trim ().replace (/\bccxt\.(SafeStringPtr|MapTyped|GetValue)\(/g, '$1(');
+        const l = lines[i].trim ().replace (/\bccxt\.(SafeStringPtr|MapTyped|GetValue|GetValueBool)\(/g, '$1(')
+            .replace (/\bGetValueBool\((\w+), 0, false\)$/, 'GetValueBool(GetValue($1, 0))');
         const m = declare
-            ? (/^var (\w+) (?:\*string|map\[string\]any) = (SafeStringPtr|MapTyped)\(GetValue\((\w+), (\d)\)\)$/.exec (l)
+            ? (/^var (\w+) (?:\*string|bool|map\[string\]any) = (SafeStringPtr|GetValueBool|MapTyped)\(GetValue\((\w+), (\d)\)\)$/.exec (l)
                 ?? (untypedOk ? /^(\w+) := ()GetValue\((\w+), (\d)\)$/.exec (l) : null))
-            : (/^(\w+) = (SafeStringPtr|MapTyped)\(GetValue\((\w+), (\d)\)\)$/.exec (l) ?? /^(\w+) = ()GetValue\((\w+), (\d)\)$/.exec (l));
+            : (/^(\w+) = (SafeStringPtr|GetValueBool|MapTyped)\(GetValue\((\w+), (\d)\)\)$/.exec (l) ?? /^(\w+) = ()GetValue\((\w+), (\d)\)$/.exec (l));
         if (m === null) {
             return undefined;
         }
         const [ name, wrap, h, index ] = [ m[1], m[2], m[3], Number (m[4]) ];
-        // element 0 must already be the *string unwrap; element 1 is the map itself
+        // element 0 must already be the typed unwrap; element 1 is the map itself. A bare write of
+        // element 0 into an existing local is exact for bool (GetValue derefs the *bool box to bool)
         const ok = (h === holder) && (index === i - 1)
-            && ((wrap === '') ? ((index === 1) || declare || (first === 'MapTyped')) : (wrap === ((index === 0) ? first : 'MapTyped')));
+            && ((wrap === '') ? ((index === 1) || (declare && (first !== 'GetValueBool')) || (first === 'MapTyped') || (!declare && (first === 'GetValueBool')))
+                : (wrap === ((index === 0) ? first : 'MapTyped')));
         if (!ok) {
             return undefined;
         }
@@ -9513,6 +9534,10 @@ function installCcxtGoTupleResults (goTranspiler) {
     const printCall = goTranspiler.printCallExpression;
     goTranspiler.printCallExpression = function (node, identation) {
         const printed = printCall.call (this, node, identation);
+        if (ccxtGoTupleBoolCallIsNullable (node) && ((node.expression.expression?.kind === ts.SyntaxKind.ThisKeyword)
+            || isIdentifierNamed (node.expression.expression, 'exchange'))) {
+            return printed.replace (/\b(HandleOptionBoolAndParams2?)\(/, '$1Nullable(');
+        }
         if (!ccxtGoTupleResultCall (node)) {
             return printed;
         }
@@ -9538,6 +9563,32 @@ function installCcxtGoTupleResults (goTranspiler) {
             return printed;
         }
         return ccxtGoTupleResultJoin (printed, node.left.elements.length, false, false, ccxtGoTupleResultFirst (node.right)) ?? printed;
+    };
+    // an override of a tuple-result method returns the pair: a forwarded call as is, `[ a, b ]` as two unwrapped results
+    const printReturn = goTranspiler.printReturnStatement;
+    goTranspiler.printReturnStatement = function (node, identation) {
+        const printed = printReturn.call (this, node, identation);
+        let method = node?.parent;
+        while ((method !== undefined) && !ts.isFunctionLike (method)) {
+            method = method.parent;
+        }
+        const name = method?.name?.text;
+        if ((typeof printed !== 'string') || (method?.kind !== ts.SyntaxKind.MethodDeclaration) || !CCXT_GO_TUPLE_RESULT_METHODS.includes (name)
+            || CCXT_GO_ELEMENT_1_BASE_FILE.test (node.getSourceFile ().fileName)) {
+            return printed;
+        }
+        const expr = node.expression;
+        const m = /^(\s*return )(.*?)(\s*)$/s.exec (printed);
+        if (ccxtGoTupleResultCall (expr) && (m !== null)) {
+            const call = ccxtGoTupleResultUnwrap (m[2]);
+            return (call === undefined) ? printed : m[1] + call + m[3];
+        }
+        if ((expr?.kind !== ts.SyntaxKind.ArrayLiteralExpression) || (expr.elements.length !== 2) || (m === null)) {
+            throw new Error ('go tuple-result method ' + name + ' returns a non-pair: ' + printed.trim ().slice (0, 120));
+        }
+        const first = CCXT_GO_TUPLE_RESULT_ELEMENT_0[name] ?? 'SafeStringPtr';
+        const [ a, b ] = expr.elements.map ((e) => this.printNode (e, 0).trim ());
+        return m[1] + first + '(' + a + '), MapTyped(' + b + ')' + m[3];
     };
     goTranspiler.__ccxtGoTupleResultsInstalled = true;
 }

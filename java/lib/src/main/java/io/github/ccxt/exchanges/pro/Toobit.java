@@ -745,7 +745,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             List<Object> asks = (List<Object>) this.safeList(entry, "a", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((orderBook == null ? null : orderBook.get("asks")), asks);
             this.handleDeltas((orderBook == null ? null : orderBook.get("bids")), bids);
-            Helpers.addElementToObject(orderBook, "timestamp", timestamp);
+            orderBook.put("timestamp", timestamp);
             Helpers.addElementToObject(this.orderbooks, symbol, orderBook);
             client.resolve(orderBook, messageHash);
         }

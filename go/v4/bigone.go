@@ -1872,9 +1872,7 @@ func (this *Bigone) createOrderBody(ch chan any, symbol string, typeVar string, 
 	} else {
 		if isBuy {
 			var createMarketBuyOrderRequiresPrice any = nil
-			var createMarketBuyOrderRequiresPricequeryVariable []any = this.HandleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPricequeryVariable, 0)
-			query = GetValue(createMarketBuyOrderRequiresPricequeryVariable, 1)
+			createMarketBuyOrderRequiresPrice, query = this.HandleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(query, "cost")
 			query = this.Omit(query, "cost")
 			if createMarketBuyOrderRequiresPrice == true {

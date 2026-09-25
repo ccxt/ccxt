@@ -884,11 +884,11 @@ public partial class lighter : Exchange
         return signer;
     }
 
-    public override void setSandboxMode(object enable)
+    public override void setSandboxMode(bool? enable)
     {
         base.setSandboxMode(enable);
         this.options["sandboxMode"] = enable;
-        this.options["chainId"] = isTrue(enable) ? 300 : 304;
+        this.options["chainId"] = enable == true ? 300 : 304;
     }
 
     public virtual List<object> createOrderRequest(object symbol, string? type, object side, object amount, object price = null, object parameters = null)

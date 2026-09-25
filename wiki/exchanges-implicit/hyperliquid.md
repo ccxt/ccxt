@@ -63,7 +63,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `publicPostInfo` | POST | `info` | 20 |
+| `publicPostInfo` | POST | `info` | 10 |
 
 ## private
 

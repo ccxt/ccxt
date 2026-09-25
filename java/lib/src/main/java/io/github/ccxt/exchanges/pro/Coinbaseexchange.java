@@ -1111,9 +1111,9 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList())));
             this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList())));
-            Helpers.addElementToObject(orderbook, "timestamp", null);
-            Helpers.addElementToObject(orderbook, "datetime", null);
-            Helpers.addElementToObject(orderbook, "symbol", symbol);
+            orderbook.put("timestamp", null);
+            orderbook.put("datetime", null);
+            orderbook.put("symbol", symbol);
             client.resolve(orderbook, messageHash);
         } else if (java.util.Objects.equals(type, "l2update"))
         {
@@ -1134,8 +1134,8 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 Object bookside = this.safeValue(orderbook, side);
                 Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
             }
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", this.iso8601(timestamp));
             client.resolve(orderbook, messageHash);
         }
     }

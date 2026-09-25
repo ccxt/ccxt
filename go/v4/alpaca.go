@@ -931,7 +931,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		panic(NotSupported(this.Id + " fetchTrades() does not support " + *method + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported"))
 	}
 	var symbolTradesList []any = []any{}
-	if !IsEqual(symbolTrades, nil) {
+	if symbolTrades != nil {
 		symbolTradesList = ArrayTyped(symbolTrades)
 	}
 
@@ -1064,9 +1064,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var method *string = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
 	var paginate bool = false
 	var query any = nil
-	var paginatequeryVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginatequeryVariable, 0, false)
-	query = GetValue(paginatequeryVariable, 1)
+	paginate, query = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	var paginationCalls any = 10
 	var paginationCallsqueryVariable []any = this.HandleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10)
 	paginationCalls = GetValue(paginationCallsqueryVariable, 0)

@@ -313,9 +313,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol string, typeVar stri
 	var paramsOmitted any = params
 	if isMarketBuy {
 		var quoteAmount any = nil
-		var createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-		var createMarketBuyOrderRequiresPrice bool = ccxt.GetValueBool(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 0, false)
-		var paramsRequiresPrice map[string]any = ccxt.MapTyped(ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 1))
+		createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
 		paramsOmitted = this.Omit(paramsRequiresPrice, "cost")
 		if cost != nil {

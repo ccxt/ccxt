@@ -2435,7 +2435,7 @@ public class Bitstamp extends BitstampApi
             }
             Object orderResponse = (((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response;
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(orderResponse, market);
-            Helpers.addElementToObject(order, "type", type);
+            order.put("type", type);
             return order;
         }).thenApply(Order::new);
 
@@ -2483,7 +2483,7 @@ public class Bitstamp extends BitstampApi
             Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : parameters;
             Map<String, Object> response = (this.privatePostReplaceOrder(this.extend(request, paramsOmitted))).join();
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
-            Helpers.addElementToObject(order, "type", type);
+            order.put("type", type);
             return order;
         }).thenApply(Order::new);
 

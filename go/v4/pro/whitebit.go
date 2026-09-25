@@ -914,12 +914,8 @@ func (this *Whitebit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar, messageHash)
-	var fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable []any = this.HandleOptionBoolAndParams(paramsMarketType, "watchBalance", "fetchBalanceSnapshot", true)
-	var fetchBalanceSnapshot bool = ccxt.GetValueBool(fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable, 0, false)
-	var paramsFetchBalanceSnapshot map[string]any = ccxt.MapTyped(ccxt.GetValue(fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable, 1))
-	var awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable []any = this.HandleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", true)
-	var awaitBalanceSnapshot bool = ccxt.GetValueBool(awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable, 0, false)
-	var paramsAwaitBalanceSnapshot map[string]any = ccxt.MapTyped(ccxt.GetValue(awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable, 1))
+	fetchBalanceSnapshot, paramsFetchBalanceSnapshot := this.HandleOptionBoolAndParams(paramsMarketType, "watchBalance", "fetchBalanceSnapshot", true)
+	awaitBalanceSnapshot, paramsAwaitBalanceSnapshot := this.HandleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", true)
 	if fetchBalanceSnapshot && awaitBalanceSnapshot {
 
 		ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))))

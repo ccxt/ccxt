@@ -2723,8 +2723,8 @@ public class Coinbase extends CoinbaseApi
             List<Object> data = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(first, market);
-            Helpers.addElementToObject(ticker, "bid", this.safeNumber(response, "best_bid", (Object) null));
-            Helpers.addElementToObject(ticker, "ask", this.safeNumber(response, "best_ask", (Object) null));
+            ticker.put("bid", this.safeNumber(response, "best_bid", (Object) null));
+            ticker.put("ask", this.safeNumber(response, "best_ask", (Object) null));
             return ticker;
         });
 

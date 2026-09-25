@@ -1029,7 +1029,7 @@ public class Indodax extends IndodaxApi
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
             }}, orders.get("order")), market);
-            Helpers.addElementToObject(order, "info", response);
+            order.put("info", response);
             return order;
         }).thenApply(Order::new);
 

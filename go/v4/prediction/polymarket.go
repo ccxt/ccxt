@@ -1105,13 +1105,13 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 		if parsedPrices != nil {
 			parsedPricesLength = ccxt.GetArrayLength(parsedPrices)
 		}
-		if (parsedOutcomes != nil) && (!ccxt.IsEqual(parsedOutcomesLength, nil)) {
+		if (parsedOutcomes != nil) && ((parsedOutcomesLength != nil)) {
 			outcomeLabels = parsedOutcomes
 		}
-		if (parsedTokenIds != nil) && (!ccxt.IsEqual(parsedTokenIdsLength, nil)) {
+		if (parsedTokenIds != nil) && ((parsedTokenIdsLength != nil)) {
 			clobTokenIds = parsedTokenIds
 		}
-		if (parsedPrices != nil) && (!ccxt.IsEqual(parsedPricesLength, nil)) {
+		if (parsedPrices != nil) && ((parsedPricesLength != nil)) {
 			outcomePrices = parsedPrices
 		}
 		var outcomeLabelsLength int = ccxt.GetArrayLength(outcomeLabels)
@@ -4204,7 +4204,7 @@ func (this *Polymarket) HandleMessage(client any, message any) {
 	}()
 	for i := 0; i < ccxt.GetArrayLength(events); i++ {
 		var event any = ccxt.GetValue(events, i)
-		if (ccxt.IsEqual(event, nil)) || (ccxt.IsEqual(event, nil)) || (!ccxt.IsObject(event)) {
+		if (ccxt.IsEqual(event, nil)) || (!ccxt.IsObject(event)) {
 			continue
 		}
 		var eventType *string = this.SafeString(event, "event_type")
@@ -4695,7 +4695,7 @@ func (this *Polymarket) TokenIdToSymbol(tokenId any) any {
 	// outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets)
 	// fall back to markets_by_id for the standard market lookup
 	var outcomeObj any = this.SafeDict(this.Outcomes_by_id, tokenId)
-	if !ccxt.IsEqual(outcomeObj, nil) {
+	if outcomeObj != nil {
 		return this.SafeString(outcomeObj, "outcome")
 	}
 	// safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS

@@ -1131,7 +1131,7 @@ func (this *Opinion) loadQuoteTokenBody(ch chan any, quoteTokenAddress any) any 
 	var cacheKey string = ccxt.ToLower(quoteTokenAddress)
 	var cached map[string]any = ccxt.SafeMapTyped(this.Options, "quoteTokens")
 	var existing any = this.SafeDict(cached, cacheKey)
-	if !ccxt.IsEqual(existing, nil) {
+	if existing != nil {
 
 		ch <- existing
 		return nil
@@ -1156,7 +1156,7 @@ func (this *Opinion) loadQuoteTokenBody(ch chan any, quoteTokenAddress any) any 
 	}
 	this.Options.Store("quoteTokens", quoteTokens)
 	var quoteToken any = this.SafeDict(quoteTokens, cacheKey)
-	if ccxt.IsEqual(quoteToken, nil) {
+	if quoteToken == nil {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" loadQuoteToken() could not find quote token ", quoteTokenAddress)))
 	}
 
@@ -1820,7 +1820,7 @@ func (this *Opinion) loadTradeMarketBody(ch chan any, marketId any) any {
 	var cached any = this.SafeDict(this.Options, cacheKey, map[string]any{})
 	var idStr string = ccxt.ToString(marketId)
 	var existing any = this.SafeDict(cached, idStr)
-	if !ccxt.IsEqual(existing, nil) {
+	if existing != nil {
 
 		ch <- existing
 		return nil

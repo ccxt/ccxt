@@ -1880,7 +1880,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol string, typeVar string, 
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var rawOrder any = this.SafeDict(result, "raw_data")
-	if IsEqual(rawOrder, nil) {
+	if rawOrder == nil {
 		rawOrder = this.SafeDict(result, "order", map[string]any{})
 	}
 	var order map[string]any = MapTyped(this.ParseOrder(rawOrder, market))
@@ -2279,9 +2279,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	if paginate {
 
 		var retRes178719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, paramsPaginate, "page", 500))))
@@ -2776,9 +2774,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	if paginate {
 
 		var retRes216819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500))))
@@ -3047,9 +3043,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
 	if paginate {
 
 		var retRes239319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500))))
@@ -3244,7 +3238,7 @@ func (this *Derive) ParseBalance(response any) any {
 			var balance map[string]any = SafeMapTyped(collaterals, j)
 			var code *string = this.SafeCurrencyCode(this.SafeString(balance, "currency"))
 			var account any = this.SafeDict(result, code)
-			if IsEqual(account, nil) {
+			if account == nil {
 				account = this.Account()
 				AddElementToObject(account, "total", this.SafeString(balance, "amount"))
 			} else {

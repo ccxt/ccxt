@@ -1728,9 +1728,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		}
 		return 1440
 	}()
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		var retRes122119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
@@ -2502,9 +2500,7 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() is not supported for inverse swap markets"))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
 		var retRes187719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate))))
@@ -2609,9 +2605,7 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	if isInverse == true {
 		panic(NotSupported(this.Id + " fetchFundingHistory() is not supported for inverse swap markets"))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false)
 	if paginate {
 
 		var retRes195419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingHistory", symbol, since, limit, "24h", paramsPaginate))))
@@ -3244,9 +3238,7 @@ func (this *Bingx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var response map[string]any = nil
-	var standardparamsStandardVariable []any = this.HandleOptionBoolAndParams(params, "fetchBalance", "standard", false)
-	var standard bool = GetValueBool(standardparamsStandardVariable, 0, false)
-	var paramsStandard map[string]any = MapTyped(GetValue(standardparamsStandardVariable, 1))
+	standard, paramsStandard := this.HandleOptionBoolAndParams(params, "fetchBalance", "standard", false)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchBalance", nil, paramsStandard)
 	marketType, marketTypeQuery := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsSubType)
 	if standard {
@@ -3503,9 +3495,7 @@ func (this *Bingx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var standardparamsStandardVariable []any = this.HandleOptionBoolAndParams(params, "fetchPositions", "standard", false)
-	var standard bool = GetValueBool(standardparamsStandardVariable, 0, false)
-	var paramsStandard map[string]any = MapTyped(GetValue(standardparamsStandardVariable, 1))
+	standard, paramsStandard := this.HandleOptionBoolAndParams(params, "fetchPositions", "standard", false)
 	var response map[string]any = nil
 	if standard {
 
@@ -4235,7 +4225,7 @@ func (this *Bingx) createOrderBody(ch chan any, symbol string, typeVar string, s
 	var stopLoss *string = this.SafeString(result, "stopLoss")
 	// for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
 	// so we need trick to check if it's non-parsed string yet
-	if (IsEqual(stopLossDict, nil)) && (stopLoss != nil) && (func() int {
+	if ((stopLossDict == nil)) && (stopLoss != nil) && (func() int {
 		if stopLoss == nil {
 			return -1
 		}
@@ -4691,7 +4681,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 	var info any = order
 	var newOrder any = this.SafeDict2(order, "newOrderResponse", "orderOpenResponse")
 	var orderData any = func() any {
-		if !IsEqual(newOrder, nil) {
+		if newOrder != nil {
 			return newOrder
 		}
 		return order
@@ -5097,7 +5087,7 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "clientOrderIds"))
 	var idsToParse any = ids
-	var areClientOrderIds bool = (!IsEqual(clientOrderIds, nil))
+	var areClientOrderIds bool = ((clientOrderIds != nil))
 	if areClientOrderIds {
 		idsToParse = clientOrderIds
 	}
@@ -5727,18 +5717,24 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	var response map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchCanceledAndClosedOrders", market, paramsMarketType)
-	var standardparamsStandardVariable []any = this.HandleOptionBoolAndParams(paramsSubType, "fetchCanceledAndClosedOrders", "standard", false)
-	var standard bool = GetValueBool(standardparamsStandardVariable, 0, false)
-	var paramsStandard map[string]any = MapTyped(GetValue(standardparamsStandardVariable, 1))
+	standard, paramsStandard := this.HandleOptionBoolAndParams(paramsSubType, "fetchCanceledAndClosedOrders", "standard", false)
 	if standard {
 
 		response = MapTyped(PanicOnError((<-this.ContractV1PrivateGetAllOrders(this.Extend(request, paramsStandard))).Raw))
 	} else if typeVar != nil && *typeVar == "spot" {
+		if since != nil {
+			request["startTime"] = since
+		}
+		var until *int64 = this.SafeInteger2(paramsStandard, "until", "till")
+		if until != nil {
+			request["endTime"] = until
+		}
+		var paramsSpot map[string]any = MapTyped(this.Omit(paramsStandard, []any{"until", "till"}))
 		if limit != nil {
 			request["pageSize"] = limit
 		}
 
-		response = MapTyped(PanicOnError((<-this.SpotV1PrivateGetTradeHistoryOrders(this.Extend(request, paramsStandard))).Raw))
+		response = MapTyped(PanicOnError((<-this.SpotV1PrivateGetTradeHistoryOrders(this.Extend(request, paramsSpot))).Raw))
 	} else {
 		var isTwapOrder *bool = this.SafeBool(paramsStandard, "twap", false)
 		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsStandard, "twap"))
@@ -5914,13 +5910,11 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["toAccount"] = toId
 	}
 	var maxLimit int = 100
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	if paginate {
 
-		var retRes537819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes537819)
+		var retRes538619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes538619)
 		return nil
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"fromAccount", "toAccount"}))
@@ -6111,7 +6105,7 @@ func (this *Bingx) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	var networkCode *string = this.NetworkIdToCode(networkId, code)
 	// despite its name the addressWithPrefix field sometimes arrives without
 	// the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
-	if !IsEqual(address, nil) {
+	if address != nil {
 		var isPrefixed bool = StartsWith(address, "0x") || StartsWith(address, "0X")
 		var evmNetworks []any = []any{"BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"}
 		if !isPrefixed && this.InArray(networkCode, evmNetworks) {
@@ -6466,8 +6460,8 @@ func (this *Bingx) addMarginBody(ch chan any, symbol string, amount any, optiona
 		"type": 1,
 	}
 
-	var retRes581815 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes581815)
+	var retRes582615 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes582615)
 	return nil
 }
 func (this *Bingx) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
@@ -6484,8 +6478,8 @@ func (this *Bingx) reduceMarginBody(ch chan any, symbol string, amount any, opti
 		"type": 2,
 	}
 
-	var retRes582515 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes582515)
+	var retRes583315 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes583315)
 	return nil
 }
 

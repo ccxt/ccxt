@@ -4792,7 +4792,7 @@ public class Binance extends BinanceApi
             {
                 throw new ExchangeError((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
             }
-            Helpers.addElementToObject(parsed, "margin", this.safeBool(marginEntry, "isBorrowable", (Object) null));
+            parsed.put("margin", this.safeBool(marginEntry, "isBorrowable", (Object) null));
             result.put((String)code, parsed);
         }
         return result;
@@ -5420,6 +5420,7 @@ public class Binance extends BinanceApi
         Object fees = this.fees;
         Boolean linear = null;
         Boolean inverse = null;
+        String subType = null;
         String symbol = ((base + "/") + quote);
         String strike = null;
         if (Boolean.TRUE.equals(contract))
@@ -5438,6 +5439,13 @@ public class Binance extends BinanceApi
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = java.util.Objects.equals(settle, quote);
             inverse = java.util.Objects.equals(settle, base);
+            if (java.util.Objects.equals(linear, true))
+            {
+                subType = "linear";
+            } else if (java.util.Objects.equals(inverse, true))
+            {
+                subType = "inverse";
+            }
             String feesType = "inverse";
             if (Boolean.TRUE.equals(linear))
             {
@@ -5525,6 +5533,7 @@ public class Binance extends BinanceApi
             "contract", contract,
             "linear", linear,
             "inverse", inverse,
+            "subType", subType,
             "taker", Helpers.GetValue(((Map<String, Object>)fees).get("trading"), "taker"),
             "maker", Helpers.GetValue(((Map<String, Object>)fees).get("trading"), "maker"),
             "contractSize", contractSize,
@@ -6749,7 +6758,7 @@ public class Binance extends BinanceApi
             String marketId = this.safeString(Helpers.GetValue(response, i), "symbol");
             Map<String, Object> tickerMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "spot");
             Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(response, i), (Map<String, Object>) null);
-            Helpers.addElementToObject(parsedTicker, "symbol", tickerMarket.get("symbol"));
+            parsedTicker.put("symbol", tickerMarket.get("symbol"));
             ((List<Object>)results).add(parsedTicker);
         }
         return this.filterByArray(results, "symbol", symbols, true);

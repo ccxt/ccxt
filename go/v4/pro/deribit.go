@@ -728,9 +728,7 @@ func (this *Deribit) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	}
 	// for more info on useDepthEndpoint, see comment in .options
-	var useDepthEndpointparamsUseDepthEndpointVariable []any = this.HandleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false)
-	var useDepthEndpoint bool = ccxt.GetValueBool(useDepthEndpointparamsUseDepthEndpointVariable, 0, false)
-	var paramsUseDepthEndpoint map[string]any = ccxt.MapTyped(ccxt.GetValue(useDepthEndpointparamsUseDepthEndpointVariable, 1))
+	useDepthEndpoint, paramsUseDepthEndpoint := this.HandleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false)
 	depth, paramsDepth := this.HandleOptionStringAndParams(paramsUseDepthEndpoint, "watchOrderBookForSymbols", "depth", "20")
 	group, paramsGroup := this.HandleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none")
 	var descriptor any = interval

@@ -2089,9 +2089,7 @@ func (this *Lbank) createOrderBody(ch chan any, symbol string, typeVar string, s
 			request["type"] = side + "_" + "market"
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice bool = true
-			var createMarketBuyOrderRequiresPriceparamsRequestVariable []any = this.HandleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsRequestVariable, 0, false)
-			paramsRequest = GetValue(createMarketBuyOrderRequiresPriceparamsRequestVariable, 1)
+			createMarketBuyOrderRequiresPrice, paramsRequest = this.HandleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(paramsRequest, "cost")
 			paramsRequest = this.Omit(paramsRequest, "cost")
 			if cost != nil {
@@ -3513,7 +3511,7 @@ func (this *Lbank) fetchPublicTransactionFeesBody(ch chan any, optionalArgs ...a
 			var fee *string = this.SafeString(item, "fee")
 			if IsEqual(this.SafeValue(withdrawFees, codeInner), nil) {
 				if codeInner != nil {
-					AddElementToObject(withdrawFees, codeInner, map[string]any{})
+					withdrawFees[*codeInner] = map[string]any{}
 				}
 			}
 			if (codeInner != nil) && (network != nil) {
@@ -3920,7 +3918,7 @@ func (this *Lbank) HandleErrors(httpCode any, reason any, url any, method any, h
 		panic(NullResponse(this.Id + " parseBalance() returned empty response"))
 	}
 	var success any = this.SafeValue(response, "result")
-	if (IsEqual(success, "false")) || (IsEqual(success, nil)) || (IsEqual(success, nil)) || (success == false) {
+	if (IsEqual(success, "false")) || (IsEqual(success, nil)) || (success == false) {
 		var errorCode *string = this.SafeString(response, "error_code")
 		var message *string = this.SafeString(map[string]any{
 			"10000": "Internal error",

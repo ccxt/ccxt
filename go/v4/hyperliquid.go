@@ -158,7 +158,7 @@ func (this *Hyperliquid) Describe() any {
 			"public": map[string]any{
 				"post": map[string]any{
 					"info": map[string]any{
-						"cost": 20,
+						"cost": 10,
 						"byType": map[string]any{
 							"l2Book":                 2,
 							"allMids":                2,
@@ -1230,9 +1230,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	userAddress := GetValue(userAddressparamsPublicAddressVariable, 0)
 	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsPublicAddress)
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchBalance", paramsMarketType)
-	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBalance", paramsMarketType)
 	var isUnifiedEnabledparamsValueVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync("fetchBalance", userAddress, shouldRefresh, paramsMarginMode))))
 	isUnifiedEnabled := GetValue(isUnifiedEnabledparamsValueVariable, 0)
 	var paramsValue map[string]any = MapTyped(GetValue(isUnifiedEnabledparamsValueVariable, 1))
@@ -1438,9 +1436,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	var response any = []any{}
 	var typeVar *string = this.SafeString(params, "type")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
-	var hip3OptionparamsHip3Variable []any = this.HandleOptionBoolAndParams(paramsOmitted, "fetchTickers", "hip3", false)
-	var hip3Option bool = GetValueBool(hip3OptionparamsHip3Variable, 0, false)
-	var paramsHip3 map[string]any = MapTyped(GetValue(hip3OptionparamsHip3Variable, 1))
+	hip3Option, paramsHip3 := this.HandleOptionBoolAndParams(paramsOmitted, "fetchTickers", "hip3", false)
 	var hip3 bool = hip3Option
 	if !IsEqual(symbolsNormalized, nil) {
 		// infer from first symbol
@@ -2363,7 +2359,7 @@ func (this *Hyperliquid) isUnifiedEnabledBody(ch chan any, method string, option
 		}
 		return paramsPublicAddress
 	}()
-	var enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable []any = this.HandleOptionBoolAndParams(paramsAddress, method, "enableUnifiedMargin")
+	var enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable []any = this.HandleOptionBoolAndParamsNullable(paramsAddress, method, "enableUnifiedMargin")
 	enableUnifiedMarginOption := GetValue(enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable, 0)
 	paramsEnableUnifiedMargin := GetValue(enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable, 1)
 	var enableUnifiedMargin any = enableUnifiedMarginOption
@@ -6283,7 +6279,7 @@ func (this *Hyperliquid) CoinToMarketId(coin any) any {
 	return Add(this.SafeCurrencyCode(coinId), "/USDC:USDC")
 }
 func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (IsEqual(response, nil)) || (IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
 	// {"status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist."}

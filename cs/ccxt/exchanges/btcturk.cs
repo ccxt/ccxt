@@ -851,7 +851,7 @@ public partial class btcturk : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limitResolved));
     }
 
-    public override IList<object> parseOHLCVs(object ohlcvs, object market = null, string timeframe = null, object since = null, object limit = null, object tail = null)
+    public override IList<object> parseOHLCVs(object ohlcvs, object market = null, string timeframe = null, object since = null, object limit = null, bool? tail = null)
     {
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";

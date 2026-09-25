@@ -893,7 +893,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                     bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, size, counter)));
                 }
             }
-            Helpers.addElementToObject(orderbook, "symbol", symbol);
+            orderbook.put("symbol", symbol);
             client.resolve(orderbook, messageHash);
         } else
         {

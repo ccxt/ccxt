@@ -1992,8 +1992,8 @@ public class Blofin extends BlofinApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, market);
-            Helpers.addElementToObject(order, "type", type);
-            Helpers.addElementToObject(order, "side", side);
+            order.put("type", type);
+            order.put("side", side);
             return order;
         }).thenApply(Order::new);
 

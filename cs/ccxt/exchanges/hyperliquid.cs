@@ -148,7 +148,7 @@ public partial class hyperliquid : Exchange
                 { "public", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
                         { "info", new Dictionary<string, object>() {
-                            { "cost", 20 },
+                            { "cost", 10 },
                             { "byType", new Dictionary<string, object>() {
                                 { "l2Book", 2 },
                                 { "allMids", 2 },
@@ -352,7 +352,7 @@ public partial class hyperliquid : Exchange
         });
     }
 
-    public override void setSandboxMode(object enabled)
+    public override void setSandboxMode(bool? enabled)
     {
         base.setSandboxMode(enabled);
         this.options["sandboxMode"] = enabled;
@@ -1780,10 +1780,10 @@ public partial class hyperliquid : Exchange
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
-    public virtual Dictionary<string, object> constructPhantomAgent(object hash, object isTestnet = null)
+    public virtual Dictionary<string, object> constructPhantomAgent(object hash, bool? isTestnet = null)
     {
         isTestnet ??= true;
-        string source = isTrue((isTestnet)) ? "b" : "a";
+        string source = isTestnet == true ? "b" : "a";
         return new Dictionary<string, object>() {
             { "source", source },
             { "connectionId", hash },
@@ -2227,7 +2227,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
      * @returns dictionary response from the exchange
      */
-    public async virtual Task<Dictionary<string, object>> enableUserDexAbstraction(object enabled, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> enableUserDexAbstraction(bool enabled, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("enableUserDexAbstraction", parameters);

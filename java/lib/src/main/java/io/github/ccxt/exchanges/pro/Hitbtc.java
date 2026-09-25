@@ -359,10 +359,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
                 this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
             }
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-            Helpers.addElementToObject(orderbook, "nonce", nonce);
-            Helpers.addElementToObject(orderbook, "symbol", symbol);
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", this.iso8601(timestamp));
+            orderbook.put("nonce", nonce);
+            orderbook.put("symbol", symbol);
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
             client.resolve(orderbook, messageHash);
         }

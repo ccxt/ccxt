@@ -5343,7 +5343,7 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode string, optionalAr
 	if marginModeValue == "cross" {
 		leverage = 0
 	}
-	if IsEqual(leverage, nil) {
+	if leverage == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a leverage parameter"))
 	}
 	request["leverage"] = leverage
@@ -5743,7 +5743,7 @@ func (this *Phemex) transferBody(ch chan any, code string, amount any, fromAccou
 	} else if (fromId != nil && *fromId == "future") && (toId != nil && *toId == "spot") {
 		direction = 1
 	}
-	if !IsEqual(direction, nil) {
+	if direction != nil {
 		var request map[string]any = map[string]any{
 			"currency": currency["id"],
 			"moveOp":   direction,
@@ -5989,9 +5989,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	if GetValue(market, "swap") != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
 		var retRes508319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100))))

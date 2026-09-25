@@ -441,14 +441,14 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public async virtual Task<object> loadEventsHelper(object reload = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> loadEventsHelper(bool? reload = null, IDictionary<string, object>? parameters = null)
     {
         // note: the cache-hit shortcut ignores params, so events fetched under one scope are
         // returned for a later differently-scoped call. events are scoped (unlike global
         // markets), so prefer fetchEvents (params) directly when you need a specific scope
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue(reload) && ((this.events != null) && (this.events != null)))
+        if (reload != true && ((this.events != null) && (this.events != null)))
         {
             return this.events;
         }
@@ -456,7 +456,7 @@ public partial class PredictionExchange : BaseExchange
         return this.setEvents(events);
     }
 
-    public async virtual Task<object> loadEvents(object reload = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> loadEvents(bool? reload = null, IDictionary<string, object>? parameters = null)
     {
         // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
         // promise coalescing: the promise-sharing idiom is not expressible in the transpiled
@@ -820,7 +820,7 @@ public partial class PredictionExchange : BaseExchange
         this.populateOutcomes();
     }
 
-    public async virtual Task<object> loadOutcomes(object outcomes = null, object reload = null, object parameters = null)
+    public async virtual Task<object> loadOutcomes(object outcomes = null, bool? reload = null, object parameters = null)
     {
         // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
         // - an `outcomes` list (scoped): sync-filter the cache and resolve ONLY the misses through
@@ -840,7 +840,7 @@ public partial class PredictionExchange : BaseExchange
             List<object> missing = new List<object>() {};
             for (int i = 0; i < getArrayLength(outcomes); i++)
             {
-                if (isTrue(reload) || !this.hasOutcome(getValue(outcomes, i)))
+                if (reload == true || !this.hasOutcome(getValue(outcomes, i)))
                 {
                     missing.Add(getValue(outcomes, i));
                 }
@@ -848,7 +848,7 @@ public partial class PredictionExchange : BaseExchange
             int missingLength = (missing?.Count ?? 0);
             bool wasWarm = ((this.outcomes != null)) && !this.isEmpty(this.outcomes);
             bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
-            if ((missingLength > 0) && ((loadAll == true)) && !wasWarm && !isTrue(reload))
+            if ((missingLength > 0) && ((loadAll == true)) && !wasWarm && reload != true)
             {
                 await this.loadOutcomes();
                 List<object> stillMissing = new List<object>() {};
@@ -868,7 +868,7 @@ public partial class PredictionExchange : BaseExchange
             }
             return this.outcomes;
         }
-        if (!isTrue(reload) && ((this.outcomes != null)) && !this.isEmpty(this.outcomes))
+        if (reload != true && ((this.outcomes != null)) && !this.isEmpty(this.outcomes))
         {
             return this.outcomes;
         }
@@ -894,7 +894,7 @@ public partial class PredictionExchange : BaseExchange
         return ccxt.BaseExchange.ToDict(this.outcomes);
     }
 
-    public async virtual Task<IDictionary<string, object>> loadOutcome(object outcomeSymbol, object reload = null)
+    public async virtual Task<IDictionary<string, object>> loadOutcome(object outcomeSymbol, bool? reload = null)
     {
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
@@ -908,7 +908,7 @@ public partial class PredictionExchange : BaseExchange
         {
             throw new ArgumentsRequired ((this.id + " loadOutcome() requires an outcomeSymbol argument")) ;
         }
-        if (!isTrue(reload))
+        if (reload != true)
         {
             if (this.hasOutcome(outcomeSymbol))
             {
@@ -1894,13 +1894,13 @@ public partial class PredictionExchange : BaseExchange
         return results;
     }
 
-    public virtual IList<object> filterByOutcomeSinceLimit(object array, object outcome = null, object since = null, object limit = null, object tail = null)
+    public virtual IList<object> filterByOutcomeSinceLimit(object array, object outcome = null, object since = null, object limit = null, bool? tail = null)
     {
         tail ??= false;
         return this.filterByValueSinceLimit(array, "outcome", outcome, since, limit, "timestamp", tail);
     }
 
-    public virtual object filterByOutcomesSinceLimit(object array, IList<object> outcomes = null, Int64? since = null, Int64? limit = null, object tail = null)
+    public virtual object filterByOutcomesSinceLimit(object array, IList<object> outcomes = null, Int64? since = null, Int64? limit = null, bool? tail = null)
     {
         tail ??= false;
         IList<object> result = ((IList<object>)this.filterByArray(array, "outcome", outcomes, false));

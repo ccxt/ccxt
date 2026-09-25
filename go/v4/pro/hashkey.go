@@ -933,8 +933,8 @@ func (this *Hashkey) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var url any = this.GetPrivateUrl(listenKey)
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeMarketType, messageHash)
-	var fetchBalanceSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(this.HandleOptionBoolAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true), 0))
-	var awaitBalanceSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(this.HandleOptionBoolAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false), 0))
+	var fetchBalanceSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionBoolAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true)), 0))
+	var awaitBalanceSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionBoolAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false)), 0))
 	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
 
 		ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(*typeMarketType + ":fetchBalanceSnapshot")))

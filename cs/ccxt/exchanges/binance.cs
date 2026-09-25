@@ -4265,7 +4265,7 @@ public partial class binance : Exchange
         }
     }
 
-    public override void setSandboxMode(object enable)
+    public override void setSandboxMode(bool? enable)
     {
         base.setSandboxMode(enable);
         this.options["sandboxMode"] = enable;
@@ -4604,13 +4604,13 @@ public partial class binance : Exchange
      * @see https://demo.binance.com/en/my/settings/api-management
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
-    public override void enableDemoTrading(object enable)
+    public override void enableDemoTrading(bool enable)
     {
         if (this.isSandboxModeEnabled)
         {
             throw new NotSupported ((this.id + " demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
         }
-        if (isTrue(enable))
+        if (enable)
         {
             ((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
             ((IDictionary<string,object>)this.urls)["api"] = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("demo") ? ((IDictionary<string, object>)this.urls)["demo"] : null);
@@ -5352,6 +5352,7 @@ public partial class binance : Exchange
         IDictionary<string, object> fees = ((IDictionary<string, object>)this.fees);
         bool? linear = null;
         bool? inverse = null;
+        string? subType = null;
         string symbol = ((bs + "/") + quote);
         string? strike = null;
         if (contract)
@@ -5370,6 +5371,13 @@ public partial class binance : Exchange
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = (settle == quote);
             inverse = (settle == bs);
+            if ((linear == true))
+            {
+                subType = "linear";
+            } else if ((inverse == true))
+            {
+                subType = "inverse";
+            }
             string feesType = "inverse";
             if ((linear == true))
             {
@@ -5457,6 +5465,7 @@ public partial class binance : Exchange
             { "contract", contract },
             { "linear", linear },
             { "inverse", inverse },
+            { "subType", subType },
             { "taker", getValue(GetValue(fees, "trading"), "taker") },
             { "maker", getValue(GetValue(fees, "trading"), "maker") },
             { "contractSize", contractSize },
@@ -13333,7 +13342,7 @@ public partial class binance : Exchange
         };
     }
 
-    public virtual List<object> parseAccountPositions(IDictionary<string, object> account, object filterClosed = null)
+    public virtual List<object> parseAccountPositions(IDictionary<string, object> account, bool? filterClosed = null)
     {
         filterClosed ??= false;
         List<object> positions = this.safeList(account, "positions", new List<object>() {});
@@ -13364,7 +13373,7 @@ public partial class binance : Exchange
             string? maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             bool isPositionOpen = (maintenanceMargin != "0") && (maintenanceMargin != "0.00000000");
-            if (!isTrue(filterClosed) || isPositionOpen)
+            if (filterClosed != true || isPositionOpen)
             {
                 // sometimes not all the codes are correctly returned...
                 if (inOp(balances, code))
@@ -13909,7 +13918,7 @@ public partial class binance : Exchange
         });
     }
 
-    public async virtual Task<object> loadLeverageBrackets(object reload = null, object parameters = null)
+    public async virtual Task<object> loadLeverageBrackets(bool? reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -14871,7 +14880,7 @@ public partial class binance : Exchange
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> market = null;
@@ -14889,7 +14898,7 @@ public partial class binance : Exchange
         bool? isPortfolioMargin = (bool?)isPortfolioMarginparamsPapiVariable[0];
         IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable[1]);
         string? dualSidePosition = null;
-        if (isTrue(hedged))
+        if (hedged)
         {
             dualSidePosition = "true";
         } else

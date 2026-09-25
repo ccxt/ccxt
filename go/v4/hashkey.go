@@ -1774,9 +1774,7 @@ func (this *Hashkey) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, methodName, "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, methodName, "paginate", false)
 	if paginate {
 
 		var retRes157919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 1000))))
@@ -3907,7 +3905,7 @@ func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, op
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
 	var isTrigger any = defaultValue
-	var isTriggerStopparamsStopVariable []any = this.HandleOptionBoolAndParams2(params, methodName, "stop", "trigger", isTrigger)
+	var isTriggerStopparamsStopVariable []any = this.HandleOptionBoolAndParams2Nullable(params, methodName, "stop", "trigger", isTrigger)
 	isTriggerStop := GetValue(isTriggerStopparamsStopVariable, 0)
 	paramsStop := GetValue(isTriggerStopparamsStopVariable, 1)
 	return []any{isTriggerStop, paramsStop}
