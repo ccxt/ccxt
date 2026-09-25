@@ -3373,7 +3373,6 @@ class extended(Exchange, ImplicitAPI):
         baseApiUrl = self.safe_string(self.urls['api'], 'rest')
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = self.implode_hostname(baseApiUrl)
         if accessibility == 'private':
             # this.checkRequiredCredentials ();
             if self.apiKey is None:
@@ -3384,7 +3383,7 @@ class extended(Exchange, ImplicitAPI):
             if ((method == 'POST') or (method == 'PATCH')) and not queryPost:
                 requestBody = self.json(query)
                 requestHeaders['Content-Type'] = 'application/json'
-        url = url + '/api/' + version + endpoint
+        url = self.implode_hostname(baseApiUrl) + '/api/' + version + endpoint
         if (method == 'GET' or method == 'DELETE' or queryPost) and (len(query) > 0):
             url += '?' + self.urlencode_with_array_repeat(query)
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}

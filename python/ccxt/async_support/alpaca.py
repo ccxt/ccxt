@@ -2121,7 +2121,6 @@ class alpaca(Exchange, ImplicitAPI):
         baseApiUrl = self.safe_string(self.urls['api'], api[0])
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = self.implode_hostname(baseApiUrl)
         headersValue = {}
         if headers is not None:
             headersValue = headers
@@ -2137,7 +2136,7 @@ class alpaca(Exchange, ImplicitAPI):
             else:
                 bodyJson = self.json(query)
                 headersValue['Content-Type'] = 'application/json'
-        url = url + endpoint
+        url = self.implode_hostname(baseApiUrl) + endpoint
         bodyResolved = body if (bodyJson is None) else bodyJson
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue}
 

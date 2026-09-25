@@ -1942,7 +1942,7 @@ class bittrade(Exchange, ImplicitAPI):
         requestBody = None
         url = '/'
         if api == 'market':
-            url += api
+            url += 'market'
         elif (api == 'public') or (api == 'private'):
             url += self.version
         elif (api == 'v2Public') or (api == 'v2Private'):

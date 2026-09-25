@@ -3305,8 +3305,8 @@ class woo(Exchange, ImplicitAPI):
     def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         requestHeaders = None
         requestBody = None
-        version = section[0]
-        access = section[1]
+        version = self.safe_string(section, 0)
+        access = self.safe_string(section, 1)
         pathWithParams = self.implode_params(path, params)
         baseApiUrl = self.safe_string(self.urls['api'], access)
         if baseApiUrl is None:
@@ -3315,7 +3315,7 @@ class woo(Exchange, ImplicitAPI):
         url += '/' + version + '/'
         paramsSorted = self.keysort(self.omit(params, self.extract_params(path)))
         if access == 'public':
-            url += access + '/' + pathWithParams
+            url += 'public/' + pathWithParams
             if len(paramsSorted) > 0:
                 url += '?' + self.urlencode(paramsSorted)
         elif access == 'pub':

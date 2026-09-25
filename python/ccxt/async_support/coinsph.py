@@ -2170,10 +2170,9 @@ class coinsph(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], api)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl
         query = self.omit(params, self.extract_params(path))
         endpoint = self.implode_params(path, params)
-        url = url + '/' + endpoint
+        url = apiUrl + '/' + endpoint
         if api == 'private':
             self.check_required_credentials()
             query['timestamp'] = self.milliseconds()

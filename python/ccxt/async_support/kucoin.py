@@ -10996,7 +10996,6 @@ class kucoin(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], api)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl
         tradeType = self.safe_string(query, 'tradeType')
         if not self.is_empty(query):
             if ((method == 'GET') or (method == 'DELETE')) and (path != 'orders/multi-cancel'):
@@ -11007,7 +11006,7 @@ class kucoin(Exchange, ImplicitAPI):
                 bodyJson = self.json(query)
                 endpart = bodyJson
                 headersBase['Content-Type'] = 'application/json'
-        url = url + endpoint
+        headersResult = headersBase
         isFuturePrivate = (api == 'futuresPrivate')
         isPrivate = (api == 'private')
         isBroker = (api == 'broker')
@@ -11045,8 +11044,8 @@ class kucoin(Exchange, ImplicitAPI):
                 brokerName = self.safe_string(partner, 'name')
                 if brokerName is not None:
                     headersSigned['KC-BROKER-NAME'] = brokerName
-            return {'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned}
-        return {'url': url, 'method': method, 'body': bodyJson, 'headers': headersBase}
+            headersResult = headersSigned
+        return {'url': apiUrl + endpoint, 'method': method, 'body': bodyJson, 'headers': headersResult}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (response is None) or (response is None):

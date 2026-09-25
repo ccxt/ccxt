@@ -1847,8 +1847,8 @@ class bitopro(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + url
-        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
+        fullUrl = apiUrl + url
+        return {'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

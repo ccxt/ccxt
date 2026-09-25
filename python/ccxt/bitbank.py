@@ -1068,11 +1068,9 @@ class bitbank(Exchange, ImplicitAPI):
             requestTime = str(self.milliseconds())
             timeWindow = self.safe_string(self.options, 'timeWindow', '5000')
             nonce = str(self.incrementing_nonce())
-            auth = None
+            auth = nonce
             if isTimeWindow:
                 auth = requestTime + timeWindow
-            else:
-                auth = nonce
             url += self.version + '/' + self.implode_params(path, params)
             if method == 'POST':
                 requestBody = self.json(query)

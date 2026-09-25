@@ -3101,18 +3101,13 @@ class bitrue(Exchange, ImplicitAPI):
         type = self.safe_string(api, 0)
         version = self.safe_string(api, 1)
         access = self.safe_string(api, 2)
-        url = None
-        if (type == 'api' and version == 'kline') or (type == 'open' and path.find('listenKey') >= 0):
-            apiUrl2 = self.safe_string(self.urls['api'], type)
-            if apiUrl2 is None:
-                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-            url = apiUrl2
-        else:
-            apiUrl = self.safe_string(self.urls['api'], type)
-            if apiUrl is None:
-                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-            url = apiUrl + '/' + version
-        url = url + '/' + self.implode_params(path, params)
+        apiUrl = self.safe_string(self.urls['api'], type)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl
+        if not ((type == 'api' and version == 'kline') or (type == 'open' and path.find('listenKey') >= 0)):
+            url += '/' + version
+        url += '/' + self.implode_params(path, params)
         paramsOmitted = self.omit(params, self.extract_params(path))
         if access == 'private':
             self.check_required_credentials()

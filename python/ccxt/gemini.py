@@ -1960,12 +1960,12 @@ class gemini(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], api)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + url
+        fullUrl = apiUrl + url
         headersResolved = headersSigned if (api == 'private') else headers
         bodyResolved = body
         if (method == 'POST') or (method == 'DELETE'):
             bodyResolved = self.json(query)
-        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
+        return {'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

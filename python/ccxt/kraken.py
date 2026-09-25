@@ -3498,8 +3498,7 @@ class kraken(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], api)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + url
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': apiUrl + url, 'method': method, 'body': body, 'headers': headers}
 
     def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)

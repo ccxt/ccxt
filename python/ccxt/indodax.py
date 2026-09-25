@@ -1450,7 +1450,7 @@ class indodax(Exchange, ImplicitAPI):
         if isPublic:
             query = self.omit(params, self.extract_params(path))
             requestPath = '/' + self.implode_params(path, params)
-            url = url + requestPath
+            url += requestPath
             if len(query) > 0:
                 url += '?' + self.urlencode_with_array_repeat(query)
         else:
