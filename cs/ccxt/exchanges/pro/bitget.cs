@@ -153,12 +153,12 @@ public partial class bitget : ccxt.bitget
             { "instType", instType },
         };
         string topicOrChannel = "channel";
-        if (isTrue(uta))
+        if ((uta == true))
         {
             topicOrChannel = "topic";
         }
         string symbolOrInstId = "instId";
-        if (isTrue(uta))
+        if ((uta == true))
         {
             symbolOrInstId = "symbol";
         }
@@ -221,12 +221,12 @@ public partial class bitget : ccxt.bitget
                 { "instType", instType },
             };
             string topicOrChannel = "channel";
-            if (isTrue(uta))
+            if ((uta == true))
             {
                 topicOrChannel = "topic";
             }
             string symbolOrInstId = "instId";
-            if (isTrue(uta))
+            if ((uta == true))
             {
                 symbolOrInstId = "symbol";
             }
@@ -487,12 +487,12 @@ public partial class bitget : ccxt.bitget
                 { "instType", instType },
             };
             string topicOrChannel = "channel";
-            if (isTrue(uta))
+            if ((uta == true))
             {
                 topicOrChannel = "topic";
             }
             string symbolOrInstId = "instId";
-            if (isTrue(uta))
+            if ((uta == true))
             {
                 symbolOrInstId = "symbol";
             }
@@ -587,7 +587,7 @@ public partial class bitget : ccxt.bitget
         var instType = instTypeparamsInstTypeVariable[0];
         var paramsInstType = instTypeparamsInstTypeVariable[1];
         object paramsRequest = paramsInstType;
-        if (isTrue(uta))
+        if ((uta == true))
         {
             paramsRequest = this.extend(paramsInstType, new Dictionary<string, object>() {
                 { "uta", true },
@@ -596,7 +596,7 @@ public partial class bitget : ccxt.bitget
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
-        if (isTrue(uta))
+        if ((uta == true))
         {
             args["topic"] = "kline";
             args["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
@@ -892,7 +892,7 @@ public partial class bitget : ccxt.bitget
         var instType = instTypeparamsInstTypeVariable[0];
         var paramsInstType = instTypeparamsInstTypeVariable[1];
         object paramsRequest = paramsInstType;
-        if (isTrue(uta))
+        if ((uta == true))
         {
             paramsRequest = this.omit(this.extend(paramsInstType, new Dictionary<string, object>() {
                 { "uta", true },
@@ -901,7 +901,7 @@ public partial class bitget : ccxt.bitget
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
-        if (isTrue(uta))
+        if ((uta == true))
         {
             args["topic"] = channel;
             args["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
@@ -960,12 +960,12 @@ public partial class bitget : ccxt.bitget
                 { "instType", instType },
             };
             string topicOrChannel = "channel";
-            if (isTrue(uta))
+            if ((uta == true))
             {
                 topicOrChannel = "topic";
             }
             string symbolOrInstId = "instId";
-            if (isTrue(uta))
+            if ((uta == true))
             {
                 symbolOrInstId = "symbol";
             }
@@ -974,7 +974,7 @@ public partial class bitget : ccxt.bitget
             topics.Add(args);
             messageHashes.Add(("orderbook:" + symbol));
         }
-        if (isTrue(uta))
+        if ((uta == true))
         {
             ((IDictionary<string,object>)paramsCursor)["uta"] = true;
         }
@@ -1218,22 +1218,22 @@ public partial class bitget : ccxt.bitget
                 { "instType", instType },
             };
             string topicOrChannel = "channel";
-            if (isTrue(uta))
+            if ((uta == true))
             {
                 topicOrChannel = "topic";
             }
             string symbolOrInstId = "instId";
-            if (isTrue(uta))
+            if ((uta == true))
             {
                 symbolOrInstId = "symbol";
             }
-            args[(string)topicOrChannel] = isTrue(uta) ? "publicTrade" : "trade";
+            args[(string)topicOrChannel] = (uta == true) ? "publicTrade" : "trade";
             args[(string)symbolOrInstId] = (market.ContainsKey("id") ? market["id"] : null);
             topics.Add(args);
             messageHashes.Add(("trade:" + symbol));
         }
         object paramsRequest = paramsCursor;
-        if (isTrue(uta))
+        if ((uta == true))
         {
             paramsRequest = this.extend(paramsCursor, new Dictionary<string, object>() {
                 { "uta", true },
@@ -1528,7 +1528,7 @@ public partial class bitget : ccxt.bitget
             instType = instTypeparamsInstTypeVariable[0];
             paramsInstType = instTypeparamsInstTypeVariable[1];
         }
-        if (isTrue(uta))
+        if ((uta == true))
         {
             instType = "UTA";
         }
@@ -1537,24 +1537,24 @@ public partial class bitget : ccxt.bitget
             { "instType", instType },
         };
         string topicOrChannel = "channel";
-        if (isTrue(uta))
+        if ((uta == true))
         {
             topicOrChannel = "topic";
         }
         string channel = "positions";
-        if (isTrue(uta))
+        if ((uta == true))
         {
             channel = "position";
         }
         args[(string)topicOrChannel] = channel;
         object paramsRequest = paramsInstType;
-        if (isTrue(uta))
+        if ((uta == true))
         {
             paramsRequest = this.extend(paramsInstType, new Dictionary<string, object>() {
                 { "uta", true },
             });
         }
-        if (!isTrue(uta))
+        if (!(uta == true))
         {
             args["instId"] = "default";
         }
@@ -1904,7 +1904,7 @@ public partial class bitget : ccxt.bitget
                 channel = "orders-crossed";
             }
         }
-        if (isTrue(uta))
+        if ((uta == true))
         {
             instType = "UTA";
             channel = "order";
@@ -1914,19 +1914,19 @@ public partial class bitget : ccxt.bitget
             { "instType", instType },
         };
         string topicOrChannel = "channel";
-        if (isTrue(uta))
+        if ((uta == true))
         {
             topicOrChannel = "topic";
         }
         args[(string)topicOrChannel] = channel;
         object paramsRequest = paramsMarginMode;
-        if (isTrue(uta))
+        if ((uta == true))
         {
             paramsRequest = this.extend(paramsMarginMode, new Dictionary<string, object>() {
                 { "uta", true },
             });
         }
-        if (!isTrue(uta))
+        if (!(uta == true))
         {
             args["instId"] = instId;
         }
@@ -2443,7 +2443,7 @@ public partial class bitget : ccxt.bitget
             instType = (string)instTypeparamsInstTypeVariable[0];
             paramsInstType = instTypeparamsInstTypeVariable[1];
         }
-        if (isTrue(uta))
+        if ((uta == true))
         {
             instType = "UTA";
         }
@@ -2452,19 +2452,19 @@ public partial class bitget : ccxt.bitget
             { "instType", instType },
         };
         string topicOrChannel = "channel";
-        if (isTrue(uta))
+        if ((uta == true))
         {
             topicOrChannel = "topic";
         }
         args[(string)topicOrChannel] = "fill";
         object paramsRequest = paramsInstType;
-        if (isTrue(uta))
+        if ((uta == true))
         {
             paramsRequest = this.extend(paramsInstType, new Dictionary<string, object>() {
                 { "uta", true },
             });
         }
-        if (!isTrue(uta))
+        if (!(uta == true))
         {
             args["instId"] = "default";
         }
@@ -2662,7 +2662,7 @@ public partial class bitget : ccxt.bitget
         } else if ((marginMode != null))
         {
             instTypeDefault = "MARGIN";
-            if (!isTrue(uta))
+            if (!(uta == true))
             {
                 if ((marginMode == "isolated"))
                 {
@@ -2672,7 +2672,7 @@ public partial class bitget : ccxt.bitget
                     channel = "account-crossed";
                 }
             }
-        } else if (!isTrue(uta))
+        } else if (!(uta == true))
         {
             instTypeDefault = "SPOT";
         }
@@ -2680,7 +2680,7 @@ public partial class bitget : ccxt.bitget
         string? instTypeOption = (string)instTypeOptionparamsInstTypeVariable[0];
         IDictionary<string, object> paramsInstType = ((IDictionary<string, object>)instTypeOptionparamsInstTypeVariable[1]);
         string? instType = instTypeOption;
-        if (isTrue(uta))
+        if ((uta == true))
         {
             instType = "UTA";
         }
@@ -2688,19 +2688,19 @@ public partial class bitget : ccxt.bitget
             { "instType", instType },
         };
         string topicOrChannel = "channel";
-        if (isTrue(uta))
+        if ((uta == true))
         {
             topicOrChannel = "topic";
         }
         args[(string)topicOrChannel] = channel;
         object paramsRequest = paramsInstType;
-        if (isTrue(uta))
+        if ((uta == true))
         {
             paramsRequest = this.extend(paramsInstType, new Dictionary<string, object>() {
                 { "uta", true },
             });
         }
-        if (!isTrue(uta))
+        if (!(uta == true))
         {
             args["coin"] = "default";
         }

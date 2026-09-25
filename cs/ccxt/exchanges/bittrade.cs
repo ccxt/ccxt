@@ -1943,7 +1943,7 @@ public partial class bittrade : Exchange
             if ((cost != null))
             {
                 quoteAmount = this.amountToPrecision(symbol, cost);
-            } else if (isTrue(createMarketBuyOrderRequiresPrice))
+            } else if ((createMarketBuyOrderRequiresPrice == true))
             {
                 if ((price == null))
                 {
