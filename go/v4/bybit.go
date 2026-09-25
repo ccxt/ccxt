@@ -3893,9 +3893,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	}
 	request["limit"] = limitResolved // max 1000, default 1000
 	var paramsUntil any = nil
-	var requestparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	request = MapTyped(GetValue(requestparamsUntilVariable, 0))
-	paramsUntil = GetValue(requestparamsUntilVariable, 1)
+	request, paramsUntil = this.HandleUntilOption("end", request, paramsPaginate)
 	request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
@@ -7595,9 +7593,7 @@ func (this *Bybit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["startTime"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsValue)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsValue)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5ExecutionList(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -7827,9 +7823,7 @@ func (this *Bybit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetDepositQueryRecord(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -7919,9 +7913,7 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetWithdrawQueryRecord(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -9917,9 +9909,7 @@ func (this *Bybit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetTransferQueryInterTransferList(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -11088,9 +11078,7 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 	if since != nil {
 		request["startTime"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsValue)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsValue)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5ExecutionList(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -11430,9 +11418,7 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	} else {
 		request["size"] = 100
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsValue)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsValue)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5ExecutionList(this.Extend(requestUntil, paramsUntil))).Raw))
 	var fundings any = this.AddPaginationCursorToResult(response)

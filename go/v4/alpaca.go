@@ -2147,9 +2147,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["page_size"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("until", request, paramsOmitted)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsOmitted)
 
 	var response []any = ListTyped(PanicOnError((<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(requestUntil, paramsUntil))).Raw))
 

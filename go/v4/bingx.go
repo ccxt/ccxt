@@ -2520,9 +2520,7 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000) // api maximum 1000
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.SwapV2PublicGetQuoteFundingRate(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -3432,9 +3430,7 @@ func (this *Bingx) fetchPositionHistoryBody(ch chan any, symbol string, optional
 	if since != nil {
 		request["startTs"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTs", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTs", request, params)
 	var response map[string]any = nil
 	if GetValue(market, "linear") == true {
 
@@ -5329,9 +5325,7 @@ func (this *Bingx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["startTime"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsMarketType)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.SwapV1PrivateGetTradeFullOrder(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -5936,9 +5930,7 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["pageSize"] = mathMin(limit, maxLimit)
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsOmitted)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsOmitted)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.ApiV3PrivateGetAssetTransferRecord(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -6180,9 +6172,7 @@ func (this *Bingx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000) // api maximum 1000
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
 	var response []any = ListTyped(PanicOnError((<-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))).Raw))
 
@@ -6251,9 +6241,7 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000) // api maximum 1000
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
 	var response []any = ListTyped(PanicOnError((<-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 
@@ -7041,9 +7029,7 @@ func (this *Bingx) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{
 		"autoCloseType": "LIQUIDATION",
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)

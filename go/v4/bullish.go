@@ -1743,9 +1743,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		"timeBucket": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"_pageSize":  maxLimit,
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("createdAtDatetime[lte]", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("createdAtDatetime[lte]", request, paramsPaginate)
 	var until any = DerefScalar(this.SafeInteger(requestUntil, "createdAtDatetime[lte]"))
 	var duration int64 = this.ParseTimeframe(timeframe)
 	var maxDelta any = Multiply(1000*duration, maxLimit)
@@ -2698,9 +2696,7 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 	var request map[string]any = map[string]any{}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("createdAtDatetime[lte]", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("createdAtDatetime[lte]", request, params)
 	var until *int64 = this.SafeInteger(requestUntil, "createdAtDatetime[lte]")
 	if until != nil {
 		AddElementToObject(requestUntil, "createdAtDatetime[lte]", this.Iso8601(until))
@@ -3590,9 +3586,7 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	}
 	var now int64 = this.Milliseconds()
 	var startTimestamp any = since
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("createdAtDatetime[lte]", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("createdAtDatetime[lte]", request, params)
 	var until any = DerefScalar(this.SafeInteger(requestUntil, "createdAtDatetime[lte]"))
 	// current endpoint requires both since and until parameters
 	if IsEqual(startTimestamp, nil) {

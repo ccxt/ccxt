@@ -3587,9 +3587,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["cl_ord_id"] = clientOrderId
 		paramsOmitted = this.Omit(paramsOmitted, "clientOrderId")
 	}
-	var requestparamsOmittedVariable []any = this.HandleUntilOption("end", request, paramsOmitted)
-	request = MapTyped(GetValue(requestparamsOmittedVariable, 0))
-	paramsOmitted = GetValue(requestparamsOmittedVariable, 1)
+	request, paramsOmitted = this.HandleUntilOption("end", request, paramsOmitted)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostClosedOrders(this.Extend(request, paramsOmitted))).Raw))
 	//

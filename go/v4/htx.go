@@ -3771,9 +3771,7 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		if since != nil {
 			request["start-time"] = since // a date within 120 days from today
 		}
-		var requestparamsUntilVariable []any = this.HandleUntilOption("end-time", request, paramsMarketType)
-		request = MapTyped(GetValue(requestparamsUntilVariable, 0))
-		paramsUntil = GetValue(requestparamsUntilVariable, 1)
+		request, paramsUntil = this.HandleUntilOption("end-time", request, paramsMarketType)
 
 		response = (<-this.SpotPrivateGetV1OrderMatchresults(this.Extend(request, paramsUntil))).Raw
 		PanicOnError(response)
@@ -3784,9 +3782,7 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		if since != nil {
 			request["start_time"] = since
 		}
-		var requestparamsUntilVariable []any = this.HandleUntilOption("end_time", request, paramsMarketType)
-		request = MapTyped(GetValue(requestparamsUntilVariable, 0))
-		paramsUntil = GetValue(requestparamsUntilVariable, 1)
+		request, paramsUntil = this.HandleUntilOption("end_time", request, paramsMarketType)
 		if IsEqual(this.SafeBool(market, "linear"), true) {
 			request["contract_code"] = this.SafeString(market, "id")
 			if limit != nil {
@@ -5179,9 +5175,7 @@ func (this *Htx) fetchSpotOrdersByStatesBody(ch chan any, states any, optionalAr
 		request["start-time"] = since // a window of 48 hours within 180 days
 		request["end-time"] = this.Sum(since, (48*60)*60*1000)
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end-time", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end-time", request, params)
 	if limit != nil {
 		AddElementToObject(requestUntil, "size", limit)
 	}
@@ -5305,9 +5299,7 @@ func (this *Htx) fetchContractOrdersBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["start_time"] = since
 	}
-	var requestparamsUntilVariable []any = this.HandleUntilOption("end_time", request, paramsOmitted)
-	request = MapTyped(GetValue(requestparamsUntilVariable, 0))
-	paramsUntil = GetValue(requestparamsUntilVariable, 1)
+	request, paramsUntil = this.HandleUntilOption("end_time", request, paramsOmitted)
 	if GetValue(market, "linear") == true {
 		if limit != nil {
 			request["limit"] = limit
@@ -9672,9 +9664,7 @@ func (this *Htx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	var initialRequest map[string]any = map[string]any{
 		"type": "30,31",
 	}
-	var requestparamsUntilVariable []any = this.HandleUntilOption("end_time", initialRequest, paramsMarketType)
-	var request map[string]any = MapTyped(GetValue(requestparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestparamsUntilVariable, 1))
+	request, paramsUntil := this.HandleUntilOption("end_time", initialRequest, paramsMarketType)
 	if since != nil {
 		if GetValue(market, "linear") == true {
 			AddElementToObject(request, "start_time", since)
@@ -10303,9 +10293,7 @@ func (this *Htx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit // max 500
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivateGetV2AccountLedger(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -11131,9 +11119,7 @@ func (this *Htx) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) an
 	if since != nil {
 		request["start_time"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_time", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 	var response any = nil
 	if GetValue(market, "swap") == true {
 		if GetValue(market, "linear") == true {
@@ -11533,9 +11519,7 @@ func (this *Htx) fetchLiquidationsBody(ch chan any, symbol string, optionalArgs 
 	if since != nil {
 		request["start_time"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end_time", request, paramsOmitted)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsOmitted)
 	var response any = nil
 	if GetValue(market, "swap") == true {
 		if GetValue(market, "linear") == true {

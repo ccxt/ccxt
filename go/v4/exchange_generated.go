@@ -8398,21 +8398,6 @@ func (this *BaseExchange) RemoveKeysFromDict(dict any, removeKeys any) any {
 	}
 	return newDict
 }
-func (this *BaseExchange) HandleUntilOption(key any, request any, params any, optionalArgs ...any) []any {
-	multiplier := GetArg(optionalArgs, 0, 1)
-	_ = multiplier
-	var until *int64 = this.SafeInteger2(params, "until", "till")
-	if until != nil {
-		AddElementToObject(request, key, this.ParseToInt(Multiply(until, multiplier)))
-	}
-	var paramsOmitted any = func() any {
-		if until != nil {
-			return this.Omit(params, []any{"until", "till"})
-		}
-		return params
-	}()
-	return []any{request, paramsOmitted}
-}
 func (this *BaseExchange) SafeOpenInterest(interest any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market

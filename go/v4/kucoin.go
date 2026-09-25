@@ -7176,9 +7176,7 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
 	if since != nil {
 		request["startAt"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endAt", request, paramsMarginMode)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endAt", request, paramsMarginMode)
 	if limit != nil {
 		AddElementToObject(requestUntil, "pageSize", limit)
 	}
@@ -8472,9 +8470,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) any 
 	var method *string = this.SafeString(this.Options, "fetchMyTradesMethod")
 	var parseResponseData bool = false
 	var response map[string]any = nil
-	var requestparamsRequestVariable []any = this.HandleUntilOption("endAt", request, paramsRequest)
-	request = MapTyped(GetValue(requestparamsRequestVariable, 0))
-	paramsRequest = GetValue(requestparamsRequestVariable, 1)
+	request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
 	if hf == true {
 		// does not return trades earlier than 2019-02-18T00:00:00Z
 		if limit != nil {
@@ -8621,9 +8617,7 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan any, optionalArgs ...any) 
 	if limit != nil {
 		request["pageSize"] = mathMin(1000, limit)
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endAt", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endAt", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivateGetFills(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
@@ -8752,9 +8746,7 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["pageSize"] = limit
 	}
-	var requestparamsOmittedVariable []any = this.HandleUntilOption("endAt", request, paramsOmitted)
-	request = MapTyped(GetValue(requestparamsOmittedVariable, 0))
-	paramsOmitted = GetValue(requestparamsOmittedVariable, 1)
+	request, paramsOmitted = this.HandleUntilOption("endAt", request, paramsOmitted)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.UtaPrivateGetAccountModeOrderExecution(this.Extend(request, paramsOmitted))).Raw))
 	//
@@ -9661,9 +9653,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["pageSize"] = limit
 	}
-	var requestparamsRequestVariable []any = this.HandleUntilOption("endAt", request, paramsRequest)
-	request = MapTyped(GetValue(requestparamsRequestVariable, 0))
-	paramsRequest = GetValue(requestparamsRequestVariable, 1)
+	request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
 	var response map[string]any = nil
 	if (since != nil) && IsLessThan(since, 1550448000000) {
 		// if since is earlier than 2019-02-18T00:00:00Z
@@ -9872,9 +9862,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["pageSize"] = limit
 	}
-	var requestparamsRequestVariable []any = this.HandleUntilOption("endAt", request, paramsRequest)
-	request = MapTyped(GetValue(requestparamsRequestVariable, 0))
-	paramsRequest = GetValue(requestparamsRequestVariable, 1)
+	request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
 	var response map[string]any = nil
 	if (since != nil) && IsLessThan(since, 1550448000000) {
 		// if since is earlier than 2019-02-18T00:00:00Z
@@ -11189,9 +11177,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	var requestparamsRequestVariable []any = this.HandleUntilOption("endAt", request, paramsRequest)
-	request = MapTyped(GetValue(requestparamsRequestVariable, 0))
-	paramsRequest = GetValue(requestparamsRequestVariable, 1)
+	request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
 	if limit != nil {
 		if typeVar != nil && *typeVar == "contract" {
 			request["maxCount"] = limit
@@ -11624,9 +11610,7 @@ func (this *Kucoin) fetchBorrowRateHistoriesBody(ch chan any, optionalArgs ...an
 	if since != nil {
 		request["startTime"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if limit != nil {
 		AddElementToObject(requestUntil, "pageSize", limit) // default:50, min:10, max:500
 	}
@@ -11701,9 +11685,7 @@ func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan any, code any, optionalAr
 	if since != nil {
 		request["startTime"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if limit != nil {
 		AddElementToObject(requestUntil, "pageSize", limit) // default:50, min:10, max:500
 	}
@@ -12755,9 +12737,7 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		if limit != nil {
 			request["pageSize"] = limit
 		}
-		var requestparamsRequestVariable []any = this.HandleUntilOption("endAt", request, paramsRequest)
-		request = MapTyped(GetValue(requestparamsRequestVariable, 0))
-		paramsRequest = GetValue(requestparamsRequestVariable, 1)
+		request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
 
 		response := (<-this.UtaPrivateGetPositionFundingHistory(this.Extend(request, paramsRequest))).Raw
 		PanicOnError(response)
@@ -13079,9 +13059,7 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		if limit != nil {
 			request["pageSize"] = limit
 		}
-		var requestparamsRequestVariable []any = this.HandleUntilOption("endAt", request, paramsRequest)
-		request = MapTyped(GetValue(requestparamsRequestVariable, 0))
-		paramsRequest = GetValue(requestparamsRequestVariable, 1)
+		request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
 		//
 		//     {
 		//         "code": "200000",
@@ -14350,9 +14328,7 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan any, symbol string, opt
 	if limit != nil {
 		request["pageSize"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endAt", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endAt", request, paramsPaginate)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.UtaGetMarketOpenInterest(this.Extend(requestUntil, paramsUntil))).Raw))
 	var data []any = SafeListTyped(response, "data")
@@ -14608,9 +14584,7 @@ func (this *Kucoin) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		request["pageSize"] = 500
 	}
-	var requestparamsOmittedVariable []any = this.HandleUntilOption("endAt", request, paramsOmitted)
-	request = MapTyped(GetValue(requestparamsOmittedVariable, 0))
-	paramsOmitted = GetValue(requestparamsOmittedVariable, 1)
+	request, paramsOmitted = this.HandleUntilOption("endAt", request, paramsOmitted)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountsLedgers(this.Extend(request, paramsOmitted))).Raw))
 	//

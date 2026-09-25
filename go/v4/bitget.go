@@ -4815,9 +4815,7 @@ func (this *Bitget) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 	var response map[string]any = nil
 	if IsEqual(uta, true) {
 
@@ -5080,9 +5078,7 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if currency != nil {
 		request["coin"] = GetValue(currency, "id")
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 	if limit != nil {
 		AddElementToObject(requestUntil, "limit", limit)
 	}
@@ -6311,9 +6307,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		var spotMethod *string = this.SafeString(paramsPaginate, "method", defaultSpotMethod)
 		paramsPaginate = this.Omit(paramsPaginate, "method")
 		if spotMethod != nil && *spotMethod == "publicSpotGetV2SpotMarketFillsHistory" {
-			var requestparamsPaginateVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-			request = MapTyped(GetValue(requestparamsPaginateVariable, 0))
-			paramsPaginate = GetValue(requestparamsPaginateVariable, 1)
+			request, paramsPaginate = this.HandleUntilOption("endTime", request, paramsPaginate)
 			if since != nil {
 				request["startTime"] = since
 			}
@@ -6330,9 +6324,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		paramsPaginate = this.Omit(paramsPaginate, "method")
 		request["productType"] = productType
 		if swapMethod != nil && *swapMethod == "publicMixGetV2MixMarketFillsHistory" {
-			var requestparamsPaginateVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-			request = MapTyped(GetValue(requestparamsPaginateVariable, 0))
-			paramsPaginate = GetValue(requestparamsPaginateVariable, 1)
+			request, paramsPaginate = this.HandleUntilOption("endTime", request, paramsPaginate)
 			if since != nil {
 				request["startTime"] = since
 			}
@@ -9543,9 +9535,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var trigger *bool = this.SafeBool2(paramsMarginMode, "stop", "trigger")
 	var planTypeDefined bool = (this.SafeString(paramsMarginMode, "planType") != nil)
 	var isTrigger bool = (trigger != nil && *trigger == true) || planTypeDefined
-	var requestparamsMarginModeVariable []any = this.HandleUntilOption("endTime", request, paramsMarginMode)
-	request = MapTyped(GetValue(requestparamsMarginModeVariable, 0))
-	paramsMarginMode = GetValue(requestparamsMarginModeVariable, 1)
+	request, paramsMarginMode = this.HandleUntilOption("endTime", request, paramsMarginMode)
 	if since != nil {
 		request["startTime"] = since
 	}
@@ -10097,9 +10087,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	var trailing *bool = this.SafeBool(paramsUTA, "trailing")
 	var trigger *bool = this.SafeBool2(paramsUTA, "stop", "trigger")
 	paramsUTA = this.Omit(paramsUTA, []any{"stop", "trigger", "trailing"})
-	var requestparamsUTAVariable []any = this.HandleUntilOption("endTime", request, paramsUTA)
-	request = MapTyped(GetValue(requestparamsUTAVariable, 0))
-	paramsUTA = GetValue(requestparamsUTAVariable, 1)
+	request, paramsUTA = this.HandleUntilOption("endTime", request, paramsUTA)
 	if since != nil {
 		request["startTime"] = since
 	}
@@ -10431,9 +10419,7 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
 		ch <- BoxAbsent(retRes788719)
 		return nil
 	}
-	var requestparamsProductTypeVariable []any = this.HandleUntilOption("endTime", request, paramsProductType)
-	request = MapTyped(GetValue(requestparamsProductTypeVariable, 0))
-	paramsProductType = GetValue(requestparamsProductTypeVariable, 1)
+	request, paramsProductType = this.HandleUntilOption("endTime", request, paramsProductType)
 	if since != nil {
 		request["startTime"] = since
 	}
@@ -10636,9 +10622,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
-	var requestparamsOmittedVariable []any = this.HandleUntilOption("endTime", request, paramsOmitted)
-	request = MapTyped(GetValue(requestparamsOmittedVariable, 0))
-	paramsOmitted = GetValue(requestparamsOmittedVariable, 1)
+	request, paramsOmitted = this.HandleUntilOption("endTime", request, paramsOmitted)
 	if since != nil {
 		request["startTime"] = since
 	}
@@ -11093,9 +11077,7 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	var requestparamsUTAVariable []any = this.HandleUntilOption("endTime", request, paramsUTA)
-	request = MapTyped(GetValue(requestparamsUTAVariable, 0))
-	paramsUTA = GetValue(requestparamsUTAVariable, 1)
+	request, paramsUTA = this.HandleUntilOption("endTime", request, paramsUTA)
 	if since != nil {
 		request["startTime"] = since
 	}
@@ -12383,9 +12365,7 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))
 	var request map[string]any = map[string]any{}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsProductType)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsProductType)
 	if since != nil {
 		AddElementToObject(requestUntil, "startTime", since)
 	}
@@ -13075,9 +13055,7 @@ func (this *Bitget) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestparamsMarketTypeVariable []any = this.HandleUntilOption("endTime", request, paramsMarketType)
-	request = MapTyped(GetValue(requestparamsMarketTypeVariable, 0))
-	paramsMarketType = GetValue(requestparamsMarketTypeVariable, 1)
+	request, paramsMarketType = this.HandleUntilOption("endTime", request, paramsMarketType)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSpotGetV2SpotAccountTransferRecords(this.Extend(request, paramsMarketType))).Raw))
 	//
@@ -13679,9 +13657,7 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 		panic(NotSupported(this.Id + " fetchMyLiquidations() supports spot margin markets only"))
 	}
 	var request map[string]any = map[string]any{}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsMarketType)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 	if since != nil {
 		AddElementToObject(requestUntil, "startTime", since)
 	} else {
@@ -14512,9 +14488,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	productTypeparamsProductTypeVariable := this.HandleProductTypeAndParams(market, paramsUntil)
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))

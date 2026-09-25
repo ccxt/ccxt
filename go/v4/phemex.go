@@ -6013,9 +6013,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("end", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 	var response map[string]any = nil
 	if isUsdtSettled {
 
@@ -6416,9 +6414,7 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetsConvert(this.Extend(requestUntil, paramsUntil))).Raw))
 	//

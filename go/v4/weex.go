@@ -2426,9 +2426,7 @@ func (this *Weex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, params)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
 	var response []any = ListTyped(PanicOnError((<-this.ContractGetCapiV3MarketFundingRate(this.Extend(requestUntil, paramsUntil))).Raw))
 
@@ -2624,9 +2622,7 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("before", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("before", request, paramsPaginate)
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV3AccountTransferRecords(this.Extend(requestUntil, paramsUntil))).Raw))
 
@@ -3438,9 +3434,7 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		if limit != nil {
 			request["limit"] = limit
 		}
-		var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-		var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-		var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+		requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 		var trigger *bool = this.SafeBool(paramsUntil, "trigger", false)
 		if trigger != nil && *trigger == true {
 			var paramsOmitted map[string]any = MapTyped(this.Omit(paramsUntil, "trigger"))
@@ -3689,9 +3683,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = mathMin(limit, maxLimit)
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV3AllOrders(this.Extend(requestUntil, paramsUntil))).Raw))
 
@@ -3782,9 +3774,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var response []any = nil
 	if sandboxMode != nil && *sandboxMode == true {
@@ -4148,9 +4138,7 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 	var response []any = nil
 	if isSpot {
 		//
@@ -4268,9 +4256,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		if limit != nil {
 			request["limit"] = limit
 		}
-		var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsMarketType)
-		requestUntil := GetValue(requestUntilparamsUntilVariable, 0)
-		paramsUntil := GetValue(requestUntilparamsUntilVariable, 1)
+		requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 
 		var contractResponse map[string]any = MapTyped(PanicOnError((<-this.ContractPrivatePostCapiV3AccountIncome(this.Extend(requestUntil, paramsUntil))).Raw))
 		items = this.SafeList(contractResponse, "items", []any{})
@@ -4281,9 +4267,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		if limit != nil {
 			request["pageSize"] = limit
 		}
-		var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsMarketType)
-		requestUntil := GetValue(requestUntilparamsUntilVariable, 0)
-		paramsUntil := GetValue(requestUntilparamsUntilVariable, 1)
+		requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 
 		var fundingResponse map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV3AccountFundingBills(this.Extend(requestUntil, paramsUntil))).Raw))
 		items = this.SafeList(fundingResponse, "items", []any{})
@@ -4294,9 +4278,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		if limit != nil {
 			request["limit"] = limit
 		}
-		var requestUntilparamsUntilVariable []any = this.HandleUntilOption("before", request, paramsMarketType)
-		requestUntil := GetValue(requestUntilparamsUntilVariable, 0)
-		paramsUntil := GetValue(requestUntilparamsUntilVariable, 1)
+		requestUntil, paramsUntil := this.HandleUntilOption("before", request, paramsMarketType)
 
 		var billsResponse []any = ListTyped(PanicOnError((<-this.PrivatePostApiV3AccountBills(this.Extend(requestUntil, paramsUntil))).Raw))
 		items = this.ToArray(billsResponse)
@@ -4474,9 +4456,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("endTime", request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 	// the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
 	var hasSince bool = (InOp(requestUntil, "startTime"))
 	var hasUntil bool = (InOp(requestUntil, "endTime"))

@@ -909,9 +909,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		// limit should in between 100 and 500
 		request["limit"] = limit
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption(keyEnd, request, paramsPaginate)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption(keyEnd, request, paramsPaginate)
 	if GetValue(market, "contract") == true {
 
 		var responseRaw map[string]any = MapTyped(PanicOnError((<-this.SwapPublicGetV3MarketCandles(this.Extend(requestUntil, paramsUntil))).Raw))
@@ -1955,9 +1953,7 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if isContract && (symbol != nil) {
 		request["symbol"] = this.SafeString(market, "id")
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption(endKey, request, paramsMarketType)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption(endKey, request, paramsMarketType)
 	if isContract {
 
 		var raw map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateGetV3TradeOrderTrades(this.Extend(requestUntil, paramsUntil))).Raw))
@@ -2420,9 +2416,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	if since != nil {
 		request["sTime"] = since
 	}
-	var requestUntilparamsUntilVariable []any = this.HandleUntilOption("eTime", request, paramsMarketType)
-	var requestUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 0))
-	var paramsUntil map[string]any = MapTyped(GetValue(requestUntilparamsUntilVariable, 1))
+	requestUntil, paramsUntil := this.HandleUntilOption("eTime", request, paramsMarketType)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateGetV3TradeOrderHistory(this.Extend(requestUntil, paramsUntil))).Raw))
 	//
