@@ -207,6 +207,46 @@ func MapTyped(v any) map[string]any {
 	return nil
 }
 
+// MarketTyped is MapTyped for market rows: every top-level value reads exactly as GetValue
+// would return it (no typed pointer, no typed-nil container), so `row["k"]` equals
+// GetValue(row, "k"). A row still holding such a value is copied, never written in place.
+func MarketTyped(v any) map[string]any {
+	row := MapTyped(v)
+	addElementMu.Lock()
+	defer addElementMu.Unlock()
+	var plain map[string]any
+	for key, value := range row {
+		if marketValueIsPlain(value) {
+			continue
+		}
+		if plain == nil {
+			plain = make(map[string]any, len(row))
+			for k, e := range row {
+				plain[k] = e
+			}
+		}
+		plain[key] = derefScalar(value)
+	}
+	if plain != nil {
+		return plain
+	}
+	return row
+}
+
+func marketValueIsPlain(v any) bool {
+	switch p := v.(type) {
+	case *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any, *any:
+		return false
+	case map[string]any:
+		return p != nil
+	case []any:
+		return p != nil
+	case []string:
+		return p != nil
+	}
+	return true
+}
+
 // ListTyped is MapTyped's slice twin: []any passes through, []string is boxed element-wise,
 // and absent (nil) answers a nil slice.
 func ListTyped(v any) []any {
