@@ -2811,7 +2811,7 @@ public partial class mexc : Exchange
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSpotOrder(IDictionary<string, object> market, object type, object side, object amount, object price = null, object marginMode = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(IDictionary<string, object> market, string? type, string? side, object amount, object price = null, object marginMode = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2888,8 +2888,9 @@ public partial class mexc : Exchange
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSwapOrder(IDictionary<string, object> market, object type, object side, object amount, object price = null, object marginMode = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateSwapOrder(IDictionary<string, object> market, string? type, string? side, object amount, object price = null, object marginMode = null, object parameters = null)
     {
+        object typeVar = type;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -2913,23 +2914,23 @@ public partial class mexc : Exchange
         {
             openType = this.safeInteger(parameters, "openType", 2); // defaulting to cross margin
         }
-        if ((!isEqual(type, "limit")) && (!isEqual(type, "market")) && (!isEqual(type, 1)) && (!isEqual(type, 2)) && (!isEqual(type, 3)) && (!isEqual(type, 4)) && (!isEqual(type, 5)) && (!isEqual(type, 6)))
+        if ((!isEqual(typeVar, "limit")) && (!isEqual(typeVar, "market")) && (!isEqual(typeVar, 1)) && (!isEqual(typeVar, 2)) && (!isEqual(typeVar, 3)) && (!isEqual(typeVar, 4)) && (!isEqual(typeVar, 5)) && (!isEqual(typeVar, 6)))
         {
             throw new InvalidOrder ((this.id + " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")) ;
         }
         bool? postOnly = null;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), isEqual(type, 2), parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(typeVar, "market"), isEqual(typeVar, 2), parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         if ((postOnly == true))
         {
-            type = 2;
-        } else if (isEqual(type, "limit"))
+            typeVar = 2;
+        } else if (isEqual(typeVar, "limit"))
         {
-            type = 1;
-        } else if (isEqual(type, "market"))
+            typeVar = 1;
+        } else if (isEqual(typeVar, "market"))
         {
-            type = 6;
+            typeVar = 6;
         }
         string? volString = this.amountToPrecision(symbol, amount);
         if ((volString == null))
@@ -2939,10 +2940,10 @@ public partial class mexc : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market != null && market.ContainsKey("id") ? market["id"] : null) },
             { "vol", parseFloat(volString) },
-            { "type", type },
+            { "type", typeVar },
             { "openType", openType },
         };
-        if ((!isEqual(type, 5)) && (!isEqual(type, 6)) && (!isEqual(type, "market")))
+        if ((!isEqual(typeVar, 5)) && (!isEqual(typeVar, 6)) && (!isEqual(typeVar, "market")))
         {
             string? priceString = this.priceToPrecision(symbol, price);
             if ((priceString == null))
@@ -2967,21 +2968,21 @@ public partial class mexc : Exchange
             if ((reduceOnly == true))
             {
                 parameters = this.omit(parameters, "reduceOnly"); // hedged mode does not accept this parameter
-                sideInteger = (isEqual(side, "buy")) ? 4 : 2; // close short, close long
+                sideInteger = ((side == "buy")) ? 4 : 2; // close short, close long
             } else
             {
-                sideInteger = (isEqual(side, "buy")) ? 1 : 3;
+                sideInteger = ((side == "buy")) ? 1 : 3;
             }
             request["positionMode"] = 1;
         } else
         {
             if ((reduceOnly == true))
             {
-                sideInteger = (isEqual(side, "buy")) ? 2 : 4;
+                sideInteger = ((side == "buy")) ? 2 : 4;
                 parameters = this.omit(parameters, "reduceOnly");
             } else
             {
-                sideInteger = (isEqual(side, "buy")) ? 1 : 3;
+                sideInteger = ((side == "buy")) ? 1 : 3;
             }
         }
         request["side"] = sideInteger;

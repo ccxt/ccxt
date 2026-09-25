@@ -6250,7 +6250,7 @@ public partial class htx : Exchange
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    public async virtual Task<Dictionary<string, object>> CreateSpotOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateSpotOrderRequest(object symbol, string? type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -6276,7 +6276,7 @@ public partial class htx : Exchange
             { "account-id", accountId },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        string orderType = ((string)type).Replace("buy-", (string)"");
+        string orderType = type.Replace("buy-", (string)"");
         orderType = orderType.Replace("sell-", (string)"");
         IDictionary<string, object> options = this.safeDict(this.options, (market.ContainsKey("type") ? market["type"] : null), new Dictionary<string, object>() {});
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop-price"});
@@ -6389,10 +6389,11 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToDict(this.extend(request, parameters));
     }
 
-    public virtual Dictionary<string, object> createContractOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createContractOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
+        string? typeVar = type;
         parameters ??= new Dictionary<string, object>();
-        if ((type == null))
+        if ((typeVar == null))
         {
             throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
@@ -6406,7 +6407,7 @@ public partial class htx : Exchange
          * @name htx#createContractOrderRequest
          * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} typeVar 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -6430,12 +6431,12 @@ public partial class htx : Exchange
             { "volume", this.amountToPrecision(symbol, amount) },
         };
         bool? postOnly = false;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), isEqual(type, "post_only"), parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(typeVar, "market"), isEqual(typeVar, "post_only"), parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         if ((postOnly == true))
         {
-            type = "post_only";
+            typeVar = "post_only";
         }
         string? subType = null;
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("createOrder", market, parameters);
@@ -6512,10 +6513,10 @@ public partial class htx : Exchange
             }
             if (timeInForce == "fok")
             {
-                type = "fok";
+                typeVar = "fok";
             } else if (timeInForce == "ioc")
             {
-                type = "ioc";
+                typeVar = "ioc";
             }
             request["direction"] = side;
         }
@@ -6562,7 +6563,7 @@ public partial class htx : Exchange
             {
                 if (!isLinear)
                 {
-                    request["sl_order_price_type"] = type;
+                    request["sl_order_price_type"] = typeVar;
                 } else
                 {
                     request["type"] = "sl";
@@ -6576,7 +6577,7 @@ public partial class htx : Exchange
             {
                 if (!isLinear)
                 {
-                    request["tp_order_price_type"] = type;
+                    request["tp_order_price_type"] = typeVar;
                 } else
                 {
                     request["type"] = "tp";
@@ -6604,7 +6605,7 @@ public partial class htx : Exchange
                 request["client_order_id"] = clientOrderId;
                 parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
             }
-            if (isEqual(type, "limit") || isEqual(type, "ioc") || isEqual(type, "fok") || isEqual(type, "post_only"))
+            if (isEqual(typeVar, "limit") || isEqual(typeVar, "ioc") || isEqual(typeVar, "fok") || isEqual(typeVar, "post_only"))
             {
                 if ((price != null))
                 {
@@ -6622,13 +6623,13 @@ public partial class htx : Exchange
             {
                 if (!isTrailingPercentOrder)
                 {
-                    request["type"] = type;
+                    request["type"] = typeVar;
                 }
             } else
             {
                 if (!isTrailingPercentOrder)
                 {
-                    request["order_price_type"] = type;
+                    request["order_price_type"] = typeVar;
                 }
                 request["lever_rate"] = this.safeIntegerN(parameters, new List<object>() {"leverRate", "lever_rate", "leverage"}, 1);
             }

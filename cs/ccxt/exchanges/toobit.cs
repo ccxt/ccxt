@@ -1992,7 +1992,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual List<object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual List<object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2007,7 +2007,7 @@ public partial class toobit : Exchange
         string? id = ((string)(market.ContainsKey("id") ? market["id"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", id },
-            { "side", ((string)side).ToUpper() },
+            { "side", side.ToUpper() },
         };
         if ((price != null))
         {
@@ -2017,7 +2017,7 @@ public partial class toobit : Exchange
         IList<object> costparametersVariable = (IList<object>)this.handleParamString(parameters, "cost");
         cost = (string)costparametersVariable[0];
         parameters = costparametersVariable[1];
-        if (isEqual(type, "market") && isEqual(side, "buy"))
+        if ((type == "market") && (side == "buy"))
         {
             if ((cost == null))
             {
@@ -2029,7 +2029,7 @@ public partial class toobit : Exchange
             request["quantity"] = this.amountToPrecision(symbol, amount);
         }
         bool? isPostOnly = null;
-        IList<object> isPostOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, parameters);
+        IList<object> isPostOnlyparametersVariable = (IList<object>)this.handlePostOnly((type == "market"), false, parameters);
         isPostOnly = (bool?)isPostOnlyparametersVariable[0];
         parameters = isPostOnlyparametersVariable[1];
         if ((isPostOnly == true))
@@ -2037,19 +2037,20 @@ public partial class toobit : Exchange
             request["type"] = "LIMIT_MAKER";
         } else
         {
-            request["type"] = ((string)type).ToUpper();
+            request["type"] = type.ToUpper();
         }
         return new List<object>() {request, parameters};
     }
 
-    public virtual object createContractOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual object createContractOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
+        string? sideVar = side;
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
         {
             throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
-        if ((side == null))
+        if ((sideVar == null))
         {
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
@@ -2062,29 +2063,29 @@ public partial class toobit : Exchange
         IList<object> reduceOnlyparametersVariable = (IList<object>)this.handleParamBool(parameters, "reduceOnly");
         reduceOnly = (bool?)reduceOnlyparametersVariable[0];
         parameters = reduceOnlyparametersVariable[1];
-        if (isEqual(side, "buy"))
+        if (isEqual(sideVar, "buy"))
         {
-            side = ((reduceOnly == true)) ? "BUY_CLOSE" : "BUY_OPEN";
-        } else if (isEqual(side, "sell"))
+            sideVar = ((reduceOnly == true)) ? "BUY_CLOSE" : "BUY_OPEN";
+        } else if (isEqual(sideVar, "sell"))
         {
-            side = ((reduceOnly == true)) ? "SELL_CLOSE" : "SELL_OPEN";
+            sideVar = ((reduceOnly == true)) ? "SELL_CLOSE" : "SELL_OPEN";
         }
-        request["side"] = side;
+        request["side"] = sideVar;
         if ((price != null))
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
         if (this.inArray(type, new List<object>() {"limit", "LIMIT"}))
         {
-            request["type"] = ((string)type).ToUpper();
+            request["type"] = type.ToUpper();
             request["price"] = this.priceToPrecision(symbol, price);
-        } else if (isEqual(type, "market"))
+        } else if ((type == "market"))
         {
             request["type"] = "LIMIT"; // weird, but exchange works this way
             request["priceType"] = "MARKET";
         }
         bool? isPostOnly = null;
-        IList<object> isPostOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, parameters);
+        IList<object> isPostOnlyparametersVariable = (IList<object>)this.handlePostOnly((type == "market"), false, parameters);
         isPostOnly = (bool?)isPostOnlyparametersVariable[0];
         parameters = isPostOnlyparametersVariable[1];
         if ((isPostOnly == true))

@@ -3546,10 +3546,11 @@ public partial class bingx : Exchange
         return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
+        string? typeVar = type;
         parameters ??= new Dictionary<string, object>();
-        if ((type == null))
+        if ((typeVar == null))
         {
             throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
@@ -3563,7 +3564,7 @@ public partial class bingx : Exchange
          * @name bingx#createOrderRequest
          * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} typeVar 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -3581,15 +3582,15 @@ public partial class bingx : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
-        type = ((string)type).ToUpper();
+        typeVar = typeVar.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "type", type },
-            { "side", ((string)side).ToUpper() },
+            { "type", typeVar },
+            { "side", side.ToUpper() },
         };
-        bool isMarketOrder = isEqual(type, "MARKET");
+        bool isMarketOrder = isEqual(typeVar, "MARKET");
         bool isSpot = marketType == "spot";
-        bool isTwapOrder = isEqual(type, "TWAP");
+        bool isTwapOrder = isEqual(typeVar, "TWAP");
         if (isTwapOrder && isSpot)
         {
             throw new BadSymbol ((this.id + " createOrder() twap order supports swap contracts only")) ;
@@ -3648,15 +3649,15 @@ public partial class bingx : Exchange
             }
             if ((triggerPrice != null))
             {
-                if (isMarketOrder && (isEqual(side, "buy")) && (this.safeString(request, "quoteOrderQty") == null))
+                if (isMarketOrder && ((side == "buy")) && (this.safeString(request, "quoteOrderQty") == null))
                 {
                     throw new ArgumentsRequired ((this.id + " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders")) ;
                 }
                 request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
-                if (isEqual(type, "LIMIT"))
+                if (isEqual(typeVar, "LIMIT"))
                 {
                     request["type"] = "TRIGGER_LIMIT";
-                } else if (isEqual(type, "MARKET"))
+                } else if (isEqual(typeVar, "MARKET"))
                 {
                     request["type"] = "TRIGGER_MARKET";
                 }
@@ -3667,10 +3668,10 @@ public partial class bingx : Exchange
                 {
                     stopTakePrice = stopLossPrice;
                 }
-                if (isEqual(type, "LIMIT"))
+                if (isEqual(typeVar, "LIMIT"))
                 {
                     request["type"] = "TAKE_STOP_LIMIT";
-                } else if (isEqual(type, "MARKET"))
+                } else if (isEqual(typeVar, "MARKET"))
                 {
                     request["type"] = "TAKE_STOP_MARKET";
                 }
@@ -3683,7 +3684,7 @@ public partial class bingx : Exchange
                 Dictionary<string, object> twapRequest = new Dictionary<string, object>() {
                     { "symbol", request["symbol"] },
                     { "side", request["side"] },
-                    { "positionSide", (isEqual(side, "buy")) ? "LONG" : "SHORT" },
+                    { "positionSide", ((side == "buy")) ? "LONG" : "SHORT" },
                     { "triggerPrice", this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)) },
                     { "totalAmount", this.parseToNumeric(this.amountToPrecision(symbol, amount)) },
                 };
@@ -3723,7 +3724,7 @@ public partial class bingx : Exchange
             {
                 parameters = this.omit(parameters, "takeProfit");
             }
-            if (((isEqual(type, "LIMIT")) || (isEqual(type, "TRIGGER_LIMIT")) || (isEqual(type, "STOP")) || (isEqual(type, "TAKE_PROFIT"))) && !isTrailing)
+            if (((isEqual(typeVar, "LIMIT")) || (isEqual(typeVar, "TRIGGER_LIMIT")) || (isEqual(typeVar, "STOP")) || (isEqual(typeVar, "TAKE_PROFIT"))) && !isTrailing)
             {
                 request["price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
             }
@@ -3731,10 +3732,10 @@ public partial class bingx : Exchange
             if (isTriggerOrder)
             {
                 request["stopPrice"] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
-                if (isMarketOrder || (isEqual(type, "TRIGGER_MARKET")))
+                if (isMarketOrder || (isEqual(typeVar, "TRIGGER_MARKET")))
                 {
                     request["type"] = "TRIGGER_MARKET";
-                } else if ((isEqual(type, "LIMIT")) || (isEqual(type, "TRIGGER_LIMIT")))
+                } else if ((isEqual(typeVar, "LIMIT")) || (isEqual(typeVar, "TRIGGER_LIMIT")))
                 {
                     request["type"] = "TRIGGER_LIMIT";
                 }
@@ -3745,20 +3746,20 @@ public partial class bingx : Exchange
                 if (isStopLossPriceOrder)
                 {
                     request["stopPrice"] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
-                    if (isMarketOrder || (isEqual(type, "STOP_MARKET")))
+                    if (isMarketOrder || (isEqual(typeVar, "STOP_MARKET")))
                     {
                         request["type"] = "STOP_MARKET";
-                    } else if ((isEqual(type, "LIMIT")) || (isEqual(type, "STOP")))
+                    } else if ((isEqual(typeVar, "LIMIT")) || (isEqual(typeVar, "STOP")))
                     {
                         request["type"] = "STOP";
                     }
                 } else if (isTakeProfitPriceOrder)
                 {
                     request["stopPrice"] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
-                    if (isMarketOrder || (isEqual(type, "TAKE_PROFIT_MARKET")))
+                    if (isMarketOrder || (isEqual(typeVar, "TAKE_PROFIT_MARKET")))
                     {
                         request["type"] = "TAKE_PROFIT_MARKET";
-                    } else if ((isEqual(type, "LIMIT")) || (isEqual(type, "TAKE_PROFIT")))
+                    } else if ((isEqual(typeVar, "LIMIT")) || (isEqual(typeVar, "TAKE_PROFIT")))
                     {
                         request["type"] = "TAKE_PROFIT";
                     }
@@ -3834,10 +3835,10 @@ public partial class bingx : Exchange
                 parameters = this.omit(parameters, "reduceOnly");
                 if ((reduceOnly == true))
                 {
-                    positionSide = (isEqual(side, "buy")) ? "SHORT" : "LONG";
+                    positionSide = ((side == "buy")) ? "SHORT" : "LONG";
                 } else
                 {
-                    positionSide = (isEqual(side, "buy")) ? "LONG" : "SHORT";
+                    positionSide = ((side == "buy")) ? "LONG" : "SHORT";
                 }
             } else
             {

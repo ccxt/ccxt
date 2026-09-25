@@ -1638,7 +1638,7 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", tag },         });
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -1655,8 +1655,8 @@ public partial class bitvavo : Exchange
             { "side", side },
             { "orderType", type },
         };
-        bool isMarketOrder = (isEqual(type, "market")) || (isEqual(type, "stopLoss")) || (isEqual(type, "takeProfit"));
-        bool isLimitOrder = (isEqual(type, "limit")) || (isEqual(type, "stopLossLimit")) || (isEqual(type, "takeProfitLimit"));
+        bool isMarketOrder = ((type == "market")) || ((type == "stopLoss")) || ((type == "takeProfit"));
+        bool isLimitOrder = ((type == "limit")) || ((type == "stopLossLimit")) || ((type == "takeProfitLimit"));
         string? timeInForce = this.safeString(parameters, "timeInForce");
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerAmount"});
         bool postOnly = this.isPostOnly(isMarketOrder, false, parameters);
@@ -1690,8 +1690,8 @@ public partial class bitvavo : Exchange
             request["price"] = this.priceToPrecision(symbol, price);
             request["amount"] = this.amountToPrecision(symbol, amount);
         }
-        bool isTakeProfit = ((takeProfitPrice != null)) || (isEqual(type, "takeProfit")) || (isEqual(type, "takeProfitLimit"));
-        bool isStopLoss = ((stopLossPrice != null)) || ((triggerPrice != null)) && (!isTakeProfit) || (isEqual(type, "stopLoss")) || (isEqual(type, "stopLossLimit"));
+        bool isTakeProfit = ((takeProfitPrice != null)) || ((type == "takeProfit")) || ((type == "takeProfitLimit"));
+        bool isStopLoss = ((stopLossPrice != null)) || ((triggerPrice != null)) && (!isTakeProfit) || ((type == "stopLoss")) || ((type == "stopLossLimit"));
         if (isStopLoss)
         {
             if ((stopLossPrice != null))
@@ -1826,7 +1826,7 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};

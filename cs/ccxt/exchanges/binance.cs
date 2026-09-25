@@ -7559,7 +7559,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual Dictionary<string, object> editSpotOrderRequest(string? id, object symbol, object type, object side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> editSpotOrderRequest(string? id, object symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -7593,9 +7593,9 @@ public partial class binance : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "side", ((string)side).ToUpper() },
+            { "side", side.ToUpper() },
         };
-        string initialUppercaseType = ((string)type).ToUpper();
+        string initialUppercaseType = type.ToUpper();
         string uppercaseType = initialUppercaseType;
         bool postOnly = this.isPostOnly(initialUppercaseType == "MARKET", initialUppercaseType == "LIMIT_MAKER", parameters);
         if (postOnly)
@@ -7730,7 +7730,7 @@ public partial class binance : Exchange
         return this.extend(request, parameters);
     }
 
-    public virtual Dictionary<string, object> editContractOrderRequest(string? id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> editContractOrderRequest(string? id, object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -7756,7 +7756,7 @@ public partial class binance : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "side", ((string)side).ToUpper() },
+            { "side", side.ToUpper() },
             { "orderId", id },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
@@ -8993,14 +8993,15 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} request to be sent to the exchange
      */
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
+        string? sideVar = side;
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
         {
             throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
-        if ((side == null))
+        if ((sideVar == null))
         {
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
@@ -9008,10 +9009,10 @@ public partial class binance : Exchange
         string? marketType = this.safeString(parameters, "type", (market.ContainsKey("type") ? market["type"] : null));
         bool? stock = this.safeBool(market, "stock", false);
         string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clientAlgoId", "newClientOrderId", "clientOrderId"});
-        string initialUppercaseType = ((string)type).ToUpper();
+        string initialUppercaseType = type.ToUpper();
         bool isMarketOrder = initialUppercaseType == "MARKET";
         bool isLimitOrder = initialUppercaseType == "LIMIT";
-        string upperCaseSide = ((string)side).ToUpper();
+        string upperCaseSide = sideVar.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", upperCaseSide },
@@ -9048,7 +9049,7 @@ public partial class binance : Exchange
         bool isPortfolioMarginConditional = ((isPortfolioMargin == true) && isConditional);
         bool isPriceMatch = (priceMatch != null);
         bool priceRequiredForTrailing = true;
-        string uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = type.ToUpper();
         string? stopPrice = null;
         if (isTrailingPercentOrder)
         {
@@ -9126,7 +9127,7 @@ public partial class binance : Exchange
         }
         if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
         {
-            if (isEqual(type, "market"))
+            if ((type == "market"))
             {
                 throw new InvalidOrder ((((((this.id + " ") + (type)) + " is not a valid order type for the ") + (symbol)) + " market")) ;
             }
@@ -9450,9 +9451,9 @@ public partial class binance : Exchange
             if ((reduceOnly == true))
             {
                 parameters = this.omit(parameters, "reduceOnly");
-                side = (isEqual(side, "buy")) ? "sell" : "buy";
+                sideVar = (isEqual(sideVar, "buy")) ? "sell" : "buy";
             }
-            request["positionSide"] = (isEqual(side, "buy")) ? "LONG" : "SHORT";
+            request["positionSide"] = (isEqual(sideVar, "buy")) ? "LONG" : "SHORT";
         }
         // unified stp
         string? selfTradePrevention = null;

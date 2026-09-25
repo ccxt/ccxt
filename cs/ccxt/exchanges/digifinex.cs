@@ -2141,7 +2141,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2180,8 +2180,8 @@ public partial class digifinex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool swap = (marketType == "swap");
-        bool isMarketOrder = (isEqual(type, "market"));
-        bool isLimitOrder = (isEqual(type, "limit"));
+        bool isMarketOrder = ((type == "market"));
+        bool isLimitOrder = ((type == "limit"));
         string marketIdRequest = "symbol";
         if (swap)
         {
@@ -2233,7 +2233,7 @@ public partial class digifinex : Exchange
             postOnlyParsed = ((postOnly == true)) ? 1 : 2;
             request["market"] = marketType;
             string suffix = "";
-            if (isEqual(type, "market"))
+            if ((type == "market"))
             {
                 suffix = "_market";
             } else

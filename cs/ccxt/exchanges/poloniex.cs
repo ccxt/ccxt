@@ -2392,7 +2392,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual List<object> orderRequest(string? symbol, object type, object side, object amount, object request, object price = null, object parameters = null)
+    public virtual List<object> orderRequest(string? symbol, string? type, string? side, object amount, object request, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         double? triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
@@ -2424,7 +2424,7 @@ public partial class poloniex : Exchange
                 }
             }
         }
-        string upperCaseType = ((string)type).ToUpper();
+        string upperCaseType = type.ToUpper();
         bool isMarket = upperCaseType == "MARKET";
         bool isPostOnly = this.isPostOnly(isMarket, upperCaseType == "LIMIT_MAKER", parameters);
         parameters = this.omit(parameters, new List<object>() {"postOnly", "triggerPrice", "stopPrice"});
@@ -2443,7 +2443,7 @@ public partial class poloniex : Exchange
         ((IDictionary<string,object>)request)["type"] = upperCaseType;
         if (isMarket)
         {
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 string? quoteAmount = null;
                 bool? createMarketBuyOrderRequiresPrice = true;

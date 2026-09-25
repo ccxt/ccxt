@@ -2144,13 +2144,14 @@ public partial class btse : Exchange
      * @param {float} [params.stopPrice] *NB - It is NOT stopLossPrice or triggerPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
+        string? typeVar = type;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        type = ((string)type).ToUpper();
-        string upperSide = ((string)side).ToUpper();
+        typeVar = typeVar.ToUpper();
+        string upperSide = side.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "orderSide", upperSide },
@@ -2161,8 +2162,8 @@ public partial class btse : Exchange
             request["clOrderId"] = clientOrderId;
             parameters = this.omit(parameters, "clientOrderId");
         }
-        bool isMarketOrder = (isEqual(type, "MARKET"));
-        bool isLimitOrder = (isEqual(type, "LIMIT"));
+        bool isMarketOrder = (isEqual(typeVar, "MARKET"));
+        bool isLimitOrder = (isEqual(typeVar, "LIMIT"));
         bool? postOnly = false;
         // exchange-specific postOnly is the same as the unified one
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, postOnly, parameters);
@@ -2184,17 +2185,17 @@ public partial class btse : Exchange
         bool isStopLossOrder = ((stopLossPrice != null));
         bool isConditionalOrder = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder);
         bool isAlgoOrder = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
-        if (isLimitOrder || (isEqual(type, "PEG")) || (isEqual(type, "OCO")))
+        if (isLimitOrder || (isEqual(typeVar, "PEG")) || (isEqual(typeVar, "OCO")))
         {
             if ((price == null))
             {
-                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for ") + (type)) + " orders")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for ") + (typeVar)) + " orders")) ;
             }
         }
         // market and trailing buys are denominated in the quote currency while
         // every other combination is denominated in the base currency, the
         // sizing rules are strict on both sides, verified live
-        bool needsQuoteSize = (isMarketOrder || (isEqual(type, "TRAILING"))) && (upperSide == "BUY");
+        bool needsQuoteSize = (isMarketOrder || (isEqual(typeVar, "TRAILING"))) && (upperSide == "BUY");
         if (needsQuoteSize)
         {
             string? quoteAmount = null;
@@ -2230,7 +2231,7 @@ public partial class btse : Exchange
         List<object> response = null;
         if (!isAlgoOrder)
         {
-            request["orderType"] = type;
+            request["orderType"] = typeVar;
             if (isLimitOrder)
             {
                 request["orderPrice"] = this.priceToPrecision(symbol, price);
@@ -2297,8 +2298,8 @@ public partial class btse : Exchange
                 parameters = this.omit(parameters, new List<object>() {"triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"});
             } else
             {
-                request["orderType"] = type;
-                if (isEqual(type, "OCO"))
+                request["orderType"] = typeVar;
+                if (isEqual(typeVar, "OCO"))
                 {
                     // the price argument is the limit price of the take profit leg,
                     // the stopPrice param is the limit price of the stop loss leg
@@ -2316,11 +2317,11 @@ public partial class btse : Exchange
                     string? triggerPriceType = this.safeString(parameters, "triggerPriceType", "last");
                     request["stopLossTriggerPriceType"] = this.encodeTriggerPriceType(triggerPriceType);
                     parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "triggerPriceType"});
-                } else if (isEqual(type, "PEG"))
+                } else if (isEqual(typeVar, "PEG"))
                 {
                     // the required stealth and optional deviation params pass through
                     request["orderPrice"] = this.priceToPrecision(symbol, price);
-                } else if (isEqual(type, "TRAILING"))
+                } else if (isEqual(typeVar, "TRAILING"))
                 {
                     string? trailingAmount = this.safeString(parameters, "trailingAmount");
                     string? trailingPercent = this.safeString(parameters, "trailingPercent");
@@ -2380,15 +2381,16 @@ public partial class btse : Exchange
      * @param {float} [params.stopPrice] *NB - It is NOT the stopLossPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, object type, object side, object amount, double? price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, object amount, double? price = null, object parameters = null)
     {
+        string? typeVar = type;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        type = ((string)type).ToUpper();
+        typeVar = typeVar.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.futuresRequestId(market) },
-            { "orderSide", ((string)side).ToUpper() },
+            { "orderSide", side.ToUpper() },
             { "orderSize", this.amountToPrecision(symbol, amount) },
         };
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2422,8 +2424,8 @@ public partial class btse : Exchange
                 request["positionMode"] = "HEDGE";
             }
         }
-        bool isMarketOrder = (isEqual(type, "MARKET"));
-        bool isLimitOrder = (isEqual(type, "LIMIT"));
+        bool isMarketOrder = (isEqual(typeVar, "MARKET"));
+        bool isLimitOrder = (isEqual(typeVar, "LIMIT"));
         bool? postOnly = false;
         // exchange-specific postOnly is the same as the unified one
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, postOnly, parameters);
@@ -2445,11 +2447,11 @@ public partial class btse : Exchange
         bool isStopLossOrder = ((stopLossPrice != null));
         bool isConditionalOrder = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder);
         bool isAlgoOrder = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
-        if (isLimitOrder || (isEqual(type, "OCO")))
+        if (isLimitOrder || (isEqual(typeVar, "OCO")))
         {
             if ((price == null))
             {
-                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for ") + (type)) + " orders")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for ") + (typeVar)) + " orders")) ;
             }
         }
         // here we handling with attached take profit and stop loss orders
@@ -2482,7 +2484,7 @@ public partial class btse : Exchange
         Dictionary<string, object> response = null;
         if (!isAlgoOrder)
         {
-            request["orderType"] = type;
+            request["orderType"] = typeVar;
             if (isLimitOrder)
             {
                 request["orderPrice"] = this.priceToPrecision(symbol, price);
@@ -2538,8 +2540,8 @@ public partial class btse : Exchange
                 parameters = this.omit(parameters, new List<object>() {"triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"});
             } else
             {
-                request["orderType"] = type;
-                if (isEqual(type, "OCO"))
+                request["orderType"] = typeVar;
+                if (isEqual(typeVar, "OCO"))
                 {
                     // the price argument is the limit price of the take profit leg,
                     // the stopPrice param is the limit price of the stop loss leg
@@ -2557,7 +2559,7 @@ public partial class btse : Exchange
                     string? triggerPriceType = this.safeString(parameters, "triggerPriceType", "mark");
                     request["stopLossTriggerType"] = this.encodeTriggerPriceType(triggerPriceType);
                     parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "triggerPriceType"});
-                } else if (isEqual(type, "PEG"))
+                } else if (isEqual(typeVar, "PEG"))
                 {
                     // the required deviation and stealth params pass through, the
                     // optional price argument becomes a worst-price bound
@@ -2565,7 +2567,7 @@ public partial class btse : Exchange
                     {
                         request["orderPrice"] = this.priceToPrecision(symbol, price);
                     }
-                } else if (isEqual(type, "TRAILING"))
+                } else if (isEqual(typeVar, "TRAILING"))
                 {
                     string? trailingAmount = this.safeString(parameters, "trailingAmount");
                     string? trailingPercent = this.safeString(parameters, "trailingPercent");
@@ -3754,7 +3756,7 @@ public partial class btse : Exchange
         });
     }
 
-    public virtual string? parseMarginModeType(object marginMode)
+    public virtual string? parseMarginModeType(string? marginMode)
     {
         Dictionary<string, object> marginModes = new Dictionary<string, object>() {
             { "91", "cross" },

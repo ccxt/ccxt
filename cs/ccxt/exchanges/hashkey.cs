@@ -2809,7 +2809,7 @@ public partial class hashkey : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
@@ -2822,7 +2822,7 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        bool isMarketBuy = (isEqual(type, "market")) && (isEqual(side, "buy"));
+        bool isMarketBuy = ((type == "market")) && ((side == "buy"));
         string? cost = this.safeString(parameters, "cost");
         if ((!isMarketBuy) && ((cost != null)))
         {
@@ -2845,7 +2845,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -3036,7 +3036,7 @@ public partial class hashkey : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSwapOrder(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateSwapOrder(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4356,7 +4356,7 @@ public partial class hashkey : Exchange
         return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, object type, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? type, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4382,7 +4382,7 @@ public partial class hashkey : Exchange
             throw new ArgumentsRequired ((((this.id + " ") + (type)) + "Margin() params[\"side\"] must be either long or short")) ;
         }
         string? amountString = this.numberToString(amount);
-        if (isEqual(type, "reduce"))
+        if ((type == "reduce"))
         {
             amountString = Precise.stringMul(amountString, "-1");
         }

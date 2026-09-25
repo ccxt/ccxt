@@ -1405,7 +1405,7 @@ public partial class bitfinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? convertDerivativesId(Dictionary<string, object> currency, object type)
+    public virtual string? convertDerivativesId(Dictionary<string, object> currency, string? type)
     {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
@@ -1416,7 +1416,7 @@ public partial class bitfinex : Exchange
         string? transferId = this.safeString(info, 0);
         List<object> underlying = this.safeList(info, 4, new List<object>() {});
         object currencyId = null;
-        if (isEqual(type, "derivatives"))
+        if ((type == "derivatives"))
         {
             currencyId = this.safeString(underlying, 0, transferId);
             int start = (((string)currencyId).Length - 2);
@@ -1425,7 +1425,7 @@ public partial class bitfinex : Exchange
             {
                 currencyId = add(currencyId, "F0");
             }
-        } else if (!isEqual(type, "margin"))
+        } else if (!(type == "margin"))
         {
             currencyId = this.safeString(underlying, 1, transferId);
         } else
@@ -2066,7 +2066,7 @@ public partial class bitfinex : Exchange
         }, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2101,7 +2101,7 @@ public partial class bitfinex : Exchange
          */
         Dictionary<string, object> market = this.market(symbol);
         string? amountString = this.amountToPrecision(symbol, amount);
-        amountString = (isEqual(side, "buy")) ? amountString : Precise.stringNeg(amountString);
+        amountString = ((side == "buy")) ? amountString : Precise.stringNeg(amountString);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", amountString },
@@ -2112,7 +2112,7 @@ public partial class bitfinex : Exchange
         bool? postOnlyParam = this.safeBool(parameters, "postOnly", false);
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         object clientOrderId = this.safeValue2(parameters, "cid", "clientOrderId");
-        string orderType = ((string)type).ToUpper();
+        string orderType = type.ToUpper();
         if ((trailingAmount != null))
         {
             orderType = "TRAILING STOP";
@@ -2121,7 +2121,7 @@ public partial class bitfinex : Exchange
         {
             // request['price'] is taken as triggerPrice for stop orders
             request["price"] = this.priceToPrecision(symbol, triggerPrice);
-            if (isEqual(type, "limit"))
+            if ((type == "limit"))
             {
                 orderType = "STOP LIMIT";
                 request["price_aux_limit"] = this.priceToPrecision(symbol, price);
@@ -2137,11 +2137,11 @@ public partial class bitfinex : Exchange
         {
             throw new InvalidOrder ((this.id + " createOrder() requires a price argument with IOC and FOK orders")) ;
         }
-        if ((ioc || fok) && (isEqual(type, "market")))
+        if ((ioc || fok) && ((type == "market")))
         {
             throw new InvalidOrder ((this.id + " createOrder() does not allow market IOC and FOK orders")) ;
         }
-        if ((!isEqual(type, "market")) && ((triggerPrice == null)))
+        if ((!(type == "market")) && ((triggerPrice == null)))
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }

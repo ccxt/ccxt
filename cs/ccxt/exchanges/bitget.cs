@@ -7604,7 +7604,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual Dictionary<string, object> createUtaOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createUtaOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -7712,7 +7712,7 @@ public partial class bitget : Exchange
                     request["tpOrderType"] = this.safeString(parameters, "tpOrderType", "market");
                 }
             }
-            bool isMarketOrder = isEqual(type, "market");
+            bool isMarketOrder = (type == "market");
             if (!isMarketOrder)
             {
                 request["price"] = this.priceToPrecision(symbol, price);
@@ -7755,7 +7755,7 @@ public partial class bitget : Exchange
             if (((hedged == true)) || isStopLossOrTakeProfitTrigger)
             {
                 string reduceOnlyPosSide = "short";
-                if (isEqual(side, "sell"))
+                if ((side == "sell"))
                 {
                     reduceOnlyPosSide = "long";
                 }
@@ -7769,7 +7769,7 @@ public partial class bitget : Exchange
             if ((hedged == true))
             {
                 string posSide = "short";
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     posSide = "long";
                 }
@@ -7780,7 +7780,7 @@ public partial class bitget : Exchange
         return this.extend(request, parameters);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -7817,7 +7817,7 @@ public partial class bitget : Exchange
         {
             hedged = oneWayMode != true;
         }
-        bool isMarketOrder = isEqual(type, "market");
+        bool isMarketOrder = (type == "market");
         double? triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         double? stopLossTriggerPrice = this.safeNumber(parameters, "stopLossPrice");
         double? takeProfitTriggerPrice = this.safeNumber(parameters, "takeProfitPrice");
@@ -7844,7 +7844,7 @@ public partial class bitget : Exchange
         {
             throw new ExchangeError ((this.id + " createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
         }
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
@@ -7946,10 +7946,10 @@ public partial class bitget : Exchange
                 }
                 if ((hedged == true))
                 {
-                    request["holdSide"] = (isEqual(side, "sell")) ? "long" : "short";
+                    request["holdSide"] = ((side == "sell")) ? "long" : "short";
                 } else
                 {
-                    request["holdSide"] = (isEqual(side, "sell")) ? "buy" : "sell";
+                    request["holdSide"] = ((side == "sell")) ? "buy" : "sell";
                 }
                 if (isStopLossTriggerOrder)
                 {
@@ -8005,7 +8005,7 @@ public partial class bitget : Exchange
                     marginModeRequest = "crossed";
                 }
                 request["marginMode"] = marginModeRequest;
-                object requestSide = side;
+                string? requestSide = side;
                 if ((reduceOnly == true))
                 {
                     if ((hedged != true))
@@ -8014,7 +8014,7 @@ public partial class bitget : Exchange
                     } else
                     {
                         // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
-                        requestSide = (isEqual(side, "buy")) ? "sell" : "buy";
+                        requestSide = ((side == "buy")) ? "sell" : "buy";
                         request["tradeSide"] = "Close";
                     }
                 } else
@@ -8039,7 +8039,7 @@ public partial class bitget : Exchange
             IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
-            if (isMarketOrder && (isEqual(side, "buy")))
+            if (isMarketOrder && ((side == "buy")))
             {
                 planType = "total";
                 double? cost = this.safeNumber(parameters, "cost");
@@ -8075,7 +8075,7 @@ public partial class bitget : Exchange
             if ((marginMode != null))
             {
                 request["loanType"] = "normal";
-                if (isMarketOrder && (isEqual(side, "buy")))
+                if (isMarketOrder && ((side == "buy")))
                 {
                     request["quoteSize"] = quantity;
                 } else

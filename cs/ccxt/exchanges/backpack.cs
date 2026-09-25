@@ -2048,7 +2048,7 @@ public partial class backpack : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2073,11 +2073,11 @@ public partial class backpack : Exchange
             quantityKey = "triggerQuantity";
         }
         // handle basic limit/market order types
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             request["price"] = this.priceToPrecision(symbol, price);
             request[(string)quantityKey] = this.amountToPrecision(symbol, amount);
-        } else if (isEqual(type, "market"))
+        } else if ((type == "market"))
         {
             string? cost = this.safeString2(parameters, "cost", "quoteQuantity");
             if ((cost != null))
@@ -2102,7 +2102,7 @@ public partial class backpack : Exchange
             parameters = this.omit(parameters, "clientOrderId");
         }
         bool? postOnly = false;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly((type == "market"), false, parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         if ((postOnly == true))

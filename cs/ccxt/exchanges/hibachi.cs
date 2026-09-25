@@ -978,7 +978,7 @@ public partial class hibachi : Exchange
         return message;
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object nonce, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object nonce, string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -996,10 +996,10 @@ public partial class hibachi : Exchange
         double? makerFeeValue = ((makerFee == null)) ? 0 : makerFee;
         double? feeRate = ((double?)mathMax(takerFeeValue, makerFeeValue));
         string sideInternal = "";
-        if (isEqual(side, "sell"))
+        if ((side == "sell"))
         {
             sideInternal = "ASK";
-        } else if (isEqual(side, "buy"))
+        } else if ((side == "buy"))
         {
             sideInternal = "BID";
         }
@@ -1014,13 +1014,13 @@ public partial class hibachi : Exchange
             { "symbol", this.safeString(market, "id") },
             { "nonce", nonce },
             { "side", sideInternal },
-            { "orderType", ((string)type).ToUpper() },
+            { "orderType", type.ToUpper() },
             { "quantity", this.amountToPrecision(symbol, amount) },
             { "price", priceInternal },
             { "signature", signature },
             { "maxFeesPercent", this.numberToString(feeRate) },
         };
-        bool postOnly = this.isPostOnly((((string)type).ToUpper() == "MARKET"), null, parameters);
+        bool postOnly = this.isPostOnly((type.ToUpper() == "MARKET"), null, parameters);
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
@@ -1127,7 +1127,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToOrderList(ret);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(object nonce, object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(object nonce, object id, string? symbol, string? type, string? side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))

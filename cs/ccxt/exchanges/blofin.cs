@@ -1610,7 +1610,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceByType(response));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -1640,11 +1640,11 @@ public partial class blofin : Exchange
         bool? isHedged = this.safeBool(parameters, "hedged", false);
         if ((isHedged == true))
         {
-            request["positionSide"] = (isEqual(side, "buy")) ? "long" : "short";
+            request["positionSide"] = ((side == "buy")) ? "long" : "short";
         }
-        bool isMarketOrder = isEqual(type, "market");
+        bool isMarketOrder = (type == "market");
         parameters = this.omit(parameters, new List<object>() {"timeInForce"});
-        bool ioc = (timeInForce == "IOC") || (isEqual(type, "ioc"));
+        bool ioc = (timeInForce == "IOC") || ((type == "ioc"));
         bool marketIOC = (isMarketOrder && ioc);
         if (isMarketOrder || marketIOC)
         {
@@ -1659,7 +1659,7 @@ public partial class blofin : Exchange
             request[(string)key] = this.priceToPrecision(symbol, price);
         }
         bool? postOnly = false;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, isEqual(type, "post_only"), parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, (type == "post_only"), parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         if ((postOnly == true))
@@ -1926,7 +1926,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToOrder(order);
     }
 
-    public virtual Dictionary<string, object> createTpslOrderRequest(string? symbol, object type, object side, double? amount = null, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createTpslOrderRequest(string? symbol, string? type, string? side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -1934,7 +1934,7 @@ public partial class blofin : Exchange
         string positionSide = "net";
         if ((hedged == true))
         {
-            positionSide = (isEqual(side, "buy")) ? "short" : "long";
+            positionSide = ((side == "buy")) ? "short" : "long";
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1957,7 +1957,7 @@ public partial class blofin : Exchange
         if ((stopLossPrice != null))
         {
             request["slTriggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);
-            if (isEqual(type, "market"))
+            if ((type == "market"))
             {
                 request["slOrderPrice"] = "-1";
             } else
@@ -1974,7 +1974,7 @@ public partial class blofin : Exchange
         if ((takeProfitPrice != null))
         {
             request["tpTriggerPrice"] = this.priceToPrecision(symbol, takeProfitPrice);
-            if (isEqual(type, "market"))
+            if ((type == "market"))
             {
                 request["tpOrderPrice"] = "-1";
             } else

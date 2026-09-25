@@ -3313,12 +3313,13 @@ public partial class binance : ccxt.binance
      * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    public async virtual Task ensureUserDataStreamWsSubscribeListenToken(object marketType = null, object parameters = null)
+    public async virtual Task ensureUserDataStreamWsSubscribeListenToken(string? marketType = null, object parameters = null)
     {
-        marketType ??= "margin";
+        string? marketTypeVar = marketType;
+        marketTypeVar ??= "margin";
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "ws-api"), "spot"));
-        IDictionary<string, object> options = this.safeDict(this.options, marketType, new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, marketTypeVar, new Dictionary<string, object>() {});
         Int64? lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
         Int64? listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
         Int64 time = this.milliseconds();
@@ -3329,7 +3330,7 @@ public partial class binance : ccxt.binance
             // renewal timer re-entry through renewListenToken, so a concurrent caller
             // waits for the leader rather than minting a second listenToken
             var client = this.client(url);
-            string messageHash = (("authenticate:" + (marketType)) + ":listenToken");
+            string messageHash = (("authenticate:" + (marketTypeVar)) + ":listenToken");
             if (inOp(client.futures, messageHash))
             {
                 // another caller is already fetching, wait for it instead of fetching again
@@ -3378,10 +3379,10 @@ public partial class binance : ccxt.binance
                 Dictionary<string, object> subscription = new Dictionary<string, object>() {
                     { "id", requestHash },
                     { "method", this.handleUserDataStreamSubscribe },
-                    { "subscription", marketType },
+                    { "subscription", marketTypeVar },
                 };
                 await this.watch(url, requestHash, message, requestHash, subscription);
-                this.options[(string)marketType] = this.extend(options, new Dictionary<string, object>() {
+                this.options[(string)marketTypeVar] = this.extend(options, new Dictionary<string, object>() {
                     { "listenToken", listenToken },
                     { "expirationTime", expirationTime },
                     { "lastAuthenticatedTime", time },
@@ -3396,7 +3397,7 @@ public partial class binance : ccxt.binance
                     if (isGreaterThan(renewalTime, 0))
                     {
                         Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
-                            { "type", marketType },
+                            { "type", marketTypeVar },
                         });
                         this.delay(renewalTime,  this.renewListenToken, new object[] { extendedParams});
                     }
@@ -3404,7 +3405,7 @@ public partial class binance : ccxt.binance
                 client.resolve(listenToken, messageHash);
             } catch(Exception e)
             {
-                this.options[(string)marketType] = this.extend(options, new Dictionary<string, object>() {
+                this.options[(string)marketTypeVar] = this.extend(options, new Dictionary<string, object>() {
                     { "lastAuthenticatedTime", 0 },
                 });
                 client.reject(e, messageHash);
