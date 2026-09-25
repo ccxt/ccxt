@@ -1204,12 +1204,12 @@ func (this *Woo) authenticateBody(ch chan any, optionalArgs ...any) any {
 	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
-func (this *Woo) WatchPrivateAsync(messageHash any, message any, optionalArgs ...any) <-chan any {
+func (this *Woo) WatchPrivateAsync(messageHash string, message any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchPrivateBody(ch, messageHash, message, optionalArgs...)
 	return ch
 }
-func (this *Woo) watchPrivateBody(ch chan any, messageHash any, message any, optionalArgs ...any) any {
+func (this *Woo) watchPrivateBody(ch chan any, messageHash string, message any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1288,11 +1288,11 @@ func (this *Woo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		topic = "algoexecutionreportv2"
 	}
 	params = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
-	var messageHash any = topic
+	var messageHash string = topic
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		symbol = ccxt.SafeStringPtr(market["symbol"])
-		messageHash = ccxt.Add(messageHash, ":"+*symbol)
+		messageHash += ":" + *symbol
 	}
 	var request map[string]any = map[string]any{
 		"event": "subscribe",

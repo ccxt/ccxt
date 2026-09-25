@@ -3864,7 +3864,7 @@ func (this *Bithumb) Nonce() any {
 }
 func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 	var keys []string = ObjectKeys(query)
-	var result any = ""
+	var result string = ""
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
 		var value any = GetValue(query, key)
@@ -3876,19 +3876,19 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 				if IsEqual(valueString, nil) {
 					valueString = this.Json(item)
 				}
-				if GetLength(result) > 0 {
-					result = Add(result, "&")
+				if len(result) > 0 {
+					result += "&"
 				}
-				result = Add(result, encodedKey+"="+this.EncodeURIComponent(valueString))
+				result += encodedKey + "=" + this.EncodeURIComponent(valueString)
 			}
 		} else {
-			if GetLength(result) > 0 {
-				result = Add(result, "&")
+			if len(result) > 0 {
+				result += "&"
 			}
 			var encodedKey string = this.EncodeURIComponent(key)
 			var valueString any = DerefScalar(this.SafeString(query, key))
 			var encodedValue string = this.EncodeURIComponent(valueString)
-			result = Add(result, encodedKey+"="+encodedValue)
+			result += encodedKey + "=" + encodedValue
 		}
 	}
 	return result

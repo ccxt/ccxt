@@ -1103,9 +1103,9 @@ func (this *Bitrue) ParseMarket(market any) any {
 	if (base == nil) || (quote == nil) {
 		return nil
 	}
-	var symbol any = *base + "/" + *quote
+	var symbol string = *base + "/" + *quote
 	if settle != nil {
-		symbol = Add(symbol, ":"+*settle)
+		symbol += ":" + *settle
 	}
 	var filters []any = SafeListTyped(market, "filters")
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
@@ -3784,17 +3784,17 @@ func (this *Bitrue) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var recvWindow *int64 = this.SafeInteger(this.Options, "recvWindow", 5000)
 		if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "open") {
-			var query any = this.Urlencode(this.Extend(map[string]any{
+			var query string = this.Urlencode(this.Extend(map[string]any{
 				"timestamp":  this.Nonce(),
 				"recvWindow": recvWindow,
 			}, params))
 			var signature string = this.Hmac(this.Encode(query), this.Encode(this.Secret), sha256)
-			query = Add(query, "&"+"signature="+signature)
+			query += "&" + "signature=" + signature
 			headers = map[string]any{
 				"X-MBX-APIKEY": this.ApiKey,
 			}
 			if (method == "GET") || (method == "DELETE") {
-				url = Add(url, Add("?", query))
+				url = Add(url, "?"+query)
 			} else {
 				body = query
 				AddElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded")

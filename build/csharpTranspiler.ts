@@ -7950,6 +7950,8 @@ class NewTranspiler {
         content = this.retypeCacheElementWriteCasts (content);
         content = this.retypeIdentifierCopies (content);
         content = this.dropIdentityStringCasts (content);
+        // the copies retyped above are declarations the native helper pass could not see yet
+        content = nativeDeclaredHelperCalls (content);
         if (ws || this.isPrediction) {
             content = nativeWsCacheCalls (content);
         }

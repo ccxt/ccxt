@@ -1605,10 +1605,10 @@ func (this *Hyperliquid) watchPositionsBody(ch chan any, optionalArgs ...any) an
 	userAddress = this.SafeString(userAddressResult, 0)
 	params = this.SafeDict(userAddressResult, 1, params)
 	var topic string = "clearinghouseState"
-	var messageHash any = topic + "::positions"
+	var messageHash string = topic + "::positions"
 	if (symbols != nil) && !this.IsEmpty(symbols) {
 		symbols = this.MarketSymbols(symbols)
-		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
+		messageHash += "::" + ccxt.Join(symbols, ",")
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var subscription map[string]any = map[string]any{
@@ -1774,11 +1774,11 @@ func (this *Hyperliquid) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	params = this.SafeDict(userAddressResult, 1, params)
 	var market map[string]any = nil
-	var messageHash any = "order"
+	var messageHash string = "order"
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.SafeStringPtr(market["symbol"])
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
+		messageHash = messageHash + ":" + *symbol
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var request map[string]any = map[string]any{

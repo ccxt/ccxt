@@ -1236,12 +1236,12 @@ func (this *Weex) ParseMarket(market any) any {
 	}
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var active any = true
-	var symbol any = *base + "/" + *quote
+	var symbol string = *base + "/" + *quote
 	var isSpot bool = true
 	var isLinear any = nil
 	var isInverse any = nil
 	if settle != nil {
-		symbol = Add(symbol, ":"+*settle)
+		symbol += ":" + *settle
 		isSpot = false
 		if settle == quote || (settle != nil && quote != nil && *settle == *quote) {
 			isLinear = true

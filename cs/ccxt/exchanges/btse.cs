@@ -2162,8 +2162,8 @@ public partial class btse : Exchange
             request["clOrderId"] = clientOrderId;
             parameters = this.omit(parameters, "clientOrderId");
         }
-        bool isMarketOrder = (isEqual(typeVar, "MARKET"));
-        bool isLimitOrder = (isEqual(typeVar, "LIMIT"));
+        bool isMarketOrder = ((typeVar == "MARKET"));
+        bool isLimitOrder = ((typeVar == "LIMIT"));
         bool? postOnly = false;
         // exchange-specific postOnly is the same as the unified one
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, postOnly, parameters);
@@ -2185,7 +2185,7 @@ public partial class btse : Exchange
         bool isStopLossOrder = ((stopLossPrice != null));
         bool isConditionalOrder = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder);
         bool isAlgoOrder = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
-        if (isLimitOrder || (isEqual(typeVar, "PEG")) || (isEqual(typeVar, "OCO")))
+        if (isLimitOrder || ((typeVar == "PEG")) || ((typeVar == "OCO")))
         {
             if ((price == null))
             {
@@ -2195,7 +2195,7 @@ public partial class btse : Exchange
         // market and trailing buys are denominated in the quote currency while
         // every other combination is denominated in the base currency, the
         // sizing rules are strict on both sides, verified live
-        bool needsQuoteSize = (isMarketOrder || (isEqual(typeVar, "TRAILING"))) && (upperSide == "BUY");
+        bool needsQuoteSize = (isMarketOrder || ((typeVar == "TRAILING"))) && (upperSide == "BUY");
         if (needsQuoteSize)
         {
             string? quoteAmount = null;
@@ -2299,7 +2299,7 @@ public partial class btse : Exchange
             } else
             {
                 request["orderType"] = typeVar;
-                if (isEqual(typeVar, "OCO"))
+                if ((typeVar == "OCO"))
                 {
                     // the price argument is the limit price of the take profit leg,
                     // the stopPrice param is the limit price of the stop loss leg
@@ -2317,11 +2317,11 @@ public partial class btse : Exchange
                     string? triggerPriceType = this.safeString(parameters, "triggerPriceType", "last");
                     request["stopLossTriggerPriceType"] = this.encodeTriggerPriceType(triggerPriceType);
                     parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "triggerPriceType"});
-                } else if (isEqual(typeVar, "PEG"))
+                } else if ((typeVar == "PEG"))
                 {
                     // the required stealth and optional deviation params pass through
                     request["orderPrice"] = this.priceToPrecision(symbol, price);
-                } else if (isEqual(typeVar, "TRAILING"))
+                } else if ((typeVar == "TRAILING"))
                 {
                     string? trailingAmount = this.safeString(parameters, "trailingAmount");
                     string? trailingPercent = this.safeString(parameters, "trailingPercent");
@@ -2424,8 +2424,8 @@ public partial class btse : Exchange
                 request["positionMode"] = "HEDGE";
             }
         }
-        bool isMarketOrder = (isEqual(typeVar, "MARKET"));
-        bool isLimitOrder = (isEqual(typeVar, "LIMIT"));
+        bool isMarketOrder = ((typeVar == "MARKET"));
+        bool isLimitOrder = ((typeVar == "LIMIT"));
         bool? postOnly = false;
         // exchange-specific postOnly is the same as the unified one
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, postOnly, parameters);
@@ -2447,7 +2447,7 @@ public partial class btse : Exchange
         bool isStopLossOrder = ((stopLossPrice != null));
         bool isConditionalOrder = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder);
         bool isAlgoOrder = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
-        if (isLimitOrder || (isEqual(typeVar, "OCO")))
+        if (isLimitOrder || ((typeVar == "OCO")))
         {
             if ((price == null))
             {
@@ -2541,7 +2541,7 @@ public partial class btse : Exchange
             } else
             {
                 request["orderType"] = typeVar;
-                if (isEqual(typeVar, "OCO"))
+                if ((typeVar == "OCO"))
                 {
                     // the price argument is the limit price of the take profit leg,
                     // the stopPrice param is the limit price of the stop loss leg
@@ -2559,7 +2559,7 @@ public partial class btse : Exchange
                     string? triggerPriceType = this.safeString(parameters, "triggerPriceType", "mark");
                     request["stopLossTriggerType"] = this.encodeTriggerPriceType(triggerPriceType);
                     parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "triggerPriceType"});
-                } else if (isEqual(typeVar, "PEG"))
+                } else if ((typeVar == "PEG"))
                 {
                     // the required deviation and stealth params pass through, the
                     // optional price argument becomes a worst-price bound
@@ -2567,7 +2567,7 @@ public partial class btse : Exchange
                     {
                         request["orderPrice"] = this.priceToPrecision(symbol, price);
                     }
-                } else if (isEqual(typeVar, "TRAILING"))
+                } else if ((typeVar == "TRAILING"))
                 {
                     string? trailingAmount = this.safeString(parameters, "trailingAmount");
                     string? trailingPercent = this.safeString(parameters, "trailingPercent");

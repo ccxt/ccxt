@@ -1917,14 +1917,14 @@ func (this *Krakenfutures) GetMessageHash(unifiedElementName string, optionalArg
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbol
 	var withSymbol bool = (symbol != nil)
-	var messageHash any = unifiedElementName
+	var messageHash string = unifiedElementName
 	if !withSymbol {
-		messageHash = ccxt.Add(messageHash, "s")
+		messageHash += "s"
 	} else {
-		messageHash = ccxt.Add(messageHash, ":"+*symbol)
+		messageHash += ":" + *symbol
 	}
 	if subChannelName != nil {
-		messageHash = ccxt.Add(messageHash, "#"+*subChannelName)
+		messageHash += "#" + *subChannelName
 	}
 	return messageHash
 }

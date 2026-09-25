@@ -3172,9 +3172,9 @@ public partial class blofin : Exchange
         symbols = this.marketSymbols(symbols);
         IList<object> symbolsList = symbols;
         string instIds = "";
-        for (int i = 0; i < getArrayLength(symbolsList); i++)
+        for (int i = 0; i < (symbolsList?.Count ?? 0); i++)
         {
-            object entry = getValue(symbolsList, i);
+            object entry = (symbolsList != null && i < symbolsList.Count ? symbolsList[i] : null);
             Dictionary<string, object> entryMarket = this.market(entry);
             if (i > 0)
             {

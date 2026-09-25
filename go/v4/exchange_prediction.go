@@ -258,15 +258,15 @@ func (this *PredictionExchange) NormalizeTagKey(tag any) any {
 	var lower string = ToLower(tag)
 	var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
 	var chars []string = this.StringToCharsArray(lower)
-	var s any = ""
+	var s string = ""
 	var pendingSep bool = false
 	for i := 0; i < len(chars); i++ {
 		var ch string = GetValue(chars, i).(string)
 		if GetIndexOf(allowed, ch) >= 0 {
 			if pendingSep && (s != "") {
-				s = Add(s, " ")
+				s = s + " "
 			}
-			s = Add(s, ch)
+			s = s + ch
 			pendingSep = false
 		} else {
 			pendingSep = true
@@ -563,15 +563,15 @@ func (this *PredictionExchange) ShortenSlug(slug any) any {
 	}()
 	var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
 	var chars []string = this.StringToCharsArray(lower)
-	var s any = ""
+	var s string = ""
 	var lastDash bool = true // start true to drop leading separators
 	for i := 0; i < len(chars); i++ {
 		var ch string = GetValue(chars, i).(string)
 		if GetIndexOf(allowed, ch) >= 0 {
-			s = Add(s, ch)
+			s = s + ch
 			lastDash = false
 		} else if !lastDash {
-			s = Add(s, "-")
+			s = s + "-"
 			lastDash = true
 		}
 	}
@@ -624,15 +624,15 @@ func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug an
 	var upper string = ToUpper(outcome)
 	var allowed string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	var chars []string = this.StringToCharsArray(upper)
-	var label any = ""
+	var label string = ""
 	var pendingSep bool = false
 	for i := 0; i < len(chars); i++ {
 		var ch string = GetValue(chars, i).(string)
 		if GetIndexOf(allowed, ch) >= 0 {
 			if pendingSep && (label != "") {
-				label = Add(label, "_")
+				label = label + "_"
 			}
-			label = Add(label, ch)
+			label = label + ch
 			pendingSep = false
 		} else {
 			pendingSep = true

@@ -2990,11 +2990,11 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 		if (IsEqual(path, "api/v1/orders")) && (method == "POST") {
 			payload = this.GenerateBatchPayload(sortedParams, ts, recvWindow, instruction)
 		} else {
-			var queryString any = this.Urlencode(sortedParams)
-			if GetLength(queryString) > 0 {
-				queryString = Add(queryString, "&")
+			var queryString string = this.Urlencode(sortedParams)
+			if len(queryString) > 0 {
+				queryString += "&"
 			}
-			payload = Add(Add(Add(Add(Add("instruction="+*instruction+"&", queryString), "timestamp="), ts), "&window="), recvWindow)
+			payload = "instruction=" + *instruction + "&" + queryString + "timestamp=" + ts + "&window=" + *recvWindow
 		}
 		var secretBytes []byte = this.Base64ToBinary(this.Secret)
 		var seed any = this.ArraySlice(secretBytes, 0, 32)

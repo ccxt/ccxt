@@ -2437,7 +2437,7 @@ public partial class kalshi : PredictionExchange
             { "time_in_force", timeInForce },
             { "self_trade_prevention_type", stp },
         };
-        if (!isEqual(yesPrice, null))
+        if (!(yesPrice == null))
         {
             request["price"] = this.numberToString(yesPrice);
         }

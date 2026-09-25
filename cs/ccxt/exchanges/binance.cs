@@ -9451,9 +9451,9 @@ public partial class binance : Exchange
             if ((reduceOnly == true))
             {
                 parameters = this.omit(parameters, "reduceOnly");
-                sideVar = (isEqual(sideVar, "buy")) ? "sell" : "buy";
+                sideVar = ((sideVar == "buy")) ? "sell" : "buy";
             }
-            request["positionSide"] = (isEqual(sideVar, "buy")) ? "LONG" : "SHORT";
+            request["positionSide"] = ((sideVar == "buy")) ? "LONG" : "SHORT";
         }
         // unified stp
         string? selfTradePrevention = null;

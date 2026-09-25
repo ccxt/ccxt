@@ -1634,9 +1634,9 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			continue
 		}
 		var settle *string = this.SafeCurrencyCode(settleId)
-		var symbol any = *base + "/" + *quote
+		var symbol string = *base + "/" + *quote
 		if settle != nil {
-			symbol = Add(Add(symbol, ":"), settle)
+			symbol = symbol + ":" + *settle
 		}
 		var amountDecimals *string = this.SafeString2(market, "size_decimals", "supported_size_decimals")
 		var priceDecimals *string = this.SafeString2(market, "price_decimals", "supported_price_decimals")

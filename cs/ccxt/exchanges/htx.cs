@@ -6431,7 +6431,7 @@ public partial class htx : Exchange
             { "volume", this.amountToPrecision(symbol, amount) },
         };
         bool? postOnly = false;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(typeVar, "market"), isEqual(typeVar, "post_only"), parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly((typeVar == "market"), (typeVar == "post_only"), parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         if ((postOnly == true))
@@ -6605,7 +6605,7 @@ public partial class htx : Exchange
                 request["client_order_id"] = clientOrderId;
                 parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
             }
-            if (isEqual(typeVar, "limit") || isEqual(typeVar, "ioc") || isEqual(typeVar, "fok") || isEqual(typeVar, "post_only"))
+            if ((typeVar == "limit") || (typeVar == "ioc") || (typeVar == "fok") || (typeVar == "post_only"))
             {
                 if ((price != null))
                 {

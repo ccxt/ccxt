@@ -6842,7 +6842,7 @@ public partial class gate : Exchange
         {
             request = this.omit(request, "account");
         }
-        if (isEqual(statusVar, "closed"))
+        if ((statusVar == "closed"))
         {
             statusVar = "finished";
         }

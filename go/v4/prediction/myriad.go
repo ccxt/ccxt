@@ -2746,12 +2746,12 @@ func (this *Myriad) FromWeiWithDecimals(hexValue any, decimals any) any {
 	if decimalString == nil {
 		return nil
 	}
-	var scale any = "1"
+	var scale string = "1"
 	if ccxt.IsEqual(decimals, nil) {
 		panic(ccxt.ExchangeError(this.Id + " fromWeiWithDecimals() missing decimals"))
 	}
 	for i := 0; ccxt.IsLessThan(i, decimals); i++ {
-		scale = ccxt.Add(scale, "0")
+		scale = scale + "0"
 	}
 	return ccxt.Precise.StringDiv(decimalString, scale)
 }

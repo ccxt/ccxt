@@ -2370,14 +2370,14 @@ func (this *Coinbase) ParseContractMarket(market any, feeTier map[string]any) an
 		return nil
 	}
 	var tradingDisabled *bool = this.SafeBool(market, "is_disabled")
-	var symbol any = *base + "/" + *quote
+	var symbol string = *base + "/" + *quote
 	var typeVar string
 	if isSwap {
 		typeVar = "swap"
-		symbol = Add(Add(symbol, ":"), quote)
+		symbol = symbol + ":" + *quote
 	} else {
 		typeVar = "future"
-		symbol = Add(Add(Add(Add(symbol, ":"), quote), "-"), this.Yymmdd(expireTimestamp))
+		symbol = symbol + ":" + *quote + "-" + this.Yymmdd(expireTimestamp)
 	}
 	var takerFeeRate *float64 = this.SafeNumber(feeTier, "taker_fee_rate")
 	var makerFeeRate *float64 = this.SafeNumber(feeTier, "maker_fee_rate")

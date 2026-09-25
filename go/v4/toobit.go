@@ -3874,7 +3874,7 @@ func (this *Toobit) Sign(path any, optionalArgs ...any) any {
 		extraQuery["recvWindow"] = this.SafeString(this.Options, "recvWindow", "5000")
 		extraQuery["timestamp"] = strconv.FormatInt(timestamp, 10)
 		var queryExtended map[string]any = this.Extend(query, extraQuery)
-		var queryString any = ""
+		var queryString string = ""
 		if isPost || isDelete {
 			// everything else except Batch-Orders
 			if !IsArray(params) {
@@ -3891,9 +3891,9 @@ func (this *Toobit) Sign(path any, optionalArgs ...any) any {
 			payload = Add(body, payload)
 		}
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
-		if !IsEqual(queryString, "") {
-			queryString = Add(queryString, "&signature="+signature)
-			url = Add(url, Add("?", queryString))
+		if queryString != "" {
+			queryString += "&signature=" + signature
+			url = Add(url, "?"+queryString)
 		} else {
 			body = Add(body, "&signature="+signature)
 		}

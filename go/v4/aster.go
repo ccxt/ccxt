@@ -5517,7 +5517,7 @@ func (this *Aster) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *Aster) EncodeValuesWithJson(values any) any {
-	var encodedString any = ""
+	var encodedString string = ""
 	var keys []string = ObjectKeys(values)
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
@@ -5530,9 +5530,9 @@ func (this *Aster) EncodeValuesWithJson(values any) any {
 			return ToString(value)
 		}()
 		var encoded string = this.EncodeURIComponent(valueJsonified)
-		encodedString = Add(encodedString, key+"="+encoded+"&")
+		encodedString += key + "=" + encoded + "&"
 	}
-	return Slice(encodedString, 0, OpNeg(1))
+	return encodedString[0 : len(encodedString)-1]
 }
 func (this *Aster) CapitalizeKeys(dict any) any {
 	var capitalized map[string]any = map[string]any{}

@@ -1535,7 +1535,7 @@ func (this *Coinmate) createOrderBody(ch chan any, symbol any, typeVar string, s
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var method any = "privatePost" + this.Capitalize(side)
+	var method string = "privatePost" + this.Capitalize(side)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currencyPair": market["id"],
@@ -1546,24 +1546,24 @@ func (this *Coinmate) createOrderBody(ch chan any, symbol any, typeVar string, s
 		} else {
 			request["amount"] = this.AmountToPrecision(symbol, amount) // amount in fiat
 		}
-		method = Add(method, "Instant")
+		method += "Instant"
 	} else {
 		request["amount"] = this.AmountToPrecision(symbol, amount) // amount in crypto
 		request["price"] = this.PriceToPrecision(symbol, price)
-		method = Add(method, this.Capitalize(typeVar))
+		method += this.Capitalize(typeVar)
 	}
 	var requestParams map[string]any = this.Extend(request, params)
 	var response map[string]any = nil
-	if IsEqual(method, "privatePostBuyInstant") {
+	if method == "privatePostBuyInstant" {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostBuyInstant(requestParams)).Raw))
-	} else if IsEqual(method, "privatePostSellInstant") {
+	} else if method == "privatePostSellInstant" {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostSellInstant(requestParams)).Raw))
-	} else if IsEqual(method, "privatePostBuyLimit") {
+	} else if method == "privatePostBuyLimit" {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostBuyLimit(requestParams)).Raw))
-	} else if IsEqual(method, "privatePostSellLimit") {
+	} else if method == "privatePostSellLimit" {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostSellLimit(requestParams)).Raw))
 	} else {

@@ -684,12 +684,12 @@ func (this *Hyperliquid) CalculatePricePrecision(midPx any, szDecimals any) any 
 	var significantDigits any = ccxt.MathMax(5, ccxt.GetLength(intPart))
 	var maxDecimals any = ccxt.Subtract(8, szDecimals)
 	var pricePrecisionDecimals any = ccxt.MathMax(1, ccxt.MathMin(maxDecimals, ccxt.Subtract(significantDigits, ccxt.GetLength(intPart))))
-	var zeros any = ""
+	var zeros string = ""
 	var zeroCount any = ccxt.Subtract(pricePrecisionDecimals, 1)
 	for zi := 0; ccxt.IsLessThan(zi, zeroCount); zi++ {
-		zeros = ccxt.Add(zeros, "0")
+		zeros = zeros + "0"
 	}
-	return this.ParseToNumeric(ccxt.Add(ccxt.Add("0.", zeros), "1"))
+	return this.ParseToNumeric("0." + zeros + "1")
 }
 
 /**
@@ -2577,16 +2577,16 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) any {
 		}
 	}
 	var firstExpiry *int64 = this.SafeInteger(firstMarket, "expiry")
-	var title any = parentSymbol
+	var title *string = parentSymbol
 	if underlying != nil {
-		var titleSuffix any = ""
+		var titleSuffix string = ""
 		if (targetPrice != nil) && (targetPrice == nil || *targetPrice != "") {
-			titleSuffix = ccxt.Add(ccxt.Add(titleSuffix, " ABOVE "), targetPrice)
+			titleSuffix = titleSuffix + " ABOVE " + *targetPrice
 		}
 		if (expiryRaw != nil) && (expiryRaw == nil || *expiryRaw != "") {
-			titleSuffix = ccxt.Add(ccxt.Add(titleSuffix, " @ "), expiryRaw)
+			titleSuffix = titleSuffix + " @ " + *expiryRaw
 		}
-		title = ccxt.Add(underlying, titleSuffix)
+		title = ccxt.SafeStringPtr(*underlying + titleSuffix)
 	}
 	var endValue any = func() any {
 		if !ccxt.IsEqual(expiryMs, nil) {

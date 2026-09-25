@@ -3173,10 +3173,10 @@ public partial class phemex : Exchange
                     bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
                     if ((reduceOnly == true))
                     {
-                        sideVar = (isEqual(sideVar, "buy")) ? "sell" : "buy";
+                        sideVar = ((sideVar == "buy")) ? "sell" : "buy";
                         parameters = this.omit(parameters, "reduceOnly");
                     }
-                    posSide = (isEqual(sideVar, "buy")) ? "Long" : "Short";
+                    posSide = ((sideVar == "buy")) ? "Long" : "Short";
                 } else
                 {
                     posSide = "Merged";
@@ -3207,19 +3207,19 @@ public partial class phemex : Exchange
                 // the flow defined per https://phemex-docs.github.io/#more-order-typeVar-examples
                 if (triggerDirection == "ascending" || triggerDirection == "up")
                 {
-                    if (isEqual(sideVar, "sell"))
+                    if ((sideVar == "sell"))
                     {
                         request["ordType"] = ((typeVar == "Market")) ? "MarketIfTouched" : "LimitIfTouched";
-                    } else if (isEqual(sideVar, "buy"))
+                    } else if ((sideVar == "buy"))
                     {
                         request["ordType"] = ((typeVar == "Market")) ? "Stop" : "StopLimit";
                     }
                 } else if (triggerDirection == "descending" || triggerDirection == "down")
                 {
-                    if (isEqual(sideVar, "sell"))
+                    if ((sideVar == "sell"))
                     {
                         request["ordType"] = ((typeVar == "Market")) ? "Stop" : "StopLimit";
-                    } else if (isEqual(sideVar, "buy"))
+                    } else if ((sideVar == "buy"))
                     {
                         request["ordType"] = ((typeVar == "Market")) ? "MarketIfTouched" : "LimitIfTouched";
                     }

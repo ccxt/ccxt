@@ -950,7 +950,7 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if (base == nil) || (quote == nil) {
 			continue
 		}
-		var symbol any = *base + "/" + *quote
+		var symbol string = *base + "/" + *quote
 		// baseId = 'f' + baseId;
 		// quoteId = 'f' + quoteId;
 		var settle *string = nil
@@ -958,7 +958,7 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if swap {
 			settle = quote
 			settleId = quote
-			symbol = Add(Add(symbol, ":"), settle)
+			symbol = symbol + ":" + *settle
 		}
 		var minOrderSizeString *string = this.SafeString(market, 3)
 		var maxOrderSizeString *string = this.SafeString(market, 4)
@@ -2273,7 +2273,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var postOnlyParam *bool = this.SafeBool(params, "postOnly", false)
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
 	var clientOrderId any = this.SafeValue2(params, "cid", "clientOrderId")
-	var orderType any = ToUpper(typeVar)
+	var orderType string = ToUpper(typeVar)
 	if trailingAmount != nil {
 		orderType = "TRAILING STOP"
 		request["price_trailing"] = trailingAmount
@@ -2310,7 +2310,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if (GetValue(market, "spot") == true) && (marginMode == nil) {
 		// The EXCHANGE prefix is only required for non margin spot markets
-		orderType = Add("EXCHANGE ", orderType)
+		orderType = "EXCHANGE " + orderType
 	}
 	request["type"] = orderType
 	// flag values may be summed to combine flags

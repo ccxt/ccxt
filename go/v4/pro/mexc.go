@@ -582,12 +582,12 @@ func (this *Mexc) watchSpotPublicBody(ch chan any, channel any, messageHash any,
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
-func (this *Mexc) WatchSpotPrivateAsync(channel string, messageHash any, optionalArgs ...any) <-chan any {
+func (this *Mexc) WatchSpotPrivateAsync(channel string, messageHash string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchSpotPrivateBody(ch, channel, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchSpotPrivateBody(ch chan any, channel string, messageHash any, optionalArgs ...any) any {
+func (this *Mexc) watchSpotPrivateBody(ch chan any, channel string, messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -629,12 +629,12 @@ func (this *Mexc) watchSwapPublicBody(ch chan any, channel string, messageHash a
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
-func (this *Mexc) WatchSwapPrivateAsync(messageHash any, optionalArgs ...any) <-chan any {
+func (this *Mexc) WatchSwapPrivateAsync(messageHash string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchSwapPrivateBody(ch, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchSwapPrivateBody(ch chan any, messageHash any, optionalArgs ...any) any {
+func (this *Mexc) watchSwapPrivateBody(ch chan any, messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1284,12 +1284,12 @@ func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.SafeStringPtr(market["symbol"])
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
+		messageHash = messageHash + ":" + *symbol
 	}
 	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
@@ -1502,12 +1502,12 @@ func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.SafeStringPtr(market["symbol"])
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
+		messageHash = messageHash + ":" + *symbol
 	}
 	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)

@@ -1235,7 +1235,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var channel any = "orderbook."
+	var channel string = "orderbook."
 	var limit any = this.SafeInteger(params, "limit")
 	if !ccxt.IsEqual(limit, nil) {
 		params = ccxt.MapTyped(this.Omit(params, "limit"))
@@ -1248,7 +1248,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 			return 500
 		}()
 	}
-	channel = ccxt.Add(channel, ccxt.ToString(limit))
+	channel += ccxt.ToString(limit)
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
 	var topics []any = []any{}
@@ -1256,7 +1256,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
-		var topic any = ccxt.Add(ccxt.Add(channel, "."), marketId)
+		var topic *string = ccxt.SafeStringPtr(ccxt.Add(channel+".", marketId))
 		messageHashes = append(messageHashes, "unsubscribe:orderbook:"+*symbol)
 		subMessageHashes = append(subMessageHashes, "orderbook:"+*symbol)
 		topics = append(topics, topic)

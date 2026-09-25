@@ -1477,10 +1477,10 @@ public partial class bydfi : Exchange
             }
         }
         typeVar = typeVar.ToUpper();
-        bool isMarketOrder = ((isEqual(typeVar, "MARKET")) || (isEqual(typeVar, "STOP_MARKET")) || (isEqual(typeVar, "TAKE_PROFIT_MARKET")) || (isEqual(typeVar, "TRAILING_STOP_MARKET")));
+        bool isMarketOrder = (((typeVar == "MARKET")) || ((typeVar == "STOP_MARKET")) || ((typeVar == "TAKE_PROFIT_MARKET")) || ((typeVar == "TRAILING_STOP_MARKET")));
         if (isMarketOrder)
         {
-            if (isEqual(typeVar, "MARKET"))
+            if ((typeVar == "MARKET"))
             {
                 if (isStopLossOrder)
                 {
@@ -1530,7 +1530,7 @@ public partial class bydfi : Exchange
         {
             parameters = this.omit(parameters, "closePosition");
             request["quantity"] = this.amountToPrecision(symbol, amount);
-        } else if ((!isEqual(typeVar, "STOP_MARKET")) && (!isEqual(typeVar, "TAKE_PROFIT_MARKET")))
+        } else if ((!(typeVar == "STOP_MARKET")) && (!(typeVar == "TAKE_PROFIT_MARKET")))
         {
             throw new NotSupported ((this.id + " createOrder() closePosition is only supported for stopLoss and takeProfit market orders")) ;
         }

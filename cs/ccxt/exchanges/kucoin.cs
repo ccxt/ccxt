@@ -6527,10 +6527,10 @@ public partial class kucoin : Exchange
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"stop", "until", "trigger"});
-        if (isEqual(statusVar, "closed"))
+        if ((statusVar == "closed"))
         {
             statusVar = "done";
-        } else if (isEqual(statusVar, "open"))
+        } else if ((statusVar == "open"))
         {
             statusVar = "active";
         }
@@ -6538,7 +6538,7 @@ public partial class kucoin : Exchange
         if ((trigger != true))
         {
             request["status"] = statusVar;
-        } else if (!isEqual(statusVar, "active"))
+        } else if (!(statusVar == "active"))
         {
             throw new BadRequest ((this.id + " fetchOrdersByStatus() can only fetch untriggered stop orders")) ;
         }

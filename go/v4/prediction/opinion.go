@@ -1246,9 +1246,9 @@ func (this *Opinion) SignOpinionOrder(order any, exchangeAddress any) any {
 	return "0x" + this.Remove0xPrefix(ccxt.GetValue(sig, "r")) + this.Remove0xPrefix(ccxt.GetValue(sig, "s")) + this.IntToBase16(ccxt.GetValue(sig, "v"))
 }
 func (this *Opinion) OpinionOrderRawAmounts(isMarket any, side string, amount any, price any, decimals any) any {
-	var decimalsStr any = "1"
+	var decimalsStr string = "1"
 	for i := 0; ccxt.IsLessThan(i, decimals); i++ {
-		decimalsStr = ccxt.Add(decimalsStr, "0")
+		decimalsStr = decimalsStr + "0"
 	}
 	var amountStr *string = this.NumberToString(amount)
 	if ccxt.EvalTruthy(isMarket) && (side == "BUY") {

@@ -632,9 +632,9 @@ func (this *Onetrading) ParseMarket(market any) any {
 	var state *string = this.SafeString(market, "state")
 	var typeVar *string = this.SafeString(market, "type")
 	var isPerp bool = (typeVar != nil && *typeVar == "PERP")
-	var symbol any = *base + "/" + *quote
+	var symbol string = *base + "/" + *quote
 	if isPerp {
-		symbol = Add(Add(symbol, ":"), quote)
+		symbol = symbol + ":" + *quote
 	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":     id,

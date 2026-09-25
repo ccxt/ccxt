@@ -1746,7 +1746,7 @@ func (this *Xt) ParseMarket(market any) any {
 		return nil
 	}
 	var state *string = this.SafeString(market, "state")
-	var symbol any = *base + "/" + *quote
+	var symbol string = *base + "/" + *quote
 	var filters []any = SafeListTyped(market, "filters")
 	var minAmount *float64 = nil
 	var maxAmount *float64 = nil
@@ -1786,13 +1786,13 @@ func (this *Xt) ParseMarket(market any) any {
 	var spot bool = true
 	var typeVar string = "spot"
 	if underlyingType != nil && *underlyingType == "U_BASED" {
-		symbol = Add(Add(symbol, ":"), quote)
+		symbol = symbol + ":" + *quote
 		settleId = baseId
 		settle = quote
 		linear = true
 		inverse = false
 	} else if underlyingType != nil && *underlyingType == "COIN_BASED" {
-		symbol = Add(Add(symbol, ":"), base)
+		symbol = symbol + ":" + *base
 		settleId = baseId
 		settle = base
 		linear = false
@@ -1802,7 +1802,7 @@ func (this *Xt) ParseMarket(market any) any {
 		expiry = DerefScalar(this.SafeInteger(market, "deliveryDate"))
 		var productType *string = this.SafeString(market, "productType")
 		if productType == nil || *productType != "perpetual" {
-			symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
+			symbol = symbol + "-" + this.Yymmdd(expiry)
 			typeVar = "future"
 			future = true
 		} else {

@@ -1043,7 +1043,7 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
  * @param {object} subscription the subscription entry for that type
  * @returns {object[]} the SUBSCRIBE frame to send
  */
-func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType any, subscription any) any {
+func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType string, subscription any) any {
 	var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any{})
 	var subscriptions any = this.SafeDict(wsOptions, "gen2Subscriptions", map[string]any{})
 	ccxt.AddElementToObject(subscriptions, subscriptionType, subscription)
@@ -1136,7 +1136,7 @@ func (this *Bithumb) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateGen2"))
-	var messageHash any = "myOrder"
+	var messageHash string = "myOrder"
 	var codes []any = ccxt.SafeListTypedDefault(params, "codes", []any{})
 	var request any = this.BuildGen2SubscriptionRequest(messageHash, map[string]any{
 		"type":  messageHash,
@@ -1145,7 +1145,7 @@ func (this *Bithumb) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		symbol = ccxt.SafeStringPtr(market["symbol"])
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
+		messageHash = messageHash + ":" + *symbol
 	}
 
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))))
