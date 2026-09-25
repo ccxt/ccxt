@@ -232,7 +232,7 @@ public partial class bitstamp : ccxt.bitstamp
             return -1;
         }
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        if (((nonce == null)) || ((firstElementNonce != null && (nonce == null || nonce < firstElementNonce))))
+        if (((nonce == null)) || (((nonce == null || nonce < firstElementNonce))))
         {
             return -1;
         }

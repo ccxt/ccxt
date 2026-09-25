@@ -8988,7 +8988,7 @@ public partial class kucoin : Exchange
         request = (Dictionary<string, object>)requestparamsRequestVariable[0];
         paramsRequest = requestparamsRequestVariable[1];
         Dictionary<string, object> response = null;
-        if ((since != null) && ((since == null || since < 1550448000000)))
+        if ((since != null) && (since < 1550448000000))
         {
             // if since is earlier than 2019-02-18T00:00:00Z
             request["startAt"] = this.parseToInt(((double?)since / 1000));
@@ -9166,7 +9166,7 @@ public partial class kucoin : Exchange
         request = (Dictionary<string, object>)requestparamsRequestVariable[0];
         paramsRequest = requestparamsRequestVariable[1];
         Dictionary<string, object> response = null;
-        if ((since != null) && ((since == null || since < 1550448000000)))
+        if ((since != null) && (since < 1550448000000))
         {
             // if since is earlier than 2019-02-18T00:00:00Z
             request["startAt"] = this.parseToInt(((double?)since / 1000));

@@ -3744,7 +3744,7 @@ public partial class okx : Exchange
             Int64 durationInMilliseconds = (duration * 1000L);
             // switch to history candles if since is past the cutoff for current candles
             Int64 historyBorder = (now - ((((1440 - 1)) * durationInMilliseconds)));
-            if (((since == null || since < historyBorder)))
+            if ((since < historyBorder))
             {
                 defaultType = "HistoryCandles";
                 int maxLimit = isMarkOrIndex ? 100 : 300;

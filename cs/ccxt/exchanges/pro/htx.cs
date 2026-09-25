@@ -628,7 +628,7 @@ public partial class htx : ccxt.htx
             Int64? snapshotLimit = this.safeInteger(subscription, "limit");
             ccxt.pro.OrderBook snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
             client.resolve(snapshotOrderBook, id);
-            if (((sequence == null)) || ((sequence != null && (nonce == null || nonce < sequence))))
+            if (((sequence == null)) || ((nonce < sequence)))
             {
                 object maxAttempts = this.handleOption("watchOrderBook", "maxRetries", 3);
                 object numAttempts = this.safeInteger(subscription, "numAttempts", 0);

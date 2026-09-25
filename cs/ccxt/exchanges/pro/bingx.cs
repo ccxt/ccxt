@@ -1889,7 +1889,7 @@ public partial class bingx : ccxt.bingx
                         if (((this.safeString(previousOrder, "id") == orderId)) && ((this.safeString(previousOrder, "symbol") == this.safeString(parsedOrder, "symbol"))))
                         {
                             Int64? previousTimestamp = this.safeInteger(previousOrder, "lastUpdateTimestamp");
-                            if (((previousTimestamp != null)) && ((previousTimestamp != null && (updateTimestamp == null || updateTimestamp < previousTimestamp))))
+                            if (((previousTimestamp != null)) && ((updateTimestamp < previousTimestamp)))
                             {
                                 return;
                             }

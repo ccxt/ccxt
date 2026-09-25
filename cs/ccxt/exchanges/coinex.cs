@@ -4096,7 +4096,7 @@ public partial class coinex : Exchange
         {
             throw new ArgumentsRequired ((this.id + " setMarginMode() requires a leverage parameter")) ;
         }
-        if ((((leverage == null || leverage < 1))) || ((leverage != null && (maxLeverage == null || leverage > maxLeverage))))
+        if (((leverage < 1)) || ((leverage != null && (maxLeverage == null || leverage > maxLeverage))))
         {
             throw new BadRequest (((((this.id + " setMarginMode() leverage should be between 1 and ") + ((object)maxLeverage).ToString()) + " for ") + symbol)) ;
         }

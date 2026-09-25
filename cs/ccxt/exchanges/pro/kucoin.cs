@@ -1995,7 +1995,7 @@ public partial class kucoin : ccxt.kucoin
             {
                 continue;
             }
-            if ((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))) && (isLessThan(nonce, deltaEnd)))
+            if ((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }

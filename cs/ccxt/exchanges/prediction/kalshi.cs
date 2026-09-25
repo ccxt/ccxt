@@ -3046,7 +3046,7 @@ public partial class kalshi : PredictionExchange
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));
             totalLiquidity = this.sum(totalLiquidity, this.safeNumber2(rawMarket, "liquidity_dollars", "liquidity", 0));
             Int64? marketCreated = this.parse8601(this.safeString(rawMarket, "open_time"));
-            if (((marketCreated != null)) && (((earliestCreated == null)) || ((earliestCreated != null && (marketCreated == null || marketCreated < earliestCreated)))))
+            if (((marketCreated != null)) && (((earliestCreated == null)) || ((marketCreated < earliestCreated))))
             {
                 earliestCreated = marketCreated;
             }

@@ -807,7 +807,7 @@ public partial class gate : ccxt.gate
         Int64? nonce = this.safeInteger(orderBook, "nonce");
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? firstDeltaStart = this.safeInteger(firstDelta, "U");
-        if (((nonce != null)) && ((firstDeltaStart != null)) && ((firstDeltaStart != null && (nonce == null || nonce < firstDeltaStart))))
+        if (((nonce != null)) && ((firstDeltaStart != null)) && ((nonce < firstDeltaStart)))
         {
             return -1;
         }
@@ -816,7 +816,7 @@ public partial class gate : ccxt.gate
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
             Int64? deltaEnd = this.safeInteger(delta, "u");
-            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && (isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
+            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && (isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }
