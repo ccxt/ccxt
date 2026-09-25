@@ -2378,7 +2378,7 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	return nil
 }
 func (this *Binance) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if ccxt.IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	var errorCode *string = this.SafeString(response, "code")

@@ -5146,7 +5146,7 @@ func (this *Hashkey) CustomUrlencode(optionalArgs ...any) string {
 	return result
 }
 func (this *Hashkey) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	var errorInArray bool = false

@@ -1710,7 +1710,7 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 }
 func (this *Blockchaincom) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	// {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	var text *string = this.SafeString(response, "text")

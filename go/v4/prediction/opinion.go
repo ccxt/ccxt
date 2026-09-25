@@ -2888,7 +2888,7 @@ func (this *Opinion) HandleMyTrade(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 }
 func (this *Opinion) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if ccxt.IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	var errno *int64 = this.SafeInteger(response, "errno")

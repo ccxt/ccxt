@@ -3164,7 +3164,7 @@ func (this *Predictfun) ParseOrderStatus(status *string) *string {
  * @returns {undefined} nothing, it throws when the venue reported a failure
  */
 func (this *Predictfun) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody any, response any, requestHeaders any, requestBody any) any {
-	if ccxt.IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	var success *bool = this.SafeBool(response, "success", true)

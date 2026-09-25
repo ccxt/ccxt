@@ -3579,7 +3579,7 @@ func (this *Sxbet) HandleErrors(code any, reason any, url any, method any, heade
 	// map the known codes to ccxt errors so callers can distinguish a rejected order or a
 	// validation problem from a transport outage (the base otherwise maps a bare 4xx to the
 	// exchange-not-available error). unmapped codes fall through to the base http-status handling
-	if ccxt.IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	var message any = this.SafeValue(response, "message")

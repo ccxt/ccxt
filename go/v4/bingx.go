@@ -7854,7 +7854,7 @@ func (this *Bingx) SetSandboxMode(enable any) {
 	this.Options.Store("sandboxMode", enable)
 }
 func (this *Bingx) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fallback to default error handler
 	}
 	//

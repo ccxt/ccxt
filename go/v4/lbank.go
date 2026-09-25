@@ -3914,7 +3914,7 @@ func (this *Lbank) ConvertSecretToPem(secret any) any {
 	return pem + "-----END PRIVATE KEY-----"
 }
 func (this *Lbank) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseBalance() returned empty response"))
 	}
 	var success any = this.SafeValue(response, "result")

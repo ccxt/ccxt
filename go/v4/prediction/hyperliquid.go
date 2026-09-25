@@ -2899,7 +2899,7 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if ccxt.IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	var status *string = this.SafeString(response, "status", "")

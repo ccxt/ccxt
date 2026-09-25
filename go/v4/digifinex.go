@@ -5708,7 +5708,7 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Digifinex) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fall back to default error handler
 	}
 	var code *string = this.SafeString(response, "code")

@@ -2923,7 +2923,7 @@ func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Alpaca) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // default error handler
 	}
 	// {

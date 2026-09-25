@@ -3975,7 +3975,7 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 }
 func (this *Bitfinex) HandleErrors(statusCode any, statusText any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	// ["error", 11010, "ratelimit: error"]
-	if !IsEqual(response, nil) {
+	if response != nil {
 		if !IsArray(response) {
 			var message *string = this.SafeString2(response, "message", "error")
 			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))

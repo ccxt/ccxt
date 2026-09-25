@@ -2188,7 +2188,7 @@ func (this *Luno) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Luno) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	var error any = this.SafeValue(response, "error")

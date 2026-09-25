@@ -3892,7 +3892,7 @@ func (this *Bitrue) HandleErrors(code any, reason any, url any, method any, head
 			panic(InvalidOrder(Add(this.Id+" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ", body)))
 		}
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil // fallback to default error handler
 	}
 	// check success value for wapi endpoints

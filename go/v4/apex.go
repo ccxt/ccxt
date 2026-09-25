@@ -2595,7 +2595,7 @@ func (this *Apex) HandleErrors(code any, reason any, url any, method any, header
 	// {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
 	// {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		return nil
 	}
 	var errorCode *int64 = this.SafeInteger(response, "code")
