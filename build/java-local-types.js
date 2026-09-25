@@ -14348,3 +14348,115 @@ export function patchJavaNonNullLongSubtract (transpiler) {
         }
     };
 }
+
+// ===== 43. defaulted boolean parameters print `Boolean` =====
+// Every printed declaration of these (method, position) slots defaults to a boolean literal and never
+// writes it, and every call passes a literal, nothing, or another slot of this table: the parameter
+// prints `Boolean`, literals pass bare, and a condition reads `requireNonNullElse (p, lit)` unboxed.
+const JAVA_BOOLEAN_PARAMS = {
+    'checkRequiredCredentials': [ 0 ],
+    'checkRequiredUid': [ 0 ],
+    'convertOHLCVToTradingView': [ 7 ],
+    'convertTradingViewToOHLCV': [ 7 ],
+    'createPublicRequest': [ 4 ],
+    'fetchPaginatedCallDynamic': [ 6 ],
+    'filterByArray': [ 3 ],
+    'filterByArrayADLRanks': [ 3 ],
+    'filterByArrayPositions': [ 3 ],
+    'filterByArrayTickers': [ 3 ],
+    'filterByCurrencySinceLimit': [ 4 ],
+    'filterByOutcomeSinceLimit': [ 4 ],
+    'filterByOutcomesSinceLimit': [ 4 ],
+    'filterBySymbolSinceLimit': [ 4 ],
+    'filterBySymbolsSinceLimit': [ 4 ],
+    'filterByValueSinceLimit': [ 6 ],
+    'filterOutByArray': [ 3 ],
+    'filterTransfersByType': [ 2 ],
+    'getSymbolsForMarketType': [ 2, 3 ],
+    'handleRequestNetwork': [ 4 ],
+    'handleTriggerDirectionAndParams': [ 2 ],
+    'handleTriggerPricesAndParams': [ 2 ],
+    'handleUTAAndParams': [ 2 ],
+    'isLeveragedCurrency': [ 1 ],
+    'loadAccountSettings': [ 0 ],
+    'loadAccounts': [ 0 ],
+    'loadEvents': [ 0 ],
+    'loadEventsHelper': [ 0 ],
+    'loadLeverageBrackets': [ 0 ],
+    'loadMigrationStatus': [ 0 ],
+    'loadOutcome': [ 1 ],
+    'loadOutcomes': [ 1 ],
+    'loadTradingLimits': [ 1 ],
+    'marketSymbols': [ 2, 3, 4 ],
+    'padHex': [ 2 ],
+    'parseDepositAddresses': [ 2 ],
+    'prepareParadexDomain': [ 0 ],
+    'prioritizedNetworkAliases': [ 2 ],
+    'removeRepeatedElementsFromArray': [ 1 ],
+    'selectNetworkKeyFromNetworks': [ 3 ],
+    'watchMultiTickerHelper': [ 4 ],
+    'watchMultipleSubscription': [ 3 ],
+};
+
+function isBooleanLiteralNode (node) {
+    const bare = unwrapParens (node);
+    return bare?.kind === ts.SyntaxKind.TrueKeyword || bare?.kind === ts.SyntaxKind.FalseKeyword;
+}
+
+// 'Boolean' for a table slot; a table slot that breaks the proof throws (overrides must agree)
+function javaBooleanParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
+        || !ts.isIdentifier (method.name ?? {})) {
+        return undefined;
+    }
+    const positions = JAVA_BOOLEAN_PARAMS[method.name.text];
+    const index = method.parameters.indexOf (node);
+    const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
+    if (positions === undefined || !positions.includes (index) || fileName.includes ('/ts/src/test/')
+        || !printer.javaIsPrintedMethod (method)) {
+        return undefined;
+    }
+    const annotation = node.type === undefined ? '' : node.type.getText ().replace (/\s/g, '');
+    if (!isBooleanLiteralNode (node.initializer) || ![ '', 'boolean', 'Bool' ].includes (annotation)
+        || !ts.isIdentifier (node.name) || printer.javaParameterIsWritten (node)) {
+        throw new Error (`java boolean param ${method.name.text}#${index} (${fileName}) is not a read-only boolean-literal default`);
+    }
+    return 'Boolean';
+}
+
+export function installJavaBooleanParams (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaOptionalParameterTypeOf !== 'function' || printer._javaBooleanParamsPatched) {
+        return;
+    }
+    printer._javaBooleanParamsPatched = true;
+    const upstreamType = printer.javaOptionalParameterTypeOf.bind (printer);
+    printer.javaOptionalParameterTypeOf = function (node) {
+        return javaBooleanParamType (printer, node) ?? upstreamType (node);
+    };
+    const upstreamConvert = printer.javaConvertToCoreType.bind (printer);
+    printer.javaConvertToCoreType = function (type, printed, node) {
+        if (type !== 'Boolean' || isBooleanLiteralNode (node)) {
+            return type === 'Boolean' ? printed : upstreamConvert (type, printed, node);
+        }
+        const bare = unwrapParens (node);
+        if (bare === undefined || bare.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (bare) && bare.text === 'undefined')) {
+            return upstreamConvert (type, printed, node);
+        }
+        throw new Error (`java boolean param: argument ${printed} is not a boolean literal or Boolean slot`);
+    };
+    const upstreamCondition = printer.printCondition.bind (printer);
+    printer.printCondition = function (node, identation) {
+        const bare = unwrapParens (node);
+        if (bare?.kind === ts.SyntaxKind.Identifier) {
+            const declaration = printer.javaDeclarationOfIdentifier (bare);
+            const printed = printer.printNode (bare, 0);
+            if (declaration?.kind === ts.SyntaxKind.Parameter && javaBooleanParamType (printer, declaration) === 'Boolean'
+                && printed.startsWith ('java.util.Objects.requireNonNullElse(')) {
+                return printer.getIden (identation) + printed;
+            }
+        }
+        return upstreamCondition (node, identation);
+    };
+}
