@@ -363,7 +363,6 @@ export default class lighter extends Exchange {
                 'chainId': 304,
                 'accountIndex': undefined,
                 'apiKeyIndex': undefined,
-                'isStandardAccountTier': undefined,
                 'lighterPrivateKey': undefined,
                 'wasmExecPath': undefined, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
                 'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
@@ -372,6 +371,7 @@ export default class lighter extends Exchange {
                 'integratorTakerFee': 1000,
                 'authDeadlineExpiry': 28800, // 8h validity for auth tokens
                 'authDeadlineMinimumRemaining': 60,
+                'tiersForAccountIndexes': {}, // being filled on the fly
             },
             'features': {
                 'default': {
@@ -675,8 +675,8 @@ export default class lighter extends Exchange {
     }
 
     async checkIfStandardTier (accountIndex: number) {
-        const accountIndexTiers = this.safeDict (this.options, 'accountIndexTiers', {});
-        const isStandardTier = this.safeBool (accountIndexTiers, accountIndex);
+        const tiersForAccountIndexes = this.safeDict (this.options, 'tiersForAccountIndexes', {});
+        const isStandardTier = this.safeBool (tiersForAccountIndexes, accountIndex.toString ());
         if (isStandardTier !== undefined) {
             return isStandardTier;
         }
@@ -698,8 +698,8 @@ export default class lighter extends Exchange {
         //
         const tier = this.safeString (accountLimits, 'user_tier');
         const isStandard = (tier === 'standard');
-        accountIndexTiers[accountIndex] = isStandard;
-        this.options['accountIndexTiers'] = accountIndexTiers;
+        tiersForAccountIndexes[accountIndex.toString ()] = isStandard;
+        this.options['tiersForAccountIndexes'] = tiersForAccountIndexes;
         return isStandard;
     }
 
