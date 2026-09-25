@@ -1805,6 +1805,8 @@ class kraken(Exchange, ImplicitAPI):
         quoteId = id[quoteIdStart:quoteIdEnd]
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         market = {
             'symbol': symbol,

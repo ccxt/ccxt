@@ -934,6 +934,9 @@ impl UpbitCore {
         let mut quoteId: Value = self.safe_string_k(bid.clone(), "currency", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
         let mut state: Option<String> = self.safe_string_k(marketInfo.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut bidFee: Value = self.safe_string_k(response.clone(), "bid_fee", &[]);
         let mut askFee: Value = self.safe_string_k(response.clone(), "ask_fee", &[]);

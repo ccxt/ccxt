@@ -210,6 +210,9 @@ class independentreserve extends \ccxt\async\independentreserve {
         $quoteId = $this->safe_string($parts, 3);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return;
+        }
         $symbol = $base . '/' . $quote;
         $orderBook = $this->safe_dict($message, 'Data', array());
         $messageHash = 'orderbook:' . $symbol . ':' . $depth;

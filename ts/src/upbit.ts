@@ -447,6 +447,9 @@ export default class upbit extends Exchange {
         const quoteId = this.safeString (bid, 'currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const state = this.safeString (marketInfo, 'state');
         const bidFee = this.safeString (response, 'bid_fee');
         const askFee = this.safeString (response, 'ask_fee');

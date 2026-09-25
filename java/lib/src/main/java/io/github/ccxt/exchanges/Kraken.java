@@ -2198,6 +2198,10 @@ public class Kraken extends KrakenApi
         String quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         market = Helpers.newMap(
             "symbol", symbol,

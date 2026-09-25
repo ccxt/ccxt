@@ -449,9 +449,13 @@ public partial class cex : ccxt.cex
         {
             quoteId = this.safeString(pair, 1);
         }
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        string? symbol = null;
+        if (((bs != null)) && ((quote != null)))
+        {
+            symbol = ((bs + "/") + quote);
+        }
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         if ((timestamp != null))
         {
@@ -689,13 +693,20 @@ public partial class cex : ccxt.cex
         string? datetime = this.safeString(trade, "time");
         string? baseId = this.safeString(trade, "symbol");
         string? quoteId = this.safeString(trade, "symbol2");
-        object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? bs = this.safeCurrencyCode(baseId);
+        string? quote = this.safeCurrencyCode(quoteId);
+        string? symbol = null;
+        if (((bs != null)) && ((quote != null)))
+        {
+            symbol = ((bs + "/") + quote);
+            if (side == "sell")
+            {
+                symbol = ((quote + "/") + bs);
+            }
+        }
         string? amount = this.safeString(trade, "amount");
         if (side == "sell")
         {
-            symbol = add(add(quote, "/"), bs);
             amount = Precise.stringDiv(amount, price); // due to rounding errors amount in not exact to trade
         }
         Dictionary<string, object> parsedTrade = new Dictionary<string, object>() {
@@ -807,9 +818,13 @@ public partial class cex : ccxt.cex
             baseId = this.safeString(pair, "symbol1");
             quoteId = this.safeString(pair, "symbol2");
         }
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return;
+        }
+        string symbol = ((bs + "/") + quote);
         Dictionary<string, object> market = this.safeMarket(symbol);
         remains = this.currencyFromPrecision(bs, remains);
         if ((this.orders == null))
@@ -1100,6 +1115,10 @@ public partial class cex : ccxt.cex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? pair = this.safeString(data, "pair");
         string? symbol = this.pairToSymbol(pair);
+        if ((symbol == null))
+        {
+            return;
+        }
         string messageHash = ("orderbook:" + symbol);
         Int64? timestamp = this.safeInteger2(data, "timestamp_ms", "timestamp");
         Int64? incrementalId = this.safeInteger(data, "id");
@@ -1119,9 +1138,13 @@ public partial class cex : ccxt.cex
         List<object> parts = ((string)pair).Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         string? baseId = this.safeString(parts, 0);
         string? quoteId = this.safeString(parts, 1);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return null;
+        }
+        string symbol = ((bs + "/") + quote);
         return symbol;
     }
 
@@ -1145,6 +1168,10 @@ public partial class cex : ccxt.cex
         Int64? incrementalId = this.safeInteger(data, "id");
         string? pair = this.safeString(data, "pair", "");
         string? symbol = this.pairToSymbol(pair);
+        if ((symbol == null))
+        {
+            return;
+        }
         ccxt.pro.IOrderBook storedOrderBook = this.safeOrderBook(this.orderbooks, symbol);
         string messageHash = ("orderbook:" + symbol);
         Int64? nonce = this.safeInteger(storedOrderBook, "nonce");
@@ -1245,9 +1272,13 @@ public partial class cex : ccxt.cex
         List<object> parts = pair.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         string? baseId = this.safeString(parts, 0);
         string? quoteId = this.safeString(parts, 1);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return;
+        }
+        string symbol = ((bs + "/") + quote);
         Dictionary<string, object> market = this.safeMarket(symbol);
         string messageHash = ("ohlcv:" + symbol);
         List<object> data = this.safeList(message, "data", new List<object>() {});
@@ -1260,7 +1291,7 @@ public partial class cex : ccxt.cex
         }
         if (!(inOp(this.ohlcvs, symbol)))
         {
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)this.ohlcvs)[symbol] = new Dictionary<string, object>() {};
         }
         ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))["unknown"] = stored;
         client.resolve(stored, messageHash);
@@ -1298,6 +1329,10 @@ public partial class cex : ccxt.cex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? pair = this.safeString(data, "pair");
         string? symbol = this.pairToSymbol(pair);
+        if ((symbol == null))
+        {
+            return;
+        }
         string messageHash = ("ohlcv:" + symbol);
         List<object> ohlcv = new List<object> {this.safeTimestamp(data, "time"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
         IDictionary<string, object> stored = ((IDictionary<string, object>)this.safeValue(this.ohlcvs, symbol));
@@ -1319,6 +1354,10 @@ public partial class cex : ccxt.cex
         List<object> data = this.safeList(message, "data", new List<object>() {});
         string? pair = this.safeString(message, "pair");
         string? symbol = this.pairToSymbol(pair);
+        if ((symbol == null))
+        {
+            return;
+        }
         string messageHash = ("ohlcv:" + symbol);
         // const stored = this.safeValue (this.ohlcvs, symbol);
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), "unknown"));

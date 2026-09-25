@@ -110,9 +110,13 @@ public partial class coinone : ccxt.coinone
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? baseId = this.safeStringUpper(data, "target_currency");
         string? quoteId = this.safeStringUpper(data, "quote_currency");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = this.symbol(add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return;
+        }
+        string? symbol = this.symbol(((bs + "/") + quote));
         Int64? timestamp = this.safeInteger(data, "timestamp");
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
@@ -205,6 +209,10 @@ public partial class coinone : ccxt.coinone
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = this.parseWsTicker(data);
         string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+        if ((symbol == null))
+        {
+            return;
+        }
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         string messageHash = ("ticker:" + symbol);
         client.resolve(getValue(this.tickers, symbol), messageHash);
@@ -241,9 +249,13 @@ public partial class coinone : ccxt.coinone
         string? last = this.safeString(ticker, "last");
         string? baseId = this.safeString(ticker, "target_currency");
         string? quoteId = this.safeString(ticker, "quote_currency");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = this.symbol(add(add(bs, "/"), quote));
+        string? symbol = null;
+        if (((bs != null)) && ((quote != null)))
+        {
+            symbol = this.symbol(((bs + "/") + quote));
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },

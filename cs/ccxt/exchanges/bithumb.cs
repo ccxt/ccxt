@@ -1290,8 +1290,12 @@ public partial class bithumb : Exchange
                 {
                     string? currencyId = ((string)currencyIds[j]);
                     object ticker = getValue(data, currencyId);
-                    object bs = this.safeCurrencyCode(currencyId);
-                    string? symbol = ((string)add(add(bs, "/"), quote));
+                    string? bs = this.safeCurrencyCode(currencyId);
+                    if (((bs == null)) || ((quote == null)))
+                    {
+                        continue;
+                    }
+                    string symbol = ((bs + "/") + (quote));
                     Dictionary<string, object> market = this.safeMarket(symbol);
                     ((IDictionary<string,object>)ticker)["date"] = timestamp;
                     result[(string)symbol] = this.parseTicker(ticker, market);
