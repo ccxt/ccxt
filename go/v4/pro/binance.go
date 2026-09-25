@@ -5341,7 +5341,7 @@ func (this *Binance) fetchClosedOrdersWsBody(ch chan any, optionalArgs ...any) a
 
 	var orders []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersWsAsync(symbol, since, limit, params))))
 	var closedOrders []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var order any = ccxt.GetValue(orders, i)
 		if ccxt.IsEqual(ccxt.GetValue(order, "status"), "closed") {
 			closedOrders = append(closedOrders, order)

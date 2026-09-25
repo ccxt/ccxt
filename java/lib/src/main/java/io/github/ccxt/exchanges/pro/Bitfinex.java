@@ -601,8 +601,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object tradesArray = this.myTrades;
-        Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        tradesArray.append(trade);
         this.myTrades = tradesArray;
         // generic subscription
         client.resolve(tradesArray, name);
@@ -1002,10 +1002,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                     Object delta2 = Helpers.GetValue(delta, 2);
                     Object size = (((Helpers.isLessThan(delta2, 0)))) ? Helpers.opNeg(delta2) : delta2;
                     String side = (((Helpers.isLessThan(delta2, 0)))) ? "asks" : "bids";
-                    Object bookside = Helpers.GetValue(orderbook, side);
+                    io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, side);
                     String idString = this.safeString(delta, 0);
                     Double price = this.safeFloat(delta, 1);
-                    Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size, idString))});
+                    bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, size, idString)));
                 }
             } else
             {
@@ -1022,8 +1022,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                     Double price = this.safeNumber(delta, 0);
                     Object size = (((Helpers.isLessThan(amount, 0)))) ? Helpers.opNeg(amount) : amount;
                     String side = (((Helpers.isLessThan(amount, 0)))) ? "asks" : "bids";
-                    Object bookside = Helpers.GetValue(orderbook, side);
-                    Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size, counter))});
+                    io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, side);
+                    bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, size, counter)));
                 }
             }
             Helpers.addElementToObject(orderbook, "symbol", symbol);
@@ -1039,11 +1039,11 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 Object deltas2 = Helpers.GetValue(deltas, 2);
                 Object size = (((Helpers.isLessThan(deltas2, 0)))) ? Helpers.opNeg(deltas2) : deltas2;
                 String side = (((Helpers.isLessThan(deltas2, 0)))) ? "asks" : "bids";
-                Object bookside = Helpers.GetValue(orderbookItem, side);
+                io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbookItem, side);
                 // price = 0 means that you have to remove the order from your book
                 Object amount = ((Precise.stringGt(price, "0"))) ? size : "0";
                 String idString = this.safeString(deltas, 0);
-                Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(amount), idString))});
+                bookside.storeArray(new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(amount), idString)));
             } else
             {
                 String amount = this.safeString(deltas, 2);
@@ -1051,8 +1051,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 String price = this.safeString(deltas, 0);
                 Object size = ((Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
                 String side = ((Precise.stringLt(amount, "0"))) ? "asks" : "bids";
-                Object bookside = Helpers.GetValue(orderbookItem, side);
-                Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)))});
+                io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbookItem, side);
+                bookside.storeArray(new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter))));
             }
             client.resolve(orderbook, messageHash);
         }
@@ -1518,7 +1518,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> symbolIds = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(messageType, "os"))
         {
@@ -1533,12 +1533,12 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (value));
                 Object symbol = ((Map<String, Object>)parsed).get("symbol");
                 symbolIds.put((String)((String)symbol), true);
-                Helpers.callDynamically(orders, "append", new Object[]{parsed});
+                orders.append(parsed);
             }
         } else
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data));
-            Helpers.callDynamically(orders, "append", new Object[]{parsed});
+            orders.append(parsed);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             symbolIds.put((String)((String)symbol), true);
         }

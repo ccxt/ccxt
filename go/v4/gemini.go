@@ -1032,7 +1032,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 		}
 
 		var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
-		for i := 0; i < GetArrayLength(responses); i++ {
+		for i := 0; i < len(responses); i++ {
 			result = append(result, this.ParseMarket(GetValue(responses, i)))
 		}
 	} else {

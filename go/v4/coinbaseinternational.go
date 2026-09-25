@@ -482,7 +482,7 @@ func (this *Coinbaseinternational) handlePortfolioAndParamsBody(ch chan any, met
 	}
 
 	var accounts []any = ListTyped(PanicOnError((<-this.FetchAccountsAsync())))
-	for i := 0; i < GetArrayLength(accounts); i++ {
+	for i := 0; i < len(accounts); i++ {
 		var account map[string]any = SafeMapTyped(accounts, i)
 		var info map[string]any = SafeMapTyped(account, "info")
 		if IsEqual(this.SafeBool(info, "is_default"), true) {

@@ -1384,7 +1384,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	// convert it to an integer unconditionally
 	if markerInParams {
-		var marker int64 = ParseInt(GetValue(params, "marker"))
+		var marker int64 = ParseInt(params["marker"])
 		params = this.Extend(params, map[string]any{
 			"marker": marker,
 		})
@@ -1706,7 +1706,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	// convert it to an integer unconditionally
 	if markerInParams {
-		var marker int64 = ParseInt(GetValue(params, "marker"))
+		var marker int64 = ParseInt(params["marker"])
 		params = this.Extend(params, map[string]any{
 			"marker": marker,
 		})

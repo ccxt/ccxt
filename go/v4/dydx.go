@@ -1374,7 +1374,7 @@ func (this *Dydx) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "market")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "size")
 	if side == nil || *side != "long" {

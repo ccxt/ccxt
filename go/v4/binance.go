@@ -5017,7 +5017,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var markets []any = []any{}
 	this.Options.Store("crossMarginPairsData", []any{})
 	this.Options.Store("isolatedMarginPairsData", []any{})
-	for i := 0; i < GetArrayLength(results); i++ {
+	for i := 0; i < len(results); i++ {
 		var res any = this.SafeValue(results, i)
 		if (fetchMargins != nil && *fetchMargins == true) && IsArray(res) {
 			var keysList []string = ObjectKeys(this.IndexBy(res, "symbol"))
@@ -13531,7 +13531,7 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = SafeStringPtr(GetValue(market, "symbol"))
+		symbol = SafeStringPtr(market["symbol"])
 		request["symbol"] = GetValue(market, "id")
 	}
 	var subType *string = nil
@@ -14684,7 +14684,7 @@ func (this *Binance) ParseOptionPosition(position any, optionalArgs ...any) any 
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, nil, "swap"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "quantity")
 	if side == nil || *side != "long" {
@@ -17552,7 +17552,7 @@ func (this *Binance) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 	var request map[string]any = map[string]any{}
 	if GetValue(market, "option") == true {
 		request["underlyingAsset"] = market["baseId"]
-		if IsEqual(GetValue(market, "expiry"), nil) {
+		if IsEqual(market["expiry"], nil) {
 			panic(NotSupported(Add(this.Id+" fetchOpenInterest does not support ", symbol)))
 		}
 		request["expiration"] = this.Yymmdd(market["expiry"])
@@ -18115,7 +18115,7 @@ func (this *Binance) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) an
 
 	var markets []any = ListTyped(PanicOnError((<-this.FetchMarketsAsync())))
 	var tradingLimits map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
+	for i := 0; i < len(markets); i++ {
 		var market any = GetValue(markets, i)
 		var symbol *string = this.SafeString(market, "symbol")
 		if IsEqual(market, nil) {

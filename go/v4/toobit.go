@@ -1513,7 +1513,7 @@ func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	market = MapTyped(this.SafeMarket(nil, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,

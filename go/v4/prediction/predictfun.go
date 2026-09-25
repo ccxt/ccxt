@@ -310,7 +310,7 @@ func (this *Predictfun) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	var events []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchEventsAsync(params))))
-	var eventsLength int = ccxt.GetArrayLength(events)
+	var eventsLength int = len(events)
 	var markets []any = []any{}
 	for ei := 0; ei < eventsLength; ei++ {
 		var eventMarkets []any = ccxt.SafeListTyped(ccxt.GetValue(events, ei), "markets")

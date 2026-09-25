@@ -812,7 +812,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId, null, "_");
-        Object myOrders = this.orders;
+        io.github.ccxt.ws.ArrayCache myOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -823,7 +823,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             return;
         }
-        Helpers.callDynamically(myOrders, "append", new Object[]{order});
+        myOrders.append(order);
         this.orders = myOrders;
         client.resolve(myOrders, "orders");
         String messageHash = ("orders:" + symbol);

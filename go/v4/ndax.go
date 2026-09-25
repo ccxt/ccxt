@@ -1620,7 +1620,7 @@ func (this *Ndax) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//     [ 449 ] // comma-separated list of account ids
 	//
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var accountId *string = this.SafeString(response, i)
 		result = append(result, map[string]any{
 			"id":       accountId,

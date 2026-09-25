@@ -2246,7 +2246,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object stored = this.orders;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(data);
         if (!Boolean.TRUE.equals(isSpot))
         {
@@ -2276,7 +2276,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 Helpers.addElementToObject(parsedOrder, "lastUpdateTimestamp", updateTimestamp);
             }
         }
-        Helpers.callDynamically(stored, "append", new Object[]{parsedOrder});
+        stored.append(parsedOrder);
         String symbol = (String) ((Map<String, Object>)parsedOrder).get("symbol");
         String spotHash = "spot:order";
         String swapHash = "swap:order";
@@ -2349,7 +2349,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //
         Boolean isSpot = (message.containsKey("dataType"));
         Map<String, Object> result = (Map<String, Object>) this.safeDict2(message, "data", "o", new HashMap<String, Object>() {{}});
-        Object cachedTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache cachedTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(cachedTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -2372,7 +2372,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             messageHash = spotHash;
         }
-        Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
+        cachedTrades.append(parsed);
         client.resolve(cachedTrades, messageHash);
         client.resolve(cachedTrades, ((messageHash + ":") + symbol));
     }

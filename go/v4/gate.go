@@ -2364,7 +2364,7 @@ func (this *Gate) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 
 		var response []any = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleContracts(this.Extend(request, params))).Raw))
-		for i := 0; i < GetArrayLength(response); i++ {
+		for i := 0; i < len(response); i++ {
 			var contract map[string]any = MapTyped(this.SafeDict(response, i, map[string]any{}))
 			var parsedMarket map[string]any = this.ParseContractMarket(contract, settleId)
 			result = append(result, parsedMarket)
@@ -2398,7 +2398,7 @@ func (this *Gate) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 
 		var response []any = ListTyped(PanicOnError((<-this.PublicDeliveryGetSettleContracts(this.Extend(request, params))).Raw))
-		for i := 0; i < GetArrayLength(response); i++ {
+		for i := 0; i < len(response); i++ {
 			var contract map[string]any = MapTyped(this.SafeDict(response, i, map[string]any{}))
 			var parsedMarket map[string]any = this.ParseContractMarket(contract, settleId)
 			result = append(result, parsedMarket)
@@ -2607,7 +2607,7 @@ func (this *Gate) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
 	var result []any = []any{}
 
 	var underlyings []any = ListTyped(PanicOnError((<-this.FetchOptionUnderlyingsAsync())))
-	for i := 0; i < GetArrayLength(underlyings); i++ {
+	for i := 0; i < len(underlyings); i++ {
 		var underlying *string = SafeStringPtr(GetValue(underlyings, i))
 		var query map[string]any = this.Extend(map[string]any{}, params)
 		query["underlying"] = underlying
@@ -2651,7 +2651,7 @@ func (this *Gate) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
 		//        }
 		//    ]
 		//
-		for j := 0; j < GetArrayLength(response); j++ {
+		for j := 0; j < len(response); j++ {
 			var market map[string]any = MapTyped(this.SafeDict(response, j, map[string]any{}))
 			var id *string = this.SafeString(market, "name")
 			var parts []string = Split(underlying, "_")
@@ -2759,7 +2759,7 @@ func (this *Gate) fetchOptionUnderlyingsBody(ch chan any) any {
 	//    ]
 	//
 	var underlyings []any = []any{}
-	for i := 0; i < GetArrayLength(underlyingsResponse); i++ {
+	for i := 0; i < len(underlyingsResponse); i++ {
 		var underlying map[string]any = SafeMapTyped(underlyingsResponse, i)
 		var name *string = this.SafeString(underlying, "name")
 		if name != nil {
@@ -3648,7 +3648,7 @@ func (this *Gate) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 	//
 	var result map[string]any = map[string]any{}
 	var withdrawFees any = map[string]any{}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		withdrawFees = map[string]any{}
 		var entry map[string]any = MapTyped(this.SafeDict(response, i, map[string]any{}))
 		var currencyId *string = this.SafeString(entry, "currency")
@@ -4895,7 +4895,7 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	//     }
 	//
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var entry map[string]any = MapTyped(this.SafeDict(response, i, map[string]any{}))
 		var timestamp *int64 = this.SafeTimestamp(entry, "t")
 		rates = append(rates, map[string]any{
@@ -7212,7 +7212,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = SafeStringPtr(GetValue(market, "symbol"))
+		symbol = SafeStringPtr(market["symbol"])
 	}
 	var res []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
 	var typeVar *string = this.SafeString(res, 0)
@@ -7259,7 +7259,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = SafeStringPtr(GetValue(market, "symbol"))
+		symbol = SafeStringPtr(market["symbol"])
 	}
 	var trigger any = nil
 	var triggerparamsVariable []any = this.HandleParamBool2(params, "trigger", "stop")
@@ -7332,7 +7332,7 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = SafeStringPtr(GetValue(market, "symbol"))
+		symbol = SafeStringPtr(market["symbol"])
 	}
 	// don't omit here, omits done in prepareOrdersByStatusRequest
 	var trigger *bool = this.SafeBool2(params, "trigger", "stop")
@@ -9735,7 +9735,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = SafeStringPtr(GetValue(market, "symbol"))
+		symbol = SafeStringPtr(market["symbol"])
 	}
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMySettlementHistory", market, params)
@@ -9782,7 +9782,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 				panic(ArgumentsRequired(this.Id + " fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params"))
 			}
 		} else {
-			var marketId *string = SafeStringPtr(GetValue(market, "id"))
+			var marketId *string = SafeStringPtr(market["id"])
 			var optionParts []string = Split(marketId, "-")
 			AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))
 		}
@@ -10273,7 +10273,7 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan any, optionalArgs ...any) an
 	//    ]
 	//
 	var underlyings []any = []any{}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var underlying map[string]any = SafeMapTyped(response, i)
 		var name *string = this.SafeString(underlying, "name")
 		if name != nil {
@@ -10592,7 +10592,7 @@ func (this *Gate) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any) 
 	//     ]
 	//
 	var marketId *string = SafeStringPtr(market["id"])
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var entry map[string]any = MapTyped(this.SafeDict(response, i, map[string]any{}))
 		var entryMarketId *string = this.SafeString(entry, "name")
 		if entryMarketId == marketId || (entryMarketId != nil && marketId != nil && *entryMarketId == *marketId) {
@@ -10649,7 +10649,7 @@ func (this *Gate) ParseGreeks(greeks any, optionalArgs ...any) any {
 		"askPrice":              this.ParseNumber(this.SafeNumber(greeks, "ask1_price")),
 		"markPrice":             this.ParseNumber(this.SafeNumber(greeks, "mark_price")),
 		"lastPrice":             this.ParseNumber(this.SafeNumber(greeks, "last_price")),
-		"underlyingPrice":       this.ParseNumber(GetValue(GetValue(market, "info"), "underlying_price")),
+		"underlyingPrice":       this.ParseNumber(GetValue(market["info"], "underlying_price")),
 		"info":                  greeks,
 	}
 }
@@ -11065,7 +11065,7 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 	}
 	var market map[string]any = nil
 	if symbols != nil {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength int = len(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbols, 0))
 		}

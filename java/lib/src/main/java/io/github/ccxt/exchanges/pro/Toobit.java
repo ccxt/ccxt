@@ -1236,9 +1236,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message));
-        Helpers.callDynamically(orders, "append", new Object[]{order});
+        orders.append(order);
         String messageHash = "orders";
         client.resolve(orders, messageHash);
         messageHash = ("orders:" + this.safeString(order, "symbol"));
@@ -1380,14 +1380,14 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //        "S": "BUY"
         //    }
         //
-        Object myTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trade = this.parseMyTrade((Map<String, Object>) (message));
-        Helpers.callDynamically(myTrades, "append", new Object[]{trade});
+        myTrades.append(trade);
         String messageHash = ("myTrades:" + ((Map<String, Object>)trade).get("symbol"));
         client.resolve(myTrades, messageHash);
         messageHash = "myTrades";

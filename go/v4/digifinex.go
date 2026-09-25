@@ -4836,7 +4836,7 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString2(position, "instrument_id", "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var marginMode *string = this.SafeString(position, "margin_mode")
 	if marginMode != nil {
 		marginMode = SafeStringPtr(func() string {

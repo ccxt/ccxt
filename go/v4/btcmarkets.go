@@ -964,7 +964,7 @@ func (this *Btcmarkets) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "marketId")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "timestamp"))
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var baseVolume *string = this.SafeString(ticker, "volume24h")

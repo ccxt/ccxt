@@ -3185,7 +3185,7 @@ func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) any {
 		typeVar = "spot"
 	}
 	market = MapTyped(this.SafeMarket(marketId, market, nil, typeVar))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var open *string = this.SafeString(ticker, "openPrice")
 	var high *string = this.SafeString(ticker, "highPrice")
 	var low *string = this.SafeString(ticker, "lowPrice")
@@ -6179,7 +6179,7 @@ func (this *Bingx) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	var tag *string = this.SafeString(depositAddress, "tag")
 	var currencyId *string = this.SafeString(depositAddress, "coin")
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
-	var code *string = SafeStringPtr(GetValue(currency, "code"))
+	var code *string = SafeStringPtr(currency["code"])
 	var address any = DerefScalar(this.SafeString2(depositAddress, "addressWithPrefix", "address"))
 	var networkId *string = this.SafeString(depositAddress, "network")
 	var networkCode *string = this.NetworkIdToCode(networkId, code)

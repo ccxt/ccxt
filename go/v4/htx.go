@@ -3561,7 +3561,7 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString2(trade, "contract_code", "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"ts", "created-at", "created_at", "create_date", "created_time"})
 	var order *string = this.SafeString2(trade, "order-id", "order_id")
 	var side any = DerefScalar(this.SafeString2(trade, "direction", "side"))
@@ -4363,7 +4363,7 @@ func (this *Htx) fetchAccountIdByTypeBody(ch chan any, typeVar any, optionalArgs
 	if symbol != nil {
 		marketId = this.MarketId(symbol)
 	}
-	for i := 0; i < GetArrayLength(accounts); i++ {
+	for i := 0; i < len(accounts); i++ {
 		var account map[string]any = SafeMapTyped(accounts, i)
 		var info map[string]any = SafeMapTyped(account, "info")
 		var subtype *string = this.SafeString(info, "subtype")

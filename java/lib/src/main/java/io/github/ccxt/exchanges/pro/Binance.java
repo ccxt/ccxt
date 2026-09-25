@@ -7594,7 +7594,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String symbol = this.safeString(trade, "symbol");
             if (!java.util.Objects.equals(orderId, null) && !java.util.Objects.equals(tradeFee, null) && !java.util.Objects.equals(symbol, null))
             {
-                Object cachedOrders = this.orders;
+                io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
                 if (!java.util.Objects.equals(cachedOrders, null))
                 {
                     Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
@@ -7669,8 +7669,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
-            Object myTrades = this.myTrades;
-            Helpers.callDynamically(myTrades, "append", new Object[]{trade});
+            io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+            myTrades.append(trade);
             client.resolve(this.myTrades, messageHash);
             String messageHashSymbol = ((messageHash + ":") + symbol);
             client.resolve(this.myTrades, messageHashSymbol);
@@ -7689,7 +7689,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
-            Object cachedOrders = this.orders;
+            io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
             Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
             Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, orderId);
             if (!java.util.Objects.equals(order, null))
@@ -7712,7 +7712,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     Helpers.addElementToObject(parsed, "datetime", this.safeString(order, "datetime"));
                 }
             }
-            Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
+            cachedOrders.append(parsed);
             String messageHash = "orders";
             String symbolSpecificMessageHash = ("orders:" + symbol);
             client.resolve(cachedOrders, messageHash);

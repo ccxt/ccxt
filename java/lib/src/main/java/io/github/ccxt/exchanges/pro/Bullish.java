@@ -615,13 +615,13 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
-            Object orders = this.orders;
+            io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
             {
                 Object rawOrder = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
                 Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(rawOrder);
-                Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
+                orders.append(parsedOrder);
                 String symbol = this.safeString(parsedOrder, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -764,13 +764,13 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
-            Object trades = this.myTrades;
+            io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
             {
                 Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
                 Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(rawTrade);
-                Helpers.callDynamically(trades, "append", new Object[]{parsedTrade});
+                trades.append(parsedTrade);
                 String symbol = this.safeString(parsedTrade, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

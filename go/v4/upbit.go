@@ -1421,7 +1421,7 @@ func (this *Upbit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 
 	var fetchMarketResponse []any = ListTyped(PanicOnError((<-this.FetchMarketsAsync(params))))
 	var response map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(fetchMarketResponse); i++ {
+	for i := 0; i < len(fetchMarketResponse); i++ {
 		var element map[string]any = map[string]any{}
 		element["maker"] = this.SafeNumber(GetValue(fetchMarketResponse, i), "maker")
 		element["taker"] = this.SafeNumber(GetValue(fetchMarketResponse, i), "taker")

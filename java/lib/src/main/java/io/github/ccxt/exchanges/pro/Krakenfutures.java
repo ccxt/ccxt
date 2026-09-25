@@ -1134,7 +1134,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //         "reason": 'edited_by_user'
         //     }
         //
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit");
@@ -1159,7 +1159,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             if ((java.util.Objects.equals(previousOrder, null)) || (java.util.Objects.equals(reason, "edited_by_user")))
             {
                 Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order));
-                Helpers.callDynamically(orders, "append", new Object[]{parsed});
+                orders.append(parsed);
                 client.resolve(orders, messageHash);
                 client.resolve(orders, ((messageHash + ":") + symbol));
             } else
@@ -1207,7 +1207,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     Helpers.addElementToObject(previousOrder.get("fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
                 }
                 // update the newUpdates count
-                Helpers.callDynamically(orders, "append", new Object[]{this.safeOrder((Map<String, Object>) (previousOrder))});
+                orders.append(this.safeOrder((Map<String, Object>) (previousOrder)));
                 client.resolve(orders, ((messageHash + ":") + symbol));
                 client.resolve(orders, messageHash);
             }
@@ -1316,7 +1316,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             messageHash = "orders:verbose";
         }
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
-        Object cachedOrders = this.orders;
+        io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
@@ -1326,7 +1326,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 symbols.put((String)symbol, true);
             }
-            Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
+            cachedOrders.append(parsed);
         }
         Integer length = ((List<?>)this.orders).size();
         if (Helpers.isGreaterThan(length, 0))
@@ -1653,16 +1653,16 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Map<String, Object> bid = (Map<String, Object>) this.safeDict(bids, i);
             Double price = this.safeNumber(bid, "price");
             Double qty = this.safeNumber(bid, "qty");
-            Object bidsSide = Helpers.GetValue(orderbook, "bids");
-            Helpers.callDynamically(bidsSide, "store", new Object[]{price, qty});
+            io.github.ccxt.ws.OrderBookSide bidsSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+            bidsSide.store(price, qty);
         }
         for (var i = 0; i < ((List<?>)asks).size(); i++)
         {
             Map<String, Object> ask = (Map<String, Object>) this.safeDict(asks, i);
             Double price = this.safeNumber(ask, "price");
             Double qty = this.safeNumber(ask, "qty");
-            Object asksSide = Helpers.GetValue(orderbook, "asks");
-            Helpers.callDynamically(asksSide, "store", new Object[]{price, qty});
+            io.github.ccxt.ws.OrderBookSide asksSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+            asksSide.store(price, qty);
         }
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
@@ -1694,12 +1694,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Long timestamp = this.safeInteger(message, "timestamp");
         if (java.util.Objects.equals(side, "sell"))
         {
-            Object asks = Helpers.GetValue(orderbook, "asks");
-            Helpers.callDynamically(asks, "store", new Object[]{price, qty});
+            io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+            asks.store(price, qty);
         } else
         {
-            Object bids = Helpers.GetValue(orderbook, "bids");
-            Helpers.callDynamically(bids, "store", new Object[]{price, qty});
+            io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+            bids.store(price, qty);
         }
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
@@ -1968,7 +1968,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //    }
         //
         List<Object> trades = (List<Object>) this.safeList(message, "fills", new ArrayList<Object>(Arrays.asList()));
-        Object stored = this.myTrades;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1984,7 +1984,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 tradeSymbols.put((String)((Map<String, Object>)parsedTrade).get("symbol"), true);
             }
-            Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
+            stored.append(parsedTrade);
         }
         List<String> tradeSymbolKeys = new ArrayList<String>(tradeSymbols.keySet());
         for (var i = 0; i < ((List<?>)tradeSymbolKeys).size(); i++)

@@ -769,7 +769,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		// then identities resolve synchronously
 
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
-		for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+		for i := 0; i < len(outcomes); i++ {
 			var requested *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomes, i))
 			var requestedOutcomeObj map[string]any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)
@@ -1200,7 +1200,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 		// then identities resolve synchronously
 
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
-		for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+		for i := 0; i < len(outcomes); i++ {
 			var requested *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomes, i))
 			var requestedOutcomeObj map[string]any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)

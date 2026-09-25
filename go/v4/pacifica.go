@@ -1555,7 +1555,7 @@ func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var funding *float64 = this.SafeNumber(info, "funding")
 	var markPx *float64 = this.SafeNumber(info, "mark")
 	var oraclePx *float64 = this.SafeNumber(info, "oracle")
@@ -1902,7 +1902,7 @@ func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(trade, "amount")
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var id *string = this.SafeString(trade, "history_id")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil && *side == "open_long" {
@@ -2860,7 +2860,7 @@ func (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -3415,7 +3415,7 @@ func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString2(order, "symbol", "s")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger2(order, "created_at", "ct")
 	var status *string = this.SafeString2(order, "order_status", "os", "open") // open if method is fetchOpenOrders
 	var side *string = this.SafeString(order, "side", "d")
@@ -3577,7 +3577,7 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var margin *string = this.SafeString(position, "margin")
 	var marginMode string = func() string {
 		if (margin != nil) && (margin == nil || *margin != "0") {
@@ -4205,7 +4205,7 @@ func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(income, "created_at")
 	var marketId *string = this.SafeString(income, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var amount *string = this.SafeString(income, "amount")
 	var code *string = this.SafeCurrencyCode("USDC")
 	var rate *float64 = this.SafeNumber(income, "rate")

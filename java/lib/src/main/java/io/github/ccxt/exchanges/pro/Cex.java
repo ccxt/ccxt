@@ -825,7 +825,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //         }
         //     }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object stored = this.myTrades;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -833,7 +833,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             this.myTrades = stored;
         }
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data));
-        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        stored.append(trade);
         String messageHash = ("myTrades:" + ((Map<String, Object>)trade).get("symbol"));
         client.resolve(stored, messageHash);
     }
@@ -1005,7 +1005,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object storedOrders = this.orders;
+        io.github.ccxt.ws.ArrayCache storedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> ordersBySymbol = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)storedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
         Object order = this.safeValue(ordersBySymbol, orderId);
         if (java.util.Objects.equals(order, null))
@@ -1036,7 +1036,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Helpers.addElementToObject(order, "timestamp", timestamp);
         Helpers.addElementToObject(order, "datetime", this.iso8601(timestamp));
         order = this.safeOrder((Map<String, Object>) (order));
-        Helpers.callDynamically(storedOrders, "append", new Object[]{order});
+        storedOrders.append(order);
         String messageHash = ("orders:" + symbol);
         client.resolve(storedOrders, messageHash);
     }
@@ -1211,7 +1211,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //
         String symbol = this.safeString(message, "oid"); // symbol is set as requestId in watchOrders
         List<Object> rawOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object myOrders = this.orders;
+        io.github.ccxt.ws.ArrayCache myOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(myOrders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1223,7 +1223,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             order.put("status", "open");
-            Helpers.callDynamically(myOrders, "append", new Object[]{order});
+            myOrders.append(order);
         }
         this.orders = myOrders;
         String messageHash = ("orders:" + symbol);

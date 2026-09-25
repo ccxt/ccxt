@@ -2611,7 +2611,7 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(order, "created")
 	var marketId *string = this.SafeString(order, "market")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "orderType")

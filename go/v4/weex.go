@@ -1476,7 +1476,7 @@ func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		response = []any{response}
 	}
 	var results []any = []any{}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var rawTicker any = GetValue(response, i)
 		// book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
 		var marketId *string = this.SafeString(rawTicker, "symbol")

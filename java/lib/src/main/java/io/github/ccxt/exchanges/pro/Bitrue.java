@@ -333,8 +333,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{parsed});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(parsed);
         String messageHash = "orders";
         client.resolve(this.orders, messageHash);
     }

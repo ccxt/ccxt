@@ -1290,7 +1290,7 @@ func (this *Zebpay) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(trade, "timestamp", "tradeTime")
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, "_"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var side *string = this.SafeStringLower(trade, "side")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString2(trade, "amount", "quantity")
@@ -1784,7 +1784,7 @@ func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var typeVar *string = this.SafeString(order, "type")
 	var timestamp *float64 = this.SafeNumber(order, "timestamp")
 	var datetime *string = this.Iso8601(timestamp)

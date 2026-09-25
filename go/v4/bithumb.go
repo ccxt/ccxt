@@ -2969,7 +2969,7 @@ func (this *Bithumb) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires a `side` parameter (sell or buy)"))
 		}
 		var side string
-		if IsEqual(GetValue(params, "side"), "buy") {
+		if IsEqual(params["side"], "buy") {
 			side = "bid"
 		} else {
 			side = "ask"

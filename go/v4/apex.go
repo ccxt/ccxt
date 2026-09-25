@@ -1460,7 +1460,7 @@ func (this *Apex) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId *string = this.SafeString(order, "clientId")
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "size")
 	var orderType *string = this.SafeString(order, "type")
@@ -2476,7 +2476,7 @@ func (this *Apex) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "size")
 	var timestamp *int64 = this.SafeInteger(position, "updatedTime")

@@ -2629,8 +2629,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{order});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(order);
         client.resolve(this.orders, messageHash);
     }
 
@@ -2661,8 +2661,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
-        Object tradesArray = this.myTrades;
-        Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        tradesArray.append(trade);
         client.resolve(tradesArray, messageHash);
     }
 

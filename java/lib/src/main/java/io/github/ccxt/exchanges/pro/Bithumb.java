@@ -635,8 +635,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{}}});
         Helpers.addElementToObject(orderbook, "symbol", symbol);
-        Object bids = Helpers.GetValue(orderbook, "bids");
-        Object asks = Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
         List<Object> units = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)units).size(); i++)
         {
@@ -647,11 +647,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Double askSize = this.safeNumber(entry, "ask_size");
             if ((!java.util.Objects.equals(bidPrice, null)) && (!java.util.Objects.equals(bidSize, null)))
             {
-                Helpers.callDynamically(bids, "store", new Object[]{bidPrice, bidSize});
+                bids.store(bidPrice, bidSize);
             }
             if ((!java.util.Objects.equals(askPrice, null)) && (!java.util.Objects.equals(askSize, null)))
             {
-                Helpers.callDynamically(asks, "store", new Object[]{askPrice, askSize});
+                asks.store(askPrice, askSize);
             }
         }
         String gen2TimestampStr = this.safeString2(message, "timestamp", "datetime");
@@ -1250,8 +1250,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object cachedOrders = this.orders;
-        Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
+        io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        cachedOrders.append(parsed);
         client.resolve(cachedOrders, messageHash);
         String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(cachedOrders, symbolSpecificMessageHash);

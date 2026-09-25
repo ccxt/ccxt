@@ -4111,7 +4111,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		var depositMethods []any = ListTyped(PanicOnError((<-this.FetchDepositMethodsAsync(code))))
 		if network != nil {
 			// find best matching deposit method, or fallback to the first one
-			for i := 0; i < GetArrayLength(depositMethods); i++ {
+			for i := 0; i < len(depositMethods); i++ {
 				var entry *string = this.SafeString(GetValue(depositMethods, i), "method")
 				if entry == nil {
 					panic(ExchangeError(this.Id + " fetchDepositAddress() missing entry"))
@@ -4163,7 +4163,7 @@ func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	var address *string = this.SafeString(depositAddress, "address")
 	var tag *string = this.SafeString(depositAddress, "tag")
 	currency = MapTyped(this.SafeCurrency(nil, currency))
-	var code *string = SafeStringPtr(GetValue(currency, "code"))
+	var code *string = SafeStringPtr(currency["code"])
 	this.CheckAddress(address)
 	return map[string]any{
 		"info":     depositAddress,

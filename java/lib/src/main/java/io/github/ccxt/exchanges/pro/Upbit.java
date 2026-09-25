@@ -439,8 +439,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         // and reinitialize it again with new bidasks
         Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{}}});
         Helpers.addElementToObject(orderbook, "symbol", symbol);
-        Object bids = Helpers.GetValue(orderbook, "bids");
-        Object asks = Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
         List<Object> data = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -449,8 +449,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Double ask_size = this.safeFloat(entry, "ask_size");
             Double bid_price = this.safeFloat(entry, "bid_price");
             Double bid_size = this.safeFloat(entry, "bid_size");
-            Helpers.callDynamically(asks, "store", new Object[]{ask_price, ask_size});
-            Helpers.callDynamically(bids, "store", new Object[]{bid_price, bid_size});
+            asks.store(ask_price, ask_size);
+            bids.store(bid_price, bid_size);
         }
         Long timestamp = this.safeInteger(message, "timestamp");
         String datetime = this.iso8601(timestamp);
@@ -877,14 +877,14 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
     public void handleMyTrade(Client client, Map<String, Object> message)
     {
         // see: parseWsOrder
-        Object myTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message));
-        Helpers.callDynamically(myTrades, "append", new Object[]{trade});
+        myTrades.append(trade);
         String messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
         messageHash = ("myTrades:" + ((Map<String, Object>)trade).get("symbol"));
@@ -901,7 +901,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object cachedOrders = this.orders;
+        io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> orders = (Map<String, Object>) ((((java.util.Objects.equals(symbol, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}}));
         Map<String, Object> order = (Map<String, Object>) ((((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId));
         if (!java.util.Objects.equals(order, null))
@@ -920,7 +920,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Helpers.addElementToObject(parsed, "timestamp", this.safeInteger(order, "timestamp"));
             Helpers.addElementToObject(parsed, "datetime", this.safeString(order, "datetime"));
         }
-        Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
+        cachedOrders.append(parsed);
         String messageHash = "myOrder";
         client.resolve(this.orders, messageHash);
         messageHash = ((messageHash + ":") + symbol);

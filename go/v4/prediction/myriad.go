@@ -2625,7 +2625,7 @@ func (this *Myriad) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	var orders []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
 	var trades []any = []any{}
-	var ordersLength int = ccxt.GetArrayLength(orders)
+	var ordersLength int = len(orders)
 	for i := 0; i < ordersLength; i++ {
 		var order any = ccxt.GetValue(orders, i)
 		trades = append(trades, this.OrderToTrade(order))
@@ -3733,7 +3733,7 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 	var outcomesByMarket map[string]any = map[string]any{}
 	var marketKeys []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+	for i := 0; i < len(outcomes); i++ {
 		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var networkId *string = this.SafeString(info, "networkId")
@@ -4695,7 +4695,7 @@ func (this *Myriad) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() requires a list of outcomes (the prices channel is per-market)"))
 	}
-	var symbolsLength int = ccxt.GetArrayLength(outcomes)
+	var symbolsLength int = len(outcomes)
 	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 
 	ccxt.PanicOnError((<-this.ConnectCentrifugoAsync(url)))
@@ -5040,7 +5040,7 @@ func (this *Myriad) seedPositionBalancesBody(ch chan any, trader any) any {
 		"address": trader,
 	}))))
 	var balances map[string]any = map[string]any{}
-	var positionsLength int = ccxt.GetArrayLength(positions)
+	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
 		var p map[string]any = ccxt.SafeMapTyped(positions, i)
 		var id *string = this.SafeString(p, "id")

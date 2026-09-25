@@ -1666,14 +1666,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data), market);
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         if (java.util.Objects.equals(orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = orders;
         }
-        Helpers.callDynamically(orders, "append", new Object[]{parsed});
+        orders.append(parsed);
         client.resolve(orders, messageHash);
         String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);

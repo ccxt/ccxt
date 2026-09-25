@@ -401,7 +401,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 
 		var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
-		var length int = ccxt.GetArrayLength(responses)
+		var length int = len(responses)
 		for j := 0; j < length; j++ {
 			var response map[string]any = ccxt.SafeMapTyped(responses, j)
 			var data any = this.SafeList(response, "data", []any{})
@@ -1442,7 +1442,7 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 	var outcomesBySlug map[string]any = map[string]any{}
 	var slugs []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+	for i := 0; i < len(outcomes); i++ {
 		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var slug *string = this.SafeString(outcomeObj["info"], "slug")
 		if slug == nil {
@@ -3475,7 +3475,7 @@ func (this *Limitless) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	var symbolsLength int = 0
 	if outcomes != nil {
-		symbolsLength = ccxt.GetArrayLength(outcomes)
+		symbolsLength = len(outcomes)
 	}
 	if symbolsLength > 0 {
 
@@ -3758,7 +3758,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		var requestedTags []any = ccxt.SafeListTypedDefault(params, "tags", []any{})
 
 		var listRaw []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawMarketsByTagsAsync(requestedTags, params))))
-		var listRawLength int = ccxt.GetArrayLength(listRaw)
+		var listRawLength int = len(listRaw)
 		for i := 0; i < listRawLength; i++ {
 			rawMarkets = append(rawMarkets, ccxt.GetValue(listRaw, i))
 		}
@@ -3973,7 +3973,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optional
 			}
 			return nil
 		}()))))
-		var categoryMarketsLength int = ccxt.GetArrayLength(categoryMarkets)
+		var categoryMarketsLength int = len(categoryMarkets)
 		for mi := 0; mi < categoryMarketsLength; mi++ {
 			var raw any = ccxt.GetValue(categoryMarkets, mi)
 			var slug *string = this.SafeString(raw, "slug")

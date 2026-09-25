@@ -869,9 +869,9 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object stored = this.myTrades;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Object trade = this.parseWsMyTrade(data, market);
-        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        stored.append(trade);
         client.resolve(stored, channel);
     }
 
@@ -974,11 +974,11 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object stored = this.orders;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         order.put("event", this.safeString(message, "event"));
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), market);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         client.resolve(this.orders, channel);
     }
 

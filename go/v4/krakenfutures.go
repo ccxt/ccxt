@@ -3878,7 +3878,7 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan any, optionalArgs .
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = nil
 	if symbols != nil {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength int = len(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbols, 0))
 		}

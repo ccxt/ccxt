@@ -630,7 +630,7 @@ func (this *Cryptocom) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 	}
 	var messageHash any = "user.trade"
 	messageHash = func() any {
@@ -1144,7 +1144,7 @@ func (this *Cryptocom) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 	}
 	var messageHash any = "user.order"
 	messageHash = func() any {

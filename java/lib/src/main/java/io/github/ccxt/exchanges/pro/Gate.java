@@ -1892,7 +1892,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             return;
         }
-        Object cachedTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache cachedTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(cachedTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1904,7 +1904,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
             Object trade = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
-            Helpers.callDynamically(cachedTrades, "append", new Object[]{trade});
+            cachedTrades.append(trade);
             String symbol = (String) ((Map<String, Object>)trade).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2503,7 +2503,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.triggerOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object stored = ((Boolean.TRUE.equals(isTrigger))) ? this.triggerOrders : this.orders;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (((Boolean.TRUE.equals(isTrigger))) ? this.triggerOrders : this.orders);
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         List<Object> parsedOrders = this.parseOrders(orders);
         for (var i = 0; i < ((List<?>)parsedOrders).size(); i++)
@@ -2524,7 +2524,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                     Helpers.addElementToObject(parsed, "status", ((((left != null && left == 0)))) ? "closed" : "canceled");
                 }
             }
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("id"), null))

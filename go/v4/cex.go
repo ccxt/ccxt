@@ -1536,7 +1536,7 @@ func (this *Cex) ParseOrder(order any, optionalArgs ...any) any {
 		marketId = *currency1 + "-" + *currency2
 	}
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var fee map[string]any = map[string]any{}
 	var feeAmount *float64 = this.SafeNumber(order, "feeAmount")

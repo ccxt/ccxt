@@ -2274,8 +2274,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trades = this.myTrades;
-        Helpers.callDynamically(trades, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        trades.append(trade);
         String symbol = (String) ((Map<String, Object>)trade).get("symbol");
         client.resolve(trades, "myTrades");
         client.resolve(trades, ("myTrades:" + symbol));
@@ -2408,8 +2408,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{order});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(order);
         String symbol = (String) ((Map<String, Object>)order).get("symbol");
         client.resolve(orders, "orders");
         client.resolve(orders, ("orders:" + symbol));

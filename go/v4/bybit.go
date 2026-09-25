@@ -2859,7 +2859,7 @@ func (this *Bybit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		// for backward-compatibility
 		types = ListTyped(this.SafeList(this.Options, "fetchMarkets", defaultTypes))
 	}
-	for i := 0; i < GetArrayLength(types); i++ {
+	for i := 0; i < len(types); i++ {
 		var marketType *string = SafeStringPtr(GetValue(types, i))
 		if marketType != nil && *marketType == "spot" {
 			promisesUnresolved = append(promisesUnresolved, this.FetchSpotMarketsAsync(params))
@@ -2891,7 +2891,7 @@ func (this *Bybit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(promises); i++ {
+	for i := 0; i < len(promises); i++ {
 		var parsedMarket any = GetValue(promises, i)
 		result = this.ArrayConcat(result, parsedMarket)
 	}
@@ -3679,7 +3679,7 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}()) // don't omit here
 		// we can't use marketSymbols here due to the conflicting ids between markets
 		var currentType any = nil
-		for i := 0; i < GetArrayLength(symbols); i++ {
+		for i := 0; i < len(symbols); i++ {
 			var symbol *string = SafeStringPtr(GetValue(symbols, i))
 			// using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
 			// infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
@@ -6741,7 +6741,7 @@ func (this *Bybit) fetchOrderClassicBody(ch chan any, id any, optionalArgs ...an
 	}
 
 	var result []any = ListTyped(PanicOnError((<-this.FetchOrdersClassicAsync(symbol, nil, nil, this.Extend(request, params)))))
-	var length int = GetArrayLength(result)
+	var length int = len(result)
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 		var extra string = func() string {
@@ -7063,7 +7063,7 @@ func (this *Bybit) fetchClosedOrderBody(ch chan any, id any, optionalArgs ...any
 	}
 
 	var result []any = ListTyped(PanicOnError((<-this.FetchClosedOrdersAsync(symbol, nil, nil, this.Extend(request, params)))))
-	var length int = GetArrayLength(result)
+	var length int = len(result)
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 		var extra string = func() string {
@@ -7120,7 +7120,7 @@ func (this *Bybit) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	}
 
 	var result []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, nil, nil, this.Extend(request, params)))))
-	var length int = GetArrayLength(result)
+	var length int = len(result)
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 		var extra string = func() string {
@@ -9098,7 +9098,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 			panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol parameter for non unified account"))
 		}
 		market = this.Market(symbol)
-		var isUsdcSettled bool = IsEqual(GetValue(market, "settle"), "USDC")
+		var isUsdcSettled bool = IsEqual(market["settle"], "USDC")
 		if isUsdcSettled {
 			if IsEqual(marginMode, "cross") {
 				marginMode = "REGULAR_MARGIN"
@@ -11806,7 +11806,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	var subType *string = nil
 	var symbolsLength int = 0
 	if symbols != nil {
-		symbolsLength = GetArrayLength(symbols)
+		symbolsLength = len(symbols)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbols, 0))
 		}

@@ -1405,7 +1405,7 @@ func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var last *string = this.SafeString(ticker, "last_traded_price")
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(ticker, "created_at")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1872,7 +1872,7 @@ func (this *Paradex) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(interest, "created_at")
 	var marketId *string = this.SafeString(interest, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	return this.SafeOpenInterest(map[string]any{
 		"symbol":             symbol,
 		"openInterestAmount": this.SafeString(interest, "open_interest"),
@@ -2164,7 +2164,7 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId any = this.OmitZero(this.SafeString(order, "client_id"))
 	var marketId *string = this.SafeString(order, "market")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "size")
 	var orderType *string = this.SafeString(order, "type")
@@ -3417,7 +3417,7 @@ func (this *Paradex) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "market")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "size")
 	if side == nil || *side != "long" {
@@ -4327,7 +4327,7 @@ func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(greeks, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, nil, "option"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(greeks, "created_at")
 	var greeksData map[string]any = SafeMapTyped(greeks, "greeks")
 	return map[string]any{

@@ -1504,7 +1504,7 @@ func (this *Deepcoin) fetchDepositAddressesBody(ch chan any, optionalArgs ...any
 	if codes == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddresses requires a list with one currency code"))
 	}
-	var length int = GetArrayLength(codes)
+	var length int = len(codes)
 	if length != 1 {
 		panic(NotSupported(this.Id + " fetchDepositAddresses requires a list with one currency code"))
 	}

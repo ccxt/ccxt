@@ -702,8 +702,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object order = this.parseTradingOrder((Map<String, Object>) (message));
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{order});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(order);
         client.resolve(this.orders, ("orders:" + ((Map<String, Object>)order).get("symbol")));
         client.resolve(this.orders, "orders");
     }
@@ -913,12 +913,12 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             return;
         }
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.parseOrder((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)));
             String symbol = this.safeString(order, "symbol", "");
-            Helpers.callDynamically(orders, "append", new Object[]{order});
+            orders.append(order);
             client.resolve(this.orders, ("orders:" + symbol));
             List<Object> rawTrades = (List<Object>) this.safeList((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var ii = 0; ii < ((List<?>)rawTrades).size(); ii++)
@@ -1167,7 +1167,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         String symbol = null;
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> update = (Map<String, Object>) this.safeDict(message, "update", new HashMap<String, Object>() {{}});
         String updateType = this.safeString(update, "type");
         if (java.util.Objects.equals(updateType, "ORDER_REJECTED") || java.util.Objects.equals(updateType, "ORDER_CLOSED") || java.util.Objects.equals(updateType, "STOP_ORDER_TRIGGERED"))
@@ -1192,12 +1192,12 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 put( "timestamp", Onetrading.this.parse8601(datetime) );
                 put( "datetime", datetime );
             }};
-            Helpers.callDynamically(orders, "append", new Object[]{orderObject});
+            orders.append(orderObject);
         } else
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(update);
             symbol = this.safeString(parsed, "symbol", "");
-            Helpers.callDynamically(orders, "append", new Object[]{parsed});
+            orders.append(parsed);
         }
         client.resolve(this.orders, ("orders:" + symbol));
         client.resolve(this.orders, "orders");
@@ -1217,8 +1217,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(update);
             symbol = this.safeString(parsed, "symbol", "");
-            Object myTrades = this.myTrades;
-            Helpers.callDynamically(myTrades, "append", new Object[]{parsed});
+            io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+            myTrades.append(parsed);
             client.resolve(this.myTrades, ("myTrades:" + symbol));
             client.resolve(this.myTrades, "myTrades");
         }

@@ -1066,7 +1066,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subType any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		typeVar = ccxt.DerefScalar(this.SafeString(market, "type"))
 		subType = func() string {
 			if ccxt.GetValue(market, "linear") == true {
@@ -1238,7 +1238,7 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var suffix any = "*" // wildcard
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		typeVar = ccxt.DerefScalar(this.SafeString(market, "type"))
 		suffix = ccxt.GetValue(market, "lowercaseId")
 		subType = func() string {

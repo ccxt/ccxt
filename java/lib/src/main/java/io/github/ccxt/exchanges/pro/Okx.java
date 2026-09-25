@@ -3039,13 +3039,13 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
                 this.triggerOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
-            Object stored = (((java.util.Objects.equals(channel, "orders-algo")))) ? this.triggerOrders : this.orders;
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((((java.util.Objects.equals(channel, "orders-algo")))) ? this.triggerOrders : this.orders);
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
             List<Object> parsed = this.parseOrders(orders);
             for (var i = 0; i < ((List<?>)parsed).size(); i++)
             {
                 Object order = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
-                Helpers.callDynamically(stored, "append", new Object[]{order});
+                stored.append(order);
                 String symbol = (String) ((Map<String, Object>)order).get("symbol");
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
@@ -3140,13 +3140,13 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object myTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)filteredOrders).size(); i++)
         {
             Object rawTrade = (filteredOrders == null || i < 0 || i >= filteredOrders.size() ? null : filteredOrders.get(i));
             Object trade = this.orderToTrade((Map<String, Object>) (rawTrade));
-            Helpers.callDynamically(myTrades, "append", new Object[]{trade});
+            myTrades.append(trade);
             String symbol = (String) ((Map<String, Object>)trade).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

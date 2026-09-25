@@ -1141,7 +1141,7 @@ func (this *Modetrade) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "executed_timestamp")
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var price *string = this.SafeString(trade, "executed_price")
 	var amount *string = this.SafeString(trade, "executed_quantity")
 	var order_id *string = this.SafeString(trade, "order_id")
@@ -1925,7 +1925,7 @@ func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId any = this.OmitZero(this.SafeString2(order, "client_order_id", "clientOrderId")) // Somehow, this always returns 0 for limit order
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var price *string = this.SafeString2(order, "order_price", "price")
 	var amount *string = this.SafeString2(order, "order_quantity", "quantity") // This is base amount
 	var cost *string = this.SafeString2(order, "order_amount", "amount")       // This is quote amount

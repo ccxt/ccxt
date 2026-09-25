@@ -1471,8 +1471,8 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(parsedOrder);
         String messageHash = "orders";
         String messageWithType = ((messageHash + ":") + ((Map<String, Object>)market).get("type"));
         client.resolve(this.orders, messageWithType);

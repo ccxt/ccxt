@@ -1466,7 +1466,7 @@ func (this *Backpack) ParseWsOrder(order any, optionalArgs ...any) any {
 	var status *string = this.ParseWsOrderStatus(this.SafeString(order, "X"), market)
 	var marketId *string = this.SafeString(order, "s")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var typeVar *string = this.SafeStringLower(order, "o")
 	var timeInForce *string = this.SafeString(order, "f")
 	var side *string = this.ParseWsOrderSide(this.SafeString(order, "S"))

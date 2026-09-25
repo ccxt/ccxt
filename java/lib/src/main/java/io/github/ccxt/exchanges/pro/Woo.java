@@ -1749,7 +1749,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
-            Object cachedOrders = this.orders;
+            io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
             Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
             Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, orderId);
             if (!java.util.Objects.equals(order, null))
@@ -1768,7 +1768,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 Helpers.addElementToObject(parsed, "timestamp", this.safeInteger(order, "timestamp"));
                 Helpers.addElementToObject(parsed, "datetime", this.safeString(order, "datetime"));
             }
-            Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
+            cachedOrders.append(parsed);
             client.resolve(this.orders, topic);
             String messageHashSymbol = Helpers.add((topic + ":"), symbol);
             client.resolve(this.orders, messageHashSymbol);
@@ -1807,14 +1807,14 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //     "maker": false
         //   }
         //
-        Object myTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message));
-        Helpers.callDynamically(myTrades, "append", new Object[]{trade});
+        myTrades.append(trade);
         String messageHash = ("myTrades:" + ((Map<String, Object>)trade).get("symbol"));
         client.resolve(myTrades, messageHash);
         messageHash = "myTrades";

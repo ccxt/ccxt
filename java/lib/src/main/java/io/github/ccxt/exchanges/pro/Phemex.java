@@ -1232,7 +1232,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             return;
         }
-        Object cachedTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache cachedTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(cachedTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1246,7 +1246,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String marketId = this.safeString(rawTrade, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(rawTrade);
-            Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
+            cachedTrades.append(parsed);
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
             if (java.util.Objects.equals(type, null))
             {
@@ -1545,11 +1545,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object type = null;
-        Object stored = this.orders;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < ((List<?>)parsedOrders).size(); i++)
         {
             Object parsed = (parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i));
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             Object symbol = Helpers.GetValue(parsed, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(type, null))

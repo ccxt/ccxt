@@ -1544,7 +1544,7 @@ func (this *Phemex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	var isStableSettled bool = (IsEqual(GetValue(market, "settle"), "USDT")) || (IsEqual(GetValue(market, "settle"), "USDC"))
+	var isStableSettled bool = (IsEqual(market["settle"], "USDT")) || (IsEqual(market["settle"], "USDC"))
 	if (GetValue(market, "linear") == true) && isStableSettled {
 
 		response = MapTyped(PanicOnError((<-this.V2GetMdV2Orderbook(this.Extend(request, params))).Raw))
@@ -1718,7 +1718,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "to")
 	params = MapTyped(this.Omit(params, []any{"until"}))
-	var isStableSettled bool = (IsEqual(GetValue(market, "settle"), "USDT")) || (IsEqual(GetValue(market, "settle"), "USDC"))
+	var isStableSettled bool = (IsEqual(market["settle"], "USDT")) || (IsEqual(market["settle"], "USDC"))
 	var usesSpecialFromToEndpoint bool = ((GetValue(market, "linear") == true) || isStableSettled) && ((since != nil) || (until != nil))
 	var maxLimit int = 1000
 	if usesSpecialFromToEndpoint {
@@ -1846,7 +1846,7 @@ func (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "timestamp", 0.000001)
 	var last any = this.FromEp(this.SafeString2(ticker, "lastEp", "closeRp"), market)
 	var quoteVolume any = this.FromEr(this.SafeString2(ticker, "turnoverEv", "turnoverRv"), market)
@@ -1908,7 +1908,7 @@ func (this *Phemex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
-		if (GetValue(market, "inverse") == true) || IsEqual(GetValue(market, "settle"), "USD") {
+		if (GetValue(market, "inverse") == true) || IsEqual(market["settle"], "USD") {
 
 			response = MapTyped(PanicOnError((<-this.V1GetMdTicker24hr(this.Extend(request, params))).Raw))
 		} else {
@@ -2061,7 +2061,7 @@ func (this *Phemex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	var isStableSettled bool = (IsEqual(GetValue(market, "settle"), "USDT")) || (IsEqual(GetValue(market, "settle"), "USDC"))
+	var isStableSettled bool = (IsEqual(market["settle"], "USDT")) || (IsEqual(market["settle"], "USDC"))
 	if (GetValue(market, "linear") == true) && isStableSettled {
 
 		response = MapTyped(PanicOnError((<-this.V2GetMdV2Trade(this.Extend(request, params))).Raw))
@@ -2826,7 +2826,7 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var price any = this.FromEp(this.SafeString(order, "priceEp"), market)
 	var amount any = this.FromEv(this.SafeString(order, "baseQtyEv"), market)
 	var remaining any = this.OmitZero(this.FromEv(this.SafeString(order, "leavesBaseQtyEv"), market))
@@ -3122,7 +3122,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = ((stopLoss != nil))
 	var hasTakeProfit bool = ((takeProfit != nil))
-	var isStableSettled bool = (IsEqual(GetValue(market, "settle"), "USDT")) || (IsEqual(GetValue(market, "settle"), "USDC"))
+	var isStableSettled bool = (IsEqual(market["settle"], "USDT")) || (IsEqual(market["settle"], "USDC"))
 	if clientOrderId == nil {
 		var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT123456")
 		if brokerId != nil {
@@ -3460,7 +3460,7 @@ func (this *Phemex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdID")
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "clOrdID"}))
-	var isStableSettled bool = (IsEqual(GetValue(market, "settle"), "USDT")) || (IsEqual(GetValue(market, "settle"), "USDC"))
+	var isStableSettled bool = (IsEqual(market["settle"], "USDT")) || (IsEqual(market["settle"], "USDC"))
 	if clientOrderId != nil {
 		request["clOrdID"] = clientOrderId
 	} else {
@@ -3557,7 +3557,7 @@ func (this *Phemex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		request["orderID"] = id
 	}
 	var response map[string]any = nil
-	if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
+	if IsEqual(market["settle"], "USDT") || IsEqual(market["settle"], "USDC") {
 		var posSide *string = this.SafeString(params, "posSide")
 		if posSide == nil {
 			request["posSide"] = "Merged"
@@ -3615,7 +3615,7 @@ func (this *Phemex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["untriggerred"] = trigger
 	}
 	var response map[string]any = nil
-	if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
+	if IsEqual(market["settle"], "USDT") || IsEqual(market["settle"], "USDC") {
 
 		response = MapTyped(PanicOnError((<-this.PrivateDeleteGOrdersAll(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "swap") == true {
@@ -3673,7 +3673,7 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		request["orderID"] = id
 	}
 	var response map[string]any = nil
-	if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
+	if IsEqual(market["settle"], "USDT") || IsEqual(market["settle"], "USDC") {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetApiDataGFuturesOrdersByOrderId(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "spot") == true {
@@ -3757,7 +3757,7 @@ func (this *Phemex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	var response map[string]any = nil
-	if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
+	if IsEqual(market["settle"], "USDT") || IsEqual(market["settle"], "USDC") {
 		request["currency"] = market["settle"]
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params))).Raw))
@@ -3844,7 +3844,7 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 				}
 			}()
 			// try block:
-			if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
+			if IsEqual(market["settle"], "USDT") || IsEqual(market["settle"], "USDC") {
 
 				response = MapTyped(PanicOnError((<-this.PrivateGetGOrdersActiveList(this.Extend(request, params))).Raw))
 			} else if GetValue(market, "swap") == true {
@@ -4461,7 +4461,7 @@ func (this *Phemex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var txid *string = this.SafeString(transaction, "txHash")
 	var currencyId *string = this.SafeString(transaction, "currency")
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
-	var code *string = SafeStringPtr(GetValue(currency, "code"))
+	var code *string = SafeStringPtr(currency["code"])
 	var networkId *string = this.SafeString(transaction, "chainName")
 	var timestamp *int64 = this.SafeIntegerN(transaction, []any{"createdAt", "submitedAt", "submittedAt"})
 	var typeVar *string = this.SafeStringLower(transaction, "type")
@@ -4987,7 +4987,7 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		request["limit"] = limit
 	}
 	var response map[string]any = nil
-	var isStableSettled bool = IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC")
+	var isStableSettled bool = IsEqual(market["settle"], "USDT") || IsEqual(market["settle"], "USDC")
 	if isStableSettled {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetApiDataGFuturesFundingFees(this.Extend(request, params))).Raw))
@@ -5378,7 +5378,7 @@ func (this *Phemex) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	if !IsEqual(GetValue(market, "settle"), "USDT") {
+	if !IsEqual(market["settle"], "USDT") {
 		panic(BadSymbol(this.Id + " setPositionMode() supports USDT settled markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -5421,7 +5421,7 @@ func (this *Phemex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 	if symbols != nil {
 		var first *string = this.SafeString(symbols, 0)
 		var market map[string]any = MapTyped(this.Market(first))
-		if !IsEqual(GetValue(market, "settle"), "USD") {
+		if !IsEqual(market["settle"], "USD") {
 			panic(BadSymbol(this.Id + " fetchLeverageTiers() supports USD settled markets only"))
 		}
 	}
@@ -5531,7 +5531,7 @@ func (this *Phemex) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var riskLimits any = (GetValue(GetValue(market, "info"), "riskLimits"))
+	var riskLimits any = (GetValue(market["info"], "riskLimits"))
 	var tiers []any = []any{}
 	var minNotional any = 0
 	for i := 0; i < GetArrayLength(riskLimits); i++ {
@@ -5653,7 +5653,7 @@ func (this *Phemex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
+	if IsEqual(market["settle"], "USDT") || IsEqual(market["settle"], "USDC") {
 		if (isHedged == nil || *isHedged != true) && (longLeverageRr == nil) && (shortLeverageRr == nil) {
 			request["leverageRr"] = leverage
 		} else {
@@ -5966,7 +5966,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var isUsdtSettled bool = IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC")
+	var isUsdtSettled bool = IsEqual(market["settle"], "USDT") || IsEqual(market["settle"], "USDC")
 	if GetValue(market, "swap") != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}

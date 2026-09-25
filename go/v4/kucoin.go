@@ -3379,7 +3379,7 @@ func (this *Kucoin) ParseSpotOrUtaTicker(ticker any, optionalArgs ...any) any {
 	last = this.SafeString(ticker, "price", last)
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var percentage *string = this.SafeString(ticker, "changeRate")
 	if percentage != nil {
 		percentage = Precise.StringMul(percentage, "100")
@@ -8181,7 +8181,7 @@ func (this *Kucoin) ParseUtaOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerProduct2(order, "orderTime", "ts", 0.000001)
 	var lastUpdateTimestamp *int64 = this.SafeIntegerProduct(order, "updatedTime", 0.000001)
 	var rawTimeInForce *string = this.SafeString(order, "timeInForce")

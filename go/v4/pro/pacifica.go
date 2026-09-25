@@ -1227,7 +1227,7 @@ func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(trade, "a")
 	var marketId *string = this.SafeString(trade, "s")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var id *string = this.SafeString(trade, "h")
 	var fee *string = this.SafeString(trade, "f")
 	var side *string = this.SafeString2(trade, "ts", "d")

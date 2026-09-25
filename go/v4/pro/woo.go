@@ -1115,7 +1115,7 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var price *string = this.SafeString2(trade, "executedPrice", "price")
 	var amount *string = this.SafeString2(trade, "executedQuantity", "size")
 	var cost *string = ccxt.Precise.StringMul(price, amount)
@@ -1441,7 +1441,7 @@ func (this *Woo) ParseWsOrder(order any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString2(order, "orderId", "algoOrderId")
 	var marketId *string = this.SafeString(order, "symbol")
 	market = this.Market(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "totalFee"),

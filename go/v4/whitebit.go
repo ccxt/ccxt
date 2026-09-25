@@ -2406,7 +2406,7 @@ func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString2(trade, "amount", "quote_volume")
 	var id *string = this.SafeString2(trade, "id", "tradeID")
 	var side *string = this.SafeString2(trade, "type", "side")
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var role *int64 = this.SafeInteger(trade, "role")
 	var takerOrMaker any = nil
 	if role != nil {
@@ -3317,7 +3317,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = SafeStringPtr(GetValue(market, "symbol"))
+		symbol = SafeStringPtr(market["symbol"])
 		request["market"] = GetValue(market, "id")
 	}
 	if limit != nil {
@@ -3422,7 +3422,7 @@ func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(order, "market")
 	market = MapTyped(this.SafeMarket(marketId, market, "_"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var side *string = this.SafeString(order, "side")
 	var filled *string = this.SafeString(order, "dealStock")
 	var remaining *string = this.SafeString(order, "left")

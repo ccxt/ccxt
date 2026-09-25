@@ -2399,7 +2399,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString2(order, "instId", "symbol")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
 	var timestamp *int64 = this.SafeInteger2(order, "cTime", "createdTime")
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var rawStatus *string = this.SafeString2(order, "status", "orderStatus")
 	var orderFee []any = ccxt.SafeListTyped(order, "feeDetail")
 	var fee map[string]any = ccxt.SafeMapTyped(orderFee, 0)

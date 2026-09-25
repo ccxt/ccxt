@@ -1008,7 +1008,7 @@ func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(ticker, "ts")
 	var marketId *string = this.SafeString(ticker, "instId")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
 	var spot *bool = this.SafeBool(market, "spot", false)
@@ -3200,7 +3200,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbols != nil {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength int = len(symbols)
 		if symbolsLength == 0 {
 			market = this.Market(GetValue(symbols, 0))
 			request["instId"] = GetValue(market, "id")

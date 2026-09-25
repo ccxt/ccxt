@@ -747,7 +747,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 				return nil
 			}())
 		}
-		for ri := 0; ri < ccxt.GetArrayLength(restResponses); ri++ {
+		for ri := 0; ri < len(restResponses); ri++ {
 			var pageEvents []any = ccxt.SafeListTyped(ccxt.GetValue(restResponses, ri), "events")
 			for ei := 0; ei < len(pageEvents); ei++ {
 				allEvents = append(allEvents, func() any {
@@ -878,7 +878,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 			}()}
 
 			var tagEvents []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawEventsListAsync(singleTagParams))))
-			for ei := 0; ei < ccxt.GetArrayLength(tagEvents); ei++ {
+			for ei := 0; ei < len(tagEvents); ei++ {
 				var rawEvent any = ccxt.GetValue(tagEvents, ei)
 				var eventId *string = this.SafeString(rawEvent, "id")
 				if (eventId != nil) && !(func() bool {
@@ -1527,7 +1527,7 @@ func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 	var targets []any = []any{}
-	for oi := 0; oi < ccxt.GetArrayLength(outcomes); oi++ {
+	for oi := 0; oi < len(outcomes); oi++ {
 		targets = append(targets, ccxt.GetValue(outcomes, oi))
 	}
 	var outcomesByTokenId map[string]any = map[string]any{}
@@ -1843,7 +1843,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 	}
 
 	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
-	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
+	var tokenId *string = ccxt.SafeStringPtr(outcomeObj["outcomeId"])
 	var fidelityMin *int64 = this.SafeInteger(this.Timeframes, timeframe, 1) // fidelity in minutes
 	var nowS int64 = this.Seconds()
 	var startS any = nil
@@ -2178,7 +2178,7 @@ func (this *Polymarket) fetchTradesBody(ch chan any, outcome any, optionalArgs .
 	_ = params
 
 	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
-	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
+	var tokenId *string = ccxt.SafeStringPtr(outcomeObj["outcomeId"])
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var conditionId *string = this.SafeString(outcomeInfo, "conditionId")
 	if conditionId == nil {
@@ -2301,7 +2301,7 @@ func (this *Polymarket) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 
 	var trades []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchMyTradesAsync(outcome, nil, nil, params))))
 	var result []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
+	for i := 0; i < len(trades); i++ {
 		var trade any = ccxt.GetValue(trades, i)
 		var info map[string]any = ccxt.SafeMapTyped(trade, "info")
 		var belongs bool = (ccxt.IsEqual(this.SafeString(trade, "order"), id)) || (ccxt.IsEqual(this.SafeString(info, "taker_order_id"), id))
@@ -2476,7 +2476,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	var outcomesLength int = 0
 	if outcomes != nil {
-		outcomesLength = ccxt.GetArrayLength(outcomes)
+		outcomesLength = len(outcomes)
 
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 	}
@@ -2503,7 +2503,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	if outcomes == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchPositions() missing outcomes"))
 	}
-	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
+	for i := 0; i < len(outcomes); i++ {
 		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
 		ccxt.AddElementToObject(wantedIds, outcomeObj["outcomeId"], true)
 	}

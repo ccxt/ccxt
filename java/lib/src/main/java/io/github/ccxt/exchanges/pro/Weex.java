@@ -1853,7 +1853,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         List<Object> data = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -1865,7 +1865,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 symbols.put((String)symbol, true);
             }
-            Helpers.callDynamically(trades, "append", new Object[]{parsed});
+            trades.append(parsed);
         }
         String messageHash = "myTrades";
         List<String> symbolKeys = new ArrayList<String>(symbols.keySet());
@@ -2154,12 +2154,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (rawOrder));
-            Helpers.callDynamically(orders, "append", new Object[]{parsed});
+            orders.append(parsed);
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

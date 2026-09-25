@@ -1943,7 +1943,7 @@ func (this *Lighter) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "market_id")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var last *string = this.SafeString(ticker, "last_trade_price")
 	var high *string = this.SafeString(ticker, "daily_price_high")
 	var low *string = this.SafeString(ticker, "daily_price_low")
