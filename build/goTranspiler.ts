@@ -7027,6 +7027,7 @@ ${caseStatements.join('\n')}
         content = goPointerLocalNativeNilCompares (content, isWs ? 'ccxt.IsEqual(' : 'IsEqual(');
         // typed locals compare natively (goTypedNativeNilCompares)
         content = goTypedNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
+        content = goProvenParamNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
         content = goAnyLocalNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
         content = goStringLiteralNativeCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
         content = goSafeBoolLiteralDefaultDeref (content);
@@ -8301,7 +8302,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -8373,4 +8374,51 @@ async function runMain () {
 
 if (isMainEntry (import.meta.url)) {
     await runMain ();
+}
+
+// (method, parameter) pairs whose every caller passes untyped nil or a value that is never a typed
+// nil (decoded JSON, literals, non-nil maps), so IsEqual(p, nil) is `p == nil`; proof in the campaign notes.
+const GO_UNTYPED_NIL_PARAMS: { [method: string]: string[] } = {
+    'HandleErrors': [ 'response' ],
+};
+
+function goProvenParamNilCompareText (fn: string, isEqualFn: string): string {
+    const sig = fn.match (/^\nfunc \(this \*[\w.]+\) (\w+)\(([^)\n]*)\)/);
+    const params = sig ? (GO_UNTYPED_NIL_PARAMS[sig[1]] || []) : [];
+    const helper = isEqualFn.replace (/[.(]/g, '\\$&');
+    for (const name of params) {
+        const body = fn.slice (sig[0].length);
+        const declared = new RegExp ('(?:^|,\\s*)' + name + ' any(?:,|$)').test (sig[2]);
+        // any write, address-take, redeclaration or closure parameter of the name keeps the helper
+        const rebound = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*(?::=|=[^=])|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|&' + name + '\\b|\\bvar ' + name + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (body);
+        if (!declared || rebound) {
+            continue;
+        }
+        fn = fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + name + ', nil\\)', 'g'), ((_m: string, not: string) => '(' + name + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
+    }
+    return fn;
+}
+
+export function goProvenParamNativeNilCompares (content: string, isEqualFn: string): string {
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goProvenParamNilCompareText (fn, isEqualFn)) as any);
+}
+
+function goProvenParamNilSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const sig = '\nfunc (this *X) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {\n';
+    const pos = goProvenParamNativeNilCompares (sig + '\tif IsEqual(response, nil) {\n\t\treturn nil\n\t}\n\tif !IsEqual(response, nil) && IsEqual(body, nil) {\n\t\treturn nil\n\t}\n\treturn nil\n}\n', 'IsEqual(');
+    ok ((pos.indexOf ('if (response == nil) {') >= 0) && (pos.indexOf ('(response != nil) && IsEqual(body, nil)') >= 0), 'tabled param compares natively: ' + pos);
+    const ws = goProvenParamNativeNilCompares (sig + '\tif ccxt.IsEqual(response, nil) {\n\t\treturn nil\n\t}\n\treturn nil\n}\n', 'ccxt.IsEqual(');
+    ok (ws.indexOf ('if (response == nil) {') >= 0, 'package-qualified helper rewritten');
+    const other = '\nfunc (this *X) HandleOther(response any) any {\n\tif IsEqual(response, nil) {\n\t\treturn nil\n\t}\n\treturn nil\n}\n';
+    ok (goProvenParamNativeNilCompares (other, 'IsEqual(') === other, 'untabled method keeps the helper');
+    for (const write of [ '\tresponse = this.SafeDict(body, "a")\n', '\tresponse, ok := body.(map[string]any)\n\t_ = ok\n', '\tvar response any = body\n', '\tp := &response\n\t_ = p\n', '\tf := func(response any) {}\n\t_ = f\n' ]) {
+        const src = sig + write + '\tif IsEqual(response, nil) {\n\t\treturn nil\n\t}\n\treturn nil\n}\n';
+        ok (goProvenParamNativeNilCompares (src, 'IsEqual(') === src, 'rebound param keeps the helper: ' + write);
+    }
+    const typed = '\nfunc (this *X) HandleErrors(code any, reason any, url any, method any, headers any, body any, response map[string]any, requestHeaders any, requestBody any) any {\n\tif IsEqual(response, nil) {\n\t\treturn nil\n\t}\n\treturn nil\n}\n';
+    ok (goProvenParamNativeNilCompares (typed, 'IsEqual(') === typed, 'non-any param keeps the helper');
+    ok (goProvenParamNativeNilCompares (pos, 'IsEqual(') === pos, 'second application is a no-op');
+    return problems;
 }
