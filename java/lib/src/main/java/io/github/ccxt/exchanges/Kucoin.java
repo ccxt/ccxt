@@ -4429,7 +4429,7 @@ public class Kucoin extends KucoinApi
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if (!java.util.Objects.equals(address, null))
         {
-            address = Helpers.replace(address, (String)"bitcoincash:", (String)"");
+            address = address.replaceFirst("bitcoincash:", "");
         }
         String code = null;
         if (!java.util.Objects.equals(currency, null))

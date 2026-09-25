@@ -1125,7 +1125,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing base currency")) ;
         }
-        base = Helpers.replace(base, (String)":", (String)"-"); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
+        base = base.replaceFirst(":", "-"); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if (java.util.Objects.equals(quote, null))
         {
@@ -2276,8 +2276,8 @@ public class Hyperliquid extends HyperliquidApi
                 //
                 if (!java.util.Objects.equals(response, null))
                 {
-                    response = Helpers.replace(((String)response), "\"", "");
-                    response = Helpers.replace(((String)response), "\"", "");
+                    response = ((String)response).replaceFirst("\"", "");
+                    response = ((String)response).replaceFirst("\"", "");
                     enableUnifiedMargin = java.util.Objects.equals(response, "unifiedAccount");
                 }
                 // don't cache this result if this is a different addresss
@@ -4619,7 +4619,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 if (Helpers.isTrue(vaultAddress.startsWith(((String)"0x"))))
                 {
-                    vaultAddress = Helpers.replace(vaultAddress, (String)"0x", (String)"");
+                    vaultAddress = vaultAddress.replaceFirst("0x", "");
                 }
             }
             Object signature = this.signL1Action(updateAction, nonce, vaultAddress, (Long) null);
@@ -5811,7 +5811,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         if (((String)address).startsWith("0x"))
         {
-            return Helpers.replace(((String)address), "0x", "");
+            return ((String)address).replaceFirst("0x", "");
         }
         return address;
     }
@@ -5858,7 +5858,7 @@ public class Hyperliquid extends HyperliquidApi
         String coinId = coin;
         if (((String)coin).indexOf(":") > -1)
         {
-            coinId = Helpers.replace(((String)coin), ":", "-");
+            coinId = ((String)coin).replaceFirst(":", "-");
         }
         return (this.safeCurrencyCode(coinId, (Map<String, Object>) null) + "/USDC:USDC");
     }

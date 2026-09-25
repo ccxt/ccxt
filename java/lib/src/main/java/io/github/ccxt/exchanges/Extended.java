@@ -726,7 +726,7 @@ public class Extended extends ExtendedApi
         String baseId = this.safeString(market, "assetName", "");
         if (((String)baseId).indexOf("SPOT") >= 0)
         {
-            baseId = Helpers.replace(baseId, (String)"SPOT", (String)"");
+            baseId = baseId.replaceFirst("SPOT", "");
         }
         String quoteId = this.safeString(market, "collateralAssetName");
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
@@ -896,7 +896,7 @@ public class Extended extends ExtendedApi
         String currencyId = this.safeString(currency, "symbol");
         if ((!java.util.Objects.equals(currencyId, null)) && (((String)currencyId).indexOf("SPOT") >= 0))
         {
-            currencyId = Helpers.replace(currencyId, (String)"SPOT", (String)"");
+            currencyId = currencyId.replaceFirst("SPOT", "");
         }
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         if (java.util.Objects.equals(currencyId, "USD"))

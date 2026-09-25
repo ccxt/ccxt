@@ -2057,7 +2057,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 if (java.util.Objects.equals(klineType, "indexPriceKline"))
                 {
                     // weird behavior for index price kline we can't use the perp suffix
-                    marketId = Helpers.replace(((String)marketId), "_perp", "");
+                    marketId = ((String)marketId).replaceFirst("_perp", "");
                 }
                 Boolean shouldUseUTC8 = (Boolean.TRUE.equals(isUtc8) && Boolean.TRUE.equals(isSpot));
                 String suffix = "@+08:00";
@@ -2157,7 +2157,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 if (java.util.Objects.equals(klineType, "indexPriceKline"))
                 {
                     // weird behavior for index price kline we can't use the perp suffix
-                    marketId = Helpers.replace(((String)marketId), "_perp", "");
+                    marketId = ((String)marketId).replaceFirst("_perp", "");
                 }
                 Boolean shouldUseUTC8 = (Boolean.TRUE.equals(isUtc8) && Boolean.TRUE.equals(isSpot));
                 String suffix = "@+08:00";

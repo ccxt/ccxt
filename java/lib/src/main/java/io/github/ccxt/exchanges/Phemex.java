@@ -973,7 +973,7 @@ public class Phemex extends PhemexApi
         {
             return null;
         }
-        base = Helpers.replace(base, (String)" ", (String)""); // replace space for junction codes, eg. `1000 SHIB`
+        base = base.replaceFirst(" ", ""); // replace space for junction codes, eg. `1000 SHIB`
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
         Boolean inverse = false;
         if (!java.util.Objects.equals(settleId, quoteId))

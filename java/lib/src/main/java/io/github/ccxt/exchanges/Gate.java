@@ -8937,7 +8937,7 @@ public class Gate extends GateApi
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (((String)queryString).indexOf("currencies=") >= 0 && ((String)queryString).indexOf("%2C") >= 0)
                     {
-                        queryString = Helpers.replaceAll(queryString, (String)"%2C", (String)",");
+                        queryString = queryString.replace("%2C", ",");
                     }
                     url = Helpers.add(url, ("?" + queryString));
                 }

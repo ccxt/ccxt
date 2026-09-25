@@ -6432,7 +6432,7 @@ public class Htx extends HtxApi
                 put( "account-id", accountId );
                 put( "symbol", market.get("id") );
             }};
-            Object orderType = Helpers.replace(((String)type), "buy-", "");
+            Object orderType = ((String)type).replaceFirst("buy-", "");
             orderType = Helpers.replace(((String)orderType), "sell-", "");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, market.get("type"), new HashMap<String, Object>() {{}});
             String triggerPrice = this.safeStringN(paramsMarginMode, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price")));

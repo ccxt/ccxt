@@ -3088,7 +3088,7 @@ public class Bingx extends BingxApi
         String percentage = this.safeString(ticker, "priceChangePercent");
         if (!java.util.Objects.equals(percentage, null))
         {
-            percentage = Helpers.replace(percentage, (String)"%", (String)"");
+            percentage = percentage.replaceFirst("%", "");
         }
         String change = this.safeString(ticker, "priceChange");
         Long ts = this.safeInteger(ticker, "closeTime");
@@ -3574,7 +3574,7 @@ public class Bingx extends BingxApi
         //     }
         //
         String marketId = this.safeString(position, "symbol", "");
-        marketId = Helpers.replace(marketId, (String)"/", (String)"-"); // standard return different format
+        marketId = marketId.replaceFirst("/", "-"); // standard return different format
         Boolean isolated = (Boolean) this.safeBool(position, "isolated", (Object) null);
         String marginMode = null;
         if (!java.util.Objects.equals(isolated, null))
