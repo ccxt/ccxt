@@ -1268,7 +1268,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         row = self.safe_dict(data, 'order', data)
         return self.parse_prediction_order(row, outcomeObj)
 
-    async def fetch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
+    async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         fetches the public trade tape of one outcome's market — every bettor's settled and in-flight bets on that market. the venue requires the trades listing to be scoped, so the outcome argument is mandatory
 
@@ -1652,7 +1652,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         response = await self.sxbetPublicGetOrderbookV3Snapshot(request)
         return self.safe_dict(response, 'data', {})
 
-    async def fetch_ticker(self, outcome: Str, params: dict = {}) -> PredictionTicker:
+    async def fetch_ticker(self, outcome: str, params: dict = {}) -> PredictionTicker:
         """
         fetches the current best resting odds for a single sx.bet outcome. sx.bet is a peer-to-peer odds book(no matched-trade tape or candles), so bid/ask are the best(highest) percentageOdds resting on self outcome's own side and its mirror (1 - best percentageOdds resting on the opposite outcome)
 
@@ -1845,7 +1845,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'info': raw,
         }, market)
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         fetches the resting maker order book for a single sx.bet outcome. bids are maker orders already betting on self outcome(priced at each maker's own implied probability, sized by their remaining stake); asks mirror the opposite outcome's maker orders(price = 1 - their implied probability, sized by how much a taker could bet against them, per sx.bet's remaining-taker-space formula) — the same YES/NO-style mirrored construction used across self codebase's other binary prediction venues
 

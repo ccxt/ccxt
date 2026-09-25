@@ -739,7 +739,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params: dict = {}):
+    async def fetch_order_book(self, outcome: str, limit: Int = None, params: dict = {}):
         """
         fetches the order book for a prediction outcome
         :param str outcome: unified outcome handle

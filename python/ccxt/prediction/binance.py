@@ -696,7 +696,7 @@ class binance(PredictionExchange, ImplicitAPI):
             'created': self.safe_integer(rawTopic, 'publishedAt'),
         }
 
-    async def fetch_ticker(self, outcome: Str, params: dict = {}) -> PredictionTicker:
+    async def fetch_ticker(self, outcome: str, params: dict = {}) -> PredictionTicker:
         """
         fetches the last trade price for a single prediction outcome
 
@@ -808,7 +808,7 @@ class binance(PredictionExchange, ImplicitAPI):
             result[symbolKey] = ticker
         return result
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         fetches the order book for a single prediction outcome token
 
