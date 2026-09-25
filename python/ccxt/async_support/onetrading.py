@@ -768,7 +768,7 @@ class onetrading(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_fee_tiers(self, feeTiers: list[object], market: Market = None) -> dict:
+    def parse_fee_tiers(self, feeTiers: list[dict], market: Market = None) -> dict:
         takerFees = []
         makerFees = []
         for i in range(0, len(feeTiers)):

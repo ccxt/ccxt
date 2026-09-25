@@ -247,7 +247,7 @@ func AssertSymbol(exchange ccxt.ICoreExchange, skippedProperties any, method any
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
-	var actualSymbol any = exchange.SafeString(entry, key)
+	var actualSymbol any = ccxt.DerefScalar(exchange.SafeString(entry, key))
 	if actualSymbol != nil {
 		Assert(IsString(actualSymbol), Add("symbol should be either undefined or a string", logText))
 	}
@@ -268,7 +268,7 @@ func AssertGreater(exchange ccxt.ICoreExchange, skippedProperties any, method an
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
-	var value any = exchange.SafeString(entry, key)
+	var value any = ccxt.DerefScalar(exchange.SafeString(entry, key))
 	Assert((value != nil) || (allowNull == true), Add("value is null", logText))
 	if value != nil {
 		Assert(ccxt.Precise.StringGt(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be > "), StringValue(compareTo)), logText))
@@ -281,7 +281,7 @@ func AssertGreaterOrEqual(exchange ccxt.ICoreExchange, skippedProperties any, me
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
-	var value any = exchange.SafeString(entry, key)
+	var value any = ccxt.DerefScalar(exchange.SafeString(entry, key))
 	Assert((value != nil) || (allowNull == true), Add("value is null", logText))
 	if (value != nil) && (compareTo != nil) {
 		Assert(ccxt.Precise.StringGe(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be >= "), StringValue(compareTo)), logText))
@@ -294,7 +294,7 @@ func AssertLess(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
-	var value any = exchange.SafeString(entry, key)
+	var value any = ccxt.DerefScalar(exchange.SafeString(entry, key))
 	Assert((value != nil) || (allowNull == true), Add("value is null", logText))
 	if (value != nil) && (compareTo != nil) {
 		Assert(ccxt.Precise.StringLt(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be < "), StringValue(compareTo)), logText))
@@ -307,7 +307,7 @@ func AssertLessOrEqual(exchange ccxt.ICoreExchange, skippedProperties any, metho
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
-	var value any = exchange.SafeString(entry, key)
+	var value any = ccxt.DerefScalar(exchange.SafeString(entry, key))
 	Assert((value != nil) || (allowNull == true), Add("value is null", logText))
 	if (value != nil) && (compareTo != nil) {
 		Assert(ccxt.Precise.StringLe(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be <= "), StringValue(compareTo)), logText))
@@ -320,7 +320,7 @@ func AssertEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any,
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
-	var value any = exchange.SafeString(entry, key)
+	var value any = ccxt.DerefScalar(exchange.SafeString(entry, key))
 	Assert((value != nil) || (allowNull == true), Add("value is null", logText))
 	if (value != nil) && (compareTo != nil) {
 		Assert(ccxt.Precise.StringEq(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be equal to "), StringValue(compareTo)), logText))
@@ -333,7 +333,7 @@ func AssertNonEqual(exchange ccxt.ICoreExchange, skippedProperties any, method a
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
-	var value any = exchange.SafeString(entry, key)
+	var value any = ccxt.DerefScalar(exchange.SafeString(entry, key))
 	Assert((value != nil) || (allowNull == true), Add("value is null", logText))
 	if value != nil {
 		Assert(!ccxt.Precise.StringEq(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected not to be equal to "), StringValue(compareTo)), logText))
@@ -462,9 +462,9 @@ func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, s
 	// find out best bid/ask price
 	var bestBid *float64 = nil
 	var bestAsk *float64 = nil
-	var usedMethod any = nil
+	var usedMethod *string = nil
 	if (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), false)) {
-		usedMethod = "fetchOrderBook"
+		usedMethod = SafeStringPtr("fetchOrderBook")
 
 		orderbook := (<-exchange.FetchOrderBookAsync(symbol))
 		PanicOnError(orderbook)
@@ -475,7 +475,7 @@ func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, s
 		bestBid = exchange.SafeNumber(bestBidArray, 0)
 		bestAsk = exchange.SafeNumber(bestAskArray, 0)
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchBidsAsks"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchBidsAsks"), false)) {
-		usedMethod = "fetchBidsAsks"
+		usedMethod = SafeStringPtr("fetchBidsAsks")
 
 		tickers := (<-exchange.(ccxt.IFetchBidsAsks).FetchBidsAsksAsync([]any{symbol}))
 		PanicOnError(tickers)
@@ -483,14 +483,14 @@ func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, s
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), false)) {
-		usedMethod = "fetchTicker"
+		usedMethod = SafeStringPtr("fetchTicker")
 
 		ticker := (<-exchange.FetchTickerAsync(symbol))
 		PanicOnError(ticker)
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), false)) {
-		usedMethod = "fetchTickers"
+		usedMethod = SafeStringPtr("fetchTickers")
 
 		tickers := (<-exchange.(ccxt.IFetchTickers).FetchTickersAsync([]any{symbol}))
 		PanicOnError(tickers)
@@ -573,9 +573,9 @@ func fetchOrderBody(ch chan any, exchange ccxt.ICoreExchange, symbol any, orderI
 func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method any, order any, AssertedStatus any, strictCheck any) {
 	// note, `strictCheck` is `true` only from "fetchOrder" cases
 	var logText any = LogTemplate(exchange, method, order)
-	var msg any = Add(Add(Add("order should be ", AssertedStatus), ", but it was not Asserted"), logText)
-	var filled any = exchange.SafeString(order, "filled")
-	var amount any = exchange.SafeString(order, "amount")
+	var msg *string = SafeStringPtr(Add(Add(Add("order should be ", AssertedStatus), ", but it was not Asserted"), logText))
+	var filled any = ccxt.DerefScalar(exchange.SafeString(order, "filled"))
+	var amount any = ccxt.DerefScalar(exchange.SafeString(order, "amount"))
 	// shorthand variables
 	var statusUndefined bool = (IsEqual(GetValue(order, "status"), nil))
 	var statusOpen bool = (IsEqual(GetValue(order, "status"), "open"))
@@ -741,7 +741,7 @@ func AssertRoundMinuteTimestamp(exchange ccxt.ICoreExchange, skippedProperties a
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
-	var ts any = exchange.SafeString(entry, key)
+	var ts any = ccxt.DerefScalar(exchange.SafeString(entry, key))
 	Assert(IsEqual(ccxt.Precise.StringMod(ts, "60000"), "0"), Add("timestamp should be a multiple of 60 seconds (1 minute)", logText))
 }
 func DeepEqual(exchange ccxt.ICoreExchange, a any, b any) any {

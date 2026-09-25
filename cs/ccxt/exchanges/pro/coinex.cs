@@ -614,7 +614,7 @@ public partial class coinex : ccxt.coinex
         }
         for (int i = 0; i < trades.Count; i++)
         {
-            object trade = trades[i];
+            IDictionary<string, object> trade = ((IDictionary<string, object>)trades[i]);
             Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }

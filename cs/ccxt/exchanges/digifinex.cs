@@ -2413,7 +2413,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < success.Count; i++)
         {
-            object order = success[i];
+            IDictionary<string, object> order = ((IDictionary<string, object>)success[i]);
             result.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },
@@ -2422,7 +2422,7 @@ public partial class digifinex : Exchange
         }
         for (int i = 0; i < error.Count; i++)
         {
-            object order = error[i];
+            IDictionary<string, object> order = ((IDictionary<string, object>)error[i]);
             result.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString2(order, "order-id", "order_id") },

@@ -1838,7 +1838,7 @@ public partial class whitebit : Exchange
                     List<object> marketOrders = this.safeList(response, marketId, new List<object>() {});
                     for (int j = 0; j < marketOrders.Count; j++)
                     {
-                        object order = marketOrders[j];
+                        IDictionary<string, object> order = ((IDictionary<string, object>)marketOrders[j]);
                         string? orderId = this.safeString(order, "id");
                         if ((orderId == id))
                         {

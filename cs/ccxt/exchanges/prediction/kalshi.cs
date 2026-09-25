@@ -1590,7 +1590,7 @@ public partial class kalshi : PredictionExchange
         List<object> filteredTrades = new List<object>() {};
         for (int i = 0; i < trades.Count; i++)
         {
-            object trade = trades[i];
+            IDictionary<string, object> trade = ((IDictionary<string, object>)trades[i]);
             string? tradeTicker = this.safeString2(trade, "ticker", "market_ticker");
             if ((tradeTicker == null) || (tradeTicker == ticker))
             {

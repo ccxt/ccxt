@@ -338,7 +338,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         # ]
         #
         name = 'myTrade'
-        data = self.safe_value(message, 2)
+        data = self.safe_list(message, 2)
         trade = self.parse_ws_trade(data)
         symbol = trade['symbol']
         market = self.market(symbol)
@@ -545,7 +545,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         self.tickers[symbol] = parsed
         client.resolve(parsed, messageHash)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     [
         #         236.62,        // 1 BID float Price of last highest bid
@@ -820,7 +820,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #       null
         #   ]
         #
-        updateType = self.safe_value(message, 1)
+        updateType = self.safe_string(message, 1)
         data = []
         if updateType == 'ws':
             data = self.safe_list(message, 2)

@@ -6265,14 +6265,14 @@ public partial class binance : ccxt.binance
                     if ((order != null))
                     {
                         // accumulate order fees
-                        object fees = this.safeValue(order, "fees");
+                        List<object> fees = ((List<object>)this.safeValue(order, "fees"));
                         IDictionary<string, object> fee = this.safeDict(order, "fee");
                         if (!this.isEmpty(fees))
                         {
                             bool insertNewFeeCurrency = true;
-                            for (int i = 0; i < getArrayLength(fees); i++)
+                            for (int i = 0; i < (fees?.Count ?? 0); i++)
                             {
-                                object orderFee = getValue(fees, i);
+                                object orderFee = fees[i];
                                 if (isEqual(getValue(orderFee, "currency"), GetValue(tradeFee, "currency")))
                                 {
                                     object feeCost = this.sum(GetValue(tradeFee, "cost"), getValue(orderFee, "cost"));
@@ -6362,7 +6362,7 @@ public partial class binance : ccxt.binance
                 {
                     parsed["fee"] = fee;
                 }
-                object fees = this.safeValue(order, "fees");
+                List<object> fees = this.safeList(order, "fees");
                 if ((fees != null))
                 {
                     parsed["fees"] = fees;

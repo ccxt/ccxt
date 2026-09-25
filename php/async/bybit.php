@@ -2902,8 +2902,7 @@ class bybit extends Exchange {
             // start up to the interval boundary so that the exchange returns
             // candles from the first bucket at or after `since`
             $duration = $this->parse_timeframe($timeframe) * 1000;
-            $rounded = $this->parse_to_int($since / $duration) * $duration;
-            $request['start'] = ($rounded === $since) ? $since : $this->sum($rounded, $duration);
+            $request['start'] = $this->parse_to_int((int) ceil($since / $duration)) * $duration;
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // max 1000, default 1000

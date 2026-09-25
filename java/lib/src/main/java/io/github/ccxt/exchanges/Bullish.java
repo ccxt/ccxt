@@ -3425,7 +3425,7 @@ public class Bullish extends BullishApi
             {
                 request.put("symbol", ((Map<String, Object>)this.currency(code)).get("id"));
                 response = (this.privateGetV1AccountsAssetSymbol(this.extend(request, parameters))).join();
-                return this.parseBalanceForSingleCurrency(response, code);
+                return this.parseBalanceForSingleCurrency((Map<String, Object>) (response), code);
             } else
             {
                 response = (this.privateGetV1AccountsAsset(this.extend(request, parameters))).join();
@@ -3466,7 +3466,7 @@ public class Bullish extends BullishApi
         return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseBalanceForSingleCurrency(Object response, String code)
+    public Object parseBalanceForSingleCurrency(Map<String, Object> response, String code)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

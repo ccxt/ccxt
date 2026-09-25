@@ -1300,7 +1300,7 @@ class lbank(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         # from spotPrivatePostUserInfo
         toBtc = self.safe_value(data, 'toBtc')
         if toBtc is not None:
@@ -2790,7 +2790,7 @@ class lbank(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_public_deposit_withdraw_fees(data, codes)
 
-    def parse_public_deposit_withdraw_fees(self, response: list[object], codes: Strings = None) -> DepositWithdrawFees:
+    def parse_public_deposit_withdraw_fees(self, response: list[dict], codes: Strings = None) -> DepositWithdrawFees:
         #
         #    [
         #        {

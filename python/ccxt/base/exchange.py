@@ -7576,7 +7576,7 @@ class BaseExchange(object):
                 newDict[key] = dict[key]
         return newDict
 
-    def handle_until_option(self, key: str, request: dict, params: dict, multiplier=1):
+    def handle_until_option(self, key: str, request: dict, params: dict, multiplier: float = 1):
         until = self.safe_integer_2(params, 'until', 'till')
         if until is not None:
             request[key] = self.parse_to_int(until * multiplier)

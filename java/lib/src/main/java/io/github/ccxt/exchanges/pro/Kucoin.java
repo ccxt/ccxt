@@ -314,13 +314,13 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> message = this.extend(request, parameters);
-            Object url = (this.getUtaUrl()).join();
+            String url = (this.getUtaUrl()).join();
             Client client = this.client(url);
             if (!(((Map<?, ?>)client.subscriptions).containsKey(subscribeHash)))
             {
                 ((Map)client.subscriptions).put((String)requestId, subscribeHash);
             }
-            return (this.watchMultiple((String) (url), messageHashes, message, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription)).join();
+            return (this.watchMultiple(url, messageHashes, message, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription)).join();
         });
 
     }
@@ -329,18 +329,18 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return this.subscribePrivateUta(messageHashes, subscribeHash, channel, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null);
     }
 
-    public CompletableFuture<Object> getUtaUrl()
+    public CompletableFuture<String> getUtaUrl()
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object utaToken = (this.authenticateUta()).join();
-            return Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "?token="), utaToken);
-        });
+            String utaToken = (this.authenticateUta()).join();
+            return (Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "?token=") + utaToken);
+        }).thenApply(res -> (String) res);
 
     }
 
-    public CompletableFuture<Object> authenticateUta()
+    public CompletableFuture<String> authenticateUta()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -383,7 +383,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
             }
             return this.safeString(this.options, "utaToken");
-        });
+        }).thenApply(res -> (String) res);
 
     }
 
@@ -3895,7 +3895,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                     ((List<Object>)messageHashes).add(((messageHash + ":") + symbol));
                 }
             }
-            Object url = (this.getUtaUrl()).join();
+            String url = (this.getUtaUrl()).join();
             Client client = this.client(url);
             this.setPositionsCache(client, uta);
             Object fetchPositionSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);

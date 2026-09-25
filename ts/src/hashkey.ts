@@ -2356,7 +2356,7 @@ export default class hashkey extends Exchange {
         };
     }
 
-    parseAccountType (type: any) {
+    parseAccountType (type: Str) {
         const types: Dict = {
             '1': 'spot account',
             '3': 'swap account',

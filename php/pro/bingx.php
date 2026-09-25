@@ -358,7 +358,7 @@ class bingx extends \ccxt\async\bingx {
         ), $market);
     }
 
-    public function get_order_book_limit_by_market_type(string $marketType, ?int $limit = null) {
+    public function get_order_book_limit_by_market_type(string $marketType, ?int $limit = null): float {
         if ($limit === null) {
             $limit = 100;
         } else {

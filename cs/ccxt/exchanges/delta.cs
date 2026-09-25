@@ -673,7 +673,7 @@ public partial class delta : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < chains.Count; j++)
         {
-            object chain = chains[j];
+            IDictionary<string, object> chain = ((IDictionary<string, object>)chains[j]);
             string? networkId = this.safeString(chain, "network");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))

@@ -1858,7 +1858,7 @@ public partial class bybit : ccxt.bybit
         List<object> rawPositions = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < rawPositions.Count; i++)
         {
-            object rawPosition = rawPositions[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             string? side = this.safeString(position, "side");
             // hacky solution to handle closing positions

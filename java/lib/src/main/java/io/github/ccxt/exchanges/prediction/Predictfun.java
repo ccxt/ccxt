@@ -1353,13 +1353,13 @@ public class Predictfun extends PredictfunApi
             put( "amount", 0.01 );
             put( "price", pricePrecision );
         }};
-        Object rawOutcomes = (List<Object>)(this.safeList(rawMarket, "outcomes", new ArrayList<Object>(Arrays.asList())));
+        List<Object> rawOutcomes = (List<Object>) this.safeList(rawMarket, "outcomes", new ArrayList<Object>(Arrays.asList()));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         String resolvedOutcomeRaw = null;
         Integer rawOutcomesLength = ((List<?>)rawOutcomes).size();
         for (var oi = 0; Helpers.isLessThan(oi, rawOutcomesLength); oi++)
         {
-            Object rawOutcome = (rawOutcomes == null || oi < 0 || oi >= ((List<?>)rawOutcomes).size() ? null : ((List<?>)rawOutcomes).get(oi));
+            Object rawOutcome = (rawOutcomes == null || oi < 0 || oi >= rawOutcomes.size() ? null : rawOutcomes.get(oi));
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
             String rawLabel = this.safeStringUpper(rawOutcome, "name");

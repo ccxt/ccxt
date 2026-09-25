@@ -188,7 +188,7 @@ export default class opinion extends Exchange {
             };
             const response = await this.opinionPublicGetMarket (this.extend (request, rest));
             const result = this.safeDict (response, 'result', {});
-            const rawMarkets = this.safeList (result, 'list', []);
+            const rawMarkets: Dict[] = this.safeList (result, 'list', []);
             const rawMarketsLength = rawMarkets.length;
             fetchedRawCount = this.sum (fetchedRawCount, rawMarketsLength);
             // categorical parents expand into several flatMarkets entries each, so the raw,
@@ -842,7 +842,7 @@ export default class opinion extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const history = this.safeList (result, 'history', []);
+        const history: Dict[] = this.safeList (result, 'history', []);
         const candles = [];
         const historyLength = history.length;
         for (let i = 0; i < historyLength; i++) {
@@ -1310,7 +1310,7 @@ export default class opinion extends Exchange {
         }
         const response = await this.opinionPrivateGetTradeUserWalletAddress (this.extend (request, params));
         const result = this.safeDict (response, 'result', {});
-        const trades = this.safeList (result, 'list', []);
+        const trades: Dict[] = this.safeList (result, 'list', []);
         const tradesLength = trades.length;
         for (let i = 0; i < tradesLength; i++) {
             const trade = trades[i];
@@ -1408,7 +1408,7 @@ export default class opinion extends Exchange {
         const request: Dict = { 'chain_id': '56' };
         const response = await this.opinionPrivateGetUserBalance (this.extend (request, params));
         const result = this.safeDict (response, 'result', {});
-        const rawBalances = this.safeList (result, 'balances', []);
+        const rawBalances: Dict[] = this.safeList (result, 'balances', []);
         const rawBalancesLength = rawBalances.length;
         for (let i = 0; i < rawBalancesLength; i++) {
             const rawBalance = rawBalances[i];
@@ -1430,7 +1430,7 @@ export default class opinion extends Exchange {
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         const data = this.safeDict (response, 'result', {});
-        const balances = this.safeList (data, 'balances', []);
+        const balances: Dict[] = this.safeList (data, 'balances', []);
         const balancesLength = balances.length;
         for (let i = 0; i < balancesLength; i++) {
             const balance = this.safeDict (balances, i);

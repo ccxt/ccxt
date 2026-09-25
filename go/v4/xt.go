@@ -2942,17 +2942,17 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	market = MapTyped(this.SafeMarket(marketId, market, "_", marketType))
-	var side any = nil
-	var takerOrMaker any = nil
+	var side *string = nil
+	var takerOrMaker *string = nil
 	var isBuyerMaker *bool = this.SafeBool(trade, "b")
 	if isBuyerMaker != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}()
-		takerOrMaker = "taker" // public trades always taker
+		}())
+		takerOrMaker = SafeStringPtr("taker") // public trades always taker
 	} else {
 		var takerMaker *string = this.SafeStringLower(trade, "takerMaker")
 		if takerMaker != nil {
@@ -2960,12 +2960,12 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) any {
 		} else {
 			var isMaker *bool = this.SafeBool(trade, "isMaker")
 			if isMaker != nil {
-				takerOrMaker = func() string {
+				takerOrMaker = SafeStringPtr(func() string {
 					if isMaker != nil && *isMaker {
 						return "maker"
 					}
 					return "taker"
-				}()
+				}())
 			}
 		}
 		var orderSide *string = this.SafeStringLower(trade, "orderSide")
@@ -2974,12 +2974,12 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) any {
 		} else {
 			var bidOrAsk *string = this.SafeString(trade, "m")
 			if bidOrAsk != nil {
-				side = func() string {
+				side = SafeStringPtr(func() string {
 					if bidOrAsk != nil && *bidOrAsk == "BID" {
 						return "buy"
 					}
 					return "sell"
-				}()
+				}())
 			}
 		}
 	}
@@ -4300,12 +4300,12 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs ..
 	//         }
 	//     }
 	//
-	var orders any = []any{}
+	var orders []any = []any{}
 	var resultDict map[string]any = SafeMapTyped(response, "result")
 	if resultDict != nil {
-		orders = this.SafeList(resultDict, "items", []any{})
+		orders = ArrayTyped(this.SafeList(resultDict, "items", []any{}))
 	} else {
-		orders = this.SafeList(response, "result", []any{})
+		orders = ArrayTyped(this.SafeList(response, "result", []any{}))
 	}
 	if trailing != nil && *trailing == true {
 		// the track endpoints do not support a server-side state filter
@@ -5159,9 +5159,9 @@ func (this *Xt) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var networkId any = this.NetworkCodeToId(networkCode, code)
@@ -6546,7 +6546,7 @@ func (this *Xt) IndexPositionBreakList(breakList any) any {
  */
 func (this *Xt) MergePositionBreakInfo(entry any, breakBySymbolSide any) any {
 	var marketId *string = this.SafeString(entry, "symbol")
-	var key any = Add(Add(marketId, "_"), this.SafeString(entry, "positionSide"))
+	var key *string = SafeStringPtr(Add(Add(marketId, "_"), this.SafeString(entry, "positionSide")))
 	var breakEntry map[string]any = SafeMapTyped(breakBySymbolSide, key)
 	if breakEntry == nil {
 		return entry
@@ -7273,7 +7273,7 @@ func (this *Xt) HandleErrors(code any, reason any, url any, method any, headers 
 	//
 	var status *string = this.SafeStringUpper2(response, "msgInfo", "mc")
 	if (status != nil) && (status == nil || *status != "SUCCESS") {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		var error map[string]any = SafeMapTyped(response, "error")
 		var spotErrorCode *string = this.SafeString(response, "mc")
 		var errorCode *string = this.SafeString(error, "code", spotErrorCode)

@@ -108,7 +108,7 @@ export default class blockchaincom extends blockchaincomRest {
             return;
         }
         const result: Dict = { 'info': message };
-        const balances = this.safeList (message, 'balances', []);
+        const balances: Dict[] = this.safeList (message, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = this.safeDict (balances, i);
             const currencyId = this.safeString (entry, 'currency');
@@ -541,7 +541,7 @@ export default class blockchaincom extends blockchaincomRest {
         } else if (event === 'rejected') {
             throw new ExchangeError (this.id + ' ' + this.json (message));
         } else if (event === 'snapshot') {
-            const orders = this.safeList (message, 'orders', []);
+            const orders: Dict[] = this.safeList (message, 'orders', []);
             for (let i = 0; i < orders.length; i++) {
                 const order = orders[i];
                 const parsedOrder = this.parseWsOrder (order);

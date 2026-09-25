@@ -338,7 +338,7 @@ export default class bingx extends bingxRest {
         }, market);
     }
 
-    getOrderBookLimitByMarketType (marketType: string, limit: Int = undefined) {
+    getOrderBookLimitByMarketType (marketType: string, limit: Int = undefined): number {
         if (limit === undefined) {
             limit = 100;
         } else {

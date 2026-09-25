@@ -1225,7 +1225,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 {
                     this.handleMyTrade(client, (Map<String, Object>) (order));
                 }
-                this.handleOrder(client, (Map<String, Object>) (order), topic);
+                this.handleOrder(client, (Map<String, Object>) (order), (String) (topic));
             }
         } else
         {
@@ -1235,11 +1235,11 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 this.handleMyTrade(client, (Map<String, Object>) (data));
             }
-            this.handleOrder(client, (Map<String, Object>) (data), topic);
+            this.handleOrder(client, (Map<String, Object>) (data), (String) (topic));
         }
     }
 
-    public void handleOrder(Client client, Map<String, Object> message, Object topic)
+    public void handleOrder(Client client, Map<String, Object> message, String topic)
     {
         Object parsed = this.parseWsOrder((Map<String, Object>) (message));
         String symbol = this.safeString(parsed, "symbol");
@@ -1272,7 +1272,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             }
             cachedOrders.append(parsed);
             client.resolve(this.orders, topic);
-            Object messageHashSymbol = Helpers.add(Helpers.add(topic, ":"), symbol);
+            String messageHashSymbol = Helpers.add((topic + ":"), symbol);
             client.resolve(this.orders, messageHashSymbol);
         }
     }

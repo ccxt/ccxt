@@ -1851,7 +1851,7 @@ class kraken extends Exchange {
         if ($id === null) {
             return $id;
         }
-        $market = $this->safe_value($this->options['delistedMarketsById'], $id);
+        $market = $this->safe_dict($this->options['delistedMarketsById'], $id);
         if ($market !== null) {
             return $market;
         }
@@ -3085,7 +3085,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_transactions_by_type(mixed $type, mixed $transactions, ?string $code = null, ?int $since = null, ?int $limit = null) {
+    public function parse_transactions_by_type(string $type, mixed $transactions, ?string $code = null, ?int $since = null, ?int $limit = null) {
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $transaction = $this->parse_transaction($this->extend(array(
@@ -3583,7 +3583,7 @@ class kraken extends Exchange {
         ));
     }
 
-    public function parse_account_type(mixed $account) {
+    public function parse_account_type(?string $account) {
         $accountByType = array(
             'spot' => 'Spot Wallet',
             'swap' => 'Futures Wallet',

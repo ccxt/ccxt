@@ -1923,7 +1923,7 @@ export default class gate extends Exchange {
         return underlyings;
     }
 
-    prepareRequest (market: Market = undefined, type: Str = undefined, params: Dict = {}) {
+    prepareRequest (market: Market = undefined, type: Str = undefined, params: Dict = {}): [Dict, Dict] {
         /**
          * @ignore
          * @method
@@ -1961,7 +1961,7 @@ export default class gate extends Exchange {
         return [ request, params ];
     }
 
-    spotOrderPrepareRequest (market: Market = undefined, trigger: Bool = false, params: Dict = {}) {
+    spotOrderPrepareRequest (market: Market = undefined, trigger: Bool = false, params: Dict = {}): [Dict, Dict] {
         /**
          * @ignore
          * @method
@@ -1984,7 +1984,7 @@ export default class gate extends Exchange {
         return [ request, query ];
     }
 
-    multiOrderSpotPrepareRequest (market: Market = undefined, trigger: Bool = false, params: Dict = {}) {
+    multiOrderSpotPrepareRequest (market: Market = undefined, trigger: Bool = false, params: Dict = {}): [Dict, Dict] {
         /**
          * @ignore
          * @method
@@ -2118,7 +2118,7 @@ export default class gate extends Exchange {
         if (this.isLeveragedCurrency (currencyId)) {
             type = 'leveraged';
         }
-        const chains = this.safeList (rawCurrency, 'chains', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'chains', []);
         const networks: Dict = {};
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
@@ -2441,7 +2441,7 @@ export default class gate extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
-        const chains = this.safeList (response, 'multichain_addresses', []);
+        const chains: Dict[] = this.safeList (response, 'multichain_addresses', []);
         const currencyId = this.safeString (response, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const parsed = this.parseDepositAddresses (chains, undefined, false);
@@ -2821,7 +2821,7 @@ export default class gate extends Exchange {
         return this.parseFundingHistories (response, symbol, since, limit);
     }
 
-    parseFundingHistories (response: any, symbol: any, since: Int, limit: Int): FundingHistory[] {
+    parseFundingHistories (response: any, symbol: Str, since: Int, limit: Int): FundingHistory[] {
         const result: FundingHistory[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = this.safeDict (response, i);
@@ -7624,7 +7624,7 @@ export default class gate extends Exchange {
             response = await this.privateOptionsGetMySettlements (this.extend (request, params));
         }
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'list', []);
+        const data: Dict[] = this.safeList (result, 'list', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);

@@ -321,7 +321,7 @@ func (this *Phemex) HandleTicker(client any, message any) {
 			return nil
 		}()
 		var symbol any = ccxt.GetValue(ticker, "symbol")
-		var messageHash any = ccxt.Add("ticker:", symbol)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 		var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
 		ccxt.AddElementToObject(ticker, "timestamp", timestamp)
 		ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
@@ -590,7 +590,7 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId int64 = this.RequestId()
 	var subscriptionHash string = name + ".subscribe"
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	var subscribe map[string]any = map[string]any{
 		"method": subscriptionHash,
 		"id":     requestId,
@@ -658,8 +658,7 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	ticker := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -714,7 +713,7 @@ func (this *Phemex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	if isUsdtSwap {
 		name = "trade_p"
 	}
-	var messageHash any = ccxt.Add("trade:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trade:", symbol))
 	var method string = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
@@ -772,7 +771,7 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	if isUsdtSwap {
 		name = "orderbook_p"
 	}
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	var method string = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
@@ -832,7 +831,7 @@ func (this *Phemex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	if isUsdtSwap {
 		name = "kline_p"
 	}
-	var messageHash any = ccxt.Add("kline:"+timeframe+":", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("kline:"+timeframe+":", symbol))
 	var method string = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
@@ -1002,7 +1001,7 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Phemex) HandleMyTrades(client any, message any) {
+func (this *Phemex) HandleMyTrades(client any, message []any) {
 	//
 	// swap
 	//    [
@@ -1097,7 +1096,7 @@ func (this *Phemex) HandleMyTrades(client any, message any) {
 	//    ]
 	//
 	var channel string = "trades"
-	var tradesLength int = ccxt.GetArrayLength(message)
+	var tradesLength int = len(message)
 	if tradesLength == 0 {
 		return
 	}
@@ -1108,8 +1107,13 @@ func (this *Phemex) HandleMyTrades(client any, message any) {
 	}
 	var marketIds map[string]any = map[string]any{}
 	var typeVar any = nil
-	for i := 0; i < ccxt.GetArrayLength(message); i++ {
-		var rawTrade any = ccxt.GetValue(message, i)
+	for i := 0; i < len(message); i++ {
+		var rawTrade any = func() any {
+			if i >= 0 && i < len(message) {
+				return ccxt.DerefScalar(message[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(rawTrade, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(rawTrade))
@@ -1134,7 +1138,7 @@ func (this *Phemex) HandleMyTrades(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
 	}
 	// generic subscription
-	var messageHash any = ccxt.Add(channel+":", typeVar)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+":", typeVar))
 	client.(ccxt.ClientInterface).Resolve(cachedTrades, messageHash)
 }
 
@@ -1360,7 +1364,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	//        ...
 	//    ]
 	//
-	var trades any = []any{}
+	var trades []any = []any{}
 	var parsedOrders []any = []any{}
 	if (ccxt.InOp(message, "closed")) || (ccxt.InOp(message, "fills")) || (ccxt.InOp(message, "open")) {
 		var closed []any = ccxt.SafeListTypedDefault(message, "closed", []any{})
@@ -1370,7 +1374,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		if ordersLength == 0 {
 			return
 		}
-		trades = this.SafeList(message, "fills", []any{})
+		trades = ccxt.ArrayTyped(this.SafeList(message, "fills", []any{}))
 		for i := 0; i < len(orders); i++ {
 			var rawOrder any = func() any {
 				if i >= 0 && i < len(orders) {
@@ -1391,7 +1395,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 			var action *string = this.SafeString(update, "action")
 			if (action != nil) && (action == nil || *action != "Cancel") {
 				// order + trade info together
-				ccxt.AppendToArray(&trades, update)
+				trades = append(trades, update)
 			}
 			var parsedOrder any = this.ParseWSSwapOrder(update)
 			parsedOrders = append(parsedOrders, parsedOrder)
@@ -1428,11 +1432,11 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var currentMessageHash any = ccxt.Add("orders"+":", ccxt.GetValue(keys, i))
+		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders"+":", ccxt.GetValue(keys, i)))
 		client.(ccxt.ClientInterface).Resolve(this.Orders, currentMessageHash)
 	}
 	// resolve generic subscription (spot or swap)
-	var messageHash any = ccxt.Add("orders:", typeVar)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", typeVar))
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
 func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {

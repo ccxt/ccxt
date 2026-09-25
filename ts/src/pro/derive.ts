@@ -607,7 +607,7 @@ export default class derive extends deriveRest {
         //
         const params = this.safeDict (message, 'params');
         const topic = this.safeString (params, 'channel');
-        const rawOrders = this.safeList (params, 'data', []);
+        const rawOrders: Dict[] = this.safeList (params, 'data', []);
         for (let i = 0; i < rawOrders.length; i++) {
             const data = rawOrders[i];
             const parsed = this.parseOrder (data);
@@ -626,7 +626,7 @@ export default class derive extends deriveRest {
                     if (fee !== undefined) {
                         parsed['fee'] = fee;
                     }
-                    const fees = this.safeValue (order, 'fees');
+                    const fees = this.safeList (order, 'fees');
                     if (fees !== undefined) {
                         (parsed as Dict)['fees'] = fees;
                     }

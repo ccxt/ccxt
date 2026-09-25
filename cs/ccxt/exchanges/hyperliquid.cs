@@ -2064,7 +2064,7 @@ public partial class hyperliquid : Exchange
         return ((Dictionary<string, object>)((object)(await this.privatePostExchange(request))));
     }
 
-    public async virtual Task<object> initializeClient()
+    public async virtual Task<bool> initializeClient()
     {
         try
         {
@@ -2076,7 +2076,7 @@ public partial class hyperliquid : Exchange
         return true;
     }
 
-    public async virtual Task<object> handleBuilderFeeApproval()
+    public async virtual Task<bool> handleBuilderFeeApproval()
     {
         bool? buildFee = this.safeBool(this.options, "builderFee", true);
         bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
@@ -3680,8 +3680,8 @@ public partial class hyperliquid : Exchange
         }
         for (int i = 0; i < getArrayLength(historicalOrders); i++)
         {
-            object rawOrder = getValue(historicalOrders, i);
-            object entry = this.safeDict(rawOrder, "order");
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(historicalOrders, i));
+            IDictionary<string, object> entry = this.safeDict(rawOrder, "order");
             if ((entry == null))
             {
                 entry = rawOrder;

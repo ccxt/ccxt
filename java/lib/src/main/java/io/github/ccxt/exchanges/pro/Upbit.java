@@ -911,7 +911,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 Helpers.addElementToObject(parsed, "fee", fee);
             }
-            Object fees = this.safeValue(order, "fees");
+            List<Object> fees = (List<Object>) this.safeList(order, "fees");
             if (!java.util.Objects.equals(fees, null))
             {
                 ((Map<String, Object>)parsed).put("fees", fees);

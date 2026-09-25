@@ -199,7 +199,7 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\await($this->watch_public($topic, $message));
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -982,7 +982,7 @@ class woofipro extends \ccxt\async\woofipro {
         }
     }
 
-    public function handle_order(Client $client, array $message, mixed $topic) {
+    public function handle_order(Client $client, array $message, ?string $topic) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');

@@ -1621,7 +1621,7 @@ func (this *P2b) HandleErrors(code any, reason any, url any, method any, headers
 	var success *bool = this.SafeBool(response, "success", true)
 	if success == nil || *success != true {
 		var errorCode *string = this.SafeString(response, "errorCode")
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		var codeAsString string = ToString(code)
 		if (IsLessThan(code, 400)) || !(InOp(this.HttpExceptions, codeAsString)) {

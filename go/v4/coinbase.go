@@ -2701,7 +2701,7 @@ func (this *Coinbase) fetchTickersV2Body(ch chan any, optionalArgs ...any) any {
 	var delimiter string = "-"
 	for i := 0; i < len(baseIds); i++ {
 		var baseId string = GetValue(baseIds, i).(string)
-		var marketId any = Add(baseId+delimiter, quoteId)
+		var marketId *string = SafeStringPtr(Add(baseId+delimiter, quoteId))
 		var market map[string]any = MapTyped(this.SafeMarket(marketId, nil, delimiter))
 		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(result, symbol, this.ParseTicker(rates[baseId], market))
@@ -6377,14 +6377,14 @@ func (this *Coinbase) ParsePosition(position any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(position, "symbol", "")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var rawMargin *string = this.SafeString(position, "margin_type")
-	var marginMode any = nil
+	var marginMode *string = nil
 	if rawMargin != nil {
-		marginMode = func() string {
+		marginMode = SafeStringPtr(func() string {
 			if rawMargin != nil && *rawMargin == "MARGIN_TYPE_CROSS" {
 				return "cross"
 			}
 			return "isolated"
-		}()
+		}())
 	}
 	var notionalObject map[string]any = SafeMapTyped(position, "position_notional")
 	var positionSide *string = this.SafeString(position, "position_side")
@@ -6752,7 +6752,7 @@ func (this *Coinbase) Sign(path any, optionalArgs ...any) any {
 				var nonce any = this.Nonce()
 				var timestamp int64 = this.ParseToInt(Divide(nonce, 1000))
 				var timestampString string = strconv.FormatInt(timestamp, 10)
-				var auth any = Add(Add(timestampString+method, savedPath), payload)
+				var auth *string = SafeStringPtr(Add(Add(timestampString+method, savedPath), payload))
 				var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 				headers = map[string]any{
 					"CB-ACCESS-KEY":       this.ApiKey,
@@ -6785,7 +6785,7 @@ func (this *Coinbase) HandleErrors(code any, reason any, url any, method any, he
 	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	//
 	//    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
 	//
@@ -6848,8 +6848,8 @@ func (this *Coinbase) HandleErrors(code any, reason any, url any, method any, he
 			}
 		}
 	}
-	var advancedTrade any = GetValue(this.Options, "advanced")
-	if !(InOp(response, "data")) && (advancedTrade != true) {
+	var advancedTrade *bool = this.SafeBool(this.Options, "advanced")
+	if !(InOp(response, "data")) && (advancedTrade == nil || *advancedTrade != true) {
 		panic(ExchangeError(Add(this.Id+" failed due to a malformed response ", this.Json(response))))
 	}
 	return nil

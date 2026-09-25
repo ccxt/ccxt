@@ -700,7 +700,7 @@ class weex(ccxt.async_support.weex):
         firstEntry = self.safe_dict(data, 0, {})
         interval = self.safe_string(firstEntry, 'i')
         timeframe = self.find_timeframe(interval)
-        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)

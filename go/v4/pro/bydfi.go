@@ -200,8 +200,8 @@ func (this *Bydfi) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
-	var messageHash any = ccxt.Add("ticker::", symbol)
-	var channel any = ccxt.Add(marketId, "@ticker")
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", symbol))
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(marketId, "@ticker"))
 
 	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync([]any{messageHash}, []any{channel}, params)))
 	return nil
@@ -374,7 +374,7 @@ func (this *Bydfi) HandleTicker(client any, message any) {
 	//
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(message))
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
-	var messageHash any = ccxt.Add("ticker::", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", symbol))
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
 	client.(ccxt.ClientInterface).Resolve(this.Tickers, "ticker::all")
@@ -577,7 +577,7 @@ func (this *Bydfi) HandleOHLCV(client any, message any) {
 	var ohlcv any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	var parsed any = this.ParseWsOHLCV(message)
 	ohlcv.(ccxt.Appender).Append(parsed)
-	var messageHash any = ccxt.Add("ohlcv::"+*symbol+"::", timeframe)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
 	client.(ccxt.ClientInterface).Resolve([]any{symbol, timeframe, ohlcv}, messageHash)
 }
 
@@ -1331,7 +1331,7 @@ func (this *Bydfi) HandleErrorMessage(client any, message any) {
 	//
 	var code *string = this.SafeString(message, "code")
 	var msg *string = this.SafeString(message, "msg")
-	var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], msg, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], msg, feedback)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

@@ -2061,11 +2061,11 @@ func (this *Coinbaseinternational) fetchTickersBody(ch chan any, optionalArgs ..
 	instruments := (<-this.V1PublicGetInstruments(params)).Raw
 	PanicOnError(instruments)
 	var tickers map[string]any = map[string]any{}
-	var rows any = []any{}
+	var rows []any = []any{}
 	if IsArray(instruments) {
-		rows = instruments
+		rows = ArrayTyped(instruments)
 	}
-	for i := 0; i < GetArrayLength(rows); i++ {
+	for i := 0; i < len(rows); i++ {
 		var instrument map[string]any = SafeMapTyped(rows, i)
 		var marketId *string = this.SafeString(instrument, "symbol")
 		var symbol *string = this.SafeSymbol(marketId)
@@ -3097,7 +3097,7 @@ func (this *Coinbaseinternational) Sign(path any, optionalArgs ...any) any {
 				payload = body
 			}
 		}
-		var auth any = Add(Add(nonce+method, savedPath), payload)
+		var auth *string = SafeStringPtr(Add(Add(nonce+method, savedPath), payload))
 		var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), sha256, "base64")
 		headers = map[string]any{
 			"CB-ACCESS-TIMESTAMP":  nonce,
@@ -3123,7 +3123,7 @@ func (this *Coinbaseinternational) HandleErrors(code any, reason any, url any, m
 	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	var errMsg *string = this.SafeString(response, "title")
 	if errMsg != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errMsg, feedback)

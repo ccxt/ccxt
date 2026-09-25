@@ -789,7 +789,7 @@ class bitrue(ccxt.async_support.bitrue):
             if handler is not None:
                 handler(client, message)
 
-    async def authenticate(self, params: dict = {}):
+    async def authenticate(self, params: dict = {}) -> Str:
         listenKey = self.safe_string(self.options, 'listenKey')
         if listenKey is None:
             # single-flight leader election on a never-dialed client, see

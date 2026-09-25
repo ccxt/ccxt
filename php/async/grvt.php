@@ -1968,7 +1968,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function load_account_infos() {
+    public function load_account_infos(): PromiseInterface {
         return Async\async(self::do_load_account_infos(...))();
     }
 

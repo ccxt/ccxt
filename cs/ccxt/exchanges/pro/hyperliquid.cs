@@ -726,7 +726,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         for (int i = 0; i < data.Count; i++)
         {
-            object rawTrade = data[i];
+            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             symbols[(string)symbol] = true;
@@ -1419,7 +1419,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         List<object> rawPositions = this.safeList(clearinghouseState, "assetPositions", new List<object>() {});
         for (int i = 0; i < rawPositions.Count; i++)
         {
-            object rawPosition = rawPositions[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             newPositions.Add(position);
             cache.append(position);
@@ -1619,7 +1619,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         Dictionary<string, object> marketSymbols = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object rawOrder = data[i];
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> order = this.parseOrder(rawOrder);
             stored.append(order);
             string? symbol = this.safeString(order, "symbol");

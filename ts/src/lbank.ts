@@ -563,7 +563,7 @@ export default class lbank extends Exchange {
         //         "ts": 1691560288484
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -663,7 +663,7 @@ export default class lbank extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -926,7 +926,7 @@ export default class lbank extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -1176,7 +1176,7 @@ export default class lbank extends Exchange {
         //           "ts":1647021999308
         //      }
         //
-        const trades = this.safeList (response, 'data', []);
+        const trades: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1346,7 +1346,7 @@ export default class lbank extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         // from spotPrivatePostUserInfo
         const toBtc = this.safeValue (data, 'toBtc');
         if (toBtc !== undefined) {
@@ -1507,7 +1507,7 @@ export default class lbank extends Exchange {
         //     "result": "true",
         //     "success": True,
         // }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseFundingRates (data, symbols);
     }
 
@@ -2088,7 +2088,7 @@ export default class lbank extends Exchange {
         //          "ts":1648509742164
         //      }
         //
-        const trades = this.safeList (response, 'data', []);
+        const trades: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2151,7 +2151,7 @@ export default class lbank extends Exchange {
         //      }
         //
         const result = this.safeDict (response, 'data', {});
-        const orders = this.safeList (result, 'orders', []);
+        const orders: Dict[] = this.safeList (result, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2211,7 +2211,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'data', {});
-        const orders = this.safeList (result, 'orders', []);
+        const orders: Dict[] = this.safeList (result, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2298,7 +2298,7 @@ export default class lbank extends Exchange {
         //          "ts":1648506641468
         //      }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data);
     }
 
@@ -2636,7 +2636,7 @@ export default class lbank extends Exchange {
         //      }
         //
         const data = this.safeDict (response, 'data', {});
-        const deposits = this.safeList (data, 'depositOrders', []);
+        const deposits: Dict[] = this.safeList (data, 'depositOrders', []);
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
@@ -2696,7 +2696,7 @@ export default class lbank extends Exchange {
         //      }
         //
         const data = this.safeDict (response, 'data', {});
-        const withdraws = this.safeList (data, 'withdraws', []);
+        const withdraws: Dict[] = this.safeList (data, 'withdraws', []);
         return this.parseTransactions (withdraws, currency, since, limit);
     }
 
@@ -2769,13 +2769,13 @@ export default class lbank extends Exchange {
         //        "code": 0
         //    }
         //
-        const result = this.safeList (response, 'data', []);
+        const result: Dict[] = this.safeList (response, 'data', []);
         const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const entry = this.safeDict (result, i);
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
-            const networkList = this.safeList (entry, 'networkList', []);
+            const networkList: Dict[] = this.safeList (entry, 'networkList', []);
             if (code !== undefined) {
                 withdrawFees[code] = {};
             }
@@ -2834,7 +2834,7 @@ export default class lbank extends Exchange {
         //        "ts": "1663364435973"
         //    }
         //
-        const result = this.safeList (response, 'data', []);
+        const result: Dict[] = this.safeList (response, 'data', []);
         const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const item = this.safeDict (result, i);
@@ -2970,7 +2970,7 @@ export default class lbank extends Exchange {
         return this.parsePublicDepositWithdrawFees (data, codes);
     }
 
-    parsePublicDepositWithdrawFees (response: any[], codes: Strings = undefined): DepositWithdrawFees {
+    parsePublicDepositWithdrawFees (response: Dict[], codes: Strings = undefined): DepositWithdrawFees {
         //
         //    [
         //        {
@@ -3058,7 +3058,7 @@ export default class lbank extends Exchange {
         //
         const result = this.depositWithdrawFee (fee);
         const code = this.safeString (currency, 'code');
-        const networkList = this.safeList (fee, 'networkList', []);
+        const networkList: Dict[] = this.safeList (fee, 'networkList', []);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = this.safeDict (networkList, j);
             const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);

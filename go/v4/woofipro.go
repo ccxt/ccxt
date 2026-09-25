@@ -910,7 +910,7 @@ func (this *Woofipro) ParseMarket(market any) any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var settleId *string = this.SafeString(parts, 2)
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+	var symbol *string = SafeStringPtr(Add(Add(Add(Add(base, "/"), quote), ":"), settle))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1222,15 +1222,15 @@ func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) any {
 	var cost *string = Precise.StringMul(price, amount)
 	var side *string = this.SafeStringLower(trade, "side")
 	var id *string = this.SafeString(trade, "id")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isFromFetchOrder {
 		var isMaker bool = (this.SafeString(trade, "is_maker") != nil && *this.SafeString(trade, "is_maker") == "1")
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isMaker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -2589,7 +2589,7 @@ func (this *Woofipro) createOrderBody(ch chan any, symbol any, typeVar any, side
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss any = this.SafeDict(params, "stopLoss")
 	var takeProfit any = this.SafeDict(params, "takeProfit")
@@ -2650,7 +2650,7 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		if isConditional {
 			panic(NotSupported(this.Id + " createOrders() only support non-stop order"))
 		}
-		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var request map[string]any = map[string]any{
@@ -3877,9 +3877,9 @@ func (this *Woofipro) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	//         "success":true
 	//     }
 	//
-	var rowsList any = []any{}
+	var rowsList []any = []any{}
 	if !IsEqual(rows, nil) {
-		rowsList = rows
+		rowsList = ArrayTyped(rows)
 	}
 
 	ch <- this.ParseTransactions(rowsList, currency, since, limit, params)
@@ -3970,8 +3970,7 @@ func (this *Woofipro) withdrawBody(ch chan any, code any, amount any, address an
 		panic(BadRequest(this.Id + " withdraw() require chainId parameter"))
 	}
 
-	withdrawNonce := (<-this.GetWithdrawNonceAsync(params))
-	PanicOnError(withdrawNonce)
+	var withdrawNonce *float64 = Float64PtrTyped(PanicOnError((<-this.GetWithdrawNonceAsync(params))))
 	var nonce any = this.Nonce()
 	var domain map[string]any = map[string]any{
 		"chainId":           chainId,
@@ -4730,7 +4729,7 @@ func (this *Woofipro) HandleErrors(httpCode any, reason any, url any, method any
 	var success *bool = this.SafeBool(response, "success")
 	var errorCode *string = this.SafeString(response, "code")
 	if success == nil || *success != true {
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

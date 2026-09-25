@@ -326,7 +326,7 @@ func (this *Coinbase) CreateWSAuth(name any, productIds any) any {
 	var timestamp *string = this.NumberToString(this.Seconds())
 	this.CheckRequiredCredentials()
 	var isCloudAPiKey bool = (ccxt.GetIndexOf(this.ApiKey, "organizations/") >= 0) || (ccxt.StartsWith(this.Secret, "-----BEGIN"))
-	var auth any = ccxt.Add(ccxt.Add(timestamp, name), ccxt.Join(productIds, ","))
+	var auth *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(timestamp, name), ccxt.Join(productIds, ",")))
 	if !isCloudAPiKey {
 		subscribe["api_key"] = this.ApiKey
 		subscribe["timestamp"] = timestamp
@@ -601,7 +601,7 @@ func (this *Coinbase) HandleTickers(client any, message map[string]any) {
 				ccxt.AddElementToObject(this.Tickers, symbol, result)
 			}
 			newTickers = append(newTickers, result)
-			var messageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, "::"), symbol))
 			client.(ccxt.ClientInterface).Resolve(result, messageHash)
 			this.TryResolveUsdc(client, messageHash, result)
 		}
@@ -1265,18 +1265,18 @@ func (this *Coinbase) HandleSubscriptionStatus(client any, message map[string]an
 		var messageHashes []any = ccxt.SafeListTyped(unSubObject, "messageHashes")
 		var subMessageHashes []any = ccxt.SafeListTyped(unSubObject, "subMessageHashes")
 		for i := 0; i < len(messageHashes); i++ {
-			var messageHash any = func() any {
+			var messageHash *string = ccxt.SafeStringPtr(func() any {
 				if i >= 0 && i < len(messageHashes) {
 					return ccxt.DerefScalar(messageHashes[i])
 				}
 				return nil
-			}()
-			var subHash any = func() any {
+			}())
+			var subHash *string = ccxt.SafeStringPtr(func() any {
 				if i >= 0 && i < len(subMessageHashes) {
 					return ccxt.DerefScalar(subMessageHashes[i])
 				}
 				return nil
-			}()
+			}())
 			this.CleanUnsubscription(ccxt.AsClient(client), subHash, messageHash)
 		}
 		this.CleanCache(unSubObject)

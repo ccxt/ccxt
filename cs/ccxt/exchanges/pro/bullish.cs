@@ -506,7 +506,7 @@ public partial class bullish : ccxt.bullish
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
             for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
             {
-                object rawOrder = rawOrders[i];
+                IDictionary<string, object> rawOrder = ((IDictionary<string, object>)rawOrders[i]);
                 Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
                 orders.append(parsedOrder);
                 string? symbol = this.safeString(parsedOrder, "symbol");
@@ -633,7 +633,7 @@ public partial class bullish : ccxt.bullish
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
             for (int i = 0; i < (rawTrades?.Count ?? 0); i++)
             {
-                object rawTrade = rawTrades[i];
+                IDictionary<string, object> rawTrade = ((IDictionary<string, object>)rawTrades[i]);
                 Dictionary<string, object> parsedTrade = this.parseTrade(rawTrade);
                 trades.append(parsedTrade);
                 string? symbol = this.safeString(parsedTrade, "symbol");
@@ -828,7 +828,7 @@ public partial class bullish : ccxt.bullish
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < (rawPositions?.Count ?? 0); i++)
         {
-            object rawPosition = rawPositions[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             positions.append(position);
             newPositions.Add(position);

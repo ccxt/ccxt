@@ -247,7 +247,7 @@ export default class kucoin extends kucoinRest {
         return await this.watchMultiple (url, messageHashes, message, [ subscribeHash ], subscription);
     }
 
-    async getUtaUrl () {
+    async getUtaUrl (): Promise<string> {
         const utaToken = await this.authenticateUta ();
         const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
         if (wsUrl === undefined) {
@@ -256,7 +256,7 @@ export default class kucoin extends kucoinRest {
         return wsUrl + '?token=' + utaToken;
     }
 
-    async authenticateUta () {
+    async authenticateUta (): Promise<Str> {
         this.checkRequiredCredentials ();
         const utaToken = this.safeString (this.options, 'utaToken');
         const lastUpdate = this.safeInteger (this.options, 'utaTokenLastUpdate', 0);
@@ -1898,8 +1898,8 @@ export default class kucoin extends kucoinRest {
         }
         const isUnSub = this.safeBool (subscription, 'unsubscribe', false);
         if (isUnSub === true) {
-            const messageHashes = this.safeList (subscription, 'messageHashes', []);
-            const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+            const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+            const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
             for (let i = 0; i < messageHashes.length; i++) {
                 const messageHash = messageHashes[i];
                 const subHash = subMessageHashes[i];
@@ -2440,7 +2440,7 @@ export default class kucoin extends kucoinRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    getMyTradesMessageHashSuffix (topic: any) {
+    getMyTradesMessageHashSuffix (topic: any): string {
         let suffix = '-spot';
         if (topic.indexOf ('contractMarket') >= 0) {
             suffix = '-contract';

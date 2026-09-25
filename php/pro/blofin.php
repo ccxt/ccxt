@@ -706,7 +706,7 @@ class blofin extends \ccxt\async\blofin {
         }
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null): array {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         return $this->parse_position($position, $market);
     }
 

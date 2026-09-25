@@ -885,7 +885,7 @@ public class Binance extends BinanceApi
         }};
         Double volume = this.safeNumber(rawMarket, "tradeVolume");
         Double liquidity = this.safeNumber(rawMarket, "liquidity");
-        Object rawOutcomes = (List<Object>)(this.safeList(rawMarket, "outcomes", new ArrayList<Object>(Arrays.asList())));
+        List<Object> rawOutcomes = (List<Object>) this.safeList(rawMarket, "outcomes", new ArrayList<Object>(Arrays.asList()));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         String resolvedOutcomeRaw = null;
         Integer rawOutcomesLength = ((List<?>)rawOutcomes).size();

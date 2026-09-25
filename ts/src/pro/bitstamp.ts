@@ -589,7 +589,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (stored, channel);
     }
 
-    parseWsMyTrade (trade: any, market: Market = undefined): Trade {
+    parseWsMyTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "id": 635698396,

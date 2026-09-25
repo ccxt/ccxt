@@ -951,7 +951,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             return;
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -3328,7 +3328,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     Helpers.addElementToObject(account, "debt", Precise.stringAdd(borrow, interest));
                 }
                 String freeQuery = "available";
-                if (Helpers.inOp(rawBalance, "maxTransferOut"))
+                if (((Map<?, ?>)rawBalance).containsKey("maxTransferOut"))
                 {
                     freeQuery = "maxTransferOut";
                 }

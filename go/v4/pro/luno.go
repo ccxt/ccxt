@@ -82,7 +82,7 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		"symbol": symbol,
 	}
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	var subscribe map[string]any = map[string]any{
 		"api_key_id":     this.ApiKey,
 		"api_key_secret": this.Secret,
@@ -120,7 +120,7 @@ func (this *Luno) HandleTrades(client any, message map[string]any, subscription 
 	}
 	var symbol any = subscription["symbol"]
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -212,7 +212,7 @@ func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": symbol,
 	}
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	var subscribe map[string]any = map[string]any{
 		"api_key_id":     this.ApiKey,
 		"api_key_secret": this.Secret,
@@ -258,7 +258,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	//     }
 	//
 	var symbol any = subscription["symbol"]
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(map[string]any{}))

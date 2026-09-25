@@ -1186,7 +1186,7 @@ export default class nado extends nadoRest {
         return await this.watch (url, unsubscribeHash, request, unsubscribeHash, subscription);
     }
 
-    async unWatchPublicMultiple (streamType: Str, markets: Market[], messageHashes: string[], params: Dict = {}, subscriptionParams: Dict[] | undefined = undefined) {
+    async unWatchPublicMultiple (streamType: Str, markets: Market[], messageHashes: string[], params: Dict = {}, subscriptionParams: Dict[] | undefined = undefined): Promise<any[]> {
         const url = this.urls['api']['ws']['subscriptions'];
         const client = this.client (url);
         const results: any[] = [];

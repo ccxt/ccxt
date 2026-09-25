@@ -1487,7 +1487,7 @@ public partial class mexc : Exchange
         List<object> chains = this.safeList(rawCurrency, "networkList", new List<object>() {});
         for (int j = 0; j < chains.Count; j++)
         {
-            object chain = chains[j];
+            IDictionary<string, object> chain = ((IDictionary<string, object>)chains[j]);
             string? networkId = this.safeString2(chain, "netWork", "network");
             string? network = this.networkIdToCode(networkId, code);
             if ((network != null))
@@ -4229,7 +4229,7 @@ public partial class mexc : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object account = data[i];
+            IDictionary<string, object> account = ((IDictionary<string, object>)data[i]);
             string? currencyId = this.safeString2(account, "asset", "currency");
             string? code = this.safeCurrencyCode(currencyId);
             result.Add(new Dictionary<string, object>() {

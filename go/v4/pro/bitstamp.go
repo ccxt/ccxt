@@ -92,8 +92,8 @@ func (this *Bitstamp) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("orderbook:", symbol)
-	var channel any = ccxt.Add("diff_order_book_", market["id"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add("diff_order_book_", market["id"]))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
@@ -134,8 +134,8 @@ func (this *Bitstamp) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var channel any = ccxt.Add("diff_order_book_", market["id"])
-	var subHash any = ccxt.Add("orderbook:", symbol)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add("diff_order_book_", market["id"]))
+	var subHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(channel, subHash, "orderbook", []any{symbol}, params)))
 	return nil
@@ -163,7 +163,7 @@ func (this *Bitstamp) unWatchChannelBody(ch chan any, channel any, subHash any, 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
-	var unsubHash any = ccxt.Add("unsubscribe:", channel)
+	var unsubHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", channel))
 	var request map[string]any = map[string]any{
 		"event": "bts:unsubscribe",
 		"data": map[string]any{
@@ -308,9 +308,9 @@ func (this *Bitstamp) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
-	var channel any = ccxt.Add("live_trades_", market["id"])
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add("live_trades_", market["id"]))
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
 		"data": map[string]any{
@@ -353,8 +353,8 @@ func (this *Bitstamp) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var channel any = ccxt.Add("live_trades_", market["id"])
-	var subHash any = ccxt.Add("trades:", symbol)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add("live_trades_", market["id"]))
+	var subHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(channel, subHash, "trades", []any{symbol}, params)))
 	return nil
@@ -473,9 +473,9 @@ func (this *Bitstamp) watchFundingRateBody(ch chan any, symbol any, optionalArgs
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("fundingRate:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fundingRate:", symbol))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
-	var channel any = ccxt.Add("funding_rate_", market["id"])
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add("funding_rate_", market["id"]))
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
 		"data": map[string]any{
@@ -552,7 +552,7 @@ func (this *Bitstamp) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = ccxt.SafeStringPtr(market["symbol"])
 	var channel string = "private-my_orders"
-	var messageHash any = ccxt.Add(channel+"_", market["id"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+"_", market["id"]))
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 		"limit":  limit,
@@ -601,7 +601,7 @@ func (this *Bitstamp) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	symbol = market["symbol"]
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("private-my_orders_", market["id"]), "-"), ccxt.GetValue(this.Options, "userId"))
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("private-my_orders_", market["id"]), "-"), ccxt.GetValue(this.Options, "userId")))
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(channel, channel, "orders", []any{symbol}, params)))
 	return nil
@@ -644,7 +644,7 @@ func (this *Bitstamp) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = ccxt.SafeStringPtr(market["symbol"])
 	var channel string = "private-my_trades"
-	var messageHash any = ccxt.Add(channel+"_", market["id"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+"_", market["id"]))
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 		"limit":  limit,
@@ -693,7 +693,7 @@ func (this *Bitstamp) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	symbol = market["symbol"]
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("private-my_trades_", market["id"]), "-"), ccxt.GetValue(this.Options, "userId"))
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("private-my_trades_", market["id"]), "-"), ccxt.GetValue(this.Options, "userId")))
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(channel, channel, "myTrades", []any{symbol}, params)))
 	return nil
@@ -741,7 +741,7 @@ func (this *Bitstamp) HandleMyTrades(client any, message map[string]any) {
 	stored.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }
-func (this *Bitstamp) ParseWsMyTrade(trade any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "id": 635698396,
@@ -872,21 +872,21 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 		side = "sell"
 	}
 	var orderSubTypeRaw *string = this.SafeStringLower(order, "order_subtype") // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
-	var orderType any = nil
-	var timeInForce any = nil
+	var orderType *string = nil
+	var timeInForce *string = nil
 	if orderSubTypeRaw != nil && *orderSubTypeRaw == "0" {
-		orderType = "limit"
+		orderType = ccxt.SafeStringPtr("limit")
 	} else if orderSubTypeRaw != nil && *orderSubTypeRaw == "2" {
-		orderType = "market"
+		orderType = ccxt.SafeStringPtr("market")
 	} else if orderSubTypeRaw != nil && *orderSubTypeRaw == "4" {
-		orderType = "limit"
-		timeInForce = "IOC"
+		orderType = ccxt.SafeStringPtr("limit")
+		timeInForce = ccxt.SafeStringPtr("IOC")
 	} else if orderSubTypeRaw != nil && *orderSubTypeRaw == "6" {
-		orderType = "limit"
-		timeInForce = "FOK"
+		orderType = ccxt.SafeStringPtr("limit")
+		timeInForce = ccxt.SafeStringPtr("FOK")
 	} else if orderSubTypeRaw != nil && *orderSubTypeRaw == "8" {
-		orderType = "limit"
-		timeInForce = "GTD"
+		orderType = ccxt.SafeStringPtr("limit")
+		timeInForce = ccxt.SafeStringPtr("GTD")
 	}
 	var price *string = this.SafeString(order, "price_str")
 	var amountLeft *string = this.SafeString(order, "amount_str")
@@ -902,11 +902,11 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 	}
 	var filled *string = this.SafeString(order, "amount_traded")
 	var event *string = this.SafeString(order, "event")
-	var status any = nil
+	var status *string = nil
 	if ccxt.Precise.StringEq(filled, amount) {
-		status = "closed"
+		status = ccxt.SafeStringPtr("closed")
 	} else if event != nil && *event == "order_deleted" {
-		status = "canceled"
+		status = ccxt.SafeStringPtr("canceled")
 	}
 	var triggerPrice *string = this.SafeString(order, "stop_price")
 	var timestamp *int64 = this.SafeTimestamp(order, "datetime")
@@ -1107,7 +1107,7 @@ func (this *Bitstamp) HandleErrorMessage(client any, message any) any {
 	// }
 	var event *string = this.SafeString(message, "event")
 	if event != nil && *event == "bts:error" {
-		var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 		var data map[string]any = ccxt.SafeMapTyped(message, "data")
 		var code *float64 = this.SafeNumber(data, "code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

@@ -778,7 +778,7 @@ export default class tokocrypto extends Exchange {
             await this.loadTimeDifference ();
         }
         const data = this.safeDict (response, 'data', {});
-        const list = this.safeList (data, 'list', []);
+        const list: Dict[] = this.safeList (data, 'list', []);
         const result: List = [];
         for (let i = 0; i < list.length; i++) {
             const market = list[i];
@@ -1606,7 +1606,7 @@ export default class tokocrypto extends Exchange {
             'datetime': this.iso8601 (timestamp),
         };
         const data = this.safeDict (response, 'data', {});
-        const balances = this.safeList (data, 'accountAssets', []);
+        const balances: Dict[] = this.safeList (data, 'accountAssets', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'asset');
@@ -2031,7 +2031,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const list = this.safeList (data, 'list', []);
+        const list: Dict[] = this.safeList (data, 'list', []);
         const rawOrder = this.safeDict (list, 0, {});
         return this.parseOrder (rawOrder);
     }
@@ -2106,7 +2106,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'list', []);
+        const orders: Dict[] = this.safeList (data, 'list', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2248,7 +2248,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'list', []);
+        const trades: Dict[] = this.safeList (data, 'list', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2371,7 +2371,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const deposits = this.safeList (data, 'list', []);
+        const deposits: Dict[] = this.safeList (data, 'list', []);
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
@@ -2431,7 +2431,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const withdrawals = this.safeList (data, 'list', []);
+        const withdrawals: Dict[] = this.safeList (data, 'list', []);
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 

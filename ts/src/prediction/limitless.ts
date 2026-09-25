@@ -1260,7 +1260,7 @@ export default class limitless extends Exchange {
         //         "totalRows": 13
         //     }
         //
-        const rows = this.safeList (response, 'events', []);
+        const rows: Dict[] = this.safeList (response, 'events', []);
         const filtered: any[] = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];

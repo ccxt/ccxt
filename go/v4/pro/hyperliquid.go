@@ -152,8 +152,8 @@ func (this *Hyperliquid) createOrderWsBody(ch chan any, symbol any, typeVar any,
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(nil, symbol, typeVar, side, amount, price, params)
-	order := ccxt.GetValue(orderglobalParamsVariable, 0)
-	globalParams := ccxt.GetValue(orderglobalParamsVariable, 1)
+	var order map[string]any = ccxt.MapTyped(ccxt.GetValue(orderglobalParamsVariable, 0))
+	var globalParams map[string]any = ccxt.MapTyped(ccxt.GetValue(orderglobalParamsVariable, 1))
 
 	var orders []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.CreateOrdersWsAsync([]any{order}, globalParams))))
 	var ordersLength int = len(orders)
@@ -210,8 +210,8 @@ func (this *Hyperliquid) editOrderWsBody(ch chan any, id any, symbol any, typeVa
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(id, symbol, typeVar, side, amount, price, params)
-	order := ccxt.GetValue(orderglobalParamsVariable, 0)
-	globalParams := ccxt.GetValue(orderglobalParamsVariable, 1)
+	var order map[string]any = ccxt.MapTyped(ccxt.GetValue(orderglobalParamsVariable, 0))
+	var globalParams map[string]any = ccxt.MapTyped(ccxt.GetValue(orderglobalParamsVariable, 1))
 	var postRequest any = this.EditOrdersRequest([]any{order}, globalParams)
 	var wrapped map[string]any = ccxt.MapTyped(this.WrapAsPostAction(postRequest))
 	var request any = this.SafeDict(wrapped, "request", map[string]any{})
@@ -347,7 +347,7 @@ func (this *Hyperliquid) watchOrderBookBody(ch chan any, symbol any, optionalArg
 	}
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -395,7 +395,7 @@ func (this *Hyperliquid) unWatchOrderBookBody(ch chan any, symbol any, optionalA
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var subMessageHash any = ccxt.Add("orderbook:", symbol)
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var id string = ccxt.ToString(this.IncrementingNonce())
 	var request map[string]any = map[string]any{
@@ -493,7 +493,7 @@ func (this *Hyperliquid) watchTickerBody(ch chan any, symbol any, optionalArgs .
 	// pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
 	// instead of the aggregate allMids broadcast that only carries mids and arrives at the
 	// server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -538,7 +538,7 @@ func (this *Hyperliquid) unWatchTickerBody(ch chan any, symbol any, optionalArgs
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var subMessageHash any = ccxt.Add("ticker:", symbol)
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -845,7 +845,7 @@ func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	return true
 }
-func (this *Hyperliquid) ParseWsTicker(rawTicker any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParseWsTicker(rawTicker map[string]any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return this.ParseTicker(rawTicker, market)
@@ -905,7 +905,7 @@ func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 	}
 	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(keys); i++ {
-		var currentMessageHash any = ccxt.Add("myTrades:", ccxt.GetValue(keys, i))
+		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", ccxt.GetValue(keys, i)))
 		client.(ccxt.ClientInterface).Resolve(trades, currentMessageHash)
 	}
 	// non-symbol specific
@@ -944,7 +944,7 @@ func (this *Hyperliquid) watchTradesBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("trade:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trade:", symbol))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -995,7 +995,7 @@ func (this *Hyperliquid) unWatchTradesBody(ch chan any, symbol any, optionalArgs
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var subMessageHash any = ccxt.Add("trade:", symbol)
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -1177,7 +1177,7 @@ func (this *Hyperliquid) watchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 			"interval": timeframe,
 		},
 	}
-	var messageHash any = ccxt.Add("candles:"+timeframe+":", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("candles:"+timeframe+":", symbol))
 	var message map[string]any = this.Extend(request, params)
 
 	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))))
@@ -1232,7 +1232,7 @@ func (this *Hyperliquid) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		},
 	}
 	var subMessageHash any = ccxt.Add("candles:"+timeframe+":", symbol)
-	var messagehash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var messagehash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
 	var message map[string]any = this.Extend(request, params)
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messagehash, message, messagehash)))
@@ -1272,7 +1272,7 @@ func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
 	var ohlcv any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	var parsed any = this.ParseOHLCV(data)
 	ohlcv.(ccxt.Appender).Append(parsed)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol))
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }
 func (this *Hyperliquid) HandleWsPost(client any, message map[string]any) {
@@ -1471,28 +1471,33 @@ func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
 		this.Balance = map[string]any{}
 	}
 	var topic *string = this.SafeString(message, "channel")
-	var messageHash any = ccxt.Add(topic, "::balance")
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(topic, "::balance"))
 	var info any = nil
-	var rawBalances any = []any{}
+	var rawBalances []any = []any{}
 	var account any = nil
 	var timestamp *int64 = nil
 	var data any = this.SafeValue(message, "data", []any{})
 	if topic != nil && *topic == "spotState" {
 		var spotState map[string]any = ccxt.SafeMapTyped(data, "spotState")
-		rawBalances = this.SafeList(spotState, "balances", []any{})
+		rawBalances = ccxt.ArrayTyped(this.SafeList(spotState, "balances", []any{}))
 		account = "spot"
 		info = rawBalances
 	}
 	if topic != nil && *topic == "clearinghouseState" {
 		account = "swap"
 		var clearinghouseState any = this.SafeDict(data, "clearinghouseState")
-		ccxt.AppendToArray(&rawBalances, clearinghouseState)
+		rawBalances = append(rawBalances, clearinghouseState)
 		info = clearinghouseState
 		timestamp = this.SafeInteger(clearinghouseState, "time")
 		this.HandlePositions(client, message)
 	}
-	for i := 0; i < ccxt.GetArrayLength(rawBalances); i++ {
-		this.ParseWsBalance(ccxt.GetValue(rawBalances, i), account)
+	for i := 0; i < len(rawBalances); i++ {
+		this.ParseWsBalance(func() any {
+			if i >= 0 && i < len(rawBalances) {
+				return ccxt.DerefScalar(rawBalances[i])
+			}
+			return nil
+		}(), account)
 	}
 	if ccxt.IsEqual(this.SafeValue(this.Balance, account), nil) {
 		ccxt.AddElementToObject(this.Balance, account, map[string]any{})
@@ -1537,15 +1542,15 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 	_ = accountType
 	var account map[string]any = this.Account()
 	var currencyId *string = this.SafeString(balance, "coin")
-	var code any = nil
+	var code *string = nil
 	if currencyId == nil {
-		code = "USDC"
+		code = ccxt.SafeStringPtr("USDC")
 		var marginSummary map[string]any = ccxt.SafeMapTyped(balance, "marginSummary")
 		account["free"] = this.SafeString(balance, "withdrawable")
 		account["used"] = this.SafeString(marginSummary, "totalMarginUsed")
 		account["total"] = this.SafeString(marginSummary, "accountValue")
 	} else {
-		code = ccxt.DerefScalar(this.SafeCurrencyCode(currencyId))
+		code = this.SafeCurrencyCode(currencyId)
 		account["used"] = this.SafeString(balance, "hold")
 		account["total"] = this.SafeString(balance, "total")
 	}
@@ -2055,7 +2060,7 @@ func (this *Hyperliquid) HandleOHLCVUnsubscription(client any, subscription map[
 	var interval *string = this.SafeString(subscription, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
 	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if ccxt.InOp(this.Ohlcvs, symbol) {
 		if ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe) {

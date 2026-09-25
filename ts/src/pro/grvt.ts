@@ -827,7 +827,7 @@ export default class grvt extends grvtRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined): Position {
         // same as REST api
         return this.parsePosition (position, market);
     }
@@ -951,7 +951,7 @@ export default class grvt extends grvtRest {
         return this.parseOrder (order, market);
     }
 
-    handleErrorMessage (client: Client, response: any): Bool {
+    handleErrorMessage (client: Client, response: Dict): Bool {
         //
         //    {
         //        "jsonrpc": "2.0",

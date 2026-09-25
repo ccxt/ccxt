@@ -310,7 +310,7 @@ export default class coincheck extends Exchange {
         //         ]
         //     }
         //
-        const exchangeStatuses = this.safeList (response, 'exchange_status', []);
+        const exchangeStatuses: Dict[] = this.safeList (response, 'exchange_status', []);
         let status = 'ok';
         let updated: Int = undefined;
         for (let i = 0; i < exchangeStatuses.length; i++) {
@@ -369,7 +369,7 @@ export default class coincheck extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetExchangeOrdersOpens (params);
-        const rawOrders = this.safeList (response, 'orders', []);
+        const rawOrders: Dict[] = this.safeList (response, 'orders', []);
         const parsedOrders = this.parseOrders (rawOrders, market, since, limit);
         const result: Order[] = [];
         for (let i = 0; i < parsedOrders.length; i++) {
@@ -647,7 +647,7 @@ export default class coincheck extends Exchange {
         //                  ]
         //      }
         //
-        const transactions = this.safeList (response, 'data', []);
+        const transactions: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (transactions, market, since, limit);
     }
 
@@ -684,7 +684,7 @@ export default class coincheck extends Exchange {
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -860,7 +860,7 @@ export default class coincheck extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeList (response, 'deposits', []);
+        const data: Dict[] = this.safeList (response, 'deposits', []);
         return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
     }
 
@@ -909,7 +909,7 @@ export default class coincheck extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
     }
 

@@ -412,7 +412,7 @@ class cex extends \ccxt\async\cex {
         }
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //  public
         //    {
@@ -838,7 +838,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($storedOrders, $messageHash);
     }
 
-    public function parse_ws_order_update(mixed $order, ?array $market = null) {
+    public function parse_ws_order_update(array $order, ?array $market = null) {
         //
         //      {
         //          "id": "150714937",
@@ -1085,7 +1085,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function pair_to_symbol(mixed $pair) {
+    public function pair_to_symbol(mixed $pair): string {
         $parts = explode(':', $pair);
         $baseId = $this->safe_string($parts, 0);
         $quoteId = $this->safe_string($parts, 1);

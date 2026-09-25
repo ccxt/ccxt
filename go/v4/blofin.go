@@ -1883,15 +1883,15 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) any {
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "orderType")
 	var postOnly any = nil
-	var timeInForce any = nil
+	var timeInForce *string = nil
 	if typeVar != nil && *typeVar == "post_only" {
 		postOnly = true
 		typeVar = SafeStringPtr("limit")
 	} else if typeVar != nil && *typeVar == "fok" {
-		timeInForce = "FOK"
+		timeInForce = SafeStringPtr("FOK")
 		typeVar = SafeStringPtr("limit")
 	} else if typeVar != nil && *typeVar == "ioc" {
-		timeInForce = "IOC"
+		timeInForce = SafeStringPtr("IOC")
 		typeVar = SafeStringPtr("limit")
 	} else if typeVar != nil && *typeVar == "conditional" {
 		typeVar = SafeStringPtr("trigger")
@@ -2034,12 +2034,12 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		response = (<-this.PrivatePostTradeOrderTpsl(tpslRequest))
 		PanicOnError(response)
 	} else if isTriggerOrder || isSlOrTp {
-		var triggerRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+		var triggerRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 
 		response = (<-this.PrivatePostTradeOrderAlgo(triggerRequest))
 		PanicOnError(response)
 	} else {
-		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+		var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 
 		response = (<-this.PrivatePostTradeOrder(request))
 		PanicOnError(response)
@@ -2234,7 +2234,7 @@ func (this *Blofin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
-		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
@@ -4027,7 +4027,7 @@ func (this *Blofin) HandleErrors(httpCode any, reason any, url any, method any, 
 	//
 	var code *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	if (code != nil) && (code == nil || *code != "0") {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

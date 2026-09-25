@@ -834,8 +834,8 @@ export default class hyperliquid extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'time');
         const levels = this.safeList (response, 'levels', []);
-        const rawBids = this.safeList (levels, 0, []);
-        const rawAsks = this.safeList (levels, 1, []);
+        const rawBids: Dict[] = this.safeList (levels, 0, []);
+        const rawAsks: Dict[] = this.safeList (levels, 1, []);
         const bids: Num[][] = [];
         const asks: Num[][] = [];
         for (let i = 0; i < rawBids.length; i++) {
@@ -980,7 +980,7 @@ export default class hyperliquid extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        const balances = this.safeList (response, 'balances', []);
+        const balances: Dict[] = this.safeList (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i);
             const coin = this.safeString (balance, 'coin');

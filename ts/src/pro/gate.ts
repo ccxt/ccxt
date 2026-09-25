@@ -1134,7 +1134,7 @@ export default class gate extends gateRest {
             const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
             const parsed = this.parseOHLCV (ohlcv);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+            let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -1359,7 +1359,7 @@ export default class gate extends gateRest {
         //       ]
         //   }
         //
-        const result = this.safeList (message, 'result', []);
+        const result: Dict[] = this.safeList (message, 'result', []);
         this.balance['info'] = result;
         for (let i = 0; i < result.length; i++) {
             const rawBalance = this.safeDict (result, i);
@@ -1520,7 +1520,7 @@ export default class gate extends gateRest {
         //    }
         //
         const type = this.getMarketTypeByUrl (client.url);
-        const data = this.safeList (message, 'result', []);
+        const data: Dict[] = this.safeList (message, 'result', []);
         const cache = this.positions[type];
         const newPositions: Position[] = [];
         for (let i = 0; i < data.length; i++) {
@@ -1845,7 +1845,7 @@ export default class gate extends gateRest {
         //        ]
         //    }
         //
-        const rawLiquidations = this.safeList (message, 'result', []);
+        const rawLiquidations: Dict[] = this.safeList (message, 'result', []);
         const newLiquidations: Liquidation[] = [];
         if (this.liquidations === undefined) {
             const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
@@ -2071,8 +2071,8 @@ export default class gate extends gateRest {
                 if (id !== subId) {
                     continue;
                 }
-                const messageHashes = this.safeList (subscription, 'messageHashes', []);
-                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+                const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];

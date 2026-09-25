@@ -1237,7 +1237,7 @@ public partial class coinex : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < chains.Count; j++)
         {
-            object chain = chains[j];
+            IDictionary<string, object> chain = ((IDictionary<string, object>)chains[j]);
             string? networkId = this.safeString(chain, "chain");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkId == null))
@@ -4215,7 +4215,7 @@ public partial class coinex : Exchange
         object minNotional = 0;
         for (int i = 0; i < brackets.Count; i++)
         {
-            object tier = brackets[i];
+            IDictionary<string, object> tier = ((IDictionary<string, object>)brackets[i]);
             string? marketId = this.safeString(info, "market");
             market = this.safeMarket(marketId, market, null, "swap");
             double? maxNotional = this.safeNumber(tier, "amount");

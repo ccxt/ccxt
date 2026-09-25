@@ -597,7 +597,7 @@ export default class bitopro extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.publicGetTickers ();
-        const tickers = this.safeList (response, 'data', []);
+        const tickers: Dict[] = this.safeList (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -768,7 +768,7 @@ export default class bitopro extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTradesPair (this.extend (request, params));
-        const trades = this.safeList (response, 'data', []);
+        const trades: Dict[] = this.safeList (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -1482,7 +1482,7 @@ export default class bitopro extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privateGetOrdersOpen (this.extend (request, params));
-        const orders = this.safeList (response, 'data', []);
+        const orders: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1527,7 +1527,7 @@ export default class bitopro extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privateGetOrdersTradesPair (this.extend (request, params));
-        const trades = this.safeList (response, 'data', []);
+        const trades: Dict[] = this.safeList (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -1680,7 +1680,7 @@ export default class bitopro extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetWalletDepositHistoryCurrency (this.extend (request, params));
-        const result = this.safeList (response, 'data', []);
+        const result: Dict[] = this.safeList (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -1735,7 +1735,7 @@ export default class bitopro extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetWalletWithdrawHistoryCurrency (this.extend (request, params));
-        const result = this.safeList (response, 'data', []);
+        const result: Dict[] = this.safeList (response, 'data', []);
         //
         //     {
         //         "data":[

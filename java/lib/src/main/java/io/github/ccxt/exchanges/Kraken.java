@@ -2448,7 +2448,7 @@ public class Kraken extends KrakenApi
         {
             return id;
         }
-        Object market = this.safeValue(((Map<String, Object>)this.options).get("delistedMarketsById"), id);
+        Map<String, Object> market = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("delistedMarketsById"), id);
         if (!java.util.Objects.equals(market, null))
         {
             return market;
@@ -4826,7 +4826,7 @@ final String finalId = id;
         return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public String parseAccountType(Object account)
+    public String parseAccountType(String account)
     {
         Map<String, Object> accountByType = new HashMap<String, Object>() {{
             put( "spot", "Spot Wallet" );
@@ -4892,8 +4892,8 @@ final String finalId = id;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            String fromAccountParsed = this.parseAccountType(fromAccount);
-            String toAccountParsed = this.parseAccountType(toAccount);
+            String fromAccountParsed = this.parseAccountType((String) (fromAccount));
+            String toAccountParsed = this.parseAccountType((String) (toAccount));
             final String finalFromAccountParsed = fromAccountParsed;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", Kraken.this.currencyToPrecision((String) (code), amount) );

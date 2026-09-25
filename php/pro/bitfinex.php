@@ -394,7 +394,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         // ]
         //
         $name = 'myTrade';
-        $data = $this->safe_value($message, 2);
+        $data = $this->safe_list($message, 2);
         $trade = $this->parse_ws_trade($data);
         $symbol = $trade['symbol'];
         $market = $this->market($symbol);
@@ -617,7 +617,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $client->resolve($parsed, $messageHash);
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     [
         //         236.62,        // 1 BID float Price of last highest bid
@@ -922,7 +922,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //       null
         //   ]
         //
-        $updateType = $this->safe_value($message, 1);
+        $updateType = $this->safe_string($message, 1);
         $data = array();
         if ($updateType === 'ws') {
             $data = $this->safe_list($message, 2);

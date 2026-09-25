@@ -173,7 +173,7 @@ class modetrade(ccxt.async_support.modetrade):
         message = self.extend(request, params)
         return await self.watch_public(topic, message)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol": "PERP_BTC_USDC",
@@ -1056,7 +1056,7 @@ class modetrade(ccxt.async_support.modetrade):
             client.resolve(position, messageHash)
         client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position: object, market: Market = None):
+    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "symbol":"PERP_ETH_USDC",

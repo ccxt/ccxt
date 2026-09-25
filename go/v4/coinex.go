@@ -1397,7 +1397,7 @@ func (this *Coinex) fetchSpotMarketsBody(ch chan any, params any) any {
 		var quoteId *string = this.SafeString(market, "quote_ccy")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
@@ -1509,7 +1509,7 @@ func (this *Coinex) fetchContractMarketsBody(ch chan any, params any) any {
 			settleId = SafeStringPtr("USDT")
 		}
 		var settle *string = this.SafeCurrencyCode(settleId)
-		var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+		var symbol *string = SafeStringPtr(Add(Add(Add(Add(base, "/"), quote), ":"), settle))
 		var leveragesLength int = len(leverages)
 		result = append(result, map[string]any{
 			"id":             id,
@@ -1772,7 +1772,7 @@ func (this *Coinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
-	query := GetValue(marketTypequeryVariable, 1)
+	var query map[string]any = MapTyped(GetValue(marketTypequeryVariable, 1))
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
 
@@ -3031,7 +3031,7 @@ func (this *Coinex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var isStopLossTriggerOrder bool = (stopLossTriggerPrice != nil)
 	var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
 	var isStopLossOrTakeProfitTrigger bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder
-	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 	var response any = nil
 	if GetValue(market, "spot") == true {
 		if isTriggerOrder {
@@ -3133,7 +3133,7 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var isStopLossTriggerOrder bool = (stopLossTriggerPrice != nil)
 		var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
 		isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder
-		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -3174,13 +3174,13 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 			}
 			return nil
 		}()
-		var status any = nil
+		var status *string = nil
 		var code *int64 = this.SafeInteger(entry, "code")
 		if code != nil {
 			if code == nil || *code != 0 {
-				status = "rejected"
+				status = SafeStringPtr("rejected")
 			} else {
-				status = "open"
+				status = SafeStringPtr("open")
 			}
 		}
 		var innerData any = this.SafeDict(entry, "data", map[string]any{})
@@ -3974,9 +3974,9 @@ func (this *Coinex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"ccy": currency["id"],
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a \"network\" parameter"))
@@ -5126,9 +5126,9 @@ func (this *Coinex) withdrawBody(ch chan any, code any, amount any, address any,
 	if tag != nil {
 		request["memo"] = tag
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		request["chain"] = this.NetworkCodeToId(networkCode, currency["code"]) // required for on-chain, not required for inter-user transfer

@@ -3220,7 +3220,7 @@ class binance extends Exchange {
         return $this->parse_currencies_custom($responseCurrencies, $marginablesById);
     }
 
-    public function parse_currencies_custom(mixed $responseCurrencies, mixed $marginablesById): array {
+    public function parse_currencies_custom(mixed $responseCurrencies, ?array $marginablesById): array {
         $result = array();
         for ($i = 0; $i < count($responseCurrencies); $i++) {
             $parsed = $this->parse_currency($responseCurrencies[$i]);
@@ -9404,7 +9404,7 @@ class binance extends Exchange {
         return $this->filter_by_since_limit($trades, $since, $limit);
     }
 
-    public function parse_dust_trade(mixed $trade, ?array $market = null) {
+    public function parse_dust_trade(array $trade, ?array $market = null) {
         //
         //     {
         //       "fromAsset": "USDT",
@@ -11286,7 +11286,7 @@ class binance extends Exchange {
         );
     }
 
-    public function parse_account_positions(mixed $account, bool $filterClosed = false): array {
+    public function parse_account_positions(array $account, bool $filterClosed = false): array {
         $positions = $this->safe_list($account, 'positions', array());
         $assets = $this->safe_list($account, 'assets', array());
         $balances = array();

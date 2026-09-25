@@ -1888,7 +1888,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function load_account_infos() {
+    public function load_account_infos(): bool {
         if ($this->safe_string($this->options, 'userMainAccountId') !== null) {
             return false;
         }

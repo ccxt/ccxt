@@ -937,12 +937,12 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	ch <- result
 	return nil
 }
-func (this *Onetrading) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[string]any {
+func (this *Onetrading) ParseFeeTiers(feeTiers any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var takerFees []any = []any{}
 	var makerFees []any = []any{}
-	for i := 0; i < len(feeTiers); i++ {
+	for i := 0; i < GetArrayLength(feeTiers); i++ {
 		var tier map[string]any = SafeMapTyped(feeTiers, i)
 		var volume *float64 = this.SafeNumber(tier, "volume")
 		var taker *string = this.SafeString(tier, "taker_fee")
@@ -2321,7 +2321,7 @@ func (this *Onetrading) HandleErrors(code any, reason any, url any, method any, 
 	//
 	var message *string = this.SafeString(response, "error")
 	if message != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

@@ -325,7 +325,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTicker:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "tick":{
@@ -921,7 +921,7 @@ class lbank(ccxt.async_support.lbank):
         if handler is not None:
             handler(client, message)
 
-    async def authenticate(self, params: dict = {}):
+    async def authenticate(self, params: dict = {}) -> Str:
         # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
         # concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
         # subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately

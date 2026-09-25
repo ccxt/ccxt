@@ -2274,7 +2274,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def parse_account_type(self, type: object):
+    def parse_account_type(self, type: Str):
         types = {
             '1': 'spot account',
             '3': 'swap account',

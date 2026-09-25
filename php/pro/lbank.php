@@ -362,7 +362,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "tick":{
@@ -1028,7 +1028,7 @@ class lbank extends \ccxt\async\lbank {
         }
     }
 
-    public function authenticate($params = array()) {
+    public function authenticate($params = array()): PromiseInterface {
         return Async\async(self::do_authenticate(...))($params);
     }
 

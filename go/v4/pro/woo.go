@@ -131,7 +131,7 @@ func (this *Woo) unwatchPublicBody(ch chan any, subHash any, symbol any, topic a
 	}
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
 	var requestId int64 = this.RequestId(url)
-	var unsubHash any = ccxt.Add("unsubscribe::", subHash)
+	var unsubHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", subHash))
 	var message map[string]any = map[string]any{
 		"id":    requestId,
 		"event": "unsubscribe",
@@ -329,7 +329,7 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 	} else {
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-			var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
+			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
 			var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		}
@@ -384,7 +384,7 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan any, client any, message any
 			// try block:
 			var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 			var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
-			var params any = this.SafeValue(subscription, "params")
+			var params map[string]any = ccxt.SafeMapTyped(subscription, "params")
 
 			snapshot := (<-this.FetchRestOrderBookSafeAsync(symbol, limit, params))
 			ccxt.PanicOnError(snapshot)
@@ -1122,14 +1122,14 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(trade, "side")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var maker *bool = this.SafeBool(trade, "maker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if maker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = ccxt.SafeStringPtr(func() string {
 			if maker != nil && *maker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	var typeVar *string = this.SafeStringLower(trade, "type")
 	var fee map[string]any = nil
@@ -1556,7 +1556,7 @@ func (this *Woo) HandleOrder(client any, message any, topic any) {
 			if !ccxt.IsEqual(fee, nil) {
 				parsed["fee"] = fee
 			}
-			var fees any = this.SafeValue(order, "fees")
+			var fees any = this.SafeList(order, "fees")
 			if !ccxt.IsEqual(fees, nil) {
 				ccxt.AddElementToObject(parsed, "fees", fees)
 			}
@@ -1772,7 +1772,7 @@ func (this *Woo) HandlePositions(client any, message map[string]any) {
 		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition, market))
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
-		var messageHash any = ccxt.Add("positions::", market["symbol"])
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("positions::", market["symbol"]))
 		client.(ccxt.ClientInterface).Resolve(position, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
@@ -1962,7 +1962,7 @@ func (this *Woo) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if errorMessage != nil {
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 			}
 			return false
@@ -1985,23 +1985,23 @@ func (this *Woo) HandleUnSubscription(client any, message map[string]any) {
 	//     }
 	//
 	var subscribeHash *string = this.SafeString(message, "data")
-	var unsubscribeHash any = ccxt.Add("unsubscribe::", subscribeHash)
+	var unsubscribeHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", subscribeHash))
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), unsubscribeHash, map[string]any{})
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	var unsubMessageHashes []any = ccxt.SafeListTyped(subscription, "unsubMessageHashes")
 	for i := 0; i < len(subMessageHashes); i++ {
-		var subHash any = func() any {
+		var subHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(subMessageHashes) {
 				return ccxt.DerefScalar(subMessageHashes[i])
 			}
 			return nil
-		}()
-		var unsubHash any = func() any {
+		}())
+		var unsubHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(unsubMessageHashes) {
 				return ccxt.DerefScalar(unsubMessageHashes[i])
 			}
 			return nil
-		}()
+		}())
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)

@@ -7,7 +7,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ChecksumError, ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Int, Liquidation, List, Market, Num, FeeString, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Liquidation, Market, Num, FeeString, NullableList, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import Client from '../base/ws/Client.js';
@@ -293,7 +293,7 @@ export default class binance extends binanceRest {
         return 'market';
     }
 
-    getPrivateWsUrl (type: Str, listenKey: Str) {
+    getPrivateWsUrl (type: Str, listenKey: Str): string {
         if (listenKey === undefined) {
             throw new AuthenticationError (this.id + ' getPrivateWsUrl() requires a listenKey from authenticate()');
         }
@@ -436,7 +436,7 @@ export default class binance extends binanceRest {
         const subscribe: Dict = {
             'id': requestId,
         };
-        const newLiquidations = await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscribe);
+        const newLiquidations: Liquidation[] = await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscribe);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -498,7 +498,7 @@ export default class binance extends binanceRest {
         client.resolve ([ liquidation ], 'liquidations::' + symbol);
     }
 
-    parseWsLiquidation (liquidation: any, market: Market = undefined) {
+    parseWsLiquidation (liquidation: Dict, market: Market = undefined) {
         //
         // future
         //    {
@@ -642,14 +642,14 @@ export default class binance extends binanceRest {
         const listenKey = this.options[type]['listenKey'];
         const url = this.getPrivateWsUrl (type, listenKey);
         const message = undefined;
-        const newLiquidations = await this.watchMultiple (url, messageHashes, message, [ type ]);
+        const newLiquidations: Liquidation[] = await this.watchMultiple (url, messageHashes, message, [ type ]);
         if (this.newUpdates) {
             return newLiquidations;
         }
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit);
     }
 
-    handleMyLiquidation (client: Client, message: any) {
+    handleMyLiquidation (client: Client, message: Dict) {
         //
         //    {
         //        "s":"BTCUSDT",              // Symbol
@@ -1197,7 +1197,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //     {
         //         "result": null,
@@ -1219,8 +1219,8 @@ export default class binance extends binanceRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
         for (let j = 0; j < messageHashes.length; j++) {
             const unsubHash = messageHashes[j];
             const subHash = subMessageHashes[j];
@@ -2515,7 +2515,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    parseWsTicker (message: any, marketType: any) {
+    parseWsTicker (message: any, marketType: any): Ticker {
         // markPrice
         //   {
         //       "e": "markPriceUpdate",   // Event type
@@ -2751,7 +2751,7 @@ export default class binance extends binanceRest {
         }
         let channelName: Str = undefined;
         const resolvedMessageHashes: string[] = [];
-        let rawTickers: List = [];
+        let rawTickers: Dict[] = [];
         const newTickers: Dict = {};
         if (Array.isArray (message)) {
             rawTickers = message;
@@ -2885,7 +2885,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleUserDataStreamSubscribe (client: Client, message: any) {
+    handleUserDataStreamSubscribe (client: Client, message: Dict) {
         //
         //   {
         //     "id": 1,
@@ -3498,7 +3498,7 @@ export default class binance extends binanceRest {
         //
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeList (message, 'result', []);
+        const result: Dict[] = this.safeList (message, 'result', []);
         const positions: Position[] = [];
         for (let i = 0; i < result.length; i++) {
             const parsed = this.parsePositionRisk (result[i]);
@@ -3719,7 +3719,7 @@ export default class binance extends binanceRest {
         return [ type, subType, params ];
     }
 
-    getMarketType (method: any, market: any, params: Dict = {}) {
+    getMarketType (method: any, market: any, params: Dict = {}): string {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (method, market, params);
         let subType: Str = undefined;
@@ -4925,10 +4925,10 @@ export default class binance extends binanceRest {
         //         ]
         //     }
         //
-        const orders = this.safeList (message, 'o', []);
+        const orders: Dict[] = this.safeList (message, 'o', []);
         for (let i = 0; i < orders.length; i++) {
             const order = this.safeDict (orders, i);
-            const fills = this.safeList (order, 'fi', []);
+            const fills: Dict[] = this.safeList (order, 'fi', []);
             const rawQty = this.safeString (order, 'q', '0');
             let side = 'BUY';
             if (Precise.stringLt (rawQty, '0')) {
@@ -5141,7 +5141,7 @@ export default class binance extends binanceRest {
         }
         const cache = this.positions[accountType];
         const data = this.safeDict (message, 'a', {});
-        const rawPositions = this.safeList (data, 'P', []);
+        const rawPositions: Dict[] = this.safeList (data, 'P', []);
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = this.safeDict (rawPositions, i);
@@ -5166,7 +5166,7 @@ export default class binance extends binanceRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: NullableDict, market: Market = undefined) {
         //
         //     {
         //         "s": "BTCUSDT", // Symbol
@@ -5585,7 +5585,7 @@ export default class binance extends binanceRest {
                 if (fee !== undefined) {
                     parsed['fee'] = fee;
                 }
-                const fees = this.safeValue (order, 'fees');
+                const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
                     (parsed as Dict)['fees'] = fees;
                 }
@@ -5609,7 +5609,7 @@ export default class binance extends binanceRest {
         this.handlePositions (client, message);
     }
 
-    handleOptionsAccountUpdate (client: Client, message: any) {
+    handleOptionsAccountUpdate (client: Client, message: Dict) {
         //
         // BALANCE_POSITION_UPDATE (options user data stream)
         //
@@ -5637,7 +5637,7 @@ export default class binance extends binanceRest {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
-        const B = this.safeList (message, 'B', []);
+        const B: Dict[] = this.safeList (message, 'B', []);
         for (let i = 0; i < B.length; i++) {
             const entry = this.safeDict (B, i);
             const currencyId = this.safeString (entry, 'a');
@@ -5661,7 +5661,7 @@ export default class binance extends binanceRest {
             this.positions[accountType] = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions[accountType];
-        const P = this.safeList (message, 'P', []);
+        const P: Dict[] = this.safeList (message, 'P', []);
         const newPositions = [];
         for (let i = 0; i < P.length; i++) {
             const rawPosition = this.safeDict (P, i);
@@ -5685,7 +5685,7 @@ export default class binance extends binanceRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    handleWsError (client: Client, message: any) {
+    handleWsError (client: Client, message: Dict) {
         //
         //    {
         //        "error": {
@@ -5731,7 +5731,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleEventStreamTerminated (client: Client, message: any) {
+    handleEventStreamTerminated (client: Client, message: Dict) {
         //
         //    {
         //        e: 'eventStreamTerminated',

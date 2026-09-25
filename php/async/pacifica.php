@@ -565,7 +565,7 @@ class pacifica extends Exchange {
         ));
     }
 
-    public function initialize_client() {
+    public function initialize_client(): PromiseInterface {
         return Async\async(self::do_initialize_client(...))();
     }
 
@@ -578,7 +578,7 @@ class pacifica extends Exchange {
         return true;
     }
 
-    public function handle_builder_fee_approval() {
+    public function handle_builder_fee_approval(): PromiseInterface {
         return Async\async(self::do_handle_builder_fee_approval(...))();
     }
 
@@ -1722,11 +1722,7 @@ class pacifica extends Exchange {
         } else {
             $operationType = 'create_order';
             $sigPayload['reduce_only'] = $reduceOnly;
-            if ($timeInForce === null) {
-                $sigPayload['tif'] = 'GTC';
-            } else {
-                $sigPayload['tif'] = $timeInForce;
-            }
+            $sigPayload['tif'] = $timeInForce;
         }
         if ($isTakeProfitOrder) {
             $tpPayload = array(
@@ -2659,7 +2655,7 @@ class pacifica extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function map_time_in_force(?string $tifRaw) {
+    public function map_time_in_force(?string $tifRaw): string {
         $tifMap = array(
             'GTC' => 'GTC',
             'IOC' => 'IOC',
@@ -2673,7 +2669,7 @@ class pacifica extends Exchange {
         if ($tifRaw !== null) {
             $tif = strtoupper($tifRaw);
         }
-        return $this->safe_string($tifMap, $tif);
+        return $this->safe_string($tifMap, $tif, 'GTC');
     }
 
     public function map_side(?string $sideRaw) {
@@ -3652,7 +3648,7 @@ class pacifica extends Exchange {
         return Async\await($this->privatePostAccountBuilderCodesApprove($this->extend($request, $params)));
     }
 
-    public function fetch_builder_approvals(string $address) {
+    public function fetch_builder_approvals(string $address): PromiseInterface {
         return Async\async(self::do_fetch_builder_approvals(...))($address);
     }
 

@@ -132,8 +132,7 @@ func (this *Bullish) watchPrivateBody(ch chan any, messageHash any, subscribeHas
 	_ = params
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 
-	token := (<-this.HandleTokenAsync())
-	ccxt.PanicOnError(token)
+	var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.HandleTokenAsync())))
 	var cookies map[string]any = map[string]any{
 		"JWT_COOKIE": token,
 	}
@@ -184,7 +183,7 @@ func (this *Bullish) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var messageHash any = ccxt.Add("trades::", market["symbol"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades::", market["symbol"]))
 	var url string = "/trading-api/v1/market-data/trades"
 	var request map[string]any = map[string]any{
 		"topic":  "anonymousTrades",
@@ -240,7 +239,7 @@ func (this *Bullish) HandleTrades(client any, message any) {
 		tradesArray.(ccxt.Appender).Append(ccxt.GetValue(trades, i))
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
-	var messageHash any = ccxt.Add("trades::", market["symbol"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades::", market["symbol"]))
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 }
 
@@ -270,7 +269,7 @@ func (this *Bullish) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), market["id"])
-	var messageHash any = ccxt.Add("ticker::", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", symbol))
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, params, messageHash))) // no need to send a subscribe message, the server sends a ticker update on connect
 	return nil
@@ -365,7 +364,7 @@ func (this *Bullish) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url string = "/trading-api/v1/market-data/orderbook"
-	var messageHash any = ccxt.Add("orderbook::", market["symbol"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook::", market["symbol"]))
 	var request map[string]any = map[string]any{
 		"topic":  "l2Orderbook",
 		"symbol": market["id"],
@@ -541,14 +540,14 @@ func (this *Bullish) HandleOrders(client any, message any) {
 	//     }
 	//
 	var typeVar *string = this.SafeString(message, "type")
-	var rawOrders any = []any{}
+	var rawOrders []any = []any{}
 	if typeVar != nil && *typeVar == "update" {
 		var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
-		ccxt.AppendToArray(&rawOrders, data) // update is a single order
+		rawOrders = append(rawOrders, data) // update is a single order
 	} else {
-		rawOrders = this.SafeList(message, "data", []any{}) // snapshot is a list of orders
+		rawOrders = ccxt.ArrayTyped(this.SafeList(message, "data", []any{})) // snapshot is a list of orders
 	}
-	var numRawOrders int = ccxt.GetArrayLength(rawOrders) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+	var numRawOrders int = len(rawOrders) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 	if numRawOrders > 0 {
 		if ccxt.IsEqual(this.Orders, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -556,8 +555,13 @@ func (this *Bullish) HandleOrders(client any, message any) {
 		}
 		var orders any = this.Orders
 		var symbols map[string]any = map[string]any{}
-		for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
-			var rawOrder any = ccxt.GetValue(rawOrders, i)
+		for i := 0; i < len(rawOrders); i++ {
+			var rawOrder any = func() any {
+				if i >= 0 && i < len(rawOrders) {
+					return ccxt.DerefScalar(rawOrders[i])
+				}
+				return nil
+			}()
 			var parsedOrder map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
 			orders.(ccxt.Appender).Append(parsedOrder)
 			var symbol *string = this.SafeString(parsedOrder, "symbol")
@@ -670,14 +674,14 @@ func (this *Bullish) HandleMyTrades(client any, message any) {
 	//     }
 	//
 	var typeVar *string = this.SafeString(message, "type")
-	var rawTrades any = []any{}
+	var rawTrades []any = []any{}
 	if typeVar != nil && *typeVar == "update" {
 		var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
-		ccxt.AppendToArray(&rawTrades, data) // update is a single trade
+		rawTrades = append(rawTrades, data) // update is a single trade
 	} else {
-		rawTrades = this.SafeList(message, "data", []any{}) // snapshot is a list of trades
+		rawTrades = ccxt.ArrayTyped(this.SafeList(message, "data", []any{})) // snapshot is a list of trades
 	}
-	var numRawTrades int = ccxt.GetArrayLength(rawTrades) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+	var numRawTrades int = len(rawTrades) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 	if numRawTrades > 0 {
 		if ccxt.IsEqual(this.MyTrades, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -685,8 +689,13 @@ func (this *Bullish) HandleMyTrades(client any, message any) {
 		}
 		var trades any = this.MyTrades
 		var symbols map[string]any = map[string]any{}
-		for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
-			var rawTrade any = ccxt.GetValue(rawTrades, i)
+		for i := 0; i < len(rawTrades); i++ {
+			var rawTrade any = func() any {
+				if i >= 0 && i < len(rawTrades) {
+					return ccxt.DerefScalar(rawTrades[i])
+				}
+				return nil
+			}()
 			var parsedTrade map[string]any = ccxt.MapTyped(this.ParseTrade(rawTrade))
 			trades.(ccxt.Appender).Append(parsedTrade)
 			var symbol *string = this.SafeString(parsedTrade, "symbol")
@@ -877,20 +886,25 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 	// current method is implemented blindly
 	// todo: check if this works with not-sandbox mode
 	var messageType *string = this.SafeString(message, "type")
-	var rawPositions any = []any{}
+	var rawPositions []any = []any{}
 	if messageType != nil && *messageType == "update" {
 		var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
-		ccxt.AppendToArray(&rawPositions, data)
+		rawPositions = append(rawPositions, data)
 	} else {
-		rawPositions = this.SafeList(message, "data", []any{})
+		rawPositions = ccxt.ArrayTyped(this.SafeList(message, "data", []any{}))
 	}
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var positions any = this.Positions
 	var newPositions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
-		var rawPosition any = ccxt.GetValue(rawPositions, i)
+	for i := 0; i < len(rawPositions); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(rawPositions) {
+				return ccxt.DerefScalar(rawPositions[i])
+			}
+			return nil
+		}()
 		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
 		positions.(ccxt.Appender).Append(position)
 		newPositions = append(newPositions, position)
@@ -926,7 +940,7 @@ func (this *Bullish) HandleErrorMessage(client any, message any) {
 	//     }
 	//
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
-	var feedback any = ccxt.Add(this.Id+" ", this.Json(data))
+	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(data)))
 
 	{
 		func(this *Bullish) (ret_ any) {

@@ -1183,7 +1183,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 Object jReversed = Helpers.subtract((((long) tradesLength) - 1L), j);
                 Object tradeRaw = Helpers.GetValue(trades, jReversed);
-                Helpers.addElementToObject(tradeRaw, "accountIndex", accountIndex);
+                ((Map<String, Object>)tradeRaw).put("accountIndex", accountIndex);
                 Object trade = this.parseWsOrderTrade((Map<String, Object>) (tradeRaw), market);
                 stored.append(trade);
                 String symbol = (String) ((Map<String, Object>)trade).get("symbol");

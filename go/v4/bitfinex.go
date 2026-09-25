@@ -950,7 +950,7 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var symbol any = Add(Add(base, "/"), quote)
 		// baseId = 'f' + baseId;
 		// quoteId = 'f' + quoteId;
-		var settle any = nil
+		var settle *string = nil
 		var settleId *string = nil
 		if swap {
 			settle = quote
@@ -1871,7 +1871,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 		side = "buy"
 	}
 	var orderId *string = nil
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	var typeVar *string = nil
 	var fee map[string]any = nil
 	var symbol *string = this.SafeSymbol(nil, market)
@@ -1892,12 +1892,12 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 		symbol = this.SafeSymbol(marketId)
 		orderId = this.SafeString(tradeList, 3)
 		var maker *int64 = this.SafeInteger(tradeList, 8)
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if maker != nil && *maker == 1 {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 		var feeCostString *string = this.SafeString(tradeList, 9)
 		feeCostString = Precise.StringNeg(feeCostString)
 		var feeCurrencyId *string = this.SafeString(tradeList, 10)
@@ -2367,7 +2367,7 @@ func (this *Bitfinex) createOrderBody(ch chan any, symbol any, typeVar any, side
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 
 	response := (<-this.PrivatePostAuthWOrderSubmit(request))
 	PanicOnError(response)
@@ -2466,7 +2466,7 @@ func (this *Bitfinex) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams))
 		ordersRequests = append(ordersRequests, []any{"on", orderRequest})
 	}
 	var request map[string]any = map[string]any{
@@ -3341,9 +3341,9 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 	var code any = nil
 	var amount any = nil
 	var id any = nil
-	var status any = nil
+	var status *string = nil
 	var tag *string = nil
-	var typeVar any = nil
+	var typeVar *string = nil
 	var feeCost *string = nil
 	var txid *string = nil
 	var addressTo *string = nil
@@ -3361,13 +3361,13 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 		}
 		amount = DerefScalar(this.SafeNumber(data, 5))
 		id = DerefScalar(this.SafeInteger(data, 0))
-		status = "ok"
+		status = SafeStringPtr("ok")
 		if IsEqual(id, 0) {
 			id = nil
-			status = "failed"
+			status = SafeStringPtr("failed")
 		}
 		tag = this.SafeString(data, 3)
-		typeVar = "withdrawal"
+		typeVar = SafeStringPtr("withdrawal")
 		var networkId *string = this.SafeString(data, 2)
 		network = this.NetworkIdToCode(ToUpper(networkId), code) // withdraw returns in lowercase
 	} else if transactionLength == 22 {
@@ -3383,9 +3383,9 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 		amount = Precise.StringAbs(signedAmount)
 		if signedAmount != nil {
 			if Precise.StringLt(signedAmount, "0") {
-				typeVar = "withdrawal"
+				typeVar = SafeStringPtr("withdrawal")
 			} else {
-				typeVar = "deposit"
+				typeVar = SafeStringPtr("deposit")
 			}
 		}
 		feeCost = this.SafeString(transaction, 13)
@@ -3730,7 +3730,7 @@ func (this *Bitfinex) withdrawBody(ch chan any, code any, amount any, address an
 	//
 	var statusMessage *string = this.SafeString(response, 0)
 	if statusMessage != nil && *statusMessage == "error" {
-		var feedback any = Add(this.Id+" ", response)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", response))
 		var message *string = this.SafeString(response, 2, "")
 		// same message as in v1
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
@@ -3934,7 +3934,7 @@ func (this *Bitfinex) Sign(path any, optionalArgs ...any) any {
 		// bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
 		var nonce string = ToString(this.IncrementingNonce())
 		body = this.Json(query)
-		var auth any = Add(Add(Add("/api/", request), nonce), body)
+		var auth *string = SafeStringPtr(Add(Add(Add("/api/", request), nonce), body))
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha384)
 		headers = map[string]any{
 			"bfx-nonce":     nonce,
@@ -3955,7 +3955,7 @@ func (this *Bitfinex) HandleErrors(statusCode any, statusText any, url any, meth
 	if !IsEqual(response, nil) {
 		if !IsArray(response) {
 			var message *string = this.SafeString2(response, "message", "error")
-			var feedback any = Add(this.Id+" ", body)
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 			panic(ExchangeError(Add(this.Id+" ", body)))

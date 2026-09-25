@@ -4039,7 +4039,7 @@ public class Gate extends GateApi
             //        ...
             //    ]
             //
-            return this.parseFundingHistories(response, symbol, since, limit);
+            return this.parseFundingHistories(response, (String) (symbol), since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -4060,7 +4060,7 @@ public class Gate extends GateApi
         return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseFundingHistories(Object response, Object symbol, Object since, Object limit)
+    public Object parseFundingHistories(Object response, String symbol, Object since, Object limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(response); i++)

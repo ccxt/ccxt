@@ -1482,7 +1482,7 @@ class paradex extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function get_system_config() {
+    public function get_system_config(): PromiseInterface {
         return Async\async(self::do_get_system_config(...))();
     }
 
@@ -1546,7 +1546,7 @@ class paradex extends Exchange {
         return $domain;
     }
 
-    public function retrieve_account() {
+    public function retrieve_account(): PromiseInterface {
         return Async\async(self::do_retrieve_account(...))();
     }
 
@@ -1601,7 +1601,7 @@ class paradex extends Exchange {
         return $response;
     }
 
-    public function authenticate_rest($params = array()) {
+    public function authenticate_rest($params = array()): PromiseInterface {
         return Async\async(self::do_authenticate_rest(...))($params);
     }
 

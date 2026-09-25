@@ -1408,7 +1408,7 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseValueToPricision (valueObject: Dict, valueKey: string, preciseObject: any, precisionKey: string) {
+    parseValueToPricision (valueObject: Dict, valueKey: string, preciseObject: NullableDict, precisionKey: string) {
         const valueRawString = this.safeString (valueObject, valueKey);
         const precisionRawString = this.safeString (preciseObject, precisionKey);
         if (valueRawString === undefined || precisionRawString === undefined) {
@@ -1464,7 +1464,7 @@ export default class bitteam extends Exchange {
         //     ]
         //
         const tickers: List = [];
-        let rawTickers: List = [];
+        let rawTickers: Dict[] = [];
         if (Array.isArray (response)) {
             rawTickers = response;
         }

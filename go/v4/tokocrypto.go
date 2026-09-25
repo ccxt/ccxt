@@ -891,7 +891,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var settle *string = this.SafeCurrencyCode(settleId)
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 		var filters []any = SafeListTyped(market, "filters")
 		var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 		var status *string = this.SafeString(market, "spotTradingEnable")
@@ -1182,28 +1182,28 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var id *string = this.SafeString2(trade, "t", "a")
 	id = this.SafeString2(trade, "id", "tradeId", id)
-	var side any = nil
+	var side *string = nil
 	var orderId *string = this.SafeString(trade, "orderId")
 	var buyerMaker *bool = this.SafeBool2(trade, "m", "isBuyerMaker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if buyerMaker != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if buyerMaker != nil && *buyerMaker == true {
 				return "sell"
 			}
 			return "buy"
-		}() // this is reversed intentionally
-		takerOrMaker = "taker"
+		}()) // this is reversed intentionally
+		takerOrMaker = SafeStringPtr("taker")
 	} else if InOp(trade, "side") {
 		side = this.SafeStringLower(trade, "side")
 	} else {
 		if InOp(trade, "isBuyer") {
-			side = func() string {
+			side = SafeStringPtr(func() string {
 				if IsEqual(GetValue(trade, "isBuyer"), true) {
 					return "buy"
 				}
 				return "sell"
-			}() // this is a true side
+			}()) // this is a true side
 		}
 	}
 	var fee map[string]any = nil
@@ -1214,20 +1214,20 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	if InOp(trade, "isMaker") {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if IsEqual(GetValue(trade, "isMaker"), true) {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	if InOp(trade, "maker") {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if IsEqual(GetValue(trade, "maker"), true) {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -1762,16 +1762,16 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	//         "timestamp": 1659492212507
 	//     }
 	//
-	var data any = []any{}
+	var data []any = []any{}
 	if IsArray(response) {
-		data = response
+		data = ArrayTyped(response)
 	} else {
 		var dataList any = this.SafeList(response, "data")
 		if !IsEqual(dataList, nil) {
-			data = dataList
+			data = ArrayTyped(dataList)
 		} else {
 			var dataDict map[string]any = SafeMapTyped(response, "data")
-			data = this.SafeList(dataDict, "list", []any{})
+			data = ArrayTyped(this.SafeList(dataDict, "list", []any{}))
 		}
 	}
 
@@ -3037,8 +3037,8 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
 		request["addressTag"] = tag
 	}
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode := GetValue(networkCodequeryVariable, 0)
-	query := GetValue(networkCodequeryVariable, 1)
+	var networkCode *string = SafeStringPtr(GetValue(networkCodequeryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(networkCodequeryVariable, 1))
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
 		request["network"] = ToUpper(networkId)
@@ -3210,7 +3210,7 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 		if (error != nil && *error == "-2015") && (IsEqual(GetValue(this.Options, "hasAlreadyAuthenticatedSuccessfully"), true)) {
 			panic(DDoSProtection(Add(this.Id+" ", body)))
 		}
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		if message != nil && *message == "No need to change margin type." {
 			panic(MarginModeAlreadySet(feedback))
 		}

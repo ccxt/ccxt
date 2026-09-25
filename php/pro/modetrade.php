@@ -198,7 +198,7 @@ class modetrade extends \ccxt\async\modetrade {
         return Async\await($this->watch_public($topic, $message));
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -1202,7 +1202,7 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(?array $position, ?array $market = null): array {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",

@@ -2866,7 +2866,7 @@ public class Kucoin extends KucoinApi
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
      * @returns {any} ignore
      */
-    public CompletableFuture<Object> loadMigrationStatus(Object force)
+    public CompletableFuture<Boolean> loadMigrationStatus(Object force)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2877,7 +2877,7 @@ public class Kucoin extends KucoinApi
                 Helpers.addElementToObject(this.options, "hf", this.safeBool(result, "data"));
             }
             return true;
-        });
+        }).thenApply(res -> (Boolean) res);
 
     }
     /**
@@ -2888,7 +2888,7 @@ public class Kucoin extends KucoinApi
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
      * @returns {any} ignore
      */
-    public CompletableFuture<Object> loadMigrationStatus(Object... optionalArgs)
+    public CompletableFuture<Boolean> loadMigrationStatus(Object... optionalArgs)
     {
         return this.loadMigrationStatus(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
     }
@@ -9395,7 +9395,7 @@ public class Kucoin extends KucoinApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            Object method = ((Map<String, Object>)this.options).get("fetchMyTradesMethod");
+            String method = this.safeString(this.options, "fetchMyTradesMethod");
             Boolean parseResponseData = false;
             Map<String, Object> response = null;
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));

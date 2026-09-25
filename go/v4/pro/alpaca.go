@@ -102,7 +102,7 @@ func (this *Alpaca) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var messageHash any = ccxt.Add("ticker:", market["symbol"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", market["symbol"]))
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"quotes": []any{market["id"]},
@@ -125,7 +125,7 @@ func (this *Alpaca) HandleTicker(client any, message map[string]any) {
 	//
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(message))
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	}
@@ -212,7 +212,7 @@ func (this *Alpaca) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		"action": "subscribe",
 		"bars":   []any{market["id"]},
 	}
-	var messageHash any = ccxt.Add("ohlcv:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv:", symbol))
 
 	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))))
 	if this.NewUpdates {
@@ -282,7 +282,7 @@ func (this *Alpaca) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("orderbook"+":", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook"+":", symbol))
 	var request map[string]any = map[string]any{
 		"action":     "subscribe",
 		"orderbooks": []any{market["id"]},
@@ -383,7 +383,7 @@ func (this *Alpaca) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("trade:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trade:", symbol))
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"trades": []any{market["id"]},

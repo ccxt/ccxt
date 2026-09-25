@@ -236,8 +236,7 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		"selectors": rawHashes,
 	}
 
-	ticker := (<-this.SubscribeMultipleAsync(messageHashes, this.Extend(params, request), rawHashes))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribeMultipleAsync(messageHashes, this.Extend(params, request), rawHashes))))
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -602,7 +601,7 @@ func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
 	var secondPart *string = this.SafeString(parts, 1, "")
 	var timeframeId string = strings.Replace(*secondPart, "-TRADE", "", 1)
 	var timeframe *string = this.FindTimeframe(timeframeId)
-	var messageHash any = ccxt.Add("ohlcv::"+*symbol+"::", timeframe)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit any = this.HandleOption("watchOHLCV", "limit", 1000)
@@ -1204,7 +1203,7 @@ func (this *Grvt) HandleErrorMessage(client any, response any) any {
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
 		var body any = this.Json(response)
-		var feedback any = ccxt.Add(this.Id+" ", body)
+		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
 		var message *string = this.SafeString(error, "message")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)

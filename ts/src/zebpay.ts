@@ -390,7 +390,7 @@ export default class zebpay extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (rawCurrency, 'name');
         const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
-        const chains = this.safeList (rawCurrency, 'chains', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'chains', []);
         const networks: Dict = {};
         let minWithdrawFeeString: Str = undefined;
         let minWithdrawString: Str = undefined;
@@ -700,7 +700,7 @@ export default class zebpay extends Exchange {
         //        }
         //     ]
         //
-        const tickerList = this.safeList (response, 'data', []);
+        const tickerList: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (tickerList, symbols);
     }
 
@@ -1222,7 +1222,7 @@ export default class zebpay extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        let orders: List = [];
+        let orders: Dict[] = [];
         if (market['spot'] === true) {
             request['currentPage'] = 1;
             if (limit !== undefined) {
@@ -1230,7 +1230,7 @@ export default class zebpay extends Exchange {
             }
             response = await this.privateSpotGetV2ExOrders (this.extend (request, params));
             const responseData = this.safeDict (response, 'data', {});
-            orders = this.safeList (responseData, 'items', []) as List;
+            orders = this.safeList (responseData, 'items', []);
         } else {
             if (since !== undefined) {
                 request['since'] = since;
@@ -1240,7 +1240,7 @@ export default class zebpay extends Exchange {
             }
             response = await this.privateSwapGetV1TradeOrderOpenOrders (this.extend (request, params));
             const responseData = this.safeDict (response, 'data', {});
-            orders = this.safeList (responseData, 'data', []) as List;
+            orders = this.safeList (responseData, 'data', []);
         }
         //
         //     {
@@ -1526,7 +1526,7 @@ export default class zebpay extends Exchange {
         //        ],
         //    }
         //
-        const positions = this.safeList (response, 'data', []);
+        const positions: Dict[] = this.safeList (response, 'data', []);
         const result = this.parsePositions (positions);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
@@ -1641,7 +1641,7 @@ export default class zebpay extends Exchange {
         //
         const result: List = [];
         const data = this.safeDict (response, 'data', {});
-        const markets = this.safeList (data, 'symbols', []);
+        const markets: Dict[] = this.safeList (data, 'symbols', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
@@ -1723,7 +1723,7 @@ export default class zebpay extends Exchange {
         //
         const result: List = [];
         const data = this.safeDict (response, 'data', {});
-        const markets = this.safeList (data, 'symbols', []);
+        const markets: Dict[] = this.safeList (data, 'symbols', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
@@ -1778,7 +1778,7 @@ export default class zebpay extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const currencyList = this.safeList (response, 'data', []);
+        const currencyList: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < currencyList.length; i++) {
             const entry = this.safeDict (currencyList, i);
             const account = this.account ();

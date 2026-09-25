@@ -513,7 +513,7 @@ export default class bitbank extends Exchange {
         };
         const response = await this.publicGetPairTransactions (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'transactions', []);
+        const trades: Dict[] = this.safeList (data, 'transactions', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -559,7 +559,7 @@ export default class bitbank extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const pairs = this.safeList (data, 'pairs', []);
+        const pairs: Dict[] = this.safeList (data, 'pairs', []);
         const result: Dict = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
@@ -661,7 +661,7 @@ export default class bitbank extends Exchange {
             'datetime': undefined,
         };
         const data = this.safeDict (response, 'data', {});
-        const assets = this.safeList (data, 'assets', []);
+        const assets: Dict[] = this.safeList (data, 'assets', []);
         for (let i = 0; i < assets.length; i++) {
             const balance = this.safeDict (assets, i);
             const currencyId = this.safeString (balance, 'asset');
@@ -927,7 +927,7 @@ export default class bitbank extends Exchange {
         }
         const response = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -960,7 +960,7 @@ export default class bitbank extends Exchange {
         }
         const response = await this.privateGetUserSpotTradeHistory (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'trades', []);
+        const trades: Dict[] = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 

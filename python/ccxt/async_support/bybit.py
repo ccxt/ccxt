@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
+import math
 from ccxt.base.types import ADL, Balances, BorrowInterest, Bool, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Greeks, AllGreeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2772,8 +2773,7 @@ class bybit(Exchange, ImplicitAPI):
             # start up to the interval boundary so that the exchange returns
             # candles from the first bucket at or after `since`
             duration = self.parse_timeframe(timeframe) * 1000
-            rounded = self.parse_to_int(since / duration) * duration
-            request['start'] = since if (rounded == since) else self.sum(rounded, duration)
+            request['start'] = self.parse_to_int(int(math.ceil(since / duration))) * duration
         if limit is not None:
             request['limit'] = limit  # max 1000, default 1000
         request, params = self.handle_until_option('end', request, params)

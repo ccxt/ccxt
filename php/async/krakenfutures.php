@@ -3743,7 +3743,7 @@ class krakenfutures extends Exchange {
         }
     }
 
-    public function transfer_out(string $code, float $amount, $params = array()) {
+    public function transfer_out(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_transfer_out(...))($code, $amount, $params);
     }
 

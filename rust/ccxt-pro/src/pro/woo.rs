@@ -613,7 +613,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }  else {
             if !(in_op(&self.orderbooks, &symbol)) {
                 let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
-                let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), topic.clone(), &[]);
+                let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), topic.clone(), &[]);
                 let mut limit: Value = self.safe_integer_k(subscription, "limit", &[defaultLimit]);
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -653,7 +653,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit]);
-            let mut params: Value = self.safe_value_k(subscription, "params", &[]);
+            let mut params: Value = self.safe_dict_k(subscription, "params", &[]);
             let mut snapshot: Value = self.fetch_rest_order_book_safe(symbol.clone(), &[limit, params]).await;
             if (self.safe_dict(self.orderbooks.clone(), symbol.clone(), &[]) == Value::Null) {
                 return Value::Null;
@@ -1796,7 +1796,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 if (fee != Value::Null) {
                     add_element_to_object(&mut parsed, &Value::Str("fee".into()), fee);
                 }
-                let mut fees: Value = self.safe_value_k(order.clone(), "fees", &[]);
+                let mut fees: Value = self.safe_list_k(order.clone(), "fees", &[]);
                 if (fees != Value::Null) {
                     add_element_to_object(&mut parsed, &Value::Str("fees".into()), fees);
                 }

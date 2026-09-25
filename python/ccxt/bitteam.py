@@ -1368,7 +1368,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_value_to_pricision(self, valueObject: dict, valueKey: str, preciseObject: object, precisionKey: str):
+    def parse_value_to_pricision(self, valueObject: dict, valueKey: str, preciseObject: dict, precisionKey: str):
         valueRawString = self.safe_string(valueObject, valueKey)
         precisionRawString = self.safe_string(preciseObject, precisionKey)
         if valueRawString is None or precisionRawString is None:

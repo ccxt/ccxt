@@ -454,7 +454,7 @@ export default class bullish extends bullishRest {
         //     }
         //
         const type = this.safeString (message, 'type');
-        let rawOrders: List = [];
+        let rawOrders: Dict[] = [];
         if (type === 'update') {
             const data = this.safeDict (message, 'data', {});
             rawOrders.push (data); // update is a single order
@@ -565,7 +565,7 @@ export default class bullish extends bullishRest {
         //     }
         //
         const type = this.safeString (message, 'type');
-        let rawTrades: List = [];
+        let rawTrades: Dict[] = [];
         if (type === 'update') {
             const data = this.safeDict (message, 'data', {});
             rawTrades.push (data); // update is a single trade
@@ -740,7 +740,7 @@ export default class bullish extends bullishRest {
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
         const messageType = this.safeString (message, 'type');
-        let rawPositions: List = [];
+        let rawPositions: Dict[] = [];
         if (messageType === 'update') {
             const data = this.safeDict (message, 'data', {});
             rawPositions.push (data);

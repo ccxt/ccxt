@@ -1322,14 +1322,14 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
 	var side *string = this.SafeString(trade, "side")
 	var takerSide *string = this.SafeString(trade, "taker_side")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if (takerSide != nil) && (side != nil) && (side == nil || *side != "SELF_TRADING") {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if takerSide == side || (takerSide != nil && side != nil && *takerSide == *side) {
 				return "taker"
 			}
 			return "maker"
-		}()
+		}())
 	}
 	if side == nil {
 		// taker side is not related to buy/sell side
@@ -1374,7 +1374,7 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerCurrencyCode any = nil
 	if takerOrMaker != nil {
 		if side != nil && *side == "buy" {
-			if IsEqual(takerOrMaker, "maker") {
+			if takerOrMaker != nil && *takerOrMaker == "maker" {
 				makerCurrencyCode = DerefScalar(this.SafeString(market, "base"))
 				takerCurrencyCode = DerefScalar(this.SafeString(market, "quote"))
 			} else {
@@ -1382,7 +1382,7 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 				takerCurrencyCode = DerefScalar(this.SafeString(market, "base"))
 			}
 		} else {
-			if IsEqual(takerOrMaker, "maker") {
+			if takerOrMaker != nil && *takerOrMaker == "maker" {
 				makerCurrencyCode = DerefScalar(this.SafeString(market, "quote"))
 				takerCurrencyCode = DerefScalar(this.SafeString(market, "base"))
 			} else {
@@ -1720,9 +1720,9 @@ func (this *Bigone) ParseOrder(order any, optionalArgs ...any) any {
 		triggerPrice = nil
 	}
 	var immediateOrCancel *bool = this.SafeBool(order, "immediate_or_cancel")
-	var timeInForce any = nil
+	var timeInForce *string = nil
 	if immediateOrCancel != nil && *immediateOrCancel == true {
-		timeInForce = "IOC"
+		timeInForce = SafeStringPtr("IOC")
 	}
 	var typeVar *string = this.ParseType(this.SafeString(order, "type"))
 	var price *string = this.SafeString(order, "price")
@@ -2410,7 +2410,7 @@ func (this *Bigone) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 	var networkCodeparamsOmittedVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsOmittedVariable, 0)
-	paramsOmitted := GetValue(networkCodeparamsOmittedVariable, 1)
+	var paramsOmitted map[string]any = MapTyped(GetValue(networkCodeparamsOmittedVariable, 1))
 
 	response := (<-this.PrivateGetAssetsAssetSymbolAddress(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
@@ -2821,9 +2821,9 @@ func (this *Bigone) withdrawBody(ch chan any, code any, amount any, address any,
 	if tag != nil {
 		request["memo"] = tag
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		request["gateway_name"] = this.NetworkCodeToId(networkCode, currency["code"])
@@ -2868,7 +2868,7 @@ func (this *Bigone) HandleErrors(httpCode any, reason any, url any, method any, 
 	var code *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "message")
 	if (code == nil || *code != "0") && (code != nil) {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

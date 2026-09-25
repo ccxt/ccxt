@@ -878,7 +878,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(mixed $position, ?array $market = null): array {
         // same as REST api
         return $this->parse_position($position, $market);
     }
@@ -1006,7 +1006,7 @@ class grvt extends \ccxt\async\grvt {
         return $this->parse_order($order, $market);
     }
 
-    public function handle_error_message(Client $client, mixed $response): ?bool {
+    public function handle_error_message(Client $client, array $response): ?bool {
         //
         //    {
         //        "jsonrpc": "2.0",

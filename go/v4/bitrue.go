@@ -1086,7 +1086,7 @@ func (this *Bitrue) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(market, "baseAsset")
 	var quoteId *string = this.SafeString(market, "quoteAsset")
 	var settleId any = nil
-	var settle any = nil
+	var settle *string = nil
 	if isContract {
 		var symbolSplit []string = strings.Split(*id, "-")
 		baseId = this.SafeString(symbolSplit, 1)
@@ -1096,13 +1096,13 @@ func (this *Bitrue) ParseMarket(market any) any {
 		} else {
 			settleId = baseId
 		}
-		settle = DerefScalar(this.SafeCurrencyCode(settleId))
+		settle = this.SafeCurrencyCode(settleId)
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
 	if settle != nil {
-		symbol = Add(symbol, Add(":", settle))
+		symbol = Add(symbol, ":"+*settle)
 	}
 	var filters []any = SafeListTyped(market, "filters")
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
@@ -1967,24 +1967,24 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var orderId *string = this.SafeString(trade, "orderId")
 	var id *string = this.SafeString2(trade, "id", "tradeId")
-	var side any = nil
+	var side *string = nil
 	var buyerMaker *bool = this.SafeBool(trade, "isBuyerMaker") // ignore "m" until Bitrue fixes api
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if buyerMaker != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if buyerMaker != nil && *buyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	if isBuyer != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
 			return "sell"
-		}() // this is a true side
+		}()) // this is a true side
 	}
 	var fee map[string]any = nil
 	if InOp(trade, "commission") {
@@ -1993,15 +1993,15 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": this.SafeCurrencyCode(this.SafeString(trade, "commissionAssert")),
 		}
 	}
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	if isMaker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -2823,7 +2823,7 @@ func (this *Bitrue) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var response map[string]any = nil
-	var data any = []any{}
+	var data []any = []any{}
 	if GetValue(market, "swap") == true {
 		var request map[string]any = map[string]any{
 			"contractName": market["id"],
@@ -2835,7 +2835,7 @@ func (this *Bitrue) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 			response = MapTyped(PanicOnError((<-this.DapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Raw))
 		}
-		data = this.SafeList(response, "data", []any{})
+		data = ArrayTyped(this.SafeList(response, "data", []any{}))
 	} else {
 		panic(NotSupported(this.Id + " cancelAllOrders only support future markets"))
 	}
@@ -3245,14 +3245,14 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) any {
 	}
 	var status *string = this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar)
 	var amount *float64 = this.SafeNumber(transaction, "amount")
-	var network any = nil
+	var network *string = nil
 	var currencyId *string = this.SafeString2(transaction, "symbol", "coin")
 	if currencyId != nil {
 		var parts []string = strings.Split(*currencyId, "_")
 		currencyId = this.SafeString(parts, 0)
 		var networkId *string = this.SafeString(parts, 1)
 		if networkId != nil {
-			network = strings.ToUpper(*networkId)
+			network = SafeStringPtr(strings.ToUpper(*networkId))
 		}
 	}
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -3326,9 +3326,9 @@ func (this *Bitrue) withdrawBody(ch chan any, code any, amount any, address any,
 		"amount":    amount,
 		"addressTo": address,
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		request["chainName"] = this.NetworkCodeToId(networkCode, currency["code"])
@@ -3912,7 +3912,7 @@ func (this *Bitrue) HandleErrors(code any, reason any, url any, method any, head
 		if (error != nil && *error == "-2015") && (IsEqual(GetValue(this.Options, "hasAlreadyAuthenticatedSuccessfully"), true)) {
 			panic(DDoSProtection(Add(this.Id+" temporary banned: ", body)))
 		}
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		panic(ExchangeError(feedback))
 	}

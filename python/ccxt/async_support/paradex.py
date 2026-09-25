@@ -1378,7 +1378,7 @@ class paradex(Exchange, ImplicitAPI):
     def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    async def get_system_config(self):
+    async def get_system_config(self) -> dict:
         cachedConfig = self.safe_dict(self.options, 'systemConfig')
         if cachedConfig is not None:
             return cachedConfig
@@ -1430,7 +1430,7 @@ class paradex(Exchange, ImplicitAPI):
         }
         return domain
 
-    async def retrieve_account(self):
+    async def retrieve_account(self) -> dict:
         cachedAccount = self.safe_dict(self.options, 'paradexAccount')
         if cachedAccount is not None:
             return cachedAccount
@@ -1474,7 +1474,7 @@ class paradex(Exchange, ImplicitAPI):
         response = await self.privatePostOnboarding(params)
         return response
 
-    async def authenticate_rest(self, params: dict = {}):
+    async def authenticate_rest(self, params: dict = {}) -> Str:
         cachedToken = self.safe_string(self.options, 'authToken')
         now = self.nonce()
         if cachedToken is not None:

@@ -2429,7 +2429,7 @@ class hashkey extends Exchange {
         );
     }
 
-    public function parse_account_type(mixed $type) {
+    public function parse_account_type(?string $type) {
         $types = array(
             '1' => 'spot account',
             '3' => 'swap account',

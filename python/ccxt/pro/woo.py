@@ -241,7 +241,7 @@ class woo(ccxt.async_support.woo):
         else:
             if not (symbol in self.orderbooks):
                 defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
-                subscription = self.safe_value(client.subscriptions, topic)
+                subscription = self.safe_dict(client.subscriptions, topic)
                 limit = self.safe_integer(subscription, 'limit', defaultLimit)
                 self.orderbooks[symbol] = self.order_book({}, limit)
             orderbook = self.orderbooks[symbol]
@@ -267,7 +267,7 @@ class woo(ccxt.async_support.woo):
         try:
             defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
             limit = self.safe_integer(subscription, 'limit', defaultLimit)
-            params = self.safe_value(subscription, 'params')
+            params = self.safe_dict(subscription, 'params')
             snapshot = await self.fetch_rest_order_book_safe(symbol, limit, params)
             if self.safe_dict(self.orderbooks, symbol) is None:
                 # if the orderbook is dropped before the snapshot is received
@@ -346,7 +346,7 @@ class woo(ccxt.async_support.woo):
         topic = 'ticker'
         return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -1135,7 +1135,7 @@ class woo(ccxt.async_support.woo):
                 fee = self.safe_value(order, 'fee')
                 if fee is not None:
                     parsed['fee'] = fee
-                fees = self.safe_value(order, 'fees')
+                fees = self.safe_list(order, 'fees')
                 if fees is not None:
                     parsed['fees'] = fees
                 parsed['trades'] = self.safe_value(order, 'trades')

@@ -3183,7 +3183,7 @@ class binance(Exchange, ImplicitAPI):
             marginablesById = self.index_by(responseMarginables, 'assetName')
         return self.parse_currencies_custom(responseCurrencies, marginablesById)
 
-    def parse_currencies_custom(self, responseCurrencies: object, marginablesById: object) -> Currencies:
+    def parse_currencies_custom(self, responseCurrencies: object, marginablesById: dict) -> Currencies:
         result = {}
         for i in range(0, len(responseCurrencies)):
             parsed = self.parse_currency(responseCurrencies[i])
@@ -8769,7 +8769,7 @@ class binance(Exchange, ImplicitAPI):
         trades = self.parse_trades(data, None, since, limit)
         return self.filter_by_since_limit(trades, since, limit)
 
-    def parse_dust_trade(self, trade: object, market: Market = None):
+    def parse_dust_trade(self, trade: dict, market: Market = None):
         #
         #     {
         #       "fromAsset": "USDT",
@@ -10453,7 +10453,7 @@ class binance(Exchange, ImplicitAPI):
             'interval': intervalString,
         }
 
-    def parse_account_positions(self, account: object, filterClosed: bool = False) -> list[Position]:
+    def parse_account_positions(self, account: dict, filterClosed: bool = False) -> list[Position]:
         positions = self.safe_list(account, 'positions', [])
         assets = self.safe_list(account, 'assets', [])
         balances = {}

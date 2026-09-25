@@ -1019,7 +1019,7 @@ func (this *Derive) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any
 }
 func (this *Derive) ParseMarket(market any) any {
 	var typeVar *string = this.SafeString(market, "instrument_type")
-	var marketType any = nil
+	var marketType *string = nil
 	var spot bool = false
 	var margin bool = true
 	var swap bool = false
@@ -1033,38 +1033,38 @@ func (this *Derive) ParseMarket(market any) any {
 	var marketId *string = this.SafeString(market, "instrument_name")
 	var symbol any = Add(Add(base, "/"), quote)
 	var settleId any = nil
-	var settle any = nil
+	var settle *string = nil
 	var expiry any = nil
 	var strike *int64 = nil
-	var optionType any = nil
-	var optionLetter any = nil
+	var optionType *string = nil
+	var optionLetter *string = nil
 	if typeVar != nil && *typeVar == "erc20" {
 		spot = true
-		marketType = "spot"
+		marketType = SafeStringPtr("spot")
 	} else if typeVar != nil && *typeVar == "perp" {
 		margin = false
 		settleId = "USDC"
-		settle = DerefScalar(this.SafeCurrencyCode(settleId))
+		settle = this.SafeCurrencyCode(settleId)
 		symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
 		swap = true
 		linear = true
 		inverse = false
-		marketType = "swap"
+		marketType = SafeStringPtr("swap")
 	} else if typeVar != nil && *typeVar == "option" {
 		settleId = "USDC"
-		settle = DerefScalar(this.SafeCurrencyCode(settleId))
+		settle = this.SafeCurrencyCode(settleId)
 		margin = false
 		option = true
-		marketType = "option"
+		marketType = SafeStringPtr("option")
 		var optionDetails map[string]any = SafeMapTyped(market, "option_details")
 		expiry = this.SafeTimestamp(optionDetails, "expiry")
 		strike = this.SafeInteger(optionDetails, "strike")
 		optionLetter = this.SafeString(optionDetails, "option_type")
 		symbol = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), this.Yymmdd(expiry)), "-"), this.NumberToString(strike)), "-"), optionLetter)
-		if IsEqual(optionLetter, "P") {
-			optionType = "put"
+		if optionLetter != nil && *optionLetter == "P" {
+			optionType = SafeStringPtr("put")
 		} else {
-			optionType = "call"
+			optionType = SafeStringPtr("call")
 		}
 		linear = true
 		inverse = false
@@ -3491,7 +3491,7 @@ func (this *Derive) HandleErrors(httpCode any, reason any, url any, method any, 
 	var error map[string]any = SafeMapTyped(response, "error")
 	if error != nil {
 		var errorCode *string = this.SafeString(error, "code")
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

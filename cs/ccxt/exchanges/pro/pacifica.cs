@@ -885,7 +885,7 @@ public partial class pacifica : ccxt.pacifica
         }
         for (int i = 0; i < data.Count; i++)
         {
-            object rawTrade = data[i];
+            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             if ((symbol != null))
@@ -1405,7 +1405,7 @@ public partial class pacifica : ccxt.pacifica
         Dictionary<string, object> marketSymbols = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object rawOrder = data[i];
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> order = this.parseOrder(rawOrder);
             stored.append(order);
             string? symbol = this.safeString(order, "symbol");

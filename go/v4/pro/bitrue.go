@@ -384,7 +384,7 @@ func (this *Bitrue) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	var url any = nil
 	var channel any = nil
 	var cbId any = nil
@@ -476,7 +476,7 @@ func (this *Bitrue) HandleOrderBook(client any, message any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var snapshot map[string]any = this.ParseOrderBook(parseable, symbol, timestamp, "buys", "asks")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
@@ -558,8 +558,8 @@ func (this *Bitrue) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var baseIdLower *string = this.SafeStringLower(market, "baseId")
 	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
 	var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
-	var channel any = ccxt.Add(ccxt.Add("market_", wsId), "_trade_ticker")
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("market_", wsId), "_trade_ticker"))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic"))
 	var message map[string]any = map[string]any{
 		"event": "sub",
@@ -627,7 +627,7 @@ func (this *Bitrue) HandleTrades(client any, message any) {
 		appended = true
 	}
 	if appended {
-		var messageHash any = ccxt.Add("trades:", symbol)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
@@ -702,8 +702,8 @@ func (this *Bitrue) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var baseIdLower *string = this.SafeStringLower(market, "baseId")
 	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
 	var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("market_", wsId), "_kline_"), interval)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("market_", wsId), "_kline_"), interval))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic"))
 	var message map[string]any = map[string]any{
 		"event": "sub",
@@ -766,7 +766,7 @@ func (this *Bitrue) HandleOHLCV(client any, message any) {
 	}
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	stored.(ccxt.Appender).Append(parsed)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe))
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Bitrue) ParseWsOHLCV(tick any, optionalArgs ...any) any {
@@ -820,8 +820,8 @@ func (this *Bitrue) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var baseIdLower *string = this.SafeStringLower(market, "baseId")
 	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
 	var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
-	var channel any = ccxt.Add(ccxt.Add("market_", wsId), "_ticker")
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("market_", wsId), "_ticker"))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic"))
 	var message map[string]any = map[string]any{
 		"event": "sub",
@@ -867,7 +867,7 @@ func (this *Bitrue) HandleTicker(client any, message any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(tick, market, timestamp))
 	ccxt.AddElementToObject(this.Tickers, symbol, parsed)
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 }
 func (this *Bitrue) ParseWsTicker(tick map[string]any, market any, optionalArgs ...any) any {

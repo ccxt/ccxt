@@ -959,9 +959,9 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	//         ]
 	//     ]
 	//
-	var candles any = []any{}
+	var candles []any = []any{}
 	if IsArray(response) {
-		candles = response
+		candles = ArrayTyped(response)
 	}
 
 	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
@@ -1932,9 +1932,9 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var isContract bool = this.InArray(marketType, []any{"swap", "future"})
 	var request map[string]any = map[string]any{}
@@ -3591,9 +3591,9 @@ func (this *Poloniex) withdrawBody(ch chan any, code any, amount any, address an
 		"amount":  this.CurrencyToPrecision(code, amount),
 		"address": address,
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode == nil {
 		panic(ArgumentsRequired(Add(Add(this.Id+" withdraw requires a network parameter for ", code), ".")))
@@ -3863,12 +3863,17 @@ func (this *Poloniex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...
 	//     ]
 	//
 	var data map[string]any = map[string]any{}
-	var entries any = []any{}
+	var entries []any = []any{}
 	if IsArray(response) {
-		entries = response
+		entries = ArrayTyped(response)
 	}
-	for i := 0; i < GetArrayLength(entries); i++ {
-		var entry any = GetValue(entries, i)
+	for i := 0; i < len(entries); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(entries) {
+				return DerefScalar(entries[i])
+			}
+			return nil
+		}()
 		var currencies []string = ObjectKeys(entry)
 		var currencyId *string = this.SafeString(currencies, 0)
 		AddElementToObject(data, currencyId, GetValue(entry, currencyId))
@@ -4722,7 +4727,7 @@ func (this *Poloniex) HandleErrors(code any, reason any, url any, method any, he
 	var responseCode *string = this.SafeString(response, "code")
 	if (responseCode != nil) && (responseCode == nil || *responseCode != "200") {
 		var message *string = this.SafeString2(response, "message", "msg")
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

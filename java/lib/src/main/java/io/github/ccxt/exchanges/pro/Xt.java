@@ -99,7 +99,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
      * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
-    public CompletableFuture<Object> getListenKey(Object isContract)
+    public CompletableFuture<String> getListenKey(Object isContract)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -181,7 +181,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return ((Map)client.subscriptions).get("token");
-        });
+        }).thenApply(res -> (String) res);
 
     }
 
@@ -274,8 +274,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                     subscribe.put("listenKey", (this.getListenKey(isContract)).join());
                 } else
                 {
-                    Object listenKey = (this.getListenKey(isContract)).join();
-                    String param = Helpers.add((name + "@"), listenKey);
+                    String listenKey = (this.getListenKey(isContract)).join();
+                    String param = ((name + "@") + listenKey);
                     subscribe.put("params", new ArrayList<Object>(Arrays.asList(param)));
                 }
             } else
@@ -372,8 +372,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                     unsubscribe.put("listenKey", (this.getListenKey(isContract)).join());
                 } else
                 {
-                    Object listenKey = (this.getListenKey(isContract)).join();
-                    String param = Helpers.add((name + "@"), listenKey);
+                    String listenKey = (this.getListenKey(isContract)).join();
+                    String param = ((name + "@") + listenKey);
                     unsubscribe.put("params", new ArrayList<Object>(Arrays.asList(param)));
                 }
             } else
@@ -1218,7 +1218,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return this.unWatchFundingRate(symbol, (Object) (parameters));
     }
 
-    public Object handleFundingRate(Client client, Map<String, Object> message)
+    public Map<String, Object> handleFundingRate(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1356,7 +1356,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         client.resolve(new ArrayList<Object>(Arrays.asList(position)), "position::contract");
     }
 
-    public Object handleTicker(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1442,7 +1442,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return message;
     }
 
-    public Object handleTickers(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTickers(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1551,7 +1551,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return message;
     }
 
-    public Object handleOHLCV(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1619,7 +1619,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return message;
     }
 
-    public Object handleTrade(Client client, Map<String, Object> message)
+    public Map<String, Object> handleTrade(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1962,7 +1962,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return this.parseWsOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object handleOrder(Client client, Map<String, Object> message)
+    public Map<String, Object> handleOrder(Client client, Map<String, Object> message)
     {
         //
         // spot

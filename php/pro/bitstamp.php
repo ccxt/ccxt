@@ -618,7 +618,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $client->resolve($stored, $channel);
     }
 
-    public function parse_ws_my_trade(mixed $trade, ?array $market = null): array {
+    public function parse_ws_my_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "id": 635698396,

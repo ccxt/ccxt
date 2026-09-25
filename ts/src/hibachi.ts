@@ -626,7 +626,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const trades = this.safeList (response, 'trades', []);
+        const trades: Dict[] = this.safeList (response, 'trades', []);
         let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
@@ -1009,7 +1009,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         const ret: Order[] = [];
-        const responseOrders = this.safeList (response, 'orders', []);
+        const responseOrders: Dict[] = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push (this.safeOrder ({
@@ -1116,7 +1116,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret: Order[] = [];
-        const responseOrders = this.safeList (response, 'orders', []);
+        const responseOrders: Dict[] = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push (this.safeOrder ({
@@ -1191,7 +1191,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret: Order[] = [];
-        const responseOrders = this.safeList (response, 'orders', []);
+        const responseOrders: Dict[] = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push (this.safeOrder ({
@@ -1612,7 +1612,7 @@ export default class hibachi extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeList (response, 'orders', []);
+        const orders: Dict[] = this.safeList (response, 'orders', []);
         const parsedOrders = this.parseOrders (orders, market);
         return this.filterBySymbolSinceLimit (parsedOrders, symbol, since, limit) as Order[];
     }
@@ -1764,7 +1764,7 @@ export default class hibachi extends Exchange {
         //     ],
         //   }
         //
-        const data = this.safeList (response, 'positions', []);
+        const data: Dict[] = this.safeList (response, 'positions', []);
         return this.parsePositions (data, symbols);
     }
 
@@ -2156,7 +2156,7 @@ export default class hibachi extends Exchange {
         //         },
         //     ]
         // }
-        const transactions = this.safeList (response, 'transactions', []);
+        const transactions: Dict[] = this.safeList (response, 'transactions', []);
         return this.parseTransactions (transactions, currency, since, limit, params);
     }
 
@@ -2275,7 +2275,7 @@ export default class hibachi extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'settlements', []);
+        const data: Dict[] = this.safeList (response, 'settlements', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
@@ -2418,7 +2418,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

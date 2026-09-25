@@ -1642,7 +1642,7 @@ func (this *Bitteam) ParseOrderType(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitteam) ParseValueToPricision(valueObject any, valueKey any, preciseObject any, precisionKey any) any {
+func (this *Bitteam) ParseValueToPricision(valueObject any, valueKey any, preciseObject map[string]any, precisionKey any) any {
 	var valueRawString *string = this.SafeString(valueObject, valueKey)
 	var precisionRawString *string = this.SafeString(preciseObject, precisionKey)
 	if (valueRawString == nil) || (precisionRawString == nil) {
@@ -1712,12 +1712,17 @@ func (this *Bitteam) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	//
 	var tickers []any = []any{}
-	var rawTickers any = []any{}
+	var rawTickers []any = []any{}
 	if IsArray(response) {
-		rawTickers = response
+		rawTickers = ArrayTyped(response)
 	}
-	for i := 0; i < GetArrayLength(rawTickers); i++ {
-		var rawTicker any = GetValue(rawTickers, i)
+	for i := 0; i < len(rawTickers); i++ {
+		var rawTicker any = func() any {
+			if i >= 0 && i < len(rawTickers) {
+				return DerefScalar(rawTickers[i])
+			}
+			return nil
+		}()
 		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker))
 		tickers = append(tickers, ticker)
 	}
@@ -2819,7 +2824,7 @@ func (this *Bitteam) HandleErrors(code any, reason any, url any, method any, hea
 				panic(BadSymbol(Add(Add(this.Id+" symbolId ", symbolId), " not found")))
 			}
 		}
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		var message *string = this.SafeString(response, "message")
 		var responseCode *string = this.SafeString(response, "code")
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

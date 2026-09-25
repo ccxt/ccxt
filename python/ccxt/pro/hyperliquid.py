@@ -580,7 +580,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         client.resolve(ticker, messageHash)
         return True
 
-    def parse_ws_ticker(self, rawTicker: object, market: Market = None) -> Ticker:
+    def parse_ws_ticker(self, rawTicker: dict, market: Market = None) -> Ticker:
         return self.parse_ticker(rawTicker, market)
 
     def handle_my_trades(self, client: Client, message: dict):

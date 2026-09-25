@@ -547,8 +547,8 @@ func (this *Cex) ParseMarket(market any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quoteId *string = this.SafeString(market, "quote")
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var id any = Add(Add(base, "-"), quote) // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
-	var symbol any = Add(Add(base, "/"), quote)
+	var id *string = SafeStringPtr(Add(Add(base, "-"), quote)) // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
+	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -2238,9 +2238,9 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -2341,7 +2341,7 @@ func (this *Cex) HandleErrors(code any, reason any, url any, method any, headers
 	}
 	var error *string = this.SafeString(response, "error")
 	if error != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 		panic(ExchangeError(feedback))

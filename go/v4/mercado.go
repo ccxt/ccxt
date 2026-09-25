@@ -870,14 +870,14 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(order, "order_id")
 	var order_type *string = this.SafeString(order, "order_type")
-	var side any = nil
+	var side *string = nil
 	if InOp(order, "order_type") {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if order_type != nil && *order_type == "1" {
 				return "buy"
 			}
 			return "sell"
-		}()
+		}())
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var marketId *string = this.SafeString(order, "coin_pair")
@@ -1334,7 +1334,7 @@ func (this *Mercado) Sign(path any, optionalArgs ...any) any {
 			"tapi_method": path,
 			"tapi_nonce":  nonce,
 		}, params))
-		var auth any = Add("/tapi/"+this.Version+"/"+"?", body)
+		var auth *string = SafeStringPtr(Add("/tapi/"+this.Version+"/"+"?", body))
 		headers = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
 			"TAPI-ID":      this.ApiKey,

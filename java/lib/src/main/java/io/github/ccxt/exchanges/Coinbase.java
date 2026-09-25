@@ -3769,7 +3769,7 @@ public class Coinbase extends CoinbaseApi
         return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public CompletableFuture<Object> findAccountId(String code, Map<String, Object> parameters)
+    public CompletableFuture<String> findAccountId(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3788,10 +3788,10 @@ public class Coinbase extends CoinbaseApi
                 }
             }
             return null;
-        });
+        }).thenApply(res -> (String) res);
 
     }
-    public CompletableFuture<Object> findAccountId(String code, Object... optionalArgs)
+    public CompletableFuture<String> findAccountId(String code, Object... optionalArgs)
     {
         return this.findAccountId(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -3827,7 +3827,7 @@ public class Coinbase extends CoinbaseApi
             String code = code3;
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
-            Object accountId = this.safeString2(parameters, "account_id", "accountId");
+            String accountId = this.safeString2(parameters, "account_id", "accountId");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
             if (java.util.Objects.equals(accountId, null))
             {
@@ -3841,7 +3841,7 @@ public class Coinbase extends CoinbaseApi
                     throw new ExchangeError((((this.id + " prepareAccountRequestWithCurrencyCode() could not find account id for ") + code) + ". You might try to generate the deposit address in the website for that coin first.")) ;
                 }
             }
-            final Object finalAccountId = accountId;
+            final String finalAccountId = accountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account_id", finalAccountId );
             }};
@@ -5650,7 +5650,7 @@ public class Coinbase extends CoinbaseApi
                 put( "amount", Coinbase.this.numberToString(amount) );
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
-            Object accountId = this.safeString2(parameters, "account_id", "accountId");
+            String accountId = this.safeString2(parameters, "account_id", "accountId");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
             if (java.util.Objects.equals(accountId, null))
             {
@@ -5958,7 +5958,7 @@ public class Coinbase extends CoinbaseApi
             {
                 (this.loadMarkets()).join();
             }
-            Object accountId = this.safeString2(parameters, "account_id", "accountId");
+            String accountId = this.safeString2(parameters, "account_id", "accountId");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
             if (java.util.Objects.equals(accountId, null))
             {
@@ -5972,7 +5972,7 @@ public class Coinbase extends CoinbaseApi
                     throw new ExchangeError(((this.id + " deposit() could not find account id for ") + code)) ;
                 }
             }
-            final Object finalAccountId = accountId;
+            final String finalAccountId = accountId;
             final String finalCode = code;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account_id", finalAccountId );
@@ -6063,7 +6063,7 @@ public class Coinbase extends CoinbaseApi
             {
                 (this.loadMarkets()).join();
             }
-            Object accountId = this.safeString2(parameters, "account_id", "accountId");
+            String accountId = this.safeString2(parameters, "account_id", "accountId");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("account_id", "accountId")));
             if (java.util.Objects.equals(accountId, null))
             {
@@ -6077,7 +6077,7 @@ public class Coinbase extends CoinbaseApi
                     throw new ExchangeError(((this.id + " fetchDeposit() could not find account id for ") + code)) ;
                 }
             }
-            final Object finalAccountId = accountId;
+            final String finalAccountId = accountId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account_id", finalAccountId );
                 put( "deposit_id", id );
@@ -7378,7 +7378,7 @@ public class Coinbase extends CoinbaseApi
                 }
             }
         }
-        Object advancedTrade = ((Map<String, Object>)this.options).get("advanced");
+        Boolean advancedTrade = (Boolean) this.safeBool(this.options, "advanced");
         if (!(Helpers.inOp(response, "data")) && (!java.util.Objects.equals(advancedTrade, true)))
         {
             throw new ExchangeError(((this.id + " failed due to a malformed response ") + this.json(response))) ;

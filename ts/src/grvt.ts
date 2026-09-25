@@ -1414,7 +1414,7 @@ export default class grvt extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const spotBalances = this.safeList (response, 'spot_balances', []);
+        const spotBalances: Dict[] = this.safeList (response, 'spot_balances', []);
         const availableBalance = this.safeString (response, 'available_balance');
         for (let i = 0; i < spotBalances.length; i++) {
             const balance = this.safeDict (spotBalances, i);
@@ -1582,7 +1582,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const rows = this.safeList (response, 'result', []);
+        const rows: Dict[] = this.safeList (response, 'result', []);
         const transfers = this.parseTransfers (rows, currency, since, limit);
         return transfers;
     }
@@ -1763,7 +1763,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const rows = this.safeList (response, 'result', []);
+        const rows: Dict[] = this.safeList (response, 'result', []);
         const transfers = this.parseTransfers (rows, currency, since, limit);
         const filteredResults = this.filterTransfersByType (transfers, 'internal', false);
         return filteredResults[1];
@@ -1899,7 +1899,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    async loadAccountInfos () {
+    async loadAccountInfos (): Promise<boolean> {
         if (this.safeString (this.options, 'userMainAccountId') !== undefined) {
             return false;
         }
@@ -2216,7 +2216,7 @@ export default class grvt extends Exchange {
 
     eipMessageForOrder (order: Dict, structureType: Str): Dict {
         const priceMultiplier = '1000000000';
-        const orderLegs = this.safeList (order, 'legs', []);
+        const orderLegs: Dict[] = this.safeList (order, 'legs', []);
         const legs: List = [];
         for (let i = 0; i < orderLegs.length; i++) {
             const leg = orderLegs[i];
@@ -2487,7 +2487,7 @@ export default class grvt extends Exchange {
         //                "margin_type": "CROSS"
         //            },
         //
-        const results = this.safeList (response, 'results', []);
+        const results: Dict[] = this.safeList (response, 'results', []);
         return this.parseLeverages (results, symbols);
     }
 
@@ -2577,7 +2577,7 @@ export default class grvt extends Exchange {
         //                "margin_type": "CROSS"
         //            },
         //
-        const results = this.safeList (response, 'results', []);
+        const results: Dict[] = this.safeList (response, 'results', []);
         return this.parseLeverages (results, symbols);
     }
 

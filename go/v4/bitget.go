@@ -4203,7 +4203,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
 			settle = DerefScalar(this.SafeCurrencyCode(settleId))
 		}
 		var symbol any = Add(Add(base, "/"), quote)
-		var typeVar any = nil
+		var typeVar *string = nil
 		var swap bool = false
 		var spot bool = false
 		var future bool = false
@@ -4219,7 +4219,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
 		var isMarginTradingAllowed bool = false
 		var isUtaMargin bool = (category != nil && *category == "MARGIN")
 		if isUtaMargin || (category != nil && *category == "SPOT") {
-			typeVar = "spot"
+			typeVar = SafeStringPtr("spot")
 			spot = true
 			if isUtaMargin {
 				var isolatedBase *string = this.SafeString(market, "isIsolatedBaseBorrowable")
@@ -4235,7 +4235,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
 			}
 		} else {
 			if symbolType != nil && *symbolType == "perpetual" {
-				typeVar = "swap"
+				typeVar = SafeStringPtr("swap")
 				swap = true
 				symbol = Add(Add(symbol, ":"), settle)
 			} else if symbolType != nil && *symbolType == "delivery" {
@@ -4260,7 +4260,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
 					return str[0:min(2, len(str))]
 				}()
 				var expiryString any = Add(Add(year, month), day)
-				typeVar = "future"
+				typeVar = SafeStringPtr("future")
 				future = true
 				symbol = Add(Add(Add(Add(symbol, ":"), settle), "-"), expiryString)
 			}
@@ -5325,9 +5325,9 @@ func (this *Bitget) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchDepositAddress", false))))
 	uta = GetValue(utaparamsVariable, 0)
 	params = GetValue(utaparamsVariable, 1)
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = GetValue(networkCodeparamsVariable, 1)
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -6991,11 +6991,11 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		return nil
 	}
 	//  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
-	var candles any = []any{}
+	var candles []any = []any{}
 	if IsArray(response) {
-		candles = response
+		candles = ArrayTyped(response)
 	} else {
-		candles = this.SafeList(response, "data", []any{})
+		candles = ArrayTyped(this.SafeList(response, "data", []any{}))
 	}
 
 	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
@@ -8320,8 +8320,8 @@ func (this *Bitget) createUtaOrdersBody(ch chan any, orders any, optionalArgs ..
 		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
 		var currentMarginMode *string = SafeStringPtr(GetValue(marginResult, 0))
 		if currentMarginMode != nil {
-			if IsEqual(marginMode, nil) {
-				marginMode = currentMarginMode
+			if marginMode == nil {
+				marginMode = DerefScalar(currentMarginMode)
 			} else {
 				if !IsEqual(marginMode, currentMarginMode) {
 					panic(BadRequest(this.Id + " createOrders() requires all orders to have the same margin mode (isolated or cross)"))
@@ -8412,15 +8412,15 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
 		var currentMarginMode *string = SafeStringPtr(GetValue(marginResult, 0))
 		if currentMarginMode != nil {
-			if IsEqual(marginMode, nil) {
-				marginMode = currentMarginMode
+			if marginMode == nil {
+				marginMode = DerefScalar(currentMarginMode)
 			} else {
 				if !IsEqual(marginMode, currentMarginMode) {
 					panic(BadRequest(this.Id + " createOrders() requires all orders to have the same margin mode (isolated or cross)"))
 				}
 			}
 		}
-		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -8430,7 +8430,7 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	}
 	var response map[string]any = nil
 	if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) {
-		if IsEqual(marginMode, nil) {
+		if marginMode == nil {
 			marginMode = "cross"
 		}
 		var marginModeRequest string = "isolated"
@@ -9497,7 +9497,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var typeVar any = nil
+	var typeVar *string = nil
 	var request map[string]any = map[string]any{}
 	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOpenOrders", params)
@@ -9530,7 +9530,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		if uta == true {
 			cursorReceived = "cursor"
 			cursorSent = "cursor"
-		} else if IsEqual(typeVar, "spot") {
+		} else if typeVar != nil && *typeVar == "spot" {
 			if marginMode != nil {
 				cursorReceived = "minId"
 				cursorSent = "idLessThan"
@@ -9558,7 +9558,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	if (uta != true) && ((IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) || (marginMode != nil)) {
+	if (uta != true) && ((typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") || (marginMode != nil)) {
 		var clientOrderId *string = this.SafeString2(params, "clientOid", "clientOrderId")
 		params = this.Omit(params, "clientOrderId")
 		if clientOrderId != nil {
@@ -9571,7 +9571,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(productTypeparamsVariable, 1)
 	params = this.Omit(params, []any{"type", "stop", "trigger", "trailing"})
 	if uta == true {
-		if IsEqual(typeVar, "spot") {
+		if typeVar != nil && *typeVar == "spot" {
 			if marginMode != nil {
 				productType = "MARGIN"
 			} else {
@@ -9586,7 +9586,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 			response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3TradeUnfilledOrders(this.Extend(request, params))).Raw))
 		}
-	} else if IsEqual(typeVar, "spot") {
+	} else if typeVar != nil && *typeVar == "spot" {
 		if marginMode != nil {
 			if since == nil {
 				since = this.Milliseconds() - 7776000000
@@ -9888,7 +9888,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ch <- this.ParseOrders(result, market, since, limit)
 		return nil
-	} else if IsEqual(typeVar, "spot") {
+	} else if typeVar != nil && *typeVar == "spot" {
 		if (marginMode != nil) || (trigger != nil && *trigger == true) {
 			var resultList []any = SafeListTypedDefault(data, "orderList", []any{})
 
@@ -11640,16 +11640,21 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var position any = []any{}
+	var position []any = []any{}
 	if (uta == true) || isHistory {
 		var data map[string]any = SafeMapTyped(response, "data")
-		position = this.SafeList(data, "list", []any{})
+		position = ArrayTyped(this.SafeList(data, "list", []any{}))
 	} else {
-		position = this.SafeList(response, "data", []any{})
+		position = ArrayTyped(this.SafeList(response, "data", []any{}))
 	}
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(position); i++ {
-		result = append(result, this.ParsePosition(GetValue(position, i), market))
+	for i := 0; i < len(position); i++ {
+		result = append(result, this.ParsePosition(func() any {
+			if i >= 0 && i < len(position) {
+				return DerefScalar(position[i])
+			}
+			return nil
+		}(), market))
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -12289,9 +12294,9 @@ func (this *Bitget) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(contract, "ts")
 	var markPrice *float64 = this.SafeNumber(contract, "markPrice")
 	var indexPrice *float64 = this.SafeNumber(contract, "indexPrice")
-	var intervalString any = nil
+	var intervalString *string = nil
 	if interval != nil {
-		intervalString = *interval + "h"
+		intervalString = SafeStringPtr(*interval + "h")
 	}
 	return map[string]any{
 		"info":                     contract,
@@ -15062,7 +15067,7 @@ func (this *Bitget) HandleErrors(code any, reason any, url any, method any, head
 	//     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
 	//
 	var message *string = this.SafeString2(response, "err_msg", "msg")
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	var nonEmptyMessage bool = ((message != nil) && (message == nil || *message != "") && (message == nil || *message != "success"))
 	if nonEmptyMessage {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)

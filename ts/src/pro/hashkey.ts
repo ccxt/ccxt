@@ -68,7 +68,7 @@ export default class hashkey extends hashkeyRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    getPrivateUrl (listenKey: Str) {
+    getPrivateUrl (listenKey: Str): string {
         const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' getPrivateUrl() has no private websocket url');
@@ -691,7 +691,7 @@ export default class hashkey extends hashkeyRest {
         client.resolve (parsed, messageHash + ':' + symbol);
     }
 
-    parseWsPosition (position: any, market: Market = undefined): Position {
+    parseWsPosition (position: Dict, market: Market = undefined): Position {
         const marketId = this.safeString (position, 's');
         market = this.safeMarket (marketId);
         const timestamp = this.safeInteger (position, 'E');

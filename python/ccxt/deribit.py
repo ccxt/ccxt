@@ -1936,7 +1936,7 @@ class deribit(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'triggerPrice': self.safe_value(order, 'stop_price'),
+            'triggerPrice': self.safe_number(order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': averageString,

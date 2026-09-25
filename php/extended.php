@@ -1146,7 +1146,7 @@ class extended extends Exchange {
         );
     }
 
-    public function parse_funding_histories(mixed $histories, ?array $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories(array $histories, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($histories); $i++) {
             $result[] = $this->parse_funding_history($histories[$i], $market);

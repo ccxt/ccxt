@@ -5244,7 +5244,7 @@ public class Whitebit extends WhitebitApi
     public Object parseFundingHistories(Object contracts, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(contracts); i++)
+        for (var i = 0; i < ((List<?>)contracts).size(); i++)
         {
             Map<String, Object> contract = (Map<String, Object>) this.safeDict(contracts, i);
             ((List<Object>)result).add(this.parseFundingHistory(contract, market));

@@ -66,7 +66,7 @@ class xt(ccxt.async_support.xt):
             'token': None,
         })
 
-    async def get_listen_key(self, isContract: bool):
+    async def get_listen_key(self, isContract: bool) -> Str:
         """
  @ignore
         required for private endpoints
@@ -643,7 +643,7 @@ class xt(ccxt.async_support.xt):
         messageHash = 'unsubscribe::' + name
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, None, params)
 
-    def handle_funding_rate(self, client: Client, message: dict):
+    def handle_funding_rate(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "topic": "fund_rate",
@@ -698,7 +698,7 @@ class xt(ccxt.async_support.xt):
             future.resolve(cache)
             client.resolve(cache, 'position::contract')
 
-    def handle_position(self, client: object, message: dict):
+    def handle_position(self, client: Client, message: dict):
         #
         #    {
         #      topic: 'position',
@@ -746,7 +746,7 @@ class xt(ccxt.async_support.xt):
                 client.resolve(positions, messageHash)
         client.resolve([position], 'position::contract')
 
-    def handle_ticker(self, client: Client, message: dict):
+    def handle_ticker(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -824,7 +824,7 @@ class xt(ccxt.async_support.xt):
             client.resolve(ticker, messageHash)
         return message
 
-    def handle_tickers(self, client: Client, message: dict):
+    def handle_tickers(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -921,7 +921,7 @@ class xt(ccxt.async_support.xt):
         client.resolve(self.tickers, messageHashStart)
         return message
 
-    def handle_ohlcv(self, client: Client, message: dict):
+    def handle_ohlcv(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -981,7 +981,7 @@ class xt(ccxt.async_support.xt):
             client.resolve(stored, messageHash)
         return message
 
-    def handle_trade(self, client: Client, message: dict):
+    def handle_trade(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -1278,7 +1278,7 @@ class xt(ccxt.async_support.xt):
             'trades': None,
         }, market)
 
-    def handle_order(self, client: Client, message: dict):
+    def handle_order(self, client: Client, message: dict) -> dict:
         #
         # spot
         #

@@ -78,7 +78,9 @@ func (c *BaseCache) Clear() {
 // `m[field].(string)` assertion silently misses them and the update is appended
 // as a duplicate row instead of being merged in.
 func cacheKeyOf(m map[string]any, field string) string {
+	// a typed-nil *string id is absent, not the key "<nil>" shared by every id-less row
 	v, ok := m[field]
+	v = derefScalar(v)
 	if !ok || v == nil {
 		return ""
 	}
@@ -142,7 +144,7 @@ type ArrayCache struct {
 
 func NewArrayCache(MaxSize any) *ArrayCache {
 	size := 0
-	switch v := MaxSize.(type) {
+	switch v := derefScalar(MaxSize).(type) {
 	case int:
 		size = v
 	case int64:
@@ -417,7 +419,7 @@ type ArrayCacheByTimestamp struct {
 
 func NewArrayCacheByTimestamp(MaxSize any) *ArrayCacheByTimestamp {
 	size := 0
-	switch v := MaxSize.(type) {
+	switch v := derefScalar(MaxSize).(type) {
 	case int:
 		size = v
 	case int64:

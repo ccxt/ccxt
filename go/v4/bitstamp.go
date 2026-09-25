@@ -1213,22 +1213,22 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var settleId any = nil
 		var marketTypeRaw *string = this.SafeString(market, "market_type")
 		var symbol any = Add(Add(base, "/"), quote)
-		var typeVar any = nil
-		var subType any = nil
+		var typeVar *string = nil
+		var subType *string = nil
 		if marketTypeRaw != nil && *marketTypeRaw == "SPOT" {
-			typeVar = "spot"
+			typeVar = SafeStringPtr("spot")
 		} else if marketTypeRaw != nil && *marketTypeRaw == "PERPETUAL" {
-			typeVar = "swap"
+			typeVar = SafeStringPtr("swap")
 			settleId = quoteId
 			symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settleId)
 			var payoffType *string = this.SafeString(market, "payoff_type")
 			if payoffType != nil && *payoffType == "Linear" {
-				subType = "linear"
+				subType = SafeStringPtr("linear")
 			} else if payoffType != nil && *payoffType == "Inverse" {
-				subType = "inverse"
+				subType = SafeStringPtr("inverse")
 			}
 		}
-		var isSpot bool = (IsEqual(typeVar, "spot"))
+		var isSpot bool = (typeVar != nil && *typeVar == "spot")
 		var settle *string = func() *string {
 			if (settleId != nil) && (!IsEqual(settleId, "")) {
 				return this.SafeCurrencyCode(settleId)
@@ -1792,7 +1792,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 		for i := 0; i < len(keys); i++ {
 			var currentKey string = GetValue(keys, i).(string)
 			if (currentKey != "order_id") && (strings.Index(currentKey, "_") >= 0) {
-				rawMarketId = currentKey
+				rawMarketId = DerefScalar(currentKey)
 				market = this.SafeMarket(rawMarketId, market, "_")
 			}
 		}
@@ -1816,7 +1816,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	// this endpoint is not aligned with "markets" endpoint
 	var baseIdLower *string = this.SafeStringLower(market, "baseId")
 	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
-	var dashedIdLower any = Add(Add(baseIdLower, "_"), quoteIdLower)
+	var dashedIdLower *string = SafeStringPtr(Add(Add(baseIdLower, "_"), quoteIdLower))
 	if priceString == nil {
 		priceString = this.SafeString(trade, dashedIdLower)
 	}
@@ -3093,18 +3093,18 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) any
 	if InOp(transaction, "status") {
 		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	if InOp(transaction, "type") {
 		// from fetchDepositsWithdrawals
 		var rawType *string = this.SafeString(transaction, "type")
 		if rawType != nil && *rawType == "0" {
-			typeVar = "deposit"
+			typeVar = SafeStringPtr("deposit")
 		} else if rawType != nil && *rawType == "1" {
-			typeVar = "withdrawal"
+			typeVar = SafeStringPtr("withdrawal")
 		}
 	} else {
 		// from fetchWithdrawals
-		typeVar = "withdrawal"
+		typeVar = SafeStringPtr("withdrawal")
 	}
 	var tag any = nil
 	var address any = DerefScalar(this.SafeString(transaction, "address"))
@@ -3734,17 +3734,15 @@ func (this *Bitstamp) transferBody(ch chan any, code any, amount any, fromAccoun
 		"amount":   this.ParseToNumeric(this.CurrencyToPrecision(code, amount)),
 		"currency": ToUpper(currency["id"]),
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(fromAccount, "main") {
 		request["subAccount"] = toAccount
 
-		response = (<-this.PrivatePostTransferFromMain(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostTransferFromMain(this.Extend(request, params))).Raw))
 	} else if IsEqual(toAccount, "main") {
 		request["subAccount"] = fromAccount
 
-		response = (<-this.PrivatePostTransferToMain(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostTransferToMain(this.Extend(request, params))).Raw))
 	} else {
 		panic(BadRequest(this.Id + " transfer() only supports from or to main"))
 	}
@@ -3901,7 +3899,7 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 		if code != nil && *code == "API0005" {
 			panic(AuthenticationError(this.Id + " invalid signature, use the uid for the main account if you have subaccounts"))
 		}
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		for i := 0; i < len(errors); i++ {
 			var value *string = SafeStringPtr(func() any {
 				if i >= 0 && i < len(errors) {

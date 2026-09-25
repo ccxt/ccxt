@@ -618,7 +618,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String interval = this.safeString(parts, 3);
         String timeframe = this.findTimeframe(interval);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -884,7 +884,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String symbol = this.safeString(subscription, "symbol");
             Long limit = this.safeInteger(subscription, "limit");
             Long timestamp = this.safeInteger(message, "ts");
-            Object parameters = this.safeValue(subscription, "params");
+            Map<String, Object> parameters = (Map<String, Object>) this.safeDict(subscription, "params");
             Long attempts = this.safeInteger(subscription, "numAttempts", 0);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object url = this.getUrlByMarketType(((Map<String, Object>)market).get("type"), ((Map<String, Object>)market).get("linear"), false, true);

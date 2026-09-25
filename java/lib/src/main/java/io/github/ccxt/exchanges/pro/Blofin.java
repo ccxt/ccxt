@@ -1011,7 +1011,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
             String messageHash = Helpers.add((channelName + ":"), ((Map<String, Object>)position).get("symbol"));
@@ -1019,11 +1019,11 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
     }
 
-    public Object parseWsPosition(Object position, Map<String, Object> market)
+    public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         return this.parsePosition((Map<String, Object>) (position), market);
     }
-    public Object parseWsPosition(Object position, Object... optionalArgs)
+    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
     {
         return this.parseWsPosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }

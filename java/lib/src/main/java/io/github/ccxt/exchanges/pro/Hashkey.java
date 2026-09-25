@@ -948,7 +948,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object positions = this.positions;
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition(message);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (message));
         Helpers.callDynamically(positions, "append", new Object[]{parsed});
         String messageHash = "positions";
         client.resolve(parsed, messageHash);
@@ -956,7 +956,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         client.resolve(parsed, ((messageHash + ":") + symbol));
     }
 
-    public Object parseWsPosition(Object position, Map<String, Object> market)
+    public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String marketId = this.safeString(position, "s");
         market = (Map<String, Object>) (this.safeMarket(marketId));
@@ -993,7 +993,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             put( "info", position );
         }});
     }
-    public Object parseWsPosition(Object position, Object... optionalArgs)
+    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
     {
         return this.parseWsPosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }

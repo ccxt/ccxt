@@ -271,7 +271,7 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, array( $subscribeHash ), $subscription));
     }
 
-    public function get_uta_url() {
+    public function get_uta_url(): PromiseInterface {
         return Async\async(self::do_get_uta_url(...))();
     }
 
@@ -280,7 +280,7 @@ class kucoin extends \ccxt\async\kucoin {
         return $this->urls['api']['ws']['private'] . '?token=' . $utaToken;
     }
 
-    public function authenticate_uta() {
+    public function authenticate_uta(): PromiseInterface {
         return Async\async(self::do_authenticate_uta(...))();
     }
 
@@ -2551,7 +2551,7 @@ class kucoin extends \ccxt\async\kucoin {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function get_my_trades_message_hash_suffix(mixed $topic) {
+    public function get_my_trades_message_hash_suffix(mixed $topic): string {
         $suffix = '-spot';
         if (mb_strpos($topic, 'contractMarket') !== false) {
             $suffix = '-contract';

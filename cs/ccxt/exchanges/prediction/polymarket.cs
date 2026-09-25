@@ -3715,16 +3715,16 @@ public partial class polymarket : PredictionExchange
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, outcome);
         Int64? timestamp = ((Int64)this.parsePolyTimestamp(this.safeString(eventVar, "timestamp")));
-        IList<object> rawBids = (IList<object>)(this.safeList(eventVar, "bids", new List<object>() {}));
-        IList<object> rawAsks = (IList<object>)(this.safeList(eventVar, "asks", new List<object>() {}));
+        List<object> rawBids = this.safeList(eventVar, "bids", new List<object>() {});
+        List<object> rawAsks = this.safeList(eventVar, "asks", new List<object>() {});
         List<object> bids = new List<object>() {};
-        for (int i = 0; i < (rawBids?.Count ?? 0); i++)
+        for (int i = 0; i < rawBids.Count; i++)
         {
             IDictionary<string, object> b = this.safeDict(rawBids, i);
             bids.Add(new List<object> {this.safeNumber(b, "price"), this.safeNumber(b, "size")});
         }
         List<object> asks = new List<object>() {};
-        for (int j = 0; j < (rawAsks?.Count ?? 0); j++)
+        for (int j = 0; j < rawAsks.Count; j++)
         {
             IDictionary<string, object> a = this.safeDict(rawAsks, j);
             asks.Add(new List<object> {this.safeNumber(a, "price"), this.safeNumber(a, "size")});
@@ -3746,9 +3746,9 @@ public partial class polymarket : PredictionExchange
     public virtual void handleOrderBookDelta(WebSocketClient client, object eventVar)
     {
         Int64? timestamp = ((Int64)this.parsePolyTimestamp(this.safeString(eventVar, "timestamp")));
-        IList<object> changes = (IList<object>)(this.safeList(eventVar, "price_changes", new List<object>() {}));
+        List<object> changes = this.safeList(eventVar, "price_changes", new List<object>() {});
         Dictionary<string, object> updated = new Dictionary<string, object>() {};
-        for (int i = 0; i < (changes?.Count ?? 0); i++)
+        for (int i = 0; i < changes.Count; i++)
         {
             IDictionary<string, object> change = this.safeDict(changes, i);
             string? tokenId = this.safeString(change, "asset_id");

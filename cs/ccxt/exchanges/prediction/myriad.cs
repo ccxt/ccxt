@@ -2791,10 +2791,10 @@ public partial class myriad : PredictionExchange
         //     }
         //
         string? outcomeId = ((market != null) && (market != null)) ? this.safeString(getValue(market, "info"), "outcomeId") : null;
-        IList<object> outcomes = (IList<object>)(this.safeList(raw, "outcomes", new List<object>() {}));
+        List<object> outcomes = this.safeList(raw, "outcomes", new List<object>() {});
         double? price = null;
         double? change = null;
-        for (int i = 0; i < (outcomes?.Count ?? 0); i++)
+        for (int i = 0; i < outcomes.Count; i++)
         {
             IDictionary<string, object> o = this.safeDict(outcomes, i);
             if ((this.safeString(o, "outcomeId", this.safeString(o, "id")) == outcomeId))
@@ -2959,9 +2959,9 @@ public partial class myriad : PredictionExchange
         //         "externalSources": []
         //     }
         //
-        IList<object> outcomes = (IList<object>)(this.safeList(response, "outcomes", new List<object>() {}));
+        List<object> outcomes = this.safeList(response, "outcomes", new List<object>() {});
         double? price = null;
-        for (int i = 0; i < (outcomes?.Count ?? 0); i++)
+        for (int i = 0; i < outcomes.Count; i++)
         {
             IDictionary<string, object> o = this.safeDict(outcomes, i);
             if ((this.safeString(o, "outcomeId", this.safeString(o, "id")) == outcomeId))

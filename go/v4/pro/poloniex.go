@@ -896,14 +896,14 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(symbol))
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
-	var messageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, "::"), symbol))
 	var parsed any = this.ParseWsOHLCV(data, market)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = func() any {
 		if timeframe == nil {
 			return nil
 		}
-		return this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
+		return this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	}()
 	if symbol != nil {
 		if ccxt.IsEqual(stored, nil) {
@@ -944,7 +944,7 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
 			var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(item))
 			var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 			var typeVar string = "trades"
-			var messageHash any = ccxt.Add(typeVar+"::", symbol)
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(typeVar+"::", symbol))
 			var tradesArray any = func() any {
 				if symbol == nil {
 					return nil
@@ -1535,7 +1535,7 @@ func (this *Poloniex) HandleMyTrades(client any, parsedTrade map[string]any) {
 	var trades any = this.MyTrades
 	trades.(ccxt.Appender).Append(parsedTrade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	var symbolMessageHash any = ccxt.Add(messageHash+":", symbol)
+	var symbolMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+":", symbol))
 	client.(ccxt.ClientInterface).Resolve(trades, symbolMessageHash)
 }
 func (this *Poloniex) HandlePong(client any) {
@@ -1657,7 +1657,7 @@ func (this *Poloniex) HandleErrorMessage(client any, message any) any {
 				// try block:
 				var error *string = this.SafeString(first, "message")
 				var code *string = this.SafeString(first, "code")
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 				panic(ccxt.ExchangeError(feedback))

@@ -2238,7 +2238,7 @@ class kucoin extends Exchange {
         return $result;
     }
 
-    public function load_migration_status(bool $force = false) {
+    public function load_migration_status(bool $force = false): PromiseInterface {
         return Async\async(self::do_load_migration_status(...))($force);
     }
 
@@ -7082,7 +7082,7 @@ class kucoin extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $method = $this->options['fetchMyTradesMethod'];
+        $method = $this->safe_string($this->options, 'fetchMyTradesMethod');
         $parseResponseData = false;
         $response = null;
         list($request, $params) = $this->handle_until_option('endAt', $request, $params);

@@ -470,7 +470,7 @@ func (this *Toobit) HandleOHLCV(client any, message map[string]any) {
 		}(), market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash any = ccxt.Add("ohlcv::"+*symbol+"::", timeframe)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
 	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
@@ -570,8 +570,7 @@ func (this *Toobit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		"event":  "sub",
 	}
 
-	ticker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -639,7 +638,7 @@ func (this *Toobit) HandleTickers(client any, message map[string]any) {
 		if symbol != nil {
 			ccxt.AddElementToObject(newTickers, symbol, parsed)
 		}
-		var messageHash any = ccxt.Add("ticker::", symbol)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", symbol))
 		client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(newTickers, "tickers")
@@ -824,7 +823,7 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message any, channel any) {
 		var entry map[string]any = ccxt.SafeMapTyped(data, i)
 		var marketId *string = this.SafeString(entry, "s")
 		var symbol *string = this.SafeSymbol(marketId)
-		var messageHash any = ccxt.Add("orderBook::"+*symbol+"::", channel)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderBook::"+*symbol+"::", channel))
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var limit *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "orderBookLimit", 1000)
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
@@ -1101,9 +1100,9 @@ func (this *Toobit) ParseWsOrder(order any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var priceType *string = this.SafeStringLower(order, "pt")
 	var rawOrderType *string = this.SafeStringLower(order, "o")
-	var orderType any = nil
+	var orderType *string = nil
 	if priceType != nil && *priceType == "market" {
-		orderType = "market"
+		orderType = ccxt.SafeStringPtr("market")
 	} else {
 		orderType = rawOrderType
 	}

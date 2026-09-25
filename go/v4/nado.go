@@ -2996,13 +2996,13 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
 			return this.NumberToString(parsedPrice)
 		}()
 	}
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	var isTaker *bool = this.SafeBool(trade, "is_taker")
 	if isTaker != nil {
 		if isTaker != nil && *isTaker {
-			takerOrMaker = "taker"
+			takerOrMaker = SafeStringPtr("taker")
 		} else {
-			takerOrMaker = "maker"
+			takerOrMaker = SafeStringPtr("maker")
 		}
 	}
 	var feeString *string = this.SafeString(trade, "fee")
@@ -3357,16 +3357,16 @@ func (this *Nado) ParsePosition(position any, optionalArgs ...any) any {
 	var risk map[string]any = SafeMapTyped(product, "risk")
 	var markPriceX18 *string = this.SafeString2(risk, "price_x18", "oracle_price_x18")
 	var vQuoteBalance *string = this.SafeString(balance, "v_quote_balance")
-	var side any = nil
+	var side *string = nil
 	var contracts any = nil
 	var entryPrice any = nil
 	var markPrice any = nil
 	var notional any = nil
 	if amountString != nil {
 		if Precise.StringGt(amountString, "0") {
-			side = "long"
+			side = SafeStringPtr("long")
 		} else if Precise.StringLt(amountString, "0") {
-			side = "short"
+			side = SafeStringPtr("short")
 		}
 		var absoluteAmount *string = Precise.StringAbs(amountString)
 		contracts = this.ParseX18(absoluteAmount)
@@ -3487,7 +3487,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = nil
 	var timeInForce *string = nil
 	var postOnly any = nil
-	var side any = nil
+	var side *string = nil
 	var price any = nil
 	var amount any = nil
 	var filled any = nil
@@ -3506,12 +3506,12 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		market = MapTyped(this.SafeMarket(marketId, market))
 		var amountString *string = this.SafeString(order, "amount")
 		if amountString != nil {
-			side = func() string {
+			side = SafeStringPtr(func() string {
 				if Precise.StringLt(amountString, "0") {
 					return "sell"
 				}
 				return "buy"
-			}()
+			}())
 			amount = this.ParseX18(Precise.StringAbs(amountString))
 		}
 		filled = this.ParseX18(Precise.StringAbs(archiveFilled))
@@ -3550,12 +3550,12 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		market = MapTyped(this.SafeMarket(marketId, market))
 		var amountString *string = this.SafeString(order, "amount")
 		if amountString != nil {
-			side = func() string {
+			side = SafeStringPtr(func() string {
 				if Precise.StringLt(amountString, "0") {
 					return "sell"
 				}
 				return "buy"
-			}()
+			}())
 			amount = this.ParseX18(Precise.StringAbs(amountString))
 		}
 		var unfilledAmount *string = this.SafeString(order, "unfilled_amount")
@@ -3582,12 +3582,12 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		var amountString *string = this.SafeString(rawOrder, "amount")
 		if amountString != nil {
-			side = func() string {
+			side = SafeStringPtr(func() string {
 				if Precise.StringLt(amountString, "0") {
 					return "sell"
 				}
 				return "buy"
-			}()
+			}())
 			amount = this.ParseX18(Precise.StringAbs(amountString))
 		}
 		var triggerStatus map[string]any = SafeMapTyped(order, "status")
@@ -3797,7 +3797,7 @@ func (this *Nado) SignOrder(order any, productId any, chainId any) any {
 		}},
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, order)
-	var hash any = Add("0x", this.Hash(encoded, keccak, "hex"))
+	var hash *string = SafeStringPtr(Add("0x", this.Hash(encoded, keccak, "hex")))
 	return this.SignHash(hash, this.PrivateKey)
 }
 func (this *Nado) SignCancellation(cancellation any, chainId any, endpointAddress any) any {
@@ -3823,7 +3823,7 @@ func (this *Nado) SignCancellation(cancellation any, chainId any, endpointAddres
 		}},
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, cancellation)
-	var hash any = Add("0x", this.Hash(encoded, keccak, "hex"))
+	var hash *string = SafeStringPtr(Add("0x", this.Hash(encoded, keccak, "hex")))
 	return this.SignHash(hash, this.PrivateKey)
 }
 func (this *Nado) SignCancellationProducts(cancellation any, chainId any, endpointAddress any) any {
@@ -3846,7 +3846,7 @@ func (this *Nado) SignCancellationProducts(cancellation any, chainId any, endpoi
 		}},
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, cancellation)
-	var hash any = Add("0x", this.Hash(encoded, keccak, "hex"))
+	var hash *string = SafeStringPtr(Add("0x", this.Hash(encoded, keccak, "hex")))
 	return this.SignHash(hash, this.PrivateKey)
 }
 func (this *Nado) SignFetchTriggerOrders(tx any, chainId any, endpointAddress any) any {
@@ -3866,7 +3866,7 @@ func (this *Nado) SignFetchTriggerOrders(tx any, chainId any, endpointAddress an
 		}},
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, tx)
-	var hash any = Add("0x", this.Hash(encoded, keccak, "hex"))
+	var hash *string = SafeStringPtr(Add("0x", this.Hash(encoded, keccak, "hex")))
 	return this.SignHash(hash, this.PrivateKey)
 }
 func (this *Nado) SignHash(hash any, privateKey any) any {
@@ -3944,7 +3944,7 @@ func (this *Nado) HandleErrors(httpCode any, reason any, url any, method any, he
 	var errorCode *string = this.SafeString(response, "error_code")
 	var error *string = this.SafeString(response, "error")
 	if (status != nil && *status == "failure") || (errorCode != nil) || (error != nil) {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 		panic(ExchangeError(feedback))

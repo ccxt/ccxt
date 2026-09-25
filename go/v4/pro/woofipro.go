@@ -689,15 +689,15 @@ func (this *Woofipro) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var cost *string = ccxt.Precise.StringMul(price, amount)
 	var side *string = this.SafeStringLower(trade, "side")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	var maker *bool = this.SafeBool(trade, "maker")
 	if maker != nil {
-		takerOrMaker = func() string {
+		takerOrMaker = ccxt.SafeStringPtr(func() string {
 			if maker != nil && *maker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	var fee map[string]any = nil
 	var feeValue *string = this.SafeString(trade, "fee")
@@ -1369,7 +1369,7 @@ func (this *Woofipro) HandlePositions(client any, message map[string]any) {
 		var position any = this.ParseWsPosition(rawPosition, market)
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
-		var messageHash any = ccxt.Add("positions::", market["symbol"])
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("positions::", market["symbol"]))
 		client.(ccxt.ClientInterface).Resolve(position, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
@@ -1575,7 +1575,7 @@ func (this *Woofipro) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if errorMessage != nil {
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 			}
 			return false

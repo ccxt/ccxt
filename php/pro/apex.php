@@ -290,7 +290,7 @@ class apex extends \ccxt\async\apex {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
     }
 
-    public function get_ws_public_url() {
+    public function get_ws_public_url(): string {
         // apex appends a millisecond timestamp to the WS URL for connection-time
         // signing. CCXT's client manager keys clients by URL, so recomputing the
         // timestamp on every watch* call would open a new connection each time.
@@ -304,7 +304,7 @@ class apex extends \ccxt\async\apex {
         return $url;
     }
 
-    public function get_ws_private_url() {
+    public function get_ws_private_url(): string {
         $url = $this->safe_string($this->options, 'wsPrivateUrl');
         if ($url === null) {
             $timeStamp = (string) $this->milliseconds();

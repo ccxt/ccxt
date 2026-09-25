@@ -3619,7 +3619,7 @@ class krakenfutures extends Exchange {
         }
     }
 
-    public function transfer_out(string $code, float $amount, $params = array()) {
+    public function transfer_out(string $code, float $amount, $params = array()): array {
         /**
          * transfer from futures wallet to spot wallet
          * @param {str} $code Unified currency $code

@@ -1810,14 +1810,14 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return self.privatePostExchange(request)
 
-    def initialize_client(self):
+    def initialize_client(self) -> bool:
         try:
             [self.handle_builder_fee_approval(), self.set_ref(), self.is_unified_enabled('fetchBalance', None, False, {})]  # for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         except Exception as e:
             return False
         return True
 
-    def handle_builder_fee_approval(self):
+    def handle_builder_fee_approval(self) -> bool:
         buildFee = self.safe_bool(self.options, 'builderFee', True)
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
         if approvedBuilderFee is True:

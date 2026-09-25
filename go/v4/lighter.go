@@ -723,8 +723,7 @@ func (this *Lighter) createSubAccountBody(ch chan any, name any, optionalArgs ..
 	accountIndex = GetValue(accountIndexparamsVariable, 0)
 	params = GetValue(accountIndexparamsVariable, 1)
 
-	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
-	PanicOnError(nonce)
+	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))))
 	var signRaw map[string]any = map[string]any{
 		"nonce":         nonce,
 		"api_key_index": apiKeyIndex,
@@ -887,10 +886,9 @@ func (this *Lighter) approveBuilderFeeBody(ch chan any, builder any, takerFeeRat
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
 
-	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, this.Extend(params, map[string]any{
+	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, this.Extend(params, map[string]any{
 		"skipNonce": false,
-	})))
-	PanicOnError(nonce)
+	})))))
 	var expiry any = Add(this.Milliseconds(), Multiply(365, 864000))
 	var signRaw map[string]any = map[string]any{
 		"integrator_account_index": builder,
@@ -942,10 +940,9 @@ func (this *Lighter) changeApiKeyBody(ch chan any, optionalArgs ...any) any {
 	privateKey := GetValue(privateKeypublicKeyVariable, 0)
 	publicKey := GetValue(privateKeypublicKeyVariable, 1)
 
-	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, this.Extend(params, map[string]any{
+	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, this.Extend(params, map[string]any{
 		"skipNonce": false,
-	})))
-	PanicOnError(nonce)
+	})))))
 	var signRaw map[string]any = map[string]any{
 		"pubkey":        this.Encode(publicKey),
 		"nonce":         nonce,
@@ -1398,8 +1395,7 @@ func (this *Lighter) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 		amountStr = this.AmountToPrecision(symbol, amount)
 	}
 
-	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
-	PanicOnError(nonce)
+	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))))
 	var signRaw map[string]any = map[string]any{
 		"market_index":  this.ParseToInt(market["id"]),
 		"index":         this.ParseToInt(id),
@@ -2593,24 +2589,24 @@ func (this *Lighter) ParsePosition(position any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(position, "market_id")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var sign *int64 = this.SafeInteger(position, "sign")
-	var side any = nil
+	var side *string = nil
 	if sign != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if sign != nil && *sign == 1 {
 				return "long"
 			}
 			return "short"
-		}()
+		}())
 	}
 	var marginModeId *int64 = this.SafeInteger(position, "margin_mode")
-	var marginMode any = nil
+	var marginMode *string = nil
 	if marginModeId != nil {
-		marginMode = func() string {
+		marginMode = SafeStringPtr(func() string {
 			if marginModeId != nil && *marginModeId == 0 {
 				return "cross"
 			}
 			return "isolated"
-		}()
+		}())
 	}
 	var imfStr *string = this.SafeString(position, "initial_margin_fraction")
 	var leverage any = nil
@@ -2626,7 +2622,7 @@ func (this *Lighter) ParsePosition(position any, optionalArgs ...any) any {
 		"symbol":                      GetValue(market, "symbol"),
 		"timestamp":                   nil,
 		"datetime":                    nil,
-		"isolated":                    (IsEqual(marginMode, "isolated")),
+		"isolated":                    (marginMode != nil && *marginMode == "isolated"),
 		"hedged":                      nil,
 		"side":                        side,
 		"contracts":                   this.SafeNumber(position, "position"),
@@ -3014,14 +3010,14 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 			isAsk = (isAskAsInteger != nil && *isAskAsInteger == 1)
 		}
 	}
-	var side any = nil
+	var side *string = nil
 	if !IsEqual(isAsk, nil) {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if EvalTruthy(isAsk) {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	var typeVar *string = this.SafeString(order, "type")
 	if typeVar == nil {
@@ -3232,8 +3228,7 @@ func (this *Lighter) transferBody(ch chan any, code any, amount any, fromAccount
 	var memo *string = this.SafeString(params, "memo", "0x000000000000000000000000000000")
 	params = this.Omit(params, []any{"memo"})
 
-	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
-	PanicOnError(nonce)
+	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))))
 	var signRaw map[string]any = map[string]any{
 		"to_account_index": toAccountIndex,
 		"asset_index":      this.ParseToInt(currency["id"]),
@@ -3707,8 +3702,7 @@ func (this *Lighter) withdrawBody(ch chan any, code any, amount any, address any
 	var routeType *int64 = this.SafeInteger(params, "routeType", 0) // 0: perp, 1: spot
 	params = this.Omit(params, "routeType")
 
-	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
-	PanicOnError(nonce)
+	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))))
 	var signRaw map[string]any = map[string]any{
 		"asset_index":   this.ParseToInt(currency["id"]),
 		"route_type":    routeType,
@@ -3889,31 +3883,31 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) any {
 	var askAccountId *string = this.SafeString(trade, "ask_account_id")
 	var bidAccountId *string = this.SafeString(trade, "bid_account_id")
 	var isMakerAsk *bool = this.SafeBool(trade, "is_maker_ask")
-	var side any = nil
+	var side *string = nil
 	var orderId *string = nil
 	if accountIndex != nil {
 		if accountIndex == askAccountId || (accountIndex != nil && askAccountId != nil && *accountIndex == *askAccountId) {
-			side = "sell"
+			side = SafeStringPtr("sell")
 			orderId = this.SafeString(trade, "ask_id")
 		} else if accountIndex == bidAccountId || (accountIndex != nil && bidAccountId != nil && *accountIndex == *bidAccountId) {
-			side = "buy"
+			side = SafeStringPtr("buy")
 			orderId = this.SafeString(trade, "bid_id")
 		}
 	}
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if (side != nil) && (isMakerAsk != nil) {
 		var isMaker any = func() any {
-			if IsEqual(side, "sell") {
+			if side != nil && *side == "sell" {
 				return isMakerAsk
 			}
 			return !(isMakerAsk != nil && *isMakerAsk)
 		}()
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isMaker == true {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -4048,8 +4042,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan any, leverage any, 
 	PanicOnError(signer)
 	var market map[string]any = MapTyped(this.Market(symbol))
 
-	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
-	PanicOnError(nonce)
+	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))))
 	var signRaw map[string]any = map[string]any{
 		"market_index":            this.ParseToInt(market["id"]),
 		"initial_margin_fraction": this.ParseToInt(Divide(10000, leverage)),
@@ -4110,8 +4103,7 @@ func (this *Lighter) signAndCancelOrderBody(ch chan any, method any, id any, opt
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
 
-	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
-	PanicOnError(nonce)
+	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))))
 	var signRaw map[string]any = map[string]any{
 		"market_index":  this.ParseToInt(market["id"]),
 		"nonce":         nonce,
@@ -4200,8 +4192,7 @@ func (this *Lighter) signAndCancelAllOrdersBody(ch chan any, method any, optiona
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
 
-	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
-	PanicOnError(nonce)
+	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))))
 	var signRaw map[string]any = map[string]any{
 		"time_in_force": 0,
 		"time":          0,
@@ -4293,8 +4284,7 @@ func (this *Lighter) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
 
-	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
-	PanicOnError(nonce)
+	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))))
 	var signRaw map[string]any = map[string]any{
 		"time_in_force": 1,
 		"time":          Add(this.Milliseconds(), timeout),
@@ -4423,8 +4413,7 @@ func (this *Lighter) setMarginBody(ch chan any, symbol any, amount any, optional
 	PanicOnError(signer)
 	var market map[string]any = MapTyped(this.Market(symbol))
 
-	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
-	PanicOnError(nonce)
+	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))))
 	var signRaw map[string]any = map[string]any{
 		"market_index":  this.ParseToInt(market["id"]),
 		"usdc_amount":   this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision("USDC", amount))),
@@ -4515,7 +4504,7 @@ func (this *Lighter) HandleErrors(httpCode any, reason any, url any, method any,
 	var code *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
 	if (code != nil) && (code == nil || *code != "0") && (code == nil || *code != "200") {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		panic(ExchangeError(feedback))

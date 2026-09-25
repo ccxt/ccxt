@@ -1874,7 +1874,7 @@ final String finalTokenId = tokenId;
                     Object tradeMarket = (this.loadTradeMarket(marketId)).join();
                     Map<String, Object> info = (Map<String, Object>) this.safeDict(tradeMarket, "info", new HashMap<String, Object>() {{}});
                     Boolean isYes = (java.util.Objects.equals(this.safeStringLower(trade, "outcomeSideEnum"), "yes"));
-                    Helpers.addElementToObject(trade, "tokenId", ((Boolean.TRUE.equals(isYes))) ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId"));
+                    ((Map<String, Object>)trade).put("tokenId", ((Boolean.TRUE.equals(isYes))) ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId"));
                 }
             }
             return this.parsePredictionTrades(trades, outcomeObj, since, limit);
@@ -2019,7 +2019,7 @@ final String finalTokenId = tokenId;
                 Object rawBalance = (rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i));
                 String quoteTokenAddress = this.safeString(rawBalance, "quoteToken");
                 Map<String, Object> quoteToken = (this.loadQuoteToken((String) (quoteTokenAddress))).join();
-                Helpers.addElementToObject(rawBalance, "symbol", this.safeString(quoteToken, "symbol", "USDT"));
+                ((Map<String, Object>)rawBalance).put("symbol", this.safeString(quoteToken, "symbol", "USDT"));
             }
             return this.parseBalance(response);
         }).thenApply(Balances::new);

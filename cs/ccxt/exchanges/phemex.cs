@@ -4512,7 +4512,7 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
         {
-            object position = positions[i];
+            IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             result.Add(this.parsePosition(position));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));

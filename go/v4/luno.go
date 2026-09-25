@@ -928,12 +928,12 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		return status
 	}()
-	var side any = nil
+	var side *string = nil
 	var orderType *string = this.SafeString(order, "type")
 	if (orderType != nil && *orderType == "ASK") || (orderType != nil && *orderType == "SELL") {
-		side = "sell"
+		side = SafeStringPtr("sell")
 	} else if (orderType != nil && *orderType == "BID") || (orderType != nil && *orderType == "BUY") {
-		side = "buy"
+		side = SafeStringPtr("buy")
 	}
 	var marketId *string = this.SafeString(order, "pair")
 	market = MapTyped(this.SafeMarket(marketId, market))
@@ -1314,29 +1314,29 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var orderId *string = this.SafeString(trade, "order_id")
 	var id *string = this.SafeString(trade, "sequence")
-	var takerOrMaker any = nil
-	var side any = nil
+	var takerOrMaker *string = nil
+	var side *string = nil
 	if orderId != nil {
 		var typeVar *string = this.SafeString(trade, "type")
 		if (typeVar != nil && *typeVar == "ASK") || (typeVar != nil && *typeVar == "SELL") {
-			side = "sell"
+			side = SafeStringPtr("sell")
 		} else if (typeVar != nil && *typeVar == "BID") || (typeVar != nil && *typeVar == "BUY") {
-			side = "buy"
+			side = SafeStringPtr("buy")
 		}
-		if (IsEqual(side, "sell")) && (IsEqual(GetValue(trade, "is_buy"), true)) {
-			takerOrMaker = "maker"
-		} else if (IsEqual(side, "buy")) && (!IsEqual(GetValue(trade, "is_buy"), true)) {
-			takerOrMaker = "maker"
+		if (side != nil && *side == "sell") && (IsEqual(GetValue(trade, "is_buy"), true)) {
+			takerOrMaker = SafeStringPtr("maker")
+		} else if (side != nil && *side == "buy") && (!IsEqual(GetValue(trade, "is_buy"), true)) {
+			takerOrMaker = SafeStringPtr("maker")
 		} else {
-			takerOrMaker = "taker"
+			takerOrMaker = SafeStringPtr("taker")
 		}
 	} else {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if IsEqual(GetValue(trade, "is_buy"), true) {
 				return "buy"
 			}
 			return "sell"
-		}()
+		}())
 	}
 	var feeBaseString *string = this.SafeString(trade, "fee_base")
 	var feeCounterString *string = this.SafeString(trade, "fee_counter")
@@ -1908,23 +1908,23 @@ func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) any {
 	var result any = this.ParseLedgerComment(comment)
 	var typeVar *string = SafeStringPtr(GetValue(result, "type"))
 	var referenceId *string = SafeStringPtr(GetValue(result, "referenceId"))
-	var direction any = nil
-	var status any = nil
+	var direction *string = nil
+	var status *string = nil
 	if !Precise.StringEquals(balance_delta, "0.0") {
 		before = Precise.StringSub(after, balance_delta)
-		status = "ok"
+		status = SafeStringPtr("ok")
 		amount = Precise.StringAbs(balance_delta)
 	} else if Precise.StringLt(available_delta, "0.0") {
-		status = "pending"
+		status = SafeStringPtr("pending")
 		amount = Precise.StringAbs(available_delta)
 	} else if Precise.StringGt(available_delta, "0.0") {
-		status = "canceled"
+		status = SafeStringPtr("canceled")
 		amount = Precise.StringAbs(available_delta)
 	}
 	if Precise.StringGt(balance_delta, "0") || Precise.StringGt(available_delta, "0") {
-		direction = "in"
+		direction = SafeStringPtr("in")
 	} else if Precise.StringLt(balance_delta, "0") || Precise.StringLt(available_delta, "0") {
-		direction = "out"
+		direction = SafeStringPtr("out")
 	}
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             entry,
@@ -2173,7 +2173,7 @@ func (this *Luno) HandleErrors(httpCode any, reason any, url any, method any, he
 	}
 	var error any = this.SafeValue(response, "error")
 	if !IsEqual(error, nil) {
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
 		var errorCode *string = this.SafeString(response, "error_code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

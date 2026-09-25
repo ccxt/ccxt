@@ -287,7 +287,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //  }
         //
         List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
-        Object isSnapshot = this.safeValue(parameters, 0);
+        Boolean isSnapshot = (Boolean) this.safeBool(parameters, 0);
         String marketId = this.safeString(parameters, 2);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");

@@ -857,15 +857,15 @@ func (this *Upbit) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var ids any = nil
+	var ids *string = nil
 	if symbols == nil {
 		var allIds any = this.Ids
 		if !IsEqual(allIds, nil) {
-			ids = Join(allIds, ",")
+			ids = SafeStringPtr(Join(allIds, ","))
 		}
 	} else {
 		var marketIds any = this.MarketIds(symbols)
-		ids = Join(marketIds, ",")
+		ids = SafeStringPtr(Join(marketIds, ","))
 	}
 	var request map[string]any = map[string]any{
 		"markets": ids,
@@ -1083,7 +1083,7 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var promises []any = []any{}
 		var queries any = this.IdsQueryStrings(ids, 4000) // the url is limited to about 8000 characters once the commas are percent-encoded
 		for i := 0; i < GetArrayLength(queries); i++ {
-			var idsQuery any = GetValue(queries, i)
+			var idsQuery *string = SafeStringPtr(GetValue(queries, i))
 			promises = append(promises, EndpointRaw(this.PublicGetTicker(this.Extend(map[string]any{
 				"markets": idsQuery,
 			}, params))))
@@ -1210,12 +1210,12 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) any {
 	if timestamp == nil {
 		timestamp = this.Parse8601(this.SafeString(trade, "created_at"))
 	}
-	var side any = nil
+	var side *string = nil
 	var askOrBid *string = this.SafeStringLower2(trade, "ask_bid", "side")
 	if askOrBid != nil && *askOrBid == "ask" {
-		side = "sell"
+		side = SafeStringPtr("sell")
 	} else if askOrBid != nil && *askOrBid == "bid" {
-		side = "buy"
+		side = SafeStringPtr("buy")
 	}
 	var cost *string = this.SafeString(trade, "funds")
 	var price *string = this.SafeString2(trade, "trade_price", "price")
@@ -2363,7 +2363,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "volume")
 	var remaining *string = this.SafeString(order, "remaining_volume")
 	var filled *string = this.SafeString(order, "executed_volume")
-	var cost any = nil
+	var cost *string = nil
 	if typeVar != nil && *typeVar == "price" {
 		typeVar = SafeStringPtr("market")
 		cost = price
@@ -2388,7 +2388,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 			getFeesFromTrades = true
 			feeCost = SafeStringPtr("0")
 		}
-		cost = "0"
+		cost = SafeStringPtr("0")
 		for i := 0; i < numTrades; i++ {
 			var trade map[string]any = SafeMapTyped(trades, i)
 			cost = Precise.StringAdd(cost, this.SafeString(trade, "cost"))
@@ -2852,9 +2852,9 @@ func (this *Upbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires params[\"network\"]"))
@@ -3087,7 +3087,7 @@ func (this *Upbit) HandleErrors(httpCode any, reason any, url any, method any, h
 	if error != nil {
 		var message *string = this.SafeString(error, "message")
 		var name *string = this.SafeString(error, "name")
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], name, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

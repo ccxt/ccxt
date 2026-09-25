@@ -984,14 +984,14 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	market = MapTyped(this.SafeMarket(nil, market))
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
-	var side any = nil
+	var side *string = nil
 	if isSellerMaker != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isSellerMaker != nil && *isSellerMaker {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "qty")
@@ -1003,7 +1003,7 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 		var feeRateString *string = this.SafeString(trade, "feeRate")
 		feeRateString = Precise.StringAbs(feeRateString)
 		var feeCurrencyCode any = nil
-		if IsEqual(side, "sell") {
+		if side != nil && *side == "sell" {
 			feeCurrencyCode = GetValue(market, "quote")
 		} else {
 			feeCurrencyCode = GetValue(market, "base")
@@ -1647,11 +1647,11 @@ func (this *Coinone) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		url = Add(url, request)
 		// the v2.1 api requires a uuid nonce, the older apis use a numeric one
-		var nonce any = nil
+		var nonce *string = nil
 		if IsEqual(api, "v2_1Private") {
-			nonce = this.Uuid()
+			nonce = SafeStringPtr(this.Uuid())
 		} else {
-			nonce = ToString(this.Nonce())
+			nonce = SafeStringPtr(ToString(this.Nonce()))
 		}
 		var json any = this.Json(this.Extend(map[string]any{
 			"access_token": this.ApiKey,
@@ -1684,7 +1684,7 @@ func (this *Coinone) HandleErrors(code any, reason any, url any, method any, hea
 	//
 	var errorCode *string = this.SafeString(response, "error_code")
 	if (errorCode != nil) && (errorCode == nil || *errorCode != "0") {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions, errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

@@ -1526,7 +1526,7 @@ func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString2(transaction, "date", "timestamp"))
 	var typeVar *string = this.SafeString(transaction, "type")
 	var expTime *string = this.SafeString(transaction, "expTime", "")
-	var status any = nil
+	var status *string = nil
 	if typeVar != nil {
 		if func() int {
 			if typeVar == nil {
@@ -1535,7 +1535,7 @@ func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) any {
 			return strings.Index(*typeVar, "deposit")
 		}() >= 0 {
 			typeVar = SafeStringPtr("deposit")
-			status = "ok"
+			status = SafeStringPtr("ok")
 		} else if (func() int {
 			if typeVar == nil {
 				return -1
@@ -1710,7 +1710,7 @@ func (this *Bitbns) HandleErrors(httpCode any, reason any, url any, method any, 
 	var message *string = this.SafeString(response, "msg")
 	var error bool = (code != nil) && (code == nil || *code != "200") && (code == nil || *code != "204")
 	if error || (message != nil) {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

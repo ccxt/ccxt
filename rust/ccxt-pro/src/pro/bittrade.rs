@@ -714,7 +714,7 @@ impl BittradeCore {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
-            let mut params: Value = self.safe_value_k(subscription, "params", &[]);
+            let mut params: Value = self.safe_dict_k(subscription, "params", &[]);
             let mut api: Value = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]);
             let mut hostname: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

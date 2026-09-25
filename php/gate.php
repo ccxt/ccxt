@@ -1907,7 +1907,7 @@ class gate extends Exchange {
         return $underlyings;
     }
 
-    public function prepare_request(?array $market = null, ?string $type = null, $params = array()) {
+    public function prepare_request(?array $market = null, ?string $type = null, $params = array()): array {
         /**
          * @ignore
          * Fills $request $params contract, $settle, currency_pair, $market and account where applicable
@@ -1943,7 +1943,7 @@ class gate extends Exchange {
         return array( $request, $params );
     }
 
-    public function spot_order_prepare_request(?array $market = null, ?bool $trigger = false, $params = array()) {
+    public function spot_order_prepare_request(?array $market = null, ?bool $trigger = false, $params = array()): array {
         /**
          * @ignore
          * Fills $request $params currency_pair, $market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
@@ -1964,7 +1964,7 @@ class gate extends Exchange {
         return array( $request, $query );
     }
 
-    public function multi_order_spot_prepare_request(?array $market = null, ?bool $trigger = false, $params = array()) {
+    public function multi_order_spot_prepare_request(?array $market = null, ?bool $trigger = false, $params = array()): array {
         /**
          * @ignore
          * Fills $request $params currency_pair, $market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
@@ -2796,7 +2796,7 @@ class gate extends Exchange {
         return $this->parse_funding_histories($response, $symbol, $since, $limit);
     }
 
-    public function parse_funding_histories(mixed $response, mixed $symbol, ?int $since, ?int $limit): array {
+    public function parse_funding_histories(mixed $response, ?string $symbol, ?int $since, ?int $limit): array {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $this->safe_dict($response, $i);

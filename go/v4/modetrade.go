@@ -864,7 +864,7 @@ func (this *Modetrade) ParseMarket(market any) any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var settleId *string = this.SafeString(parts, 2)
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+	var symbol *string = SafeStringPtr(Add(Add(Add(Add(base, "/"), quote), ":"), settle))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1153,15 +1153,15 @@ func (this *Modetrade) ParseTrade(trade any, optionalArgs ...any) any {
 	var cost *string = Precise.StringMul(price, amount)
 	var side *string = this.SafeStringLower(trade, "side")
 	var id *string = this.SafeString(trade, "id")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isFromFetchOrder {
 		var isMaker bool = (this.SafeString(trade, "is_maker") != nil && *this.SafeString(trade, "is_maker") == "1")
-		takerOrMaker = func() string {
+		takerOrMaker = SafeStringPtr(func() string {
 			if isMaker {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -2204,7 +2204,7 @@ func (this *Modetrade) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss any = this.SafeValue(params, "stopLoss")
 	var takeProfit any = this.SafeValue(params, "takeProfit")
@@ -2268,7 +2268,7 @@ func (this *Modetrade) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		if isConditional {
 			panic(NotSupported(this.Id + " createOrders() only support non-stop order"))
 		}
-		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var request map[string]any = map[string]any{
@@ -3261,14 +3261,14 @@ func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var amount *float64 = this.SafeNumber(item, "amount")
 	var side *string = this.SafeString(item, "side")
-	var direction any = nil
+	var direction *string = nil
 	if side != nil {
-		direction = func() string {
+		direction = SafeStringPtr(func() string {
 			if side != nil && *side == "DEPOSIT" {
 				return "in"
 			}
 			return "out"
-		}()
+		}())
 	}
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
 	var feeCost *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(item, "fee")))
@@ -3624,8 +3624,7 @@ func (this *Modetrade) withdrawBody(ch chan any, code any, amount any, address a
 		panic(BadRequest(this.Id + " withdraw() require chainId parameter"))
 	}
 
-	withdrawNonce := (<-this.GetWithdrawNonceAsync(params))
-	PanicOnError(withdrawNonce)
+	var withdrawNonce *float64 = Float64PtrTyped(PanicOnError((<-this.GetWithdrawNonceAsync(params))))
 	var nonce any = this.Nonce()
 	var domain map[string]any = map[string]any{
 		"chainId":           chainId,
@@ -4108,7 +4107,7 @@ func (this *Modetrade) HandleErrors(httpCode any, reason any, url any, method an
 	var success *bool = this.SafeBool(response, "success")
 	var errorCode *string = this.SafeString(response, "code")
 	if success == nil || *success != true {
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

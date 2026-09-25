@@ -2193,7 +2193,7 @@ class kucoin(Exchange, ImplicitAPI):
             await self.load_time_difference()
         return result
 
-    async def load_migration_status(self, force: bool = False):
+    async def load_migration_status(self, force: bool = False) -> bool:
         """
         :param boolean force: load account state for non hf
         loads the migration status for the account(hf or not)
@@ -6451,7 +6451,7 @@ class kucoin(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        method = self.options['fetchMyTradesMethod']
+        method = self.safe_string(self.options, 'fetchMyTradesMethod')
         parseResponseData = False
         response = None
         request, params = self.handle_until_option('endAt', request, params)

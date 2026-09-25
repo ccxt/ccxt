@@ -1421,7 +1421,7 @@ class paradex extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function get_system_config() {
+    public function get_system_config(): array {
         $cachedConfig = $this->safe_dict($this->options, 'systemConfig');
         if ($cachedConfig !== null) {
             return $cachedConfig;
@@ -1477,7 +1477,7 @@ class paradex extends Exchange {
         return $domain;
     }
 
-    public function retrieve_account() {
+    public function retrieve_account(): array {
         $cachedAccount = $this->safe_dict($this->options, 'paradexAccount');
         if ($cachedAccount !== null) {
             return $cachedAccount;
@@ -1524,7 +1524,7 @@ class paradex extends Exchange {
         return $response;
     }
 
-    public function authenticate_rest($params = array()) {
+    public function authenticate_rest($params = array()): ?string {
         $cachedToken = $this->safe_string($this->options, 'authToken');
         $now = $this->nonce();
         if ($cachedToken !== null) {

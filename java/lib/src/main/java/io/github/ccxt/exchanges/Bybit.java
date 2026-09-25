@@ -4049,8 +4049,7 @@ public class Bybit extends BybitApi
                 // start up to the interval boundary so that the exchange returns
                 // candles from the first bucket at or after `since`
                 Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
-                Object rounded = Helpers.multiply(this.parseToInt(Helpers.divide(since, duration)), duration);
-                request.put("start", (((Helpers.isEqual(rounded, since)))) ? since : this.sum(rounded, duration));
+                request.put("start", Helpers.multiply(this.parseToInt(Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(since, duration))))), duration));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -4322,7 +4321,7 @@ public class Bybit extends BybitApi
             Long timestamp = this.safeInteger(response, "time");
             for (var i = 0; i < ((List<?>)tickerList).size(); i++)
             {
-                Helpers.addElementToObject((tickerList == null || i < 0 || i >= tickerList.size() ? null : tickerList.get(i)), "timestamp", timestamp); // will be removed inside the parser
+                ((Map<String, Object>)(tickerList == null || i < 0 || i >= tickerList.size() ? null : tickerList.get(i))).put("timestamp", timestamp); // will be removed inside the parser
             }
             return this.parseFundingRates(tickerList, symbols);
         }).thenApply(FundingRates::new);

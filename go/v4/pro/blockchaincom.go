@@ -181,7 +181,7 @@ func (this *Blockchaincom) watchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var messageHash any = ccxt.Add("ohlcv:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv:", symbol))
 	var request map[string]any = map[string]any{
 		"action":      "subscribe",
 		"channel":     "prices",
@@ -271,7 +271,7 @@ func (this *Blockchaincom) watchTickerBody(ch chan any, symbol any, optionalArgs
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	var request map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "ticker",
@@ -401,7 +401,7 @@ func (this *Blockchaincom) watchTradesBody(ch chan any, symbol any, optionalArgs
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	var request map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "trades",
@@ -765,7 +765,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan any, symbol any, optionalA
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var typeVar *string = this.SafeString(params, "type", "l2")
 	params = this.Omit(params, "type")
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), typeVar)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), typeVar))
 	var subscribe map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": typeVar,
@@ -820,7 +820,7 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 	var typeVar *string = this.SafeString(message, "channel")
 	var marketId *string = this.SafeString(message, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	var messageHash any = ccxt.Add("orderbook:"+*symbol+":", typeVar)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:"+*symbol+":", typeVar))
 	var datetime *string = this.SafeString(message, "timestamp")
 	var timestamp *int64 = this.Parse8601(datetime)
 	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil) {

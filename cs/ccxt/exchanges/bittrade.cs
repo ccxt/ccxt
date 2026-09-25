@@ -1501,7 +1501,7 @@ public partial class bittrade : Exchange
         };
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = ((IDictionary<string, object>)balances[i]);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             object account = null;
@@ -1516,7 +1516,7 @@ public partial class bittrade : Exchange
             {
                 throw new ExchangeError ((this.id + " parseBalance() could not resolve account")) ;
             }
-            if (isEqual(getValue(balance, "type"), "trade"))
+            if (isEqual((balance != null && ((IDictionary<string, object>)balance).ContainsKey("type") ? ((IDictionary<string, object>)balance)["type"] : null), "trade"))
             {
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "balance");
             }
@@ -1524,7 +1524,7 @@ public partial class bittrade : Exchange
             {
                 throw new ExchangeError ((this.id + " parseBalance() could not resolve account")) ;
             }
-            if (isEqual(getValue(balance, "type"), "frozen"))
+            if (isEqual((balance != null && ((IDictionary<string, object>)balance).ContainsKey("type") ? ((IDictionary<string, object>)balance)["type"] : null), "frozen"))
             {
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "balance");
             }

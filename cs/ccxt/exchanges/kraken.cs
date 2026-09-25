@@ -2059,7 +2059,7 @@ public partial class kraken : Exchange
         {
             return id;
         }
-        object market = this.safeValue((this.options.ContainsKey("delistedMarketsById") ? this.options["delistedMarketsById"] : null), id);
+        IDictionary<string, object> market = this.safeDict((this.options.ContainsKey("delistedMarketsById") ? this.options["delistedMarketsById"] : null), id);
         if ((market != null))
         {
             return market;

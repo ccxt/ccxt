@@ -385,7 +385,7 @@ export default class coinmate extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -662,7 +662,7 @@ export default class coinmate extends Exchange {
             request['currency'] = currency['id'];
         }
         const response = await this.privatePostTransferHistory (this.extend (request, params));
-        const items = this.safeList (response, 'data', []);
+        const items: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (items, undefined, since, limit);
     }
 
@@ -1027,7 +1027,7 @@ export default class coinmate extends Exchange {
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const response = await this.privatePostOpenOrders (this.extend ({}, params));
         const extension: Dict = { 'status': 'open' };
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, undefined, since, limit, extension);
     }
 
@@ -1058,7 +1058,7 @@ export default class coinmate extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostOrderHistory (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 

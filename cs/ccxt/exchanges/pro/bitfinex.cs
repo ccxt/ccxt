@@ -419,7 +419,7 @@ public partial class bitfinex : ccxt.bitfinex
         //
         subscription ??= new Dictionary<string, object>();
         string name = "myTrade";
-        object data = this.safeValue(message, 2);
+        List<object> data = this.safeList(message, 2);
         Dictionary<string, object> trade = this.parseWsTrade(data);
         string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
         Dictionary<string, object> market = this.market(symbol);
@@ -989,9 +989,9 @@ public partial class bitfinex : ccxt.bitfinex
         //       null
         //   ]
         //
-        object updateType = this.safeValue(message, 1);
+        string? updateType = this.safeString(message, 1);
         List<object> data = new List<object>() {};
-        if (isEqual(updateType, "ws"))
+        if (updateType == "ws")
         {
             data = this.safeList(message, 2);
         } else

@@ -2487,7 +2487,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)newPositions).size(); i++)
             {
                 Object position = (newPositions == null || i < 0 || i >= newPositions.size() ? null : newPositions.get(i));
-                Object symbol = Helpers.GetValue(position, "symbol");
+                Object symbol = ((Map<String, Object>)position).get("symbol");
                 String symbolMessageHash = Helpers.add((messageHash + "::"), symbol);
                 client.resolve(position, symbolMessageHash);
             }

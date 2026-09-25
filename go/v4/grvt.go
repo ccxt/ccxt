@@ -1037,15 +1037,15 @@ func (this *Grvt) ParseMarket(market any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-	var typeVar any = nil
+	var symbol *string = SafeStringPtr(Add(Add(Add(Add(base, "/"), quote), ":"), settle))
+	var typeVar *string = nil
 	var typeRaw *string = this.SafeString(market, "kind")
 	if typeRaw != nil && *typeRaw == "PERPETUAL" {
-		typeVar = "swap"
+		typeVar = SafeStringPtr("swap")
 	}
-	var isSpot bool = (IsEqual(typeVar, "spot"))
-	var isSwap bool = (IsEqual(typeVar, "swap"))
-	var isFuture bool = (IsEqual(typeVar, "future"))
+	var isSpot bool = (typeVar != nil && *typeVar == "spot")
+	var isSwap bool = (typeVar != nil && *typeVar == "swap")
+	var isFuture bool = (typeVar != nil && *typeVar == "future")
 	var isContract bool = isSwap || isFuture
 	return map[string]any{
 		"id":       marketId,
@@ -2180,7 +2180,7 @@ func (this *Grvt) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var direction any = nil
+	var direction *string = nil
 	var txId *string = nil
 	var networkCode *string = nil
 	var addressFrom *string = this.SafeString(transaction, "from_account_id")
@@ -2194,9 +2194,9 @@ func (this *Grvt) ParseTransaction(transaction any, optionalArgs ...any) any {
 			direction = this.SafeStringLower(parsedMeta, "direction")
 			txId = this.SafeString(parsedMeta, "provider_tx_id")
 			networkCode = this.NetworkIdToCode(this.SafeString(parsedMeta, "chainid"), code)
-			if IsEqual(direction, "withdrawal") {
+			if direction != nil && *direction == "withdrawal" {
 				addressTo = this.SafeString(parsedMeta, "endpoint")
-			} else if IsEqual(direction, "deposit") {
+			} else if direction != nil && *direction == "deposit" {
 				addressFrom = this.SafeString(parsedMeta, "endpoint")
 			}
 		}
@@ -2601,8 +2601,8 @@ func (this *Grvt) withdrawBody(ch chan any, code any, amount any, address any, o
 		"signature":       this.DefaultSignature(),
 	}
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode := GetValue(networkCodequeryVariable, 0)
-	query := GetValue(networkCodequeryVariable, 1)
+	var networkCode *string = SafeStringPtr(GetValue(networkCodequeryVariable, 0))
+	var query map[string]any = MapTyped(GetValue(networkCodequeryVariable, 1))
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))
@@ -2739,22 +2739,22 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 			selectedPrice = takeProfitPrice
 		}
 		// trigger type
-		var selectedType any = nil
+		var selectedType *string = nil
 		var isBuy bool = (IsEqual(side, "buy"))
 		if stopLossPrice != nil {
-			selectedType = func() string {
+			selectedType = SafeStringPtr(func() string {
 				if isBuy {
 					return "STOP_LOSS"
 				}
 				return "TAKE_PROFIT"
-			}()
+			}())
 		} else if takeProfitPrice != nil {
-			selectedType = func() string {
+			selectedType = SafeStringPtr(func() string {
 				if isBuy {
 					return "TAKE_PROFIT"
 				}
 				return "STOP_LOSS"
-			}()
+			}())
 		} else {
 			var triggerDirection *string = this.SafeString(params, "triggerDirection")
 			if triggerDirection == nil {
@@ -2762,19 +2762,19 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 			}
 			if triggerDirection != nil {
 				if triggerDirection != nil && *triggerDirection == "ascending" {
-					selectedType = func() string {
+					selectedType = SafeStringPtr(func() string {
 						if isBuy {
 							return "STOP_LOSS"
 						}
 						return "TAKE_PROFIT"
-					}()
+					}())
 				} else if triggerDirection != nil && *triggerDirection == "descending" {
-					selectedType = func() string {
+					selectedType = SafeStringPtr(func() string {
 						if isBuy {
 							return "TAKE_PROFIT"
 						}
 						return "STOP_LOSS"
-					}()
+					}())
 				}
 			}
 		}
@@ -3889,7 +3889,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 		return this.ParseTimeInForce(timeInForceRaw)
 	}()
 	var size *string = nil
-	var side any = nil
+	var side *string = nil
 	var price *string = nil
 	var filled *string = nil
 	var avgPrice *string = nil
@@ -3905,12 +3905,12 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 		market = MapTyped(this.SafeMarket(marketId, market))
 		size = this.SafeString(firstLeg, "size")
 		var isBuyingAsset bool = (IsEqual(this.SafeBool(firstLeg, "is_buying_asset"), true))
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isBuyingAsset {
 				return "buy"
 			}
 			return "sell"
-		}()
+		}())
 		price = this.SafeString(firstLeg, "limit_price")
 		filled = this.SafeString(filledAmounts, primaryOrderIndex)
 		avgPrice = this.SafeString(avgPrices, primaryOrderIndex)
@@ -4152,7 +4152,7 @@ func (this *Grvt) CreateSignedRequest(request any, structureType any, optionalAr
 	var domainData any = this.EipDomainData()
 	var definitions any = this.EipDefinitions()
 	var ethEncodedMessage any = this.EthEncodeStructuredData(domainData, GetValue(definitions, structureType), messageData)
-	var ethEncodedMessageHashed any = Add("0x", this.Hash(ethEncodedMessage, keccak, "hex"))
+	var ethEncodedMessageHashed *string = SafeStringPtr(Add("0x", this.Hash(ethEncodedMessage, keccak, "hex")))
 	var usesPrivKey bool = this.UsesPrivateKey() // py transpiler needs this line separated
 	var secretOrPrivkey any = func() any {
 		if usesPrivKey {
@@ -4293,19 +4293,19 @@ func (this *Grvt) HandleErrors(code any, reason any, url any, method any, header
 	} else {
 		var errorCode *string = this.SafeString(response, "code")
 		if errorCode != nil {
-			var feedback any = Add(this.Id+" ", body)
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 			panic(ExchangeError(feedback))
 		} else {
 			var message *string = this.SafeString(response, "message")
 			if message != nil {
-				var feedback any = Add(this.Id+" ", body)
+				var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 				panic(ExchangeError(feedback))
 			} else {
 				var status *string = this.SafeString(response, "status")
 				if (status != nil) && (status == nil || *status != "success") {
-					var feedback any = Add(this.Id+" ", body)
+					var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 					panic(ExchangeError(feedback))
 				}
 			}

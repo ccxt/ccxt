@@ -889,7 +889,7 @@ export default class cryptomus extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         const orders: List = [];
         for (let i = 0; i < result.length; i++) {
             const order = result[i];
@@ -947,7 +947,7 @@ export default class cryptomus extends Exchange {
         //             ...
         //         ]
         //     }
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, undefined, undefined);
     }
 

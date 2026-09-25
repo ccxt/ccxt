@@ -121,7 +121,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $newValue;
     }
 
-    public function create_public_request(mixed $market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false) {
+    public function create_public_request(mixed $market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false): array {
         $marketId = $market['symbol']; // spot markets use symbol with slash
         if ($market['type'] === 'swap') {
             $marketId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', ''); // swap markets use symbol without slash
@@ -191,7 +191,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return Async\await($this->watch($url, $messageHash, null, 'private', $params));
     }
 
-    public function authenticate($params = array()) {
+    public function authenticate($params = array()): PromiseInterface {
         return Async\async(self::do_authenticate(...))($params);
     }
 
@@ -1237,7 +1237,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null): array {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "A": "9256245",

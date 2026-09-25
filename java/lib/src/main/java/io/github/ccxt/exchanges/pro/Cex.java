@@ -1010,7 +1010,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Object order = this.safeValue(ordersBySymbol, orderId);
         if (java.util.Objects.equals(order, null))
         {
-            order = this.parseWsOrderUpdate(data, market);
+            order = this.parseWsOrderUpdate((Map<String, Object>) (data), market);
         }
         Helpers.addElementToObject(order, "remaining", remains);
         Boolean canceled = (Boolean) this.safeBool(data, "cancel", false);
@@ -1041,7 +1041,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         client.resolve(storedOrders, messageHash);
     }
 
-    public Object parseWsOrderUpdate(Object order, Map<String, Object> market)
+    public Object parseWsOrderUpdate(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //      {
@@ -1169,7 +1169,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         return this.safeOrder((Map<String, Object>) (parsedOrder), market);
     }
-    public Object parseWsOrderUpdate(Object order, Object... optionalArgs)
+    public Object parseWsOrderUpdate(Map<String, Object> order, Object... optionalArgs)
     {
         return this.parseWsOrderUpdate(order, Helpers.getArgMap(optionalArgs, 0, null));
     }

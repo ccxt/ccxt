@@ -668,7 +668,7 @@ class derive extends \ccxt\async\derive {
                     if ($fee !== null) {
                         $parsed['fee'] = $fee;
                     }
-                    $fees = $this->safe_value($order, 'fees');
+                    $fees = $this->safe_list($order, 'fees');
                     if ($fees !== null) {
                         $parsed['fees'] = $fees;
                     }

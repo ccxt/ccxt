@@ -725,10 +725,10 @@ public partial class binance : PredictionExchange
         };
         double? volume = this.safeNumber(rawMarket, "tradeVolume");
         double? liquidity = this.safeNumber(rawMarket, "liquidity");
-        IList<object> rawOutcomes = (IList<object>)(this.safeList(rawMarket, "outcomes", new List<object>() {}));
+        List<object> rawOutcomes = this.safeList(rawMarket, "outcomes", new List<object>() {});
         List<object> outcomes = new List<object>() {};
         string? resolvedOutcomeRaw = null;
-        int rawOutcomesLength = (rawOutcomes?.Count ?? 0);
+        int rawOutcomesLength = rawOutcomes.Count;
         for (int oi = 0; oi < rawOutcomesLength; oi++)
         {
             IDictionary<string, object> rawOutcome = this.safeDict(rawOutcomes, oi);

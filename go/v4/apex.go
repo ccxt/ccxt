@@ -789,7 +789,7 @@ func (this *Apex) ParseMarket(market any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var settleId *string = this.SafeString(market, "settleAssetId")
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol any = Add(Add(Add(Add(baseId, "/"), quote), ":"), settle)
+	var symbol *string = SafeStringPtr(Add(Add(Add(Add(baseId, "/"), quote), ":"), settle))
 	var expiry int = 0
 	var takerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0002"))
 	var makerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0005"))
@@ -2569,7 +2569,7 @@ func (this *Apex) HandleErrors(code any, reason any, url any, method any, header
 	}
 	var errorCode *int64 = this.SafeInteger(response, "code")
 	if (errorCode != nil) && (errorCode == nil || *errorCode != 0) {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		var message *string = this.SafeString2(response, "key", "msg")
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		var status string = ToString(code)

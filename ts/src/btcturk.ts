@@ -324,7 +324,7 @@ export default class btcturk extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        const filters = this.safeList (entry, 'filters', []);
+        const filters: Dict[] = this.safeList (entry, 'filters', []);
         let minPrice: Num = undefined;
         let maxPrice: Num = undefined;
         let minAmount: Num = undefined;
@@ -394,7 +394,7 @@ export default class btcturk extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,

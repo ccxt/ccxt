@@ -369,7 +369,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
                 Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-                Object subscription = this.safeValue(client.subscriptions, topic);
+                Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, topic);
                 Long limit = this.safeInteger(subscription, "limit", defaultLimit);
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
@@ -409,7 +409,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
                 Object limit = this.safeInteger(subscription, "limit", defaultLimit);
-                Object parameters = this.safeValue(subscription, "params");
+                Object parameters = this.safeDict(subscription, "params");
                 Object snapshot = (this.fetchRestOrderBookSafe(symbol, limit, parameters)).join();
                 if (java.util.Objects.equals(this.safeDict(this.orderbooks, symbol), null))
                 {
@@ -1759,7 +1759,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 {
                     Helpers.addElementToObject(parsed, "fee", fee);
                 }
-                Object fees = this.safeValue(order, "fees");
+                List<Object> fees = (List<Object>) this.safeList(order, "fees");
                 if (!java.util.Objects.equals(fees, null))
                 {
                     ((Map<String, Object>)parsed).put("fees", fees);

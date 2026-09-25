@@ -1779,7 +1779,7 @@ class kraken(Exchange, ImplicitAPI):
     def get_delisted_market_by_id(self, id: object):
         if id is None:
             return id
-        market = self.safe_value(self.options['delistedMarketsById'], id)
+        market = self.safe_dict(self.options['delistedMarketsById'], id)
         if market is not None:
             return market
         baseIdStart = 0
@@ -2900,7 +2900,7 @@ class kraken(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_transactions_by_type(self, type: object, transactions: object, code: Str = None, since: Int = None, limit: Int = None):
+    def parse_transactions_by_type(self, type: str, transactions: object, code: Str = None, since: Int = None, limit: Int = None):
         result = []
         for i in range(0, len(transactions)):
             transaction = self.parse_transaction(self.extend({
@@ -3360,7 +3360,7 @@ class kraken(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def parse_account_type(self, account: object):
+    def parse_account_type(self, account: Str):
         accountByType = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',

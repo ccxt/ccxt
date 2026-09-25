@@ -2207,9 +2207,9 @@ public partial class okx : ccxt.okx
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object rawPosition = data[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
-            if (isEqual((position != null && ((IDictionary<string, object>)position).ContainsKey("contracts") ? ((IDictionary<string, object>)position)["contracts"] : null), 0) && isEqual(getValue(rawPosition, "posSide"), "net"))
+            if (isEqual((position != null && ((IDictionary<string, object>)position).ContainsKey("contracts") ? ((IDictionary<string, object>)position)["contracts"] : null), 0) && isEqual((rawPosition != null && ((IDictionary<string, object>)rawPosition).ContainsKey("posSide") ? ((IDictionary<string, object>)rawPosition)["posSide"] : null), "net"))
             {
                 position["side"] = "long";
                 object shortPosition = this.clone(position);
@@ -2461,7 +2461,7 @@ public partial class okx : ccxt.okx
         // filter orders with no last trade id
         for (int i = 0; i < rawOrders.Count; i++)
         {
-            object rawOrder = rawOrders[i];
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)rawOrders[i]);
             string? tradeId = this.safeString(rawOrder, "tradeId", "");
             if (tradeId.Length > 0)
             {

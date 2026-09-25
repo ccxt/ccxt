@@ -443,7 +443,7 @@ func (this *Okx) HandleTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()))
-		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), symbol))
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
 			stored = ccxt.NewArrayCache(tradesLimit)
@@ -858,7 +858,7 @@ func (this *Okx) HandleTicker(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		ccxt.AddElementToObject(newTickers, symbol, ticker)
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, "::"), symbol))
 	client.(ccxt.ClientInterface).Resolve(newTickers, messageHash)
 }
 
@@ -911,8 +911,7 @@ func (this *Okx) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		"args": args,
 	}
 
-	newTickers := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(newTickers)
+	var newTickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes))))
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
@@ -975,7 +974,7 @@ func (this *Okx) HandleBidAsk(client any, message map[string]any) {
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Bidsasks, symbol, parsedTicker)
 	}
-	var messageHash any = ccxt.Add("bidask::", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("bidask::", symbol))
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
 func (this *Okx) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
@@ -1613,7 +1612,7 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
-		var messageHash any = ccxt.Add(*channel+":", market["id"])
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*channel+":", market["id"]))
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		// for multiOHLCV we need special object, as opposed to other "multi"
 		// methods, because ccxt.OHLCV response item does not contain symbol
@@ -2703,12 +2702,12 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, channel)
 		for i := 0; i < len(marketIds); i++ {
-			var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), func() any {
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), func() any {
 				if i >= 0 && i < len(marketIds) {
 					return ccxt.DerefScalar(marketIds[i])
 				}
 				return nil
-			}())
+			}()))
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		}
 	}
@@ -2863,12 +2862,12 @@ func (this *Okx) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 	var opparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrderWs", "op", "batch-orders")
 	op = ccxt.SafeStringPtr(ccxt.GetValue(opparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(opparamsVariable, 1))
-	var args any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var args map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	if instIdCode != nil {
 		ccxt.Remove(args, "instId")
-		ccxt.AddElementToObject(args, "instIdCode", instIdCode)
+		args["instIdCode"] = instIdCode
 	}
 	var ordType *string = this.SafeString(args, "ordType")
 	if (ordType != nil && *ordType == "trigger") || (ordType != nil && *ordType == "conditional") || (ccxt.IsEqual(typeVar, "oco")) || (ccxt.IsEqual(typeVar, "move_order_stop")) || (ccxt.IsEqual(typeVar, "iceberg")) || (ccxt.IsEqual(typeVar, "twap")) {
@@ -3224,7 +3223,7 @@ func (this *Okx) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if ((errorCode != nil) && (errorCode == nil || *errorCode != "")) && (errorCode == nil || *errorCode != "0") {
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 				if errorCode == nil || *errorCode != "1" {
 					this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 				}
@@ -3366,7 +3365,7 @@ func (this *Okx) HandleMessage(client any, message any) {
 }
 func (this *Okx) HandleUnSubscriptionTrades(client any, symbol any, channel any) {
 	var subMessageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if ccxt.InOp(this.Trades, symbol) {
 		ccxt.Remove(this.Trades, symbol)
@@ -3374,7 +3373,7 @@ func (this *Okx) HandleUnSubscriptionTrades(client any, symbol any, channel any)
 }
 func (this *Okx) HandleUnsubscriptionOrderBook(client any, symbol any, channel any) {
 	var subMessageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
-	var messageHash any = ccxt.Add("unsubscribe:orderbook:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:orderbook:", symbol))
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if ccxt.InOp(this.Orderbooks, symbol) {
 		ccxt.Remove(this.Orderbooks, symbol)
@@ -3387,7 +3386,7 @@ func (this *Okx) HandleUnsubscriptionOHLCV(client any, symbol any, channel any) 
 		return
 	}
 	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("multi:", channel), ":"), symbol)
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if (!ccxt.IsEqual(symbol, nil)) && (timeframe != nil) && (ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
@@ -3395,7 +3394,7 @@ func (this *Okx) HandleUnsubscriptionOHLCV(client any, symbol any, channel any) 
 }
 func (this *Okx) HandleUnsubscriptionTicker(client any, symbol any, channel any) {
 	var subMessageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
-	var messageHash any = ccxt.Add("unsubscribe:ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:ticker:", symbol))
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if ccxt.InOp(this.Tickers, symbol) {
 		ccxt.Remove(this.Tickers, symbol)

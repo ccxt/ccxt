@@ -981,7 +981,7 @@ export default class hitbtc extends Exchange {
         const currencyId = currency['_coin_id'];
         const code = this.safeCurrencyCode (currencyId);
         const entry = currency;
-        const rawNetworks = this.safeList (entry, 'networks', []);
+        const rawNetworks: Dict[] = this.safeList (entry, 'networks', []);
         const networks: Dict = {};
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
@@ -1329,7 +1329,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketInner = this.market (marketId);
-            const rawTrades = this.safeList (response, marketId, []);
+            const rawTrades: Dict[] = this.safeList (response, marketId, []);
             const parsed = this.parseTrades (rawTrades, marketInner);
             trades = this.arrayConcat (trades, parsed);
         }
@@ -2729,7 +2729,7 @@ export default class hitbtc extends Exchange {
         } else {
             throw new BadSymbol (this.id + ' fetchMarginModes () supports swap contracts and margin only');
         }
-        const config = this.safeList (response, 'config', []);
+        const config: Dict[] = this.safeList (response, 'config', []);
         return this.parseMarginModes (config, symbols, 'symbol');
     }
 
@@ -3011,7 +3011,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < contracts.length; i++) {
             const marketId = contracts[i];
             const marketInner = this.safeMarket (marketId);
-            const fundingRateData = this.safeList (response, marketId, []);
+            const fundingRateData: Dict[] = this.safeList (response, marketId, []);
             for (let j = 0; j < fundingRateData.length; j++) {
                 const entry = fundingRateData[j];
                 const symbolInner = this.safeSymbol (marketInner['symbol']);
@@ -3214,7 +3214,7 @@ export default class hitbtc extends Exchange {
         const marginMode = this.safeString (position, 'type');
         const leverage = this.safeNumber (position, 'leverage');
         const datetime = this.safeString (position, 'updated_at');
-        const positions = this.safeList (position, 'positions', []);
+        const positions: Dict[] = this.safeList (position, 'positions', []);
         let liquidationPrice: Num = undefined;
         let entryPrice: Num = undefined;
         let contracts: Num = undefined;
@@ -3224,7 +3224,7 @@ export default class hitbtc extends Exchange {
             entryPrice = this.safeNumber (entry, 'price_entry');
             contracts = this.safeNumber (entry, 'quantity');
         }
-        const currencies = this.safeList (position, 'currencies', []);
+        const currencies: Dict[] = this.safeList (position, 'currencies', []);
         let collateral: Num = undefined;
         for (let i = 0; i < currencies.length; i++) {
             const entry = this.safeDict (currencies, i);
@@ -3784,7 +3784,7 @@ export default class hitbtc extends Exchange {
         //         ]
         //    }
         //
-        const networks = this.safeList (fee, 'networks', []);
+        const networks: Dict[] = this.safeList (fee, 'networks', []);
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = this.safeDict (networks, j);

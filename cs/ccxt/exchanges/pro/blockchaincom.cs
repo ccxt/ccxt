@@ -591,7 +591,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             List<object> orders = this.safeList(message, "orders", new List<object>() {});
             for (int i = 0; i < orders.Count; i++)
             {
-                object order = orders[i];
+                IDictionary<string, object> order = ((IDictionary<string, object>)orders[i]);
                 Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
                 cachedOrders.append(parsedOrder);
             }

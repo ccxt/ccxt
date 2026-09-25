@@ -2902,7 +2902,7 @@ func (this *Bittrade) HandleErrors(httpCode any, reason any, url any, method any
 		var status *string = this.SafeString(response, "status")
 		if status != nil && *status == "error" {
 			var code *string = this.SafeString(response, "err-code")
-			var feedback any = Add(this.Id+" ", body)
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 			var message *string = this.SafeString(response, "err-msg")

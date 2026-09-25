@@ -1506,7 +1506,7 @@ export default class whitebit extends Exchange {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketNew = this.safeMarket (marketId, undefined, '_');
-                    const marketOrders = this.safeList (response, marketId, []);
+                    const marketOrders: Dict[] = this.safeList (response, marketId, []);
                     for (let j = 0; j < marketOrders.length; j++) {
                         const order = marketOrders[j];
                         const orderId = this.safeString (order, 'id');
@@ -1787,7 +1787,7 @@ export default class whitebit extends Exchange {
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
                 const marketNew = this.safeMarket (marketId, undefined, '_');
-                const rawTrades = this.safeList (response, marketId, []);
+                const rawTrades: Dict[] = this.safeList (response, marketId, []);
                 const parsed = this.parseTrades (rawTrades, marketNew, since, limit);
                 results = this.arrayConcat (results, parsed);
             }
@@ -2740,7 +2740,7 @@ export default class whitebit extends Exchange {
         //         "limit": 100
         //     }
         //
-        const data = this.safeList (response, 'records', []);
+        const data: Dict[] = this.safeList (response, 'records', []);
         return this.parseTrades (data, market);
     }
 
@@ -2859,7 +2859,7 @@ export default class whitebit extends Exchange {
         //         "offset": 0
         //     }
         //
-        const records = this.safeList (response, 'records', []);
+        const records: Dict[] = this.safeList (response, 'records', []);
         return this.parseTransactions (records, currency, since, limit);
     }
 
@@ -3031,7 +3031,7 @@ export default class whitebit extends Exchange {
         //         ]
         //     }
         //
-        const subAccounts = this.safeList (response, 'data', []);
+        const subAccounts: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < subAccounts.length; i++) {
             const subAccount = this.safeDict (subAccounts, i, {});
             const accountId = this.safeString (subAccount, 'id');
@@ -3324,7 +3324,7 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeList (response, 'records', []);
+        const records: Dict[] = this.safeList (response, 'records', []);
         const first = this.safeDict (records, 0, {});
         return this.parseTransaction (first, currency);
     }
@@ -3564,7 +3564,7 @@ export default class whitebit extends Exchange {
         //        }
         //    ]
         //
-        const data = this.safeList (response, 'result', []);
+        const data: Dict[] = this.safeList (response, 'result', []);
         return this.parseFundingRates (data, symbols);
     }
 
@@ -3706,7 +3706,7 @@ export default class whitebit extends Exchange {
         };
     }
 
-    parseFundingHistories (contracts: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+    parseFundingHistories (contracts: Dict[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         const result: List = [];
         for (let i = 0; i < contracts.length; i++) {
             const contract = this.safeDict (contracts, i);
@@ -3919,7 +3919,7 @@ export default class whitebit extends Exchange {
         //         "offset": 0
         //     }
         //
-        const rows = this.safeList (response, 'records', []);
+        const rows: Dict[] = this.safeList (response, 'records', []);
         return this.parseConversions (rows, code, 'fromCurrency', 'toCurrency', since, limit);
     }
 
@@ -3961,7 +3961,7 @@ export default class whitebit extends Exchange {
         //         "rate": "0.00001193"
         //     }
         //
-        const path = this.safeList (conversion, 'path', []);
+        const path: Dict[] = this.safeList (conversion, 'path', []);
         const first = this.safeDict (path, 0, {});
         const fromPath = this.safeString (first, 'from');
         const toPath = this.safeString (first, 'to');

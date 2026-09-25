@@ -4729,9 +4729,9 @@ func (this *BaseExchange) HandleRequestNetwork(params any, request any, exchange
 	_ = currencyCode
 	var isRequired bool = GetArgBool(optionalArgs, 1, false)
 	_ = isRequired
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
 		AddElementToObject(request, exchangeSpecificKey, this.NetworkCodeToId(networkCode, currencyCode))
@@ -8233,7 +8233,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 						return cursorValue
 					}()
 					var iteration any = (Add(i, 1))
-					var cursorMessage any = Add(Add(Add(Add(Add("Cursor pagination call "+ToString(iteration)+" method ", method), " response length "), ToString(responseLength)), " cursor "), cursorString)
+					var cursorMessage *string = SafeStringPtr(Add(Add(Add(Add(Add("Cursor pagination call "+ToString(iteration)+" method ", method), " response length "), ToString(responseLength)), " cursor "), cursorString))
 					this.Log(cursorMessage)
 				}
 				if responseLength == 0 {
@@ -8349,7 +8349,7 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan any, method 
 				var responseLength int = GetArrayLength(response)
 				if this.Verbose {
 					var iteration string = ToString((Add(i, 1)))
-					var incrementalMessage any = Add(Add(Add("Incremental pagination call "+iteration+" method ", method), " response length "), ToString(responseLength))
+					var incrementalMessage *string = SafeStringPtr(Add(Add(Add("Incremental pagination call "+iteration+" method ", method), " response length "), ToString(responseLength)))
 					this.Log(incrementalMessage)
 				}
 				if IsEqual(responseLength, 0) {
@@ -8444,7 +8444,7 @@ func (this *BaseExchange) RemoveKeysFromDict(dict any, removeKeys any) any {
 	return newDict
 }
 func (this *BaseExchange) HandleUntilOption(key any, request any, params any, optionalArgs ...any) []any {
-	var multiplier int64 = GetArgInt64(optionalArgs, 0, 1)
+	multiplier := GetArg(optionalArgs, 0, 1)
 	_ = multiplier
 	var until *int64 = this.SafeInteger2(params, "until", "till")
 	if until != nil {
@@ -8737,32 +8737,32 @@ func (this *BaseExchange) ConvertExpireDateToMarketIdDate(date any) any {
 	// parse 240119 to 19JAN24
 	var year string = Slice(date, 0, 2)
 	var monthRaw string = Slice(date, 2, 4)
-	var month any = nil
+	var month *string = nil
 	var day string = Slice(date, 4, 6)
 	if monthRaw == "01" {
-		month = "JAN"
+		month = SafeStringPtr("JAN")
 	} else if monthRaw == "02" {
-		month = "FEB"
+		month = SafeStringPtr("FEB")
 	} else if monthRaw == "03" {
-		month = "MAR"
+		month = SafeStringPtr("MAR")
 	} else if monthRaw == "04" {
-		month = "APR"
+		month = SafeStringPtr("APR")
 	} else if monthRaw == "05" {
-		month = "MAY"
+		month = SafeStringPtr("MAY")
 	} else if monthRaw == "06" {
-		month = "JUN"
+		month = SafeStringPtr("JUN")
 	} else if monthRaw == "07" {
-		month = "JUL"
+		month = SafeStringPtr("JUL")
 	} else if monthRaw == "08" {
-		month = "AUG"
+		month = SafeStringPtr("AUG")
 	} else if monthRaw == "09" {
-		month = "SEP"
+		month = SafeStringPtr("SEP")
 	} else if monthRaw == "10" {
-		month = "OCT"
+		month = SafeStringPtr("OCT")
 	} else if monthRaw == "11" {
-		month = "NOV"
+		month = SafeStringPtr("NOV")
 	} else if monthRaw == "12" {
-		month = "DEC"
+		month = SafeStringPtr("DEC")
 	}
 	var reconstructedDate any = Add(Add(day, month), year)
 	return reconstructedDate

@@ -113,7 +113,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         self.unlock_id()
         return newValue
 
-    def create_public_request(self, market: object, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False):
+    def create_public_request(self, market: object, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False) -> dict:
         marketId = market['symbol']  # spot markets use symbol with slash
         if market['type'] == 'swap':
             marketId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')  # swap markets use symbol without slash
@@ -164,7 +164,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         url = self.urls['api']['ws']['private'] + '?listenKey=' + listenKey
         return await self.watch(url, messageHash, None, 'private', params)
 
-    async def authenticate(self, params: dict = {}):
+    async def authenticate(self, params: dict = {}) -> Str:
         self.check_required_credentials()
         time = self.milliseconds()
         # single-flight leader election on a never-dialed client, see
@@ -1083,7 +1083,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             client.resolve(self.positions, messageHash)
             client.resolve(self.positions, symbolMessageHash)
 
-    def parse_ws_position(self, position: object, market: Market = None) -> Position:
+    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "A": "9256245",

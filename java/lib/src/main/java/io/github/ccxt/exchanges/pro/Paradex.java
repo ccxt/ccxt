@@ -86,7 +86,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                Object token = (this.authenticateRest()).join();
+                String token = (this.authenticateRest()).join();
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "jsonrpc", "2.0" );
                     put( "id", Paradex.this.requestId() );

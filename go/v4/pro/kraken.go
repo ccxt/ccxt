@@ -317,8 +317,7 @@ func (this *Kraken) createOrderWsBody(ch chan any, symbol any, typeVar any, side
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 
-	token := (<-this.AuthenticateAsync())
-	ccxt.PanicOnError(token)
+	var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.AuthenticateAsync())))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2"))
 	var requestId int64 = this.RequestId()
@@ -405,8 +404,7 @@ func (this *Kraken) editOrderWsBody(ch chan any, id any, symbol any, typeVar any
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 
-	token := (<-this.AuthenticateAsync())
-	ccxt.PanicOnError(token)
+	var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.AuthenticateAsync())))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2"))
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
@@ -455,8 +453,7 @@ func (this *Kraken) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 
-	token := (<-this.AuthenticateAsync())
-	ccxt.PanicOnError(token)
+	var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.AuthenticateAsync())))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2"))
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
@@ -501,8 +498,7 @@ func (this *Kraken) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 
-	token := (<-this.AuthenticateAsync())
-	ccxt.PanicOnError(token)
+	var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.AuthenticateAsync())))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2"))
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
@@ -562,8 +558,7 @@ func (this *Kraken) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any 
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 
-	token := (<-this.AuthenticateAsync())
-	ccxt.PanicOnError(token)
+	var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.AuthenticateAsync())))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2"))
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
@@ -721,7 +716,7 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	var interval *int64 = this.SafeInteger(first, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
 	var messageHash any = this.GetMessageHash("ohlcv", nil, symbol)
-	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
+	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -801,8 +796,7 @@ func (this *Kraken) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols, nil, false)
 
-	ticker := (<-this.WatchMultiHelperAsync("ticker", "ticker", symbols, nil, params))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("ticker", "ticker", symbols, nil, params))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -841,8 +835,7 @@ func (this *Kraken) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, false)
 	ccxt.AddElementToObject(params, "event_trigger", "bbo")
 
-	ticker := (<-this.WatchMultiHelperAsync("bidask", "ticker", symbols, nil, params))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("bidask", "ticker", symbols, nil, params))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -1417,8 +1410,7 @@ func (this *Kraken) watchPrivateBody(ch chan any, name any, optionalArgs ...any)
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 
-	token := (<-this.AuthenticateAsync())
-	ccxt.PanicOnError(token)
+	var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.AuthenticateAsync())))
 	var subscriptionHash string = "executions"
 	var messageHash any = name
 	if symbol != nil {
@@ -1535,7 +1527,7 @@ func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalA
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, name)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var messageHash any = ccxt.Add(name+":", ccxt.GetValue(keys, i))
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", ccxt.GetValue(keys, i)))
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 		}
 	}
@@ -1706,7 +1698,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 		client.(ccxt.ClientInterface).Resolve(this.Orders, name)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var messageHash any = ccxt.Add(name+":", ccxt.GetValue(keys, i))
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", ccxt.GetValue(keys, i)))
 			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 		}
 	}
@@ -1851,8 +1843,7 @@ func (this *Kraken) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 
-	token := (<-this.AuthenticateAsync())
-	ccxt.PanicOnError(token)
+	var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.AuthenticateAsync())))
 	var messageHash string = "balances"
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2"))
 	var requestId int64 = this.RequestId()

@@ -1192,7 +1192,7 @@ class dydx(Exchange, ImplicitAPI):
 
     def sign_onboarding_action(self) -> object:
         message = {'action': 'dYdX Chain Onboarding'}
-        chainId = self.options['chainId']
+        chainId = self.safe_integer(self.options, 'chainId')
         domain = {
             'chainId': chainId,
             'name': 'dYdX Chain',
@@ -1227,7 +1227,7 @@ class dydx(Exchange, ImplicitAPI):
         self.options['dydxCredentials'] = credentials
         return credentials
 
-    def fetch_dydx_account(self):
+    def fetch_dydx_account(self) -> dict:
         # required in js
         self.load_dydx_protos()
         dydxAccount = self.safe_dict(self.options, 'dydxAccount')
@@ -1456,7 +1456,7 @@ class dydx(Exchange, ImplicitAPI):
         orderRequestRes = self.create_order_request(symbol, type, side, amount, price, newParams)
         orderId = orderRequestRes[0]
         orderRequest = orderRequestRes[1]
-        chainName = self.options['chainName']
+        chainName = self.safe_string(self.options, 'chainName')
         signedTx = self.sign_dydx_tx(credentials['privateKey'], orderRequest, '', chainName, account, None)
         request = {
             'tx': signedTx,
@@ -1553,7 +1553,7 @@ class dydx(Exchange, ImplicitAPI):
             'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
             'value': cancelPayload,
         }
-        chainName = self.options['chainName']
+        chainName = self.safe_string(self.options, 'chainName')
         signedTx = self.sign_dydx_tx(credentials['privateKey'], signingPayload, '', chainName, account, None)
         request = {
             'tx': signedTx,
@@ -1619,7 +1619,7 @@ class dydx(Exchange, ImplicitAPI):
             'typeUrl': '/dydxprotocol.clob.MsgBatchCancel',
             'value': cancelPayload,
         }
-        chainName = self.options['chainName']
+        chainName = self.safe_string(self.options, 'chainName')
         signedTx = self.sign_dydx_tx(credentials['privateKey'], signingPayload, '', chainName, account, None)
         request = {
             'tx': signedTx,
@@ -1763,7 +1763,7 @@ class dydx(Exchange, ImplicitAPI):
         response = self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchLedger'}))
         return self.parse_ledger(response, currency, since, limit)
 
-    def estimate_tx_fee(self, message: object, memo: Str, account: object) -> object:
+    def estimate_tx_fee(self, message: object, memo: Str, account: object) -> dict:
         txBytes = self.encode_dydx_tx_for_simulation(message, memo, account['sequence'], account['pub_key'])
         request = {
             'txBytes': txBytes,
@@ -1875,7 +1875,7 @@ class dydx(Exchange, ImplicitAPI):
                 'value': payload,
             }
         txFee = self.estimate_tx_fee(signingPayload, '', account)
-        chainName = self.options['chainName']
+        chainName = self.safe_string(self.options, 'chainName')
         signedTx = self.sign_dydx_tx(credentials['privateKey'], signingPayload, '', chainName, account, None, txFee)
         request = {
             'tx': signedTx,
@@ -2053,7 +2053,7 @@ class dydx(Exchange, ImplicitAPI):
             'value': payload,
         }
         txFee = self.estimate_tx_fee(signingPayload, tag, account)
-        chainName = self.options['chainName']
+        chainName = self.safe_string(self.options, 'chainName')
         signedTx = self.sign_dydx_tx(credentials['privateKey'], signingPayload, tag, chainName, account, None, txFee)
         request = {
             'tx': signedTx,

@@ -681,7 +681,7 @@ func (this *Deepcoin) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(market, "baseCcy")
 	var quoteId *string = this.SafeString(market, "quoteCcy", "")
 	var settleId any = nil
-	var settle any = nil
+	var settle *string = nil
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
@@ -694,7 +694,7 @@ func (this *Deepcoin) ParseMarket(market any) any {
 			}
 			return baseId
 		}()
-		settle = DerefScalar(this.SafeCurrencyCode(settleId))
+		settle = this.SafeCurrencyCode(settleId)
 		symbol = Add(Add(symbol, ":"), settle)
 	}
 	var fees any = this.SafeDict2(this.Fees, typeVar, "trading", map[string]any{})
@@ -1928,7 +1928,7 @@ func (this *Deepcoin) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
-	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 	var response map[string]any = nil
 	if triggerPrice != nil {
 		// trigger orders
@@ -3985,7 +3985,7 @@ func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, he
 			errorCode = this.SafeString(entry, "errorCode")
 		}
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	if (sCode == nil) && (errorCode != nil) {
 		sCode = errorCode
 	}

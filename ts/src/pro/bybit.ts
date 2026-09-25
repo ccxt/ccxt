@@ -671,7 +671,7 @@ export default class bybit extends bybitRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    parseWsBidAsk (orderbook: any, market: Market = undefined) {
+    parseWsBidAsk (orderbook: any, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (orderbook, 'timestamp');
         const bids = this.sortBy (this.aggregate (orderbook['bids']), 0);
         const asks = this.sortBy (this.aggregate (orderbook['asks']), 0);
@@ -1681,7 +1681,7 @@ export default class bybit extends bybitRest {
         }
         const cache = this.positions;
         const newPositions: Position[] = [];
-        const rawPositions = this.safeList (message, 'data', []);
+        const rawPositions: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
@@ -1765,7 +1765,7 @@ export default class bybit extends bybitRest {
         [ method, params ] = this.handleOptionStringAndParams (params, 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbol;
         const topic = method + '.' + market['id'];
-        const newLiquidation = await this.watchTopics (url, [ messageHash ], [ topic ], params);
+        const newLiquidation: Liquidation[] = await this.watchTopics (url, [ messageHash ], [ topic ], params);
         if (this.newUpdates) {
             return newLiquidation;
         }
@@ -1803,7 +1803,7 @@ export default class bybit extends bybitRest {
         //     }
         //
         if (Array.isArray (message['data'])) {
-            const rawLiquidations = this.safeList (message, 'data', []);
+            const rawLiquidations: Dict[] = this.safeList (message, 'data', []);
             for (let i = 0; i < rawLiquidations.length; i++) {
                 const rawLiquidation = this.safeDict (rawLiquidations, i);
                 const marketId = this.safeString (rawLiquidation, 's');
@@ -1836,7 +1836,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    parseWsLiquidation (liquidation: any, market: Market = undefined) {
+    parseWsLiquidation (liquidation: NullableDict, market: Market = undefined) {
         //
         //     {
         //         "price": "0.03803",
@@ -2297,7 +2297,7 @@ export default class bybit extends bybitRest {
         let account: Str = undefined;
         if (topic === 'outboundAccountInfo') {
             account = 'spot';
-            const data = this.safeList (message, 'data', []);
+            const data: Dict[] = this.safeList (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const B = this.safeList (data[i], 'B', []);
                 rawBalances = this.arrayConcat (rawBalances, B);
@@ -2794,7 +2794,7 @@ export default class bybit extends bybitRest {
                 if (reqId !== subId) {
                     continue;
                 }
-                const messageHashes = this.safeList (subscription, 'messageHashes', []);
+                const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
                 const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];

@@ -767,7 +767,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public CompletableFuture<Object> handleBuilderFeeApproval()
+    public CompletableFuture<Boolean> handleBuilderFeeApproval()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -797,7 +797,7 @@ public class Pacifica extends PacificaApi
                 Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
             }
             return true;
-        });
+        }).thenApply(res -> (Boolean) res);
 
     }
 
@@ -1354,7 +1354,7 @@ public class Pacifica extends PacificaApi
         Map<String, Object> settingsBySymbol = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)settings).size(); i++)
         {
-            Object marketId = Helpers.GetValue((settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i)), "symbol");
+            Object marketId = ((Map<String, Object>)(settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i))).get("symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             settingsBySymbol.put((String)symbol, (settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i)));
@@ -2272,13 +2272,7 @@ public class Pacifica extends PacificaApi
         {
             operationType = "create_order";
             sigPayload.put("reduce_only", reduceOnly);
-            if (java.util.Objects.equals(timeInForce, null))
-            {
-                sigPayload.put("tif", "GTC");
-            } else
-            {
-                sigPayload.put("tif", timeInForce);
-            }
+            sigPayload.put("tif", timeInForce);
         }
         if (Boolean.TRUE.equals(isTakeProfitOrder))
         {
@@ -3471,8 +3465,8 @@ public class Pacifica extends PacificaApi
             if ((!java.util.Objects.equals(paginationCursor, null)) && (Helpers.isGreaterThan(dataLength, 0)))
             {
                 Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
-                Helpers.addElementToObject(first, "next_cursor", paginationCursor);
-                Helpers.addElementToObject(first, "has_more", hasMore);
+                ((Map<String, Object>)first).put("next_cursor", paginationCursor);
+                ((Map<String, Object>)first).put("has_more", hasMore);
                 Helpers.addElementToObject(data, 0, first);
             }
         }
@@ -3608,7 +3602,7 @@ public class Pacifica extends PacificaApi
         {
             tif = ((String)tifRaw).toUpperCase();
         }
-        return this.safeString(tifMap, tif);
+        return this.safeString(tifMap, tif, "GTC");
     }
 
     public String mapSide(String sideRaw)
@@ -4948,7 +4942,7 @@ public class Pacifica extends PacificaApi
         return this.approveBuilderCode(builderCode, maxFeeRate, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> fetchBuilderApprovals(Object address)
+    public CompletableFuture<Map<String, Object>> fetchBuilderApprovals(Object address)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4957,7 +4951,7 @@ public class Pacifica extends PacificaApi
                 put( "account", address );
             }};
             return (this.publicGetAccountBuilderCodesApprovals(this.extend(request))).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 

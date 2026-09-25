@@ -777,7 +777,7 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    parseFeeTiers (feeTiers: any[], market: Market = undefined): Dict {
+    parseFeeTiers (feeTiers: Dict[], market: Market = undefined): Dict {
         const takerFees: List = [];
         const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
@@ -1208,7 +1208,7 @@ export default class onetrading extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeList (response, 'balances', []);
+        const balances: Dict[] = this.safeList (response, 'balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i);
@@ -1824,7 +1824,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory = this.safeList (response, 'trade_history', []);
+        const tradeHistory: Dict[] = this.safeList (response, 'trade_history', []);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);

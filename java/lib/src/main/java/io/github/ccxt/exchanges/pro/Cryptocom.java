@@ -1115,7 +1115,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     {
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        Object parsedTicker = this.parseWsBidAsk(ticker);
+        Object parsedTicker = this.parseWsBidAsk((Map<String, Object>) (ticker));
         String symbol = (String) ((Map<String, Object>)parsedTicker).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -1125,7 +1125,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         client.resolve(parsedTicker, messageHash);
     }
 
-    public Object parseWsBidAsk(Object ticker, Map<String, Object> market)
+    public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "i");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
@@ -1142,7 +1142,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             put( "info", ticker );
         }}, market);
     }
-    public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
+    public Object parseWsBidAsk(Map<String, Object> ticker, Object... optionalArgs)
     {
         return this.parseWsBidAsk(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1269,7 +1269,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         String interval = this.safeString(message, "interval");
         String timeframe = this.findTimeframe(interval);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);

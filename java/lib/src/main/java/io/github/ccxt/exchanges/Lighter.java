@@ -888,7 +888,7 @@ public class Lighter extends LighterApi
         return this.json(decTxInfo);
     }
 
-    public CompletableFuture<Object> handleBuilderFeeApproval(Object accountIndex, Object apiKeyIndex)
+    public CompletableFuture<Boolean> handleBuilderFeeApproval(Object accountIndex, Object apiKeyIndex)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -915,7 +915,7 @@ public class Lighter extends LighterApi
                 Helpers.addElementToObject(this.options, "builderFee", false);
             }
             return true;
-        });
+        }).thenApply(res -> (Boolean) res);
 
     }
 
@@ -3282,7 +3282,7 @@ public class Lighter extends LighterApi
             put( "lastUpdateTimestamp", Lighter.this.safeTimestamp(order, "updated_at") );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "type", Lighter.this.parseOrderType((String) (finalType)) );
-            put( "timeInForce", Lighter.this.parseOrderTimeInForce(finalTif) );
+            put( "timeInForce", Lighter.this.parseOrderTimeInForce((String) (finalTif)) );
             put( "postOnly", java.util.Objects.equals(finalTif, "post-only") );
             put( "reduceOnly", finalReduceOnly );
             put( "side", finalSide );
@@ -3364,7 +3364,7 @@ public class Lighter extends LighterApi
         return this.safeString(types, String.valueOf(typeInteger));
     }
 
-    public String parseOrderTimeInForce(Object tif)
+    public String parseOrderTimeInForce(String tif)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "immediate-or-cancel", "IOC" );

@@ -737,7 +737,7 @@ export default class independentreserve extends Exchange {
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
         const response = await this.privatePostGetOpenOrders (this.extend (request, params));
-        const data = this.safeList (response, 'Data', []);
+        const data: Dict[] = this.safeList (response, 'Data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -768,7 +768,7 @@ export default class independentreserve extends Exchange {
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
         const response = await this.privatePostGetClosedOrders (this.extend (request, params));
-        const data = this.safeList (response, 'Data', []);
+        const data: Dict[] = this.safeList (response, 'Data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -799,7 +799,7 @@ export default class independentreserve extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const data = this.safeList (response, 'Data', []);
+        const data: Dict[] = this.safeList (response, 'Data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -865,7 +865,7 @@ export default class independentreserve extends Exchange {
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         };
         const response = await this.publicGetGetRecentTrades (this.extend (request, params));
-        const trades = this.safeList (response, 'Trades', []);
+        const trades: Dict[] = this.safeList (response, 'Trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 

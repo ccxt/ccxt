@@ -951,20 +951,20 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) any {
 	// 0 = New
 	// 1 = Open
 	// 5 = Completed
-	var status any = nil
+	var status *string = nil
 	if isNewOrder {
 		var tempStatus *int64 = this.SafeInteger(orderUnified, "status_type")
 		if (tempStatus != nil && *tempStatus == 0) || (tempStatus != nil && *tempStatus == 1) {
-			status = "open"
+			status = SafeStringPtr("open")
 		} else if tempStatus != nil && *tempStatus == 5 {
-			status = "closed"
+			status = SafeStringPtr("closed")
 		}
 	} else {
 		var tempStatus *string = this.SafeString(orderUnified, "status")
 		if (tempStatus != nil && *tempStatus == "New") || (tempStatus != nil && *tempStatus == "Open") {
-			status = "open"
+			status = SafeStringPtr("open")
 		} else if tempStatus != nil && *tempStatus == "Completed" {
-			status = "closed"
+			status = SafeStringPtr("closed")
 		}
 	}
 	// bit2c order type:
@@ -1162,7 +1162,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 	var orderId any = nil
 	var fee map[string]any = nil
 	var side any = nil
-	var makerOrTaker any = nil
+	var makerOrTaker *string = nil
 	var reference *string = this.SafeString(trade, "reference")
 	if reference != nil {
 		id = reference
@@ -1175,12 +1175,12 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		market = MapTyped(this.SafeMarket(marketId, market))
 		market = MapTyped(this.SafeMarket(GetValue(reference_parts, 0), market))
 		var isMaker *bool = this.SafeBool(trade, "isMaker")
-		makerOrTaker = func() string {
+		makerOrTaker = SafeStringPtr(func() string {
 			if isMaker != nil && *isMaker == true {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 		orderId = func() any {
 			if isMaker != nil && *isMaker == true {
 				return GetValue(reference_parts, 2)
@@ -1357,7 +1357,7 @@ func (this *Bit2c) HandleErrors(httpCode any, reason any, url any, method any, h
 		error = this.SafeString(response, "Error")
 	}
 	if error != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 		panic(ExchangeError(feedback))

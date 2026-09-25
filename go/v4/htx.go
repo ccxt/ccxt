@@ -4310,7 +4310,7 @@ func (this *Htx) ParseAccount(account any) any {
 	//
 	var typeId *string = this.SafeString(account, "type")
 	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
-	var typeVar any = this.SafeValue(accountsById, typeId, typeId)
+	var typeVar *string = this.SafeString(accountsById, typeId, typeId)
 	return map[string]any{
 		"info": account,
 		"id":   this.SafeString(account, "id"),
@@ -4537,7 +4537,7 @@ func (this *Htx) ParseCurrency(rawCurrency any) any {
 }
 func (this *Htx) NetworkIdToCode(optionalArgs ...any) *string {
 	// here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
-	networkId := GetArg(optionalArgs, 0, nil)
+	var networkId *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = networkId
 	var currencyCode *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = currencyCode
@@ -4546,7 +4546,7 @@ func (this *Htx) NetworkIdToCode(optionalArgs ...any) *string {
 	if keysLength == 0 {
 		panic(ExchangeError(this.Id + " networkIdToCode() - markets need to be loaded at first"))
 	}
-	var networkTitle any = this.SafeValue(GetValue(this.Options, "networkNamesByChainIds"), networkId, networkId)
+	var networkTitle *string = this.SafeString(GetValue(this.Options, "networkNamesByChainIds"), networkId, networkId)
 	return SafeStringPtr(this.Exchange.NetworkIdToCode(networkTitle, currencyCode))
 }
 func (this *Htx) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
@@ -4568,7 +4568,7 @@ func (this *Htx) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 		return GetValue(uniqueNetworkIds, networkCode)
 	} else {
 		var networkTitle any = this.Exchange.NetworkCodeToId(networkCode, currencyCode)
-		return this.SafeValue(uniqueNetworkIds, networkTitle, networkTitle)
+		return this.SafeString(uniqueNetworkIds, networkTitle, networkTitle)
 	}
 }
 
@@ -4656,8 +4656,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 			PanicOnError((<-this.LoadAccountsAsync()))
 
-			accountId := (<-this.FetchAccountIdByTypeAsync(typeVar, nil, nil, params))
-			PanicOnError(accountId)
+			var accountId *string = SafeStringPtr(PanicOnError((<-this.FetchAccountIdByTypeAsync(typeVar, nil, nil, params))))
 			request["account-id"] = accountId
 
 			response = (<-this.SpotPrivateGetV1AccountAccountsAccountIdBalance(this.Extend(request, params)))
@@ -6575,8 +6574,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 
-	accountId := (<-this.FetchAccountIdByTypeAsync(market["type"], marginMode, symbol))
-	PanicOnError(accountId)
+	var accountId *string = SafeStringPtr(PanicOnError((<-this.FetchAccountIdByTypeAsync(market["type"], marginMode, symbol))))
 	var request map[string]any = map[string]any{
 		"account-id": accountId,
 		"symbol":     market["id"],
@@ -7179,8 +7177,8 @@ func (this *Htx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
 		var currentMarginMode *string = SafeStringPtr(GetValue(marginResult, 0))
 		if currentMarginMode != nil {
-			if IsEqual(marginMode, nil) {
-				marginMode = currentMarginMode
+			if marginMode == nil {
+				marginMode = DerefScalar(currentMarginMode)
 			} else {
 				if !IsEqual(marginMode, currentMarginMode) {
 					panic(BadRequest(this.Id + " createOrders() requires all orders to have the same margin mode (isolated or cross)"))
@@ -8126,7 +8124,7 @@ func (this *Htx) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var networkCodeparamsOmitedVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
-	paramsOmited := GetValue(networkCodeparamsOmitedVariable, 1)
+	var paramsOmited map[string]any = MapTyped(GetValue(networkCodeparamsOmitedVariable, 1))
 
 	indexedAddresses := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited))
 	PanicOnError(indexedAddresses)
@@ -8611,13 +8609,13 @@ func (this *Htx) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var fromAccount *string = this.SafeString(accountsById, fromAccountRaw, fromAccountRaw)
 	var toAccount *string = this.SafeString(accountsById, toAccountRaw, toAccountRaw)
 	var statusRaw *string = this.SafeString(transfer, "status")
-	var status any = nil
+	var status *string = nil
 	if statusRaw != nil && *statusRaw == "success" {
-		status = "ok"
+		status = SafeStringPtr("ok")
 	} else if statusRaw != nil && *statusRaw == "pending" {
-		status = "pending"
+		status = SafeStringPtr("pending")
 	} else if statusRaw != nil && *statusRaw == "failed" {
-		status = "failed"
+		status = SafeStringPtr("failed")
 	}
 	return map[string]any{
 		"info":        transfer,
@@ -9212,26 +9210,26 @@ func (this *Htx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var defaultSubType string = "linear"
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchFundingRates", "subType", defaultSubType)
-	subType = GetValue(subTypeparamsVariable, 0)
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		var market map[string]any = MapTyped(this.Market(firstSymbol))
 		var isLinear *bool = SafeBoolPtr(market["linear"])
-		subType = func() string {
+		subType = SafeStringPtr(func() string {
 			if isLinear != nil && *isLinear == true {
 				return "linear"
 			}
 			return "inverse"
-		}()
+		}())
 	}
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
-	if IsEqual(subType, "linear") {
+	if subType != nil && *subType == "linear" {
 		panic(NotSupported(this.Id + " fetchFundingRates() not support this market type"))
-	} else if IsEqual(subType, "inverse") {
+	} else if subType != nil && *subType == "inverse" {
 
 		response = MapTyped(PanicOnError((<-this.ContractPublicGetSwapApiV1SwapBatchFundingRate(this.Extend(request, params))).Raw))
 	} else {
@@ -9609,7 +9607,7 @@ func (this *Htx) HandleErrors(httpCode any, reason any, url any, method any, hea
 		var status *string = this.SafeString(response, "status")
 		if status != nil && *status == "error" {
 			var code *string = this.SafeString2(response, "err-code", "err_code")
-			var feedback any = Add(this.Id+" ", body)
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 			var message *string = this.SafeString2(response, "err-msg", "err_msg")
@@ -9619,7 +9617,7 @@ func (this *Htx) HandleErrors(httpCode any, reason any, url any, method any, hea
 	}
 	if InOp(response, "code") {
 		// {code: '1003', message: 'invalid signature'}
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		var code *string = this.SafeString(response, "code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 	}
@@ -9629,7 +9627,7 @@ func (this *Htx) HandleErrors(httpCode any, reason any, url any, method any, hea
 		var first map[string]any = SafeMapTyped(errorsList, 0)
 		var errcode *string = this.SafeString(first, "err_code")
 		var errmessage *string = this.SafeString(first, "err_msg")
-		var feedBack any = Add(this.Id+" ", body)
+		var feedBack *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errcode, feedBack)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errmessage, feedBack)
 	}
@@ -9782,7 +9780,7 @@ func (this *Htx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("setLeverage", market, params)
 	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
-	query := GetValue(marketTypequeryVariable, 1)
+	var query map[string]any = MapTyped(GetValue(marketTypequeryVariable, 1))
 	var request map[string]any = map[string]any{
 		"lever_rate": leverage,
 	}
@@ -10142,7 +10140,7 @@ func (this *Htx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 	}()
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchPosition", market, params)
 	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
-	query := GetValue(marketTypequeryVariable, 1)
+	var query map[string]any = MapTyped(GetValue(marketTypequeryVariable, 1))
 	var request map[string]any = map[string]any{}
 	if (GetValue(market, "future") == true) && (GetValue(market, "inverse") == true) {
 		request["symbol"] = market["settleId"]
@@ -10310,8 +10308,7 @@ func (this *Htx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	accountId := (<-this.FetchAccountIdByTypeAsync("spot", nil, nil, params))
-	PanicOnError(accountId)
+	var accountId *string = SafeStringPtr(PanicOnError((<-this.FetchAccountIdByTypeAsync("spot", nil, nil, params))))
 	var request map[string]any = map[string]any{
 		"accountId": accountId,
 	}
@@ -10988,8 +10985,7 @@ func (this *Htx) repayIsolatedMarginBody(ch chan any, symbol any, code any, amou
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 
-	accountId := (<-this.FetchAccountIdByTypeAsync("spot", "isolated", symbol, params))
-	PanicOnError(accountId)
+	var accountId *string = SafeStringPtr(PanicOnError((<-this.FetchAccountIdByTypeAsync("spot", "isolated", symbol, params))))
 	var request map[string]any = map[string]any{
 		"currency":  currency["id"],
 		"amount":    this.CurrencyToPrecision(code, amount),
@@ -11045,8 +11041,7 @@ func (this *Htx) repayCrossMarginBody(ch chan any, code any, amount any, optiona
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 
-	accountId := (<-this.FetchAccountIdByTypeAsync("spot", "cross", nil, params))
-	PanicOnError(accountId)
+	var accountId *string = SafeStringPtr(PanicOnError((<-this.FetchAccountIdByTypeAsync("spot", "cross", nil, params))))
 	var request map[string]any = map[string]any{
 		"currency":  currency["id"],
 		"amount":    this.CurrencyToPrecision(code, amount),

@@ -640,7 +640,7 @@ class bybit(ccxt.async_support.bybit):
             return ticker
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
-    def parse_ws_bid_ask(self, orderbook: object, market: Market = None):
+    def parse_ws_bid_ask(self, orderbook: object, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(orderbook, 'timestamp')
         bids = self.sort_by(self.aggregate(orderbook['bids']), 0)
         asks = self.sort_by(self.aggregate(orderbook['asks']), 0)
@@ -1696,7 +1696,7 @@ class bybit(ccxt.async_support.bybit):
             client.resolve([liquidation], 'liquidations')
             client.resolve([liquidation], 'liquidations::' + symbol)
 
-    def parse_ws_liquidation(self, liquidation: object, market: Market = None):
+    def parse_ws_liquidation(self, liquidation: dict, market: Market = None):
         #
         #     {
         #         "price": "0.03803",

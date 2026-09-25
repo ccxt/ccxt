@@ -1427,6 +1427,8 @@ impl GrvtCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut response: Value) -> Value {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &response { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -1438,7 +1440,7 @@ impl GrvtCore {
         //        "method": "subscribe"
         //    }
         //
-        let mut error: Value = self.safe_dict_k(response.clone(), "error", &[]);
+        let mut error: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut errorCode: Value = self.safe_string_k(error.clone(), "code", &[]);
         if (errorCode != Value::Null) {
             let mut body: Value = json_stringify(&response);

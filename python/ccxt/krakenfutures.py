@@ -3418,7 +3418,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         else:
             return account
 
-    def transfer_out(self, code: str, amount: float, params: dict = {}):
+    def transfer_out(self, code: str, amount: float, params: dict = {}) -> TransferEntry:
         """
         transfer from futures wallet to spot wallet
         :param str code: Unified currency code

@@ -878,12 +878,12 @@ export default class upbit extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    idsQueryStrings (ids: Strings, maxQueryLength: number) {
+    idsQueryStrings (ids: Strings, maxQueryLength: number): string[] {
         if (ids === undefined) {
             return [];
         }
         let idsString = '';
-        const queries: List = [];
+        const queries: string[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (idsString !== '') {
