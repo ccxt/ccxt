@@ -400,12 +400,12 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTicker", (Object) null);
             String defaultMethod = this.safeString(options, "method", "ticker");
             String method = this.safeString(parameters, "method", defaultMethod);
-            Object name = ((method + "@") + ((Map<String, Object>)market).get("id"));
-            return (this.subscribe(name, "public", "watchTicker", Helpers.toMapArg(market), (List<String>) null, parameters)).join();
+            Object name = ((method + "@") + market.get("id"));
+            return (this.subscribe(name, "public", "watchTicker", market, (List<String>) null, parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -430,13 +430,13 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "unWatchTicker", (Object) null);
             String defaultMethod = this.safeString(options, "method", "ticker");
             String method = this.safeString(parameters, "method", defaultMethod);
-            Object name = ((method + "@") + ((Map<String, Object>)market).get("id"));
+            Object name = ((method + "@") + market.get("id"));
             String messageHash = ("unsubscribe::" + name);
-            return (this.unSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, Helpers.toMapArg(market), (List<String>) null, parameters, new HashMap<String, Object>() {{}})).join();
+            return (this.unSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, market, (List<String>) null, parameters, new HashMap<String, Object>() {{}})).join();
         });
 
     }
@@ -539,9 +539,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            String name = ((("kline@" + ((Map<String, Object>)market).get("id")) + ",") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object ohlcv = (this.subscribe(name, "public", "watchOHLCV", Helpers.toMapArg(market), (List<String>) null, parameters)).join();
+            Map<String, Object> market = this.market(symbol);
+            String name = ((("kline@" + market.get("id")) + ",") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Object ohlcv = (this.subscribe(name, "public", "watchOHLCV", market, (List<String>) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -572,11 +572,11 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            String name = ((("kline@" + ((Map<String, Object>)market).get("id")) + ",") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Map<String, Object> market = this.market(symbol);
+            String name = ((("kline@" + market.get("id")) + ",") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ("unsubscribe::" + name);
-            List<Object> symbolsAndTimeframes = new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m")))));
-            return (this.unSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", Helpers.toMapArg(market), Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters, new HashMap<String, Object>() {{
+            List<Object> symbolsAndTimeframes = new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m")))));
+            return (this.unSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters, new HashMap<String, Object>() {{
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
             }})).join();
         });
@@ -604,9 +604,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            Object name = ("trade@" + ((Map<String, Object>)market).get("id"));
-            Object trades = (this.subscribe(name, "public", "watchTrades", Helpers.toMapArg(market), (List<String>) null, parameters)).join();
+            Map<String, Object> market = this.market(symbol);
+            Object name = ("trade@" + market.get("id"));
+            Object trades = (this.subscribe(name, "public", "watchTrades", market, (List<String>) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -636,10 +636,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            Object name = ("trade@" + ((Map<String, Object>)market).get("id"));
+            Map<String, Object> market = this.market(symbol);
+            Object name = ("trade@" + market.get("id"));
             String messageHash = ("unsubscribe::" + name);
-            return (this.unSubscribe(messageHash, name, "public", "unWatchTrades", "trades", Helpers.toMapArg(market), Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters, new HashMap<String, Object>() {{}})).join();
+            return (this.unSubscribe(messageHash, name, "public", "unWatchTrades", "trades", market, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters, new HashMap<String, Object>() {{}})).join();
         });
 
     }
@@ -667,15 +667,15 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String levels = this.safeString(parameters, "levels");
-            Object paramsOmitted = this.omit(parameters, "levels");
-            Object name = ("depth_update@" + ((Map<String, Object>)market).get("id"));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "levels");
+            Object name = ("depth_update@" + market.get("id"));
             if (!java.util.Objects.equals(levels, null))
             {
-                name = ((("depth@" + ((Map<String, Object>)market).get("id")) + ",") + levels);
+                name = ((("depth@" + market.get("id")) + ",") + levels);
             }
-            Object orderbook = (this.subscribe(name, "public", "watchOrderBook", Helpers.toMapArg(market), (List<String>) null, Helpers.toMapArg(paramsOmitted))).join();
+            Object orderbook = (this.subscribe(name, "public", "watchOrderBook", market, (List<String>) null, paramsOmitted)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -703,16 +703,16 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String levels = this.safeString(parameters, "levels");
-            Object paramsOmitted = this.omit(parameters, "levels");
-            Object name = ("depth_update@" + ((Map<String, Object>)market).get("id"));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "levels");
+            Object name = ("depth_update@" + market.get("id"));
             if (!java.util.Objects.equals(levels, null))
             {
-                name = ((("depth@" + ((Map<String, Object>)market).get("id")) + ",") + levels);
+                name = ((("depth@" + market.get("id")) + ",") + levels);
             }
             String messageHash = ("unsubscribe::" + name);
-            return (this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", Helpers.toMapArg(market), Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), paramsOmitted, new HashMap<String, Object>() {{}})).join();
+            return (this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), paramsOmitted, new HashMap<String, Object>() {{}})).join();
         });
 
     }
@@ -877,13 +877,13 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> market = this.market(symbol);
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new NotSupported((this.id + " watchFundingRate() supports swap contracts only")) ;
             }
-            Object name = ("fund_rate@" + ((Map<String, Object>)market).get("id"));
-            return (this.subscribe(name, "public", "watchFundingRate", Helpers.toMapArg(market), (List<String>) null, parameters)).join();
+            Object name = ("fund_rate@" + market.get("id"));
+            return (this.subscribe(name, "public", "watchFundingRate", market, (List<String>) null, parameters)).join();
         }).thenApply(FundingRate::new);
 
     }
@@ -906,14 +906,14 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> market = this.market(symbol);
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new NotSupported((this.id + " unWatchFundingRate() supports swap contracts only")) ;
             }
-            Object name = ("fund_rate@" + ((Map<String, Object>)market).get("id"));
+            Object name = ("fund_rate@" + market.get("id"));
             String messageHash = ("unsubscribe::" + name);
-            return (this.unSubscribe(messageHash, name, "public", "unWatchFundingRate", "fund_rate", Helpers.toMapArg(market), (List<String>) null, parameters, new HashMap<String, Object>() {{}})).join();
+            return (this.unSubscribe(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, (List<String>) null, parameters, new HashMap<String, Object>() {{}})).join();
         });
 
     }

@@ -2945,7 +2945,7 @@ public class Upbit extends UpbitApi
                 request.put("query_hash", hash);
                 request.put("query_hash_alg", "SHA512");
             }
-            Object token = jwt(request, this.encode(this.secret), sha256());
+            String token = jwt(request, this.encode(this.secret), sha256());
             privateHeaders.put("Authorization", ("Bearer " + token));
         }
         Object requestHeaders = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? privateHeaders : headers;

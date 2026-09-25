@@ -831,14 +831,14 @@ public class Sxbet extends SxbetApi
      */
     public Object signDigest(Object digest, Object privateKey)
     {
-        Object signature = ecdsa((digest == null ? null : ((String)digest).substring(Math.max(((String)digest).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
+        Map<String,Object> signature = ecdsa((digest == null ? null : ((String)digest).substring(Math.max(((String)digest).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        Object rRaw = Helpers.GetValue(signature, "r");
-        Object sRaw = Helpers.GetValue(signature, "s");
+        Object rRaw = signature.get("r");
+        Object sRaw = signature.get("s");
         String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
         String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
-        String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
+        String v = this.intToBase16(this.sum(27, signature.get("v")));
         return ((("0x" + r) + s) + v);
     }
 

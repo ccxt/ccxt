@@ -1866,11 +1866,11 @@ public class Hyperliquid extends HyperliquidApi
 
     public Map<String, Object> signHash(Object hash, Object privateKey)
     {
-        Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
+        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         return new HashMap<String, Object>() {{
-            put( "r", ("0x" + Helpers.GetValue(signature, "r")) );
-            put( "s", ("0x" + Helpers.GetValue(signature, "s")) );
-            put( "v", Hyperliquid.this.sum(27, Helpers.GetValue(signature, "v")) );
+            put( "r", ("0x" + signature.get("r")) );
+            put( "s", ("0x" + signature.get("s")) );
+            put( "v", Hyperliquid.this.sum(27, signature.get("v")) );
         }};
     }
 

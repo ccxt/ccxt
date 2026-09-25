@@ -250,9 +250,9 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            String dataType = (((Map<String, Object>)market).get("id") + "@ticker");
-            Object subMessageHash = this.getMessageHash("ticker", Helpers.toStringArg(((Map<String, Object>)market).get("symbol")), (String) null);
+            Map<String, Object> market = this.market(symbol);
+            String dataType = (market.get("id") + "@ticker");
+            String subMessageHash = this.getMessageHash("ticker", Helpers.toStringArg(market.get("symbol")), (String) null);
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "ticker";
             String methodName = "unWatchTicker";
@@ -530,9 +530,9 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            String dataType = (((Map<String, Object>)market).get("id") + "@trade");
-            Object subMessageHash = this.getMessageHash("trade", Helpers.toStringArg(((Map<String, Object>)market).get("symbol")), (String) null);
+            Map<String, Object> market = this.market(symbol);
+            String dataType = (market.get("id") + "@trade");
+            String subMessageHash = this.getMessageHash("trade", Helpers.toStringArg(market.get("symbol")), (String) null);
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "trades";
             String methodName = "unWatchTrades";
@@ -751,10 +751,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             Long depth = this.safeInteger(options, "depth", 100);
-            String subMessageHash = (((((Map<String, Object>)market).get("id") + "@") + "depth") + this.numberToString(depth));
+            String subMessageHash = (((market.get("id") + "@") + "depth") + this.numberToString(depth));
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "orderbook";
             String methodName = "unWatchOrderBook";
@@ -1139,15 +1139,15 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = this.market(symbol);
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, ((Map<String, Object>)market).get("type"), new HashMap<String, Object>() {{}});
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, market.get("type"), new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(options, "timeframes", new HashMap<String, Object>() {{}});
             String rawTimeframe = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object subMessageHash = Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), rawTimeframe);
+            Object subMessageHash = Helpers.add((market.get("id") + "@kline_"), rawTimeframe);
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "ohlcv";
             String methodName = "unWatchOHLCV";
-            List<Object> symbolsAndTimeframes = new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m")))));
+            List<Object> symbolsAndTimeframes = new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m")))));
             ((Map<String, Object>)parameters).put("symbolsAndTimeframes", symbolsAndTimeframes);
             return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });

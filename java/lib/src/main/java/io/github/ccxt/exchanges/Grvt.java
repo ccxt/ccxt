@@ -3885,10 +3885,10 @@ public class Grvt extends GrvtApi
         Boolean usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         Object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
-        Object signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1(), null);
-        Helpers.addElementToObject(request.get("signature"), "r", this.formatSignatureRS(Helpers.GetValue(signature, "r")));
-        Helpers.addElementToObject(request.get("signature"), "s", this.formatSignatureRS(Helpers.GetValue(signature, "s")));
-        Helpers.addElementToObject(request.get("signature"), "v", this.sum(27, Helpers.GetValue(signature, "v")));
+        Map<String,Object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1(), null);
+        Helpers.addElementToObject(request.get("signature"), "r", this.formatSignatureRS(signature.get("r")));
+        Helpers.addElementToObject(request.get("signature"), "s", this.formatSignatureRS(signature.get("s")));
+        Helpers.addElementToObject(request.get("signature"), "v", this.sum(27, signature.get("v")));
         Helpers.addElementToObject(request.get("signature"), "signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress);
         return request;
     }

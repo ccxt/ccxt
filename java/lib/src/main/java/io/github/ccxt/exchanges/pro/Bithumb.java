@@ -1013,7 +1013,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                     put( "nonce", Bithumb.this.uuid() );
                     put( "timestamp", Bithumb.this.milliseconds() );
                 }};
-                Object jwtToken = jwt(payload, this.encode(this.secret), sha256());
+                String jwtToken = jwt(payload, this.encode(this.secret), sha256());
                 wsOptions.put("token", jwtToken);
                 wsOptions.put("options", new HashMap<String, Object>() {{
         put( "headers", new HashMap<String, Object>() {{

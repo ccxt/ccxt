@@ -3877,7 +3877,7 @@ public class Bithumb extends BithumbApi
                     request.put("query_hash", this.hash(this.encode(authString), sha512()));
                     request.put("query_hash_alg", "SHA512");
                 }
-                Object token = jwt(request, this.encode(this.secret), sha256());
+                String token = jwt(request, this.encode(this.secret), sha256());
                 requestHeaders.put("Authorization", ("Bearer " + token));
             } else
             {
