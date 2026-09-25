@@ -2178,7 +2178,7 @@ impl DigifinexCore {
         let mut amountString: Value = self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("amount".into()), Value::Str("volume".into()), Value::Str("size".into())]), &[]);
         let mut marketId: Value = self.safe_string_upper2(trade.clone(), Value::Str("symbol".into()), Value::Str("instrument_id".into()), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut marketResolved: Value = (if (market == Value::Null) { self.safe_market(&[marketId]) } else { market });
+        let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { marketId } else { Value::Null }), market]);
         let mut timestamp: Value = self.safe_timestamp2(trade.clone(), Value::Str("date".into()), Value::Str("timestamp".into()), &[]);
         let mut side: Value = self.safe_string2(trade.clone(), Value::Str("type".into()), Value::Str("side".into()), &[]);
         let mut type_var: Value = Value::Null;

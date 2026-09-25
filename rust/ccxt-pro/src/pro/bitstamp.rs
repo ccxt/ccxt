@@ -624,7 +624,7 @@ impl BitstampCore {
         let mut timestamp: Value = self.parse_to_int((match ((microtimestamp).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
-        let mut marketResolved: Value = (if (market == Value::Null) { self.safe_market(&[Value::Null, market.clone()]) } else { market });
+        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut sideRaw: Option<i64> = self.safe_integer_k(trade.clone(), "type", &[]).as_i64();
         let mut side: Value = Value::Str("sell".into());

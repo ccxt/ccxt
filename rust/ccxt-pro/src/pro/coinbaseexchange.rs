@@ -1069,7 +1069,7 @@ impl CoinbaseexchangeCore {
             })]);
             let mut previousOrder: Value = self.safe_dict(previousOrders.clone(), orderId, &[]);
             if (previousOrder == Value::Null) {
-                previousOrder = self.safe_value2(previousOrders, makerOrderId, takerOrderId, &[]);
+                previousOrder = self.safe_dict_n(previousOrders, Value::from(vec![makerOrderId, takerOrderId]), &[]);
             }
             if (previousOrder == Value::Null) {
                 let mut parsed: Value = self.parse_ws_order(message.clone(), &[]);
