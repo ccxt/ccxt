@@ -6677,6 +6677,7 @@ function installCcxtGoDestructuredPointerBoxes (goTranspiler) {
 const CCXT_GO_TUPLE_PARAMS_PRODUCERS = {
     'this.HandleMarketTypeAndParams': -1, 'this.HandleSubTypeAndParams': -1, 'this.HandleMarginModeAndParams': -1,
     'this.HandleNetworkCodeAndParams': 0, 'this.HandleParamString': 0, 'this.HandleParamString2': 0,
+    'this.HandleWithdrawTagAndParams': 1, 'this.HandlePostOnly': 2,
     'this.HandleOptionAndParams': 0, 'this.HandleOptionAndParams2': 0,
     'this.HandleOptionStringAndParams': 0, 'this.HandleOptionStringAndParams2': 0,
     'this.HandleOptionBoolAndParams': 0, 'this.HandleOptionBoolAndParams2': 0,
