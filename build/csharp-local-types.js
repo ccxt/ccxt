@@ -17511,8 +17511,9 @@ function dictIdentKeyRead (csharp, node) {
         return undefined;
     }
     const d = receiver.text;
-    const keyNonNull = (k.type === 'string')
-        || (!dictKeyNameIsRebound (k.block, key.text) && typeof csharp.csharpNullGuardAdmitsRead === 'function' && csharp.csharpNullGuardAdmitsRead (node, key));
+    // a declared `string` is only an annotation: the bare form needs a dominating null test
+    const keyNonNull = !dictKeyNameIsRebound (k.block, key.text)
+        && typeof csharp.csharpNullGuardAdmitsRead === 'function' && csharp.csharpNullGuardAdmitsRead (node, key);
     return keyNonNull
         ? `(${d}.ContainsKey(${key.text}) ? ${d}[${key.text}] : null)`
         : `(${key.text} != null && ${d}.ContainsKey(${key.text}) ? ${d}[${key.text}] : null)`;
