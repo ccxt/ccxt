@@ -15676,7 +15676,7 @@ public partial class binance : Exchange
             if ((isEqual(api, "sapi")) && (isEqual(path, "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
-            } else if ((isEqual(path, "batchOrders")) || (getIndexOf(path, "sub-account") >= 0) || (isEqual(path, "capital/withdraw/apply")) || (getIndexOf(path, "staking") >= 0) || (getIndexOf(path, "simple-earn") >= 0))
+            } else if ((isEqual(path, "batchOrders")) || (((string)path).IndexOf("sub-account", StringComparison.Ordinal) >= 0) || (isEqual(path, "capital/withdraw/apply")) || (((string)path).IndexOf("staking", StringComparison.Ordinal) >= 0) || (((string)path).IndexOf("simple-earn", StringComparison.Ordinal) >= 0))
             {
                 if (((method == "DELETE")) && (isEqual(path, "batchOrders")))
                 {

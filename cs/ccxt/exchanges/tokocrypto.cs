@@ -2890,7 +2890,7 @@ public partial class tokocrypto : Exchange
             if ((isEqual(api, "sapi")) && (isEqual(path, "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
-            } else if ((isEqual(path, "batchOrders")) || (getIndexOf(path, "sub-account") >= 0) || (isEqual(path, "capital/withdraw/apply")) || (getIndexOf(path, "staking") >= 0))
+            } else if ((isEqual(path, "batchOrders")) || (((string)path).IndexOf("sub-account", StringComparison.Ordinal) >= 0) || (isEqual(path, "capital/withdraw/apply")) || (((string)path).IndexOf("staking", StringComparison.Ordinal) >= 0))
             {
                 query = this.rawencode(extendedParams);
             } else

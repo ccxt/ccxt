@@ -4035,11 +4035,11 @@ public partial class paradex : Exchange
         parameters ??= new Dictionary<string, object>();
         object version = this.version;
         object pathValue = path;
-        if ((getIndexOf(path, "v2/") == 0))
+        if ((((string)path).IndexOf("v2/", StringComparison.Ordinal) == 0))
         {
             pathValue = ((string)path).Replace("v2/", (string)"");
         }
-        if ((getIndexOf(path, "v2/") == 0))
+        if ((((string)path).IndexOf("v2/", StringComparison.Ordinal) == 0))
         {
             version = "v2";
         }
