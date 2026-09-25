@@ -15939,3 +15939,52 @@ export const CORE_LIST_ARGS = {
 // The list targets of CORE_LIST_ARGS; a list parameter keeps the `object` shadow only where a
 // body write cannot be attributed to a list producer (see bodyWritesAreListTyped there).
 export const CORE_LIST_TARGET_TYPES = [ 'IList<object>' ];
+
+// ===== native Math.Min / Math.Max on a guarded nullable integer parameter =====
+//
+// `Math.min (limit, 1000)` with `limit` a narrowed `Int64?` parameter proven non-null by a
+// dominating null test prints `Math.Min(limit.Value, 1000)`: same value as mathMin, which only
+// differs by returning the literal's Int32 box. Only request-field writes take the result, and
+// urlencode / json print both boxes identically.
+function minMaxGuardedNullableOperand (csharp, call, node) {
+    if ((node?.kind !== ts.SyntaxKind.Identifier) || (parameterArithmeticType (csharp, node) !== 'Int64?')) {
+        return false;
+    }
+    return (typeof csharp.csharpNullGuardAdmitsRead === 'function') && csharp.csharpNullGuardAdmitsRead (call, node);
+}
+
+function minMaxIntLiteral (node) {
+    return (node?.kind === ts.SyntaxKind.NumericLiteral) && /^[0-9]+$/.test (node.text) && (Number (node.text) <= 2147483647);
+}
+
+// the result is a request-dictionary field value: `request["k"] = <call>` or `{ "k": <call> }`
+function minMaxRequestFieldValue (call) {
+    const parent = call.parent;
+    if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.right === call) && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+        return parent.left?.kind === ts.SyntaxKind.ElementAccessExpression;
+    }
+    return (parent?.kind === ts.SyntaxKind.PropertyAssignment) && (parent.initializer === call);
+}
+
+export function installCsharpGuardedMinMax (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.csharpNativeMathMinMax !== 'function' || csharp._guardedMinMaxPatched) {
+        return;
+    }
+    const upstream = csharp.csharpNativeMathMinMax.bind (csharp);
+    csharp.csharpNativeMathMinMax = (node, name, parsedArg1, parsedArg2) => {
+        const native = upstream (node, name, parsedArg1, parsedArg2);
+        const args = node?.arguments;
+        if ((native !== undefined) || (args?.length !== 2) || !minMaxRequestFieldValue (node)) {
+            return native;
+        }
+        if (minMaxGuardedNullableOperand (csharp, node, args[0]) && minMaxIntLiteral (args[1])) {
+            return 'Math.' + name + '(' + parsedArg1 + '.Value, ' + parsedArg2 + ')';
+        }
+        if (minMaxIntLiteral (args[0]) && minMaxGuardedNullableOperand (csharp, node, args[1])) {
+            return 'Math.' + name + '(' + parsedArg1 + ', ' + parsedArg2 + '.Value)';
+        }
+        return native;
+    };
+    csharp._guardedMinMaxPatched = true;
+}
