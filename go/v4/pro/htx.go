@@ -498,7 +498,7 @@ func (this *Htx) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var subMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".kline."), interval))
 	var topic string = "ohlcv"
-	ccxt.AddElementToObject(params, "symbolsAndTimeframes", []any{[]any{market["symbol"], timeframe}})
+	params["symbolsAndTimeframes"] = []any{[]any{market["symbol"], timeframe}}
 
 	ch <- ccxt.PanicOnError((<-this.UnsubscribePublicAsync(market, subMessageHash, topic, params)))
 	return nil

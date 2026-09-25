@@ -223,7 +223,7 @@ const GO_POINTER_TRANSPARENT_SHIMS = new Set ([
     'IsEqual', 'EvalTruthy', 'Add', 'Subtract', 'Multiply', 'Divide', 'Mod', 'Negate', 'OpNeg', 'UnaryPlus',
     'IsGreaterThan', 'IsLessThan', 'IsGreaterThanOrEqual', 'IsLessThanOrEqual',
     'GetValue', 'GetArrayLength', 'GetLength', 'GetIndexOf', 'InOp', 'Contains', 'IsNil',
-    'ToString', 'ToLower', 'ToUpper', 'Trim', 'StartsWith', 'EndsWith', 'Replace', 'Split', 'Join', 'Slice',
+    'GetValue', 'ToString', 'ToLower', 'ToUpper', 'Trim', 'StartsWith', 'EndsWith', 'Replace', 'Split', 'Join', 'Slice',
     'JsonParse', 'JsonStringify', 'ParseInt', 'ParseFloat', 'ToFloat64',
     'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'mathMin', 'mathMax', 'mathFloor', 'mathCeil', 'mathRound', 'mathAbs',
     'IsArray', 'IsString', 'IsInt', 'IsBool', 'IsNumber', 'IsObject', 'IsDictionary',
@@ -1472,24 +1472,165 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
             line = line.replace (new RegExp ('((?<![\\w.])(?:ccxt\\.)?(?:' + consumers + ')\\()(?:ccxt\\.)?GetValue\\((\\w+), ("[^"\\\\\\n]*")\\)', 'g'), (all: string, head: string, name: string, key: string, at: number) =>
                 ((isCode (head, at) && (typeAt (name, k) === 'map[string]any')) ? head + name + '[' + key + ']' : all));
         }
-        const write = /^(\s*)(?:ccxt\.)?AddElementToObject\((\w+), ("[^"\\\n]*"), (.+)\)$/.exec (line);
-        const writeHead = (write === null) ? '' : line.trimStart ().substring (0, line.trimStart ().indexOf ('(') + write[2].length + 1);
-        if ((write !== null) && (line === lines[k]) && isCode (writeHead, line.length - line.trimStart ().length) && m.trimEnd ().endsWith (')')) {
-            const decl = declOf (write[2]);
-            const init = (decl?.line ?? '').replace (/^\s*var\s+\w+\s+map\[string\]any\s*=\s*/, '');
-            const value = write[4];
-            const valueType = /^\w+$/.test (value) ? typeAt (value, k) : undefined;
-            const plainValue = /^(?:"[^"\\\n]*"|-?\d+(?:\.\d+)?|true|false)$/.test (value) || (valueType !== undefined && GO_ACCESS_PLAIN_VALUE_TYPES.indexOf (valueType) >= 0);
-            // a pointer the enclosing `if v != nil {` proves non-nil: the helper stores *v
-            const derefValue = (valueType !== undefined) && (GO_ACCESS_DEREF_POINTER_TYPES.indexOf (valueType) >= 0)
-                && notRebound (value) && goAccessInsideNilGuard (masked, k, value);
-            if ((typeAt (write[2], k) === 'map[string]any') && (decl.index !== undefined) && GO_ACCESS_NON_NIL_MAP_INIT.test (init.trim ())
-                && notRebound (write[2]) && (plainValue || derefValue)) {
-                line = write[1] + write[2] + '[' + write[3] + '] = ' + (derefValue ? '*' : '') + value;
-            }
+        if (line === lines[k]) {
+            goNativeMapWrite (lines, masked, start, end, k, maskedFunc, declOf, typeAt, notRebound);
+        } else {
+            lines[k] = line;
         }
-        lines[k] = line;
     }
+}
+
+// ------------------------------------------------------------------------------------
+// AddElementToObject(m, k, v) -> m[k] = v
+// ------------------------------------------------------------------------------------
+// The helper derefs a pointer key/value (a nil pointer or a typed-nil container becomes
+// untyped nil) and is a no-op on a typed-nil map; its mutex guards shared maps only. So the
+// native write needs a never-nil map local, a string key and a value the deref leaves alone.
+const GO_MAPWRITE_NON_NIL_INIT = /^(?:(?:ccxt\.)?map\[string\]any\{|(?:ccxt\.)?GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$|this\.(?:Extend|DeepExtend)\(|this\.Account\(\)$)/;
+// hand-written callees (no generated override) whose result derefScalar leaves unchanged
+const GO_MAPWRITE_PLAIN_CALLS = [
+    'this.Milliseconds', 'this.Seconds', 'this.Microseconds', 'this.Uuid', 'this.Uuid2', 'this.Uuid16', 'this.Uuid22',
+    'this.Extend', 'this.DeepExtend', 'this.Json', 'this.Capitalize', 'this.ParseTimeframe', 'this.Account',
+    'GetValue', 'ToString', 'ToLower', 'ToUpper', 'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'ParseInt', 'Json', 'JsonStringify',
+];
+
+// end index (exclusive) of the balanced group opening at text[open], or -1
+function goMapWriteGroupEnd (text: string, open: number): number {
+    let depth = 0;
+    for (let i = open; i < text.length; i++) {
+        const c = text[i];
+        depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
+        if (depth === 0) {
+            return i + 1;
+        }
+    }
+    return -1;
+}
+
+// every declaration and write of a local map is a never-nil map producer
+function goMapWriteLocalNeverNil (maskedFunc: string, decl: any, name: string, declOf?: (name: string) => any, depth: number = 0): boolean {
+    const producer = GO_MAPWRITE_NON_NIL_INIT;
+    if ((decl === undefined) || (decl.index === undefined)) {
+        return false;
+    }
+    const init = decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim ();
+    // element 0 of the base handleUntilOption tuple is the request map it was handed
+    const until = /^(?:ccxt\.)?MapTyped\((?:ccxt\.)?GetValue\((\w+), 0\)\)$/.exec (init);
+    let admitted = producer.test (init);
+    // Omit on a never-nil map answers a fresh map (exchange_functions.go OmitN/OmitMap)
+    const omit = /^(?:ccxt\.)?MapTyped\(this\.Omit\((\w+), /.exec (init);
+    if (!admitted && (omit !== null) && (omit[1] !== name) && (declOf !== undefined) && (depth < 4)) {
+        admitted = goMapWriteLocalNeverNil (maskedFunc, declOf (omit[1]), omit[1], declOf, depth + 1);
+    }
+    if (!admitted && (until !== null) && (declOf !== undefined) && (depth < 4)) {
+        const tuple = declOf (until[1]);
+        const call = (tuple === undefined || tuple.index === undefined) ? null
+            : /^\s*var\s+\w+\s+\[\]any\s*=\s*this\.HandleUntilOption\((?:\w+|\s*), (\w+), /.exec (tuple.line);
+        admitted = (call !== null) && !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (until[1]) + '\\s*=(?!=)|&\\s*' + goAccessEscape (until[1]) + '\\b', 'm').test (maskedFunc)
+            && goMapWriteLocalNeverNil (maskedFunc, declOf (call[1]), call[1], declOf, depth + 1);
+    }
+    if (!admitted) {
+        return false;
+    }
+    const n = goAccessEscape (name);
+    if (new RegExp ('&\\s*' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,[^=\\n]*)?:=|,\\s*' + n + '\\s*(?:,[^=\\n]*)?=(?!=)|(?:^|[^\\w.])' + n + '\\s*,[^=\\n]*=(?!=)', 'm').test (maskedFunc)) {
+        return false; // address taken or multi-value rebinding
+    }
+    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
+        if (!producer.test (w[1].trim ())) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// the masked value text is one call of a plain-return callee, or one map/slice literal
+function goMapWritePlainValueExpr (maskedValue: string): boolean {
+    const literal = /^(?:ccxt\.)?(?:map\[string\]any|\[\]any|\[\]string)\{/.exec (maskedValue);
+    const call = /^(?:ccxt\.)?((?:this\.)?\w+)\(/.exec (maskedValue);
+    let open = -1;
+    if (literal !== null) {
+        open = literal[0].length - 1;
+    } else if ((call !== null) && (GO_MAPWRITE_PLAIN_CALLS.indexOf (call[1]) >= 0)) {
+        open = call[0].length - 1;
+    }
+    return (open >= 0) && (goMapWriteGroupEnd (maskedValue, open) === maskedValue.length);
+}
+
+function goNativeMapWrite (lines: string[], masked: string[], start: number, end: number, k: number, maskedFunc: string,
+    declOf: (name: string) => any, typeAt: (name: string, k: number) => string | undefined, notRebound: (name: string) => boolean) {
+    const m = masked[k];
+    const head = /^(\s*)(?:ccxt\.)?AddElementToObject\((\w+), /.exec (m);
+    if ((head === null) || (lines[k].substring (0, head[0].length) !== head[0])) {
+        return;
+    }
+    const name = head[2];
+    if ((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf)) {
+        return;
+    }
+    // the call may span lines (a multi-line literal value): it must be the whole statement
+    const tail = masked.slice (k, end).join ('\n');
+    const open = m.indexOf ('(', head[1].length);
+    const close = goMapWriteGroupEnd (tail, open);
+    if ((close < 0) || (tail.substring (close).split ('\n')[0].trim () !== '')) {
+        return;
+    }
+    const lastLine = k + tail.substring (0, close).split ('\n').length - 1;
+    const argsMasked = tail.substring (head[0].length, close - 1);
+    const argsText = lines.slice (k, lastLine + 1).join ('\n').substring (head[0].length, close - 1);
+    let depth = 0;
+    let comma = -1;
+    for (let i = 0; i < argsMasked.length; i++) {
+        const c = argsMasked[i];
+        depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
+        if ((depth === 0) && (c === ',')) {
+            comma = i;
+            break;
+        }
+    }
+    if ((comma < 0) || (argsMasked[comma + 1] !== ' ') || (argsMasked.substring (0, comma).indexOf ('\n') >= 0)) {
+        return;
+    }
+    const key = argsText.substring (0, comma);
+    const value = argsText.substring (comma + 2);
+    const valueMasked = argsMasked.substring (comma + 2);
+    // a pointer the enclosing `if p != nil {` proves non-nil: the helper stores *p
+    const guardedPointer = (text: string) => /^\w+$/.test (text) && (GO_ACCESS_DEREF_POINTER_TYPES.indexOf (typeAt (text, k) ?? '') >= 0)
+        && notRebound (text) && goAccessInsideNilGuard (masked, k, text);
+    let keyOut: string | undefined = undefined;
+    if (/^"[^"\\\n]*"$/.test (key) || (/^\w+$/.test (key) && (typeAt (key, k) === 'string'))) {
+        keyOut = key;
+    } else if (guardedPointer (key) && (typeAt (key, k) === '*string')) {
+        keyOut = '*' + key;
+    }
+    const valueType = /^\w+$/.test (value) ? typeAt (value, k) : undefined;
+    // SafeString with a string default never answers nil (exchange_safe.go)
+    const defaulted = /^this\.SafeString\((\w+(?:\[\"[^\"\\\n]*\"\])?|this\.\w+), (\w+|"[^"\\\n]*"), (\w+|"[^"\\\n]*")\)$/.exec (value);
+    const defaultedOk = (defaulted !== null) && (defaulted[3].startsWith ('"') || (typeAt (defaulted[3], k) === 'string'));
+    let valueOut: string | undefined = undefined;
+    if (keyOut === undefined) {
+        return;
+    }
+    if (/^(?:"[^"\\\n]*"|-?\d+(?:\.\d+)?|true|false|nil)$/.test (value) || goMapWritePlainValueExpr (valueMasked)) {
+        valueOut = value;
+    } else if ((valueType !== undefined) && (GO_ACCESS_SCALAR_TYPES.indexOf (valueType) >= 0)) {
+        valueOut = value;
+    } else if ((valueType !== undefined) && keyOut.startsWith ('"') && (GO_ACCESS_PLAIN_VALUE_TYPES.indexOf (valueType) >= 0)) {
+        valueOut = value; // container locals under a literal key, as the typed-container pass always printed them
+    } else if ((valueType === 'map[string]any') && goMapWriteLocalNeverNil (maskedFunc, declOf (value), value, declOf)) {
+        valueOut = value; // the helper would store a typed-nil map as untyped nil
+    } else if (guardedPointer (value)) {
+        valueOut = '*' + value;
+    } else if (defaultedOk) {
+        valueOut = '*' + value;
+    }
+    if ((keyOut === undefined) || (valueOut === undefined)) {
+        return;
+    }
+    const suffix = lines[lastLine].substring (lines[lastLine].length - (tail.substring (close).split ('\n')[0].length));
+    const rewritten = (head[1] + name + '[' + keyOut + '] = ' + valueOut + suffix).split ('\n');
+    lines.splice (k, rewritten.length, ...rewritten);
+    masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
 }
 
 function retagLoopBoundedElementReads (content: string): string {

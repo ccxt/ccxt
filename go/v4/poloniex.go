@@ -3909,7 +3909,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 					var networkObject map[string]any = map[string]any{}
 					var withdrawFee *float64 = this.SafeNumber(networkInfo, "withdrawalFee")
 					if networkCode != nil {
-						AddElementToObject(networkObject, networkCode, map[string]any{
+						networkObject[*networkCode] = map[string]any{
 							"withdraw": map[string]any{
 								"fee": withdrawFee,
 								"percentage": func() any {
@@ -3923,7 +3923,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 								"fee":        nil,
 								"percentage": nil,
 							},
-						})
+						}
 					}
 					AddElementToObject(GetValue(depositWithdrawFees, code), "networks", this.Extend(GetValue(func() any {
 						if code == nil {

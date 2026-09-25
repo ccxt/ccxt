@@ -3654,12 +3654,12 @@ func (this *BaseExchange) ConvertOHLCVToTradingView(ohlcvs any, optionalArgs ...
 	var ms bool = GetArgBool(optionalArgs, 6, false)
 	_ = ms
 	var result map[string]any = map[string]any{}
-	AddElementToObject(result, timestamp, []any{})
-	AddElementToObject(result, open, []any{})
-	AddElementToObject(result, high, []any{})
-	AddElementToObject(result, low, []any{})
-	AddElementToObject(result, close, []any{})
-	AddElementToObject(result, volume, []any{})
+	result[timestamp] = []any{}
+	result[open] = []any{}
+	result[high] = []any{}
+	result[low] = []any{}
+	result[close] = []any{}
+	result[volume] = []any{}
 	for i := 0; i < GetArrayLength(ohlcvs); i++ {
 		var ts any = func() any {
 			if ms == true {
@@ -5917,14 +5917,14 @@ func (this *BaseExchange) SetTakeProfitAndStopLossParams(symbol any, typeVar str
 		panic(ArgumentsRequired(this.Id + " createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument"))
 	}
 	if takeProfit != nil {
-		AddElementToObject(params, "takeProfit", map[string]any{
+		params["takeProfit"] = map[string]any{
 			"triggerPrice": takeProfit,
-		})
+		}
 	}
 	if stopLoss != nil {
-		AddElementToObject(params, "stopLoss", map[string]any{
+		params["stopLoss"] = map[string]any{
 			"triggerPrice": stopLoss,
-		})
+		}
 	}
 	var takeProfitType *string = this.SafeString(params, "takeProfitType")
 	var takeProfitPriceType *string = this.SafeString(params, "takeProfitPriceType")

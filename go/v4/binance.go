@@ -17924,7 +17924,7 @@ func (this *Binance) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) an
 		}
 		if (symbols == nil) || (this.InArray(symbol, symbols)) {
 			if symbol != nil {
-				AddElementToObject(tradingLimits, symbol, GetValue(GetValue(market, "limits"), "amount"))
+				tradingLimits[*symbol] = GetValue(GetValue(market, "limits"), "amount")
 			}
 		}
 	}

@@ -913,7 +913,7 @@ func (this *Woo) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	var topic string = "ohlcv"
 	var name string = "kline"
 	var subHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@"), name), "_"), interval)
-	ccxt.AddElementToObject(params, "symbolsAndTimeframes", []any{[]any{market["symbol"], timeframe}})
+	params["symbolsAndTimeframes"] = []any{[]any{market["symbol"], timeframe}}
 
 	ch <- ccxt.PanicOnError((<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params)))
 	return nil
