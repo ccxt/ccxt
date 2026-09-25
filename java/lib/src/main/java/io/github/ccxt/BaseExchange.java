@@ -905,8 +905,17 @@ public class BaseExchange {
         return io.github.ccxt.base.Functions.omit(a, key);
     }
 
+    // a Map source always yields a fresh Map (or null); List/Object sources keep the Object overloads
     public java.util.Map<String, Object> omit(java.util.Map<String, Object> a, String key) {
-        return (java.util.Map<String, Object>) io.github.ccxt.base.Functions.omit(a, key);
+        return io.github.ccxt.base.Functions.omitMap(a, java.util.Collections.singletonList(key));
+    }
+
+    public java.util.Map<String, Object> omit(java.util.Map<String, Object> a, Object keys) {
+        return io.github.ccxt.base.Functions.omitMap(a, keys);
+    }
+
+    public java.util.Map<String, Object> omit(java.util.Map<String, Object> a, Object... keys) {
+        return io.github.ccxt.base.Functions.omitMap(a, java.util.Arrays.asList(keys));
     }
 
     public java.util.Map<String, Object> omitN(Object a, java.util.List<Object> keys) {
