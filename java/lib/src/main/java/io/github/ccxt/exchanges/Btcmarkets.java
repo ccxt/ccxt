@@ -1744,7 +1744,7 @@ public class Btcmarkets extends BtcmarketsApi
         }
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), request);
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        Object bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
         return Helpers.newMap(
             "url", url,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),

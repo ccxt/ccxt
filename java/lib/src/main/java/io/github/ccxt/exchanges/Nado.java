@@ -3373,7 +3373,7 @@ public class Nado extends NadoApi
         {
             throw new ArgumentsRequired((this.id + " createSubaccount() requires walletAddress")) ;
         }
-        Object subaccountName = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(subaccount, "default"), null)))) ? "default" : java.util.Objects.requireNonNullElse(subaccount, "default");
+        String subaccountName = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(subaccount, "default"), null)))) ? "default" : java.util.Objects.requireNonNullElse(subaccount, "default");
         String address = ((String)this.remove0xPrefix(walletAddress)).toLowerCase();
         if ((Helpers.getArrayLength(address) != 40))
         {
@@ -3601,7 +3601,7 @@ public class Nado extends NadoApi
             headersValue.put("Content-Type", "application/json");
             requestBody = this.json(query);
         }
-        Object bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
         return Helpers.newMap(
             "url", url,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),

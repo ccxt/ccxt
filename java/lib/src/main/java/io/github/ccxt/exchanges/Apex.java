@@ -2348,7 +2348,7 @@ public class Apex extends ApexApi
             put( "Content-Type", "application/x-www-form-urlencoded" );
         }};
         String signPath = Helpers.add("/api/", path);
-        Object signBody = body;
+        String signBody = body;
         if (!java.util.Objects.equals(((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase(), "POST"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
@@ -2365,10 +2365,10 @@ public class Apex extends ApexApi
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.milliseconds());
-            Object messageString = ((timestamp + ((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase()) + signPath);
+            String messageString = ((timestamp + ((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase()) + signPath);
             if (!java.util.Objects.equals(signBody, null))
             {
-                messageString = Helpers.add(messageString, signBody);
+                messageString = (messageString + signBody);
             }
             String signature = (String) this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
             headersValue.put("APEX-SIGNATURE", signature);

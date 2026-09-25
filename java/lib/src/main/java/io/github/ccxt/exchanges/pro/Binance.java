@@ -5218,7 +5218,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             String messageHash = "orders";
             Map<String, Object> market = null;
-            Object symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
@@ -5274,7 +5274,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, Helpers.toLongOrNull(limitResolved), true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -6401,7 +6401,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             var typesubTypeparamsAuthVariable = this.resolveAuthType("watchMyTrades", Helpers.toMapArg(market), parameters);
             String type = (String) ((List<Object>) typesubTypeparamsAuthVariable).get(0);
             var subType = ((List<Object>) typesubTypeparamsAuthVariable).get(1);
@@ -6458,7 +6458,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, Helpers.toLongOrNull(limitResolved), true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

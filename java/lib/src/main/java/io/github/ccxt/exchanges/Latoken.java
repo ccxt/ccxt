@@ -1091,10 +1091,10 @@ public class Latoken extends LatokenApi
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String symbol = ((base + "/") + quote);
         Boolean symbolKnown = (!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol));
-        Object marketResolved = market;
+        Map<String, Object> marketResolved = market;
         if (Boolean.TRUE.equals(symbolKnown))
         {
-            marketResolved = this.market(symbol);
+            marketResolved = (Map<String, Object>) this.market(symbol);
         }
         String id = this.safeString(trade, "id");
         String orderId = this.safeString(trade, "order");
@@ -1417,10 +1417,10 @@ public class Latoken extends LatokenApi
             symbol = ((base + "/") + quote);
         }
         Boolean symbolKnown = (!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol));
-        Object marketResolved = market;
+        Map<String, Object> marketResolved = market;
         if (Boolean.TRUE.equals(symbolKnown))
         {
-            marketResolved = this.market(symbol);
+            marketResolved = (Map<String, Object>) this.market(symbol);
         }
         String orderSide = this.safeString(order, "side");
         String side = null;
@@ -2198,7 +2198,7 @@ public class Latoken extends LatokenApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object requestHeaders = headers;
-        Object requestBody = body;
+        String requestBody = body;
         String request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         String requestString = request;
         Object query = this.omit(parameters, this.extractParams(path));

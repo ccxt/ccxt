@@ -2901,7 +2901,7 @@ public class Upbit extends UpbitApi
             }
         }
         Boolean hasBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
-        Object requestBody = body;
+        String requestBody = body;
         if (Boolean.TRUE.equals(hasBody))
         {
             requestBody = this.json(parameters);

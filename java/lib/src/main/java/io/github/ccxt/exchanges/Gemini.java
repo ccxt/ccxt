@@ -2545,7 +2545,7 @@ public class Gemini extends GeminiApi
         }
         url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), url);
         Object headersResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? headersSigned : headers;
-        Object bodyResolved = body;
+        String bodyResolved = body;
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
         {
             bodyResolved = this.json(query);

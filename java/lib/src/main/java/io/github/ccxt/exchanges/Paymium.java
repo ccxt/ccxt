@@ -811,7 +811,7 @@ public class Paymium extends PaymiumApi
                 "Api-Nonce", nonce
             );
             Boolean hasQuery = ((List<?>)Helpers.objectKeys(query)).size() > 0;
-            Object signedBody = body;
+            String signedBody = body;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && Boolean.TRUE.equals(hasQuery))
             {
                 signedBody = this.json(query);
@@ -820,7 +820,7 @@ public class Paymium extends PaymiumApi
             {
                 if (Boolean.TRUE.equals(hasQuery))
                 {
-                    auth = Helpers.add(auth, signedBody);
+                    auth = (auth + signedBody);
                     signedHeaders.put("Content-Type", "application/json");
                 }
             } else

@@ -4193,10 +4193,10 @@ public class Polymarket extends PolymarketApi
 
             (this.loadApiCredentials()).join();
             String messageHash = "orders";
-            Object outcomeResolved = outcome;
+            String outcomeResolved = outcome;
             if (!java.util.Objects.equals(outcomeResolved, null))
             {
-                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcomeResolved), false)).join();
+                Map<String, Object> outcomeObj = (this.loadOutcome(outcomeResolved, false)).join();
                 outcomeResolved = this.safeString(outcomeObj, "outcome");
                 messageHash = ("orders::" + outcomeResolved);
             }
@@ -4206,7 +4206,7 @@ public class Polymarket extends PolymarketApi
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, outcomeResolved, limitResolved);
             }
-            return this.filterByOutcomeSinceLimit(orders, Helpers.toStringArg(outcomeResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, Helpers.toLongOrNull(limitResolved), true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -4229,10 +4229,10 @@ public class Polymarket extends PolymarketApi
 
             (this.loadApiCredentials()).join();
             String messageHash = "myTrades";
-            Object outcomeResolved = outcome;
+            String outcomeResolved = outcome;
             if (!java.util.Objects.equals(outcomeResolved, null))
             {
-                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcomeResolved), false)).join();
+                Map<String, Object> outcomeObj = (this.loadOutcome(outcomeResolved, false)).join();
                 outcomeResolved = this.safeString(outcomeObj, "outcome");
                 messageHash = ("myTrades::" + outcomeResolved);
             }
@@ -4242,7 +4242,7 @@ public class Polymarket extends PolymarketApi
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, outcomeResolved, limitResolved);
             }
-            return this.filterByOutcomeSinceLimit(trades, Helpers.toStringArg(outcomeResolved), since, Helpers.toLongOrNull(limitResolved), true);
+            return this.filterByOutcomeSinceLimit(trades, outcomeResolved, since, Helpers.toLongOrNull(limitResolved), true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }

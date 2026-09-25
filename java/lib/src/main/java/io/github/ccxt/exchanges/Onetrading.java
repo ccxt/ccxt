@@ -2137,7 +2137,7 @@ public class Onetrading extends OnetradingApi
                 put( "Accept", "application/json" );
                 put( "Authorization", ("Bearer " + Onetrading.this.apiKey) );
             }};
-            Object bodyJson = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? this.json(query) : body;
+            String bodyJson = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? this.json(query) : body;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
                 headersSigned.put("Content-Type", "application/json");

@@ -8783,7 +8783,7 @@ public Object describe()
                     {
                         throw new ArgumentsRequired((((this.id + " safeMarket() requires a fourth argument for ") + marketId) + " to disambiguate between different markets with the same market id")) ;
                     }
-                    Object marketTypeResolved = (((java.util.Objects.equals(marketType, null)))) ? this.safeString(market, "type", "") : marketType;
+                    String marketTypeResolved = (((java.util.Objects.equals(marketType, null)))) ? this.safeString(market, "type", "") : marketType;
                     for (var i = 0; i < Helpers.getArrayLength(markets); i++)
                     {
                         Object currentMarket = Helpers.GetValue(markets, i);
@@ -9087,7 +9087,7 @@ public Object describe()
     {
         if (java.util.Objects.equals(value, null))
         {
-            Object errorMessage = (((!java.util.Objects.equals(message, null)))) ? message : "value is required";
+            String errorMessage = (((!java.util.Objects.equals(message, null)))) ? message : "value is required";
             throw new ArgumentsRequired(((this.id + " ") + errorMessage)) ;
         }
         return value;
@@ -10306,7 +10306,7 @@ public Object describe()
                 ((List<Object>)results).add(priceData);
             }
         }
-        Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         return this.filterByArray(results, "symbol", symbolsNormalized, true);
     }
 
@@ -10355,7 +10355,7 @@ public Object describe()
                 ((List<Object>)results).add(ticker);
             }
         }
-        Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         return this.filterByArray(results, "symbol", symbolsNormalized, true);
     }
 
@@ -11787,7 +11787,7 @@ public Object describe()
                 ((List<Object>)results).add(greek);
             }
         }
-        Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         return this.filterByArray(results, "symbol", symbolsNormalized, true);
     }
 

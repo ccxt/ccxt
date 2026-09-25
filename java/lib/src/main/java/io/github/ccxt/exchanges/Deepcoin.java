@@ -3742,11 +3742,11 @@ public class Deepcoin extends DeepcoinApi
                 "DC-ACCESS-PASSPHRASE", this.password,
                 "appid", "200103"
             );
-            Object requestBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.json(parameters) : body;
+            String requestBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.json(parameters) : body;
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 privateHeaders.put("Content-Type", "application/json");
-                payload = Helpers.add(payload, requestBody);
+                payload = (payload + requestBody);
             }
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             privateHeaders.put("DC-ACCESS-SIGN", signature);

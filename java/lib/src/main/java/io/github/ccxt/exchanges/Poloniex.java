@@ -4418,7 +4418,7 @@ public class Poloniex extends PoloniexApi
                 put( "signature", signature );
             }};
         }
-        Object bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
+        String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
         Object headersResolved = (((java.util.Objects.equals(signedHeaders, null)))) ? headers : signedHeaders;
         return Helpers.newMap(
             "url", url,

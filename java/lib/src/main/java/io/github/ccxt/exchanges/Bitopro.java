@@ -2187,7 +2187,7 @@ public class Bitopro extends BitoproApi
         Object requestHeaders = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
         Boolean isSignedBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")));
         String signedBody = this.json(parameters);
-        Object requestBody = body;
+        String requestBody = body;
         if (Boolean.TRUE.equals(isSignedBody))
         {
             requestBody = signedBody;

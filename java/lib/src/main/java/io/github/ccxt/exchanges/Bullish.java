@@ -3516,7 +3516,7 @@ public class Bullish extends BullishApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object requestHeaders = headers;
-        Object requestBody = body;
+        String requestBody = body;
         Object request = this.omit(parameters, this.extractParams(path));
         String endpoint = ("/" + this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), endpoint);
@@ -3537,7 +3537,7 @@ public class Bullish extends BullishApi
             } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
                 requestBody = this.json(parameters);
-                Object payload = Helpers.add(Helpers.add((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/"), path), requestBody);
+                String payload = (Helpers.add((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/"), path) + requestBody);
                 Object digest = this.hash(this.encode(payload), sha256(), "hex");
                 String signature = (String) this.hmac(this.encode(digest), this.encode(this.secret), sha256(), "hex");
                 requestHeaders = Helpers.newMap(

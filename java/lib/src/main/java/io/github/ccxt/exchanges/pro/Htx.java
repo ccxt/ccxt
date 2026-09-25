@@ -558,7 +558,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             // 150-levels/400-level incremental MBP feed is based on the gap
             // between two snapshots at 100ms interval.
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? this.safeInteger(options, "depth", 150) : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? this.safeInteger(options, "depth", 150) : limit;
             if (!this.inArray(limitResolved, allowedLimits))
             {
                 throw new ExchangeError((this.id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;

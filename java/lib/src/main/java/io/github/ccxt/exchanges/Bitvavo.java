@@ -3118,7 +3118,7 @@ public class Bitvavo extends BitvavoApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object requestHeaders = headers;
-        Object requestBody = body;
+        String requestBody = body;
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Boolean getOrDelete = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
@@ -3132,7 +3132,7 @@ public class Bitvavo extends BitvavoApi
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
             this.checkRequiredCredentials(true);
-            Object payload = "";
+            String payload = "";
             if (!Boolean.TRUE.equals(getOrDelete))
             {
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)

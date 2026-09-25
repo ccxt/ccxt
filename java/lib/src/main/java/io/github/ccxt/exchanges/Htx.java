@@ -2503,15 +2503,17 @@ public class Htx extends HtxApi
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
+            Object types = new HashMap<String, Object>() {{}};
+            Object paramsTypes = new HashMap<String, Object>() {{}};
             List<Object> typesparamsTypesVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "types", new HashMap<String, Object>() {{}});
-            var types = ((List<Object>) typesparamsTypesVariable).get(0);
-            Map<String, Object> paramsTypes = (Map<String, Object>) ((List<Object>) typesparamsTypesVariable).get(1);
+            types = ((List<Object>) typesparamsTypesVariable).get(0);
+            paramsTypes = ((List<Object>) typesparamsTypesVariable).get(1);
             Object allMarkets = new ArrayList<Object>(Arrays.asList());
             Object promises = new ArrayList<Object>(Arrays.asList());
-            List<Object> keys = Helpers.objectKeys(types);
+            List<String> keys = new ArrayList<String>(((Map<String, Object>)types).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 if (java.util.Objects.equals(this.safeBool(types, key, (Object) null), true))
                 {
                     if (java.util.Objects.equals(key, "spot"))
@@ -9431,7 +9433,7 @@ public class Htx extends HtxApi
 }}), url);
         }
         Object headersResolved = (((!java.util.Objects.equals(signedHeaders, null)))) ? signedHeaders : headers;
-        Object bodyResolved = (((!java.util.Objects.equals(signedBody, null)))) ? signedBody : body;
+        String bodyResolved = (((!java.util.Objects.equals(signedBody, null)))) ? signedBody : body;
         return Helpers.newMap(
             "url", url,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),

@@ -1258,7 +1258,7 @@ public class Btcturk extends BtcturkApi
                 url = (url + ("?" + this.urlencode(parameters)));
             }
         }
-        Object requestBody = null;
+        String requestBody = null;
         if (Boolean.TRUE.equals(isQueryMethod))
         {
             requestBody = body;

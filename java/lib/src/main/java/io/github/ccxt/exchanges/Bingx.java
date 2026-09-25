@@ -7579,7 +7579,7 @@ public class Bingx extends BingxApi
                 url = (url + (((("?" + query) + "&") + "signature=") + signature));
             }
         }
-        Object bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
         return Helpers.newMap(
             "url", url,

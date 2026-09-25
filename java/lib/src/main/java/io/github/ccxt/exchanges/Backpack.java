@@ -2862,7 +2862,7 @@ public class Backpack extends BackpackApi
         }
         url = Helpers.add(url, endpoint);
         Object headersResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? headersSigned : headers;
-        Object bodyResolved = body;
+        String bodyResolved = body;
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))
         {
             bodyResolved = bodySigned;

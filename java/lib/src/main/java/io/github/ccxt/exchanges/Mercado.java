@@ -1264,7 +1264,7 @@ public class Mercado extends MercadoApi
                 put( "TAPI-MAC", Mercado.this.hmac(Mercado.this.encode(auth), Mercado.this.encode(Mercado.this.secret), sha512()) );
             }};
         }
-        Object requestBody = privateBody;
+        String requestBody = privateBody;
         if (Boolean.TRUE.equals(isPublic))
         {
             requestBody = body;

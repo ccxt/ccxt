@@ -4374,7 +4374,7 @@ public class Woofipro extends WoofiproApi
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
             requestHeaders.put("orderly-signature", this.urlencodeBase64(this.base64ToBinary(signature)));
         }
-        Object bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
+        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
         return Helpers.newMap(
             "url", url,

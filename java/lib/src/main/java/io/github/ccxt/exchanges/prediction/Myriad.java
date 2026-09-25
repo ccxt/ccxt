@@ -2046,7 +2046,7 @@ public class Myriad extends MyriadApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a privateKey to sign the cancellations")) ;
             }
-            Object paramsForLookup = parameters;
+            Map<String, Object> paramsForLookup = parameters;
             String networkIdParam = this.safeString2(parameters, "networkId", "network_id");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderResponse", "orderResponses", "rawOrder", "networkId", "network_id")));
             Integer idsLength = ((List<?>)ids).size();

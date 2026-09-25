@@ -3942,7 +3942,7 @@ public class Grvt extends GrvtApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object requestHeaders = headers;
-        Object requestBody = body;
+        String requestBody = body;
         Object requestPath = path;
         Object query = this.omit(parameters, this.extractParams(requestPath));
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), requestPath);

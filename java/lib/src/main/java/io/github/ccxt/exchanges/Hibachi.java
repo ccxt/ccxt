@@ -2122,7 +2122,7 @@ public class Hibachi extends HibachiApi
         {
             headersValue.put("Content-Type", "application/json");
         }
-        Object bodyResult = body;
+        String bodyResult = body;
         if (Boolean.TRUE.equals(hasJsonBody))
         {
             bodyResult = this.json(parameters);

@@ -4433,7 +4433,7 @@ public class Krakenfutures extends KrakenfuturesApi
             query = (query + ("?" + postData));
         }
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), query);
-        Object requestBody = (((java.util.Objects.equals(path, "batchorder")))) ? postData : body;
+        String requestBody = (((java.util.Objects.equals(path, "batchorder")))) ? postData : body;
         Map<String, Object> privateHeaders = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private") || java.util.Objects.equals(access, "private"))
         {

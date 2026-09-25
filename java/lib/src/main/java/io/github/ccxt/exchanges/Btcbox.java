@@ -729,7 +729,7 @@ public class Btcbox extends BtcboxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             // a special case for btcbox – default symbol is BTC/JPY
-            Object symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
+            String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
             Map<String, Object> market = (Map<String, Object>) this.market(symbolResolved);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -842,7 +842,7 @@ public class Btcbox extends BtcboxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             // a special case for btcbox – default symbol is BTC/JPY
-            Object symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
+            String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
             Map<String, Object> market = (Map<String, Object>) this.market(symbolResolved);
             Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
@@ -876,7 +876,7 @@ public class Btcbox extends BtcboxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             // a special case for btcbox – default symbol is BTC/JPY
-            Object symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
+            String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
             Map<String, Object> market = (Map<String, Object>) this.market(symbolResolved);
             Map<String, Object> request = Helpers.newMap(
                 "type", type,

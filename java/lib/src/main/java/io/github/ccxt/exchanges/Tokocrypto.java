@@ -2965,7 +2965,7 @@ public class Tokocrypto extends TokocryptoApi
                     put( "X-MBX-APIKEY", Tokocrypto.this.apiKey );
                     put( "Content-Type", "application/x-www-form-urlencoded" );
                 }};
-                Object bodyStream = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.urlencode(parameters) : body;
+                String bodyStream = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.urlencode(parameters) : body;
                 return Helpers.newMap(
                     "url", url,
                     "method", java.util.Objects.requireNonNullElse(method, "GET"),
@@ -3009,7 +3009,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "X-MBX-APIKEY", Tokocrypto.this.apiKey );
             }};
             Boolean queryInUrl = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "wapi"));
-            Object bodySigned = query;
+            String bodySigned = query;
             if (Boolean.TRUE.equals(queryInUrl))
             {
                 bodySigned = body;

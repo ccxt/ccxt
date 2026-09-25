@@ -11339,14 +11339,14 @@ public class Binance extends BinanceApi
             Object endTime = this.safeInteger2(paramsPaginate, "until", "endTime");
             if (!java.util.Objects.equals(since, null))
             {
-                Object startTime = since;
+                Long startTime = since;
                 request.put("startTime", startTime);
                 // If startTime and endTime are both not sent, then the last 7 days' data will be returned.
                 // The time between startTime and endTime cannot be longer than 7 days.
                 // The parameter fromId cannot be sent with startTime or endTime.
                 Long currentTimestamp = this.milliseconds();
                 Long oneWeek = ((((7L * 24L) * 60L) * 60L) * 1000L);
-                if (Helpers.isGreaterThanOrEqual((Helpers.subtract(currentTimestamp, startTime)), oneWeek))
+                if (Helpers.isGreaterThanOrEqual(((currentTimestamp - startTime)), oneWeek))
                 {
                     if ((java.util.Objects.equals(endTime, null)) && (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true)))
                     {
@@ -14460,7 +14460,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -15369,7 +15369,7 @@ public class Binance extends BinanceApi
                 throw new NotSupported((this.id + " fetchSettlementHistory() supports option markets only")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeString(market, "symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeString(market, "symbol") : symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
                 request.put("underlying", (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", "")));
@@ -15396,7 +15396,7 @@ public class Binance extends BinanceApi
             //
             Object settlements = this.parseSettlements(response, (Map<String, Object>) (market));
             List<Object> sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbolResolved), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         });
 
     }
@@ -15434,7 +15434,7 @@ public class Binance extends BinanceApi
             {
                 request.put("symbol", this.safeString(market, "id"));
             }
-            Object symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeString(market, "symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeString(market, "symbol") : symbol;
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
@@ -15466,7 +15466,7 @@ public class Binance extends BinanceApi
             //
             Object settlements = this.parseSettlements(response, (Map<String, Object>) (market));
             List<Object> sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbolResolved), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         });
 
     }
@@ -16058,7 +16058,7 @@ public class Binance extends BinanceApi
             }
         }
         Object headersResolved = (((!java.util.Objects.equals(signedHeaders, null)))) ? signedHeaders : headers;
-        Object bodyResolved = (((!java.util.Objects.equals(signedBody, null)))) ? signedBody : body;
+        String bodyResolved = (((!java.util.Objects.equals(signedBody, null)))) ? signedBody : body;
         return Helpers.newMap(
             "url", url,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),
@@ -18601,7 +18601,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object period = (((java.util.Objects.equals(timeframe, null)))) ? "1d" : timeframe;
+            String period = (((java.util.Objects.equals(timeframe, null)))) ? "1d" : timeframe;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "period", period );
             }};

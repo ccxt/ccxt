@@ -8401,7 +8401,7 @@ public class Okx extends OkxApi
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             Helpers.addElementToObject(privateHeaders, "OK-ACCESS-SIGN", signature);
         }
-        Object requestBody = body;
+        String requestBody = body;
         if (Boolean.TRUE.equals(hasJsonBody))
         {
             requestBody = jsonBody;
@@ -8580,18 +8580,18 @@ public class Okx extends OkxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((symbolsNormalized == null || i < 0 || i >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(i)));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                     String ruleType = this.safeString(marketInfo, "ruleType");
                     Boolean isExtendedPerpetual = (java.util.Objects.equals(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                     if ((!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && !Boolean.TRUE.equals(isExtendedPerpetual))
                     {
-                        throw new BadRequest((((this.id + " fetchFundingRates() symbols must be swap markets or XPERP futures, ") + (symbolsNormalized == null || i < 0 || i >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(i))) + " is not")) ;
+                        throw new BadRequest((((this.id + " fetchFundingRates() symbols must be swap markets or XPERP futures, ") + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))) + " is not")) ;
                     }
                 }
             }

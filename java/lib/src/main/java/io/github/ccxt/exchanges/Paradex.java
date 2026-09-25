@@ -4317,7 +4317,7 @@ public class Paradex extends ParadexApi
             //         url += '?' + this.urlencode (query);
             //     }
             // }
-            Object bodyResolved = (((!java.util.Objects.equals(privateBody, null)))) ? privateBody : body;
+            String bodyResolved = (((!java.util.Objects.equals(privateBody, null)))) ? privateBody : body;
             return Helpers.newMap(
                 "url", url,
                 "method", java.util.Objects.requireNonNullElse(method, "GET"),

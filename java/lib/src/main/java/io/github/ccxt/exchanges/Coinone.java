@@ -1616,7 +1616,7 @@ public class Coinone extends CoinoneApi
                 put( "X-COINONE-SIGNATURE", signature );
             }};
         }
-        Object bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
+        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
         return Helpers.newMap(
             "url", url,

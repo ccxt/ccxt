@@ -1952,10 +1952,10 @@ public class Hyperliquid extends HyperliquidApi
         String coin = this.safeString(entry, "coin");
         Map<String, Object> outcomeObj = this.safeOutcome((String) (coin), market);
         String marketSymbol = this.safeString(outcomeObj, "outcome");
-        Object resolvedMarket = market;
+        Map<String, Object> resolvedMarket = market;
         if (!java.util.Objects.equals(marketSymbol, null) && !java.util.Objects.equals(marketSymbol, ""))
         {
-            resolvedMarket = this.safeMarket(Helpers.toStringArg(marketSymbol), market, (String) null, (String) null);
+            resolvedMarket = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketSymbol), market, (String) null, (String) null);
         }
         String sideRaw = this.safeString(entry, "side");
         String side = "sell";
@@ -2192,10 +2192,10 @@ public class Hyperliquid extends HyperliquidApi
         String coin = this.safeString(trade, "coin");
         Map<String, Object> outcomeObj = this.safeOutcome((String) (coin), market);
         String marketSymbol = this.safeString(outcomeObj, "outcome");
-        Object resolvedMarket = market;
+        Map<String, Object> resolvedMarket = market;
         if (!java.util.Objects.equals(marketSymbol, null) && !java.util.Objects.equals(marketSymbol, ""))
         {
-            resolvedMarket = this.safeMarket(Helpers.toStringArg(marketSymbol), market, (String) null, (String) null);
+            resolvedMarket = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketSymbol), market, (String) null, (String) null);
         }
         String rawSide = this.safeString(trade, "side");
         String side = "sell";

@@ -1510,7 +1510,7 @@ public class Blockchaincom extends BlockchaincomApi
             requestHeaders = privateHeaders;
         }
         Boolean isPrivatePost = Boolean.TRUE.equals(isPrivate) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"));
-        Object requestBody = body;
+        String requestBody = body;
         if (Boolean.TRUE.equals(isPrivatePost))
         {
             requestBody = this.json(query);

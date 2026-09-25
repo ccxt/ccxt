@@ -14835,7 +14835,7 @@ public class Bitget extends BitgetApi
                 ((Map<String, Object>)headersResult).put("PAPTRADING", "1");
             }
         }
-        Object bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
+        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         return Helpers.newMap(
             "url", url,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),

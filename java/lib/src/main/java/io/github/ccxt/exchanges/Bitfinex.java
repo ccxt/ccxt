@@ -1621,13 +1621,13 @@ public class Bitfinex extends BitfinexApi
             minusIndex = 1;
         }
         String marketId = this.safeString(ticker, 0);
-        Object marketResolved = null;
+        Map<String, Object> marketResolved = null;
         if (Boolean.TRUE.equals(isFetchTicker))
         {
             marketResolved = market;
         } else
         {
-            marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+            marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         }
         Boolean isFundingCurrency = Helpers.isGreaterThanOrEqual(length, 17);
         symbol = this.safeSymbol(null, Helpers.toMapArg(marketResolved), (String) null, (String) null);
@@ -3725,7 +3725,7 @@ public class Bitfinex extends BitfinexApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        Object bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
+        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
         return Helpers.newMap(
             "url", url,

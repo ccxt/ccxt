@@ -927,7 +927,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             var paramsCallerMethodName = ((List<Object>) callerMethodNameparamsCallerMethodNameVariable).get(1);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             Object limits = this.safeList(options, "limits", new ArrayList<Object>(Arrays.asList()));
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? this.safeInteger(options, "defaultLimit", 50) : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? this.safeInteger(options, "defaultLimit", 50) : limit;
             if (!this.inArray(limitResolved, limits))
             {
                 throw new NotSupported(((this.id + " watchOrderBookForSymbols() limit must be one of ") + String.join(", ", (List<String>)limits))) ;

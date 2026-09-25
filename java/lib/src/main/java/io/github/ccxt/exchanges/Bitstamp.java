@@ -3261,10 +3261,10 @@ public class Bitstamp extends BitstampApi
             Map<String, Object> parsedTransaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (item), currency);
             String direction = null;
             Boolean hasTransactionCurrency = !(item.containsKey("amount")) && (parsedTransaction.containsKey("currency")) && (!java.util.Objects.equals(((Map<String, Object>)parsedTransaction).get("currency"), null));
-            Object currencyResolved = currency;
+            Map<String, Object> currencyResolved = currency;
             if (Boolean.TRUE.equals(hasTransactionCurrency))
             {
-                currencyResolved = this.currency(this.safeString(parsedTransaction, "currency"));
+                currencyResolved = (Map<String, Object>) this.currency(this.safeString(parsedTransaction, "currency"));
             }
             if (item.containsKey("amount"))
             {
@@ -3676,7 +3676,7 @@ public class Bitstamp extends BitstampApi
         {
             postBody = this.urlencode(query);
         }
-        Object requestBody = body;
+        String requestBody = body;
         if (Boolean.TRUE.equals(isPrivatePost))
         {
             requestBody = postBody;
@@ -3707,7 +3707,7 @@ public class Bitstamp extends BitstampApi
                 contentType = "application/x-www-form-urlencoded";
                 privateHeaders.put("Content-Type", contentType);
             }
-            Object authBody = "";
+            String authBody = "";
             if (!java.util.Objects.equals(requestBody, null) && !java.util.Objects.equals(requestBody, ""))
             {
                 authBody = requestBody;

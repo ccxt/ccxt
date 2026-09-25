@@ -1169,7 +1169,7 @@ public class Coinspot extends CoinspotApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object requestHeaders = headers;
-        Object requestBody = body;
+        String requestBody = body;
         Boolean isVersionedApi = false;
         Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 0) : null;
         Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1) : java.util.Objects.requireNonNullElse(api, "public");

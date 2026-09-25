@@ -5177,7 +5177,7 @@ public class Whitebit extends WhitebitApi
             }};
         }
         Boolean isPrivate = (java.util.Objects.equals(accessibility, "private"));
-        Object requestBody = body;
+        String requestBody = body;
         if (Boolean.TRUE.equals(isPrivate))
         {
             requestBody = privateBody;

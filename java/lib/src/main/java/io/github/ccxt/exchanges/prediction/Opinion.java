@@ -365,12 +365,12 @@ public class Opinion extends OpinionApi
         // }
         String marketId = this.safeString(raw, "marketId");
         String slug = this.safeString(raw, "slug");
-        Object effectiveEventSlug = eventSlug;
+        String effectiveEventSlug = eventSlug;
         if ((!java.util.Objects.equals(eventSlug, null)) && (!java.util.Objects.equals(slug, null)) && ((((String)slug).indexOf(((String)eventSlug)) == 0)))
         {
             effectiveEventSlug = null;
         }
-        Object marketSymbol = this.slugToMarketSymbol((String) (effectiveEventSlug), (String) (slug));
+        Object marketSymbol = this.slugToMarketSymbol(effectiveEventSlug, (String) (slug));
         String statusEnum = this.safeString(raw, "statusEnum");
         Boolean active = (java.util.Objects.equals(statusEnum, "Activated"));
         Boolean resolved = (java.util.Objects.equals(statusEnum, "Resolved"));
@@ -384,7 +384,7 @@ public class Opinion extends OpinionApi
         {
             String label = (outcomeLabels == null || i < 0 || i >= outcomeLabels.size() ? null : outcomeLabels.get(i));
             String tokenId = (outcomeTokenIds == null || i < 0 || i >= outcomeTokenIds.size() ? null : outcomeTokenIds.get(i));
-            Object outcomeHandle = this.slugToOutcomeSymbol((String) (effectiveEventSlug), (String) (slug), label);
+            Object outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, (String) (slug), label);
             Boolean winner = null;
             Object settleFraction = null;
             if (Boolean.TRUE.equals(hasResult))

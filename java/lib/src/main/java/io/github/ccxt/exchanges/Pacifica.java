@@ -4247,7 +4247,7 @@ public class Pacifica extends PacificaApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object requestBody = body;
+        String requestBody = body;
         Boolean isTestnet = this.isSandboxModeEnabled;
         String urlKey = "api";
         if (Boolean.TRUE.equals(isTestnet))

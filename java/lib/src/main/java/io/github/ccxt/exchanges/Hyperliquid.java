@@ -1673,7 +1673,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Boolean useTail = java.util.Objects.equals(since, null);
-            Object originalSince = since;
+            Long originalSince = since;
             Object startTime = since;
             if (java.util.Objects.equals(since, null))
             {
@@ -5942,7 +5942,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             requestHeaders = postHeaders;
         }
-        Object requestBody = body;
+        String requestBody = body;
         if (Boolean.TRUE.equals(isPost))
         {
             requestBody = this.json(parameters);

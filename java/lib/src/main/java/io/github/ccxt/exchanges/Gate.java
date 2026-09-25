@@ -8946,8 +8946,8 @@ public class Gate extends GateApi
                 query = this.omit(query, "query");
                 bodyJson = this.json(query);
             }
-            Object bodySigned = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
-            Object bodyPayload = (((java.util.Objects.equals(bodySigned, null)))) ? "" : bodySigned;
+            String bodySigned = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
+            String bodyPayload = (((java.util.Objects.equals(bodySigned, null)))) ? "" : bodySigned;
             Object bodySignature = this.hash(this.encode(bodyPayload), sha512());
             Long nonce = this.nonce();
             Long timestamp = this.parseToInt((((double) nonce) / ((double) 1000)));
@@ -8964,7 +8964,7 @@ public class Gate extends GateApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        Object bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
+        String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
         Object headersResolved = (((java.util.Objects.equals(signedHeaders, null)))) ? headers : signedHeaders;
         return Helpers.newMap(
             "url", url,
@@ -10201,8 +10201,8 @@ public class Gate extends GateApi
             }};
             Map<String, Object> paramsExtended = this.extend(request, parameters);
             // side is not used but needs to be present, otherwise crashes in php
-            Object sideResolved = (((java.util.Objects.equals(side, null)))) ? "" : side;
-            return (this.createOrder(symbol, "market", (String) (sideResolved), 0, (Object) null, Helpers.toMapArg(paramsExtended))).join();
+            String sideResolved = (((java.util.Objects.equals(side, null)))) ? "" : side;
+            return (this.createOrder(symbol, "market", sideResolved, 0, (Object) null, Helpers.toMapArg(paramsExtended))).join();
         }).thenApply(Order::new);
 
     }

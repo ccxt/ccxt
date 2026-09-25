@@ -3836,11 +3836,11 @@ public class Modetrade extends ModetradeApi
                 "orderly-timestamp", ts
             );
             auth = (((((ts + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + version) + "/") + pathWithParams);
-            Object signedBody = null;
+            String signedBody = null;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
             {
                 signedBody = this.json(paramsSigned);
-                auth = Helpers.add(auth, signedBody);
+                auth = (auth + signedBody);
                 signedHeaders.put("content-type", "application/json");
             } else
             {

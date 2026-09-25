@@ -2678,7 +2678,7 @@ public class Bittrade extends BittradeApi
     put( "hostname", Bittrade.this.hostname );
 }}), url);
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        Object bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
         return Helpers.newMap(
             "url", url,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),

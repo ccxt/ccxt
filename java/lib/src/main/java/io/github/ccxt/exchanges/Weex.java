@@ -5267,7 +5267,7 @@ public class Weex extends WeexApi
         }
         Boolean isPrivate = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "contractPrivate"));
         Boolean hasJsonBody = Boolean.TRUE.equals(isPrivate) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || Boolean.TRUE.equals(isBatch));
-        Object requestBody = body;
+        String requestBody = body;
         if (Boolean.TRUE.equals(hasJsonBody))
         {
             requestBody = this.json(query);
@@ -5285,7 +5285,7 @@ public class Weex extends WeexApi
             Object payload = (((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + endpoint);
             if (Boolean.TRUE.equals(hasJsonBody))
             {
-                payload = Helpers.add(payload, requestBody);
+                payload = (payload + requestBody);
             }
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             requestHeaders = Helpers.newMap(

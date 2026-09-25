@@ -2292,7 +2292,7 @@ public class Bitso extends BitsoApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object requestHeaders = headers;
-        Object requestBody = body;
+        String requestBody = body;
         String endpoint = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
@@ -2316,7 +2316,7 @@ public class Bitso extends BitsoApi
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                 {
                     requestBody = this.json(query);
-                    request = Helpers.add(request, requestBody);
+                    request = (request + requestBody);
                 }
             }
             String signature = (String) this.hmac(this.encode(request), this.encode(this.secret), sha256());

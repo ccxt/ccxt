@@ -10929,7 +10929,7 @@ public class Bybit extends BybitApi
         //
         Map<String, Object> tiers = new HashMap<String, Object>() {{}};
         List<String> marketIds = this.marketIds(symbols);
-        Object idKey = (((java.util.Objects.equals(marketIdKey, null)))) ? "symbol" : marketIdKey;
+        String idKey = (((java.util.Objects.equals(marketIdKey, null)))) ? "symbol" : marketIdKey;
         List<Object> filteredResults = (List<Object>) this.filterByArray(response, idKey, marketIds, false);
         Map<String,Object> grouped = this.groupBy(filteredResults, idKey);
         List<String> keys = new ArrayList<String>(grouped.keySet());
@@ -12266,7 +12266,7 @@ public class Bybit extends BybitApi
             requestHeaders = (((java.util.Objects.equals(headersBase, null)))) ? new HashMap<String, Object>() {{}} : headersBase;
             ((Map<String, Object>)requestHeaders).put("Referer", brokerId);
         }
-        Object bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
+        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
         return Helpers.newMap(
             "url", url,

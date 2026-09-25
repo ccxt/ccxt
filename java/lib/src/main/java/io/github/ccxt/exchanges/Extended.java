@@ -4199,7 +4199,7 @@ public class Extended extends ExtendedApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object requestHeaders = headers;
-        Object requestBody = body;
+        String requestBody = body;
         String version = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
         String accessibility = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
         String endpoint = ("/" + this.implodeParams(path, parameters));

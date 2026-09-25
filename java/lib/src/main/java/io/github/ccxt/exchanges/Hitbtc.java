@@ -4526,7 +4526,7 @@ public class Hitbtc extends HitbtcApi
                 url = (url + getRequest);
             }
         }
-        Object bodyResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? body : this.json(parameters);
+        String bodyResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? body : this.json(parameters);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
             this.checkRequiredCredentials(true);

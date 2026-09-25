@@ -1549,7 +1549,7 @@ public class Bitbns extends BitbnsApi
         {
             postBody = this.json(query);
         }
-        Object requestBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? postBody : body;
+        String requestBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? postBody : body;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if (Helpers.isGreaterThan(queryLength, 0))

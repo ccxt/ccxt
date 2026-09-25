@@ -2162,10 +2162,10 @@ public class Foxbit extends FoxbitApi
     public Object parseOrder(Object order, Map<String, Object> market)
     {
         String symbol = this.safeString(order, "market_symbol");
-        Object marketResolved = market;
+        Map<String, Object> marketResolved = market;
         if ((java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(symbol, null)))
         {
-            marketResolved = this.market(symbol);
+            marketResolved = (Map<String, Object>) this.market(symbol);
         }
         if (!java.util.Objects.equals(marketResolved, null))
         {
@@ -2435,12 +2435,12 @@ public class Foxbit extends FoxbitApi
                 }
             }
         }
-        Object requestBody = body;
+        String requestBody = body;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
         {
             requestBody = this.json(paramsOmitted);
         }
-        Object bodyToSignature = "";
+        String bodyToSignature = "";
         if (!java.util.Objects.equals(requestBody, null))
         {
             bodyToSignature = requestBody;

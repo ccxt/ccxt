@@ -1292,7 +1292,7 @@ public class Bit2c extends Bit2cApi
                 put( "sign", signature );
             }};
         }
-        Object bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
+        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
         return Helpers.newMap(
             "url", url,

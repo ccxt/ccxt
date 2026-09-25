@@ -2277,7 +2277,7 @@ public class Bigone extends BigoneApi
             }
         }
         headersValue.put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
-        Object bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
+        String bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
         return Helpers.newMap(
             "url", url,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),

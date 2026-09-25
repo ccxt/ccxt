@@ -1521,9 +1521,9 @@ public class Kalshi extends KalshiApi
             } else
             {
                 Long defaultLimit = this.safeInteger(this.options, "defaultFetchOHLCVLimit", 200);
-                Object candlesCount = (((!java.util.Objects.equals(limit, null)))) ? limit : defaultLimit;
+                Long candlesCount = (((!java.util.Objects.equals(limit, null)))) ? limit : defaultLimit;
                 request.put("end_ts", now);
-                request.put("start_ts", Helpers.subtract(now, (Helpers.multiply(candlesCount, tf))));
+                request.put("start_ts", (now - ((candlesCount * ((long) tf)))));
             }
             Map<String, Object> response = (this.kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(this.extend(request, parameters))).join();
             //

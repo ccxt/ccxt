@@ -216,7 +216,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 accessibility = "private";
             }
-            Object methodValue = (((java.util.Objects.equals(method, null)))) ? "" : method;
+            String methodValue = (((java.util.Objects.equals(method, null)))) ? "" : method;
             Boolean isUsdcSettled = null;
             Boolean isSpot = null;
             String type = null;

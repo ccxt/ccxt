@@ -96,7 +96,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                messageHash = Helpers.add(messageHash, (":" + ((Map<String, Object>)market).get("id")));
+                messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("id")));
                 ((List<Object>)productIds).add(((Map<String, Object>)market).get("id"));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");

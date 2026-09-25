@@ -1720,7 +1720,7 @@ public class Phemex extends PhemexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object userLimit = limit;
+            Long userLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "resolution", Phemex.this.safeString(Phemex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
@@ -5496,7 +5496,7 @@ public class Phemex extends PhemexApi
         }
         url = Helpers.add(this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"))), url);
         Boolean isPrivatePost = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"));
-        Object bodyResolved = body;
+        String bodyResolved = body;
         if (Boolean.TRUE.equals(isPrivatePost))
         {
             bodyResolved = requestBody;

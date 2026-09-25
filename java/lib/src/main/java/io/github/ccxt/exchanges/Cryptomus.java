@@ -1399,7 +1399,7 @@ public class Cryptomus extends CryptomusApi
             String stringToSign = (jsonParamsBase64 + this.secret);
             Object signature = this.hash(this.encode(stringToSign), md5());
             privateHeaders.put("sign", signature);
-            Object privateBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? jsonParams : body;
+            String privateBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? jsonParams : body;
             return Helpers.newMap(
                 "url", url,
                 "method", java.util.Objects.requireNonNullElse(method, "GET"),

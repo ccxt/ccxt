@@ -4016,8 +4016,8 @@ public class Kucoin extends KucoinApi
             Integer denominator = 1000;
             // For each query, the system would return at most 1500 pieces of data.
             // To obtain more data, please page the data by time.
-            Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
-            Object limitResolved = (((!java.util.Objects.equals(since, null)))) ? windowLimit : limit;
+            Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
+            Long limitResolved = (((!java.util.Objects.equals(since, null)))) ? windowLimit : limit;
             Object sinceResolved = since;
             if ((java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(limit, null)))
             {
@@ -4026,7 +4026,7 @@ public class Kucoin extends KucoinApi
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startAt", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, denominator)))))));
-                endAt = this.sum(since, Helpers.multiply(windowLimit, duration));
+                endAt = this.sum(since, (windowLimit * duration));
             } else if (!java.util.Objects.equals(limit, null))
             {
                 request.put("startAt", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(endAt, Helpers.multiply(limit, duration))), denominator)))))));
@@ -4124,8 +4124,8 @@ public class Kucoin extends KucoinApi
             Integer denominator = 1000;
             // For each query, the system would return at most 1500 pieces of data.
             // To obtain more data, please page the data by time.
-            Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
-            Object limitResolved = (((!java.util.Objects.equals(since, null)))) ? windowLimit : limit;
+            Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
+            Long limitResolved = (((!java.util.Objects.equals(since, null)))) ? windowLimit : limit;
             Object sinceResolved = since;
             if ((java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(limit, null)))
             {
@@ -4134,7 +4134,7 @@ public class Kucoin extends KucoinApi
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startAt", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, denominator)))))));
-                endAt = this.sum(since, Helpers.multiply(windowLimit, duration));
+                endAt = this.sum(since, (windowLimit * duration));
             } else if (!java.util.Objects.equals(limit, null))
             {
                 request.put("startAt", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(endAt, Helpers.multiply(limit, duration))), denominator)))))));
@@ -4207,8 +4207,8 @@ public class Kucoin extends KucoinApi
             Object endAt = this.milliseconds(); // required param
             // For each query, the system would return at most 200 pieces of data.
             // To obtain more data, please page the data by time.
-            Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
-            Object limitResolved = (((!java.util.Objects.equals(since, null)))) ? windowLimit : limit;
+            Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
+            Long limitResolved = (((!java.util.Objects.equals(since, null)))) ? windowLimit : limit;
             Object sinceResolved = since;
             if ((java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(limit, null)))
             {
@@ -4217,7 +4217,7 @@ public class Kucoin extends KucoinApi
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("from", since);
-                endAt = this.sum(since, Helpers.multiply(windowLimit, duration));
+                endAt = this.sum(since, (windowLimit * duration));
             } else if (!java.util.Objects.equals(limit, null))
             {
                 request.put("from", sinceResolved);
@@ -13453,13 +13453,13 @@ public class Kucoin extends KucoinApi
         //         "maintainMarginRate": "0.0050000000"
         //     }
         //
-        Object marketCursor = market;
+        Map<String, Object> marketCursor = market;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i, new HashMap<String, Object>() {{}});
             String marketId = this.safeString(tier, "symbol");
-            marketCursor = this.safeMarket(marketId, Helpers.toMapArg(marketCursor), (String) null, (String) null);
+            marketCursor = (Map<String, Object>) this.safeMarket(marketId, Helpers.toMapArg(marketCursor), (String) null, (String) null);
             ((List<Object>)tiers).add(Helpers.newMap(
                 "tier", this.safeNumber2(tier, "level", "tier", (Object) null),
                 "symbol", ((Map<String, Object>)marketCursor).get("symbol"),
@@ -13771,13 +13771,13 @@ public class Kucoin extends KucoinApi
             }
         }
         Object query = this.omit(paramsOmitted, this.extractParams(path));
-        Object endpart = "";
+        String endpart = "";
         Object headersBase = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(headers, null))
         {
             headersBase = headers;
         }
-        Object bodyJson = body;
+        String bodyJson = body;
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         String tradeType = this.safeString(query, "tradeType");
         if (!this.isEmpty(query))

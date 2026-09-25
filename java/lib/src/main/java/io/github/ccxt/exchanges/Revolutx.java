@@ -289,8 +289,8 @@ public class Revolutx extends RevolutxApi
                 requestBody = this.json(query);
             }
             String requestPath = ("/api/" + implodedPath);
-            Object bodyValue = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
-            Object bodyString = (((!java.util.Objects.equals(bodyValue, null)))) ? bodyValue : "";
+            String bodyValue = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+            String bodyString = (((!java.util.Objects.equals(bodyValue, null)))) ? bodyValue : "";
             String message = ((((timestamp + ((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase()) + requestPath) + queryString) + bodyString);
             Object signature = eddsa(this.encode(message), this.privateKey, ed25519());
             requestHeaders = Helpers.newMap(
@@ -320,7 +320,7 @@ public class Revolutx extends RevolutxApi
             }
         }
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        Object bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
         return Helpers.newMap(
             "url", url,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),

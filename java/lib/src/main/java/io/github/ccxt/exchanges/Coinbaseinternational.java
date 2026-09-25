@@ -2876,7 +2876,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             signedBody = this.json(query);
         }
-        Object requestBody = body;
+        String requestBody = body;
         if (Boolean.TRUE.equals(hasSignedBody))
         {
             requestBody = signedBody;

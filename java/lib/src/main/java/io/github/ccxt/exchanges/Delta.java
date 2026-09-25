@@ -4627,7 +4627,7 @@ public class Delta extends DeltaApi
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Helpers.addElementToObject(requestHeaders, "signature", signature);
         }
-        Object bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
+        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
         return Helpers.newMap(
             "url", url,

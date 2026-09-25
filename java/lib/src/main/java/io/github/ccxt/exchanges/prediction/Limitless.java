@@ -2937,7 +2937,7 @@ public class Limitless extends LimitlessApi
         return BaseExchange.supplyAsync(() -> {
 
             // resolve the handle for the final filter — the caller may have passed an outcomeId
-            Object outcomeSymbol = outcome;
+            String outcomeSymbol = outcome;
             if (!java.util.Objects.equals(outcome, null))
             {
                 Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
@@ -3041,7 +3041,7 @@ public class Limitless extends LimitlessApi
                 }
             }
             Object parsedTrades = this.parsePredictionTrades(trades, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            return this.filterByOutcomeSinceLimit(parsedTrades, Helpers.toStringArg(outcomeSymbol), since, limit, false);
+            return this.filterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }

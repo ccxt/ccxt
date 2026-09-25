@@ -2714,7 +2714,7 @@ public class Alpaca extends AlpacaApi
             }
         }
         url = (url + endpoint);
-        Object bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
+        String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
         return Helpers.newMap(
             "url", url,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),

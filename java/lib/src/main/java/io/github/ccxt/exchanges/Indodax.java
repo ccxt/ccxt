@@ -1779,7 +1779,7 @@ public class Indodax extends IndodaxApi
                 "Sign", this.hmac(this.encode(privateBody), this.encode(this.secret), sha512())
             );
         }
-        Object requestBody = privateBody;
+        String requestBody = privateBody;
         if (Boolean.TRUE.equals(isPublic))
         {
             requestBody = body;

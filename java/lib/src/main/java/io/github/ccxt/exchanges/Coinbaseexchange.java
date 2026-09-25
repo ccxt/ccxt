@@ -2646,7 +2646,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object requestHeaders = headers;
-        Object requestBody = body;
+        String requestBody = body;
         String request = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
@@ -2661,7 +2661,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.nonce());
-            Object payload = "";
+            String payload = "";
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)

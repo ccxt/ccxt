@@ -2899,7 +2899,7 @@ public class Kraken extends KrakenApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOrderTrades", new HashMap<String, Object>() {{}});
             Long batchSize = this.safeInteger(options, "batchSize", 20);
             Integer numTradeIds = ((List<?>)tradeIds).size();
@@ -2949,7 +2949,7 @@ public class Kraken extends KrakenApi
                     Helpers.addElementToObject(Helpers.GetValue(rawTrades, (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i))), "id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
                 }
                 List<Object> trades = this.parseTrades(rawTrades, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
-                Object tradesFilteredBySymbol = this.filterBySymbol(trades, Helpers.toStringArg(symbolResolved));
+                Object tradesFilteredBySymbol = this.filterBySymbol(trades, symbolResolved);
                 result = (List<Object>) this.arrayConcat(result, tradesFilteredBySymbol);
             }
             return result;

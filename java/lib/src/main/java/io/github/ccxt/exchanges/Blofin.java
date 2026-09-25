@@ -3906,7 +3906,7 @@ public class Blofin extends BlofinApi
             String auth = (((Helpers.add(request, java.util.Objects.requireNonNullElse(method, "GET")) + timestamp) + timestamp) + sign_body);
             String signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
             signedHeaders.put("ACCESS-SIGN", signature);
-            Object bodyResolved = (((java.util.Objects.equals(signedBody, null)))) ? body : signedBody;
+            String bodyResolved = (((java.util.Objects.equals(signedBody, null)))) ? body : signedBody;
             return Helpers.newMap(
                 "url", url,
                 "method", java.util.Objects.requireNonNullElse(method, "GET"),
