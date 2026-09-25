@@ -2272,7 +2272,7 @@ public class Mexc extends MexcApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(options, ((Map<String, Object>)market).get("type"), new HashMap<String, Object>() {{}});
@@ -3347,7 +3347,7 @@ public class Mexc extends MexcApi
             }
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
-            List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, Helpers.toMapArg(paramsOmitted), (Object) null);
+            List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, paramsOmitted, (Object) null);
             String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
@@ -3356,7 +3356,7 @@ public class Mexc extends MexcApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument for spot market")) ;
                 }
-                List<Object> marginModequeryInnerVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrders", Helpers.toMapArg(paramsOmitted), (String) null);
+                List<Object> marginModequeryInnerVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrders", paramsOmitted, (String) null);
                 var marginMode = ((List<Object>) marginModequeryInnerVariable).get(0);
                 var queryInner = ((List<Object>) marginModequeryInnerVariable).get(1);
                 if (!java.util.Objects.equals(since, null))
@@ -3545,7 +3545,7 @@ public class Mexc extends MexcApi
                     ordersOfTrigger = this.safeValue(response, "data");
                 }
                 List<Object> merged = (List<Object>) this.arrayConcat(ordersOfTrigger, ordersOfRegular);
-                return this.parseOrders(merged, market, since, limit, Helpers.toMapArg(paramsOmitted));
+                return this.parseOrders(merged, market, since, limit, paramsOmitted);
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3656,7 +3656,7 @@ public class Mexc extends MexcApi
                 {
                     request.put("symbol", this.safeString(market, "id"));
                 }
-                List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", Helpers.toMapArg(paramsMarketType), (String) null);
+                List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", paramsMarketType, (String) null);
                 var marginMode = ((List<Object>) marginModequeryVariable).get(0);
                 var query = ((List<Object>) marginModequeryVariable).get(1);
                 List<Object> response = null;
@@ -3728,7 +3728,7 @@ public class Mexc extends MexcApi
                 }
                 Map<String, Object> swapResponse = (this.contractPrivateGetOrderListOpenOrders(this.extend(request, paramsMarketType))).join();
                 List<Object> data = (List<Object>) this.safeList(swapResponse, "data", new ArrayList<Object>(Arrays.asList()));
-                return this.parseOrders(data, market, since, limit, Helpers.toMapArg(paramsMarketType));
+                return this.parseOrders(data, market, since, limit, paramsMarketType);
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3841,7 +3841,7 @@ public class Mexc extends MexcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModequeryVariable).get(0);
             var query = ((List<Object>) marginModequeryVariable).get(1);
             Object data = null;
@@ -4947,7 +4947,7 @@ public class Mexc extends MexcApi
                 //
                 trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
-            return this.parseTrades(trades, market, since, limit, Helpers.toMapArg(query));
+            return this.parseTrades(trades, market, since, limit, query);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

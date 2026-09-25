@@ -909,7 +909,7 @@ public class Cryptomus extends CryptomusApi
                 if (Boolean.TRUE.equals(sideBuy))
                 {
                     Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>)requiresPriceAndParams).get(0);
-                    if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                    if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
                         {

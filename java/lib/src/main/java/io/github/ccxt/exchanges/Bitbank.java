@@ -1193,7 +1193,7 @@ public class Bitbank extends BitbankApi
 
             List<Object> tagAndParams = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) (tagAndParams == null || 1 >= tagAndParams.size() ? null : tagAndParams.get(1));
-            if (!(((Map<?, ?>)paramsWithdrawTag).containsKey("uuid")))
+            if (!(paramsWithdrawTag.containsKey("uuid")))
             {
                 throw new ExchangeError((this.id + " uuid is required for withdrawal")) ;
             }

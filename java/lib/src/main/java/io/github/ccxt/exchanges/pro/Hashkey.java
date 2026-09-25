@@ -878,7 +878,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             this.setBalanceCache(client, typeMarketType, messageHash);
             Boolean fetchBalanceSnapshot = (Boolean) ((List<Object>)this.handleOptionBoolAndParams(this.options, "watchBalance", "fetchBalanceSnapshot", true)).get(0);
             Boolean awaitBalanceSnapshot = (Boolean) ((List<Object>)this.handleOptionBoolAndParams(this.options, "watchBalance", "awaitBalanceSnapshot", false)).get(0);
-            if (Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot))
+            if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
             {
                 client.future((typeMarketType + ":fetchBalanceSnapshot")).getFuture().join();
             }

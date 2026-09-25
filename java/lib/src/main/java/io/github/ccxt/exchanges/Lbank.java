@@ -2691,10 +2691,10 @@ public class Lbank extends LbankApi
             Object response = null;
             if (java.util.Objects.equals(method, "fetchDepositAddressSupplement"))
             {
-                response = (this.fetchDepositAddressSupplement(code, Helpers.toMapArg(paramsOmitted))).join();
+                response = (this.fetchDepositAddressSupplement(code, paramsOmitted)).join();
             } else
             {
-                response = (this.fetchDepositAddressDefault(code, Helpers.toMapArg(paramsOmitted))).join();
+                response = (this.fetchDepositAddressDefault(code, paramsOmitted)).join();
             }
             return response;
         }).thenApply(DepositAddress::new);
@@ -3132,10 +3132,10 @@ public class Lbank extends LbankApi
                 Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "method");
                 if (java.util.Objects.equals(method, "fetchPublicTransactionFees"))
                 {
-                    result = (this.fetchPublicTransactionFees(Helpers.toMapArg(paramsOmitted))).join();
+                    result = (this.fetchPublicTransactionFees(paramsOmitted)).join();
                 } else
                 {
-                    result = (this.fetchPrivateTransactionFees(Helpers.toMapArg(paramsOmitted))).join();
+                    result = (this.fetchPrivateTransactionFees(paramsOmitted)).join();
                 }
             } else
             {
@@ -3334,10 +3334,10 @@ public class Lbank extends LbankApi
                 Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "method");
                 if (java.util.Objects.equals(method, "fetchPublicDepositWithdrawFees"))
                 {
-                    response = (this.fetchPublicDepositWithdrawFees(codes, Helpers.toMapArg(paramsOmitted))).join();
+                    response = (this.fetchPublicDepositWithdrawFees(codes, paramsOmitted)).join();
                 } else
                 {
-                    response = (this.fetchPrivateDepositWithdrawFees(codes, Helpers.toMapArg(paramsOmitted))).join();
+                    response = (this.fetchPrivateDepositWithdrawFees(codes, paramsOmitted)).join();
                 }
             } else
             {

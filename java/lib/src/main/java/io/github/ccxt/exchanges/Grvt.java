@@ -1520,7 +1520,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1538,7 +1538,7 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), Helpers.toMapArg(paramsPaginate), 1000000);
+            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), paramsPaginate, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
             if (!java.util.Objects.equals(since, null))
@@ -1621,7 +1621,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), (Long) null)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1631,7 +1631,7 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), Helpers.toMapArg(paramsPaginate), 1000000);
+            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), paramsPaginate, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
             if (!java.util.Objects.equals(since, null))
@@ -2140,13 +2140,13 @@ public class Grvt extends GrvtApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchTransfers", (String) null, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchTransfers", (String) null, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
             }
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", Math.min(limit, 1000));
             }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), Helpers.toMapArg(paramsPaginate), 1000000);
+            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), paramsPaginate, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
             if (!java.util.Objects.equals(since, null))
@@ -2537,7 +2537,7 @@ public class Grvt extends GrvtApi
                 "reduce_only", isReduceOnly
             );
             String timeInForce = this.safeStringUpper(paramsOmitted3, "timeInForce", "GOOD_TILL_TIME");
-            Boolean postOnly = this.isPostOnly(isMarketOrder, null, Helpers.toMapArg(paramsOmitted3));
+            Boolean postOnly = this.isPostOnly(isMarketOrder, null, paramsOmitted3);
             if (Boolean.TRUE.equals(postOnly))
             {
                 orderRequest.put("post_only", true);
@@ -2565,7 +2565,7 @@ public class Grvt extends GrvtApi
                     timeInForce = "IMMEDIATE_OR_CANCEL";
                 }
             }
-            Object paramsOmitted2 = this.omit(paramsOmitted3, new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly", "timeInForce")));
+            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted3, new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly", "timeInForce")));
             // Trigger & SL & TP
             List<Object> triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, paramsOmitted2, true);
             String triggerPrice = (String) ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(0);
@@ -2798,7 +2798,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (paramsPaginate)) );
@@ -2816,7 +2816,7 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), Helpers.toMapArg(paramsPaginate), 1000000);
+            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), paramsPaginate, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
             if (!java.util.Objects.equals(since, null))
@@ -3176,7 +3176,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), 1000L, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, paramsPaginate, 1000L, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (paramsPaginate)) );
@@ -3194,7 +3194,7 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), Helpers.toMapArg(paramsPaginate), 1000000);
+            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), paramsPaginate, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
             if (!java.util.Objects.equals(since, null))

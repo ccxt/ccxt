@@ -1417,7 +1417,7 @@ public class Kraken extends KrakenApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 720L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 720L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long parsedTimeframe = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -2549,7 +2549,7 @@ public class Kraken extends KrakenApi
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
         String cost = this.safeString(paramsOmitted, "cost");
         String flags = this.safeString(paramsOmitted, "oflags");
-        Object paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("cost", "oflags")));
+        Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("cost", "oflags")));
         Boolean isViqcOrder = (!java.util.Objects.equals(flags, null)) && (((String)flags).indexOf("viqc") > -1); // volume in quote currency
         if (Boolean.TRUE.equals(isMarketOrder) && (!java.util.Objects.equals(cost, null) || Boolean.TRUE.equals(isViqcOrder)))
         {
@@ -3722,7 +3722,7 @@ public class Kraken extends KrakenApi
             if (Boolean.TRUE.equals(paginate))
             {
                 ((Map<String, Object>)paramsPaginate).put("cursor", true);
-                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "next_cursor", "cursor", (Long) null, (Long) null)).join();
+                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, paramsPaginate, "next_cursor", "cursor", (Long) null, (Long) null)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
@@ -4007,7 +4007,7 @@ public class Kraken extends KrakenApi
 
             List<Object> tagAndParams = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) (tagAndParams == null || 1 >= tagAndParams.size() ? null : tagAndParams.get(1));
-            if (((Map<?, ?>)paramsWithdrawTag).containsKey("key"))
+            if (paramsWithdrawTag.containsKey("key"))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));

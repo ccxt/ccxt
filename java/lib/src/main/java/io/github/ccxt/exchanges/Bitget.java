@@ -4745,9 +4745,9 @@ public class Bitget extends BitgetApi
             {
                 if (java.util.Objects.equals(uta, true))
                 {
-                    return (this.fetchPaginatedCallCursor("fetchDeposits", (Object) null, since, limit, Helpers.toMapArg(paramsPaginate), "orderId", "cursor", (Long) null, 100L)).join();
+                    return (this.fetchPaginatedCallCursor("fetchDeposits", (Object) null, since, limit, paramsPaginate, "orderId", "cursor", (Long) null, 100L)).join();
                 }
-                return (this.fetchPaginatedCallCursor("fetchDeposits", (Object) null, since, limit, Helpers.toMapArg(paramsPaginate), "idLessThan", "idLessThan", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchDeposits", (Object) null, since, limit, paramsPaginate, "idLessThan", "idLessThan", (Long) null, 100L)).join();
             }
             Long defaultWindow = (((java.util.Objects.equals(uta, true)))) ? 2592000000L : 7776000000L; // uta allows a window of 30 days at most, else 90 days
             Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(this.milliseconds(), defaultWindow) : since;
@@ -4976,9 +4976,9 @@ public class Bitget extends BitgetApi
             {
                 if (java.util.Objects.equals(uta, true))
                 {
-                    return (this.fetchPaginatedCallCursor("fetchWithdrawals", (Object) null, since, limit, Helpers.toMapArg(paramsPaginate), "orderId", "cursor", (Long) null, 100L)).join();
+                    return (this.fetchPaginatedCallCursor("fetchWithdrawals", (Object) null, since, limit, paramsPaginate, "orderId", "cursor", (Long) null, 100L)).join();
                 }
-                return (this.fetchPaginatedCallCursor("fetchWithdrawals", (Object) null, since, limit, Helpers.toMapArg(paramsPaginate), "idLessThan", "idLessThan", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchWithdrawals", (Object) null, since, limit, paramsPaginate, "idLessThan", "idLessThan", (Long) null, 100L)).join();
             }
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
@@ -5798,7 +5798,7 @@ public class Bitget extends BitgetApi
             // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
             // with higher priority and only default to spot, if `subType` is not set in params
             String passedSubType = this.safeString(paramsMarketType, "subType");
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, Helpers.toMapArg(paramsMarketType));
+            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsMarketType);
             String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
             var paramsProductType = ((List<Object>) productTypeparamsProductTypeVariable).get(1);
             // only if passedSubType && productType is undefined, then use spot
@@ -6654,7 +6654,7 @@ public class Bitget extends BitgetApi
             if (Boolean.TRUE.equals(paginate))
             {
                 Object limitForPagination = (((java.util.Objects.equals(useHistoryEndpointForPagination, true)))) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(limitForPagination))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(limitForPagination))).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -6765,7 +6765,7 @@ public class Bitget extends BitgetApi
             List<Object> priceTypeparamsPriceVariable = (List<Object>) this.handleParamString(paramsOmitted, "price", (String) null);
             String priceType = (String) ((List<Object>) priceTypeparamsPriceVariable).get(0);
             Map<String, Object> paramsPrice = (Map<String, Object>) ((List<Object>) priceTypeparamsPriceVariable).get(1);
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, Helpers.toMapArg(paramsPrice));
+            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsPrice);
             String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
             var paramsProductType = ((List<Object>) productTypeparamsProductTypeVariable).get(1);
             if (java.util.Objects.equals(uta, true))
@@ -12250,16 +12250,16 @@ public class Bitget extends BitgetApi
             {
                 if (java.util.Objects.equals(uta, true))
                 {
-                    return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, (Long) null)).join();
+                    return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, (Long) null)).join();
                 }
-                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "endId", "idLessThan", (Long) null, (Long) null)).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, paramsPaginate, "endId", "idLessThan", (Long) null, (Long) null)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadSymbol((this.id + " fetchFundingHistory() supports swap contracts only")) ;
             }
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, Helpers.toMapArg(paramsPaginate));
+            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsPaginate);
             String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
             var paramsProductType = ((List<Object>) productTypeparamsProductTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -13439,14 +13439,14 @@ public class Bitget extends BitgetApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "minId", "idLessThan", (Long) null, (Long) null)).join();
+                return (this.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, paramsPaginate, "minId", "idLessThan", (Long) null, (Long) null)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyLiquidations", market, Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyLiquidations", market, paramsPaginate, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (!java.util.Objects.equals(type, "spot"))
@@ -13469,7 +13469,7 @@ public class Bitget extends BitgetApi
                 ((Map<String, Object>)requestUntil).put("limit", limit);
             }
             Map<String, Object> response = null;
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyLiquidations", Helpers.toMapArg(paramsUntil), "cross");
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyLiquidations", paramsUntil, "cross");
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             if (java.util.Objects.equals(marginMode, "isolated"))
@@ -13875,7 +13875,7 @@ public class Bitget extends BitgetApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchBorrowInterest", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "minId", "idLessThan", (Long) null, (Long) null)).join();
+                return (this.fetchPaginatedCallCursor("fetchBorrowInterest", symbol, since, limit, paramsPaginate, "minId", "idLessThan", (Long) null, (Long) null)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -13901,7 +13901,7 @@ public class Bitget extends BitgetApi
                 request.put("limit", limit);
             }
             Map<String, Object> response = null;
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchBorrowInterest", Helpers.toMapArg(paramsPaginate), "cross");
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchBorrowInterest", paramsPaginate, "cross");
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             if (java.util.Objects.equals(marginMode, "isolated"))
@@ -14248,7 +14248,7 @@ public class Bitget extends BitgetApi
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, Helpers.toMapArg(paramsUntil));
+            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsUntil);
             String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
             var paramsProductType = ((List<Object>) productTypeparamsProductTypeVariable).get(1);
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsProductType), "fetchPositionsHistory", false)).join();

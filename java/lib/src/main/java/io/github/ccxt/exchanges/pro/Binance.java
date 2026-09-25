@@ -1156,7 +1156,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // unroll the accumulated deltas
                 List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
                 Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < Helpers.getArrayLength(messages); i++)
+                for (var i = 0; i < (messages == null ? 0 : messages.size()); i++)
                 {
                     Object messageItem = (messages == null || i < 0 || i >= messages.size() ? null : messages.get(i));
                     Long U = this.safeInteger(messageItem, "U");
@@ -2815,7 +2815,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams(methodName, firstMarket, Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams(methodName, firstMarket, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             // use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
@@ -3617,7 +3617,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.ensureUserDataStreamWsSubscribeSignature("spot")).join();
                 return null;
             }
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("authenticate", Helpers.toMapArg(paramsPortfolioMargin), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("authenticate", paramsPortfolioMargin, (String) null);
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Boolean isIsolatedMargin = (java.util.Objects.equals(marginMode, "isolated"));
@@ -3746,7 +3746,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> isPortfolioMarginparamsPortfolioMarginVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "keepAliveListenKey", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparamsPortfolioMarginVariable).get(0);
             Map<String, Object> paramsPortfolioMargin = (Map<String, Object>) ((List<Object>) isPortfolioMarginparamsPortfolioMarginVariable).get(1);
-            String subType = (String) ((List<Object>)this.handleSubTypeAndParams("keepAliveListenKey", (Map<String, Object>) null, Helpers.toMapArg(paramsPortfolioMargin), (Object) null)).get(0);
+            String subType = (String) ((List<Object>)this.handleSubTypeAndParams("keepAliveListenKey", (Map<String, Object>) null, paramsPortfolioMargin, (Object) null)).get(0);
             if (!java.util.Objects.equals(type, "option") && !java.util.Objects.equals(type, "stock"))
             {
                 // guard options first: isLinear returns true for linear-settled options (subType='linear')
@@ -3756,10 +3756,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // subType alone and would flip 'stock' to 'future' - the stock branch
                 // below would never run, and the bucket lookup would renew the
                 // FUTURES listen key while the stock key silently expires
-                if (this.isLinear(type, Helpers.toStringArg(subType)))
+                if (this.isLinear(type, subType))
                 {
                     type = "future";
-                } else if (this.isInverse(type, Helpers.toStringArg(subType)))
+                } else if (this.isInverse(type, subType))
                 {
                     type = "delivery";
                 }
@@ -4234,7 +4234,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
             } else
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     urlType = "papi";
                 } else if (java.util.Objects.equals(type, "option"))
@@ -4424,7 +4424,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, (Object) null);
         String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
         Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-        List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams(methodName, market, Helpers.toMapArg(paramsMarketType), (Object) null);
+        List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams(methodName, market, paramsMarketType, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
         String type = marketType;
@@ -4451,10 +4451,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
         paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
         String subType = (String) ((List<Object>)this.handleSubTypeAndParams(method, Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null)).get(0);
-        if (this.isLinear(type, Helpers.toStringArg(subType)))
+        if (this.isLinear(type, subType))
         {
             type = "future";
-        } else if (this.isInverse(type, Helpers.toStringArg(subType)))
+        } else if (this.isInverse(type, subType))
         {
             type = "delivery";
         }
@@ -4509,7 +4509,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean isTakeProfit = !java.util.Objects.equals(takeProfitPrice, null);
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
             Boolean isConditional = Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit);
-            Map<String, Object> payload = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsOmitted));
+            Map<String, Object> payload = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOmitted);
             List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(paramsOmitted, "createOrderWs", "returnRateLimits", false);
             Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
             var paramsReturnRateLimits = ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
@@ -5232,7 +5232,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 market = (Map<String, Object>) this.market(symbol);
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            var typesubTypeparamsValueVariable = this.resolveAuthType("watchOrders", market, Helpers.toMapArg(paramsStock));
+            var typesubTypeparamsValueVariable = this.resolveAuthType("watchOrders", market, paramsStock);
             String type = (String) ((List<Object>) typesubTypeparamsValueVariable).get(0);
             var subType = ((List<Object>) typesubTypeparamsValueVariable).get(1);
             var paramsValue = ((List<Object>) typesubTypeparamsValueVariable).get(2);
@@ -5258,7 +5258,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
             } else
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     urlType = "papi";
                 } else if (java.util.Objects.equals(type, "option"))
@@ -5922,7 +5922,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> portfolioMarginAndParams = (List<Object>) this.handleOptionBoolAndParams2(paramsAuth, "watchPositions", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = (Boolean) ((List<Object>)portfolioMarginAndParams).get(0);
             String urlType = type;
-            if (Helpers.isTrue(isPortfolioMargin))
+            if (Boolean.TRUE.equals(isPortfolioMargin))
             {
                 urlType = "papi";
             } else if (java.util.Objects.equals(type, "option"))
@@ -6442,7 +6442,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
             } else
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     urlType = "papi";
                 } else if (java.util.Objects.equals(type, "option"))

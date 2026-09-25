@@ -1513,7 +1513,7 @@ public class Hyperliquid extends HyperliquidApi
                 orderObj.put("c", clientOrderId);
             }
             String vaultAddressOption = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress", (String) null)).get(0);
-            Object vaultAddress = this.formatVaultAddress(Helpers.toStringArg(vaultAddressOption));
+            Object vaultAddress = this.formatVaultAddress(vaultAddressOption);
             Map<String, Object> orderAction = new HashMap<String, Object>() {{
                 put( "type", "order" );
                 put( "orders", new ArrayList<Object>(Arrays.asList(orderObj)) );
@@ -1672,7 +1672,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             cancelAction.put("cancels", cancelReq);
             String vaultAddressOption = (String) ((List<Object>)this.handleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress", (String) null)).get(0);
-            Object vaultAddress = this.formatVaultAddress(Helpers.toStringArg(vaultAddressOption));
+            Object vaultAddress = this.formatVaultAddress(vaultAddressOption);
             Map<String, Object> signature = this.signL1Action((Map<String, Object>) (cancelAction), nonce, Helpers.toStringArg(vaultAddress));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", cancelAction );

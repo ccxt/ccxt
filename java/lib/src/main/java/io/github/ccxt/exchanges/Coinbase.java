@@ -776,7 +776,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchAccounts", (Object) null, (Long) null, (Long) null, Helpers.toMapArg(paramsPaginate), "next_starting_after", "starting_after", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchAccounts", (Object) null, (Long) null, (Long) null, paramsPaginate, "next_starting_after", "starting_after", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "limit", 100 );
@@ -838,7 +838,7 @@ public class Coinbase extends CoinbaseApi
                 last.put("next_starting_after", cursor);
                 Helpers.addElementToObject(accounts, lastIndex, last);
             }
-            return this.parseAccounts(data, Helpers.toMapArg(paramsPaginate));
+            return this.parseAccounts(data, paramsPaginate);
         });
 
     }
@@ -857,7 +857,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchAccounts", (Object) null, (Long) null, (Long) null, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 250L)).join();
+                return (this.fetchPaginatedCallCursor("fetchAccounts", (Object) null, (Long) null, (Long) null, paramsPaginate, "cursor", "cursor", (Long) null, 250L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "limit", 250 );
@@ -903,7 +903,7 @@ public class Coinbase extends CoinbaseApi
                 last.put("cursor", cursor);
                 Helpers.addElementToObject(accounts, lastIndex, last);
             }
-            return this.parseAccounts(accounts, Helpers.toMapArg(paramsPaginate));
+            return this.parseAccounts(accounts, paramsPaginate);
         });
 
     }
@@ -1211,10 +1211,10 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> paramsCurrencyType = (Map<String, Object>) ((List<Object>) currencyTypeparamsCurrencyTypeVariable).get(1);
             if (java.util.Objects.equals(currencyType, "crypto"))
             {
-                Object results = (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, Helpers.toMapArg(paramsCurrencyType))).join();
+                Object results = (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, paramsCurrencyType)).join();
                 return this.filterByArray(results, "type", "withdrawal", false);
             }
-            return (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, Helpers.toMapArg(paramsCurrencyType))).join();
+            return (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, paramsCurrencyType)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1242,10 +1242,10 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> paramsCurrencyType = (Map<String, Object>) ((List<Object>) currencyTypeparamsCurrencyTypeVariable).get(1);
             if (java.util.Objects.equals(currencyType, "crypto"))
             {
-                Object results = (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, Helpers.toMapArg(paramsCurrencyType))).join();
+                Object results = (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, paramsCurrencyType)).join();
                 return this.filterByArray(results, "type", "deposit", false);
             }
-            return (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, Helpers.toMapArg(paramsCurrencyType))).join();
+            return (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, paramsCurrencyType)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2962,7 +2962,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> response = null;
             Boolean isV3 = (Boolean) this.safeBool(parameters, "v3", false);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("v3")));
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsOmitted), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsOmitted, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             String method = this.safeString(this.options, "fetchBalance", "v3PrivateGetBrokerageAccounts");
@@ -3050,7 +3050,7 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             ((Map<String, Object>)paramsMarketType).put("type", marketType);
-            return this.parseCustomBalance((Map<String, Object>) (response), Helpers.toMapArg(paramsMarketType));
+            return this.parseCustomBalance((Map<String, Object>) (response), paramsMarketType);
         }).thenApply(Balances::new);
 
     }
@@ -3081,14 +3081,14 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), "next_starting_after", "starting_after", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, paramsPaginate, "next_starting_after", "starting_after", (Long) null, 100L)).join();
             }
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
             }
-            var requestparamsValueVariable = (this.prepareAccountRequestWithCurrencyCode(code, limit, Helpers.toMapArg(paramsPaginate))).join();
+            var requestparamsValueVariable = (this.prepareAccountRequestWithCurrencyCode(code, limit, paramsPaginate)).join();
             var request = ((List<Object>) requestparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
             // for pagination use parameter 'starting_after'
@@ -3509,7 +3509,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new ArgumentsRequired((this.id + " prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument")) ;
                 }
-                accountId = (this.findAccountId((String) (code), Helpers.toMapArg(paramsOmitted))).join();
+                accountId = (this.findAccountId((String) (code), paramsOmitted)).join();
                 if (java.util.Objects.equals(accountId, null))
                 {
                     throw new ExchangeError((((this.id + " prepareAccountRequestWithCurrencyCode() could not find account id for ") + code) + ". You might try to generate the deposit address in the website for that coin first.")) ;
@@ -3607,7 +3607,7 @@ public class Coinbase extends CoinbaseApi
             {
                 Map<String, Object> paramsClose = (Map<String, Object>) this.omit(parameters, "reduceOnly");
                 Helpers.addElementToObject(paramsClose, "amount", amount);
-                return (this.closePosition(symbol, side, Helpers.toMapArg(paramsClose))).join();
+                return (this.closePosition(symbol, side, paramsClose)).join();
             }
             Object paramsMarketBuy = null;
             Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "stop_price", "triggerPrice")), (Object) null);
@@ -4275,7 +4275,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 1000L)).join();
+                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), paramsPaginate, "cursor", "cursor", (Long) null, 1000L)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -4473,9 +4473,9 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 100L)).join();
             }
-            return (this.fetchOrdersByStatus("OPEN", symbol, since, limit, Helpers.toMapArg(paramsPaginate))).join();
+            return (this.fetchOrdersByStatus("OPEN", symbol, since, limit, paramsPaginate)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -4507,9 +4507,9 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 1000L)).join();
+                return (this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 1000L)).join();
             }
-            return (this.fetchOrdersByStatus("FILLED", symbol, since, limit, Helpers.toMapArg(paramsPaginate))).join();
+            return (this.fetchOrdersByStatus("FILLED", symbol, since, limit, paramsPaginate)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -4567,7 +4567,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, Helpers.toLongOrNull(limitValue), Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull((((long) maxLimit) - 1L)))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, Helpers.toLongOrNull(limitValue), Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull((((long) maxLimit) - 1L)))).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4748,7 +4748,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 250L)).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 250L)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -5243,7 +5243,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new ArgumentsRequired((this.id + " deposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
                 }
-                accountId = (this.findAccountId((String) (code), Helpers.toMapArg(paramsOmitted))).join();
+                accountId = (this.findAccountId((String) (code), paramsOmitted)).join();
                 if (java.util.Objects.equals(accountId, null))
                 {
                     throw new ExchangeError(((this.id + " deposit() could not find account id for ") + code)) ;
@@ -5328,7 +5328,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
                 }
-                accountId = (this.findAccountId((String) (code), Helpers.toMapArg(paramsOmitted))).join();
+                accountId = (this.findAccountId((String) (code), paramsOmitted)).join();
                 if (java.util.Objects.equals(accountId, null))
                 {
                     throw new ExchangeError(((this.id + " fetchDeposit() could not find account id for ") + code)) ;

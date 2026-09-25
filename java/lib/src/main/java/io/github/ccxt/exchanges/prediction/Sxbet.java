@@ -268,7 +268,7 @@ public class Sxbet extends SxbetApi
 
             Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
             Long userLimit = this.safeInteger(parameters, "limit");
-            Object rawMarkets = (this.fetchRawMarketsPaged(Helpers.toMapArg(rest), userLimit)).join();
+            Object rawMarkets = (this.fetchRawMarketsPaged(rest, userLimit)).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             Integer rawMarketsLength = ((List<?>)rawMarkets).size();
             for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)

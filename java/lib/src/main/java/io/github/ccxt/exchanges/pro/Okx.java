@@ -1960,7 +1960,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     )))
                 );
                 // Only add params['access'] to prevent sending custom parameters, such as extraParams.
-                if (((Map<?, ?>)paramsOmitted).containsKey("access"))
+                if (paramsOmitted.containsKey("access"))
                 {
                     request.put("access", ((Map<String, Object>)paramsOmitted).get("access"));
                 }
@@ -2680,7 +2680,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> opparamsOpVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrderWs", "op", "batch-orders");
             String op = (String) ((List<Object>) opparamsOpVariable).get(0);
             Map<String, Object> paramsOp = (Map<String, Object>) ((List<Object>) opparamsOpVariable).get(1);
-            Object args = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsOp));
+            Object args = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOp);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long instIdCode = this.safeInteger(market, "instIdCode");
             if (!java.util.Objects.equals(instIdCode, null))
@@ -2773,7 +2773,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> opparamsOpVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "editOrderWs", "op", "amend-order");
             String op = (String) ((List<Object>) opparamsOpVariable).get(0);
             Map<String, Object> paramsOp = (Map<String, Object>) ((List<Object>) opparamsOpVariable).get(1);
-            Object args = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsOp));
+            Object args = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, paramsOp);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long instIdCode = this.safeInteger(market, "instIdCode");
             if (!java.util.Objects.equals(instIdCode, null))

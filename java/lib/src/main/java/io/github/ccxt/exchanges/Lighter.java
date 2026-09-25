@@ -1025,7 +1025,7 @@ public class Lighter extends LighterApi
         Boolean isConditional = ((!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)));
         Boolean isMarketOrder = (java.util.Objects.equals(orderType, "MARKET"));
         String timeInForce = this.safeStringLower(paramsOrderExpiry, "timeInForce", "gtt");
-        Boolean postOnly = this.isPostOnly(isMarketOrder, null, Helpers.toMapArg(paramsOrderExpiry));
+        Boolean postOnly = this.isPostOnly(isMarketOrder, null, paramsOrderExpiry);
         Object paramsOmitted = this.omit(paramsOrderExpiry, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "timeInForce")));
         Object orderTypeNum = null;
         Object timeInForceNum = null;
@@ -1177,7 +1177,7 @@ public class Lighter extends LighterApi
             }
             // avoid skipNonce for l1 operations
             Boolean skipNonce = (Boolean) ((List<Object>)this.handleOptionBoolAndParams(parameters, "fetchNonce", "skipNonce", true)).get(0);
-            if (Helpers.isTrue(skipNonce))
+            if (Boolean.TRUE.equals(skipNonce))
             {
                 return this.milliseconds();
             }
@@ -1206,7 +1206,7 @@ public class Lighter extends LighterApi
             List<Object> groupingTypeparamsGroupingTypeVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsAccountIndex, (String) (method), "groupingType", 3L);
             Long groupingType = (Long) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(0);
             Map<String, Object> paramsGroupingType = (Map<String, Object>) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
-            List<Object> orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsGroupingType));
+            List<Object> orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsGroupingType);
             Integer totalOrderRequests = ((List<?>)orderRequests).size();
             Object apiKeyIndex = null;
             Object order = null;
@@ -1217,7 +1217,7 @@ public class Lighter extends LighterApi
             }
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsGroupingType))).join();
+            Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsGroupingType)).join();
             // the nonce could be updated
             if (java.util.Objects.equals(this.safeInteger(order, "nonce"), null))
             {
@@ -3001,7 +3001,7 @@ public class Lighter extends LighterApi
             Map<String, Object> paramsToAccountIndex = (Map<String, Object>) ((List<Object>) toAccountIndexparamsToAccountIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsToAccountIndex))).join();
+            Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsToAccountIndex)).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String currencyCode = (String) ((Map<String, Object>)currency).get("code");
             if ((!java.util.Objects.equals(currencyCode, "USDC")) && (!java.util.Objects.equals(currencyCode, "ETH")))
@@ -3067,7 +3067,7 @@ public class Lighter extends LighterApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 50L)).join();
+                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 50L)).join();
             }
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsPaginate, "fetchTransfers", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
@@ -3187,7 +3187,7 @@ public class Lighter extends LighterApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 50L)).join();
+                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 50L)).join();
             }
             List<Object> addressparamsAddressVariable = (List<Object>) this.handleOptionStringAndParams2(paramsPaginate, "fetchDeposits", "address", "l1_address", (String) null);
             String address = (String) ((List<Object>) addressparamsAddressVariable).get(0);
@@ -3267,7 +3267,7 @@ public class Lighter extends LighterApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 50L)).join();
+                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 50L)).join();
             }
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsPaginate, "fetchWithdrawals", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
@@ -3481,7 +3481,7 @@ public class Lighter extends LighterApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next_cursor", "cursor", (Long) null, 50L)).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", (Long) null, 50L)).join();
             }
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsPaginate, "fetchMyTrades", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
@@ -3557,7 +3557,7 @@ public class Lighter extends LighterApi
             {
                 Helpers.addElementToObject((data == null || 0 >= data.size() ? null : data.get(0)), "next_cursor", nextCursor);
             }
-            return this.parseTrades(data, market, since, limit, Helpers.toMapArg(paramsUntil));
+            return this.parseTrades(data, market, since, limit, paramsUntil);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3662,7 +3662,7 @@ public class Lighter extends LighterApi
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires an marginMode parameter")) ;
             }
-            return (this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, Helpers.toMapArg(paramsMarginMode))).join();
+            return (this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, paramsMarginMode)).join();
         });
 
     }
@@ -3695,7 +3695,7 @@ public class Lighter extends LighterApi
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires an leverage parameter")) ;
             }
-            return (this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, Helpers.toMapArg(paramsLeverage))).join();
+            return (this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, paramsLeverage)).join();
         });
 
     }

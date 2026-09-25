@@ -2165,7 +2165,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 Map<String, Object> paramsFrequency = (Map<String, Object>) ((List<Object>) frequencyparamsFrequencyVariable).get(1);
                 Object channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((Map<String, Object>)market).get("id"));
                 ((Map<String, Object>)paramsFrequency).put("unsubscribed", true);
-                this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, Helpers.toMapArg(paramsFrequency)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, paramsFrequency); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
                 url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");

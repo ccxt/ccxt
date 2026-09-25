@@ -1681,7 +1681,7 @@ public class Bitstamp extends BitstampApi
             return currencyId;
         }
         Map<String, Object> transactionOmitted = (Map<String, Object>) this.omit(transaction, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "type", "status", "id")));
-        List<String> ids = new ArrayList<String>(((Map<String, Object>)transactionOmitted).keySet());
+        List<String> ids = new ArrayList<String>(transactionOmitted.keySet());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
@@ -1700,7 +1700,7 @@ public class Bitstamp extends BitstampApi
     public Object getMarketFromTrade(Map<String, Object> trade)
     {
         Map<String, Object> tradeOmitted = (Map<String, Object>) this.omit(trade, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side")));
-        List<Object> currencyIds = new ArrayList<Object>(((Map<String, Object>)tradeOmitted).keySet());
+        List<Object> currencyIds = new ArrayList<Object>(tradeOmitted.keySet());
         Integer numCurrencyIds = ((List<?>)currencyIds).size();
         if ((numCurrencyIds != null && numCurrencyIds > 2))
         {
@@ -2743,7 +2743,7 @@ public class Bitstamp extends BitstampApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), (Long) null)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
             }
             if (java.util.Objects.equals(this.markets, null))
             {

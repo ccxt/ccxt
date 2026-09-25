@@ -234,7 +234,7 @@ public class Binance extends BinanceApi
             }
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
             Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
-            Object rawTopics = (this.fetchRawTopics(maxMarkets, Helpers.toMapArg(rest))).join();
+            Object rawTopics = (this.fetchRawTopics(maxMarkets, rest)).join();
             List<Object> parsedEvents = new ArrayList<Object>(Arrays.asList());
             List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
             Integer rawTopicsLength = ((List<?>)rawTopics).size();
@@ -1278,7 +1278,7 @@ public class Binance extends BinanceApi
             String pageKey = "ccxtPageKey";
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, Helpers.toMapArg(paramsMaxEntriesPerRequest), pageKey, Helpers.toLongOrNull(maxEntriesPerRequest))).join();
+                return (this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
             Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1299,7 +1299,7 @@ public class Binance extends BinanceApi
             {
                 request.put("limit", limit);
             }
-            Object wallet = (this.fetchWallet("fetchOpenOrders", Helpers.toMapArg(paramsMaxEntriesPerRequest))).join();
+            Object wallet = (this.fetchWallet("fetchOpenOrders", paramsMaxEntriesPerRequest)).join();
             request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetOrderList(this.extend(request, paramsMaxEntriesPerRequest))).join();
             //
@@ -1375,7 +1375,7 @@ public class Binance extends BinanceApi
             String pageKey = "ccxtPageKey";
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, Helpers.toMapArg(paramsMaxEntriesPerRequest), pageKey, Helpers.toLongOrNull(maxEntriesPerRequest))).join();
+                return (this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, Helpers.toMapArg(paramsMaxEntriesPerRequest), pageKey, maxEntriesPerRequest)).join();
             }
             Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1678,7 +1678,7 @@ public class Binance extends BinanceApi
             String pageKey = "ccxtPageKey";
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, Helpers.toMapArg(paramsMaxEntriesPerRequest), pageKey, Helpers.toLongOrNull(maxEntriesPerRequest))).join();
+                return (this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, Helpers.toMapArg(paramsMaxEntriesPerRequest), pageKey, maxEntriesPerRequest)).join();
             }
             Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2073,7 +2073,7 @@ public class Binance extends BinanceApi
                 "side", sideUpper,
                 "amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000")
             ));
-            Object quote = (this.fetchQuote((Map<String, Object>) (quoteRequest), Helpers.toMapArg(paramsOmitted))).join();
+            Object quote = (this.fetchQuote((Map<String, Object>) (quoteRequest), paramsOmitted)).join();
             String quoteId = this.safeString(quote, "quoteId");
             Map<String, Object> orderRequest = this.extend(commonRequest, Helpers.newMap(
                 "walletId", Helpers.GetValue(wallet, "walletId"),

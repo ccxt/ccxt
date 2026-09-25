@@ -1640,7 +1640,7 @@ public class Toobit extends ToobitApi
             //        },
             //        ...
             //
-            return this.parseTickers(response, symbolsNormalized, Helpers.toMapArg(paramsMarketType));
+            return this.parseTickers(response, symbolsNormalized, paramsMarketType);
         }).thenApply(Tickers::new);
 
     }
@@ -1916,7 +1916,7 @@ public class Toobit extends ToobitApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), (Long) null)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
             }
             if (java.util.Objects.equals(symbol, null))
             {
@@ -2681,7 +2681,7 @@ public class Toobit extends ToobitApi
                 market = (Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(requestUntil, "symbol", ((Map<String, Object>)market).get("id"));
             }
-            String marketType = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchOrders", market, Helpers.toMapArg(paramsUntil), (Object) null)).get(0);
+            String marketType = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchOrders", market, paramsUntil, (Object) null)).get(0);
             List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -2730,7 +2730,7 @@ public class Toobit extends ToobitApi
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
-            String marketType = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchClosedOrders", market, Helpers.toMapArg(paramsUntil), (Object) null)).get(0);
+            String marketType = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsUntil, (Object) null)).get(0);
             List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -2916,7 +2916,7 @@ public class Toobit extends ToobitApi
             {
                 ((Map<String, Object>)requestUntil).put("limit", limit);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, Helpers.toMapArg(paramsUntil), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsUntil, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             List<Object> response = null;
@@ -3140,7 +3140,7 @@ public class Toobit extends ToobitApi
             {
                 response = (this.privateGetApiV1AccountWithdrawOrders(this.extend(requestUntil, paramsUntil))).join();
             }
-            return this.parseTransactions(response, currency, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), Helpers.toMapArg(paramsUntil));
+            return this.parseTransactions(response, currency, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), paramsUntil);
         });
 
     }
