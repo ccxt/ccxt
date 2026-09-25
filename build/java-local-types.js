@@ -10176,8 +10176,42 @@ export function installJavaDeclaredLocalTypes (transpiler) {
         }
         return printed;
     };
-    printer.javaDeclaredLocalTypeResolver = (declaration) => declaredTypes.get (declaration);
+    // sections installed after this observer retype the declaration after it records: they answer first
+    const earlier = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    printer.javaDeclaredLocalTypeResolver = (declaration) => javaPublishedLocalType (printer, declaration, earlier)
+        ?? declaredTypes.get (declaration);
+    // a typed destructuring element passed to a core parameter of its own type needs no conversion
+    const upstreamDeclaredAs = printer.javaLocalDeclaredAs?.bind (printer);
+    if (upstreamDeclaredAs !== undefined) {
+        printer.javaLocalDeclaredAs = function (node, printed, type) {
+            return upstreamDeclaredAs (node, printed, type) || javaBindingDeclaredAs (printer, node, printed, type);
+        };
+    }
     printer._javaDeclaredLocalTypesPatched = true;
+}
+
+function javaPublishedLocalType (printer, declaration, from) {
+    for (const table of (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).slice (from)) {
+        const type = table (declaration);
+        if (type !== undefined) {
+            return type;
+        }
+    }
+    return undefined;
+}
+
+function javaBindingDeclaredAs (printer, node, printed, type) {
+    if (node === undefined || !ts.isIdentifier (node) || printed !== node.escapedText) {
+        return false;
+    }
+    const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+    if (declaration === undefined || !ts.isBindingElement (declaration) || declaration.name !== undefined
+        && declaration.name.escapedText !== node.escapedText) {
+        return false;
+    }
+    const erase = (t) => String (t ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+    const declared = HANDLE_TYPED_BINDINGS.get (declaration);
+    return declared !== undefined && erase (declared) === erase (type);
 }
 
 // record `<type> <name> = ` when the FINAL printed text of the declaration chain carries a
