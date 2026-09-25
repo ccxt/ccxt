@@ -4574,9 +4574,9 @@ func (this *Coinbase) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(paramsPaginate, []any{"until"})
+			return MapTyped(this.Omit(paramsPaginate, []any{"until"}))
 		}
 		return paramsPaginate
 	}()
@@ -4679,9 +4679,9 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan any, status any, optionalA
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, []any{"until"})
+			return MapTyped(this.Omit(params, []any{"until"}))
 		}
 		return params
 	}()
@@ -5135,9 +5135,9 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if until != nil {
 		request["end_sequence_timestamp"] = this.Iso8601(until)
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(paramsPaginate, []any{"until"})
+			return MapTyped(this.Omit(paramsPaginate, []any{"until"}))
 		}
 		return paramsPaginate
 	}()

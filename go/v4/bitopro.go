@@ -1394,9 +1394,9 @@ func (this *Bitopro) createOrderBody(ch chan any, symbol any, typeVar string, si
 			request["condition"] = condition
 		}
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if orderType == "STOP_LIMIT" {
-			return this.Omit(params, []any{"triggerPrice", "stopPrice"})
+			return MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice"}))
 		}
 		return params
 	}()
@@ -2353,7 +2353,7 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var url string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var requestHeaders any = func() any {
+	var requestHeaders map[string]any = func() map[string]any {
 		if headers == nil {
 			return map[string]any{}
 		}

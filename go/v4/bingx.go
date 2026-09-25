@@ -1754,9 +1754,9 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["limit"] = requestLimit
 	}
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "endTime")
-	var paramsUntil any = func() any {
+	var paramsUntil map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(paramsPaginate, []any{"until"})
+			return MapTyped(this.Omit(paramsPaginate, []any{"until"}))
 		}
 		return paramsPaginate
 	}()
@@ -2633,9 +2633,9 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "endTime")
-	var paramsUntil any = func() any {
+	var paramsUntil map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(paramsPaginate, []any{"until"})
+			return MapTyped(this.Omit(paramsPaginate, []any{"until"}))
 		}
 		return paramsPaginate
 	}()

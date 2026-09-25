@@ -3070,9 +3070,9 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan any, optionalArgs ...any) any
 	if until != nil {
 		request["before"] = until
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, "until")
+			return MapTyped(this.Omit(params, "until"))
 		}
 		return params
 	}()
@@ -3177,9 +3177,9 @@ func (this *Krakenfutures) fetchFundingHistoryBody(ch chan any, optionalArgs ...
 	if until != nil {
 		request["before"] = until
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, "until")
+			return MapTyped(this.Omit(params, "until"))
 		}
 		return params
 	}()
@@ -3912,9 +3912,9 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan any, optionalArgs .
 	if until != nil {
 		request["before"] = until
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, "until")
+			return MapTyped(this.Omit(params, "until"))
 		}
 		return params
 	}()

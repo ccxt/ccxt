@@ -1927,7 +1927,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		paramsSubType = ccxt.MapTyped(ccxt.GetValue(subTypeparamsSubTypeVariable, 1))
 	}
 	var symbolsNormalized any = this.MarketSymbols(symbols)
-	var paramsPositions any = func() any {
+	var paramsPositions map[string]any = func() map[string]any {
 		if !ccxt.IsEqual(market, nil) {
 			return params
 		}
@@ -2158,9 +2158,9 @@ func (this *Htx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchBalance", nil, paramsMarketType, "linear")
 	var isUnifiedAccount *bool = this.SafeBool2(paramsSubType, "isUnifiedAccount", "unified", false)
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsSubType, []any{"isUnifiedAccount", "unified"}))
-	var paramsRequest any = func() any {
+	var paramsRequest map[string]any = func() map[string]any {
 		if !ccxt.IsEqual(typeVar, "spot") {
-			return this.Omit(paramsOmitted, []any{"currency", "symbol", "margin"})
+			return ccxt.MapTyped(this.Omit(paramsOmitted, []any{"currency", "symbol", "margin"}))
 		}
 		return paramsOmitted
 	}()
@@ -3413,9 +3413,9 @@ func (this *Htx) unsubscribePublicBody(ch chan any, market any, subMessageHash a
 		"topic":            topic,
 	}
 	var symbolsAndTimeframes any = this.SafeList(params, "symbolsAndTimeframes")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if !ccxt.IsEqual(symbolsAndTimeframes, nil) {
-			return this.Omit(params, "symbolsAndTimeframes")
+			return ccxt.MapTyped(this.Omit(params, "symbolsAndTimeframes"))
 		}
 		return params
 	}()

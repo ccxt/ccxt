@@ -2030,9 +2030,9 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		}
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(paramsPaginate, "until")
+			return MapTyped(this.Omit(paramsPaginate, "until"))
 		}
 		return paramsPaginate
 	}()
@@ -2206,9 +2206,9 @@ func (this *Deribit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["count"] = mathMin(limit, 1000) // default 10
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end_timestamp")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, []any{"until"})
+			return MapTyped(this.Omit(params, []any{"until"}))
 		}
 		return params
 	}()
@@ -3692,9 +3692,9 @@ func (this *Deribit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var code *string = this.SafeString(params, "currency")
 	var request map[string]any = map[string]any{}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if code != nil {
-			return this.Omit(params, "currency")
+			return MapTyped(this.Omit(params, "currency"))
 		}
 		return params
 	}()
@@ -4279,9 +4279,9 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		"start_timestamp": Subtract(sinceResolved, 1),
 	}
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end_timestamp")
-	var paramsUntil any = func() any {
+	var paramsUntil map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(paramsPaginate, []any{"until"})
+			return MapTyped(this.Omit(paramsPaginate, []any{"until"}))
 		}
 		return paramsPaginate
 	}()

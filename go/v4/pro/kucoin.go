@@ -549,7 +549,7 @@ func (this *Kucoin) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		}
 		return spotMethod
 	}()
-	var query any = func() any {
+	var query map[string]any = func() map[string]any {
 		if isFuturesMethod != nil && *isFuturesMethod == true {
 			return paramsUta
 		}
@@ -618,7 +618,7 @@ func (this *Kucoin) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...a
 			}
 			return spotMethod
 		}()
-		var query any = func() any {
+		var query map[string]any = func() map[string]any {
 			if isFuturesMethod != nil && *isFuturesMethod == true {
 				return paramsUta
 			}

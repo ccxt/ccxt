@@ -1595,9 +1595,9 @@ func (this *Backpack) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, []any{"until"})
+			return MapTyped(this.Omit(params, []any{"until"}))
 		}
 		return params
 	}()

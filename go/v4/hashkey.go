@@ -3194,9 +3194,9 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, a
 		request["clientOrderId"] = this.Uuid()
 	}
 	var triggerPrice *string = this.SafeString(paramsPostOnly, "triggerPrice")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if triggerPrice != nil {
-			return this.Omit(paramsPostOnly, "triggerPrice")
+			return MapTyped(this.Omit(paramsPostOnly, "triggerPrice"))
 		}
 		return paramsPostOnly
 	}()

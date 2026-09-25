@@ -906,9 +906,9 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar string, 
 		"tag":       "ccxt",
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(params, "clientOrderId")
+			return MapTyped(this.Omit(params, "clientOrderId"))
 		}
 		return params
 	}()

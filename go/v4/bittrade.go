@@ -2817,9 +2817,9 @@ func (this *Bittrade) withdrawBody(ch chan any, code any, amount any, address an
 			request["chain"] = Add(network, currency["id"])
 		}
 	}
-	var paramsNetwork any = func() any {
+	var paramsNetwork map[string]any = func() map[string]any {
 		if network != nil {
-			return this.Omit(paramsWithdrawTag, "network")
+			return MapTyped(this.Omit(paramsWithdrawTag, "network"))
 		}
 		return paramsWithdrawTag
 	}()

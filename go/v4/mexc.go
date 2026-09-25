@@ -2946,9 +2946,9 @@ func (this *Mexc) CreateSpotOrderRequest(market any, typeVar any, side any, amou
 	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	var paramsWithoutCost any = func() any {
+	var paramsWithoutCost map[string]any = func() map[string]any {
 		if IsEqual(typeVar, "market") {
-			return this.Omit(params, "cost")
+			return MapTyped(this.Omit(params, "cost"))
 		}
 		return params
 	}()
@@ -3202,9 +3202,9 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 		}
 	}
 	request["side"] = sideInteger
-	var paramsReduceOnly any = func() any {
+	var paramsReduceOnly map[string]any = func() map[string]any {
 		if reduceOnly != nil && *reduceOnly == true {
-			return this.Omit(paramsPostOnly, "reduceOnly")
+			return MapTyped(this.Omit(paramsPostOnly, "reduceOnly"))
 		}
 		return paramsPostOnly
 	}() // hedged mode does not accept this parameter
@@ -3370,9 +3370,9 @@ func (this *Mexc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		} else {
 			request["orderId"] = id
 		}
-		var paramsOmitted any = func() any {
+		var paramsOmitted map[string]any = func() map[string]any {
 			if clientOrderId != nil {
-				return this.Omit(params, "clientOrderId")
+				return MapTyped(this.Omit(params, "clientOrderId"))
 			}
 			return params
 		}()
@@ -4994,9 +4994,9 @@ func (this *Mexc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		if until != nil {
 			request["endTime"] = until
 		}
-		var paramsUntil any = func() any {
+		var paramsUntil map[string]any = func() map[string]any {
 			if until != nil {
-				return this.Omit(paramsMarketType, "until")
+				return MapTyped(this.Omit(paramsMarketType, "until"))
 			}
 			return paramsMarketType
 		}()
@@ -6031,9 +6031,9 @@ func (this *Mexc) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		}
 		request["limit"] = limit
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if rawNetwork != nil {
-			return this.Omit(params, "network")
+			return MapTyped(this.Omit(params, "network"))
 		}
 		return params
 	}()
@@ -6956,9 +6956,9 @@ func (this *Mexc) withdrawBody(ch chan any, code any, amount any, address any, o
 	if !IsEqual(network, nil) {
 		request["netWork"] = network
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if !IsEqual(network, nil) {
-			return this.Omit(paramsWithdrawTag, []any{"network", "netWork"})
+			return MapTyped(this.Omit(paramsWithdrawTag, []any{"network", "netWork"}))
 		}
 		return paramsWithdrawTag
 	}()

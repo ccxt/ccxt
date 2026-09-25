@@ -1988,9 +1988,9 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		request["from"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, "until")
+			return MapTyped(this.Omit(params, "until"))
 		}
 		return params
 	}()
@@ -2246,9 +2246,9 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		request["from"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, "until")
+			return MapTyped(this.Omit(params, "until"))
 		}
 		return params
 	}()

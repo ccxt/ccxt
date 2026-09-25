@@ -6236,9 +6236,9 @@ func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) any {
 	if !IsEqual(id, nil) {
 		request["orderId"] = id
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if GetValue(market, "spot") == true {
-			return this.Omit(params, []any{"stop", "trigger"})
+			return MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 		}
 		return params
 	}()

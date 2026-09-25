@@ -2724,9 +2724,9 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar string, s
 	} else {
 		request["clientOrderId"] = clientOrderId
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(paramsCost, []any{"clientOrderId"})
+			return MapTyped(this.Omit(paramsCost, []any{"clientOrderId"}))
 		}
 		return paramsCost
 	}()
@@ -5509,7 +5509,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var version any = this.SafeValue(api, 0)
 	var accessibility any = this.SafeValue(api, 1)
-	var publicHeaders any = func() any {
+	var publicHeaders map[string]any = func() map[string]any {
 		if headers == nil {
 			return map[string]any{}
 		}

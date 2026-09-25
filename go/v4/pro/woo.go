@@ -146,9 +146,9 @@ func (this *Woo) unwatchPublicBody(ch chan any, subHash any, symbol any, topic s
 		"unsubMessageHashes": []any{unsubHash},
 	}
 	var symbolsAndTimeframes any = this.SafeList(params, "symbolsAndTimeframes")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if !ccxt.IsEqual(symbolsAndTimeframes, nil) {
-			return this.Omit(params, "symbolsAndTimeframes")
+			return ccxt.MapTyped(this.Omit(params, "symbolsAndTimeframes"))
 		}
 		return params
 	}()

@@ -1585,9 +1585,9 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	if (network == nil) || (network != nil && *network == "") {
 		network = defaultNetwork
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
-			return this.Omit(params, "network")
+			return MapTyped(this.Omit(params, "network"))
 		}
 		return params
 	}()
@@ -2901,9 +2901,9 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		}
 		return 1
 	}()
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if marginMode != nil {
-			return this.Omit(params, "marginMode")
+			return MapTyped(this.Omit(params, "marginMode"))
 		}
 		return params
 	}()
@@ -3778,9 +3778,9 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if until != nil {
 		request["end"] = until
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(paramsMarketType, "until")
+			return MapTyped(this.Omit(paramsMarketType, "until"))
 		}
 		return paramsMarketType
 	}()
@@ -3908,9 +3908,9 @@ func (this *Deepcoin) closePositionBody(ch chan any, symbol any, optionalArgs ..
 		if positionId != nil {
 			request["positionIds"] = []any{positionId}
 		}
-		var paramsOmitted any = func() any {
+		var paramsOmitted map[string]any = func() map[string]any {
 			if positionId != nil {
-				return this.Omit(params, "positionId")
+				return MapTyped(this.Omit(params, "positionId"))
 			}
 			return params
 		}()

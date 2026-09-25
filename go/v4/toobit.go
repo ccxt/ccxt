@@ -1581,9 +1581,9 @@ func (this *Toobit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	if until != nil {
 		request["endTime"] = until
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, "until")
+			return MapTyped(this.Omit(params, "until"))
 		}
 		return params
 	}()

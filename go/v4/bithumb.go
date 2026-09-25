@@ -1959,11 +1959,11 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		}
 		return *timeInForceRaw
 	}()
-	var paramsTimeInForce any = func() any {
+	var paramsTimeInForce map[string]any = func() map[string]any {
 		if timeInForceRaw == nil {
 			return params
 		}
-		return this.Omit(params, "timeInForce")
+		return MapTyped(this.Omit(params, "timeInForce"))
 	}()
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, paramsTimeInForce)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)

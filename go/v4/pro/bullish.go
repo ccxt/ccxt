@@ -491,9 +491,9 @@ func (this *Bullish) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"topic": "orders",
 	}
 	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if tradingAccountId != nil {
-			return this.Omit(params, "tradingAccountId")
+			return ccxt.MapTyped(this.Omit(params, "tradingAccountId"))
 		}
 		return params
 	}()
@@ -639,9 +639,9 @@ func (this *Bullish) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"topic": "trades",
 	}
 	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if tradingAccountId != nil {
-			return this.Omit(params, "tradingAccountId")
+			return ccxt.MapTyped(this.Omit(params, "tradingAccountId"))
 		}
 		return params
 	}()
@@ -765,9 +765,9 @@ func (this *Bullish) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash string = "balance"
 	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if tradingAccountId != nil {
-			return this.Omit(params, "tradingAccountId")
+			return ccxt.MapTyped(this.Omit(params, "tradingAccountId"))
 		}
 		return params
 	}()

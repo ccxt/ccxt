@@ -2577,9 +2577,9 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	if since != nil {
 		request["startTime"] = since
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if endTime != nil {
-			return this.Omit(params, []any{"endTime", "until"})
+			return MapTyped(this.Omit(params, []any{"endTime", "until"}))
 		}
 		return params
 	}()
@@ -2653,9 +2653,9 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan any, code any, optionalA
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper(params, "network") // this line allows the user to specify either ERC20 or ETH
 	network = this.SafeString(networks, network, network)         // handle ERC20>ETH alias
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
-			return this.Omit(params, "network")
+			return MapTyped(this.Omit(params, "network"))
 		}
 		return params
 	}()

@@ -1606,9 +1606,9 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var until *string = this.SafeString2(params, "until", "till")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, []any{"until", "till"})
+			return MapTyped(this.Omit(params, []any{"until", "till"}))
 		}
 		return params
 	}()
@@ -3145,9 +3145,9 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var until *string = this.SafeString2(params, "until", "till")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, []any{"until", "till"})
+			return MapTyped(this.Omit(params, []any{"until", "till"}))
 		}
 		return params
 	}()
@@ -3236,9 +3236,9 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"txid": requestId,
 	}
 	var clientOrderId *string = this.SafeString2(paramsUserref, "clientOrderId", "cl_ord_id")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(paramsUserref, []any{"clientOrderId", "cl_ord_id"})
+			return MapTyped(this.Omit(paramsUserref, []any{"clientOrderId", "cl_ord_id"}))
 		}
 		return paramsUserref
 	}()
@@ -3838,9 +3838,9 @@ func (this *Kraken) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["start"] = Precise.StringDiv(sinceString, "1000")
 	}
 	var until *string = this.SafeString2(params, "until", "till")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, []any{"until", "till"})
+			return MapTyped(this.Omit(params, []any{"until", "till"}))
 		}
 		return params
 	}()
@@ -3959,9 +3959,9 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["start"] = Precise.StringDiv(sinceString, "1000")
 	}
 	var until *string = this.SafeString2(paramsPaginate, "until", "till")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(paramsPaginate, []any{"until", "till"})
+			return MapTyped(this.Omit(paramsPaginate, []any{"until", "till"}))
 		}
 		return paramsPaginate
 	}()

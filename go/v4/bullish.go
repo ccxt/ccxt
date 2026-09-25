@@ -2344,9 +2344,9 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar string, si
 		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		orderType = "STOP_LIMIT"
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if triggerPrice != nil {
-			return this.Omit(paramsTimeInForce, "triggerPrice")
+			return MapTyped(this.Omit(paramsTimeInForce, "triggerPrice"))
 		}
 		return paramsTimeInForce
 	}()
@@ -2424,9 +2424,9 @@ func (this *Bullish) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if postOnly != nil && *postOnly == true {
-			return this.Omit(params, "postOnly")
+			return MapTyped(this.Omit(params, "postOnly"))
 		}
 		return params
 	}()

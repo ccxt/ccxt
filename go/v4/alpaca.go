@@ -1535,9 +1535,9 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	} else {
 		request["qty"] = this.AmountToPrecision(symbol, amount)
 	}
-	var paramsCost any = func() any {
+	var paramsCost map[string]any = func() map[string]any {
 		if cost != nil {
-			return this.Omit(params, "cost")
+			return MapTyped(this.Omit(params, "cost"))
 		}
 		return params
 	}()
@@ -1756,9 +1756,9 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if until != nil {
 		request["until"] = this.Iso8601(until)
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, "until")
+			return MapTyped(this.Omit(params, "until"))
 		}
 		return params
 	}()
@@ -1945,9 +1945,9 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	if triggerPrice != nil {
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
-	var paramsTrigger any = func() any {
+	var paramsTrigger map[string]any = func() map[string]any {
 		if triggerPrice != nil {
-			return this.Omit(params, "triggerPrice")
+			return MapTyped(this.Omit(params, "triggerPrice"))
 		}
 		return params
 	}()
@@ -2135,9 +2135,9 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if until != nil {
 		request["until"] = this.Iso8601(until)
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, "until")
+			return MapTyped(this.Omit(params, "until"))
 		}
 		return params
 	}()

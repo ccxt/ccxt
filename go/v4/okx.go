@@ -3948,9 +3948,9 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	if until != nil {
 		request["after"] = until
 	}
-	var paramsUntil any = func() any {
+	var paramsUntil map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(paramsPrice, "until")
+			return MapTyped(this.Omit(paramsPrice, "until"))
 		}
 		return paramsPrice
 	}()
@@ -10352,9 +10352,9 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 		if until != nil {
 			request["end"] = until
 		}
-		var paramsOmitted any = func() any {
+		var paramsOmitted map[string]any = func() map[string]any {
 			if until != nil {
-				return this.Omit(paramsMarketType, []any{"until"})
+				return MapTyped(this.Omit(paramsMarketType, []any{"until"}))
 			}
 			return paramsMarketType
 		}()
