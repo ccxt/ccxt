@@ -1001,7 +1001,10 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         let topic = 'account.orderUpdate';
         let messageHash = 'orders';
@@ -1030,7 +1033,10 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         let topic = 'account.orderUpdate';
         let messageHash = 'unsubscribe:orders';

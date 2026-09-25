@@ -8166,7 +8166,10 @@ export default class htx extends Exchange {
         }
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
         const [ marketTypeOption, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchPositions', market, paramsSubType);
-        const marketType: Str = (marketTypeOption === 'spot') ? 'future' : marketTypeOption;
+        let marketType: Str = marketTypeOption;
+        if (marketTypeOption === 'spot') {
+            marketType = 'future';
+        }
         let response = undefined;
         if (subType === 'linear') {
             response = await this.contractPrivateGetV5TradePositionOpens (paramsMarketType);
@@ -9879,7 +9882,10 @@ export default class htx extends Exchange {
         }
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchPositionsADLRank', market, params, 'linear');
         const [ marketTypeOption, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchPositionsADLRank', market, paramsSubType);
-        const marketType: Str = (marketTypeOption === 'spot') ? 'future' : marketTypeOption;
+        let marketType: Str = marketTypeOption;
+        if (marketTypeOption === 'spot') {
+            marketType = 'future';
+        }
         let response = undefined;
         if (subType === 'linear') {
             response = await this.contractPrivateGetV5TradePositionOpens (paramsMarketType);

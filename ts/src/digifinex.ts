@@ -3990,7 +3990,10 @@ export default class digifinex extends Exchange {
             request['margin_mode'] = marginMode;
         }
         const paramsOmitted = (marginMode !== undefined) ? this.omit (params, [ 'marginMode', 'defaultMarginMode' ]) : params;
-        const side = (marginMode === 'isolated') ? this.safeString (paramsOmitted, 'side') : undefined;
+        let side: Str = undefined;
+        if (marginMode === 'isolated') {
+            side = this.safeString (paramsOmitted, 'side');
+        }
         if (marginMode === 'isolated') {
             if (side !== undefined) {
                 request['side'] = side;

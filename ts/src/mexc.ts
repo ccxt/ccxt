@@ -5014,7 +5014,10 @@ export default class mexc extends Exchange {
             // 'limit': limit, // default 1000, maximum 1000
         };
         let currency: Currency = undefined;
-        const rawNetwork = (code !== undefined) ? this.safeString (params, 'network') : undefined;
+        let rawNetwork: Str = undefined;
+        if (code !== undefined) {
+            rawNetwork = this.safeString (params, 'network');
+        }
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];

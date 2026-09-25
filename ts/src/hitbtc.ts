@@ -3033,7 +3033,10 @@ export default class hitbtc extends Exchange {
         }
         const request: Dict = {};
         const [ marketTypeRaw, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
-        const marketType = (marketTypeRaw === 'spot') ? 'swap' : marketTypeRaw;
+        let marketType: Str = marketTypeRaw;
+        if (marketTypeRaw === 'spot') {
+            marketType = 'swap';
+        }
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchPositions', paramsMarketType);
         const paramsOmitted = this.omit (paramsMarginMode, [ 'marginMode', 'margin' ]);
         let response: Dict;

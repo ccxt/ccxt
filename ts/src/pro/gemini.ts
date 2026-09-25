@@ -695,7 +695,10 @@ export default class gemini extends geminiRest {
             'url': url,
         };
         await this.authenticate (authParams);
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         const messageHash = 'orders';
         const orders: ArrayCache = await this.watch (url, messageHash, undefined, messageHash);

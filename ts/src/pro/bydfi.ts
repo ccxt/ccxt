@@ -483,7 +483,7 @@ export default class bydfi extends bydfiRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const depth = '100';
-        const [ depthOption, paramsDepth ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', depth);
+        const [ depthOption, paramsDepth ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'depth', depth);
         const frequency = '100ms';
         const [ frequencyOption, paramsFrequency ] = this.handleOptionStringAndParams (paramsDepth, 'watchOrderBookForSymbols', 'frequency', frequency);
         let channelSuffix = '';
@@ -518,7 +518,7 @@ export default class bydfi extends bydfiRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const depth = '100';
-        const [ depthOption, paramsDepth ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', depth);
+        const [ depthOption, paramsDepth ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'depth', depth);
         const frequency = '100ms';
         const [ frequencyOption, paramsFrequency ] = this.handleOptionStringAndParams (paramsDepth, 'watchOrderBookForSymbols', 'frequency', frequency);
         let channelSuffix = '';

@@ -380,7 +380,7 @@ export default class coinbaseinternational extends Exchange {
     }
 
     async handleNetworkIdAndParams (currencyCode: string, methodName: string, params: Dict = {}): Promise<[Str, Dict]> {
-        const [ networkIdOption, paramsNetworkArnId ] = this.handleOptionAndParams (params, methodName, 'network_arn_id');
+        const [ networkIdOption, paramsNetworkArnId ] = this.handleOptionStringAndParams (params, methodName, 'network_arn_id');
         let networkId: Str = networkIdOption;
         if (networkId === undefined) {
             await this.loadCurrencyNetworks (currencyCode);

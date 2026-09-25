@@ -1015,7 +1015,10 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const subType = this.handleSubTypeAndParams ('watchOrders', market, paramsMarketType, 'linear')[0];
@@ -1086,7 +1089,10 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const subType = this.handleSubTypeAndParams ('watchMyTrades', market, paramsMarketType, 'linear')[0];

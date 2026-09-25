@@ -2783,7 +2783,10 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         // let defaultType = 'future';
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
         const [ request, requestParams ] = this.prepareRequest (market, type, query);
@@ -5541,7 +5544,10 @@ export default class gate extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, paramsPaginate) as Order[];
         }
         const until = this.safeInteger (paramsPaginate, 'until');
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         const res = this.handleMarketTypeAndParams ('fetchClosedOrders', market, paramsPaginate);
         const type = this.safeString (res, 0);
@@ -5564,7 +5570,10 @@ export default class gate extends Exchange {
     }
 
     prepareOrdersByStatusRequest (status: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): [Dict, Dict] {
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const [ trigger, paramsTrigger ] = this.handleParamBool2 (params, 'trigger', 'stop');
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, paramsTrigger);
         const spot = (type === 'spot') || (type === 'margin');
@@ -5600,7 +5609,10 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadUnifiedStatus ();
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         const trigger = this.safeBool2 (params, 'trigger', 'stop');
         const res = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
@@ -7542,7 +7554,10 @@ export default class gate extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMySettlementHistory', market, params);
         const isOption = type === 'option';

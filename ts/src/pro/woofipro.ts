@@ -700,7 +700,10 @@ export default class woofipro extends woofiproRest {
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         if (symbol !== undefined) {
             messageHash += ':' + symbolResolved;
@@ -742,7 +745,10 @@ export default class woofipro extends woofiproRest {
         }
         const paramsOmitted: Dict = this.omit (params, 'stop');
         let messageHash = 'myTrades';
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         if (symbol !== undefined) {
             messageHash += ':' + symbolResolved;

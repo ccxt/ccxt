@@ -448,7 +448,7 @@ export default class gate extends gateRest {
         if (isNonEuSpot) {
             intervalDefault = '50';
         }
-        const [ interval, query ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', intervalDefault);
+        const [ interval, query ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'interval', intervalDefault);
         const messageType = this.getTypeByMarket (market);
         const messageHash = 'orderbook' + ':' + symbolValue;
         // max 100 atm, max 50 for options
@@ -511,7 +511,7 @@ export default class gate extends gateRest {
             intervalDefault = '50';
         }
         const interval = intervalDefault;
-        const [ intervalOption, paramsInterval ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', interval);
+        const [ intervalOption, paramsInterval ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'interval', interval);
         const messageType = this.getTypeByMarket (market);
         let limit = this.safeInteger (paramsInterval, 'limit');
         if (limit === undefined) {

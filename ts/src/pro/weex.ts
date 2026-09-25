@@ -622,7 +622,7 @@ export default class weex extends weexRest {
         let priceType = 'LAST_PRICE';
         let paramsPriceType: Dict = paramsOmitted;
         if (isContract === true) {
-            [ priceType, paramsPriceType ] = this.handleOptionAndParams2 (paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
+            [ priceType, paramsPriceType ] = this.handleOptionStringAndParams2 (paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
@@ -690,7 +690,7 @@ export default class weex extends weexRest {
         let priceType = 'LAST_PRICE';
         let paramsPriceType: Dict = paramsOmitted;
         if (isContract === true) {
-            [ priceType, paramsPriceType ] = this.handleOptionAndParams2 (paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
+            [ priceType, paramsPriceType ] = this.handleOptionStringAndParams2 (paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
@@ -1116,7 +1116,10 @@ export default class weex extends weexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = this.safeString (market, 'symbol');
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const isContract = (marketType !== 'spot');
@@ -1325,7 +1328,10 @@ export default class weex extends weexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = this.safeString (market, 'symbol');
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const isContract = (marketType !== 'spot');

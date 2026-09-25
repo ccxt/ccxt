@@ -1112,7 +1112,10 @@ export default class mexc extends mexcRest {
             await this.loadMarkets ();
         }
         let messageHash = 'myTrades';
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         if (symbol !== undefined) {
             messageHash = messageHash + ':' + symbolResolved;
@@ -1298,7 +1301,10 @@ export default class mexc extends mexcRest {
             await this.loadMarkets ();
         }
         let messageHash = 'orders';
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         if (symbol !== undefined) {
             messageHash = messageHash + ':' + symbolResolved;

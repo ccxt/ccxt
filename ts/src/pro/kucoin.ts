@@ -1531,7 +1531,7 @@ export default class kucoin extends kucoinRest {
         if (isFuturesMethod) {
             optionName = 'contractMethod';
         }
-        const [ methodOption, paramsMethod ] = this.handleOptionAndParams2 (params, 'watchOrderBook', optionName, 'method', defaultMethod);
+        const [ methodOption, paramsMethod ] = this.handleOptionStringAndParams2 (params, 'watchOrderBook', optionName, 'method', defaultMethod);
         let method: string = methodOption;
         if (method.indexOf ('Depth') < 0) {
             if ((limit === 5) || (limit === 50)) {
@@ -1596,7 +1596,7 @@ export default class kucoin extends kucoinRest {
         if (isFuturesMethod) {
             optionName = 'contractMethod';
         }
-        const [ methodOption, paramsMethod ] = this.handleOptionAndParams2 (paramsOmitted, 'watchOrderBook', optionName, 'method', defaultMethod);
+        const [ methodOption, paramsMethod ] = this.handleOptionStringAndParams2 (paramsOmitted, 'watchOrderBook', optionName, 'method', defaultMethod);
         let method: string = methodOption;
         if (method.indexOf ('Depth') < 0) {
             if ((limit === 5) || (limit === 50)) {
@@ -1968,7 +1968,10 @@ export default class kucoin extends kucoinRest {
         }
         const utaEnabled = await this.isUTAEnabled ();
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, 'watchOrders', 'uta', utaEnabled);
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         let messageHash = 'orders';
         if (symbolResolved !== undefined) {
@@ -2392,7 +2395,10 @@ export default class kucoin extends kucoinRest {
             await this.loadMarkets ();
         }
         let messageHash = 'myTrades';
-        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         if (market !== undefined) {
             messageHash = messageHash + ':' + market['symbol'];
@@ -2419,7 +2425,7 @@ export default class kucoin extends kucoinRest {
             if (isFuturesMethod) {
                 optionName = 'contractMethod';
             }
-            const [ topic, paramsTopic ] = this.handleOptionAndParams2 (paramsUta, 'watchMyTrades', optionName, 'method', defaultTopic);
+            const [ topic, paramsTopic ] = this.handleOptionStringAndParams2 (paramsUta, 'watchMyTrades', optionName, 'method', defaultTopic);
             const request: Dict = {
                 'privateChannel': true,
             };
