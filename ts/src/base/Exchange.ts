@@ -3350,14 +3350,24 @@ export class BaseExchange {
         }
     }
 
-    handleDeltas (orderbook: any, deltas: any) {
+    handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (orderbook, deltas[i]);
+            this.handleDelta (bookside, deltas[i]);
         }
     }
 
     handleDelta (bookside: any, delta: any) {
         throw new NotSupported (this.id + ' handleDelta not supported yet');
+    }
+
+    handleBookDeltas (orderbook: any, deltas: any) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleBookDelta (orderbook, deltas[i]);
+        }
+    }
+
+    handleBookDelta (orderbook: any, delta: any) {
+        throw new NotSupported (this.id + ' handleBookDelta not supported yet');
     }
 
     handleDeltasWithKeys (bookSide: any, deltas: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
@@ -9844,7 +9854,7 @@ export default class Exchange extends BaseExchange {
                 const index = this.getCacheIndex (orderBook, cache);
                 if (index >= 0) {
                     stored.reset (orderBook);
-                    this.handleDeltas (stored, cache.slice (index));
+                    this.handleBookDeltas (stored, cache.slice (index));
                     stored.cache.length = 0;
                     client.resolve (stored, messageHash);
                     return;

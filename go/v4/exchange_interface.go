@@ -379,7 +379,9 @@ type IDerivedExchange interface {
 	HandleDelta(bookside any, delta any)
 	GetCacheIndex(orderbook any, deltas any) any
 	Ping(client any) any
-	HandleDeltas(orderbook any, deltas any)
+	HandleDeltas(bookside any, deltas any)
+	HandleBookDelta(orderbook any, delta any)
+	HandleBookDeltas(orderbook any, deltas any)
 	ParseLeverage(leverage any, optionalArgs ...any) any
 	ParseOHLCV(ohlcv any, optionalArgs ...any) any
 	ParseTrade(trade any, optionalArgs ...any) any

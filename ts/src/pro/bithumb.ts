@@ -466,7 +466,7 @@ export default class bithumb extends bithumbRest {
                 this.orderbooks[legacySymbol] = ob;
             }
             const legacyOrderbook = this.orderbooks[legacySymbol];
-            this.handleDeltas (legacyOrderbook, list);
+            this.handleBookDeltas (legacyOrderbook, list);
             legacyOrderbook['timestamp'] = legacyTimestamp;
             legacyOrderbook['datetime'] = this.iso8601 (legacyTimestamp);
             const legacyMessageHash = 'orderbook' + ':' + legacySymbol;
@@ -517,7 +517,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: any, delta: any) {
         //
         //    {
         //        symbol: "ETH_BTC",
@@ -537,9 +537,9 @@ export default class bithumb extends bithumbRest {
         orderbookSide.storeArray (bidAsk);
     }
 
-    override handleDeltas (orderbook: any, deltas: any) {
+    override handleBookDeltas (orderbook: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (orderbook, deltas[i]);
+            this.handleBookDelta (orderbook, deltas[i]);
         }
     }
 
