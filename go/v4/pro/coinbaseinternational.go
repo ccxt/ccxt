@@ -127,8 +127,8 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
 		}
 	} else if symbolsLength == 1 {
 		market = this.Market(ccxt.GetValue(symbolsResolved, 0))
-		messageHash = ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(market, "symbol"))
-		productIds = []any{ccxt.GetValue(market, "id")}
+		messageHash = ccxt.Add(ccxt.Add(name, "::"), market["symbol"])
+		productIds = []any{market["id"]}
 	}
 	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 	if url == nil {
@@ -323,7 +323,7 @@ func (this *Coinbaseinternational) GetActiveSymbols() any {
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = ccxt.GetValue(symbols, i).(string)
 		var market map[string]any = this.Market(symbol)
-		if ccxt.GetValue(market, "active") == true {
+		if market["active"] == true {
 			output = append(output, symbol)
 		}
 	}

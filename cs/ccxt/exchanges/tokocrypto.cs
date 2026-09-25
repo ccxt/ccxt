@@ -2814,7 +2814,7 @@ public partial class tokocrypto : Exchange
         }
         IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
         string? networkCode = (string)networkCodequeryVariable[0];
-        var query = networkCodequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)networkCodequeryVariable[1]);
         string? networkId = this.networkCodeToId(networkCode, code);
         if ((networkId != null))
         {

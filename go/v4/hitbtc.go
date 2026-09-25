@@ -1504,7 +1504,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 
 		var responseInner []any = ListTyped(PanicOnError((<-this.PublicGetPublicTradesSymbol(this.Extend(request, params))).Raw))
 
@@ -1566,7 +1566,7 @@ func (this *Hitbtc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -2118,10 +2118,10 @@ func (this *Hitbtc) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	if GetValue(market, "type") == "spot" {
+	if market["type"] == "spot" {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetSpotFeeSymbol(this.Extend(request, params))).Raw))
-	} else if GetValue(market, "type") == "swap" {
+	} else if market["type"] == "swap" {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesFeeSymbol(this.Extend(request, params))).Raw))
 	} else {
@@ -2370,7 +2370,7 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["from"] = this.Iso8601(since)
@@ -2638,7 +2638,7 @@ func (this *Hitbtc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchOpenOrders", paramsMarketType)
@@ -2781,7 +2781,7 @@ func (this *Hitbtc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("cancelAllOrders", paramsMarketType)
@@ -3391,7 +3391,7 @@ func (this *Hitbtc) withdrawBody(ch chan any, code string, amount any, address a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
@@ -3404,7 +3404,7 @@ func (this *Hitbtc) withdrawBody(ch chan any, code string, amount any, address a
 		"amount":   amount,
 		"address":  address,
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["payment_id"] = tagWithdrawTag
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
@@ -3555,7 +3555,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsPaginate)
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(requestUntil, "symbols", GetValue(market, "id"))
+		AddElementToObject(requestUntil, "symbols", market["id"])
 	}
 	if since != nil {
 		AddElementToObject(requestUntil, "from", since)
@@ -3610,7 +3610,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		if market == nil {
 			return symbol
 		}
-		return GetValue(market, "symbol")
+		return market["symbol"]
 	}()
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit)
@@ -3999,7 +3999,7 @@ func (this *Hitbtc) fetchOpenInterestBody(ch chan any, symbol string, optionalAr
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchOpenInterest() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -4051,7 +4051,7 @@ func (this *Hitbtc) fetchFundingRateBody(ch chan any, symbol string, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -4135,7 +4135,7 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol string, amount an
 	}
 	var market map[string]any = this.Market(symbol)
 	var leverage *string = this.SafeString(params, "leverage")
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		if leverage == nil {
 			panic(ArgumentsRequired(this.Id + " modifyMarginHelper() requires a leverage parameter for swap markets"))
 		}
@@ -4330,13 +4330,13 @@ func (this *Hitbtc) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Raw))
 	} else {
-		if GetValue(market, "type") == "spot" {
+		if market["type"] == "spot" {
 
 			response = MapTyped(PanicOnError((<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Raw))
-		} else if GetValue(market, "type") == "swap" {
+		} else if market["type"] == "swap" {
 
 			response = MapTyped(PanicOnError((<-this.PrivateGetFuturesAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Raw))
-		} else if GetValue(market, "type") == "margin" {
+		} else if market["type"] == "margin" {
 
 			response = MapTyped(PanicOnError((<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Raw))
 		} else {
@@ -4426,7 +4426,7 @@ func (this *Hitbtc) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	var market map[string]any = this.Market(symbol)
 	var amount *float64 = this.SafeNumber(params, "margin_balance")
 	var maxLeverage *int64 = this.SafeInteger(GetValue(market["limits"], "leverage"), "max", 50)
-	if GetValue(market, "type") != "swap" {
+	if market["type"] != "swap" {
 		panic(BadSymbol(this.Id + " setLeverage() supports swap contracts only"))
 	}
 	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, maxLeverage)) {

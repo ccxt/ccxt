@@ -684,8 +684,8 @@ public partial class grvt : ccxt.grvt
         {
             List<object> asks = this.safeList(data, "asks", new List<object>() {});
             List<object> bids = this.safeList(data, "bids", new List<object>() {});
-            this.handleDeltasWithKeys(getValue(orderbook, "asks"), asks, "price", "size");
-            this.handleDeltasWithKeys(getValue(orderbook, "bids"), bids, "price", "size");
+            this.handleDeltasWithKeys(orderbook?.asks, asks, "price", "size");
+            this.handleDeltasWithKeys(orderbook?.bids, bids, "price", "size");
             orderbook["timestamp"] = timestamp;
             orderbook["datetime"] = this.iso8601(timestamp);
         }

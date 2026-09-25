@@ -1655,7 +1655,7 @@ func (this *Toobit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 		var length int = len(symbolsNormalized)
 		if (length == 1) && ((market != nil)) {
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
@@ -2119,7 +2119,7 @@ func (this *Toobit) createOrderBody(ch chan any, symbol string, typeVar string, 
 	}
 	var market map[string]any = this.Market(symbol)
 	var response any = map[string]any{}
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		requestparamsRequestVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		request := GetValue(requestparamsRequestVariable, 0)
 		paramsRequest := GetValue(requestparamsRequestVariable, 1)
@@ -2476,7 +2476,7 @@ func (this *Toobit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, params, "none")
 	if marketType != nil && *marketType == "none" {
@@ -2532,7 +2532,7 @@ func (this *Toobit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params, "none")
 	if marketType != nil && *marketType == "none" {
@@ -2645,7 +2645,7 @@ func (this *Toobit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	var market map[string]any = this.Market(symbol)
 	var response any = map[string]any{}
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = (<-this.PrivateGetApiV1SpotOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2723,7 +2723,7 @@ func (this *Toobit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -2786,7 +2786,7 @@ func (this *Toobit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(requestUntil, "symbol", GetValue(market, "id"))
+		AddElementToObject(requestUntil, "symbol", market["id"])
 	}
 	var marketType *string = SafeStringPtr(GetValue(TupleSlice(this.HandleMarketTypeAndParams("fetchOrders", market, paramsUntil)), 0))
 	var response any = []any{}
@@ -2838,7 +2838,7 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -3432,7 +3432,7 @@ func (this *Toobit) fetchDepositAddressBody(ch chan any, code string, optionalAr
 	}
 	var networkCodeparamsOmittedVariable []any = this.HandleNetworkCodeAndParams(this.Extend(request, params))
 	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsOmittedVariable, 0))
-	paramsOmitted := GetValue(networkCodeparamsOmittedVariable, 1)
+	var paramsOmitted map[string]any = MapTyped(GetValue(networkCodeparamsOmittedVariable, 1))
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() : param[\"network\"] is required"))
 	}
@@ -3561,7 +3561,7 @@ func (this *Toobit) setMarginModeBody(ch chan any, marginMode string, optionalAr
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "type") != "swap" {
+	if market["type"] != "swap" {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
 	var marginModeValue string = strings.ToUpper(marginMode)
@@ -3724,7 +3724,7 @@ func (this *Toobit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		if firstSymbol != nil {
 			market = this.Market(firstSymbol)
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 

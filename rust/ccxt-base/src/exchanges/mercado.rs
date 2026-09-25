@@ -1231,18 +1231,18 @@ impl MercadoCore {
             m
         });
         if (code.as_str() == Some("BRL")) {
-            let mut account_ref: bool = in_op(&paramsWithdrawTag, &Value::Str("account_ref".into()));
+            let mut account_ref: bool = matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("account_ref"));
             if !account_ref {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires account_ref parameter to withdraw ".into())).into()), code)));
             }
         }  else if (code.as_str() != Some("LTC")) {
-            let mut tx_fee: bool = in_op(&paramsWithdrawTag, &Value::Str("tx_fee".into()));
+            let mut tx_fee: bool = matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("tx_fee"));
             if !tx_fee {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires tx_fee parameter to withdraw ".into())).into()), code)));
             }
             if (code.as_str() == Some("XRP")) {
                 if (tagWithdrawTag == Value::Null) {
-                    if !(in_op(&paramsWithdrawTag, &Value::Str("destination_tag".into()))) {
+                    if !(matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("destination_tag"))) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a tag argument or destination_tag parameter to withdraw ".into())).into()), code)));
                     }
                 }  else {

@@ -1061,7 +1061,7 @@ func (this *Bit2c) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["pair"] = GetValue(market, "id")
+		request["pair"] = market["id"]
 	}
 
 	response := (<-this.PrivateGetOrderOrderHistory(this.Extend(request, params))).Raw

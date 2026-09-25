@@ -183,7 +183,10 @@ func (this *Poloniex) subscribeBody(ch chan any, name any, messageHash any, isPr
 	if ccxt.EvalTruthy(isPrivate) {
 		publicOrPrivate = "private"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), publicOrPrivate)
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), publicOrPrivate)
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var subscribe map[string]any = map[string]any{
 		"event":   "subscribe",
 		"channel": []any{name},
@@ -1187,8 +1190,8 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 					ccxt.AddElementToObject(previousOrder, "trades", []any{})
 				}
-				retRes90120 := ccxt.GetValue(previousOrder, "trades")
-				ccxt.AppendToArray(&retRes90120, trade)
+				retRes90420 := ccxt.GetValue(previousOrder, "trades")
+				ccxt.AppendToArray(&retRes90420, trade)
 				ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 				var totalCost any = "0"
 				var totalAmount any = "0"

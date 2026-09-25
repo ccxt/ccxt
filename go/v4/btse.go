@@ -990,7 +990,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		// the endpoint accepts timestamps in seconds
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(paramsPaginate, "fetchOHLCV", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchOHLCV", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
@@ -1141,7 +1141,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") != true {
+	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports contract markets only"))
 	}
 	var period *string = nil
@@ -1163,7 +1163,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		"symbol": market["id"],
 		"period": period,
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(paramsPeriod, "fetchFundingRateHistory", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPeriod, "fetchFundingRateHistory", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 
@@ -1469,7 +1469,7 @@ func (this *Btse) fetchMarketLeverageTiersBody(ch chan any, symbol string, optio
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") != true {
+	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
 	}
 
@@ -1650,7 +1650,7 @@ func (this *Btse) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() symbol does not support market " + symbol))
 	}
 	var request map[string]any = map[string]any{
@@ -1753,7 +1753,7 @@ func (this *Btse) fetchFundingRateBody(ch chan any, symbol string, optionalArgs 
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(BadRequest(this.Id + " fetchFundingRate() symbol does not support spot markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -1916,7 +1916,7 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["limit"] = mathMin(limit, 500) // the endpoint supports a maximum of 500 trades
 	}
 	// the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(params, "fetchTrades", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchTrades", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 
@@ -2307,7 +2307,7 @@ func (this *Btse) createOrderBody(ch chan any, symbol string, typeVar string, si
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		var retRes191619 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
 		ch <- BoxAbsent(retRes191619)
@@ -2918,7 +2918,7 @@ func (this *Btse) editOrderBody(ch chan any, id string, symbol any, typeVar any,
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter"))
 	}
 	var response []any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		request["symbol"] = market["id"]
 
 		response = ListTyped(PanicOnError((<-this.PrivatePutSpotApiV4TradeOrders(this.Extend(request, query))).Raw))
@@ -2993,7 +2993,7 @@ func (this *Btse) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		return params
 	}()
 	var response []any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		request["symbol"] = market["id"]
 
 		response = ListTyped(PanicOnError((<-this.PrivateDeleteSpotApiV4TradeOrders(this.Extend(request, paramsOmitted))).Raw))
@@ -3460,7 +3460,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName string, h
 	if limit != nil {
 		request["pageSize"] = limit
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(paramsOmitted, methodName, "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
@@ -3764,7 +3764,7 @@ func (this *Btse) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["pageSize"] = limit
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams(paramsOmitted, "fetchLedger", "until")
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, "fetchLedger", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := GetValue(untilparamsUntilVariable, 1)
 	if !IsEqual(until, nil) {
@@ -3917,7 +3917,7 @@ func (this *Btse) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs .
 		"symbol": market["id"],
 	}
 	var response []any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = ListTyped(PanicOnError((<-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))).Raw))
 	} else {

@@ -2220,7 +2220,7 @@ func (this *Ndax) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["InstrumentId"] = GetValue(market, "id")
+		request["InstrumentId"] = market["id"]
 	}
 	if since != nil {
 		request["StartTimeStamp"] = this.ParseToInt(Divide(since, 1000))
@@ -2539,7 +2539,7 @@ func (this *Ndax) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["InstrumentId"] = GetValue(market, "id")
+		request["InstrumentId"] = market["id"]
 	}
 	if since != nil {
 		request["StartTimeStamp"] = this.ParseToInt(Divide(since, 1000))
@@ -3272,7 +3272,7 @@ func (this *Ndax) withdrawBody(ch chan any, code string, amount any, address any
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	// this method required login, password and twofa key
 	var sessionToken *string = this.SafeString(this.Options, "sessionToken")
@@ -3342,7 +3342,7 @@ func (this *Ndax) withdrawBody(ch chan any, code string, amount any, address any
 	}
 	var withdrawTemplate any = JsonParse(template)
 	AddElementToObject(withdrawTemplate, "ExternalAddress", address)
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		if InOp(withdrawTemplate, "Memo") {
 			AddElementToObject(withdrawTemplate, "Memo", tagWithdrawTag)
 		}

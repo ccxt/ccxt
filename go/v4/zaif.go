@@ -895,7 +895,7 @@ func (this *Zaif) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["currency_pair"] = GetValue(market, "id")
+		request["currency_pair"] = market["id"]
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostActiveOrders(this.Extend(request, params))).Raw))
@@ -940,7 +940,7 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["currency_pair"] = GetValue(market, "id")
+		request["currency_pair"] = market["id"]
 	}
 	if since != nil {
 		request["since"] = this.ParseToInt(Divide(since, 1000))
@@ -981,7 +981,7 @@ func (this *Zaif) withdrawBody(ch chan any, code string, amount any, address any
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
@@ -997,7 +997,7 @@ func (this *Zaif) withdrawBody(ch chan any, code string, amount any, address any
 		"amount":   amount,
 		"address":  address,
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["message"] = tagWithdrawTag
 	}
 

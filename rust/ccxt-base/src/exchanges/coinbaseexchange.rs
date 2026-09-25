@@ -2525,10 +2525,10 @@ impl CoinbaseexchangeCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (in_op(&paramsWithdrawTag, &Value::Str("payment_method_id".into()))) {
+        if (matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("payment_method_id"))) {
             let __ws_arg_22 = self.extend(request.clone(), &[paramsWithdrawTag.clone()]);
             response = self.private_post_withdrawals_payment_method(&[__ws_arg_22]).await;
-        }  else if (in_op(&paramsWithdrawTag, &Value::Str("coinbase_account_id".into()))) {
+        }  else if (matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("coinbase_account_id"))) {
             let __ws_arg_23 = self.extend(request.clone(), &[paramsWithdrawTag.clone()]);
             response = self.private_post_withdrawals_coinbase_account(&[__ws_arg_23]).await;
         }  else {

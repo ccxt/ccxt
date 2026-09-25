@@ -677,7 +677,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol string, optionalAr
 		"currencyPair": market["id"],
 	}
 	var level int = 0
-	var levelOptionparamsLevelVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "level", level)
+	var levelOptionparamsLevelVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOrderBook", "level", level)
 	levelOption := GetValue(levelOptionparamsLevelVariable, 0)
 	paramsLevel := GetValue(levelOptionparamsLevelVariable, 1)
 	request["level"] = levelOption
@@ -1055,7 +1055,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -1159,7 +1159,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 	var request map[string]any = map[string]any{}
 	if market != nil {
-		request["market"] = GetValue(market, "id")
+		request["market"] = market["id"]
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV2UserApiExchangeOrders(this.Extend(request, params))).Raw))

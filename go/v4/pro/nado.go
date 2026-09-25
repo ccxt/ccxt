@@ -863,9 +863,9 @@ func (this *Nado) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
-		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
+		productId = this.ParseToInt(market["id"])
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "watchOrders", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -918,9 +918,9 @@ func (this *Nado) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
-		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
+		productId = this.ParseToInt(market["id"])
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "unWatchOrders", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -974,9 +974,9 @@ func (this *Nado) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
-		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
+		productId = this.ParseToInt(market["id"])
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "watchMyTrades", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1029,9 +1029,9 @@ func (this *Nado) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
-		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
+		productId = this.ParseToInt(market["id"])
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "unWatchMyTrades", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1640,9 +1640,7 @@ func (this *Nado) authenticateBody(ch chan any, optionalArgs ...any) any {
 		ch <- authenticated
 		return nil
 	}
-	var recvWindowparamsRecvWindowVariable []any = this.HandleOptionIntegerAndParams(params, "authenticate", "recvWindow", 5000)
-	recvWindow := ccxt.GetValue(recvWindowparamsRecvWindowVariable, 0)
-	paramsRecvWindow := ccxt.GetValue(recvWindowparamsRecvWindowVariable, 1)
+	recvWindow, paramsRecvWindow := this.HandleOptionIntegerAndParams(params, "authenticate", "recvWindow", 5000)
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(paramsRecvWindow, "authenticate", "subaccount", "default")
 	var id int64 = this.RequestId()
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)

@@ -514,9 +514,9 @@ func (this *Delta) SafeMarket(optionalArgs ...any) map[string]any {
 	var isOption bool = (marketId != nil) && ((EndsWith(marketId, "-C")) || (EndsWith(marketId, "-P")) || (StartsWith(marketId, "C-")) || (StartsWith(marketId, "P-")))
 	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
 		// handle expired option contracts
-		return MapTyped(this.CreateExpiredOptionMarket(marketId))
+		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}
-	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
+	return MarketTyped(this.Exchange.SafeMarket(marketId, market, delimiter, marketType))
 }
 
 /**
@@ -2804,7 +2804,7 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method string, optiona
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["product_ids"] = GetValue(market, "numericId") // accepts a comma-separated list of ids
+		request["product_ids"] = market["numericId"] // accepts a comma-separated list of ids
 	}
 	if since != nil {
 		request["start_time"] = ToString(since) + "000"
@@ -2882,7 +2882,7 @@ func (this *Delta) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["product_ids"] = GetValue(market, "numericId") // accepts a comma-separated list of ids
+		request["product_ids"] = market["numericId"] // accepts a comma-separated list of ids
 	}
 	if since != nil {
 		request["start_time"] = ToString(since) + "000"
@@ -3197,7 +3197,7 @@ func (this *Delta) fetchFundingRateBody(ch chan any, symbol string, optionalArgs
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -3574,7 +3574,7 @@ func (this *Delta) fetchOpenInterestBody(ch chan any, symbol string, optionalArg
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") != true {
+	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{

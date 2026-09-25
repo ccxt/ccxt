@@ -1066,9 +1066,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var query any = nil
 	paginate, query = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	var paginationCalls any = 10
-	var paginationCallsqueryVariable []any = this.HandleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10)
-	paginationCalls = GetValue(paginationCallsqueryVariable, 0)
-	query = GetValue(paginationCallsqueryVariable, 1)
+	paginationCalls, query = this.HandleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10)
 	var request map[string]any = map[string]any{
 		"symbols": marketId,
 		"loc":     loc,
@@ -1748,7 +1746,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbols"] = GetValue(market, "id")
+		request["symbols"] = market["id"]
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
@@ -2322,7 +2320,7 @@ func (this *Alpaca) withdrawBody(ch chan any, code string, amount any, address a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
@@ -2331,7 +2329,7 @@ func (this *Alpaca) withdrawBody(ch chan any, code string, amount any, address a
 	}
 	var currency map[string]any = this.Currency(code)
 	var addressValue any = address
-	if (!IsEqual(tagWithdrawTag, nil)) && (!IsEqual(tagWithdrawTag, "")) {
+	if (tagWithdrawTag != nil) && (tagWithdrawTag == nil || *tagWithdrawTag != "") {
 		addressValue = Add(Add(address, ":"), tagWithdrawTag)
 	}
 	var request map[string]any = map[string]any{

@@ -128,8 +128,8 @@ public partial class extended : ccxt.extended
             client.reject(error, messageHash);
             return;
         }
-        this.handleDeltas(getValue(orderbook, "bids"), this.safeList(data, "b", new List<object>() {}));
-        this.handleDeltas(getValue(orderbook, "asks"), this.safeList(data, "a", new List<object>() {}));
+        this.handleDeltas(orderbook?.bids, this.safeList(data, "b", new List<object>() {}));
+        this.handleDeltas(orderbook?.asks, this.safeList(data, "a", new List<object>() {}));
         orderbook["timestamp"] = timestamp;
         orderbook["datetime"] = this.iso8601(timestamp);
         orderbook["nonce"] = nonce;

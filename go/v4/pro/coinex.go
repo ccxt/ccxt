@@ -293,7 +293,10 @@ func (this *Coinex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params, "spot")
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(typeVar)))
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	// coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
 	var activeCurrencies []any = this.FilterBy(this.Currencies_by_id, "active", true)
 	var activeCurrenciesById map[string]any = this.IndexBy(activeCurrencies, "id")
@@ -487,17 +490,20 @@ func (this *Coinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params, "spot")
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(typeVar)))
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var subscribedSymbols []any = []any{}
 	var messageHash any = "myTrades"
 	if !ccxt.IsEqual(market, nil) {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
-		subscribedSymbols = append(subscribedSymbols, ccxt.GetValue(market, "id"))
+		subscribedSymbols = append(subscribedSymbols, market["id"])
 	} else {
 		if ccxt.IsEqual(typeVar, "spot") {
 			messageHash = ccxt.Add(messageHash, ":spot")
@@ -776,14 +782,17 @@ func (this *Coinex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < len(symbols); i++ {
 			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 			market = this.Market(symbol)
-			messageHashes = append(messageHashes, ccxt.Add("tickers::", ccxt.GetValue(market, "symbol")))
+			messageHashes = append(messageHashes, ccxt.Add("tickers::", market["symbol"]))
 		}
 	} else {
 		marketIds = []any{}
 		messageHashes = append(messageHashes, "tickers")
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchTickers", market, params)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var subscriptionHashes []any = []any{"all@ticker"}
 	var subscribe map[string]any = map[string]any{
 		"method": "state.subscribe",
@@ -878,14 +887,17 @@ func (this *Coinex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 			market = this.Market(symbol)
-			subscribedSymbols = append(subscribedSymbols, ccxt.GetValue(market, "id"))
-			messageHashes = append(messageHashes, ccxt.Add("trades:", ccxt.GetValue(market, "symbol")))
+			subscribedSymbols = append(subscribedSymbols, market["id"])
+			messageHashes = append(messageHashes, ccxt.Add("trades:", market["symbol"]))
 		}
 	} else {
 		messageHashes = append(messageHashes, "trades")
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(callerMethodName, market, paramsCallerMethodName)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	// const subscriptionHashes = [ 'trades' ]
 	var subscribe map[string]any = map[string]any{
 		"method": "deals.subscribe",
@@ -965,8 +977,8 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		market = this.Market(symbol)
-		messageHashes = append(messageHashes, ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol")))
-		ccxt.AddElementToObject(watchOrderBookSubscriptions, symbol, []any{ccxt.GetValue(market, "id"), limitResolved, aggregation, true})
+		messageHashes = append(messageHashes, ccxt.Add("orderbook:", market["symbol"]))
+		ccxt.AddElementToObject(watchOrderBookSubscriptions, symbol, []any{market["id"], limitResolved, aggregation, true})
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(callerMethodName, market, paramsOmitted)
 	var marketList []any = ccxt.ObjectValues(watchOrderBookSubscriptions)
@@ -978,7 +990,10 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		"id": this.RequestId(),
 	}
 	// const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), ccxt.Sha256)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 
 	orderbooks := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(subscribe, paramsMarketType), messageHashes))
 	ccxt.PanicOnError(orderbooks)
@@ -1164,7 +1179,10 @@ func (this *Coinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		},
 		"id": this.RequestId(),
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var request map[string]any = this.DeepExtend(message, paramsMarketType)
 
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request))))
@@ -1493,13 +1511,16 @@ func (this *Coinex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < len(symbols); i++ {
 			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 			market = this.Market(symbol)
-			messageHashes = append(messageHashes, ccxt.Add("bidsasks:", ccxt.GetValue(market, "symbol")))
+			messageHashes = append(messageHashes, ccxt.Add("bidsasks:", market["symbol"]))
 		}
 	} else {
 		messageHashes = append(messageHashes, "bidsasks")
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", market, params)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var subscriptionHashes []any = []any{"all@bidsasks"}
 	var subscribe map[string]any = map[string]any{
 		"method": "bbo.subscribe",
@@ -1666,7 +1687,10 @@ func (this *Coinex) AuthenticateAsync(typeVar any) <-chan any {
 func (this *Coinex) authenticateBody(ch chan any, typeVar any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var client ccxt.ClientInterface = this.Client(url)
 	var time int64 = this.Milliseconds()
 	var timestamp string = strconv.FormatInt(time, 10)

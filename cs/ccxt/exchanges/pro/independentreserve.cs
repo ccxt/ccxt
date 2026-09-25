@@ -236,16 +236,16 @@ public partial class independentreserve : ccxt.independentreserve
         {
             List<object> asks = this.safeList(orderBook, "Offers", new List<object>() {});
             List<object> bids = this.safeList(orderBook, "Bids", new List<object>() {});
-            this.handleDeltas(getValue(orderbook, "asks"), asks);
-            this.handleDeltas(getValue(orderbook, "bids"), bids);
+            this.handleDeltas(orderbook?.asks, asks);
+            this.handleDeltas(orderbook?.bids, bids);
             orderbook["timestamp"] = timestamp;
             orderbook["datetime"] = this.iso8601(timestamp);
         }
         bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
         if (((checksum == true)) && ((receivedSnapshot == true)))
         {
-            object storedAsks = getValue(orderbook, "asks");
-            object storedBids = getValue(orderbook, "bids");
+            ccxt.pro.IAsks storedAsks = orderbook?.asks;
+            ccxt.pro.IBids storedBids = orderbook?.bids;
             int asksLength = getArrayLength(storedAsks);
             int bidsLength = getArrayLength(storedBids);
             object payload = "";

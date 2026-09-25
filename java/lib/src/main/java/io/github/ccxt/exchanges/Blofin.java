@@ -1729,7 +1729,7 @@ public class Blofin extends BlofinApi
             request.put((String)key, this.priceToPrecision(symbol, price));
         }
         Boolean postOnly = false;
-        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), query);
+        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), Helpers.toMapArg(query));
         postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
         query = ((List<Object>) postOnlyqueryVariable).get(1);
         if (Boolean.TRUE.equals(postOnly))
@@ -2523,7 +2523,7 @@ public class Blofin extends BlofinApi
             //   error table documents the message as "Parameter {} error"
             Object tagValue = null;
             Object query = null;
-            List<Object> tagValuequeryVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            List<Object> tagValuequeryVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
             tagValue = ((List<Object>) tagValuequeryVariable).get(0);
             query = ((List<Object>) tagValuequeryVariable).get(1);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2553,7 +2553,7 @@ public class Blofin extends BlofinApi
             // consume the unified network key unconditionally so it never leaks
             // onto the wire; an explicit raw params['chain'] takes precedence
             String networkCode = null;
-            List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(query);
+            List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (query));
             networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             query = ((List<Object>) networkCodequeryVariable).get(1);
             String chain = this.safeString(query, "chain");

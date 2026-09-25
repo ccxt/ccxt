@@ -1184,8 +1184,8 @@ public partial class cex : ccxt.cex
         Int64? timestamp = this.safeInteger(data, "time");
         List<object> asks = this.safeList(data, "asks", new List<object>() {});
         List<object> bids = this.safeList(data, "bids", new List<object>() {});
-        this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
-        this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
+        this.handleDeltas(storedOrderBook?.asks, asks);
+        this.handleDeltas(storedOrderBook?.bids, bids);
         storedOrderBook["timestamp"] = timestamp;
         storedOrderBook["datetime"] = this.iso8601(timestamp);
         storedOrderBook["nonce"] = incrementalId;

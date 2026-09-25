@@ -2300,7 +2300,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		orderType = "FOK"
 	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", params)
-	if (GetValue(market, "spot") == true) && (marginMode == nil) {
+	if (market["spot"] == true) && (marginMode == nil) {
 		// The EXCHANGE prefix is only required for non margin spot markets
 		orderType = "EXCHANGE " + orderType
 	}
@@ -2849,7 +2849,7 @@ func (this *Bitfinex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(response)
 	} else {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 
 		response = (<-this.PrivatePostAuthROrdersSymbol(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2961,7 +2961,7 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(response)
 	} else {
 		market = this.Market(symbol)
-		AddElementToObject(requestUntil, "symbol", GetValue(market, "id"))
+		AddElementToObject(requestUntil, "symbol", market["id"])
 
 		response = (<-this.PrivatePostAuthROrdersSymbolHist(this.Extend(requestUntil, paramsUntil)))
 		PanicOnError(response)
@@ -3122,7 +3122,7 @@ func (this *Bitfinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 
 		response = (<-this.PrivatePostAuthRTradesSymbolHist(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4931,7 +4931,7 @@ func (this *Bitfinex) setMarginBody(ch chan any, symbol any, amount any, optiona
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(NotSupported(this.Id + " setMargin() only support swap markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -5022,7 +5022,7 @@ func (this *Bitfinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		PanicOnError(response)
 	} else {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 
 		response = (<-this.PrivatePostAuthROrdersSymbol(this.Extend(request, params)))
 		PanicOnError(response)

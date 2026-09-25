@@ -303,6 +303,8 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.HandleOptionBoolAndParams2': '[]any',
     'this.HandleOptionBoolAndParamsNullable': '[]any',
     'this.HandleOptionBoolAndParams2Nullable': '[]any',
+    'this.HandleOptionIntegerAndParamsNullable': '[]any',
+    'this.HandleOptionIntegerAndParams2Nullable': '[]any',
     'this.HandleOptionIntegerAndParams': '[]any',
     'this.HandleOptionIntegerAndParams2': '[]any',
     'this.HandleParamString': '[]any',
@@ -2460,6 +2462,8 @@ export const CCXT_GO_ARRAY_BINDING_HOLDERS = [
     'HandleOptionBoolAndParams2',
     'HandleOptionBoolAndParamsNullable',
     'HandleOptionBoolAndParams2Nullable',
+    'HandleOptionIntegerAndParamsNullable',
+    'HandleOptionIntegerAndParams2Nullable',
     'HandleOptionIntegerAndParams',
     'HandleOptionIntegerAndParams2',
     'HandleParamString',
@@ -6709,10 +6713,12 @@ function installCcxtGoDestructuredPointerBoxes (goTranspiler) {
 const CCXT_GO_TUPLE_PARAMS_PRODUCERS = {
     'this.HandleMarketTypeAndParams': -1, 'this.HandleSubTypeAndParams': -1, 'this.HandleMarginModeAndParams': -1,
     'this.HandleNetworkCodeAndParams': 0, 'this.HandleParamString': 0, 'this.HandleParamString2': 0,
+    'this.HandleWithdrawTagAndParams': 1, 'this.HandlePostOnly': 2,
     'this.HandleOptionAndParams': 0, 'this.HandleOptionAndParams2': 0,
     'this.HandleOptionStringAndParams': 0, 'this.HandleOptionStringAndParams2': 0,
     'this.HandleOptionBoolAndParams': 0, 'this.HandleOptionBoolAndParams2': 0,
     'this.HandleOptionBoolAndParamsNullable': 0, 'this.HandleOptionBoolAndParams2Nullable': 0,
+    'this.HandleOptionIntegerAndParamsNullable': 0, 'this.HandleOptionIntegerAndParams2Nullable': 0,
 };
 
 // Go type of element `index` of a `this.<m> (..)` tuple, read off the checker's declared return
@@ -9470,18 +9476,29 @@ function installCcxtGoTupleParamsRebind (goTranspiler) {
 // typed unwraps becomes `a, b := call`; every other use keeps the old `[]any` via TupleSlice(..).
 const CCXT_GO_TUPLE_RESULT_METHODS = [ 'handleMarketTypeAndParams', 'handleSubTypeAndParams',
     'handleOptionStringAndParams', 'handleUntilOption', 'handleMarginModeAndParams',
-    'handleOptionBoolAndParams', 'handleOptionBoolAndParams2' ];
+    'handleOptionBoolAndParams', 'handleOptionBoolAndParams2', 'handleOptionIntegerAndParams', 'handleOptionIntegerAndParams2',
+    'handleOptionStringAndParams2' ];
 // element 0 unwrap per method (element 1 is always the params map); default SafeStringPtr
 const CCXT_GO_TUPLE_RESULT_ELEMENT_0 = { 'handleUntilOption': 'MapTyped', 'handleOptionBoolAndParams': 'GetValueBool',
-    'handleOptionBoolAndParams2': 'GetValueBool' };
-// the `defaultValue: boolean` overload (a true/false literal default) returns Go (bool, map[string]any);
-// every other call resolves the `defaultValue?: Bool` overload, printed as <Name>Nullable with the []any result
-const CCXT_GO_TUPLE_BOOL_DEFAULT_SLOT = { 'handleOptionBoolAndParams': 3, 'handleOptionBoolAndParams2': 4 };
+    'handleOptionBoolAndParams2': 'GetValueBool', 'handleOptionIntegerAndParams': 'Int64Value',
+    'handleOptionIntegerAndParams2': 'Int64Value' };
+// the value overload (`defaultValue: boolean` / `number`) with a true/false or integer literal default returns
+// Go (bool|int64, map[string]any); every other call is printed as <Name>Nullable with the []any result
+const CCXT_GO_TUPLE_BOOL_DEFAULT_SLOT = { 'handleOptionBoolAndParams': 3, 'handleOptionBoolAndParams2': 4,
+    'handleOptionIntegerAndParams': 3, 'handleOptionIntegerAndParams2': 4 };
+
+function ccxtGoTupleDefaultIsValue (name, arg) {
+    if (name.startsWith ('handleOptionInteger')) {
+        const lit = ((arg?.kind === ts.SyntaxKind.PrefixUnaryExpression) && (arg.operator === ts.SyntaxKind.MinusToken)) ? arg.operand : arg;
+        return (lit?.kind === ts.SyntaxKind.NumericLiteral) && /^\d+$/.test (lit.text);
+    }
+    return (arg?.kind === ts.SyntaxKind.TrueKeyword) || (arg?.kind === ts.SyntaxKind.FalseKeyword);
+}
 
 function ccxtGoTupleBoolCallIsNullable (node) {
-    const slot = CCXT_GO_TUPLE_BOOL_DEFAULT_SLOT[node?.expression?.name?.text];
-    const arg = (slot === undefined) ? undefined : node.arguments[slot];
-    return (slot !== undefined) && (arg?.kind !== ts.SyntaxKind.TrueKeyword) && (arg?.kind !== ts.SyntaxKind.FalseKeyword);
+    const name = node?.expression?.name?.text;
+    const slot = CCXT_GO_TUPLE_BOOL_DEFAULT_SLOT[name];
+    return (slot !== undefined) && !ccxtGoTupleDefaultIsValue (name, node.arguments[slot]);
 }
 
 function ccxtGoTupleResultCall (node) {
@@ -9530,7 +9547,8 @@ function ccxtGoTupleResultJoin (printed, count, declare, untypedOk = false, firs
         // element 0 must already be the typed unwrap; element 1 is the map itself. A bare write of
         // element 0 into an existing local is exact for bool (GetValue derefs the *bool box to bool)
         const ok = (h === holder) && (index === i - 1)
-            && ((wrap === '') ? ((index === 1) || (declare && (first !== 'GetValueBool')) || (first === 'MapTyped') || (!declare && (first === 'GetValueBool')))
+            && ((wrap === '') ? ((index === 1) || (declare && (first !== 'GetValueBool')) || (first === 'MapTyped')
+                || (!declare && ((first === 'GetValueBool') || (first === 'Int64Value'))))
                 : (wrap === ((index === 0) ? first : 'MapTyped')));
         if (!ok) {
             return undefined;
@@ -9572,7 +9590,7 @@ function installCcxtGoTupleResults (goTranspiler) {
         const printed = printCall.call (this, node, identation);
         if (ccxtGoTupleBoolCallIsNullable (node) && ((node.expression.expression?.kind === ts.SyntaxKind.ThisKeyword)
             || isIdentifierNamed (node.expression.expression, 'exchange'))) {
-            return printed.replace (/\b(HandleOptionBoolAndParams2?)\(/, '$1Nullable(');
+            return printed.replace (/\b(HandleOption(?:Bool|Integer)AndParams2?)\(/, '$1Nullable(');
         }
         if (!ccxtGoTupleResultCall (node)) {
             return printed;

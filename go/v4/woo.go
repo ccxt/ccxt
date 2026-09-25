@@ -1669,7 +1669,7 @@ func (this *Woo) createMarketBuyOrderWithCostBody(ch chan any, symbol string, co
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 
@@ -1703,7 +1703,7 @@ func (this *Woo) createMarketSellOrderWithCostBody(ch chan any, symbol string, c
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
 
@@ -1902,7 +1902,7 @@ func (this *Woo) createOrderBody(ch chan any, symbol string, typeVar string, sid
 		// for market buy it requires the amount of quote currency to spend
 		var cost *string = this.SafeStringN(paramsMarginMode, []any{"cost", "order_amount", "orderAmount"})
 		var isPriceProvided bool = (price != nil)
-		if (GetValue(market, "spot") == true) && (isPriceProvided || (cost != nil)) {
+		if (market["spot"] == true) && (isPriceProvided || (cost != nil)) {
 			var quoteAmount any = nil
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
@@ -2415,7 +2415,7 @@ func (this *Woo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"stop", "trigger"}))
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -2862,7 +2862,7 @@ func (this *Woo) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(NotSupported(this.Id + " fetchTicker() supports swap markets only, there is no spot ticker endpoint"))
 	}
 	var request map[string]any = map[string]any{
@@ -2943,7 +2943,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			// type" apart from a malformed request, marketSymbols still enforces that the
 			// rest of the list matches
 			var firstMarket map[string]any = this.Market(GetValue(symbols, 0))
-			if GetValue(firstMarket, "swap") != true {
+			if firstMarket["swap"] != true {
 				panic(NotSupported(this.Id + " fetchTickers() supports swap markets only"))
 			}
 		}
@@ -3183,7 +3183,7 @@ func (this *Woo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -3476,7 +3476,7 @@ func (this *Woo) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
 func (this *Woo) GetDedicatedNetworkId(currency any, params any) any {
 	var networkCodeRawparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCodeRaw := GetValue(networkCodeRawparamsNetworkCodeVariable, 0)
-	paramsNetworkCode := GetValue(networkCodeRawparamsNetworkCodeVariable, 1)
+	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeRawparamsNetworkCodeVariable, 1))
 	var networkCode *string = this.NetworkIdToCode(networkCodeRaw, GetValue(currency, "code"))
 	var networkEntry any = func() any {
 		if networkCode == nil {
@@ -4119,7 +4119,7 @@ func (this *Woo) withdrawBody(ch chan any, code string, amount any, address any,
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
@@ -4131,7 +4131,7 @@ func (this *Woo) withdrawBody(ch chan any, code string, amount any, address any,
 		"amount":  amount,
 		"address": address,
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["extra"] = tagWithdrawTag
 	}
 	var network *string = this.SafeString(paramsWithdrawTag, "network")
@@ -4445,7 +4445,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -4860,10 +4860,10 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = MapTyped(PanicOnError((<-this.V3PrivateGetAccountInfo(params)).Raw))
-	} else if GetValue(market, "swap") == true {
+	} else if market["swap"] == true {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
 		}

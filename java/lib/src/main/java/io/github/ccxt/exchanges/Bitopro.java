@@ -2062,7 +2062,7 @@ public class Bitopro extends BitoproApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
             var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
@@ -2076,7 +2076,7 @@ public class Bitopro extends BitoproApi
                 put( "amount", Bitopro.this.numberToString(amount) );
                 put( "address", address );
             }};
-            Boolean hasNetwork = (Helpers.inOp(paramsWithdrawTag, "network"));
+            Boolean hasNetwork = (((Map<?, ?>)paramsWithdrawTag).containsKey("network"));
             Object paramsOmitted = paramsWithdrawTag;
             if (Boolean.TRUE.equals(hasNetwork))
             {

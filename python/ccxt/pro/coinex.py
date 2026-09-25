@@ -264,7 +264,9 @@ class coinex(ccxt.async_support.coinex):
             await self.load_markets()
         type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params, 'spot')
         await self.authenticate(type)
-        url = self.urls['api']['ws'][type]
+        url = self.safe_string(self.urls['api']['ws'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         # coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
         activeCurrencies = self.filter_by(self.currencies_by_id, 'active', True)
         activeCurrenciesById = self.index_by(activeCurrencies, 'id')
@@ -418,7 +420,9 @@ class coinex(ccxt.async_support.coinex):
             symbolResolved = market['symbol']
         type, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params, 'spot')
         await self.authenticate(type)
-        url = self.urls['api']['ws'][type]
+        url = self.safe_string(self.urls['api']['ws'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscribedSymbols = []
         messageHash = 'myTrades'
         if market is not None:
@@ -656,7 +660,9 @@ class coinex(ccxt.async_support.coinex):
             marketIds = []
             messageHashes.append('tickers')
         type, paramsMarketType = self.handle_market_type_and_params('watchTickers', market, params)
-        url = self.urls['api']['ws'][type]
+        url = self.safe_string(self.urls['api']['ws'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionHashes = ['all@ticker']
         subscribe = {
             'method': 'state.subscribe',
@@ -713,7 +719,9 @@ class coinex(ccxt.async_support.coinex):
         else:
             messageHashes.append('trades')
         type, paramsMarketType = self.handle_market_type_and_params(callerMethodName, market, paramsCallerMethodName)
-        url = self.urls['api']['ws'][type]
+        url = self.safe_string(self.urls['api']['ws'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         # const subscriptionHashes = [ 'trades' ];
         subscribe = {
             'method': 'deals.subscribe',
@@ -770,7 +778,9 @@ class coinex(ccxt.async_support.coinex):
             'id': self.request_id(),
         }
         # const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
-        url = self.urls['api']['ws'][type]
+        url = self.safe_string(self.urls['api']['ws'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         orderbooks = await self.watch_multiple(url, messageHashes, self.deep_extend(subscribe, paramsMarketType), messageHashes)
         if self.newUpdates:
             return orderbooks
@@ -906,7 +916,9 @@ class coinex(ccxt.async_support.coinex):
             'params': {'market_list': marketList},
             'id': self.request_id(),
         }
-        url = self.urls['api']['ws'][type]
+        url = self.safe_string(self.urls['api']['ws'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = self.deep_extend(message, paramsMarketType)
         orders = await self.watch(url, messageHash, request, messageHash, request)
         limitResolved = limit
@@ -1214,7 +1226,9 @@ class coinex(ccxt.async_support.coinex):
         else:
             messageHashes.append('bidsasks')
         type, paramsMarketType = self.handle_market_type_and_params('watchBidsAsks', market, params)
-        url = self.urls['api']['ws'][type]
+        url = self.safe_string(self.urls['api']['ws'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionHashes = ['all@bidsasks']
         subscribe = {
             'method': 'bbo.subscribe',
@@ -1355,7 +1369,9 @@ class coinex(ccxt.async_support.coinex):
             del client.subscriptions[id]
 
     async def authenticate(self, type: str):
-        url = self.urls['api']['ws'][type]
+        url = self.safe_string(self.urls['api']['ws'], type)
+        if url is None:
+            raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         client = self.client(url)
         time = self.milliseconds()
         timestamp = str(time)

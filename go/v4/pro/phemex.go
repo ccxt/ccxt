@@ -977,7 +977,7 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}()
 	if symbol != nil {
 		market = this.Market(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.GetValue(market, "symbol"))
+		messageHash = ccxt.Add(messageHash, market["symbol"])
 	}
 	var isUsdtMarket bool = (!ccxt.IsEqual(market, nil)) && (ccxt.IsEqual(market["settle"], "USDT"))
 	var settleRequest map[string]any = map[string]any{}
@@ -1187,7 +1187,7 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}()
 	if symbol != nil {
 		market = this.Market(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.GetValue(market, "symbol"))
+		messageHash = ccxt.Add(messageHash, market["symbol"])
 	}
 	var isUsdtMarket bool = (!ccxt.IsEqual(market, nil)) && (ccxt.IsEqual(market["settle"], "USDT"))
 	var settleRequest map[string]any = map[string]any{}

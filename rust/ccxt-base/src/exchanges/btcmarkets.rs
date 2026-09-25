@@ -1902,7 +1902,7 @@ impl BtcmarketsCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toAddress".into(), address.clone()); }
         }
         if (tagWithdrawTag != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toAddress".into(), add(&Value::Str(format!("{}{}", address, Value::Str("?dt=".into())).into()), &tagWithdrawTag)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toAddress".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str("?dt=".into())).into()), tagWithdrawTag).into())); }
         }
         let __ws_arg_15 = self.extend(request, &[paramsWithdrawTag]);
         let mut response: Value = self.private_post_withdrawals(&[__ws_arg_15]).await;

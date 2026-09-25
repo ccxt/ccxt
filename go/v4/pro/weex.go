@@ -813,7 +813,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	var priceType any = "LAST_PRICE"
 	var paramsPriceType any = paramsOmitted
 	if isContract != nil && *isContract == true {
-		var priceTypeparamsPriceTypeVariable []any = this.HandleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType)
+		priceTypeparamsPriceTypeVariable := ccxt.TupleSlice(this.HandleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType))
 		priceType = ccxt.GetValue(priceTypeparamsPriceTypeVariable, 0)
 		paramsPriceType = ccxt.GetValue(priceTypeparamsPriceTypeVariable, 1)
 	}
@@ -821,7 +821,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var symbolString *string = this.SafeString(data, 0)
 		var market map[string]any = this.Market(symbolString)
-		if market["type"] != ccxt.GetValue(firstMarket, "type") {
+		if market["type"] != firstMarket["type"] {
 			panic(ccxt.BadRequest(this.Id + " " + *callerMethodName + " market symbols must be of the same type"))
 		}
 		symbolString = this.SafeString(market, "symbol")
@@ -911,7 +911,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	var priceType any = "LAST_PRICE"
 	var paramsPriceType any = paramsOmitted
 	if isContract != nil && *isContract == true {
-		var priceTypeparamsPriceTypeVariable []any = this.HandleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType)
+		priceTypeparamsPriceTypeVariable := ccxt.TupleSlice(this.HandleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType))
 		priceType = ccxt.GetValue(priceTypeparamsPriceTypeVariable, 0)
 		paramsPriceType = ccxt.GetValue(priceTypeparamsPriceTypeVariable, 1)
 	}
@@ -919,7 +919,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var symbolString *string = this.SafeString(data, 0)
 		var market map[string]any = this.Market(symbolString)
-		if market["type"] != ccxt.GetValue(firstMarket, "type") {
+		if market["type"] != firstMarket["type"] {
 			panic(ccxt.BadRequest(this.Id + " " + *callerMethodName + " market symbols must be of the same type"))
 		}
 		symbolString = this.SafeString(market, "symbol")

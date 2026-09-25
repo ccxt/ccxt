@@ -1626,7 +1626,7 @@ func (this *Mudrex) closePositionBody(ch chan any, symbol string, optionalArgs .
 			if (side != nil) && !IsEqual(GetValue(p, "side"), side) {
 				continue
 			}
-			if IsEqual(GetValue(p, "symbol"), GetValue(market, "symbol")) {
+			if IsEqual(GetValue(p, "symbol"), market["symbol"]) {
 				positionId = this.SafeString(p, "id")
 				break
 			}
@@ -1779,9 +1779,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var maxCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchMyTrades", "paginationCalls", 10)
-	maxCalls := GetValue(maxCallsparamsPaginationCallsVariable, 0)
-	paramsPaginationCalls := GetValue(maxCallsparamsPaginationCallsVariable, 1)
+	maxCalls, paramsPaginationCalls := this.HandleOptionIntegerAndParams(params, "fetchMyTrades", "paginationCalls", 10)
 	var pageSize any = 0
 	if limit != nil {
 		// every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
@@ -1812,7 +1810,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			allRows = append(allRows, entry)
 			if this.SafeString(entry, "fee_type") != nil && *this.SafeString(entry, "fee_type") == "TRANSACTION" {
 				// count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-				if ((market == nil)) || (IsEqual(this.SafeString(entry, "symbol"), GetValue(market, "id"))) {
+				if ((market == nil)) || (IsEqual(this.SafeString(entry, "symbol"), market["id"])) {
 					transactionsCount = this.Sum(transactionsCount, 1)
 				}
 			}

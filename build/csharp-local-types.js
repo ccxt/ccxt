@@ -6767,6 +6767,10 @@ export function csharpTypeOfValue (csharp, node, context) {
         if (target?.kind === ts.SyntaxKind.PropertyAccessExpression && target.expression?.kind === ts.SyntaxKind.ThisKeyword && target.name?.text === 'orderbooks') {
             return 'ccxt.pro.IOrderBook';
         }
+        const side = orderBookSideRead (csharp, node);
+        if (side !== undefined) {
+            return side.type;
+        }
         break;
     }
     case ts.SyntaxKind.NewExpression: {
@@ -17094,4 +17098,61 @@ export function installCsharpNativeComparisons (transpiler) {
         return upstream (node, identation);
     };
     csharp._nativeComparisonsPatched = true;
+}
+
+// `book['asks']` / `book['bids']` read on a local the C# side declares as a ws order book prints the
+// typed property through `?.`: null receiver and absent slot answer null exactly like getValue, and the
+// slot only ever holds the side the property returns (one store, cs/ccxt/ws/OrderBook.cs).
+const ORDERBOOK_LOCAL_TYPES = [ 'ccxt.pro.IOrderBook', 'ccxt.pro.IOrderBook?', 'ccxt.pro.OrderBook', 'ccxt.pro.CountedOrderBook', 'ccxt.pro.IndexedOrderBook' ];
+const ORDERBOOK_SIDE_PROPERTIES = { 'asks': 'ccxt.pro.IAsks', 'bids': 'ccxt.pro.IBids' };
+
+function orderBookSideRead (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression || node.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const key = node.argumentExpression;
+    if (key?.kind !== ts.SyntaxKind.StringLiteral || !Object.prototype.hasOwnProperty.call (ORDERBOOK_SIDE_PROPERTIES, key.text)) {
+        return undefined;
+    }
+    const fileName = (node.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (!fileName.includes ('ts/src/') || fileName.includes ('ts/src/test/') || fileName.includes ('/test/')) {
+        return undefined;
+    }
+    if (csharpWriteTarget (node) || node.parent?.kind === ts.SyntaxKind.DeleteExpression) {
+        return undefined;
+    }
+    // IAsks / IBids arms of one conditional have no common C# type
+    let arm = node;
+    while (arm.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        arm = arm.parent;
+    }
+    if (arm.parent?.kind === ts.SyntaxKind.ConditionalExpression && arm.parent.condition !== arm) {
+        return undefined;
+    }
+    const receiver = referenceDeclaredCSharpType (csharp, node.expression);
+    if (ORDERBOOK_LOCAL_TYPES.indexOf (receiver) < 0) {
+        return undefined;
+    }
+    return { property: key.text, type: ORDERBOOK_SIDE_PROPERTIES[key.text] };
+}
+
+export function installCsharpOrderBookSideReads (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printElementAccessExpression !== 'function' || csharp._orderBookSideReadsPatched) {
+        return;
+    }
+    const upstream = csharp.printElementAccessExpression.bind (csharp);
+    csharp.printElementAccessExpression = (node, identation) => {
+        let read;
+        try {
+            read = orderBookSideRead (csharp, node);
+        } catch (e) {
+            read = undefined;
+        }
+        if (read === undefined) {
+            return upstream (node, identation);
+        }
+        return csharp.printNode (node.expression, 0) + '?.' + read.property;
+    };
+    csharp._orderBookSideReadsPatched = true;
 }

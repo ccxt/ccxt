@@ -2300,7 +2300,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = typeOption
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 		typeVar = this.SafeString(market, "type")
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbolResolved)
 	}
@@ -2557,7 +2557,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = typeOption
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 		typeVar = this.SafeString(market, "type")
 	}
 	if ccxt.IsEqual(typeVar, "future") {
@@ -3097,7 +3097,7 @@ func (this *Okx) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market map[string]any = this.Market(symbol)
-	if ccxt.GetValue(market, "type") != "option" {
+	if market["type"] != "option" {
 		panic(ccxt.BadRequest(this.Id + " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required."))
 	}
 	var url any = this.GetUrl("private", "private")

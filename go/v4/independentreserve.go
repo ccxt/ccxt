@@ -938,8 +938,8 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan any, optionalArgs ..
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["primaryCurrencyCode"] = GetValue(market, "baseId")
-		request["secondaryCurrencyCode"] = GetValue(market, "quoteId")
+		request["primaryCurrencyCode"] = market["baseId"]
+		request["secondaryCurrencyCode"] = market["quoteId"]
 	}
 	var limitResolved any = limit
 	if IsEqual(limitResolved, nil) {
@@ -989,8 +989,8 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan any, optionalArgs 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["primaryCurrencyCode"] = GetValue(market, "baseId")
-		request["secondaryCurrencyCode"] = GetValue(market, "quoteId")
+		request["primaryCurrencyCode"] = market["baseId"]
+		request["secondaryCurrencyCode"] = market["quoteId"]
 	}
 	var limitResolved any = limit
 	if IsEqual(limitResolved, nil) {
@@ -1423,7 +1423,7 @@ func (this *Independentreserve) withdrawBody(ch chan any, code string, amount an
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
@@ -1435,7 +1435,7 @@ func (this *Independentreserve) withdrawBody(ch chan any, code string, amount an
 		"withdrawalAddress":   address,
 		"amount":              this.CurrencyToPrecision(code, amount),
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["destinationTag"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)

@@ -995,7 +995,7 @@ func (this *Lbank) fetchTickerBody(ch chan any, symbol string, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		var responseForSwap map[string]any = MapTyped(PanicOnError((<-this.FetchTickersAsync([]any{market["symbol"]}, params))))
 
@@ -1235,7 +1235,7 @@ func (this *Lbank) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	//
 	var orderbook map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp int64 = this.Milliseconds()
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", "price", "volume")
 		return nil
@@ -2016,7 +2016,7 @@ func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan any, symbol string, 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false
@@ -3016,7 +3016,7 @@ func (this *Lbank) withdrawBody(ch chan any, code string, amount any, address an
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
@@ -3034,7 +3034,7 @@ func (this *Lbank) withdrawBody(ch chan any, code string, amount any, address an
 		"amount":  amount,
 		"fee":     fee,
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["memo"] = tagWithdrawTag
 	}
 	var network *string = this.SafeStringUpper2(paramsOmitted, "network", "networkName")

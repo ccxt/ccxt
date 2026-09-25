@@ -117,7 +117,7 @@ func (this *Mexc) watchTickerBody(ch chan any, symbol string, optionalArgs ...an
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", market["symbol"]))
-	if ccxt.GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"]))
 
 		ch <- ccxt.PanicOnError((<-this.WatchSpotPublicAsync(channel, messageHash, params)))
@@ -692,7 +692,7 @@ func (this *Mexc) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
 	var messageHash string = "candles:" + *symbolValue + ":" + timeframe
 	var ohlcv any = nil
-	if ccxt.GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("spot@public.kline.v3.api.pb@", market["id"]), "@"), timeframeId))
 
 		ohlcv = (<-this.WatchSpotPublicAsync(channel, messageHash, params))
@@ -902,7 +902,7 @@ func (this *Mexc) watchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "orderbook:" + *symbolValue
 	var orderbook any = nil
-	if ccxt.GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		frequency, paramsFrequency := this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.depth.v3.api.pb@"+*frequency+"@", market["id"]))
 
@@ -1144,7 +1144,7 @@ func (this *Mexc) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trades:" + *symbolValue
 	var trades any = nil
-	if ccxt.GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.deals.v3.api.pb@100ms@", market["id"]))
 
 		trades = (<-this.WatchSpotPublicAsync(channel, messageHash, params))
@@ -1284,7 +1284,7 @@ func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return ccxt.GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return nil
 	}()
@@ -1507,7 +1507,7 @@ func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return ccxt.GetValue(market, "symbol")
+			return market["symbol"]
 		}
 		return nil
 	}()
@@ -2010,7 +2010,7 @@ func (this *Mexc) unWatchTickerBody(ch chan any, symbol string, optionalArgs ...
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:ticker:", market["symbol"]))
 	var url any = nil
 	var channel any = nil
-	if ccxt.GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		channel = ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"])
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 		params["unsubscribed"] = true
@@ -2170,7 +2170,7 @@ func (this *Mexc) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
 	var messageHash string = "unsubscribe:candles:" + *symbolValue + ":" + timeframe
 	var url any = nil
-	if ccxt.GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("spot@public.kline.v3.api.pb@", market["id"]), "@"), timeframeId))
 		params["unsubscribed"] = true
@@ -2217,7 +2217,7 @@ func (this *Mexc) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "unsubscribe:orderbook:" + *symbolValue
 	var url any = nil
-	if ccxt.GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 		frequency, paramsFrequency := this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.depth.v3.api.pb@"+*frequency+"@", market["id"]))
@@ -2264,7 +2264,7 @@ func (this *Mexc) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "unsubscribe:trades:" + *symbolValue
 	var url any = nil
-	if ccxt.GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.aggre.deals.v3.api.pb@100ms@", market["id"]))
 		params["unsubscribed"] = true

@@ -137,7 +137,10 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol string, typeVar stri
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var wsRequest any = this.WrapAsPostAction(operationType, request)
 	var requestId *string = this.SafeString(wsRequest, "id")
 	if ccxt.IsEqual(operationType, "create_stop_order") {
@@ -244,7 +247,10 @@ func (this *Pacifica) editOrderWsBody(ch chan any, id string, symbol string, typ
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var wsRequest any = this.WrapAsPostAction(batchOperationType, request)
 	var requestId *string = this.SafeString(wsRequest, "id")
 
@@ -327,7 +333,10 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var wsRequest any = this.WrapAsPostAction(batchOperationType, request)
 	var requestId *string = this.SafeString(wsRequest, "id")
 
@@ -427,7 +436,10 @@ func (this *Pacifica) cancelOrderWsBody(ch chan any, id string, optionalArgs ...
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var wsRequest any = this.WrapAsPostAction(operationType, request)
 	var requestId *string = this.SafeString(wsRequest, "id")
 
@@ -507,7 +519,10 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var wsRequest any = this.WrapAsPostAction(operationType, request)
 	var requestId *string = this.SafeString(wsRequest, "id")
 
@@ -559,16 +574,17 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol string, optionalArg
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var aggLevelparamsAggLevelVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
-	aggLevel := ccxt.GetValue(aggLevelparamsAggLevelVariable, 0)
-	paramsAggLevel := ccxt.GetValue(aggLevelparamsAggLevelVariable, 1)
+	aggLevel, paramsAggLevel := this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
 	var messageHash string = "orderbook:" + symbol
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -610,9 +626,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol string, optionalA
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var aggLevelparamsAggLevelVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
-	aggLevel := ccxt.GetValue(aggLevelparamsAggLevelVariable, 0)
-	paramsAggLevel := ccxt.GetValue(aggLevelparamsAggLevelVariable, 1)
+	aggLevel, paramsAggLevel := this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
 	var subMessageHash string = "orderbook:" + symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var isTestnet bool = this.IsSandboxModeEnabled
@@ -620,7 +634,10 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol string, optionalA
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"params": map[string]any{
@@ -752,7 +769,10 @@ func (this *Pacifica) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -805,7 +825,10 @@ func (this *Pacifica) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"params": map[string]any{
@@ -863,7 +886,10 @@ func (this *Pacifica) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -921,7 +947,10 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"params": map[string]any{
@@ -1077,7 +1106,10 @@ func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -1129,7 +1161,10 @@ func (this *Pacifica) unWatchTradesBody(ch chan any, symbol string, optionalArgs
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"params": map[string]any{
@@ -1309,7 +1344,10 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -1364,7 +1402,10 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol string, optionalArgs 
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"params": map[string]any{
@@ -1462,7 +1503,7 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = market["symbol"]
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
 	}
 	var isTestnet bool = this.IsSandboxModeEnabled
@@ -1470,7 +1511,10 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -1525,7 +1569,10 @@ func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if isTestnet {
 		urlKey = "test"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
+	}
 	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("unWatchOrders", params)
 	var userAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
 	var paramsOriginAndSingleAddress map[string]any = ccxt.MapTyped(ccxt.GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))

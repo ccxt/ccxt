@@ -686,8 +686,8 @@ public partial class toobit : ccxt.toobit
             Int64? timestamp = this.safeInteger(entry, "t");
             List<object> bids = this.safeList(entry, "b", new List<object>() {});
             List<object> asks = this.safeList(entry, "a", new List<object>() {});
-            this.handleDeltas(getValue(orderBook, "asks"), asks);
-            this.handleDeltas(getValue(orderBook, "bids"), bids);
+            this.handleDeltas(orderBook?.asks, asks);
+            this.handleDeltas(orderBook?.bids, bids);
             orderBook["timestamp"] = timestamp;
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderBook;
             client.resolve(orderBook, messageHash);

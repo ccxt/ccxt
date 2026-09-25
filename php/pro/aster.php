@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
@@ -182,7 +183,10 @@ class aster extends \ccxt\async\aster {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
-        $url = $this->urls['api']['ws']['public'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionArgs = array();
         $messageHashes = array();
         $request = array(
@@ -234,7 +238,10 @@ class aster extends \ccxt\async\aster {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
-        $url = $this->urls['api']['ws']['public'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionArgs = array();
         $messageHashes = array();
         $request = array(
@@ -324,7 +331,10 @@ class aster extends \ccxt\async\aster {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
-        $url = $this->urls['api']['ws']['public'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionArgs = array();
         $messageHashes = array();
         $request = array(
@@ -380,7 +390,10 @@ class aster extends \ccxt\async\aster {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
-        $url = $this->urls['api']['ws']['public'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionArgs = array();
         $messageHashes = array();
         $request = array(
@@ -513,7 +526,10 @@ class aster extends \ccxt\async\aster {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' watchBidsAsks() requires a non-empty array of symbols');
         }
-        $url = $this->urls['api']['ws']['public'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionArgs = array();
         $messageHashes = array();
         $request = array(
@@ -563,7 +579,10 @@ class aster extends \ccxt\async\aster {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
-        $url = $this->urls['api']['ws']['public'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionArgs = array();
         $messageHashes = array();
         $request = array(
@@ -696,7 +715,10 @@ class aster extends \ccxt\async\aster {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
-        $url = $this->urls['api']['ws']['public'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionArgs = array();
         $messageHashes = array();
         $request = array(
@@ -751,7 +773,10 @@ class aster extends \ccxt\async\aster {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
-        $url = $this->urls['api']['ws']['public'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionArgs = array();
         $messageHashes = array();
         $request = array(
@@ -1028,7 +1053,10 @@ class aster extends \ccxt\async\aster {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
-        $url = $this->urls['api']['ws']['public'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionArgs = array();
         $messageHashes = array();
         $request = array(
@@ -1079,7 +1107,10 @@ class aster extends \ccxt\async\aster {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
-        $url = $this->urls['api']['ws']['public'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionArgs = array();
         $messageHashes = array();
         $request = array(
@@ -1218,7 +1249,10 @@ class aster extends \ccxt\async\aster {
         $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
         $firstMarket = $this->market($marketSymbols[0]);
         $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $url = $this->urls['api']['ws']['public'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionArgs = array();
         $messageHashes = array();
         $request = array(
@@ -1280,7 +1314,10 @@ class aster extends \ccxt\async\aster {
         $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
         $firstMarket = $this->market($marketSymbols[0]);
         $type = $this->safe_string($firstMarket, 'type', 'swap');
-        $url = $this->urls['api']['ws']['public'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['public'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $subscriptionArgs = array();
         $messageHashes = array();
         $request = array(

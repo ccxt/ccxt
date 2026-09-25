@@ -829,7 +829,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = this.Market(symbol)
 		var tierObject any = func() any {
-			if GetValue(market, "spot") == true {
+			if market["spot"] == true {
 				return firstSpotTier
 			}
 			return firstFuturesTier
@@ -915,13 +915,13 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = this.Market(symbol)
 		var makerFee *string = func() *string {
-			if GetValue(market, "spot") == true {
+			if market["spot"] == true {
 				return spotMakerFee
 			}
 			return futuresMakerFee
 		}()
 		var takerFee *string = func() *string {
-			if GetValue(market, "spot") == true {
+			if market["spot"] == true {
 				return spotTakerFee
 			}
 			return futuresTakerFee
@@ -1982,7 +1982,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instrument_code"] = GetValue(market, "id")
+		request["instrument_code"] = market["id"]
 	}
 	if since != nil {
 		request["from"] = this.Iso8601(since)
@@ -2240,7 +2240,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instrument_code"] = GetValue(market, "id")
+		request["instrument_code"] = market["id"]
 	}
 	if since != nil {
 		request["from"] = this.Iso8601(since)

@@ -475,7 +475,7 @@ func (this *Bybit) watchTickerBody(ch chan any, symbol string, optionalArgs ...a
 	var paramsValue any = this.CleanParams(params)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var topic any = ccxt.DerefScalar(this.SafeString(options, "name", "tickers"))
-	if (ccxt.GetValue(market, "spot") != true) && !ccxt.IsEqual(topic, "tickers") {
+	if (market["spot"] != true) && !ccxt.IsEqual(topic, "tickers") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() only supports name tickers for contract markets"))
 	}
 	topic = ccxt.Add(topic, ccxt.Add(".", market["id"]))
@@ -1178,7 +1178,7 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	var paramsValue any = this.CleanParams(params)
 	var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 	var defaultLimit int = func() int {
-		if ccxt.GetValue(market, "option") == true {
+		if market["option"] == true {
 			return 100
 		}
 		return 50
@@ -1253,7 +1253,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	if ccxt.IsEqual(limit, nil) {
 		var firstMarket map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 		limit = func() int {
-			if ccxt.GetValue(firstMarket, "spot") == true {
+			if firstMarket["spot"] == true {
 				return 50
 			}
 			return 500

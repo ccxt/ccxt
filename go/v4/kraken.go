@@ -2190,7 +2190,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var parsedAmount *string = this.AmountToPrecision(GetValue(market, "symbol"), amount)
+		var parsedAmount *string = this.AmountToPrecision(market["symbol"], amount)
 		var req map[string]any = map[string]any{
 			"type":      side,
 			"ordertype": typeVar,
@@ -2751,7 +2751,7 @@ func (this *Kraken) OrderRequest(method string, symbol any, typeVar any, request
 	var isMarket bool = (IsEqual(typeVar, "market"))
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarket, false, paramsOmitted2)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
-	paramsPostOnly := GetValue(postOnlyparamsPostOnlyVariable, 1)
+	var paramsPostOnly map[string]any = MapTyped(GetValue(postOnlyparamsPostOnlyVariable, 1))
 	if postOnly == true {
 		var extendedPostFlags string = "post"
 		if flags != nil {
@@ -2762,7 +2762,7 @@ func (this *Kraken) OrderRequest(method string, symbol any, typeVar any, request
 	if (flags != nil) && !(InOp(request, "oflags")) {
 		AddElementToObject(request, "oflags", flags)
 	}
-	var paramsOmitted3 any = this.Omit(paramsPostOnly, []any{"timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"})
+	var paramsOmitted3 map[string]any = MapTyped(this.Omit(paramsPostOnly, []any{"timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"}))
 	return []any{request, paramsOmitted3}
 }
 
@@ -2808,7 +2808,7 @@ func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(Add(Add(this.Id+" editOrder() does not support ", market["type"]), " orders, only spot orders are accepted")))
 	}
 	var request any = map[string]any{

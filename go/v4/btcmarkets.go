@@ -1428,7 +1428,7 @@ func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount a
 	var market map[string]any = this.Market(symbol)
 	var currency *string = nil
 	var cost any = nil
-	if GetValue(market, "quote") == "AUD" {
+	if market["quote"] == "AUD" {
 		currency = this.SafeString(market, "quote")
 		var amountString *string = this.NumberToString(amount)
 		var priceString *string = this.NumberToString(price)
@@ -1603,7 +1603,7 @@ func (this *Btcmarkets) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["marketId"] = GetValue(market, "id")
+		request["marketId"] = market["id"]
 	}
 	if since != nil {
 		request["after"] = since
@@ -1723,7 +1723,7 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["marketId"] = GetValue(market, "id")
+		request["marketId"] = market["id"]
 	}
 	if since != nil {
 		request["after"] = since
@@ -1790,7 +1790,7 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code string, amount any, addre
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
@@ -1805,7 +1805,7 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code string, amount any, addre
 		this.CheckAddress(address)
 		request["toAddress"] = address
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["toAddress"] = Add(Add(address, "?dt="), tagWithdrawTag)
 	}
 

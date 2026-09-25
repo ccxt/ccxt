@@ -2588,7 +2588,7 @@ public partial class bigone : Exchange
         }
         IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
         string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        var paramsNetworkCode = networkCodeparamsNetworkCodeVariable[1];
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
         if ((networkCode != null))
         {
             request["gateway_name"] = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));

@@ -1017,7 +1017,7 @@ func (this *Xt) watchFundingRateBody(ch chan any, symbol string, optionalArgs ..
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if ccxt.GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " watchFundingRate() supports swap contracts only"))
 	}
 	var name *string = ccxt.SafeStringPtr(ccxt.Add("fund_rate@", market["id"]))
@@ -1050,7 +1050,7 @@ func (this *Xt) unWatchFundingRateBody(ch chan any, symbol string, optionalArgs 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if ccxt.GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " unWatchFundingRate() supports swap contracts only"))
 	}
 	var name any = ccxt.Add("fund_rate@", market["id"])
@@ -1931,7 +1931,7 @@ func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 	var market map[string]any = this.Market(tradeSymbol)
 	stored.(ccxt.Appender).Append(parsedTrade)
 	var tradeType string = "spot"
-	if ccxt.GetValue(market, "contract") == true {
+	if market["contract"] == true {
 		tradeType = "contract"
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+tradeType)

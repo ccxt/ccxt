@@ -1253,7 +1253,7 @@ func (this *Cryptocom) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			symbol = symbols
 		}
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicGetTickers(this.Extend(request, params))).Raw))
@@ -1363,7 +1363,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 	}
 	if since != nil {
 		request["start_time"] = since
@@ -2326,7 +2326,7 @@ func (this *Cryptocom) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 	}
 
 	response := (<-this.V1PrivatePostPrivateCancelAllOrders(this.Extend(request, params)))
@@ -2527,7 +2527,7 @@ func (this *Cryptocom) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 	}
 
 	response := (<-this.V1PrivatePostPrivateGetOpenOrders(this.Extend(request, params)))
@@ -2620,7 +2620,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 	}
 	if since != nil {
 		request["start_time"] = since
@@ -2711,7 +2711,7 @@ func (this *Cryptocom) withdrawBody(ch chan any, code string, amount any, addres
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var tagWithdrawTag *string = SafeStringPtr(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0))
 	var paramsWithdrawTag map[string]any = MapTyped(GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1))
 	if this.Markets == nil {
 
@@ -2723,7 +2723,7 @@ func (this *Cryptocom) withdrawBody(ch chan any, code string, amount any, addres
 		"amount":   amount,
 		"address":  address,
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["address_tag"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
@@ -3952,7 +3952,7 @@ func (this *Cryptocom) fetchFundingRateBody(ch chan any, symbol string, optional
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -4065,7 +4065,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -4226,7 +4226,7 @@ func (this *Cryptocom) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 			symbol = symbolsNormalized
 		}
 		market = this.Market(symbol)
-		request["instrument_name"] = GetValue(market, "id")
+		request["instrument_name"] = market["id"]
 	}
 
 	response := (<-this.V1PrivatePostPrivateGetPositions(this.Extend(request, params)))

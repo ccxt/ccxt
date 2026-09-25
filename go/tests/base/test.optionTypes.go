@@ -26,8 +26,8 @@ func TestOptionTypes() {
 	assertOptionPanics(func() { exchange.HandleOptionStringAndParams(map[string]any{}, "fetchX", "wrongString", "x") }, "fetchX() option wrongString must be a string")
 	assertOptionPanics(func() { exchange.HandleOptionIntegerAndParams(map[string]any{}, "fetchX", "wrongInteger", 1) }, "fetchX() option wrongInteger must be an integer")
 	assertOptionPanics(func() { exchange.HandleOptionIntegerAndParams(map[string]any{}, "fetchX", "fractionInteger", 1) }, "fetchX() option fractionInteger must be an integer")
-	integral := exchange.HandleOptionIntegerAndParams(map[string]any{}, "fetchX", "integralDouble", 1)
-	Assert(*(integral[0].(*int64)) == 2, "an integral double option reads as int64")
+	integral, _ := exchange.HandleOptionIntegerAndParams(map[string]any{}, "fetchX", "integralDouble", 1)
+	Assert(integral == 2, "an integral double option reads as int64")
 	assertOptionPanics(func() { exchange.HandleMarginModeAndParams("fetchX", map[string]any{"marginMode": false}) }, "fetchX() option marginMode must be a string")
 }
 

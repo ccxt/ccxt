@@ -1228,7 +1228,7 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["ticker"] = GetValue(market, "id")
+		request["ticker"] = market["id"]
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -1637,7 +1637,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar string, side string, am
 	}
 	var orderSide string = strings.ToUpper(side)
 	var subaccountId int = 0
-	var subaccountIdOptionparamsSubAccountIdVariable []any = this.HandleOptionIntegerAndParams(params, "createOrder", "subAccountId", subaccountId)
+	var subaccountIdOptionparamsSubAccountIdVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "createOrder", "subAccountId", subaccountId)
 	subaccountIdOption := GetValue(subaccountIdOptionparamsSubAccountIdVariable, 0)
 	paramsSubAccountId := GetValue(subaccountIdOptionparamsSubAccountIdVariable, 1)
 	var triggerPrice *string = this.SafeString2(paramsSubAccountId, "triggerPrice", "stopPrice")
@@ -1706,7 +1706,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar string, side string, am
 	var goodTillBlock any = DerefScalar(this.SafeInteger(paramsSubAccountId, "goodTillBlock"))
 	var goodTillBlockTime any = nil
 	var goodTillBlockTimeInSeconds int = 2592000
-	var goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable []any = this.HandleOptionIntegerAndParams(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
+	var goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
 	goodTillBlockTimeInSecondsOption := GetValue(goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable, 0)
 	paramsGoodTillBlockTimeInSeconds := GetValue(goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable, 1) // default is 30 days
 	if IsEqual(orderFlag, 0) {
@@ -1973,7 +1973,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	var goodTillBlock any = DerefScalar(this.SafeInteger(paramsOmitted, "goodTillBlock"))
 	var goodTillBlockTimeInSeconds int = 2592000
-	var goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable []any = this.HandleOptionIntegerAndParams(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
+	var goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
 	goodTillBlockTimeInSecondsOption := GetValue(goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable, 0)
 	paramsGoodTillBlockTimeInSeconds := GetValue(goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable, 1) // default is 30 days
 	var goodTillBlockTime any = nil
@@ -1985,7 +1985,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}()
 	var orderFlags *int64 = this.SafeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags)
 	var subAccountId int = 0
-	var subAccountIdOption any = GetValue(this.HandleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId), 0)
+	var subAccountIdOption any = GetValue(this.HandleOptionIntegerAndParamsNullable(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId), 0)
 	if (orderFlags == nil || *orderFlags != 0) && (orderFlags == nil || *orderFlags != 64) && (orderFlags == nil || *orderFlags != 32) {
 		panic(InvalidOrder(this.Id + " invalid orderFlags, allowed values are (0, 64, 32)."))
 	}
@@ -2088,7 +2088,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		panic(NotSupported(this.Id + " cancelOrders only support clientOrderIds."))
 	}
 	var subAccountId int = 0
-	var subAccountIdOptionparamsSubAccountIdVariable []any = this.HandleOptionIntegerAndParams(params, "cancelOrders", "subAccountId", subAccountId)
+	var subAccountIdOptionparamsSubAccountIdVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "cancelOrders", "subAccountId", subAccountId)
 	subAccountIdOption := GetValue(subAccountIdOptionparamsSubAccountIdVariable, 0)
 	paramsSubAccountId := GetValue(subAccountIdOptionparamsSubAccountIdVariable, 1)
 	var goodTillBlock any = DerefScalar(this.SafeInteger(paramsSubAccountId, "goodTillBlock"))
@@ -3044,9 +3044,7 @@ func (this *Dydx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchBalance", params)
 	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
 	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
-	var subaccountNumberparamsSubaccountNumberVariable []any = this.HandleOptionIntegerAndParams(paramsPublicAddress, "fetchBalance", "subaccountNumber", 0)
-	subaccountNumber := GetValue(subaccountNumberparamsSubaccountNumberVariable, 0)
-	paramsSubaccountNumber := GetValue(subaccountNumberparamsSubaccountNumberVariable, 1)
+	subaccountNumber, paramsSubaccountNumber := this.HandleOptionIntegerAndParams(paramsPublicAddress, "fetchBalance", "subaccountNumber", 0)
 	var request map[string]any = map[string]any{
 		"address":          userAddress,
 		"subaccountNumber": subaccountNumber,

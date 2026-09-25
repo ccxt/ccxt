@@ -386,11 +386,11 @@ func (this *Hyperliquid) Market(symbol any) map[string]any {
 			var quote *string = this.SafeString(symbolParts, 1)
 			var newSymbol any = Add(Add(this.SafeCurrencyCode(unifiedBaseName), "/"), quote)
 			if InOp(this.Markets, newSymbol) {
-				return MapTyped(GetValue(this.Markets, newSymbol))
+				return MarketTyped(GetValue(this.Markets, newSymbol))
 			}
 		}
 	}
-	return this.Exchange.Market(symbol)
+	return MarketTyped(this.Exchange.Market(symbol))
 }
 
 /**
@@ -1361,7 +1361,7 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan any, symbol string, optional
 	var request map[string]any = map[string]any{
 		"type": "l2Book",
 		"coin": func() any {
-			if GetValue(market, "swap") == true {
+			if market["swap"] == true {
 				return this.SafeString(market, "baseName")
 			}
 			return market["id"]
@@ -1725,7 +1725,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, symbol string, optionalArgs
 		"type": "candleSnapshot",
 		"req": map[string]any{
 			"coin": func() any {
-				if GetValue(market, "swap") == true {
+				if market["swap"] == true {
 					return this.SafeString(market, "baseName")
 				}
 				return market["id"]
@@ -1886,7 +1886,7 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 	var significantDigits any = mathMax(5, GetLength(integerPart))
 	var result string = this.DecimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.PaddingMode)
 	var maxDecimals int = func() int {
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			return 8
 		}
 		return 6
@@ -3253,7 +3253,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 	}
 	cancelAction["cancels"] = cancelReq
 	var vaultAddress any = nil
-	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams2(params2, "cancelOrders", "vaultAddress", "subAccountAddress")
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams2(params2, "cancelOrders", "vaultAddress", "subAccountAddress"))
 	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
 	params2 = GetValue(vaultAddressparams2Variable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -3350,7 +3350,7 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan any, orders any, opt
 		return "cancel"
 	}()
 	cancelAction["cancels"] = cancelReq
-	var vaultAddressOption *string = SafeStringPtr(GetValue(this.HandleOptionStringAndParams2(params, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress"), 0))
+	var vaultAddressOption *string = SafeStringPtr(GetValue(TupleSlice(this.HandleOptionStringAndParams2(params, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress")), 0))
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var signature any = this.SignL1Action(cancelAction, nonce, vaultAddress)
 	request["action"] = cancelAction
@@ -3418,7 +3418,7 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan any, timeout any, opti
 		"time": Add(nonce, timeout),
 	}
 	var vaultAddress any = nil
-	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams2(params2, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress")
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams2(params2, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress"))
 	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
 	params2 = GetValue(vaultAddressparams2Variable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -4943,7 +4943,7 @@ func (this *Hyperliquid) setMarginModeBody(ch chan any, marginMode string, optio
 		"leverage": leverage,
 	}
 	var vaultAddress any = nil
-	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams2(params2, "setMarginMode", "vaultAddress", "subAccountAddress")
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams2(params2, "setMarginMode", "vaultAddress", "subAccountAddress"))
 	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
 	params2 = MapTyped(GetValue(vaultAddressparams2Variable, 1))
 	if vaultAddress != nil {
@@ -5018,7 +5018,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan any, leverage any, optionalArgs
 		"leverage": leverage,
 	}
 	var vaultAddress any = nil
-	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams2(params2, "setLeverage", "vaultAddress", "subAccountAddress")
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams2(params2, "setLeverage", "vaultAddress", "subAccountAddress"))
 	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
 	params2 = GetValue(vaultAddressparams2Variable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -5130,7 +5130,7 @@ func (this *Hyperliquid) modifyMarginHelperBody(ch chan any, symbol string, amou
 		"isBuy": true,
 		"ntli":  sz,
 	}
-	var vaultAddressOption *string = SafeStringPtr(GetValue(this.HandleOptionStringAndParams2(params, "modifyMargin", "vaultAddress", "subAccountAddress"), 0))
+	var vaultAddressOption *string = SafeStringPtr(GetValue(TupleSlice(this.HandleOptionStringAndParams2(params, "modifyMargin", "vaultAddress", "subAccountAddress")), 0))
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var signature any = this.SignL1Action(updateAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
@@ -6244,9 +6244,7 @@ func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) any {
 	return address
 }
 func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) any {
-	var userAuxparamsUserVariable []any = this.HandleOptionStringAndParams2(params, methodName, "user", "subAccountAddress")
-	userAux := GetValue(userAuxparamsUserVariable, 0)
-	paramsUser := GetValue(userAuxparamsUserVariable, 1)
+	userAux, paramsUser := this.HandleOptionStringAndParams2(params, methodName, "user", "subAccountAddress")
 	user, paramsAddress := this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
 	if (user != nil) && (user == nil || *user != "") {
 		return []any{user, paramsAddress}
@@ -6390,7 +6388,7 @@ func (this *Hyperliquid) ParseCreateEditOrderArgs(id any, symbol any, typeVar an
 	var market map[string]any = this.Market(symbol)
 	var vaultAddress any = nil
 	var params2 any = nil
-	var vaultAddressparams2Variable []any = this.HandleOptionStringAndParams2(params, "createOrder", "vaultAddress", "subAccountAddress")
+	vaultAddressparams2Variable := TupleSlice(this.HandleOptionStringAndParams2(params, "createOrder", "vaultAddress", "subAccountAddress"))
 	vaultAddress = GetValue(vaultAddressparams2Variable, 0)
 	params2 = GetValue(vaultAddressparams2Variable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)

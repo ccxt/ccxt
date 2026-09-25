@@ -2347,7 +2347,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome string, typeVar str
 	var postOnly *bool = this.SafeBool(paramsTaker, "isPostOnly", false)
 	var postOnlyOptionparamsPostOnlyVariable []any = this.HandlePostOnly(isMarket, postOnly, paramsTaker)
 	var postOnlyOption bool = ccxt.GetValueBool(postOnlyOptionparamsPostOnlyVariable, 0, false)
-	paramsPostOnly := ccxt.GetValue(postOnlyOptionparamsPostOnlyVariable, 1)
+	var paramsPostOnly map[string]any = ccxt.MapTyped(ccxt.GetValue(postOnlyOptionparamsPostOnlyVariable, 1))
 	if postOnlyOption {
 		data["isPostOnly"] = postOnlyOption
 	}
@@ -2362,7 +2362,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome string, typeVar str
 	}
 	// every param the method consumes itself has to come out, otherwise it survives into the
 	// extend below and is posted as a top level key next to 'data'
-	var paramsOmitted any = this.Omit(paramsPostOnly, []any{"isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker"})
+	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsPostOnly, []any{"isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker"}))
 	// the JWT authorises the order, the api key only authorises the request
 	var request map[string]any = map[string]any{
 		"data": data,

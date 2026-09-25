@@ -8118,7 +8118,7 @@ public partial class htx : Exchange
         }
         IList<object> networkCodeparamsNetworkVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsTag);
         string? networkCode = (string)networkCodeparamsNetworkVariable[0];
-        var paramsNetwork = networkCodeparamsNetworkVariable[1];
+        IDictionary<string, object> paramsNetwork = ((IDictionary<string, object>)networkCodeparamsNetworkVariable[1]);
         if ((networkCode != null))
         {
             request["chain"] = this.networkCodeToId(networkCode, code);

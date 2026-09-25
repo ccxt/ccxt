@@ -152,7 +152,11 @@ public partial class poloniex : ccxt.poloniex
         {
             publicOrPrivate = "private";
         }
-        object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), publicOrPrivate);
+        string? url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), publicOrPrivate);
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
+        }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "channel", new List<object>() {name} },
@@ -1266,7 +1270,7 @@ public partial class poloniex : ccxt.poloniex
                         List<object> bid = this.safeList(bids, j);
                         double? price = this.safeNumber(bid, 0);
                         double? amount = this.safeNumber(bid, 1);
-                        object bidsSide = getValue(orderbook, "bids");
+                        ccxt.pro.IBids bidsSide = orderbook?.bids;
                         (bidsSide as IOrderBookSide).store(price, amount);
                     }
                 }
@@ -1277,7 +1281,7 @@ public partial class poloniex : ccxt.poloniex
                         List<object> ask = this.safeList(asks, j);
                         double? price = this.safeNumber(ask, 0);
                         double? amount = this.safeNumber(ask, 1);
-                        object asksSide = getValue(orderbook, "asks");
+                        ccxt.pro.IAsks asksSide = orderbook?.asks;
                         (asksSide as IOrderBookSide).store(price, amount);
                     }
                 }
