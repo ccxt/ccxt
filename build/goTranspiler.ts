@@ -2438,6 +2438,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = assertTypedElementAccess (content);
     content = retagLoopBoundedElementReads (content);
     content = nativeLoopBoundedSliceReads (content);
+    content = nativeTupleHolderReads (content);
     content = nativeTypedContainerAccess (content);
     content = nativeOrderBookSideReads (content);
     return goGofmtSplicedText (content);
@@ -8302,7 +8303,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -8377,6 +8378,105 @@ async function runMain () {
 const GO_UNTYPED_NIL_PARAMS: { [method: string]: string[] } = {
     'HandleErrors': [ 'response' ],
 };
+
+// Producers whose every Go return path is a two-element []any literal (or a call to another entry).
+const GO_TUPLE_PAIR_PRODUCERS: string[] = [
+    'HandleNetworkCodeAndParams', 'HandleWithdrawTagAndParams', 'HandlePostOnly',
+    'HandleParamString', 'HandleParamString2', 'HandleParamInteger', 'HandleParamInteger2', 'HandleParamBool', 'HandleParamBool2',
+    'HandleOptionAndParams', 'HandleOptionAndParams2',
+    'HandleOptionBoolAndParamsNullable', 'HandleOptionBoolAndParams2Nullable',
+    'HandleOptionIntegerAndParamsNullable', 'HandleOptionIntegerAndParams2Nullable',
+];
+// consumers that apply derefScalar to their argument first, so GetValue's own deref is redundant
+const GO_TUPLE_DEREF_CONSUMERS: string[] = [ 'MapTyped', 'ListTyped', 'SafeStringPtr', 'SafeBoolPtr', 'Float64PtrTyped' ];
+
+// `C(GetValue(h, 0|1))` -> `C(h[0|1])` for `var h []any = this.<pair producer>(...)`, declared once, never written.
+function nativeTupleHolderReads (content: string): string {
+    if (content.indexOf ('GetValue(') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const maskedLines = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== maskedLines.length) {
+        return content;
+    }
+    const masked = maskedLines.join ('\n');
+    const overridden = GO_TUPLE_PAIR_PRODUCERS.filter ((m: string) => new RegExp ('(?:^|\\n)func \\(this \\*\\w+\\) ' + m + '\\(').test (masked));
+    const { 'blocks': blocks } = goTextBlocks (maskedLines);
+    const consumers = GO_TUPLE_DEREF_CONSUMERS.join ('|');
+    const readRx = new RegExp ('\\b((?:ccxt\\.)?(?:' + consumers + '))\\((?:ccxt\\.)?GetValue\\(([A-Za-z_]\\w*), ([01])\\)\\)', 'g');
+    let changed = false;
+    for (let index = 0; index < lines.length; index++) {
+        if (maskedLines[index].indexOf ('GetValue(') < 0) {
+            continue;
+        }
+        lines[index] = lines[index].replace (readRx, (match: string, consumer: string, holder: string, slot: string, offset: number) => {
+            if ((maskedLines[index].substr (offset, match.length) !== match) || (offset > 0 && /[\w.]$/.test (maskedLines[index].substring (0, offset)) && !/ccxt\.$/.test (maskedLines[index].substring (0, offset)))) {
+                return match;
+            }
+            const fn = blocks.find ((b: any) => (b.depth === 1) && (b.open < index) && (index <= b.close));
+            if ((fn === undefined) || (maskedLines[fn.open].indexOf ('func ') !== 0)) {
+                return match;
+            }
+            const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
+            const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], holder);
+            if ((decl === undefined) || (decl.type !== '[]any') || (decl.line === undefined)) {
+                return match;
+            }
+            const init = new RegExp ('^\\s*var ' + holder + ' \\[\\]any = this\\.(\\w+)\\(').exec (decl.line);
+            if ((init === null) || !GO_TUPLE_PAIR_PRODUCERS.includes (init[1]) || overridden.includes (init[1])) {
+                return match;
+            }
+            let declLine = -1;
+            for (let k = fn.open + 1; k < fn.close; k++) {
+                if (new RegExp ('^\\s*var ' + holder + ' \\[\\]any = ').test (maskedLines[k])) {
+                    declLine = k;
+                    continue;
+                }
+                if (goTextWritesName (maskedLines[k], holder) || new RegExp ('\\b' + holder + '\\s*=\\s*append\\(').test (maskedLines[k])) {
+                    return match;
+                }
+            }
+            if ((declLine < 0) || (declLine >= index)) {
+                return match;
+            }
+            // the declaration's block must enclose the read
+            const declBlock = goTextEnclosingBlock (blocks, declLine);
+            if ((declBlock === undefined) || !((declBlock.open < index) && (index <= declBlock.close))) {
+                return match;
+            }
+            changed = true;
+            return consumer + '(' + holder + '[' + slot + '])';
+        });
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+function goTupleIndexSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const f = (body: string): string => nativeTupleHolderReads ('func (this *X) f(p any) any {\n' + body + '\treturn nil\n}\n');
+    const d = '\tvar h []any = this.HandleWithdrawTagAndParams(t, p)\n';
+    const pos = f (d + '\tvar a *string = SafeStringPtr(GetValue(h, 0))\n\tvar b map[string]any = MapTyped(GetValue(h, 1))\n');
+    ok (pos.indexOf ('SafeStringPtr(h[0])') >= 0 && pos.indexOf ('MapTyped(h[1])') >= 0, 'pair producer reads go native');
+    ok (f ('\tvar h []any = ccxt.ListTyped(x)\n\tvar b map[string]any = ccxt.MapTyped(ccxt.GetValue(h, 1))\n').indexOf ('GetValue(h, 1)') >= 0, 'producer not in table keeps GetValue');
+    ok (f ('\tvar h []any = this.HandleParamString(p, \"k\")\n\tvar b map[string]any = ccxt.MapTyped(ccxt.GetValue(h, 1))\n').indexOf ('ccxt.MapTyped(h[1])') >= 0, 'ccxt-qualified reads go native');
+    const keep: string[] = [
+        d + '\th = this.Other(p)\n\tvar b map[string]any = MapTyped(GetValue(h, 1))\n',
+        d + '\th[1] = p\n\tvar b map[string]any = MapTyped(GetValue(h, 1))\n',
+        d + '\th = append(h, p)\n\tvar b map[string]any = MapTyped(GetValue(h, 1))\n',
+        d + '\tvar c any = MapTyped(GetValue(h, 2))\n',
+        d + '\tx := GetValue(h, 0)\n',
+        d + '\tvar c any = IsEqual(GetValue(h, 0), nil)\n',
+        '\tvar h []any = this.HandleProductTypeAndParams(p)\n\tvar b map[string]any = MapTyped(GetValue(h, 1))\n',
+        '\tif p != nil {\n\t\tvar h []any = this.HandleParamString(p, \"k\")\n\t}\n\tvar b map[string]any = MapTyped(GetValue(h, 1))\n',
+    ];
+    keep.forEach ((body: string, i: number) => ok (f (body).indexOf ('GetValue(h,') >= 0, 'negative ' + i + ' keeps GetValue'));
+    const overridden = 'func (this *X) HandleWithdrawTagAndParams(t any, p any) []any {\n\treturn nil\n}\n' + 'func (this *X) f(p any) any {\n' + d + '\tvar b map[string]any = MapTyped(GetValue(h, 1))\n\treturn nil\n}\n';
+    ok (nativeTupleHolderReads (overridden).indexOf ('GetValue(h, 1)') >= 0, 'producer overridden in the file keeps GetValue');
+    ok (nativeTupleHolderReads (pos) === pos, 'second application is a no-op');
+    return problems;
+}
 
 if (isMainEntry (import.meta.url)) {
     await runMain ();
