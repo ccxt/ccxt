@@ -1047,7 +1047,7 @@ export default class kraken extends krakenRest {
 
     formatNumber (data: string): string {
         const parts = data.split ('.');
-        const integer = parts[0];
+        const integer = this.safeString (parts, 0);
         const decimals = this.safeString (parts, 1, '');
         let joinedResult = integer + decimals;
         let i = 0;
