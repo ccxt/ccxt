@@ -2869,7 +2869,7 @@ public partial class btse : Exchange
      * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot'
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4074,7 +4074,7 @@ public partial class btse : Exchange
      * @param {string} [params.positionId] existing position id to update, disambiguates the target position in hedge mode
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))

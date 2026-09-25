@@ -7541,7 +7541,7 @@ public partial class gate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -7550,7 +7550,7 @@ public partial class gate : Exchange
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        if ((isLessThan(leverage, 0)) || (isGreaterThan(leverage, 100)))
+        if (((leverage < 0)) || ((leverage > 100)))
         {
             throw new BadRequest ((this.id + " setLeverage() leverage should be between 1 and 100")) ;
         }

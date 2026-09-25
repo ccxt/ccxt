@@ -5225,7 +5225,7 @@ public partial class xt : Exchange
      * @param {string} params.positionSide 'LONG' or 'SHORT'
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -5234,7 +5234,7 @@ public partial class xt : Exchange
         }
         string? positionSide = this.safeString(parameters, "positionSide");
         this.checkRequiredArgument("setLeverage", positionSide, "positionSide", new List<object>() {"LONG", "SHORT"});
-        if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 125)))
+        if (((leverage < 1)) || ((leverage > 125)))
         {
             throw new BadRequest ((this.id + " setLeverage() leverage should be between 1 and 125")) ;
         }

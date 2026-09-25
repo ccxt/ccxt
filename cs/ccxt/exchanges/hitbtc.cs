@@ -4041,7 +4041,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -4063,7 +4063,7 @@ public partial class hitbtc : Exchange
         {
             throw new BadSymbol ((this.id + " setLeverage() supports swap contracts only")) ;
         }
-        if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, maxLeverage)))
+        if (((leverage < 1)) || (((maxLeverage == null || leverage > maxLeverage))))
         {
             throw new BadRequest (((((this.id + " setLeverage() leverage should be between 1 and ") + ((object)maxLeverage).ToString()) + " for ") + symbol)) ;
         }

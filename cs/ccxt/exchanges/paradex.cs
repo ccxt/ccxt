@@ -3628,7 +3628,7 @@ public partial class paradex : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("setLeverage", symbol, "symbol");

@@ -3476,7 +3476,7 @@ public partial class lighter : Exchange
      * @param {string} [params.marginMode] margin mode, 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -3700,14 +3700,14 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if ((isLessThan(timeout, 300000)) || (isGreaterThan(timeout, 1296000000)))
+        if ((((timeout == null || timeout < 300000))) || ((timeout > 1296000000)))
         {
             throw new BadRequest ((this.id + " timeout should be between 5 minutes and 15 days.")) ;
         }

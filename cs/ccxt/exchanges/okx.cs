@@ -5256,7 +5256,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5264,9 +5264,9 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         object timeOut = 0;
-        if ((!(timeout == null)) && (isGreaterThan(timeout, 0)))
+        if (((timeout != null)) && ((timeout > 0)))
         {
-            timeOut = this.parseToInt(divide(timeout, 1000));
+            timeOut = this.parseToInt(((double?)timeout / 1000));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "timeOut", timeOut },
@@ -8500,7 +8500,7 @@ public partial class okx : Exchange
      * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -8509,7 +8509,7 @@ public partial class okx : Exchange
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 125)))
+        if (((leverage < 1)) || ((leverage > 125)))
         {
             throw new BadRequest ((this.id + " setLeverage() leverage should be between 1 and 125")) ;
         }

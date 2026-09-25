@@ -2780,7 +2780,7 @@ public partial class whitebit : Exchange
      * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2798,13 +2798,13 @@ public partial class whitebit : Exchange
         {
             throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
-        bool isBiggerThanZero = (isGreaterThan(timeout, 0));
+        bool isBiggerThanZero = ((timeout > 0));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (isBiggerThanZero)
         {
-            request["timeout"] = this.numberToString(divide(timeout, 1000));
+            request["timeout"] = this.numberToString(((double?)timeout / 1000));
         } else
         {
             request["timeout"] = "null";
@@ -3563,7 +3563,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3574,7 +3574,7 @@ public partial class whitebit : Exchange
         {
             throw new NotSupported ((this.id + " setLeverage() does not allow to set per symbol")) ;
         }
-        if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 20)))
+        if (((leverage < 1)) || ((leverage > 20)))
         {
             throw new BadRequest ((this.id + " setLeverage() leverage should be between 1 and 20")) ;
         }

@@ -4886,17 +4886,17 @@ public partial class bingx : Exchange
      * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        bool isActive = (isGreaterThan(timeout, 0));
+        bool isActive = ((timeout > 0));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", isActive ? "ACTIVATE" : "CLOSE" },
-            { "timeOut", isActive ? (this.parseToInt(divide(timeout, 1000))) : 0 },
+            { "timeOut", isActive ? (this.parseToInt(((double?)timeout / 1000))) : 0 },
         };
         Dictionary<string, object> response = null;
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters);
@@ -6221,7 +6221,7 @@ public partial class bingx : Exchange
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))

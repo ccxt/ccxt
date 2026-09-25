@@ -1382,7 +1382,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " createDepositAddress() is not supported yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " setLeverage() is not supported yet")) ;
@@ -5467,7 +5467,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " cancelAllContractOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " cancelAllOrdersAfter() is not supported yet")) ;
