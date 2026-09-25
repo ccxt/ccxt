@@ -13484,7 +13484,69 @@ function javaFreshMapValue (expression, visiting) {
     if (target !== ts.SyntaxKind.ThisKeyword) {
         return false;
     }
-    return javaFreshMapExtendCall (value) || javaFreshMapMethod (value.getSourceFile ().fileName, value.expression.name.text, visiting);
+    return javaFreshMapExtendCall (value) || javaFreshMapMethod (value.getSourceFile ().fileName, value.expression.name.text, visiting)
+        || javaFreshMapPassThroughCall (value, visiting);
+}
+
+// `this.m (x, ..)` where every dispatchable m hands back its own never-reassigned parameter
+// (safePosition: `return position as Position`) is exactly as fresh as the argument it gets
+function javaFreshMapPassThroughCall (call, visiting) {
+    const state = javaFreshMapMethods ();
+    const file = call.getSourceFile ().fileName;
+    const name = call.expression.name.text;
+    const key = `${path.resolve (file)}#${name}#pass`;
+    let index = state.verdicts.get (key);
+    if (index === undefined) {
+        index = -1;
+        const declarations = javaFreshMapDispatch (file, name) ?? [];
+        const declaredByHand = state.handWritten.some ((text) => text === undefined || new RegExp (`\\s${name}\\s*\\(`).test (text));
+        const found = declarations.length > 0 && !declaredByHand ? declarations.map (javaFreshMapReturnedParameter) : [ -1 ];
+        if (found.every ((i) => i >= 0 && i === found[0])) {
+            index = found[0];
+        }
+        state.verdicts.set (key, index);
+    }
+    return index >= 0 && index < call.arguments.length && !ts.isSpreadElement (call.arguments[index])
+        && javaFreshMapValue (call.arguments[index], visiting);
+}
+
+// the position of the parameter every return hands back unchanged, or -1
+function javaFreshMapReturnedParameter (declaration) {
+    if (!ts.isMethodDeclaration (declaration) || declaration.body === undefined) {
+        return -1;
+    }
+    const names = declaration.parameters.map ((p) => (ts.isIdentifier (p.name) ? p.name.text : undefined));
+    let index;
+    let ok = true;
+    const walk = (node) => {
+        if (!ok || node === undefined || (node !== declaration && ts.isFunctionLike (node))) {
+            ok = ok && !(node !== undefined && node !== declaration && ts.isFunctionLike (node));
+            return;
+        }
+        if (ts.isReturnStatement (node)) {
+            const value = javaFreshMapUnwrap (node.expression);
+            const at = value !== undefined && ts.isIdentifier (value) ? names.indexOf (value.text) : -1;
+            ok = at >= 0 && (index === undefined || index === at);
+            index = at;
+            return;
+        }
+        if (ts.isBinaryExpression (node) && node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && node.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            const left = javaFreshMapUnwrap (node.left);
+            // any write to a parameter name (or a destructuring write) may replace it
+            if ((ts.isIdentifier (left) && names.includes (left.text)) || ts.isArrayLiteralExpression (left) || ts.isObjectLiteralExpression (left)) {
+                ok = false;
+                return;
+            }
+        }
+        // a same-named local would shadow the parameter the return names
+        if ((ts.isVariableDeclaration (node) || ts.isBindingElement (node)) && !(ts.isIdentifier (node.name) && !names.includes (node.name.text))) {
+            ok = false;
+            return;
+        }
+        node.forEachChild (walk);
+    };
+    walk (declaration.body);
+    return ok && index !== undefined ? index : -1;
 }
 
 // every write of the local is its fresh initializer or another fresh map, and no pattern binds it
@@ -13525,7 +13587,8 @@ export function patchJavaFreshMapElementWrites (transpiler) {
             return printed;
         }
         const receiver = node.left.expression;
-        const key = node.left.argumentExpression;
+        // `m[k as IndexType] = v` prints the bare key: its Java declaration decides the put
+        const key = javaFreshMapUnwrap (node.left.argumentExpression);
         const head = `Helpers.addElementToObject(${receiver.getText?.() ?? ''}, `;
         if (!ts.isIdentifier (receiver) || !printed.startsWith (head) || !printed.endsWith (')')
             || !(ts.isStringLiteralLike (key) || printer.javaDeclaredStringType (key))) {
@@ -13541,8 +13604,11 @@ export function patchJavaFreshMapElementWrites (transpiler) {
         }
         // a never-null value makes put and the helper agree on any Map, a ConcurrentHashMap included
         const declaration = printer.javaDeclarationOfIdentifier (receiver);
-        const fresh = declaration !== undefined && ts.isVariableDeclaration (declaration) && declaration.initializer !== undefined
-            && javaFreshMapValue (declaration.initializer, new Set ()) && javaFreshMapStable (printer, receiver, declaration);
+        // a null start (`let x = undefined`) holds no map yet: every later write must be fresh
+        const init = declaration !== undefined && ts.isVariableDeclaration (declaration) ? javaFreshMapUnwrap (declaration.initializer) : undefined;
+        const nullStart = init !== undefined && (init.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (init) && init.text === 'undefined'));
+        const fresh = init !== undefined && (nullStart || javaFreshMapValue (init, new Set ()))
+            && javaFreshMapStable (printer, receiver, declaration);
         if (!fresh && !printer.javaPrintsNonNullValue (node.right)) {
             return printed;
         }
