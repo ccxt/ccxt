@@ -12001,8 +12001,8 @@ export function installJavaNullScalarLocalTypes (transpiler) {
 }
 
 // ===== 25. omit of a Map =====
-// `const x = this.omit (m, ...)` with m declared Map<String, Object> in Java: Functions.omit only
-// hands a List back for a List input, so the result is a fresh Map (or null for a null m).
+// `const x = this.omit (m, ...)` with m declared Map<String, Object> in Java binds the hand-written
+// `Map<String, Object> omit (Map<String, Object>, ...)` overloads: a fresh Map (or null), no cast.
 function javaOmitMapCall (printer, node, depth = 0) {
     const call = unwrapParens (node);
     if (call === undefined || !ts.isCallExpression (call) || !isThisCall (call)
@@ -12024,8 +12024,19 @@ function javaOmitMapCall (printer, node, depth = 0) {
     if (!javaOmitSourceIsMap (printer, unwrapParens (call.arguments[0]), depth)) {
         return undefined;
     }
-    // the source may print as an Object snapshot copy, which binds an Object-declared overload
-    return { type: JAVA_STRUCTURE_TYPE, cast: '(' + JAVA_STRUCTURE_TYPE + ')' };
+    return { type: JAVA_STRUCTURE_TYPE, cast: '' };
+}
+
+// `c ? this.omit (m, k) : m`: every arm is a Map-source omit call or a Map-declared source
+function javaOmitMapTernary (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined || !ts.isConditionalExpression (value)) {
+        return undefined;
+    }
+    const arms = [ unwrapParens (value.whenTrue), unwrapParens (value.whenFalse) ];
+    const omits = arms.filter ((arm) => javaOmitMapCall (printer, arm) !== undefined).length;
+    const sources = arms.filter ((arm) => javaOmitSourceIsMap (printer, arm, 0)).length;
+    return omits > 0 && omits + sources === 2 ? { type: JAVA_STRUCTURE_TYPE, cast: '' } : undefined;
 }
 
 // the omitted source is a Map in Java: a parameter the printer declares Map<String, Object> (the
@@ -12077,17 +12088,37 @@ function javaOmitSourceIsMap (printer, source, depth) {
     return true;
 }
 
+// `x = this.omit (x, ...)` on the local being decided: the source is that same Map local
+function javaOmitSelfCall (printer, node, declaration) {
+    const call = unwrapParens (node);
+    if (call === undefined || !ts.isCallExpression (call) || !isThisCall (call) || call.expression.name.text !== 'omit'
+        || call.arguments.length < 2 || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    const source = unwrapParens (call.arguments[0]);
+    if (!ts.isIdentifier (source) || source.text !== declaration.name.text) {
+        return false;
+    }
+    try {
+        const resolved = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+        return printer.getChecker ().getSymbolAtLocation (source)?.valueDeclaration?.resolve () === declaration
+            && resolved !== undefined && COLLECTION_SOURCE_FILE.test (resolved.getSourceFile ().fileName);
+    } catch (e) {
+        return false;
+    }
+}
+
 function javaOmitLocalType (printer, declaration) {
     if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1) {
         return undefined;
     }
-    const info = javaOmitMapCall (printer, declaration.initializer);
+    const info = javaOmitMapCall (printer, declaration.initializer) ?? javaOmitMapTernary (printer, declaration.initializer);
     if (info === undefined) {
         return undefined;
     }
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
-    const writeOk = (right) => javaOmitMapCall (printer, right) !== undefined
-        || accumulatorWriteInfo (printer, right)?.type === JAVA_STRUCTURE_TYPE;
+    const writeOk = (right) => javaOmitMapCall (printer, right) !== undefined || javaOmitMapTernary (printer, right) !== undefined
+        || javaOmitSelfCall (printer, right, declaration) || accumulatorWriteInfo (printer, right)?.type === JAVA_STRUCTURE_TYPE;
     return isSafeToNarrow (printer, declaration, String (declaration.name.text), JAVA_STRUCTURE_TYPE, isProFile,
         { noCastAssertions: true, writeOk }) ? info : undefined;
 }
@@ -12119,7 +12150,8 @@ export function patchJavaOmitLocalTypes (transpiler) {
         const printedName = printer.printNode (declaration.name, 0);
         const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
         const at = printed.lastIndexOf (marker);
-        if (at === -1 || !printed.startsWith ('this.omit(', at + marker.length)) {
+        const ternary = ts.isConditionalExpression (unwrapParens (declaration.initializer));
+        if (at === -1 || !(ternary || printed.startsWith ('this.omit(', at + marker.length))) {
             return printed;
         }
         typed.set (declaration, info.type);
@@ -12143,7 +12175,8 @@ export function patchJavaOmitLocalTypes (transpiler) {
         if (declaration === undefined || !typed.has (declaration)) {
             return printed;
         }
-        const info = javaOmitMapCall (printer, node.right) ?? accumulatorWriteInfo (printer, node.right);
+        const info = javaOmitMapCall (printer, node.right) ?? javaOmitMapTernary (printer, node.right)
+            ?? accumulatorWriteInfo (printer, node.right);
         return info === undefined || info.type !== JAVA_STRUCTURE_TYPE ? printed : accumulatorCastWrite (printer, node, printed, info);
     };
 }
