@@ -996,9 +996,7 @@ export default class extended extends Exchange {
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let paginate = false;
-        let paramsPaginate: Dict = {};
-        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 100) as Trade[];
         }
@@ -1067,9 +1065,7 @@ export default class extended extends Exchange {
      */
     override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         await this.loadMarkets ();
-        let paginate = false;
-        let paramsPaginate: Dict = {};
-        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 100) as FundingHistory[];
         }
@@ -1332,9 +1328,7 @@ export default class extended extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets ();
-        let paginate = false;
-        let paramsPaginate: Dict = {};
-        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 10000) as FundingRateHistory[];
         }
@@ -1632,9 +1626,7 @@ export default class extended extends Exchange {
      */
     override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
-        let paginate = false;
-        let paramsPaginate: Dict = {};
-        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 50) as LedgerEntry[];
         }
@@ -1726,9 +1718,7 @@ export default class extended extends Exchange {
      */
     override async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let paginate = false;
-        let paramsPaginate: Dict = {};
-        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTransactions', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTransactions', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransactions', code, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 50) as Transaction[];
         }
@@ -1893,9 +1883,7 @@ export default class extended extends Exchange {
      */
     override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
         await this.loadMarkets ();
-        let paginate = false;
-        let paramsPaginate: Dict = {};
-        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 50) as TransferEntry[];
         }
@@ -2380,9 +2368,7 @@ export default class extended extends Exchange {
         if (typeof symbols === 'string') {
             symbolsList = [ symbols ];
         }
-        let paginate = false;
-        let paramsPaginate: Dict = {};
-        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchPositionsHistory', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchPositionsHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchPositionsHistory', symbolsList, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 10000) as Position[];
         }
@@ -3222,9 +3208,7 @@ export default class extended extends Exchange {
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let paginate = false;
-        let paramsPaginate: Dict = {};
-        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 100) as Order[];
         }
