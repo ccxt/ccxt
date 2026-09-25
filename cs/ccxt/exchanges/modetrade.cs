@@ -3597,7 +3597,7 @@ public partial class modetrade : Exchange
         }
         string url = (((apiUrl + "/") + (version)) + "/");
         Dictionary<string, object> paramsSorted = this.keysort(this.omit(parameters, this.extractParams(path)));
-        if (isEqual(access, "public"))
+        if ((access is "public"))
         {
             url = url + pathWithParams;
             if ((new List<object>(((IDictionary<string,object>)paramsSorted).Keys)).Count > 0)

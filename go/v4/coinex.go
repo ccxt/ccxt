@@ -1772,7 +1772,7 @@ func (this *Coinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbol *string = this.SafeString(symbolsNormalized, 0)
 		market = this.Market(symbol)
 	}
@@ -4108,7 +4108,7 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"market_type": "FUTURES",
 	}
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbol any = nil
 		if true {
 			var symbolsLength int = len(symbolsNormalized)
@@ -5014,7 +5014,7 @@ func (this *Coinex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbol *string = this.SafeString(symbolsNormalized, 0)
 		market = this.Market(symbol)
 		if market["swap"] != true {
@@ -6528,12 +6528,9 @@ func (this *Coinex) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 	_ = defaultValue
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)
-	marginModeValue, paramsMarginMode := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
-	var marginMode any = marginModeValue
-	if IsEqual(marginMode, nil) {
-		if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true) {
-			marginMode = "isolated"
-		}
+	marginMode, paramsMarginMode := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
+	if (IsEqual(marginMode, nil)) && ((defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true)) {
+		return SafeStringPtr("isolated"), MapTyped(paramsMarginMode)
 	}
 	return SafeStringPtr(marginMode), MapTyped(paramsMarginMode)
 }

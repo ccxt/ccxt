@@ -1625,7 +1625,7 @@ public partial class hyperliquid : PredictionExchange
             {
                 throw new OrderNotFound (((((this.id + " cancelOrders() failed for ") + this.safeString(requestIds, i, this.safeString(requestIds, 0))) + ": ") + error)) ;
             }
-            bool success = (isEqual(status, "success")) || ((this.safeString(status, "status") == "success"));
+            bool success = ((status is "success")) || ((this.safeString(status, "status") == "success"));
             if (!success)
             {
                 throw new ExchangeError (((this.id + " cancelOrders() received an unexpected status: ") + this.json(status))) ;

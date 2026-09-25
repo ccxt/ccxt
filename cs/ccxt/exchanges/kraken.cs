@@ -2270,18 +2270,18 @@ public partial class kraken : Exchange
             marketId = this.safeString(parts, 2);
             object part4 = this.safeString(parts, 4);
             string? part5 = this.safeString(parts, 5);
-            if (isEqual(part4, "limit") || isEqual(part4, "market"))
+            if ((part4 is "limit") || (part4 is "market"))
             {
                 rawType = part4; // eg, limit, market
             } else
             {
                 rawType = add(add(part4, " "), part5); // eg. stop loss, take profit, trailing stop
             }
-            if (isEqual(rawType, "stop loss") || isEqual(rawType, "take profit"))
+            if ((rawType is "stop loss") || (rawType is "take profit"))
             {
                 triggerPrice = this.safeString(parts, 6);
                 price = this.safeString(parts, 9);
-            } else if (isEqual(rawType, "limit"))
+            } else if ((rawType is "limit"))
             {
                 price = this.safeString(parts, 5);
             }
@@ -2373,10 +2373,10 @@ public partial class kraken : Exchange
             {
                 stopLossPrice = this.safeString(description, "price");
                 price = this.omitZero(this.safeString(description, "price2"));
-            } else if (isEqual(rawType, "take profit"))
+            } else if ((rawType is "take profit"))
             {
                 takeProfitPrice = triggerPrice;
-            } else if (isEqual(rawType, "stop loss"))
+            } else if ((rawType is "stop loss"))
             {
                 stopLossPrice = triggerPrice;
             }
@@ -4087,14 +4087,14 @@ public partial class kraken : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = ((((("/" + this.version) + "/") + (api)) + "/") + path);
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = add(url, ("?" + this.urlencodeNested(parameters)));
             }
-        } else if (isEqual(api, "private"))
+        } else if ((api is "private"))
         {
             string? price = this.safeString(parameters, "price");
             bool isTriggerPercent = false;

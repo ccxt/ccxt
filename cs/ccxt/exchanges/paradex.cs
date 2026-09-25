@@ -4036,13 +4036,13 @@ public partial class paradex : Exchange
         }
         string url = ((this.implodeHostname(baseApiUrl) + "/") + this.implodeParams(pathValue, parameters));
         object query = this.omit(parameters, this.extractParams(pathValue));
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
-        } else if (isEqual(api, "private"))
+        } else if ((api is "private"))
         {
             Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
                 { "Accept", "application/json" },
@@ -4050,13 +4050,13 @@ public partial class paradex : Exchange
             };
             string? privateBody = null;
             // TODO: optimize
-            if (isEqual(pathValue, "auth"))
+            if ((pathValue is "auth"))
             {
                 privateHeaders["PARADEX-STARKNET-ACCOUNT"] = getValue(query, "account");
                 privateHeaders["PARADEX-STARKNET-SIGNATURE"] = getValue(query, "signature");
                 privateHeaders["PARADEX-TIMESTAMP"] = getValue(query, "timestamp").ToString();
                 privateHeaders["PARADEX-SIGNATURE-EXPIRATION"] = getValue(query, "expiration").ToString();
-            } else if (isEqual(pathValue, "onboarding"))
+            } else if ((pathValue is "onboarding"))
             {
                 privateHeaders["PARADEX-ETHEREUM-ACCOUNT"] = this.walletAddress;
                 privateHeaders["PARADEX-STARKNET-ACCOUNT"] = getValue(query, "account");
@@ -4074,7 +4074,7 @@ public partial class paradex : Exchange
                     throw new AuthenticationError ((this.id + " sign() requires an authToken, call authenticateRest() first")) ;
                 }
                 privateHeaders["Authorization"] = ("Bearer " + token);
-                if (((method == "POST")) || ((method == "PUT")) || (((method == "DELETE")) && (isEqual(pathValue, "orders/batch"))))
+                if (((method == "POST")) || ((method == "PUT")) || (((method == "DELETE")) && ((pathValue is "orders/batch"))))
                 {
                     privateHeaders["Content-Type"] = "application/json";
                     privateBody = this.json(query);

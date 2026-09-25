@@ -14460,6 +14460,65 @@ export function installJavaBooleanParams (transpiler) {
     };
 }
 
+// ===== 45. string-literal defaulted `timeframe` parameters print `String` =====
+// Every printed declaration of these (method, position) slots defaults to a string literal, is
+// annotated string/Str (or not at all) and never written: base and overrides print `String`.
+const JAVA_STRING_DEFAULT_PARAMS = {
+    'buildOHLCVC': [ 1 ],
+    'fetchContractOHLCV': [ 1 ],
+    'fetchDerivativesOpenInterestHistory': [ 1 ],
+    'fetchIndexOHLCV': [ 1 ],
+    'fetchMarkOHLCV': [ 1 ],
+    'fetchOHLCV': [ 1 ],
+    'fetchOHLCVRequest': [ 1 ],
+    'fetchOHLCVWs': [ 1 ],
+    'fetchOpenInterestHistory': [ 1 ],
+    'fetchOptionOHLCV': [ 1 ],
+    'fetchPremiumIndexOHLCV': [ 1 ],
+    'fetchSpotOHLCV': [ 1 ],
+    'fetchUTAOHLCV': [ 1 ],
+    'parseOHLCVs': [ 2 ],
+    'parseTradingViewOHLCV': [ 2 ],
+    'parseWsOHLCVs': [ 2 ],
+    'unWatchOHLCV': [ 1 ],
+    'watchOHLCV': [ 1 ],
+};
+
+// 'String' for a table slot; a table slot that breaks the proof throws (overrides must agree)
+function javaStringDefaultParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
+        || !ts.isIdentifier (method.name ?? {})) {
+        return undefined;
+    }
+    const positions = JAVA_STRING_DEFAULT_PARAMS[method.name.text];
+    const index = method.parameters.indexOf (node);
+    const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
+    if (positions === undefined || !positions.includes (index) || fileName.includes ('/ts/src/test/')
+        || !printer.javaIsPrintedMethod (method)) {
+        return undefined;
+    }
+    const annotation = node.type === undefined ? '' : node.type.getText ().replace (/\s/g, '');
+    const initializer = unwrapParens (node.initializer);
+    if (initializer === undefined || !ts.isStringLiteralLike (initializer) || ![ '', 'string', 'Str' ].includes (annotation)
+        || !ts.isIdentifier (node.name) || printer.javaParameterIsWritten (node)) {
+        throw new Error (`java string param ${method.name.text}#${index} (${fileName}) is not a read-only string-literal default`);
+    }
+    return 'String';
+}
+
+export function installJavaStringDefaultParams (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaOptionalParameterTypeOf !== 'function' || printer._javaStringDefaultParamsPatched) {
+        return;
+    }
+    printer._javaStringDefaultParamsPatched = true;
+    const upstreamType = printer.javaOptionalParameterTypeOf.bind (printer);
+    printer.javaOptionalParameterTypeOf = function (node) {
+        return javaStringDefaultParamType (printer, node) ?? upstreamType (node);
+    };
+}
+
 // ===== 46. typed Pair returns of the handle*AndParams family =====
 // The hand-written base declares these `Pair<A, B>` (a two-element List): overrides print the same
 // return type, `return [a, b]` in them prints `new Pair<>(a, b)` from proven elements, and

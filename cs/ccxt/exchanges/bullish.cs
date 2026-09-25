@@ -1511,7 +1511,7 @@ public partial class bullish : Exchange
         (Int64?, object) maxRetriesparamsMaxRetriesVariable = this.handleOptionIntegerAndParams(parameters, method, "maxRetries", 3);
         Int64? maxRetries = maxRetriesparamsMaxRetriesVariable.Item1;
         IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesparamsMaxRetriesVariable.Item2);
-        if ((!isEqual(method, "fetchOHLCV")) && (!isEqual(method, "fetchFundingRateHistory")) && (!isEqual(method, "fetchTrades")))
+        if ((!(method is "fetchOHLCV")) && (!(method is "fetchFundingRateHistory")) && (!(method is "fetchTrades")))
         {
             throw new NotSupported ((((this.id + " safeDeterministicCall() does not support the ") + (method)) + " method")) ;
         }
@@ -1523,10 +1523,10 @@ public partial class bullish : Exchange
         {
             try
             {
-                if (isEqual(method, "fetchOHLCV"))
+                if ((method is "fetchOHLCV"))
                 {
                     return ccxt.BaseExchange.FromOHLCVList(await this.FetchOHLCV(symbol,timeframe,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsOmitted));
-                } else if (isEqual(method, "fetchFundingRateHistory"))
+                } else if ((method is "fetchFundingRateHistory"))
                 {
                     return ccxt.BaseExchange.FromFundingRateHistoryList(await this.FetchFundingRateHistory(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsOmitted));
                 } else
@@ -3367,7 +3367,7 @@ public partial class bullish : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + endpoint);
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.microseconds().ToString();

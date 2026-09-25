@@ -3690,7 +3690,7 @@ public partial class bithumb : Exchange
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryKeysLength = queryKeys.Count;
         bool hasQuery = (queryKeysLength > 0);
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             requestHeaders = new Dictionary<string, object>() {
                 { "OPEN-API-PARTNER", "CCXT" },

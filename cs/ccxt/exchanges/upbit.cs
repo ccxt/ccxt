@@ -1061,10 +1061,10 @@ public partial class upbit : Exchange
         }
         string? side = null;
         object askOrBid = this.safeStringLower2(trade, "ask_bid", "side");
-        if (isEqual(askOrBid, "ask"))
+        if ((askOrBid is "ask"))
         {
             side = "sell";
-        } else if (isEqual(askOrBid, "bid"))
+        } else if ((askOrBid is "bid"))
         {
             side = "buy";
         }
@@ -2701,14 +2701,14 @@ public partial class upbit : Exchange
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        bool hasBody = (isEqual(api, "private")) && ((method != "GET")) && ((method != "DELETE"));
+        bool hasBody = ((api is "private")) && ((method != "GET")) && ((method != "DELETE"));
         object requestBody = body;
         if (hasBody)
         {
             requestBody = this.json(parameters);
         }
         Dictionary<string, object> privateHeaders = null;
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             privateHeaders = new Dictionary<string, object>() {};
@@ -2736,7 +2736,7 @@ public partial class upbit : Exchange
             string token = jwt(request, this.encode(this.secret), sha256);
             privateHeaders["Authorization"] = ("Bearer " + token);
         }
-        object requestHeaders = (isEqual(api, "private")) ? privateHeaders : headers;
+        object requestHeaders = ((api is "private")) ? privateHeaders : headers;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

@@ -23,7 +23,7 @@ public partial class testMainClass : BaseTest
             {
                 continue;
             }
-            if (isEqual(marketType, "spot"))
+            if ((marketType is "spot"))
             {
                 testFeaturesInner(exchange, skippedProperties, value);
             } else

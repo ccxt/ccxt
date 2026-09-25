@@ -4239,13 +4239,11 @@ public partial class hitbtc : Exchange
         (string?, object) marginModeparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
-        bool isIsolatedDefault = ((marginMode == null)) && ((defaultType == "margin") || ((isMargin == true)));
-        string? marginModeResolved = marginMode;
-        if (isIsolatedDefault)
+        if (((marginMode == null)) && ((defaultType == "margin") || ((isMargin == true))))
         {
-            marginModeResolved = "isolated";
+            return ("isolated", paramsMarginMode);
         }
-        return (marginModeResolved, paramsMarginMode);
+        return (marginMode, paramsMarginMode);
     }
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
@@ -4307,7 +4305,7 @@ public partial class hitbtc : Exchange
             }
         }
         object bodyResolved = ((method == "GET")) ? body : this.json(parameters);
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.nonce().ToString();

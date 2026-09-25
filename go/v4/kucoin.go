@@ -3605,7 +3605,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
 	var tradeType *string = this.SafeString(paramsUta, "tradeType")
 	var firstMarket map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		if firstSymbol != nil {
 			firstMarket = this.Market(firstSymbol)
@@ -12984,7 +12984,7 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	var response map[string]any = nil
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
@@ -14142,7 +14142,7 @@ func (this *Kucoin) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length < 11 {
 			// the endpoint does not accept more than 10 symbols at a time

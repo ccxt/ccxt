@@ -5874,11 +5874,9 @@ class coinex(Exchange, ImplicitAPI):
         """
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_bool(params, 'margin', False)
-        marginModeValue, paramsMarginMode = super(coinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
-        marginMode = marginModeValue
-        if marginMode is None:
-            if (defaultType == 'margin') or (isMargin is True):
-                marginMode = 'isolated'
+        marginMode, paramsMarginMode = super(coinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
+        if (marginMode is None) and ((defaultType == 'margin') or (isMargin is True)):
+            return ['isolated', paramsMarginMode]
         return [marginMode, paramsMarginMode]
 
     def nonce(self) -> float:

@@ -1055,7 +1055,7 @@ public partial class lighter : Exchange
             // group order
             ((IDictionary<string,object>)(orders != null && 0 < orders.Count ? orders[0] : null))["client_order_index"] = 0; // client order index should be 0
             string triggerOrderSide = "";
-            if (isEqual(side, "BUY"))
+            if ((side is "BUY"))
             {
                 triggerOrderSide = "sell";
             } else
@@ -3859,7 +3859,7 @@ public partial class lighter : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = null;
-        if (isEqual(api, "root"))
+        if ((api is "root"))
         {
             string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "public");
             if ((baseApiUrl == null))
@@ -3877,7 +3877,7 @@ public partial class lighter : Exchange
             url = ((((this.implodeHostname(baseApiUrl2) + "/api/") + this.version) + "/") + path);
         }
         Dictionary<string, object> authHeaders = null;
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             authHeaders = new Dictionary<string, object>() {
                 { "Authorization", this.createAuth(parameters) },
@@ -3899,7 +3899,7 @@ public partial class lighter : Exchange
             }
             url = add(url, ("?" + this.rawencode(parameters)));
         }
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             return new Dictionary<string, object>() {
                 { "url", url },

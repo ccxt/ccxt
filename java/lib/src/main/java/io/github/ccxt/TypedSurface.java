@@ -91,7 +91,7 @@ public interface TypedSurface {
     CompletableFuture<LongShortRatio> fetchLongShortRatio(String symbol, String timeframe, Map<String, Object> params);
     CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistory(String symbol, String type, Object since, Object limit, Map<String, Object> params);
-    CompletableFuture<List<OpenInterest>> fetchOpenInterestHistory(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<OpenInterest>> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Map<String, Object> params);
     CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Map<String, Object> params);
     CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> params);
@@ -99,9 +99,9 @@ public interface TypedSurface {
     CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> params);
     CompletableFuture<MarginLoan> borrowMargin(String code, Object amount, String symbol, Map<String, Object> params);
     CompletableFuture<MarginLoan> repayMargin(String code, Object amount, String symbol, Map<String, Object> params);
-    CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Account>> loadAccounts(Boolean reload, Map<String, Object> params);
     CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(String code, String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> params);
@@ -153,9 +153,9 @@ public interface TypedSurface {
     CompletableFuture<Currencies> fetchConvertCurrencies(Map<String, Object> params);
     CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> params);
     CompletableFuture<FundingRate> fetchFundingInterval(String symbol, Map<String, Object> params);
-    CompletableFuture<List<OHLCV>> fetchMarkOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<List<OHLCV>> fetchIndexOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<OHLCV>> fetchMarkOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<OHLCV>> fetchIndexOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Transaction>> fetchTransactions(String code, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<TransferEntry> fetchTransfer(String id, String code, Map<String, Object> params);
     CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> params);
@@ -230,8 +230,8 @@ public interface TypedSurface {
     CompletableFuture<FundingRate> watchFundingRate(String symbol, Map<String, Object> params);
     CompletableFuture<FundingRates> watchFundingRates(List<String> symbols, Map<String, Object> params);
     CompletableFuture<FundingRates> watchFundingRatesForSymbols(Object symbols, Map<String, Object> params);
-    CompletableFuture<List<OHLCV>> fetchOHLCVWs(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<OHLCV>> fetchOHLCVWs(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<Balances> fetchBalanceWs(Map<String, Object> params);
     CompletableFuture<Balances> watchBalance(Map<String, Object> params);
     CompletableFuture<List<Transaction>> fetchDepositsWs(String code, Long since, Long limit, Map<String, Object> params);

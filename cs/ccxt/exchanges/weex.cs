@@ -5016,7 +5016,7 @@ public partial class weex : Exchange
                 endpoint = add(endpoint, ("?" + this.urlencode(query)));
             }
         }
-        bool isPrivate = (isEqual(api, "private")) || (isEqual(api, "contractPrivate"));
+        bool isPrivate = ((api is "private")) || ((api is "contractPrivate"));
         bool hasJsonBody = isPrivate && (((method == "POST")) || isBatch);
         object requestBody = body;
         if (hasJsonBody)

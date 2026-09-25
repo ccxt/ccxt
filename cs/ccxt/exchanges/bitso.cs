@@ -2185,7 +2185,7 @@ public partial class bitso : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + endpoint);
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             // bitso rejects a nonce that is not higher than the previous one (error 104)

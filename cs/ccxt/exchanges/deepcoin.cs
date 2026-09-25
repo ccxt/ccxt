@@ -934,7 +934,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
-        var paramsMarketType = marketTypeparamsMarketTypeVariable[1];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(marketType) },
         };
@@ -1150,7 +1150,7 @@ public partial class deepcoin : Exchange
         string? marketType = null;
         IList<object> marketTypeOptionparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters, marketType);
         string? marketTypeOption = (string)marketTypeOptionparamsMarketTypeVariable[0];
-        var paramsMarketType = marketTypeOptionparamsMarketTypeVariable[1];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeOptionparamsMarketTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(marketTypeOption) },
         };
@@ -1528,7 +1528,7 @@ public partial class deepcoin : Exchange
         }
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchLedger", null, parameters, "spot");
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
-        var paramsMarketType = marketTypeparamsMarketTypeVariable[1];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(marketType) },
         };
@@ -1551,7 +1551,7 @@ public partial class deepcoin : Exchange
         {
             request["before"] = until;
         }
-        object paramsOmitted = this.omit(paramsMarketType, "until");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarketType, "until");
         Dictionary<string, object> response = await this.privateGetDeepcoinAccountBills(this.extend(request, paramsOmitted));
         //
         //     {
@@ -2305,7 +2305,7 @@ public partial class deepcoin : Exchange
         }
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams(methodName, market, paramsMethodName, "spot");
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
-        var paramsMarketType = marketTypeparamsMarketTypeVariable[1];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         request["instType"] = this.convertToInstrumentType(marketType);
         if ((limit != null))
         {
@@ -2322,7 +2322,7 @@ public partial class deepcoin : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders")) ;
             }
-            object paramsOmitted = this.omit(paramsMarketType, "trigger");
+            Dictionary<string, object> paramsOmitted = this.omit(paramsMarketType, "trigger");
             //
             //     {
             //         "code": "0",
@@ -3000,7 +3000,7 @@ public partial class deepcoin : Exchange
         }
         IList<object> marketTypeOptionparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchPositions", market, parameters, marketType);
         string? marketTypeOption = (string)marketTypeOptionparamsMarketTypeVariable[0];
-        var paramsMarketType = marketTypeOptionparamsMarketTypeVariable[1];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeOptionparamsMarketTypeVariable[1]);
         string? instrumentType = this.convertToInstrumentType(marketTypeOption);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", instrumentType },
@@ -3416,7 +3416,7 @@ public partial class deepcoin : Exchange
         }
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, "spot");
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
-        var paramsMarketType = marketTypeparamsMarketTypeVariable[1];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(marketType) },
         };
@@ -3564,7 +3564,7 @@ public partial class deepcoin : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + (requestPath));
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             Int64 timestamp = this.milliseconds();

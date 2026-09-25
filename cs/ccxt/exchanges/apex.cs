@@ -2227,7 +2227,7 @@ public partial class apex : Exchange
             Dictionary<string, object> sortedQuery = this.keysort(parameters);
             signBody = this.rawencode(sortedQuery);
         }
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();

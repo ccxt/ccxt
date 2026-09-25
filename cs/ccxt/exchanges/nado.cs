@@ -3412,7 +3412,7 @@ public partial class nado : Exchange
         }
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {};
-        if ((isEqual(endpoint, "gateway")) || (isEqual(endpoint, "archive")))
+        if (((endpoint is "gateway")) || ((endpoint is "archive")))
         {
             headersValue["Accept-Encoding"] = "gzip, br, deflate";
         }

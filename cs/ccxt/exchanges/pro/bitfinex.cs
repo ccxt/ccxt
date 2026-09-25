@@ -66,7 +66,7 @@ public partial class bitfinex : ccxt.bitfinex
             { "checksum", false },
         });
         bool? checksum = this.safeBool(this.options, "checksum", true);
-        if (((checksum == true)) && (isEqual(channel, "book")))
+        if (((checksum == true)) && ((channel is "book")))
         {
             object sub = getValue(client.subscriptions, messageHash);
             if (((sub != null)) && (!isEqual(getValue(sub, "checksum"), true)))

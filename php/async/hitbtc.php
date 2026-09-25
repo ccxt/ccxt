@@ -4010,12 +4010,10 @@ class hitbtc extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_bool($params, 'margin', false);
         list($marginMode, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
-        $isIsolatedDefault = ($marginMode === null) && (($defaultType === 'margin') || ($isMargin === true));
-        $marginModeResolved = $marginMode;
-        if ($isIsolatedDefault) {
-            $marginModeResolved = 'isolated';
+        if (($marginMode === null) && (($defaultType === 'margin') || ($isMargin === true))) {
+            return array( 'isolated', $paramsMarginMode );
         }
-        return array( $marginModeResolved, $paramsMarginMode );
+        return array( $marginMode, $paramsMarginMode );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

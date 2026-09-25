@@ -87,7 +87,7 @@ public partial class testMainClass : BaseTest
                 limitSellPrice_nonFillable = maximumPrice;
             }
             object createdOrder = null;
-            if (isEqual(buyOrSell, "buy"))
+            if ((buyOrSell is "buy"))
             {
                 object orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, limitBuyPrice_nonFillable, predefinedAmount);
                 createdOrder = await tcoCreateOrderSafe(exchange, symbol, "limit", "buy", orderAmount, limitBuyPrice_nonFillable, new Dictionary<string, object>() {}, skippedProperties);
@@ -120,7 +120,7 @@ public partial class testMainClass : BaseTest
         try
         {
             bool isSwapFuture = (isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true));
-            bool isBuy = (isEqual(buyOrSellString, "buy"));
+            bool isBuy = ((buyOrSellString is "buy"));
             string entrySide = isBuy ? "buy" : "sell";
             string exitSide = isBuy ? "sell" : "buy";
             object entryorderPrice = isBuy ? multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : divide(bestBid, limitPriceSafetyMultiplierFromMedian);
@@ -213,7 +213,7 @@ public partial class testMainClass : BaseTest
             testOrder(exchange, skippedProperties, "createOrder", order, symbol, (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds());
         } catch(Exception e)
         {
-            if (!isEqual(orderType, "market"))
+            if (!(orderType is "market"))
             {
                 // if it was limit order, try to cancel it before exiting the script
                 await tcoTryCancelOrder(exchange, symbol, order, skippedProperties);

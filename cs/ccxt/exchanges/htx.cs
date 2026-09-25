@@ -4188,7 +4188,7 @@ public partial class htx : Exchange
             return ccxt.BaseExchange.ToStringValue(accountId);
         }
         object accountType = type;
-        if (isEqual(type, "spot"))
+        if ((type is "spot"))
         {
             if ((marginMode == "cross"))
             {
@@ -4209,7 +4209,7 @@ public partial class htx : Exchange
             IDictionary<string, object> info = this.safeDict(account, "info");
             string? subtype = this.safeString(info, "subtype");
             string? typeFromAccount = this.safeString(account, "type");
-            if (isEqual(accountType, "margin"))
+            if ((accountType is "margin"))
             {
                 if ((subtype == marketId))
                 {
@@ -6056,7 +6056,7 @@ public partial class htx : Exchange
         if ((isLinearOrder == true))
         {
             type = this.safeString(order, "type");
-            if (((type == null)) || (isEqual(type, "tp")) || (isEqual(type, "sl")) || (isEqual(type, "tpsl")))
+            if (((type == null)) || ((type is "tp")) || ((type is "sl")) || ((type is "tpsl")))
             {
                 type = this.safeString2(order, "tp_type", "sl_type");
             }
@@ -6107,7 +6107,7 @@ public partial class htx : Exchange
                 feeCurrency = this.safeCurrencyCode(feeCurrencyId);
             } else
             {
-                feeCurrency = (isEqual(side, "sell")) ? GetValue(marketResolved, "quote") : GetValue(marketResolved, "base");
+                feeCurrency = ((side is "sell")) ? GetValue(marketResolved, "quote") : GetValue(marketResolved, "base");
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -6266,7 +6266,7 @@ public partial class htx : Exchange
         } else
         {
             string defaultOperator = "gte";
-            if (isEqual(side, "sell"))
+            if ((side is "sell"))
             {
                 defaultOperator = "lte";
             }
@@ -6317,7 +6317,7 @@ public partial class htx : Exchange
         {
             request["source"] = "c2c-margin-api";
         }
-        bool isMarketBuy = (orderType == "market") && (isEqual(side, "buy"));
+        bool isMarketBuy = (orderType == "market") && ((side is "buy"));
         (bool?, object) requiresPriceAndParams = this.handleOptionBoolAndParams(paramsPostOnly, "createOrder", "createMarketBuyOrderRequiresPrice", true);
         double? cost = this.safeNumber(requiresPriceAndParams.Item2, "cost");
         object paramsCost = paramsPostOnly;
@@ -6578,7 +6578,7 @@ public partial class htx : Exchange
                 request["client_order_id"] = clientOrderId;
                 query = this.omit(query, new List<object>() {"clientOrderId"});
             }
-            if (isEqual(orderType, "limit") || isEqual(orderType, "ioc") || isEqual(orderType, "fok") || isEqual(orderType, "post_only"))
+            if ((orderType is "limit") || (orderType is "ioc") || (orderType is "fok") || (orderType is "post_only"))
             {
                 if ((price != null))
                 {
@@ -8287,16 +8287,16 @@ public partial class htx : Exchange
         object fromAccountId = this.convertTypeToAccount(fromAccount);
         string? toAccountId = this.convertTypeToAccount(toAccount);
         bool toCross = toAccountId == "cross";
-        bool fromCross = isEqual(fromAccountId, "cross");
+        bool fromCross = (fromAccountId is "cross");
         bool toIsolated = (((this.ids != null)) && this.inArray(toAccountId, this.ids));
         bool fromIsolated = (((this.ids != null)) && this.inArray(fromAccountId, this.ids));
-        bool fromSpot = isEqual(fromAccountId, "pro");
+        bool fromSpot = (fromAccountId is "pro");
         bool toSpot = toAccountId == "pro";
         if (fromSpot && toSpot)
         {
             throw new BadRequest (((((this.id + " transfer () cannot make a transfer between ") + fromAccount) + " and ") + toAccount)) ;
         }
-        bool fromOrToFuturesAccount = (isEqual(fromAccountId, "futures")) || (toAccountId == "futures");
+        bool fromOrToFuturesAccount = ((fromAccountId is "futures")) || (toAccountId == "futures");
         Dictionary<string, object> response = null;
         if (fromOrToFuturesAccount)
         {
@@ -8323,7 +8323,7 @@ public partial class htx : Exchange
             object query = paramsSubType;
             if ((subType == "linear"))
             {
-                if ((isEqual(fromAccountId, "swap")) || ((fromAccount == "linear-swap")))
+                if (((fromAccountId is "swap")) || ((fromAccount == "linear-swap")))
                 {
                     fromAccountId = "linear-swap";
                 } else
@@ -8978,7 +8978,7 @@ public partial class htx : Exchange
         if ((api is string))
         {
             // signing implementation for the old endpoints
-            if ((isEqual(api, "public")) || (isEqual(api, "private")))
+            if (((api is "public")) || ((api is "private")))
             {
                 url = add(url, this.version);
             } else if ((isEqual(api, "v2Public")) || (isEqual(api, "v2Private")))
@@ -8986,7 +8986,7 @@ public partial class htx : Exchange
                 url = add(url, "v2");
             }
             url = add(url, ("/" + this.implodeParams(path, parameters)));
-            if (isEqual(api, "private") || isEqual(api, "v2Private"))
+            if ((api is "private") || isEqual(api, "v2Private"))
             {
                 this.checkRequiredCredentials();
                 string timestamp = this.ymdhms(this.nonce(), "T");

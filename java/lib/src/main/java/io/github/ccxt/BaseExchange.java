@@ -5650,7 +5650,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistory(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -7512,7 +7512,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -7527,7 +7527,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -7537,7 +7537,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -7547,7 +7547,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<List<OHLCV>> fetchOHLCVWs(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCVWs(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -7562,7 +7562,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -8168,7 +8168,7 @@ public Object describe()
         }};
     }
 
-    public List<Object> parseOHLCVs(Object ohlcvs, Object market, Object timeframe, Long since, Long limit, Object tail)
+    public List<Object> parseOHLCVs(Object ohlcvs, Object market, String timeframe, Long since, Long limit, Object tail)
     {
         if (java.util.Objects.equals(ohlcvs, null))
         {
@@ -8778,7 +8778,7 @@ public Object describe()
 
     }
 
-    public Object buildOHLCVC(Object trades, Object timeframe, Object since, Object limit)
+    public Object buildOHLCVC(Object trades, String timeframe, Object since, Object limit)
     {
         // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
         // note, default limit value (2147483647) is max int32 value
@@ -8858,7 +8858,7 @@ public Object describe()
         return ohlcvs;
     }
 
-    public Object parseTradingViewOHLCV(Object ohlcvs, Map<String, Object> market, Object timeframe, Long since, Long limit)
+    public Object parseTradingViewOHLCV(Object ohlcvs, Map<String, Object> market, String timeframe, Long since, Long limit)
     {
         Object result = this.convertTradingViewToOHLCV(ohlcvs, "t", "o", "h", "l", "c", "v", false);
         return this.parseOHLCVs(result, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
@@ -10837,7 +10837,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<List<OHLCV>> fetchMarkOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchMarkOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -10867,7 +10867,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<List<OHLCV>> fetchIndexOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchIndexOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -10897,7 +10897,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -11156,7 +11156,7 @@ public Object describe()
         return market;
     }
 
-    public Object parseWsOHLCVs(Object ohlcvs, Object market, Object timeframe, Long since, Long limit)
+    public Object parseWsOHLCVs(Object ohlcvs, Object market, String timeframe, Long since, Long limit)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
@@ -12131,7 +12131,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Object> unWatchOHLCV(String symbol, Object timeframe, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

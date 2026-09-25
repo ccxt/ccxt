@@ -4395,16 +4395,13 @@ class digifinex extends Exchange {
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_bool($params, 'margin', false);
-        list($marginModeValue, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
-        $marginMode = $marginModeValue;
+        list($marginMode, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if ($marginMode !== null) {
             if ($marginMode !== 'cross') {
                 throw new NotSupported($this->id . ' only cross margin is supported');
             }
-        } else {
-            if (($defaultType === 'margin') || ($isMargin === true)) {
-                $marginMode = 'cross';
-            }
+        } elseif (($defaultType === 'margin') || ($isMargin === true)) {
+            return array( 'cross', $paramsMarginMode );
         }
         return array( $marginMode, $paramsMarginMode );
     }

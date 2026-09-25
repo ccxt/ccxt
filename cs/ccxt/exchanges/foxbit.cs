@@ -2246,7 +2246,7 @@ public partial class foxbit : Exchange
         object version = getValue(api, 0);
         object urlPath = getValue(api, 1);
         string fullPath = ((("/rest/" + (version)) + "/") + this.implodeParams(path, parameters));
-        if (isEqual(version, "status"))
+        if ((version is "status"))
         {
             fullPath = "/status";
             urlPath = "status";
@@ -2299,7 +2299,7 @@ public partial class foxbit : Exchange
             { "X-FB-CLIENT", "ccxt" },
             { "X-FB-CLIENT-VERSION", this.getCcxtVersion() },
         };
-        if (isEqual(urlPath, "private"))
+        if ((urlPath is "private"))
         {
             this.checkRequiredCredentials();
             string preHash = ((((this.numberToString(timestamp) + method) + fullPath) + (signatureQuery)) + (bodyToSignature));

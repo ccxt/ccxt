@@ -1385,7 +1385,7 @@ func (this *Hitbtc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var marketIds any = this.MarketIds(symbolsNormalized)
 		var delimited string = Join(marketIds, ",")
 		request["symbols"] = delimited
@@ -3216,7 +3216,7 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = nil
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		market = this.Market(GetValue(symbolsNormalized, 0))
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMarginMode", market, params)
@@ -3465,7 +3465,7 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		market = this.Market(GetValue(symbolsNormalized, 0))
 		var queryMarketIds any = this.MarketIds(symbolsNormalized)
 		request["symbols"] = Join(queryMarketIds, ",")
@@ -3940,7 +3940,7 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		marketIds = this.MarketIds(symbolsNormalized)
 		request["symbols"] = Join(marketIds, ",")
 	}
@@ -4635,12 +4635,10 @@ func (this *Hitbtc) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)
 	marginMode, paramsMarginMode := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
-	var isIsolatedDefault bool = (IsEqual(marginMode, nil)) && ((defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true))
-	var marginModeResolved any = marginMode
-	if isIsolatedDefault {
-		marginModeResolved = "isolated"
+	if (IsEqual(marginMode, nil)) && ((defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true)) {
+		return SafeStringPtr("isolated"), MapTyped(paramsMarginMode)
 	}
-	return SafeStringPtr(marginModeResolved), MapTyped(paramsMarginMode)
+	return SafeStringPtr(marginMode), MapTyped(paramsMarginMode)
 }
 func (this *Hitbtc) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	//

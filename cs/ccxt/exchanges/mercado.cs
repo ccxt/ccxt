@@ -1166,7 +1166,7 @@ public partial class mercado : Exchange
         }
         string url = (apiUrl + "/");
         object query = this.omit(parameters, this.extractParams(path));
-        bool isPublic = (isEqual(api, "public")) || (isEqual(api, "v4Public")) || (isEqual(api, "v4PublicNet"));
+        bool isPublic = ((api is "public")) || (isEqual(api, "v4Public")) || (isEqual(api, "v4PublicNet"));
         string? privateBody = null;
         Dictionary<string, object> privateHeaders = null;
         if (isPublic)

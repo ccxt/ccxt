@@ -1711,7 +1711,7 @@ public partial class phemex : ccxt.phemex
         bool settleIsUSDT = ((this.safeString(parameters, "settle", "") == "USDT"));
         object paramsOmitted = this.omit(parameters, "settle");
         string channel = "aop.subscribe";
-        if (isEqual(type, "spot"))
+        if ((type is "spot"))
         {
             channel = "wo.subscribe";
         }

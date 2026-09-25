@@ -43,7 +43,7 @@ public partial class testMainClass : BaseTest
             }
         }
         // if singular was called, then symbol needs to be asserted
-        if (isEqual(method, "watchLiquidations") || isEqual(method, "fetchLiquidations"))
+        if ((method is "watchLiquidations") || (method is "fetchLiquidations"))
         {
             testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
         }

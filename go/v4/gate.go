@@ -3165,7 +3165,7 @@ func (this *Gate) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		market = this.Market(firstSymbol)
 	}
@@ -8427,7 +8427,7 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = nil
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
@@ -8443,7 +8443,7 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
 	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 	if IsEqual(typeVar, "option") {
-		if !IsEqual(symbolsNormalized, nil) {
+		if symbolsNormalized != nil {
 			var marketId *string = this.SafeString(market, "id")
 			var optionParts []string = Split(marketId, "-")
 			AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))

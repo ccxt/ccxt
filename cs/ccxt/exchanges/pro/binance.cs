@@ -258,14 +258,14 @@ public partial class binance : ccxt.binance
 
     public virtual object getWsUrl(object type, string? category)
     {
-        if ((isEqual(type, "option")) || (isEqual(type, "optionMarket")) || (isEqual(type, "optionPrivate")))
+        if (((type is "option")) || ((type is "optionMarket")) || ((type is "optionPrivate")))
         {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
             return getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type);
         }
         object baseUrl = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type);
-        if (isEqual(type, "future"))
+        if ((type is "future"))
         {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             // const firstProtocol = baseUrl.indexOf ('://');
@@ -292,7 +292,7 @@ public partial class binance : ccxt.binance
 
     public virtual string getFutureWsCategory(object channel)
     {
-        if (isEqual(channel, "depth") || isEqual(channel, "rpiDepth") || isEqual(channel, "bookTicker") || isEqual(channel, "trade"))
+        if ((channel is "depth") || (channel is "rpiDepth") || (channel is "bookTicker") || (channel is "trade"))
         {
             return "public";
         }
@@ -305,7 +305,7 @@ public partial class binance : ccxt.binance
         {
             throw new AuthenticationError ((this.id + " getPrivateWsUrl() requires a listenKey from authenticate()")) ;
         }
-        if (isEqual(type, "future"))
+        if ((type is "future"))
         {
             return ((string?)((object)(add(add(this.getWsUrl(type, "private"), "?listenKey="), listenKey))));
         }
@@ -2642,8 +2642,8 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, false, true);
-        bool isBidAsk = (isEqual(channelName, "bookTicker"));
-        bool isMarkPrice = (isEqual(channelName, "markPrice"));
+        bool isBidAsk = ((channelName is "bookTicker"));
+        bool isMarkPrice = ((channelName is "markPrice"));
         bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
         IDictionary<string, object> firstMarket = null;
         bool symbolsDefined = ((symbolsNormalized != null));
@@ -5718,7 +5718,7 @@ public partial class binance : ccxt.binance
         // matching the subType. requests a defaultSubType already rewrote
         // arrive here as future or delivery and pass untouched, which lands on
         // the same stream the old raw-type ordering produced in every case
-        if (isEqual(type, "spot") || isEqual(type, "margin"))
+        if ((type is "spot") || (type is "margin"))
         {
             type = (subType == "inverse") ? "delivery" : "future";
         }
@@ -5735,7 +5735,7 @@ public partial class binance : ccxt.binance
         if ((isPortfolioMargin == true))
         {
             urlType = "papi";
-        } else if (isEqual(type, "option"))
+        } else if ((type is "option"))
         {
             bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
             if (((demoMode == true)) || this.isSandboxModeEnabled)
@@ -5767,7 +5767,7 @@ public partial class binance : ccxt.binance
     public virtual void setPositionsCache(WebSocketClient client, object type, IList<object> symbols = null, object isPortfolioMargin = null)
     {
         isPortfolioMargin ??= false;
-        if (isEqual(type, "spot"))
+        if ((type is "spot"))
         {
             return;
         }

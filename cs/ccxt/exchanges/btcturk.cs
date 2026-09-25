@@ -1207,7 +1207,7 @@ public partial class btcturk : Exchange
             requestBody = this.json(parameters);
         }
         Dictionary<string, object> privateHeaders = null;
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();

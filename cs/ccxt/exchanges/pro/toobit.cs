@@ -893,7 +893,7 @@ public partial class toobit : ccxt.toobit
     {
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", marketType }, }));
         string type = "contract";
-        if (isEqual(marketType, "spot"))
+        if ((marketType is "spot"))
         {
             type = "spot";
         }

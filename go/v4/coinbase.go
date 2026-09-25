@@ -2733,7 +2733,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		request["product_ids"] = this.MarketIds(symbolsNormalized)
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", this.GetMarketFromSymbols(symbolsNormalized), params, "default")
@@ -5249,7 +5249,7 @@ func (this *Coinbase) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		request["product_ids"] = this.MarketIds(symbolsNormalized)
 	}
 
@@ -6179,7 +6179,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
-	if !IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		market = this.Market(GetValue(symbolsNormalized, 0))
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositions", market, params)

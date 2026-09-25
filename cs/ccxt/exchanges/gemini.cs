@@ -2407,7 +2407,7 @@ public partial class gemini : Exchange
         object url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> headersSigned = null;
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
             object apiKey = this.apiKey;
@@ -2444,7 +2444,7 @@ public partial class gemini : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         url = add(apiUrl, url);
-        object headersResolved = (isEqual(api, "private")) ? headersSigned : headers;
+        object headersResolved = ((api is "private")) ? headersSigned : headers;
         object bodyResolved = body;
         if (((method == "POST")) || ((method == "DELETE")))
         {

@@ -958,19 +958,19 @@ public partial class zaif : Exchange
         }
         string baseUrl = baseApiUrl;
         string url = (baseUrl + "/");
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             url = url + ((("api/" + this.version) + "/") + this.implodeParams(path, parameters));
-        } else if (isEqual(api, "fapi"))
+        } else if ((api is "fapi"))
         {
             url = url + ((("fapi/" + this.version) + "/") + this.implodeParams(path, parameters));
         } else
         {
             this.checkRequiredCredentials();
-            if (isEqual(api, "ecapi"))
+            if ((api is "ecapi"))
             {
                 url = url + "ecapi";
-            } else if (isEqual(api, "tlapi"))
+            } else if ((api is "tlapi"))
             {
                 url = url + "tlapi";
             } else

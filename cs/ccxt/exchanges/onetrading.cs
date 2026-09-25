@@ -2025,13 +2025,13 @@ public partial class onetrading : Exchange
         }
         string url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isEqual(api, "public"))
+        if ((api is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
-        } else if (isEqual(api, "private"))
+        } else if ((api is "private"))
         {
             this.checkRequiredCredentials();
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {

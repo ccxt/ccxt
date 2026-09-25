@@ -7223,8 +7223,8 @@ public partial class bingx : Exchange
             throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (type)) + " endpoints")) ;
         }
         string? pathValue = this.implodeParams(path, parameters);
-        bool versionIsTransfer = (isEqual(version, "transfer"));
-        bool versionIsAsset = (isEqual(version, "asset"));
+        bool versionIsTransfer = ((version is "transfer"));
+        bool versionIsAsset = ((version is "asset"));
         if (versionIsTransfer || versionIsAsset)
         {
             if (versionIsTransfer)
@@ -7240,7 +7240,7 @@ public partial class bingx : Exchange
         List<object> flatAccountPaths = new List<object>() {"account/apiPermissions", "account/apiRestrictions"};
         if (!this.inArray(pathValue, flatAccountPaths))
         {
-            if (isEqual(type, "spot") && isEqual(version, "v3"))
+            if ((type is "spot") && isEqual(version, "v3"))
             {
                 url = add(url, "/api");
             } else
@@ -7254,16 +7254,16 @@ public partial class bingx : Exchange
         object paramsOmitted = this.omit(parameters, this.extractParams(pathValue));
         ((IDictionary<string,object>)paramsOmitted)["timestamp"] = this.nonce();
         Dictionary<string, object> paramsSorted = this.keysort(paramsOmitted);
-        if (isEqual(access, "public"))
+        if ((access is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)paramsSorted).Keys)).Count > 0)
             {
                 url = add(url, ("?" + this.urlencode(paramsSorted)));
             }
-        } else if (isEqual(access, "private"))
+        } else if ((access is "private"))
         {
             this.checkRequiredCredentials();
-            bool isJsonContentType = (((isEqual(type, "subAccount")) || (isEqual(type, "account/transfer"))) && ((method == "POST")));
+            bool isJsonContentType = ((((type is "subAccount")) || ((type is "account/transfer"))) && ((method == "POST")));
             object parsedParams = null;
             string? encodeRequest = null;
             if (isJsonContentType)

@@ -3159,7 +3159,7 @@ public partial class sxbet : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         object apiGroup = (api is string) ? api : getValue(api, 0);
         object accessLevel = (api is string) ? "public" : getValue(api, 1);
-        if ((isEqual(accessLevel, "private")) && ((this.apiKey == null)))
+        if (((accessLevel is "private")) && ((this.apiKey == null)))
         {
             throw new AuthenticationError ((((this.id + " ") + path) + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")) ;
         }
