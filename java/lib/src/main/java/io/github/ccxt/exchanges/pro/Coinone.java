@@ -138,7 +138,11 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String quoteId = this.safeStringUpper(data, "quote_currency");
         String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
         String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
-        String symbol = this.symbol(Helpers.add((base + "/"), quote));
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return;
+        }
+        String symbol = this.symbol(((base + "/") + quote));
         Long timestamp = this.safeInteger(data, "timestamp");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
@@ -234,10 +238,14 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, (Map<String, Object>) null);
-        Object symbol = ((Map<String, Object>)ticker).get("symbol");
-        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
+        String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
+        if (java.util.Objects.equals(symbol, null))
+        {
+            return;
+        }
+        Helpers.addElementToObject(this.tickers, symbol, ticker);
         String messageHash = ("ticker:" + symbol);
-        client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
+        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
     }
 
     public Object parseWsTicker(Object ticker, Map<String, Object> market)
@@ -273,29 +281,33 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String quoteId = this.safeString(ticker, "quote_currency");
         String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
         String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
-        String symbol = this.symbol(Helpers.add((base + "/"), quote));
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", symbol );
-            put( "timestamp", timestamp );
-            put( "datetime", Coinone.this.iso8601(timestamp) );
-            put( "high", Coinone.this.safeString(ticker, "high") );
-            put( "low", Coinone.this.safeString(ticker, "low") );
-            put( "bid", Coinone.this.safeNumber(ticker, "bid_best_price", (Object) null) );
-            put( "bidVolume", Coinone.this.safeNumber(ticker, "bid_best_qty", (Object) null) );
-            put( "ask", Coinone.this.safeNumber(ticker, "ask_best_price", (Object) null) );
-            put( "askVolume", Coinone.this.safeNumber(ticker, "ask_best_qty", (Object) null) );
-            put( "vwap", null );
-            put( "open", Coinone.this.safeString(ticker, "first") );
-            put( "close", last );
-            put( "last", last );
-            put( "previousClose", null );
-            put( "change", null );
-            put( "percentage", null );
-            put( "average", null );
-            put( "baseVolume", Coinone.this.safeString(ticker, "target_volume") );
-            put( "quoteVolume", Coinone.this.safeString(ticker, "quote_volume") );
-            put( "info", ticker );
-        }}, market);
+        String symbol = null;
+        if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
+        {
+            symbol = this.symbol(((base + "/") + quote));
+        }
+        return this.safeTicker(Helpers.newMap(
+            "symbol", symbol,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "high", this.safeString(ticker, "high"),
+            "low", this.safeString(ticker, "low"),
+            "bid", this.safeNumber(ticker, "bid_best_price", (Object) null),
+            "bidVolume", this.safeNumber(ticker, "bid_best_qty", (Object) null),
+            "ask", this.safeNumber(ticker, "ask_best_price", (Object) null),
+            "askVolume", this.safeNumber(ticker, "ask_best_qty", (Object) null),
+            "vwap", null,
+            "open", this.safeString(ticker, "first"),
+            "close", last,
+            "last", last,
+            "previousClose", null,
+            "change", null,
+            "percentage", null,
+            "average", null,
+            "baseVolume", this.safeString(ticker, "target_volume"),
+            "quoteVolume", this.safeString(ticker, "quote_volume"),
+            "info", ticker
+        ), market);
     }
 
     /**

@@ -616,6 +616,10 @@ public class Upbit extends UpbitApi
             String quoteId = this.safeString(bid, "currency");
             String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
             String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+            if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+            {
+                return null;
+            }
             String state = this.safeString(marketInfo, "state");
             String bidFee = this.safeString(response, "bid_fee");
             String askFee = this.safeString(response, "ask_fee");

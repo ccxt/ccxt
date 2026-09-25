@@ -1104,7 +1104,7 @@ public class Hollaex extends HollaexApi
             List<Object> paginateOptionparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", paginate);
             Boolean paginateOption = (Boolean) ((List<Object>) paginateOptionparamsPaginateVariable).get(0);
             var paramsPaginate = ((List<Object>) paginateOptionparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginateOption))
+            if (Boolean.TRUE.equals(paginateOption))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit))).join();
             }

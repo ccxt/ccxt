@@ -1176,7 +1176,7 @@ public class Bitfinex extends BitfinexApi
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             Object id = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
-            if (Helpers.isTrue(((String)id).endsWith("F0")))
+            if (((String)id).endsWith("F0"))
             {
                 continue;
             }

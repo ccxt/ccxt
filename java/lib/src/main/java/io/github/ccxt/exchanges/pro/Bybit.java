@@ -1598,7 +1598,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<Object> executionFastparamsExecutionFastVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
             Boolean executionFast = (Boolean) ((List<Object>) executionFastparamsExecutionFastVariable).get(0);
             var paramsExecutionFast = ((List<Object>) executionFastparamsExecutionFastVariable).get(1);
-            if (Helpers.isTrue(executionFast))
+            if (Boolean.TRUE.equals(executionFast))
             {
                 topic = "execution.fast";
             }
@@ -1652,7 +1652,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<Object> executionFastparamsExecutionFastVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
             Boolean executionFast = (Boolean) ((List<Object>) executionFastparamsExecutionFastVariable).get(0);
             var paramsExecutionFast = ((List<Object>) executionFastparamsExecutionFastVariable).get(1);
-            if (Helpers.isTrue(executionFast))
+            if (Boolean.TRUE.equals(executionFast))
             {
                 topic = "execution.fast";
             }
@@ -3242,7 +3242,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 continue;
             }
-            if (Helpers.isTrue(((String)messageHash).startsWith("unsubscribe")))
+            if (((String)messageHash).startsWith("unsubscribe"))
             {
                 Object subscription = Helpers.GetValue(client.subscriptions, messageHash);
                 String subId = this.safeString(subscription, "id");

@@ -2484,7 +2484,7 @@ public class Bybit extends BybitApi
         {
             base = this.safeString(optionParts, 0);
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
-            if (Helpers.isTrue(((String)symbol).endsWith("-USDT")))
+            if (((String)symbol).endsWith("-USDT"))
             {
                 quote = "USDT";
                 settle = "USDT";

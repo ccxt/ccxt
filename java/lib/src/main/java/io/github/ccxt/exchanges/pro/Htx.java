@@ -1834,7 +1834,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             Map<String, Object> market = null;
             Object messageHash = "";
-            if (Helpers.isTrue((!this.isEmpty(symbols))) && (!java.util.Objects.equals(symbols, null)))
+            if ((!this.isEmpty(symbols)) && (!java.util.Objects.equals(symbols, null)))
             {
                 market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
                 messageHash = ("::" + String.join(",", (List<String>)symbols));

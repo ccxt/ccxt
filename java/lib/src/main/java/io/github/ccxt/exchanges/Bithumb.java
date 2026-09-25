@@ -1334,8 +1334,12 @@ public class Bithumb extends BithumbApi
                         Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
                         Object ticker = (data == null || currencyId == null ? null : data.get(currencyId));
                         String base = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-                        Object symbol = Helpers.add((base + "/"), quote);
-                        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(symbol), (Map<String, Object>) null, (String) null, (String) null);
+                        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                        {
+                            continue;
+                        }
+                        String symbol = ((base + "/") + quote);
+                        Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
                         Helpers.addElementToObject(ticker, "date", timestamp);
                         result.put((String)symbol, this.parseTicker(ticker, Helpers.toMapArg(market)));
                     }
@@ -1688,7 +1692,7 @@ public class Bithumb extends BithumbApi
                 timestamp = this.safeIntegerProduct(trade, "transaction_date", 0.001);
             }
         }
-        if ((!java.util.Objects.equals(timestamp, null)) && Helpers.isTrue((!Boolean.TRUE.equals(isGenerationTwo))))
+        if ((!java.util.Objects.equals(timestamp, null)) && (!Boolean.TRUE.equals(isGenerationTwo)))
         {
             timestamp = Helpers.subtract(timestamp, (9L * 3600000L)); // they report UTC + 9 hours, server in Korean timezone
         }
@@ -1979,7 +1983,7 @@ public class Bithumb extends BithumbApi
                 Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(0);
                 var paramsRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(1);
                 paramsOrder = paramsRequiresPrice;
-                if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
                     {

@@ -1924,7 +1924,7 @@ public class Bydfi extends BydfiApi
             List<Object> triggerOptionparamsTriggerVariable = (List<Object>) this.handleOptionBoolAndParams(paramsWallet, "fetchOpenOrders", "trigger", trigger);
             Boolean triggerOption = (Boolean) ((List<Object>) triggerOptionparamsTriggerVariable).get(0);
             Map<String, Object> paramsTrigger = (Map<String, Object>) ((List<Object>) triggerOptionparamsTriggerVariable).get(1);
-            if (!Helpers.isTrue(triggerOption))
+            if (!Boolean.TRUE.equals(triggerOption))
             {
                 //
                 //     {
@@ -2018,7 +2018,7 @@ public class Bydfi extends BydfiApi
             List<Object> triggerOptionparamsTriggerVariable = (List<Object>) this.handleOptionBoolAndParams(paramsWallet, "fetchOpenOrder", "trigger", trigger);
             Boolean triggerOption = (Boolean) ((List<Object>) triggerOptionparamsTriggerVariable).get(0);
             Map<String, Object> paramsTrigger = (Map<String, Object>) ((List<Object>) triggerOptionparamsTriggerVariable).get(1);
-            if (!Helpers.isTrue(triggerOption))
+            if (!Boolean.TRUE.equals(triggerOption))
             {
                 response = (this.privateGetV1FapiTradeOpenOrder(this.extend(request, paramsTrigger))).join();
             } else

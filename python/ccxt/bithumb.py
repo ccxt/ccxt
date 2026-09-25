@@ -1115,6 +1115,8 @@ class bithumb(Exchange, ImplicitAPI):
                     currencyId = currencyIds[j]
                     ticker = data[currencyId]
                     base = self.safe_currency_code(currencyId)
+                    if (base is None) or (quote is None):
+                        continue
                     symbol = base + '/' + quote
                     market = self.safe_market(symbol)
                     ticker['date'] = timestamp

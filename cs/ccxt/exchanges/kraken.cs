@@ -2093,9 +2093,13 @@ public partial class kraken : Exchange
         }
         string? baseId = slice(id, baseIdStart, baseIdEnd);
         string? quoteId = slice(id, quoteIdStart, quoteIdEnd);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return null;
+        }
+        string symbol = ((bs + "/") + quote);
         market = new Dictionary<string, object>() {
             { "symbol", symbol },
             { "base", bs },

@@ -205,9 +205,13 @@ public partial class independentreserve : ccxt.independentreserve
         string? depth = this.safeString(parts, 1);
         string? baseId = this.safeString(parts, 2);
         string? quoteId = this.safeString(parts, 3);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return;
+        }
+        string symbol = ((bs + "/") + quote);
         IDictionary<string, object> orderBook = this.safeDict(message, "Data", new Dictionary<string, object>() {});
         string messageHash = ((("orderbook:" + symbol) + ":") + depth);
         IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
@@ -216,7 +220,7 @@ public partial class independentreserve : ccxt.independentreserve
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(inOp(this.orderbooks, symbol)))
         {
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.orderbooks)[symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (eventVar == "OrderBookSnapshot")

@@ -1145,7 +1145,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             {
                 continue;
             }
-            if (!Helpers.isTrue(((String)key).startsWith("unsubscribe:")))
+            if (!((String)key).startsWith("unsubscribe:"))
             {
                 continue;
             }

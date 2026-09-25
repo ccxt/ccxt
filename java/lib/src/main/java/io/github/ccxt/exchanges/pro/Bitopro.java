@@ -317,7 +317,11 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         String quoteId = this.safeString(data, "quote");
         String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
         String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
-        String symbol = this.symbol(Helpers.add((base + "/"), quote));
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return;
+        }
+        String symbol = this.symbol(((base + "/") + quote));
         String messageHash = this.safeString(message, "event");
         if (java.util.Objects.equals(this.myTrades, null))
         {

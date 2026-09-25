@@ -4178,11 +4178,11 @@ public class Hyperliquid extends HyperliquidApi
             put( "rejected", "rejected" );
             put( "marginCanceled", "canceled" );
         }};
-        if (Helpers.isTrue(((String)status).endsWith("Rejected")))
+        if (((String)status).endsWith("Rejected"))
         {
             return "rejected";
         }
-        if (Helpers.isTrue(((String)status).endsWith("Canceled")))
+        if (((String)status).endsWith("Canceled"))
         {
             return "canceled";
         }
@@ -5812,7 +5812,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             return null;
         }
-        if (Helpers.isTrue(((String)address).startsWith("0x")))
+        if (((String)address).startsWith("0x"))
         {
             return Helpers.replace(((String)address), "0x", "");
         }

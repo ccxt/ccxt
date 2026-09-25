@@ -180,12 +180,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 put( "instType", instType );
             }};
             String topicOrChannel = "channel";
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 topicOrChannel = "topic";
             }
             String symbolOrInstId = "instId";
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 symbolOrInstId = "symbol";
             }
@@ -260,12 +260,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     put( "instType", instType );
                 }};
                 String topicOrChannel = "channel";
-                if (Helpers.isTrue(uta))
+                if (Boolean.TRUE.equals(uta))
                 {
                     topicOrChannel = "topic";
                 }
                 String symbolOrInstId = "instId";
-                if (Helpers.isTrue(uta))
+                if (Boolean.TRUE.equals(uta))
                 {
                     symbolOrInstId = "symbol";
                 }
@@ -530,12 +530,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     put( "instType", instType );
                 }};
                 String topicOrChannel = "channel";
-                if (Helpers.isTrue(uta))
+                if (Boolean.TRUE.equals(uta))
                 {
                     topicOrChannel = "topic";
                 }
                 String symbolOrInstId = "instId";
-                if (Helpers.isTrue(uta))
+                if (Boolean.TRUE.equals(uta))
                 {
                     symbolOrInstId = "symbol";
                 }
@@ -632,7 +632,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
             var paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
             Object paramsRequest = paramsInstType;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.extend(paramsInstType, new HashMap<String, Object>() {{
                     put( "uta", true );
@@ -641,7 +641,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> args = new HashMap<String, Object>() {{
                 put( "instType", instType );
             }};
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 args.put("topic", "kline");
                 args.put("symbol", ((Map<String, Object>)market).get("id"));
@@ -951,7 +951,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
             var paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
             Object paramsRequest = paramsInstType;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.omit(this.extend(paramsInstType, new HashMap<String, Object>() {{
                     put( "uta", true );
@@ -960,7 +960,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> args = new HashMap<String, Object>() {{
                 put( "instType", instType );
             }};
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 args.put("topic", channel);
                 args.put("symbol", ((Map<String, Object>)market).get("id"));
@@ -1023,12 +1023,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     put( "instType", instType );
                 }};
                 String topicOrChannel = "channel";
-                if (Helpers.isTrue(uta))
+                if (Boolean.TRUE.equals(uta))
                 {
                     topicOrChannel = "topic";
                 }
                 String symbolOrInstId = "instId";
-                if (Helpers.isTrue(uta))
+                if (Boolean.TRUE.equals(uta))
                 {
                     symbolOrInstId = "symbol";
                 }
@@ -1037,7 +1037,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 ((List<Object>)topics).add(args);
                 messageHashes.add(("orderbook:" + symbol));
             }
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 ((Map<String, Object>)paramsCursor).put("uta", true);
             }
@@ -1295,22 +1295,22 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     put( "instType", instType );
                 }};
                 String topicOrChannel = "channel";
-                if (Helpers.isTrue(uta))
+                if (Boolean.TRUE.equals(uta))
                 {
                     topicOrChannel = "topic";
                 }
                 String symbolOrInstId = "instId";
-                if (Helpers.isTrue(uta))
+                if (Boolean.TRUE.equals(uta))
                 {
                     symbolOrInstId = "symbol";
                 }
-                args.put((String)topicOrChannel, ((Helpers.isTrue(uta))) ? "publicTrade" : "trade");
+                args.put((String)topicOrChannel, ((Boolean.TRUE.equals(uta))) ? "publicTrade" : "trade");
                 args.put((String)symbolOrInstId, ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(args);
                 messageHashes.add(("trade:" + symbol));
             }
             Object paramsRequest = paramsCursor;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.extend(paramsCursor, new HashMap<String, Object>() {{
                     put( "uta", true );
@@ -1613,7 +1613,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
                 paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
             }
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 instType = "UTA";
             }
@@ -1622,24 +1622,24 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 "instType", instType
             );
             String topicOrChannel = "channel";
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 topicOrChannel = "topic";
             }
             String channel = "positions";
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 channel = "position";
             }
             args.put((String)topicOrChannel, channel);
             Object paramsRequest = paramsInstType;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.extend(paramsInstType, new HashMap<String, Object>() {{
                     put( "uta", true );
                 }});
             }
-            if (!Helpers.isTrue(uta))
+            if (!Boolean.TRUE.equals(uta))
             {
                 args.put("instId", "default");
             }
@@ -1993,7 +1993,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     channel = "orders-crossed";
                 }
             }
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 instType = "UTA";
                 channel = "order";
@@ -2003,19 +2003,19 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 "instType", instType
             );
             String topicOrChannel = "channel";
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 topicOrChannel = "topic";
             }
             args.put((String)topicOrChannel, channel);
             Object paramsRequest = paramsMarginMode;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.extend(paramsMarginMode, new HashMap<String, Object>() {{
                     put( "uta", true );
                 }});
             }
-            if (!Helpers.isTrue(uta))
+            if (!Boolean.TRUE.equals(uta))
             {
                 args.put("instId", instId);
             }
@@ -2536,7 +2536,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
                 paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
             }
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 instType = "UTA";
             }
@@ -2545,19 +2545,19 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 "instType", instType
             );
             String topicOrChannel = "channel";
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 topicOrChannel = "topic";
             }
             args.put((String)topicOrChannel, "fill");
             Object paramsRequest = paramsInstType;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.extend(paramsInstType, new HashMap<String, Object>() {{
                     put( "uta", true );
                 }});
             }
-            if (!Helpers.isTrue(uta))
+            if (!Boolean.TRUE.equals(uta))
             {
                 args.put("instId", "default");
             }
@@ -2759,7 +2759,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             } else if (!java.util.Objects.equals(marginMode, null))
             {
                 instTypeDefault = "MARGIN";
-                if (!Helpers.isTrue(uta))
+                if (!Boolean.TRUE.equals(uta))
                 {
                     if (java.util.Objects.equals(marginMode, "isolated"))
                     {
@@ -2769,7 +2769,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                         channel = "account-crossed";
                     }
                 }
-            } else if (!Helpers.isTrue(uta))
+            } else if (!Boolean.TRUE.equals(uta))
             {
                 instTypeDefault = "SPOT";
             }
@@ -2777,7 +2777,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             String instTypeOption = (String) ((List<Object>) instTypeOptionparamsInstTypeVariable).get(0);
             Map<String, Object> paramsInstType = (Map<String, Object>) ((List<Object>) instTypeOptionparamsInstTypeVariable).get(1);
             String instType = instTypeOption;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 instType = "UTA";
             }
@@ -2785,19 +2785,19 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 "instType", instType
             );
             String topicOrChannel = "channel";
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 topicOrChannel = "topic";
             }
             args.put((String)topicOrChannel, channel);
             Object paramsRequest = paramsInstType;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.extend(paramsInstType, new HashMap<String, Object>() {{
                     put( "uta", true );
                 }});
             }
-            if (!Helpers.isTrue(uta))
+            if (!Boolean.TRUE.equals(uta))
             {
                 args.put("coin", "default");
             }
