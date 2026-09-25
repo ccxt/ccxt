@@ -1219,8 +1219,8 @@ func (this *Coinbase) fetchTransactionsWithMethodBody(ch chan any, method string
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var requestparamsValueVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, params))))
-	var request map[string]any = MapTyped(GetValue(requestparamsValueVariable, 0))
-	var paramsValue map[string]any = MapTyped(GetValue(requestparamsValueVariable, 1))
+	var request map[string]any = MapTyped(requestparamsValueVariable[0])
+	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -3311,8 +3311,8 @@ func (this *Coinbase) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 	}
 	var requestparamsValueVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, paramsPaginate))))
-	var request map[string]any = MapTyped(GetValue(requestparamsValueVariable, 0))
-	var paramsValue map[string]any = MapTyped(GetValue(requestparamsValueVariable, 1))
+	var request map[string]any = MapTyped(requestparamsValueVariable[0])
+	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 	// for pagination use parameter 'starting_after'
 	// the value for the next page can be obtained from the result of the previous call in the 'pagination' field
 	// eg: instance.last_http_response -> pagination.next_starting_after
@@ -5428,8 +5428,8 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code strin
 	}
 	var currency map[string]any = this.Currency(code)
 	var requestparamsValueVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(this.SafeString(currency, "code"), nil, params))))
-	var request map[string]any = MapTyped(GetValue(requestparamsValueVariable, 0))
-	var paramsValue map[string]any = MapTyped(GetValue(requestparamsValueVariable, 1))
+	var request map[string]any = MapTyped(requestparamsValueVariable[0])
+	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 
 	response := (<-this.V2PrivateGetAccountsAccountIdAddresses(this.Extend(request, paramsValue)))
 	PanicOnError(response)

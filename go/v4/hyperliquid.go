@@ -1233,7 +1233,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBalance", paramsMarketType)
 	var isUnifiedEnabledparamsValueVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync("fetchBalance", userAddress, shouldRefresh, paramsMarginMode))))
 	isUnifiedEnabled := GetValue(isUnifiedEnabledparamsValueVariable, 0)
-	var paramsValue map[string]any = MapTyped(GetValue(isUnifiedEnabledparamsValueVariable, 1))
+	var paramsValue map[string]any = MapTyped(isUnifiedEnabledparamsValueVariable[1])
 	var dex *string = this.SafeString(paramsValue, "dex")
 	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (IsEqual(isUnifiedEnabled, true))) && (dex == nil)
 	var request map[string]any = map[string]any{
