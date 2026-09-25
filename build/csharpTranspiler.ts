@@ -2038,6 +2038,8 @@ const PARSE_MARKET_PARAM_DICTS: string[] = [
     'spotOrderPrepareRequest',
     'subscribe', 'toEp', 'toEv', 'toSandboxMarketId', 'unSubscribe', 'unWatch', 'unWatchPublic',
     'unsubscribePublic', 'watchPublic', 'wathPublic',
+    // row builders whose every caller passes null, a dictionary or an admitted name's own `market`
+    'fromEr', 'parseContractTrade', 'parseSpotOrUtaTrade',
 ];
 
 // the emitted declaration line the pass rewrites, and the `market` parameter inside it (with and

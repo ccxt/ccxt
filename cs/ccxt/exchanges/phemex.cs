@@ -1627,7 +1627,7 @@ public partial class phemex : Exchange
         return ((string?)((object)(this.fromEn(ev, this.safeInteger(market, "valueScale")))));
     }
 
-    public virtual string? fromEr(object er, object market = null)
+    public virtual string? fromEr(object er, IDictionary<string, object> market = null)
     {
         if (((er == null)) || ((market == null)))
         {
