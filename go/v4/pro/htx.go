@@ -1125,7 +1125,9 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var orderMessageHash *string = this.SafeString(channelAndMessageHash, 1)
 		// we will take advantage of the order messageHash because already handles stuff
 		// like symbol/margin/subtype/type variations
-		messageHash = ccxt.Add(ccxt.Add(orderMessageHash, ":"), "trade")
+		if orderMessageHash != nil {
+			messageHash = *orderMessageHash + ":" + "trade"
+		}
 	}
 	var subscriptionParams map[string]any = map[string]any{
 		"isV5": isV5Linear,
@@ -1553,9 +1555,11 @@ func (this *Htx) HandleOrder(client any, message any) {
 	var cachedOrders any = this.Orders
 	cachedOrders.(ccxt.Appender).Append(parsedOrder)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
-	if (messageHash != nil && *messageHash == "orders") && (marketId != nil) {
-		var specificMessageHash string = *messageHash + "." + strings.ToLower(*marketId)
-		client.(ccxt.ClientInterface).Resolve(this.Orders, specificMessageHash)
+	if (messageHash != nil) && (marketId != nil) {
+		if messageHash != nil && *messageHash == "orders" {
+			var specificMessageHash string = *messageHash + "." + strings.ToLower(*marketId)
+			client.(ccxt.ClientInterface).Resolve(this.Orders, specificMessageHash)
+		}
 	}
 	// when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
 	// so we're removing it here
@@ -2106,13 +2110,13 @@ func (this *Htx) HandlePositions(client any, message any) {
 		}
 		newPositions = append(newPositions, position)
 		ccxt.AddElementToObject(positionsByMarginMode, marginMode, this.SafeList(positionsByMarginMode, marginMode, []any{}))
-		retRes179012 := func() any {
+		retRes179412 := func() any {
 			if marginMode == nil {
 				return nil
 			}
 			return positionsByMarginMode[*marginMode]
 		}()
-		ccxt.AppendToArray(&retRes179012, position)
+		ccxt.AppendToArray(&retRes179412, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var marginModes []string = ccxt.ObjectKeys(positionsByMarginMode)

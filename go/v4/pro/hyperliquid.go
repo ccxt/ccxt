@@ -1478,7 +1478,6 @@ func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
 		this.Balance = map[string]any{}
 	}
 	var topic *string = this.SafeString(message, "channel")
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(topic, "::balance"))
 	var info any = nil
 	var rawBalances []any = []any{}
 	var account any = nil
@@ -1513,7 +1512,10 @@ func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "timestamp", timestamp)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(this.Balance, account, this.SafeBalance(ccxt.GetValue(this.Balance, account)))
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, account), messageHash)
+	if topic != nil {
+		var messageHash string = *topic + "::balance"
+		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, account), messageHash)
+	}
 }
 func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 	//

@@ -606,9 +606,11 @@ func (this *Coinbase) HandleTickers(client any, message map[string]any) {
 				ccxt.AddElementToObject(this.Tickers, symbol, result)
 			}
 			newTickers = append(newTickers, result)
-			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, "::"), symbol))
-			client.(ccxt.ClientInterface).Resolve(result, messageHash)
-			this.TryResolveUsdc(client, messageHash, result)
+			if channel != nil {
+				var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*channel+"::", symbol))
+				client.(ccxt.ClientInterface).Resolve(result, messageHash)
+				this.TryResolveUsdc(client, messageHash, result)
+			}
 		}
 	}
 }

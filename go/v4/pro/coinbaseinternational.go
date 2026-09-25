@@ -399,7 +399,9 @@ func (this *Coinbaseinternational) HandleInstrument(client any, message map[stri
 	var ticker any = this.ParseWsInstrument(message)
 	var channel *string = this.SafeString(message, "channel")
 	client.(ccxt.ClientInterface).Resolve(ticker, channel)
-	client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add(ccxt.Add(channel, "::"), ccxt.GetValue(ticker, "symbol")))
+	if channel != nil {
+		client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add(*channel+"::", ccxt.GetValue(ticker, "symbol")))
+	}
 }
 func (this *Coinbaseinternational) ParseWsInstrument(ticker map[string]any, optionalArgs ...any) any {
 	//
@@ -510,7 +512,9 @@ func (this *Coinbaseinternational) HandleTicker(client any, message map[string]a
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(message))
 	var channel *string = this.SafeString(message, "channel")
 	client.(ccxt.ClientInterface).Resolve(ticker, channel)
-	client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add(ccxt.Add(channel, "::"), ticker["symbol"]))
+	if channel != nil {
+		client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add(*channel+"::", ticker["symbol"]))
+	}
 }
 func (this *Coinbaseinternational) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -636,7 +640,9 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message any) {
 		var parsed any = this.ParseOHLCV(tick, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add(ccxt.Add(messageHash, "::"), symbol))
+	if messageHash != nil {
+		client.(ccxt.ClientInterface).Resolve(stored, *messageHash+"::"+*symbol)
+	}
 }
 
 /**
@@ -736,7 +742,9 @@ func (this *Coinbaseinternational) HandleTrade(client any, message map[string]an
 	tradesArray.(ccxt.Appender).Append(trade)
 	ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, channel)
-	client.(ccxt.ClientInterface).Resolve(tradesArray, ccxt.Add(ccxt.Add(channel, "::"), trade["symbol"]))
+	if channel != nil {
+		client.(ccxt.ClientInterface).Resolve(tradesArray, ccxt.Add(*channel+"::", trade["symbol"]))
+	}
 	return message
 }
 func (this *Coinbaseinternational) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -884,7 +892,9 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 	ccxt.AddElementToObject(orderbook, "datetime", datetime)
 	ccxt.AddElementToObject(orderbook, "timestamp", this.Parse8601(datetime))
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
-	client.(ccxt.ClientInterface).Resolve(orderbook, ccxt.Add(ccxt.Add(channel, "::"), symbol))
+	if channel != nil {
+		client.(ccxt.ClientInterface).Resolve(orderbook, *channel+"::"+*symbol)
+	}
 }
 func (this *Coinbaseinternational) HandleDelta(orderbook any, delta any) {
 	var rawSide *string = this.SafeStringLower(delta, 0)
@@ -955,7 +965,9 @@ func (this *Coinbaseinternational) HandleFundingRate(client any, message map[str
 	var channel *string = this.SafeString(message, "channel")
 	var fundingRate any = this.ParseFundingRate(message)
 	ccxt.AddElementToObject(this.FundingRates, ccxt.GetValue(fundingRate, "symbol"), fundingRate)
-	client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add(ccxt.Add(channel, "::"), ccxt.GetValue(fundingRate, "symbol")))
+	if channel != nil {
+		client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add(*channel+"::", ccxt.GetValue(fundingRate, "symbol")))
+	}
 }
 func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) any {
 	//

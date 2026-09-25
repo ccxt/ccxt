@@ -145,7 +145,6 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, "_")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, ":"), symbol))
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
 		orderbook = this.OrderBook(map[string]any{})
@@ -153,7 +152,10 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	if event != nil {
+		var messageHash string = *event + ":" + *symbol
+		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	}
 }
 
 /**
@@ -222,7 +224,6 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, "_")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, ":"), symbol))
 	var rawData []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var trades any = this.ParseTrades(rawData, market)
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
@@ -234,7 +235,10 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 		tradesCache.(ccxt.Appender).Append(ccxt.GetValue(trades, i))
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, tradesCache)
-	client.(ccxt.ClientInterface).Resolve(tradesCache, messageHash)
+	if event != nil {
+		var messageHash string = *event + ":" + *symbol
+		client.(ccxt.ClientInterface).Resolve(tradesCache, messageHash)
+	}
 }
 
 /**
@@ -332,7 +336,9 @@ func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 	trades.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	client.(ccxt.ClientInterface).Resolve(trades, ccxt.Add(ccxt.Add(messageHash, ":"), symbol))
+	if messageHash != nil {
+		client.(ccxt.ClientInterface).Resolve(trades, ccxt.Add(*messageHash+":", symbol))
+	}
 }
 func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//
@@ -471,14 +477,16 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, "_")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, ":"), symbol))
 	var result map[string]any = ccxt.MapTyped(this.ParseTicker(message, market))
 	result["symbol"] = this.SafeString(market, "symbol") // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	result["timestamp"] = timestamp
 	result["datetime"] = this.Iso8601(timestamp) // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
 	ccxt.AddElementToObject(this.Tickers, symbol, result)
-	client.(ccxt.ClientInterface).Resolve(result, messageHash)
+	if event != nil {
+		var messageHash string = *event + ":" + *symbol
+		client.(ccxt.ClientInterface).Resolve(result, messageHash)
+	}
 }
 func (this *Bitopro) Authenticate(url string) {
 	if (!ccxt.IsEqual(this.Clients, nil)) && (ccxt.InOp(this.Clients, url)) {

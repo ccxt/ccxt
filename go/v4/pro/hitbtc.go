@@ -1137,7 +1137,9 @@ func (this *Hitbtc) HandleOrderHelper(client any, message map[string]any, order 
 	var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(order))
 	orders.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-	client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add(ccxt.Add(messageHash, "::"), symbol))
+	if messageHash != nil {
+		client.(ccxt.ClientInterface).Resolve(orders, *messageHash+"::"+*symbol)
+	}
 }
 func (this *Hitbtc) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	//

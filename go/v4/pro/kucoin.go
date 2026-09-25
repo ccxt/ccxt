@@ -186,12 +186,15 @@ func (this *Kucoin) negotiateHelperBody(ch chan any, privateChannel any, connect
 			var firstInstanceServer map[string]any = ccxt.SafeMapTyped(instanceServers, 0)
 			var pingInterval *int64 = this.SafeInteger(firstInstanceServer, "pingInterval")
 			var endpoint *string = this.SafeString(firstInstanceServer, "endpoint")
+			if endpoint == nil {
+				panic(ccxt.ExchangeError(this.Id + " negotiate() response has no websocket endpoint"))
+			}
 			var token *string = this.SafeString(data, "token")
-			var result any = ccxt.Add(ccxt.Add(endpoint, "?"), this.Urlencode(map[string]any{
+			var result string = *endpoint + "?" + this.Urlencode(map[string]any{
 				"token":          token,
 				"privateChannel": privateChannel,
 				"connectId":      connectId,
-			}))
+			})
 			var client ccxt.ClientInterface = this.Client(result)
 			client.(ccxt.ClientInterface).SetKeepAlive(pingInterval)
 
