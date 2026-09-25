@@ -2161,9 +2161,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol string, typeVar stri
 			var precision any = GetValue(market["precision"], "price")
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice bool = true
-			var createMarketBuyOrderRequiresPriceparamsRequestVariable []any = this.HandleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsRequestVariable, 0, false)
-			paramsRequest = GetValue(createMarketBuyOrderRequiresPriceparamsRequestVariable, 1)
+			createMarketBuyOrderRequiresPrice, paramsRequest = this.HandleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber2(paramsRequest, "cost", "quoteOrderQty")
 			paramsRequest = this.Omit(paramsRequest, []any{"cost", "quoteOrderQty"})
 			if cost != nil {

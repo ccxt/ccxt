@@ -1816,9 +1816,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol string, typeVar string,
 			request["quantity"] = this.AmountToPrecision(symbol, amount)
 		} else if IsEqual(orderSide, "BUY") {
 			var quoteAmount any = nil
-			var createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable []any = this.HandleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-			var createMarketBuyOrderRequiresPrice bool = GetValueBool(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 0, false)
-			var paramsRequiresPrice map[string]any = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable, 1))
+			createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber2(paramsRequiresPrice, "cost", "quoteOrderQty")
 			paramsQuote = this.Omit(paramsRequiresPrice, "cost")
 			if cost != nil {

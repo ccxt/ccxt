@@ -2329,9 +2329,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		}
 		return 2000
 	}() // docs say 1000 for spot, but in practice it's 500
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		var retRes186419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
@@ -2894,9 +2892,7 @@ func (this *Mexc) createOrderBody(ch chan any, symbol string, typeVar string, si
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var marginModequeryVariable []any = this.HandleMarginModeAndParams("createOrder", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
-	var query map[string]any = MapTyped(GetValue(marginModequeryVariable, 1))
+	marginMode, query := this.HandleMarginModeAndParams("createOrder", params)
 	if GetValue(market, "spot") == true {
 
 		var retRes238519 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(market, typeVar, side, amount, price, marginMode, query))))
@@ -3291,7 +3287,7 @@ func (this *Mexc) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var marginMode any = nil
-		var marginModeparamsLoopVariable []any = this.HandleMarginModeAndParams("createOrder", paramsLoop)
+		marginModeparamsLoopVariable := TupleSlice(this.HandleMarginModeAndParams("createOrder", paramsLoop))
 		marginMode = GetValue(marginModeparamsLoopVariable, 0)
 		paramsLoop = GetValue(marginModeparamsLoopVariable, 1)
 		var orderRequest any = this.CreateSpotOrderRequest(market, typeVar, side, amount, price, marginMode, orderParams)
@@ -3376,9 +3372,7 @@ func (this *Mexc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			}
 			return params
 		}()
-		var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchOrder", paramsOmitted)
-		var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
-		var query map[string]any = MapTyped(GetValue(marginModequeryVariable, 1))
+		marginMode, query := this.HandleMarginModeAndParams("fetchOrder", paramsOmitted)
 		if marginMode != nil {
 			if marginMode == nil || *marginMode != "isolated" {
 				panic(BadRequest(this.Id + " fetchOrder() does not support marginMode " + *marginMode + " for spot-margin trading"))
@@ -3482,9 +3476,7 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument for spot market"))
 		}
-		var marginModequeryInnerVariable []any = this.HandleMarginModeAndParams("fetchOrders", paramsOmitted)
-		var marginMode *string = SafeStringPtr(GetValue(marginModequeryInnerVariable, 0))
-		var queryInner map[string]any = MapTyped(GetValue(marginModequeryInnerVariable, 1))
+		marginMode, queryInner := this.HandleMarginModeAndParams("fetchOrders", paramsOmitted)
 		if since != nil {
 			request["startTime"] = since
 		}
@@ -3782,9 +3774,7 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		if symbol != nil {
 			request["symbol"] = this.SafeString(market, "id")
 		}
-		var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchOpenOrders", paramsMarketType)
-		var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
-		var query map[string]any = MapTyped(GetValue(marginModequeryVariable, 1))
+		marginMode, query := this.HandleMarginModeAndParams("fetchOpenOrders", paramsMarketType)
 		var response []any = nil
 		if marginMode != nil {
 			if marginMode == nil || *marginMode != "isolated" {
@@ -4002,9 +3992,7 @@ func (this *Mexc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		request["symbol"] = GetValue(market, "id")
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, params)
-	var marginModequeryVariable []any = this.HandleMarginModeAndParams("cancelOrder", paramsMarketType)
-	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
-	var query map[string]any = MapTyped(GetValue(marginModequeryVariable, 1))
+	marginMode, query := this.HandleMarginModeAndParams("cancelOrder", paramsMarketType)
 	var data any = nil
 	if marketType != nil && *marketType == "spot" {
 		if symbol == nil {
@@ -7383,7 +7371,7 @@ func (this *Mexc) ParseLeverage(leverage any, optionalArgs ...any) any {
 		"shortLeverage": shortLeverage,
 	}
 }
-func (this *Mexc) HandleMarginModeAndParams(methodName any, optionalArgs ...any) []any {
+func (this *Mexc) HandleMarginModeAndParams(methodName any, optionalArgs ...any) (*string, map[string]any) {
 	/**
 	 * @ignore
 	 * @method
@@ -7400,13 +7388,13 @@ func (this *Mexc) HandleMarginModeAndParams(methodName any, optionalArgs ...any)
 	var isMargin *bool = this.SafeBool(params, "margin", false)
 	var marginMode any = nil
 	var paramsMarginMode any = nil
-	var marginModeparamsMarginModeVariable []any = this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
+	marginModeparamsMarginModeVariable := TupleSlice(this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue))
 	marginMode = GetValue(marginModeparamsMarginModeVariable, 0)
 	paramsMarginMode = GetValue(marginModeparamsMarginModeVariable, 1)
 	if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true) {
 		marginMode = "isolated"
 	}
-	return []any{marginMode, paramsMarginMode}
+	return SafeStringPtr(marginMode), MapTyped(paramsMarginMode)
 }
 
 /**

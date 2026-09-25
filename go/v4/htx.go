@@ -3743,9 +3743,7 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	if paginate {
 
 		var retRes269819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate))))
@@ -4084,9 +4082,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
 		var retRes300519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 1000))))
@@ -4205,9 +4201,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 		}
 	} else {
 		request["symbol"] = market["id"]
-		var useHistoricalparamsHistoricalVariable []any = this.HandleOptionBoolAndParams(paramsUntil, "fetchOHLCV", "useHistoricalEndpointForSpot", true)
-		var useHistorical bool = GetValueBool(useHistoricalparamsHistoricalVariable, 0, false)
-		paramsHistorical := GetValue(useHistoricalparamsHistoricalVariable, 1)
+		useHistorical, paramsHistorical := this.HandleOptionBoolAndParams(paramsUntil, "fetchOHLCV", "useHistoricalEndpointForSpot", true)
 		if !useHistorical {
 			if limit != nil {
 				request["size"] = mathMin(limit, 2000) // max 2000
@@ -4589,9 +4583,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var isUnifiedAccountparamsUnifiedVariable []any = this.HandleOptionBoolAndParams2(params, "fetchBalance", "unified", "uta", false)
-	var isUnifiedAccount bool = GetValueBool(isUnifiedAccountparamsUnifiedVariable, 0, false)
-	var paramsUnified map[string]any = MapTyped(GetValue(isUnifiedAccountparamsUnifiedVariable, 1))
+	isUnifiedAccount, paramsUnified := this.HandleOptionBoolAndParams2(params, "fetchBalance", "unified", "uta", false)
 	if isUnifiedAccount {
 		panic(NotSupported(this.Id + " fetchBalance() unified account has been deprecated on htx"))
 	}
@@ -4605,18 +4597,14 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		}
 		return subTypeOption
 	}()
-	var isMultiAssetModeparamsMultiAssetVariable []any = this.HandleOptionBoolAndParams(paramsSubType, "fetchBalance", "multiAssetMode", false)
-	var isMultiAssetMode bool = GetValueBool(isMultiAssetModeparamsMultiAssetVariable, 0, false)
-	var paramsMultiAsset map[string]any = MapTyped(GetValue(isMultiAssetModeparamsMultiAssetVariable, 1))
+	isMultiAssetMode, paramsMultiAsset := this.HandleOptionBoolAndParams(paramsSubType, "fetchBalance", "multiAssetMode", false)
 	var request map[string]any = map[string]any{}
 	var spot bool = (IsEqual(typeVar, "spot"))
 	var future bool = (IsEqual(typeVar, "future"))
 	var swap bool = (IsEqual(typeVar, "swap"))
 	var inverse bool = (IsEqual(subType, "inverse"))
 	var linear bool = (IsEqual(subType, "linear"))
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchBalance", paramsMultiAsset)
-	var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBalance", paramsMultiAsset)
 	var isolated bool = (marginMode != nil && *marginMode == "isolated")
 	var cross bool = (marginMode != nil && *marginMode == "cross")
 	var margin bool = (IsEqual(typeVar, "margin")) || (spot && (cross || isolated))
@@ -4980,9 +4968,7 @@ func (this *Htx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 					panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
 				}
 				request["contract_code"] = this.SafeString(market, "id")
-				var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchOrder", paramsClientOrderId)
-				marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
-				var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+				marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchOrder", paramsClientOrderId)
 				request["margin_mode"] = func() any {
 					if IsEqual(marginMode, nil) {
 						return "cross"
@@ -5304,9 +5290,7 @@ func (this *Htx) fetchContractOrdersBody(ch chan any, optionalArgs ...any) any {
 		if limit != nil {
 			request["limit"] = limit
 		}
-		var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchContractOrders", paramsUntil)
-		marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
-		var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchContractOrders", paramsUntil)
 		request["margin_mode"] = func() any {
 			if IsEqual(marginMode, nil) {
 				return "cross"
@@ -5534,9 +5518,7 @@ func (this *Htx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchCanceledOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchCanceledOrders", "paginate", false)
 	if paginate {
 
 		var retRes422819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchCanceledOrders", symbol, since, limit, paramsPaginate, 100))))
@@ -5618,9 +5600,7 @@ func (this *Htx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "paginate", false)
 	if paginate {
 
 		var retRes428519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, paramsPaginate, 100))))
@@ -6531,9 +6511,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 
 	PanicOnError((<-this.LoadAccountsAsync()))
 	var market map[string]any = this.Market(symbol)
-	var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("createOrder", params)
-	marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", params)
 
 	var accountId *string = SafeStringPtr(PanicOnError((<-this.FetchAccountIdByTypeAsync(market["type"], marginMode, symbol))))
 	var request map[string]any = map[string]any{
@@ -6592,30 +6570,15 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 		request["source"] = "c2c-margin-api"
 	}
 	var isMarketBuy bool = (orderType == "market") && (IsEqual(side, "buy"))
-	var requiresPriceAndParams []any = this.HandleOptionBoolAndParams(paramsPostOnly, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-	var cost *float64 = this.SafeNumber(func() any {
-		if 1 >= 0 && 1 < len(requiresPriceAndParams) {
-			return DerefScalar(requiresPriceAndParams[1])
-		}
-		return nil
-	}(), "cost")
+	var requiresPriceAndParams any = TupleSlice(this.HandleOptionBoolAndParams(paramsPostOnly, "createOrder", "createMarketBuyOrderRequiresPrice", true))
+	var cost *float64 = this.SafeNumber(GetValue(requiresPriceAndParams, 1), "cost")
 	var paramsCost any = paramsPostOnly
 	if isMarketBuy {
-		paramsCost = this.Omit(func() any {
-			if 1 >= 0 && 1 < len(requiresPriceAndParams) {
-				return DerefScalar(requiresPriceAndParams[1])
-			}
-			return nil
-		}(), "cost")
+		paramsCost = this.Omit(GetValue(requiresPriceAndParams, 1), "cost")
 	}
 	if isMarketBuy {
 		var quoteAmount *string = nil
-		var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(func() any {
-			if 0 >= 0 && 0 < len(requiresPriceAndParams) {
-				return DerefScalar(requiresPriceAndParams[0])
-			}
-			return nil
-		}())
+		var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(GetValue(requiresPriceAndParams, 0))
 		if cost != nil {
 			quoteAmount = this.AmountToPrecision(symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice {
@@ -6704,9 +6667,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 	var hedged *bool = this.SafeBool(query, "hedged", false)
 	var timeInForce *string = this.SafeStringLower2(query, "timeInForce", "time_in_force", "gtc")
 	if isLinear {
-		var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("createOrder", query, "cross")
-		var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-		var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", query, "cross")
 		query = paramsMarginMode
 		request["margin_mode"] = marginMode
 		request["side"] = side
@@ -7151,7 +7112,7 @@ func (this *Htx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
+		var marginResult any = TupleSlice(this.HandleMarginModeAndParams("createOrders", orderParams))
 		var currentMarginMode *string = SafeStringPtr(GetValue(marginResult, 0))
 		if currentMarginMode != nil {
 			if marginMode == nil {
@@ -8949,9 +8910,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
 		var retRes714819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "current_page", "page_index", 1, 50))))
@@ -9264,9 +9223,7 @@ func (this *Htx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marginModeOptionparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchBorrowInterest", params)
-	marginModeOption := GetValue(marginModeOptionparamsMarginModeVariable, 0)
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeOptionparamsMarginModeVariable, 1))
+	marginModeOption, paramsMarginMode := this.HandleMarginModeAndParams("fetchBorrowInterest", params)
 	var marginMode any = func() any {
 		if IsEqual(marginModeOption, nil) {
 			return "cross"
@@ -9675,9 +9632,7 @@ func (this *Htx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if marketType != nil && *marketType == "swap" {
 		if GetValue(market, "linear") == true {
-			var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchFundingHistory", paramsUntil)
-			marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
-			var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+			marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchFundingHistory", paramsUntil)
 			AddElementToObject(request, "margin_mode", func() any {
 				if IsEqual(marginMode, nil) {
 					return "cross"
@@ -9773,7 +9728,7 @@ func (this *Htx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 	}
 	var response any = nil
 	if GetValue(market, "linear") == true {
-		var marginModeAndParams any = this.HandleMarginModeAndParams("setLeverage", params)
+		var marginModeAndParams any = TupleSlice(this.HandleMarginModeAndParams("setLeverage", params))
 		var marginMode *string = SafeStringPtr(GetValue(marginModeAndParams, 0))
 		request["margin_mode"] = func() any {
 			if marginMode == nil {
@@ -10102,9 +10057,7 @@ func (this *Htx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var marginModeOptionparamsMarginModeVariable []any = this.HandleMarginModeAndParams("fetchPosition", params)
-	marginModeOption := GetValue(marginModeOptionparamsMarginModeVariable, 0)
-	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeOptionparamsMarginModeVariable, 1))
+	marginModeOption, paramsMarginMode := this.HandleMarginModeAndParams("fetchPosition", params)
 	var marginMode any = func() any {
 		if IsEqual(marginModeOption, nil) {
 			return "cross"
@@ -10268,9 +10221,7 @@ func (this *Htx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
-	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
 	if paginate {
 
 		var retRes853219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, paramsPaginate, 500))))
@@ -11675,9 +11626,7 @@ func (this *Htx) closePositionBody(ch chan any, symbol string, optionalArgs ...a
 	}
 	var response any = nil
 	if GetValue(market, "linear") == true {
-		var marginModeparamsMarginModeVariable []any = this.HandleMarginModeAndParams("closePosition", paramsOmitted, "cross")
-		var marginMode *string = SafeStringPtr(GetValue(marginModeparamsMarginModeVariable, 0))
-		var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
+		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("closePosition", paramsOmitted, "cross")
 		request["margin_mode"] = marginMode
 
 		response = (<-this.ContractPrivatePostV5TradePosition(this.Extend(request, paramsMarginMode)))

@@ -1400,10 +1400,8 @@ func (this *Bingx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var url string = *baseUrl + "?listenKey=" + *userStreamKey
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar, subType, subscriptionHash, paramsSubType)
-	var fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable []any = this.HandleOptionBoolAndParams(paramsSubType, "watchBalance", "fetchBalanceSnapshot", true)
-	var fetchBalanceSnapshot bool = ccxt.GetValueBool(fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable, 0, false)
-	var paramsFetchBalanceSnapshot map[string]any = ccxt.MapTyped(ccxt.GetValue(fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable, 1))
-	var awaitBalanceSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(this.HandleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false), 0))
+	fetchBalanceSnapshot, paramsFetchBalanceSnapshot := this.HandleOptionBoolAndParams(paramsSubType, "watchBalance", "fetchBalanceSnapshot", true)
+	var awaitBalanceSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false)), 0))
 	if fetchBalanceSnapshot && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
 
 		ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))))
@@ -1420,7 +1418,7 @@ func (this *Bingx) SetBalanceCache(client any, typeVar any, subType any, subscri
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash) {
 		return
 	}
-	var fetchBalanceSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(this.HandleOptionBoolAndParams(params, "watchBalance", "fetchBalanceSnapshot", true), 0))
+	var fetchBalanceSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionBoolAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)), 0))
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
@@ -1513,10 +1511,8 @@ func (this *Bingx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var url string = *baseUrl + "?listenKey=" + *userStreamKey
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, typeVar, symbolsNormalized)
-	var fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable []any = this.HandleOptionBoolAndParams(paramsSubType, "watchPositions", "fetchPositionsSnapshot", true)
-	var fetchPositionsSnapshot bool = ccxt.GetValueBool(fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable, 0, false)
-	var paramsFetchPositionsSnapshot map[string]any = ccxt.MapTyped(ccxt.GetValue(fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable, 1))
-	var awaitPositionsSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(this.HandleOptionBoolAndParams(paramsFetchPositionsSnapshot, "watchPositions", "awaitPositionsSnapshot", false), 0))
+	fetchPositionsSnapshot, paramsFetchPositionsSnapshot := this.HandleOptionBoolAndParams(paramsSubType, "watchPositions", "fetchPositionsSnapshot", true)
+	var awaitPositionsSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionBoolAndParams(paramsFetchPositionsSnapshot, "watchPositions", "awaitPositionsSnapshot", false)), 0))
 	var uuid string = this.Uuid()
 	var subscription map[string]any = map[string]any{
 		"unsubscribe": false,

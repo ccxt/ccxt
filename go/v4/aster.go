@@ -5059,7 +5059,7 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
 	PanicOnError((<-this.LoadLeverageBracketsAsync(false, params)))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.FapiPrivateGetV4Account(params)).Raw))
-	var filterClosed *bool = SafeBoolPtr(GetValue(this.HandleOptionBoolAndParams(params, "fetchAccountPositions", "filterClosed", false), 0))
+	var filterClosed *bool = SafeBoolPtr(GetValue(TupleSlice(this.HandleOptionBoolAndParams(params, "fetchAccountPositions", "filterClosed", false)), 0))
 	var result any = this.ParseAccountPositions(response, filterClosed)
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 

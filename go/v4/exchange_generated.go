@@ -5635,26 +5635,9 @@ func (this *BaseExchange) HandleOptionStringAndParams2(params any, methodName an
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleOptionBoolAndParams(params any, methodName any, optionName any, optionalArgs ...any) []any {
-	// handleOptionAndParams read as a boolean; the statically typed ports throw on another type
-	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
-	_ = defaultValue
-	var valuenewParamsVariable []any = this.HandleOptionAndParams(params, methodName, optionName, defaultValue)
-	value := GetValue(valuenewParamsVariable, 0)
-	newParams := GetValue(valuenewParamsVariable, 1)
-	return []any{this.CheckOptionBool(methodName, optionName, value), newParams}
-}
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleOptionBoolAndParams2(params any, methodName any, optionName1 any, optionName2 any, optionalArgs ...any) []any {
-	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
-	_ = defaultValue
-	var valuenewParamsVariable []any = this.HandleOptionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
-	value := GetValue(valuenewParamsVariable, 0)
-	newParams := GetValue(valuenewParamsVariable, 1)
-	return []any{this.CheckOptionBool(methodName, optionName1, value), newParams}
-}
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
@@ -5683,19 +5666,6 @@ func (this *BaseExchange) HandleOption(methodName any, optionName any, optionalA
 	_ = defaultValue
 	var res []any = this.HandleOptionAndParams(map[string]any{}, methodName, optionName, defaultValue)
 	return this.SafeValue(res, 0)
-}
-func (this *BaseExchange) HandleMarginModeAndParams(methodName any, optionalArgs ...any) []any {
-	/**
-	 * @ignore
-	 * @method
-	 * @param {object} [params] extra parameters specific to the exchange API endpoint
-	 * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
-	 */
-	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
-	_ = params
-	var defaultValue *string = GetArgStringPtr(optionalArgs, 1, nil)
-	_ = defaultValue
-	return TupleSlice(this.HandleOptionStringAndParams(params, methodName, "marginMode", defaultValue))
 }
 func (this *BaseExchange) ThrowExactlyMatchedException(exact any, string any, message any) {
 	if IsEqual(string, nil) {
