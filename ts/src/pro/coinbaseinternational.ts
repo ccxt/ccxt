@@ -116,7 +116,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             'id': this.requestId (),
         };
         const extendedRequest = this.deepExtend (request, params);
-        if (channels.length === 1) {
+        const channelsLength = channels.length;
+        if (channelsLength === 1) {
             return await this.watch (url, messageHashes[0], extendedRequest, channels[0], extendedRequest);
         }
         return await this.watchMultiple (url, messageHashes, extendedRequest, channels, extendedRequest);
@@ -1038,8 +1039,25 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     }
 
     async resubscribeOrderBook (channel: string) {
-        await this.unSubscribe ([ channel ], false, {});
-        await this.subscribe ([ channel ], [ channel ], false, {});
+        const channelParts = channel.split ('.');
+        const channelPartsLength = channelParts.length;
+        const isPrivate = this.safeString (channelParts, channelPartsLength - 1) === 'raw';
+        const url = isPrivate ? this.urls['api']['wsPrivate'] : this.urls['api']['ws'];
+        if (isPrivate) {
+            await this.authenticate ();
+        }
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': isPrivate ? 'private/unsubscribe' : 'public/unsubscribe',
+            'params': {
+                'channels': [ channel ],
+            },
+            'id': this.requestId (),
+        };
+        const client = this.client (url);
+        await client.send (request);
+        delete client.subscriptions[channel];
+        await this.subscribe ([ channel ], [ channel ], isPrivate, {});
     }
 
     override handleDelta (bookside: any, delta: any) {

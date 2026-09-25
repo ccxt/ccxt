@@ -9,7 +9,7 @@ import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Bool, Tickers, Strings, List, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification, Endpoint, Account, FundingHistory } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Endpoint } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1003,7 +1003,10 @@ export default class coinbaseinternational extends Exchange {
         }
         const tickers: Dict = {};
         for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+            const symbol = this.safeString (symbols, i);
+            if (symbol === undefined) {
+                continue;
+            }
             const ticker = await this.fetchTicker (symbol, params);
             tickers[symbol] = ticker;
         }
@@ -2730,8 +2733,7 @@ export default class coinbaseinternational extends Exchange {
         if (useEddsa) {
             const byteArray = this.base64ToBinary (this.secret);
             const seed = this.arraySlice (byteArray, 0, 32);
-            const signedToken = jwt (request, seed, sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
-            return signedToken;
+            return jwt (request, seed, sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
         }
         const header = {
             'alg': 'ES256',
