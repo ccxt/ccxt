@@ -827,7 +827,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), "info", message);
             Helpers.addElementToObject(this.balance, tradingAccountId, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId))));
         }
-        Object messageHash = "balance";
+        String messageHash = "balance";
         String tradingAccountIdHash = ("::" + tradingAccountId);
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), messageHash);
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), (messageHash + tradingAccountIdHash));

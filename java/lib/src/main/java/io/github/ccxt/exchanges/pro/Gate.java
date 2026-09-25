@@ -1067,7 +1067,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String channelName = (String) ((List<Object>) channelNameparamsMethodVariable).get(0);
             var paramsMethod = ((List<Object>) channelNameparamsMethodVariable).get(1);
             Object url = this.getUrlByMarket(market);
-            Object channel = ((messageType + ".") + channelName);
+            String channel = ((messageType + ".") + channelName);
             if (java.util.Objects.equals(callerMethodNameOption, null))
             {
                 throw new ArgumentsRequired((this.id + " requires a callerMethodName argument")) ;
@@ -1084,7 +1084,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 ((List<Object>)messageHashes).add(((prefix + ":") + symbol));
             }
-            Object tickerOrBidAsk = (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, (String) (channel), Helpers.toMapArg(paramsMethod))).join();
+            Object tickerOrBidAsk = (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, channel, Helpers.toMapArg(paramsMethod))).join();
             if (this.newUpdates)
             {
                 Map<String, Object> items = new HashMap<String, Object>() {{}};

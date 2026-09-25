@@ -4329,7 +4329,7 @@ public class Woofipro extends WoofiproApi
                 }
                 requestParams = this.keysort(requestParams);
             }
-            Object auth = "";
+            String auth = "";
             String ts = String.valueOf(this.nonce());
             url = (url + pathWithParams);
             String apiKey = this.apiKey;

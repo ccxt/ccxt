@@ -1245,7 +1245,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object messageHash = "myTrades";
+            String messageHash = "myTrades";
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1456,7 +1456,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object messageHash = "orders";
+            String messageHash = "orders";
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {

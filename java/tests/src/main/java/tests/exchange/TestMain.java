@@ -1781,7 +1781,7 @@ public class TestMain extends BaseTest
             return null;
         }
         List<Object> urlParts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/"))));
-        Object res = "";
+        String res = "";
         for (var i = 0; i < ((List<?>)urlParts).size(); i++)
         {
             if (i > 2)
@@ -1792,7 +1792,7 @@ public class TestMain extends BaseTest
                     // handle urls like this: /v1/account/accounts?AccessK
                     List<Object> currentParts = new ArrayList<Object>(Arrays.asList(((String)current).split(java.util.regex.Pattern.quote("?"))));
                     res = (res + "/");
-                    res = Helpers.add(res, Helpers.GetValue(currentParts, 0));
+                    res = (res + Helpers.GetValue(currentParts, 0));
                     break;
                 }
                 res = (res + "/");

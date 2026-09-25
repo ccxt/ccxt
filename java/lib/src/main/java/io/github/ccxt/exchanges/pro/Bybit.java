@@ -2893,8 +2893,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 Long expiresInt = (this.milliseconds() + 10000L);
                 String expires = this.numberToString(expiresInt);
-                Object path = "GET/realtime";
-                Object auth = Helpers.add(path, expires);
+                String path = "GET/realtime";
+                String auth = (path + expires);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "hex");
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "op", "auth" );

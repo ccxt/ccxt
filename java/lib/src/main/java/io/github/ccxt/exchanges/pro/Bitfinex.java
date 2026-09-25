@@ -933,7 +933,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String marketId = this.safeString(subscription, "symbol");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String channel = "book";
-        Object messageHash = ((channel + ":") + marketId);
+        String messageHash = ((channel + ":") + marketId);
         Map<String, Object> book = (Map<String, Object>) this.safeDict(this.orderbooks, symbol, (Object) null);
         if (java.util.Objects.equals(book, null))
         {
@@ -1149,7 +1149,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         // }
         //
         String channelId = this.safeString(message, "chanId");
-        Object unSubChannel = ("unsubscribe:" + channelId);
+        String unSubChannel = ("unsubscribe:" + channelId);
         String subMessageHash = this.safeString(client.subscriptions, unSubChannel);
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, ("unsubscribe:" + subMessageHash), (Object) null);
         ((Map<String,Object>)client.subscriptions).remove((String)unSubChannel);

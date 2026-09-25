@@ -1088,7 +1088,7 @@ public class Predictfun extends PredictfunApi
         String digits = "0123456789";
         Object chars = this.stringToCharsArray(text);
         Integer charsLength = ((List<?>)chars).size();
-        Object stripped = "";
+        String stripped = "";
         for (var i = 0; (charsLength != null && i < charsLength); i++)
         {
             Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
@@ -1107,7 +1107,7 @@ public class Predictfun extends PredictfunApi
             }
             if (Boolean.TRUE.equals(keep))
             {
-                stripped = Helpers.add(stripped, ch);
+                stripped = (stripped + ch);
             }
         }
         return stripped;

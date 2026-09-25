@@ -1143,7 +1143,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, market.get("type"), new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(options, "timeframes", new HashMap<String, Object>() {{}});
             String rawTimeframe = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object subMessageHash = Helpers.add((market.get("id") + "@kline_"), rawTimeframe);
+            String subMessageHash = Helpers.add((market.get("id") + "@kline_"), rawTimeframe);
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "ohlcv";
             String methodName = "unWatchOHLCV";

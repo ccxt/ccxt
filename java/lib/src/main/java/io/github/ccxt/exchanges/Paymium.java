@@ -811,7 +811,7 @@ public class Paymium extends PaymiumApi
             this.checkRequiredCredentials(true);
             // paymium requires an increasing nonce
             String nonce = String.valueOf(this.incrementingNonce());
-            Object auth = (nonce + url);
+            String auth = (nonce + url);
             Map<String, Object> signedHeaders = Helpers.newMap(
                 "Api-Key", this.apiKey,
                 "Api-Nonce", nonce

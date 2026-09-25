@@ -2674,7 +2674,7 @@ public class Coinsph extends CoinsphApi
 
     public Object urlEncodeQuery(Map<String, Object> query)
     {
-        Object encodedArrayParams = "";
+        String encodedArrayParams = "";
         Object remainingQuery = query;
         List<String> keys = new ArrayList<String>(query.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -2689,7 +2689,7 @@ public class Coinsph extends CoinsphApi
                 Object innerArray = (query == null || key == null ? null : query.get(key));
                 remainingQuery = this.omit(remainingQuery, key);
                 Object encodedArrayParam = this.parseArrayParam(innerArray, key);
-                encodedArrayParams = Helpers.add(encodedArrayParams, encodedArrayParam);
+                encodedArrayParams = (encodedArrayParams + encodedArrayParam);
             }
         }
         String encodedQuery = this.urlencode(remainingQuery);

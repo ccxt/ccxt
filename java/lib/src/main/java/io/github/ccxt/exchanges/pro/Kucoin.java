@@ -243,7 +243,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 urlType = "futures";
             }
             String tradeType = urlType.toUpperCase();
-            Object action = "subscribe";
+            String action = "subscribe";
             if (!java.util.Objects.equals(subscription, null))
             {
                 Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
@@ -275,7 +275,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
             this.checkRequiredCredentials(true);
             String requestId = String.valueOf(this.requestId());
-            Object action = "subscribe";
+            String action = "subscribe";
             if (!java.util.Objects.equals(subscription, null))
             {
                 Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
@@ -474,7 +474,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> paramsSpotMethod = (Map<String, Object>) ((List<Object>) spotMethodparamsSpotMethodVariable).get(1);
             String method = (((java.util.Objects.equals(isFuturesMethod, true)))) ? "/contractMarket/ticker" : spotMethod;
             Object query = (((java.util.Objects.equals(isFuturesMethod, true)))) ? paramsUta : paramsSpotMethod;
-            Object topic = ((method + ":") + market.get("id"));
+            String topic = ((method + ":") + market.get("id"));
             return (this.subscribe(url, messageHash, topic, Helpers.toMapArg(query), (Object) null)).join();
         }).thenApply(Ticker::new);
 
@@ -528,7 +528,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> paramsSpotMethod = (Map<String, Object>) ((List<Object>) spotMethodparamsSpotMethodVariable).get(1);
                 String method = (((java.util.Objects.equals(isFuturesMethod, true)))) ? "/contractMarket/ticker" : spotMethod;
                 Object query = (((java.util.Objects.equals(isFuturesMethod, true)))) ? paramsUta : paramsSpotMethod;
-                Object topic = ((method + ":") + market.get("id"));
+                String topic = ((method + ":") + market.get("id"));
                 String messageHash = ("unsubscribe:" + subMessageHash);
                 subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(messageHash, topic)));
                 subscription.put("subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash, topic)));
@@ -641,7 +641,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 urlType = "futures";
             }
             String tradeType = urlType.toUpperCase();
-            Object action = "subscribe";
+            String action = "subscribe";
             if (!java.util.Objects.equals(subscription, null))
             {
                 Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
@@ -1118,12 +1118,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 Boolean isFuturesMethod = (Boolean) market.get("contract");
                 Object url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
-                Object channelName = "/market/candles:";
+                String channelName = "/market/candles:";
                 if (java.util.Objects.equals(isFuturesMethod, true))
                 {
                     channelName = "/contractMarket/limitCandle:";
                 }
-                String topic = ((Helpers.add(channelName, market.get("id")) + "_") + period);
+                String topic = (((channelName + market.get("id")) + "_") + period);
                 ohlcv = (this.subscribe(url, messageHash, topic, Helpers.toMapArg(paramsUta), (Object) null)).join();
             }
             Long limitResolved = limit;
@@ -1187,13 +1187,13 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 Boolean isFuturesMethod = (Boolean) market.get("contract");
                 Object url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
-                Object channelName = "/market/candles:";
+                String channelName = "/market/candles:";
                 if (java.util.Objects.equals(isFuturesMethod, true))
                 {
                     channelName = "/contractMarket/limitCandle:";
                 }
                 String messageHash = ("unsubscribe:" + subMessageHash);
-                String topic = ((Helpers.add(channelName, market.get("id")) + "_") + period);
+                String topic = (((channelName + market.get("id")) + "_") + period);
                 // we have to add the topic to the messageHashes and subMessageHashes
                 // because handleSubscriptionStatus needs them to remove the subscription from the client
                 // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
@@ -1396,12 +1396,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList());
-            Object channelName = "/market/match:";
+            String channelName = "/market/match:";
             if (Boolean.TRUE.equals(isFuturesMethod))
             {
                 channelName = "/contractMarket/execution:";
             }
-            Object topic = Helpers.add(channelName, String.join(",", (List<String>)marketIds));
+            String topic = (channelName + String.join(",", (List<String>)marketIds));
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -1448,12 +1448,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList());
-            Object channelName = "/market/match:";
+            String channelName = "/market/match:";
             if (Boolean.TRUE.equals(isFuturesMethod))
             {
                 channelName = "/contractMarket/execution:";
             }
-            Object topic = Helpers.add(channelName, String.join(",", (List<String>)marketIds));
+            String topic = (channelName + String.join(",", (List<String>)marketIds));
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -2336,7 +2336,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 market = this.market(symbol);
             }
             Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
-            Object messageHash = "orders";
+            String messageHash = "orders";
             if (!java.util.Objects.equals(symbolResolved, null))
             {
                 messageHash = ((messageHash + ":") + symbolResolved);
@@ -2363,7 +2363,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
                 Object isFuturesMethod = ((!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin")));
                 Object url = (this.negotiate(true, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
-                Object topic = "/spotMarket/tradeOrders";
+                String topic = "/spotMarket/tradeOrders";
                 if (java.util.Objects.equals(trigger, true))
                 {
                     topic = "/spotMarket/advancedOrders";
@@ -2374,8 +2374,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
                 if (java.util.Objects.equals(symbolResolved, null))
                 {
-                    Object suffix = this.getOrdersMessageHashSuffix((String) (topic));
-                    messageHash = Helpers.add(messageHash, suffix);
+                    Object suffix = this.getOrdersMessageHashSuffix(topic);
+                    messageHash = (messageHash + suffix);
                 }
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "privateChannel", true );
@@ -2697,10 +2697,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
         }
         cachedOrders.append(parsed);
-        Object messageHash = "orders";
+        String messageHash = "orders";
         String topic = this.safeString(message, "topic");
         Object suffix = this.getOrdersMessageHashSuffix((String) (topic));
-        Object typeSpecificMessageHash = Helpers.add(messageHash, suffix);
+        String typeSpecificMessageHash = (messageHash + suffix);
         client.resolve(cachedOrders, typeSpecificMessageHash);
         String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(cachedOrders, symbolSpecificMessageHash);
@@ -2794,7 +2794,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object messageHash = "myTrades";
+            String messageHash = "myTrades";
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2844,7 +2844,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 if (java.util.Objects.equals(symbolResolved, null))
                 {
                     String suffix = this.getMyTradesMessageHashSuffix(topic);
-                    messageHash = Helpers.add(messageHash, suffix);
+                    messageHash = (messageHash + suffix);
                 }
                 trades = (this.subscribe(url, messageHash, topic, this.extend(request, paramsTopic), (Object) null)).join();
             }
@@ -2907,10 +2907,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
         io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         myTrades.append(parsed);
-        Object messageHash = "myTrades";
+        String messageHash = "myTrades";
         String topic = this.safeString(message, "topic");
         String suffix = this.getMyTradesMessageHashSuffix(topic);
-        Object typeSpecificMessageHash = Helpers.add(messageHash, suffix);
+        String typeSpecificMessageHash = (messageHash + suffix);
         client.resolve(this.myTrades, typeSpecificMessageHash);
         String symbolSpecificMessageHash = ((messageHash + ":") + parsed.get("symbol"));
         client.resolve(this.myTrades, symbolSpecificMessageHash);
@@ -3352,7 +3352,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             Object url = (this.negotiate(true, false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            Object topic = ("/contract/position:" + market.get("id"));
+            String topic = ("/contract/position:" + market.get("id"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "privateChannel", true );
             }};

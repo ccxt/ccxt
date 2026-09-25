@@ -929,7 +929,7 @@ public class Bitbns extends BitbnsApi
             }};
             Object response = null;
             String tail = (((java.util.Objects.equals(isTrigger, true)))) ? "StopLossOrder" : "Order";
-            Object quoteSide = (((java.util.Objects.equals(market.get("quoteId"), "USDT")))) ? "usdtcancel" : "cancel";
+            String quoteSide = (((java.util.Objects.equals(market.get("quoteId"), "USDT")))) ? "usdtcancel" : "cancel";
             quoteSide = (quoteSide + tail);
             request.put("side", quoteSide);
             response = (this.v2PostCancel(this.extend(request, paramsOmitted))).join();

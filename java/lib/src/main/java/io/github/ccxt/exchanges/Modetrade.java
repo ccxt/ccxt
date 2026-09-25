@@ -3820,7 +3820,7 @@ public class Modetrade extends ModetradeApi
             {
                 paramsSigned = this.keysort(paramsSorted);
             }
-            Object auth = "";
+            String auth = "";
             String ts = String.valueOf(this.nonce());
             url = (url + pathWithParams);
             String apiKey = this.apiKey;

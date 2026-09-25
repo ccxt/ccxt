@@ -1518,12 +1518,12 @@ public class Bitflyer extends BitflyerApi
     {
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
-        Object request = (("/" + this.version) + "/");
+        String request = (("/" + this.version) + "/");
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
             request = (request + "me/");
         }
-        request = Helpers.add(request, path);
+        request = (request + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if (((Map<String, Object>)parameters).size() > 0)

@@ -572,12 +572,12 @@ public class Hyperliquid extends HyperliquidApi
             if (Boolean.TRUE.equals(isWrapped))
             {
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("U"))));
-                Object nameWithoutU = "";
+                String nameWithoutU = "";
                 for (var j = 0; j < ((List<?>)parts).size(); j++)
                 {
-                    nameWithoutU = Helpers.add(nameWithoutU, (parts == null || j < 0 || j >= parts.size() ? null : parts.get(j)));
+                    nameWithoutU = (nameWithoutU + (parts == null || j < 0 || j >= parts.size() ? null : parts.get(j)));
                 }
-                String baseCode = this.safeCurrencyCode((String) (nameWithoutU), (Map<String, Object>) null);
+                String baseCode = this.safeCurrencyCode(nameWithoutU, (Map<String, Object>) null);
                 if (!java.util.Objects.equals(code, null))
                 {
                     Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("spotCurrencyMapping")), code, baseCode);

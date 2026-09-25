@@ -3700,7 +3700,7 @@ public class Bitrue extends BitrueApi
                     signPath = "/dapi";
                 }
                 signPath = ((((signPath + "/") + version) + "/") + path);
-                Object signMessage = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + signPath);
+                String signMessage = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + signPath);
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
                     List<String> keys = new ArrayList<String>(((Map<String, Object>)paramsOmitted).keySet());
@@ -3722,7 +3722,7 @@ public class Bitrue extends BitrueApi
                         put( "recvWindow", recvWindow );
                     }}, paramsOmitted);
                     requestBody = this.json(query);
-                    signMessage = Helpers.add(signMessage, requestBody);
+                    signMessage = (signMessage + requestBody);
                     String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
                     requestHeaders = Helpers.newMap(
                         "Content-Type", "application/json",

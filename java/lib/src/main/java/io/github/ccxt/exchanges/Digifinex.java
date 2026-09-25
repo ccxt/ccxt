@@ -5429,7 +5429,7 @@ public class Digifinex extends DigifinexApi
     {
         Boolean signed = java.util.Objects.equals(this.safeString(api, 0), "private");
         String endpoint = this.safeString(api, 1);
-        Object pathPart = "/swap/v2";
+        String pathPart = "/swap/v2";
         if (java.util.Objects.equals(endpoint, "spot"))
         {
             pathPart = "/v3";

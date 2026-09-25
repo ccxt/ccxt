@@ -594,9 +594,9 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 market = this.market(symbol);
                 symbolResolved = this.safeString(market, "symbol");
             }
-            Object messageHash = "user.trade";
+            String messageHash = "user.trade";
             messageHash = (((!java.util.Objects.equals(market, null)))) ? (((messageHash + ".") + market.get("id"))) : messageHash;
-            List<Object> trades = (List<Object>) (this.watchPrivateSubscribe((String) (messageHash), parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchPrivateSubscribe(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1045,9 +1045,9 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 market = this.market(symbol);
                 symbolResolved = this.safeString(market, "symbol");
             }
-            Object messageHash = "user.order";
+            String messageHash = "user.order";
             messageHash = (((!java.util.Objects.equals(market, null)))) ? (((messageHash + ".") + market.get("id"))) : messageHash;
-            List<Object> orders = (List<Object>) (this.watchPrivateSubscribe((String) (messageHash), parameters)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivateSubscribe(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1791,7 +1791,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                Object method = "public/auth";
+                String method = "public/auth";
                 String nonce = String.valueOf(this.incrementingNonce());
                 String auth = (((method + nonce) + this.apiKey) + nonce);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());

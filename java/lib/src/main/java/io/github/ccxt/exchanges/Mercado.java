@@ -1241,14 +1241,14 @@ public class Mercado extends MercadoApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = (apiUrl + "/");
+        String url = (apiUrl + "/");
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean isPublic = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v4Public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v4PublicNet"));
         String privateBody = null;
         Map<String, Object> privateHeaders = null;
         if (Boolean.TRUE.equals(isPublic))
         {
-            url = Helpers.add(url, this.implodeParams(path, parameters));
+            url = (url + this.implodeParams(path, parameters));
             if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
@@ -1256,7 +1256,7 @@ public class Mercado extends MercadoApi
         } else
         {
             this.checkRequiredCredentials(true);
-            url = Helpers.add(url, (this.version + "/"));
+            url = (url + (this.version + "/"));
             // mercado requires each tonce to be greater than the previous one
             Object nonce = this.incrementingNonce();
             privateBody = this.urlencode(this.extend(new HashMap<String, Object>() {{

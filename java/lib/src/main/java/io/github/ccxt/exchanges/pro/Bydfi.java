@@ -257,7 +257,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            Object messageHash = "ticker::";
+            String messageHash = "ticker::";
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             String channel = "@ticker";
             if (java.util.Objects.equals(symbolsNormalized, null))
@@ -297,7 +297,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            Object messageHash = "unsubscribe::ticker::";
+            String messageHash = "unsubscribe::ticker::";
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             String channel = "@ticker";
             Map<String, Object> subscription = new HashMap<String, Object>() {{
