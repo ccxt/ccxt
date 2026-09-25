@@ -717,7 +717,7 @@ impl HyperliquidCore {
     m
 }) });
         let mut coin: Value = self.safe_string_k(entry.clone(), "coin", &[]);
-        let mut marketId: Value = self.parent.coin_to_market_id(coin);
+        let mut marketId: Value = self.parent.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut market: Value = self.market(marketId);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut rawData: Value = self.safe_list_k(entry.clone(), "levels", &[Value::from(vec![])]);
@@ -1055,7 +1055,7 @@ impl HyperliquidCore {
                 let mut __for_first_394: bool = true;
                 while { if !__for_first_394 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_394 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut name: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut marketId: Value = self.parent.coin_to_market_id(name.clone());
+                let mut marketId: Value = self.parent.coin_to_market_id(name.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                 let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::Str("swap".into())]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut ticker: Value = self.parse_ws_ticker(Value::Map({
@@ -1108,7 +1108,7 @@ impl HyperliquidCore {
     m
 }) });
         let mut coin: Value = self.safe_string_k(data.clone(), "coin", &[]);
-        let mut marketId: Value = self.parent.coin_to_market_id(coin);
+        let mut marketId: Value = self.parent.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut ctx: Value = self.safe_dict_k(data, "ctx", &[Value::Map({
@@ -1320,7 +1320,7 @@ impl HyperliquidCore {
             m
         })]);
         let mut coin: Value = self.safe_string_k(first, "coin", &[]);
-        let mut marketId: Value = self.parent.coin_to_market_id(coin);
+        let mut marketId: Value = self.parent.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut market: Value = self.market(marketId);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if !(in_op(&self.trades, &symbol)) {
@@ -1384,7 +1384,7 @@ impl HyperliquidCore {
         let mut price: Value = self.safe_string_k(trade.clone(), "px", &[]);
         let mut amount: Value = self.safe_string_k(trade.clone(), "sz", &[]);
         let mut coin: Value = self.safe_string_k(trade.clone(), "coin", &[]);
-        let mut marketId: Value = self.parent.coin_to_market_id(coin);
+        let mut marketId: Value = self.parent.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut marketResolved: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut id: Value = self.safe_string_k(trade.clone(), "tid", &[]);
@@ -1536,7 +1536,7 @@ impl HyperliquidCore {
     m
 }) });
         let mut base: Value = self.safe_string_k(data.clone(), "s", &[]);
-        let mut marketId: Value = self.parent.coin_to_market_id(base);
+        let mut marketId: Value = self.parent.coin_to_market_id(base).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut timeframe: Value = self.safe_string_k(data.clone(), "i", &[]);
         if !(in_op(&self.ohlcvs, &symbol)) {
@@ -2308,7 +2308,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        }
         //
         let mut coin: Value = (match subscription.get("coin") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut marketId: Value = self.parent.coin_to_market_id(coin);
+        let mut marketId: Value = self.parent.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
@@ -2323,7 +2323,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         //
         let mut coin: Value = (match subscription.get("coin") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut marketId: Value = self.parent.coin_to_market_id(coin);
+        let mut marketId: Value = self.parent.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
@@ -2353,7 +2353,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         //
         let mut coin: Value = (match subscription.get("coin") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut marketId: Value = self.parent.coin_to_market_id(coin);
+        let mut marketId: Value = self.parent.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
@@ -2367,7 +2367,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __subscription_empty = indexmap::IndexMap::new();
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         let mut coin: Value = (match subscription.get("coin") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut marketId: Value = self.parent.coin_to_market_id(coin);
+        let mut marketId: Value = self.parent.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut interval: Value = (match subscription.get("interval") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut timeframe: Value = self.find_timeframe(interval, &[]);

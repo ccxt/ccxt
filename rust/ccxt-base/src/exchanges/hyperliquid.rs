@@ -135,7 +135,6 @@ impl crate::exchange_generated::ExchangeBase for HyperliquidCore {
                 "cancel_orders_for_symbols" => self.cancel_orders_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_orders_request" => self.cancel_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "cancel_twap_order" => self.cancel_twap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "coin_to_market_id" => self.coin_to_market_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "construct_phantom_agent" => self.construct_phantom_agent(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
@@ -180,7 +179,6 @@ impl crate::exchange_generated::ExchangeBase for HyperliquidCore {
                 "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_trading_fee" => self.fetch_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
-                "format_vault_address" => self.format_vault_address(&args[..]),
                 "get_dex_from_hip3_symbol" => self.get_dex_from_hip3_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "get_dex_from_symbols" => self.get_dex_from_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "handle_builder_fee_approval" => self.handle_builder_fee_approval().await,
@@ -2021,7 +2019,7 @@ impl HyperliquidCore {
         //     }
         //
         let mut base: Value = self.safe_string_k(info.clone(), "name", &[]);
-        let mut marketId: Value = self.coin_to_market_id(base);
+        let mut marketId: Value = self.coin_to_market_id(base).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut symbol: Value = self.safe_symbol(marketId, &[market]);
         let mut funding: Value = self.safe_number_k(info.clone(), "funding", &[]);
         let mut markPx: Value = self.safe_number_k(info.clone(), "markPx", &[]);
@@ -2071,7 +2069,7 @@ impl HyperliquidCore {
         //     },
         //
         let mut name: Value = self.safe_string_k(ticker.clone(), "name", &[]);
-        let mut marketId: Value = self.coin_to_market_id(name);
+        let mut marketId: Value = self.coin_to_market_id(name).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut bidAsk: Value = self.safe_list_k(ticker.clone(), "impactPxs", &[]);
         return self.safe_ticker(Value::Map({
@@ -3000,7 +2998,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut vaultAddressOptionparamsVaultVariable = self.handle_option_string_and_params(paramsOmitted, Value::Str("createOrder".into()), Value::Str("vaultAddress".into()), &[]);
         let mut vaultAddressOption: Value = vaultAddressOptionparamsVaultVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsVault: Value = vaultAddressOptionparamsVaultVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]);
+        let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut durationMins: Value = math_floor(&(match (((match ((duration).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })); // convert from ms to minutes
         let mut orderObj: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3364,7 +3362,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("createOrder".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
+        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut orderAction: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("order".into()));
@@ -3527,7 +3525,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut vaultAddress: Value = Value::Null;
         let mut params2: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params(params, Value::Str("cancelTwapOrder".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
+        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut action: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("twapCancel".into()));
@@ -3654,7 +3652,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("cancels".into(), cancelReq); }
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params2(params2.clone(), Value::Str("cancelOrders".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
+        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(cancelAction.clone(), nonce, &[vaultAddress.clone()]);
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), cancelAction); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
@@ -3735,7 +3733,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("type".into(), (if cancelByCloid { Value::Str("cancelByCloid".into()) } else { Value::Str("cancel".into()) })); }
         if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("cancels".into(), cancelReq); }
         let mut vaultAddressOption: Value = self.handle_option_string_and_params2(params, Value::Str("cancelOrdersForSymbols".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]);
+        let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(cancelAction.clone(), nonce, &[vaultAddress.clone()]);
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), cancelAction); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
@@ -3787,7 +3785,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params2(params2.clone(), Value::Str("cancelAllOrdersAfter".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
+        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(cancelAction.clone(), nonce, &[vaultAddress.clone()]);
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), cancelAction); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
@@ -3952,7 +3950,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("editOrder".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
+        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(modifyAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4695,7 +4693,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut coin: Value = self.safe_string_k(entry.clone(), "coin", &[]);
         let mut marketId: Value = Value::Null;
         if (coin != Value::Null) {
-            marketId = self.coin_to_market_id(coin);
+            marketId = self.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         let mut marketResolved: Value = Value::Null;
         if (self.safe_string_k(entry.clone(), "id", &[]) == Value::Null) {
@@ -4904,7 +4902,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut price: Value = self.safe_string_k(trade.clone(), "px", &[]);
         let mut amount: Value = self.safe_string_k(trade.clone(), "sz", &[]);
         let mut coin: Value = self.safe_string_k(trade.clone(), "coin", &[]);
-        let mut marketId: Value = self.coin_to_market_id(coin);
+        let mut marketId: Value = self.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut marketResolved: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut id: Value = self.safe_string_k(trade.clone(), "tid", &[]);
@@ -5133,7 +5131,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut coin: Value = self.safe_string_k(entry.clone(), "coin", &[]);
-        let mut marketId: Value = self.coin_to_market_id(coin);
+        let mut marketId: Value = self.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut marketResolved: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut leverage: Value = self.safe_dict_k(entry.clone(), "leverage", &[Value::Map({
@@ -5293,7 +5291,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params2(params2.clone(), Value::Str("setLeverage".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
+        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(updateAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5380,7 +5378,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut vaultAddressOption: Value = self.handle_option_string_and_params2(params, Value::Str("modifyMargin".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]);
+        let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(updateAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5456,7 +5454,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut strAmount: Value = self.number_to_string(amount.clone());
             let mut vaultAddress: Value = self.safe_string2(params.clone(), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]);
             if (vaultAddress != Value::Null) {
-                vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
+                vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                 strAmount = Value::Str(format!("{}{}", Value::Str(format!("{}{}", strAmount, Value::Str(" subaccount:".into())).into()), vaultAddress).into());
             }
             let mut strAmountFinal: Value = strAmount; // java req
@@ -5619,7 +5617,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
         }
         let mut vaultAddressOption: Value = self.handle_option_string_and_params(params, Value::Str("withdraw".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]);
+        let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut nonce: Value = self.incrementing_nonce();
         let mut action: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -6039,7 +6037,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut records: Value = self.extract_type_from_delta(&[depositLedger]);
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
+        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut deposits: Value = Value::from(vec![]);
         if (vaultAddress != Value::Null) {
             {
@@ -6129,7 +6127,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut records: Value = self.extract_type_from_delta(&[withdrawalLedger]);
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
+        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut withdrawals: Value = Value::from(vec![]);
         if (vaultAddress != Value::Null) {
             {
@@ -6230,7 +6228,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut coin: Value = self.safe_string_k(interestValue.clone(), "name", &[]);
         let mut marketId: Value = Value::Null;
         if (coin != Value::Null) {
-            marketId = self.coin_to_market_id(coin);
+            marketId = self.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6318,7 +6316,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut coin: Value = self.safe_string_k(delta.clone(), "coin", &[]);
         let mut marketId: Value = Value::Null;
         if (coin != Value::Null) {
-            marketId = self.coin_to_market_id(coin);
+            marketId = self.coin_to_market_id(coin).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut amount: Value = self.safe_string_k(delta.clone(), "usdc", &[]);
@@ -6433,17 +6431,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn format_vault_address(&self, optional_args: &[Value]) -> Value {
+    pub fn format_vault_address(&self, optional_args: &[Value]) -> Option<String> {
         let mut address = get_arg(optional_args, 0, Value::Null);
         if (address == Value::Null) {
-            return Value::Null;
+            return None;
         }
         if (starts_with(&address, &Value::Str("0x".into()))) {
-            return replace_str(&address, &Value::Str("0x".into()), &Value::Str("".into()));
+            return replace_str(&address, &Value::Str("0x".into()), &Value::Str("".into())).as_str().map(str::to_owned);
         }
-        return address;
-
-    Value::Null
+        return address.as_str().map(str::to_owned);
 }
 
     pub fn handle_public_address(&self, mut methodName: Value, mut params: Value) -> Value {
@@ -6464,10 +6460,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn coin_to_market_id(&self, mut coin: Value) -> Value {
+    pub fn coin_to_market_id(&self, mut coin: Value) -> Option<String> {
         // handle also hip3 tokens like flx:CRCL
         if (coin == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let mut hi3TokensByname: Value = self.safe_dict_k(self.options.clone(), "hip3TokensByName", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6477,19 +6473,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut hip3Dict: Value = self.safe_dict(hi3TokensByname, coin.clone(), &[]);
             let mut quote: Value = self.safe_string_k(hip3Dict.clone(), "quote", &[Value::Str("USDC".into())]);
             let mut code: Value = self.safe_string_k(hip3Dict, "code", &[coin.clone()]);
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", code, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into());
+            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", code, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into()).as_str().map(str::to_owned);
         }
         if Value::Int(coin.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) || Value::Int(coin.as_str().and_then(|__s| __s.find("@")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
-            return coin;
+            return coin.as_str().map(str::to_owned);
         }
         // hip3
         let mut coinId: Value = coin.clone();
         if Value::Int(coin.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             coinId = replace_str(&coin, &Value::Str(":".into()), &Value::Str("-".into()));
         }
-        return Value::Str(format!("{}{}", self.safe_currency_code(coinId, &[]), Value::Str("/USDC:USDC".into())).into());
-
-    Value::Null
+        return Value::Str(format!("{}{}", self.safe_currency_code(coinId, &[]), Value::Str("/USDC:USDC".into())).into()).as_str().map(str::to_owned);
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
@@ -6629,7 +6623,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut vaultAddress: Value = Value::Null;
         let mut params2: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params2(params, Value::Str("createOrder".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
+        vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut order: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
