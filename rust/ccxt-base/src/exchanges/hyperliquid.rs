@@ -399,7 +399,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(20));
+        m.insert("cost".to_string(), Value::Int(10));
         m.insert("byType".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("l2Book".to_string(), Value::Int(2));
