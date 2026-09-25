@@ -849,16 +849,16 @@ public partial class bingx : ccxt.bingx
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        bool isSpot = ((this.safeBool(market, "spot") == true));
-        bool isInverse = ((this.safeBool(market, "inverse") == true));
+        bool? isSpot = this.safeBool(market, "spot", false);
+        bool? isInverse = this.safeBool(market, "inverse", false);
         string timestamp = "T";
-        if (isSpot)
+        if ((isSpot == true))
         {
             timestamp = "t";
         }
-        if ((this.safeBool(market, "swap") == true))
+        if ((this.safeBool(market, "swap", false) == true))
         {
-            timestamp = isInverse ? "t" : "T";
+            timestamp = isInverse == true ? "t" : "T";
         }
         return new List<object> {this.safeInteger(ohlcv, timestamp), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }

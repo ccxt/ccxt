@@ -501,17 +501,17 @@ public partial class zebpay : Exchange
         string? minWithdrawFeeString = null;
         string? minWithdrawString = null;
         string? minDepositString = null;
-        bool deposit = false;
-        bool withdraw = false;
+        bool? deposit = false;
+        bool? withdraw = false;
         for (int j = 0; j < chains.Count; j++)
         {
             IDictionary<string, object> chain = ((IDictionary<string, object>)chains[j]);
             string? networkId = this.safeString(chain, "chainId");
             string? networkCode = this.networkIdToCode(networkId, code);
-            bool depositAllowed = (this.safeBool(chain, "isDepositEnabled") == true);
-            deposit = depositAllowed ? depositAllowed : deposit;
-            bool withdrawAllowed = (this.safeBool(chain, "isWithdrawEnabled") == true);
-            withdraw = withdrawAllowed ? withdrawAllowed : withdraw;
+            bool? depositAllowed = this.safeBool(chain, "isDepositEnabled", false);
+            deposit = depositAllowed == true ? depositAllowed : deposit;
+            bool? withdrawAllowed = this.safeBool(chain, "isWithdrawEnabled", false);
+            withdraw = withdrawAllowed == true ? withdrawAllowed : withdraw;
             string? withdrawFeeString = this.safeString(chain, "withdrawalFee");
             if ((withdrawFeeString != null))
             {
@@ -533,7 +533,7 @@ public partial class zebpay : Exchange
                     { "info", chain },
                     { "id", networkId },
                     { "network", networkCode },
-                    { "active", depositAllowed && withdrawAllowed },
+                    { "active", (depositAllowed == true) && (withdrawAllowed == true) },
                     { "deposit", depositAllowed },
                     { "withdraw", withdrawAllowed },
                     { "fee", this.parseNumber(withdrawFeeString) },
@@ -556,7 +556,7 @@ public partial class zebpay : Exchange
             { "code", code },
             { "id", currencyId },
             { "name", name },
-            { "active", deposit && withdraw },
+            { "active", (deposit == true) && (withdraw == true) },
             { "deposit", deposit },
             { "withdraw", withdraw },
             { "fee", this.parseNumber(minWithdrawFeeString) },

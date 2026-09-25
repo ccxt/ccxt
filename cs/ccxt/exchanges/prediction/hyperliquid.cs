@@ -1877,8 +1877,8 @@ public partial class hyperliquid : PredictionExchange
         string? tifRaw = this.safeString(entry, "tif");
         string? tif = this.parseTimeInForce(tifRaw);
         bool postOnly = (tif == "PO");
-        bool isTrigger = ((this.safeBool(entry, "isTrigger") == true));
-        double? triggerPrice = isTrigger ? this.safeNumber(entry, "triggerPx") : null;
+        bool? isTrigger = this.safeBool(entry, "isTrigger", false);
+        double? triggerPrice = isTrigger == true ? this.safeNumber(entry, "triggerPx") : null;
         return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", this.safeString(entry, "oid") },
             { "clientOrderId", this.safeString(entry, "cloid") },
@@ -2114,9 +2114,9 @@ public partial class hyperliquid : PredictionExchange
         {
             cost = this.parseNumber(Precise.stringMul(price, amount));
         }
-        bool crossed = ((this.safeBool(trade, "crossed") == true));
+        bool? crossed = this.safeBool(trade, "crossed", false);
         string takerOrMaker = "maker";
-        if (crossed)
+        if ((crossed == true))
         {
             takerOrMaker = "taker";
         }

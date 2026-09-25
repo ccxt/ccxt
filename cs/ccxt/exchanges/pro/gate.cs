@@ -1085,7 +1085,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2525,9 +2525,9 @@ public partial class gate : ccxt.gate
     public virtual string? getUrlByMarket(IDictionary<string, object> market)
     {
         object baseUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), (market != null && market.ContainsKey("type") ? market["type"] : null));
-        if ((this.safeBool(market, "contract") == true))
+        if ((this.safeBool(market, "contract", false) == true))
         {
-            return ((string?)((object)(((this.safeBool(market, "linear") == true)) ? getValue(baseUrl, "usdt") : getValue(baseUrl, "btc"))));
+            return ((string?)((object)((this.safeBool(market, "linear", false) == true) ? getValue(baseUrl, "usdt") : getValue(baseUrl, "btc"))));
         } else
         {
             return ((string?)((object)(baseUrl)));

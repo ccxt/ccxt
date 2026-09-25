@@ -1072,7 +1072,7 @@ public partial class hitbtc : Exchange
             { "id", currencyId },
             { "precision", this.safeNumber(entry, "precision_transfer") },
             { "name", this.safeString(entry, "full_name") },
-            { "active", (this.safeBool(entry, "delisted") != true) },
+            { "active", !(this.safeBool(entry, "delisted", false) == true) },
             { "deposit", this.safeBool(entry, "payin_enabled") },
             { "withdraw", this.safeBool(entry, "payout_enabled") },
             { "networks", networks },

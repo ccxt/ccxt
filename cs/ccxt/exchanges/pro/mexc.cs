@@ -786,7 +786,7 @@ public partial class mexc : ccxt.mexc
         double? volume = this.safeNumber2(ohlcv, "v", "volume");
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
-        if (((market != null)) && ((this.safeBool(market, "spot") != true)) && ((volume == null)))
+        if (((market != null)) && (!(this.safeBool(market, "spot", false) == true)) && ((volume == null)))
         {
             volume = this.safeNumber2(ohlcv, "q", "v");
         }

@@ -2332,7 +2332,7 @@ public partial class kucoin : Exchange
             List<object> contractMarkets = this.safeList(responses, contractIndex, new List<object>() {});
             result = this.arrayConcat(result, contractMarkets);
         }
-        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -2705,7 +2705,7 @@ public partial class kucoin : Exchange
                 { "info", market },
             });
         }
-        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -5487,7 +5487,7 @@ public partial class kucoin : Exchange
      * @param {bool} [params.sync] false, // true to use the hf sync call
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateSpotOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateSpotOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5496,7 +5496,7 @@ public partial class kucoin : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         string? symbol = null;
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -5596,7 +5596,7 @@ public partial class kucoin : Exchange
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateContractOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateContractOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5604,7 +5604,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");

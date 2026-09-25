@@ -1781,7 +1781,7 @@ public partial class xt : Exchange
             isActive = this.safeBool(market, "isOpenApi", false);
         } else
         {
-            if ((state == "ONLINE") && ((this.safeBool(market, "tradingEnabled") == true)) && ((this.safeBool(market, "openapiEnabled") == true)))
+            if ((state == "ONLINE") && (this.safeBool(market, "tradingEnabled", false) == true) && (this.safeBool(market, "openapiEnabled", false) == true))
             {
                 isActive = true;
             }

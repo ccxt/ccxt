@@ -1824,7 +1824,7 @@ public partial class digifinex : Exchange
         //         0.029927
         //     ]
         //
-        if ((this.safeBool(market, "swap") == true))
+        if ((this.safeBool(market, "swap", false) == true))
         {
             return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
         } else

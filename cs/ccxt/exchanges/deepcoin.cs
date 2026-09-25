@@ -1043,9 +1043,9 @@ public partial class deepcoin : Exchange
     public virtual string getProductGroupFromMarket(IDictionary<string, object> market)
     {
         string productGroup = "Spot";
-        if ((this.safeBool(market, "swap") == true))
+        if ((this.safeBool(market, "swap", false) == true))
         {
-            if ((this.safeBool(market, "linear") == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 productGroup = "SwapU";
             } else
@@ -1374,7 +1374,7 @@ public partial class deepcoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(object codes = null, object parameters = null)
+    public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1385,13 +1385,13 @@ public partial class deepcoin : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddresses requires a list with one currency code")) ;
         }
-        int length = getArrayLength(codes);
+        int length = codes?.Count ?? 0;
         if ((length != 1))
         {
             throw new NotSupported ((this.id + " fetchDepositAddresses requires a list with one currency code")) ;
         }
-        object code = getValue(codes, 0);
-        Dictionary<string, object> currency = this.currency(((string)code));
+        string? code = ((string)(codes != null && 0 < codes.Count ? codes[0] : null));
+        Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency_id", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "lang", "en" },

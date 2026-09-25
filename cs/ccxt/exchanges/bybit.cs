@@ -6270,7 +6270,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrdersForSymbols(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrdersForSymbols(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6287,7 +6287,7 @@ public partial class bybit : Exchange
         string? category = null;
         // getBybitType consumes its options from the params threaded through every order
         object query = parameters;
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> order = this.safeDict(orders, i);
             string? symbol = this.safeString(order, "symbol");
@@ -8745,8 +8745,8 @@ public partial class bybit : Exchange
         object query = parameters;
         if ((symbol != null))
         {
-            bool isLinear = ((this.safeBool(market, "linear") == true));
-            request["category"] = isLinear ? "linear" : "inverse";
+            bool? isLinear = this.safeBool(market, "linear", false);
+            request["category"] = isLinear == true ? "linear" : "inverse";
         } else
         {
             string? type = null;
@@ -8979,10 +8979,10 @@ public partial class bybit : Exchange
         Int64? timestamp = this.safeInteger(interest, "timestamp");
         double? openInterest = this.safeNumber2(interest, "open_interest", "openInterest");
         // the openInterest is in the base asset for linear and quote asset for inverse
-        bool isLinear = ((this.safeBool(market, "linear") == true));
-        bool isInverse = ((this.safeBool(market, "inverse") == true));
-        double? amount = isLinear ? openInterest : null;
-        double? value = isInverse ? openInterest : null;
+        bool? isLinear = this.safeBool(market, "linear", false);
+        bool? isInverse = this.safeBool(market, "inverse", false);
+        double? amount = isLinear == true ? openInterest : null;
+        double? value = isInverse == true ? openInterest : null;
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "symbol") },
             { "openInterestAmount", amount },

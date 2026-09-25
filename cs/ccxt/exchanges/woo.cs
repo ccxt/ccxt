@@ -4488,10 +4488,10 @@ public partial class woo : Exchange
         {
             market = this.market(symbol);
         }
-        if (((symbol == null)) || ((this.safeBool(market, "spot") == true)))
+        if (((symbol == null)) || (this.safeBool(market, "spot", false) == true))
         {
             return ccxt.BaseExchange.ToDict(await this.v3PrivatePostSpotMarginLeverage(this.extend(request, parameters)));
-        } else if ((this.safeBool(market, "swap") == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             request["symbol"] = this.safeString(market, "id");
             (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");

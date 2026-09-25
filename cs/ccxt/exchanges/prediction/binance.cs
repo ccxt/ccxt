@@ -507,12 +507,12 @@ public partial class binance : PredictionExchange
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchEventsByQuery(object queries, Int64 limit, object rest = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchEventsByQuery(IList<object> queries, Int64 limit, object rest = null)
     {
         rest ??= new Dictionary<string, object>();
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> collected = new List<object>() {};
-        int queriesLength = getArrayLength(queries);
+        int queriesLength = queries?.Count ?? 0;
         object limitResolved = limit;
         if (isEqual(limit, null))
         {
@@ -524,7 +524,7 @@ public partial class binance : PredictionExchange
         for (int qi = 0; qi < queriesLength; qi++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "query", getValue(queries, qi) },
+                { "query", (queries != null && qi < queries.Count ? queries[qi] : null) },
             };
             request["topK"] = limitResolved;
             List<object> response = await this.sapiPrivateGetMarketSearch(this.extend(request, rest));

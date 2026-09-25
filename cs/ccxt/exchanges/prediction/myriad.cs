@@ -317,7 +317,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
      * @returns {object[]} an array of raw myriad market objects
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchRawMarketsBySearch(object queries, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawMarketsBySearch(IList<object> queries, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
@@ -325,9 +325,9 @@ public partial class myriad : PredictionExchange
         object rest = this.omit(parameters, new List<object>() {"limit", "state"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawMarkets = new List<object>() {};
-        for (int i = 0; i < getArrayLength(queries); i++)
+        for (int i = 0; i < (queries?.Count ?? 0); i++)
         {
-            object q = getValue(queries, i);
+            object q = (queries != null && i < queries.Count ? queries[i] : null);
             Dictionary<string, object> response = await this.myriadPublicGetMarkets(this.extend(new Dictionary<string, object>() {
                 { "keyword", q },
                 { "state", state },
@@ -523,16 +523,16 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of raw myriad question objects
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchRawQuestionsBySearch(object queries, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawQuestionsBySearch(IList<object> queries, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
         object rest = this.omit(parameters, new List<object>() {"limit"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawQuestions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(queries); i++)
+        for (int i = 0; i < (queries?.Count ?? 0); i++)
         {
-            object q = getValue(queries, i);
+            string? q = ((string)(queries != null && i < queries.Count ? queries[i] : null));
             Dictionary<string, object> response = await this.myriadPublicGetQuestions(this.extend(new Dictionary<string, object>() {
                 { "keyword", q },
                 { "limit", limit },

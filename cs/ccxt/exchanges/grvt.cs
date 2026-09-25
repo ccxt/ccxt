@@ -1391,10 +1391,10 @@ public partial class grvt : Exchange
             takerOrMaker = "taker";
         } else
         {
-            bool isTaker = ((this.safeBool(trade, "is_taker") == true));
-            bool isBuyer = ((this.safeBool(trade, "is_buyer") == true));
-            takerOrMaker = isTaker ? "taker" : "maker";
-            side = isBuyer ? "buy" : "sell";
+            bool? isTaker = this.safeBool(trade, "is_taker", false);
+            bool? isBuyer = this.safeBool(trade, "is_buyer", false);
+            takerOrMaker = isTaker == true ? "taker" : "maker";
+            side = isBuyer == true ? "buy" : "sell";
         }
         Dictionary<string, object> fee = null;
         string? feeString = this.safeString(trade, "fee");
@@ -3497,8 +3497,8 @@ public partial class grvt : Exchange
         if ((firstLeg != null))
         {
             size = this.safeString(firstLeg, "size");
-            bool isBuyingAsset = ((this.safeBool(firstLeg, "is_buying_asset") == true));
-            side = isBuyingAsset ? "buy" : "sell";
+            bool? isBuyingAsset = this.safeBool(firstLeg, "is_buying_asset", false);
+            side = isBuyingAsset == true ? "buy" : "sell";
             price = this.safeString(firstLeg, "limit_price");
             filled = this.safeString(filledAmounts, primaryOrderIndex);
             avgPrice = this.safeString(avgPrices, primaryOrderIndex);

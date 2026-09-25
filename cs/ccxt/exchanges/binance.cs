@@ -4359,7 +4359,7 @@ public partial class binance : Exchange
             {
                 object market = getValue(this.markets, symbol);
                 // begin diff
-                if (isLegacy && ((this.safeBool(market, "spot") == true)))
+                if (isLegacy && (this.safeBool(market, "spot", false) == true))
                 {
                     object settle = isLegacyLinear ? getValue(market, "quote") : getValue(market, "base");
                     object futuresSymbol = add(add(symbol, ":"), settle);
@@ -4389,7 +4389,7 @@ public partial class binance : Exchange
                 for (int i = 0; i < getArrayLength(markets); i++)
                 {
                     object market = getValue(markets, i);
-                    if ((this.safeBool(market, defaultType) == true))
+                    if ((this.safeBool(market, defaultType, false) == true))
                     {
                         return ccxt.BaseExchange.ToDict(market);
                     }
@@ -5279,7 +5279,7 @@ public partial class binance : Exchange
         //         ]
         //     }
         //
-        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -7225,7 +7225,7 @@ public partial class binance : Exchange
         {
             if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isBuyer")))
             {
-                side = ((this.safeBool(trade, "isBuyer") == true)) ? "buy" : "sell"; // this is a true side
+                side = (this.safeBool(trade, "isBuyer", false) == true) ? "buy" : "sell"; // this is a true side
             }
         }
         Dictionary<string, object> fee = null;
@@ -7238,11 +7238,11 @@ public partial class binance : Exchange
         }
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isMaker")))
         {
-            takerOrMaker = ((this.safeBool(trade, "isMaker") == true)) ? "maker" : "taker";
+            takerOrMaker = (this.safeBool(trade, "isMaker", false) == true) ? "maker" : "taker";
         }
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker")))
         {
-            takerOrMaker = ((this.safeBool(trade, "maker") == true)) ? "maker" : "taker";
+            takerOrMaker = (this.safeBool(trade, "maker", false) == true) ? "maker" : "taker";
         }
         if (((trade != null && ((IDictionary<string, object>)trade).ContainsKey("optionSide"))) || ((((marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("option") ? ((IDictionary<string, object>)marketResolved)["option"] : null) as bool?) == true)))
         {
@@ -11169,7 +11169,7 @@ public partial class binance : Exchange
             Int64 oneWeek = ((((7L * 24L) * 60) * 60) * 1000);
             if (isGreaterThanOrEqual((subtract(currentTimestamp, startTime)), oneWeek))
             {
-                if (((endTime == null)) && ((this.safeBool(market, "linear") == true)))
+                if (((endTime == null)) && (this.safeBool(market, "linear", false) == true))
                 {
                     endTime = this.sum(startTime, oneWeek);
                     object endTimeValue = ((endTime == null)) ? 0 : endTime;
@@ -11182,7 +11182,7 @@ public partial class binance : Exchange
             request["endTime"] = endTime;
             paramsPaginate = this.omit(paramsPaginate, new List<object>() {"endTime", "until"});
         }
-        bool isContractLimit = (type == "option") || ((this.safeBool(market, "contract") == true));
+        bool isContractLimit = (type == "option") || (this.safeBool(market, "contract", false) == true);
         // above 1000, returns error
         object limitContract = limit;
         if ((limit != null) && isContractLimit)
@@ -11246,7 +11246,7 @@ public partial class binance : Exchange
                 {
                     response = await this.privateGetMyTrades(this.extend(request, paramsPaginate));
                 }
-            } else if ((this.safeBool(market, "linear") == true))
+            } else if ((this.safeBool(market, "linear", false) == true))
             {
                 if ((isPortfolioMargin == true))
                 {
@@ -11255,7 +11255,7 @@ public partial class binance : Exchange
                 {
                     response = await this.fapiPrivateGetUserTrades(this.extend(request, paramsPaginate));
                 }
-            } else if ((this.safeBool(market, "inverse") == true))
+            } else if ((this.safeBool(market, "inverse", false) == true))
             {
                 if ((isPortfolioMargin == true))
                 {
@@ -12992,7 +12992,7 @@ public partial class binance : Exchange
             {
                 object symbol = symbols[i];
                 object market = getValue(markets, symbol);
-                if ((this.safeBool(market, "linear") == true))
+                if ((this.safeBool(market, "linear", false) == true))
                 {
                     result[(string)symbol] = new Dictionary<string, object>() {
                         { "info", new Dictionary<string, object>() {
@@ -13031,7 +13031,7 @@ public partial class binance : Exchange
             {
                 object symbol = symbols[i];
                 object market = getValue(markets, symbol);
-                if ((this.safeBool(market, "inverse") == true))
+                if ((this.safeBool(market, "inverse", false) == true))
                 {
                     result[(string)symbol] = new Dictionary<string, object>() {
                         { "info", new Dictionary<string, object>() {
@@ -15614,7 +15614,7 @@ public partial class binance : Exchange
         } else if ((isEqual(api, "private")) || (isEqual(api, "eapiPrivate")) || (isEqual(api, "sapi") && (path != "system/status")) || (isEqual(api, "sapiV2")) || (isEqual(api, "sapiV3")) || (isEqual(api, "sapiV4")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")) || (isEqual(api, "fapiPrivateV3")) || (isEqual(api, "papiV2") || isEqual(api, "papi") && (path != "ping")))
         {
             this.checkRequiredCredentials();
-            if ((url.IndexOf("testnet.binancefuture.com", StringComparison.Ordinal) > -1) && this.isSandboxModeEnabled && ((this.safeBool(this.options, "disableFuturesSandboxWarning") != true)))
+            if ((url.IndexOf("testnet.binancefuture.com", StringComparison.Ordinal) > -1) && this.isSandboxModeEnabled && (!(this.safeBool(this.options, "disableFuturesSandboxWarning", false) == true)))
             {
                 throw new NotSupported ((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
@@ -15863,7 +15863,7 @@ public partial class binance : Exchange
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error == "-2015") && ((this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully") == true)))
+            if ((error == "-2015") && (this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully", false) == true))
             {
                 throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
             }
@@ -16905,8 +16905,8 @@ public partial class binance : Exchange
         double? value = this.safeNumber2(interest, "sumOpenInterestValue", "sumOpenInterestUsd");
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        bool isInverse = ((this.safeBool(market, "inverse") == true));
-        double? baseVolume = isInverse ? null : amount;
+        bool? isInverse = this.safeBool(market, "inverse", false);
+        double? baseVolume = isInverse == true ? null : amount;
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(id, market, null, "contract") },
             { "baseVolume", baseVolume },

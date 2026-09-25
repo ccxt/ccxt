@@ -2709,7 +2709,7 @@ public partial class nado : Exchange
             } else if ((code == currencyId))
             {
                 Dictionary<string, object> market = this.safeMarket(currencyId, null, null, "spot");
-                if ((this.safeBool(market, "spot") == true))
+                if ((this.safeBool(market, "spot", false) == true))
                 {
                     code = this.safeString(market, "base", code);
                 }

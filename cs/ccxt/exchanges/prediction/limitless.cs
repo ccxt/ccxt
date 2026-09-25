@@ -1841,14 +1841,14 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<List<ccxt.PredictionOrder>> FetchOrdersByIds(object ids, string outcome = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> FetchOrdersByIds(IList<object> ids, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((outcome != null))
         {
             await this.loadOutcome(outcome);
         }
-        int length = getArrayLength(ids);
+        int length = ids?.Count ?? 0;
         if (length > 50)
         {
             throw new BadRequest ((this.id + " fetchOrdersByIds can only fetch up to 50 orders at a time")) ;
@@ -3524,7 +3524,7 @@ public partial class limitless : PredictionExchange
      * @param {int} [params.limit] max number of raw markets to collect per category
      * @returns {object[]} raw limitless market objects, deduped by slug
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchRawMarketsByTags(object tags, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawMarketsByTags(IList<object> tags, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> categoriesResponse = await this.limitlessPublicGetCategories();
@@ -3534,9 +3534,9 @@ public partial class limitless : PredictionExchange
             categories = categoriesResponse;
         }
         List<object> wanted = new List<object>() {};
-        for (int i = 0; i < getArrayLength(tags); i++)
+        for (int i = 0; i < (tags?.Count ?? 0); i++)
         {
-            wanted.Add(((string)getValue(tags, i)).ToLower());
+            wanted.Add(((string)(tags != null && i < tags.Count ? tags[i] : null)).ToLower());
         }
         List<object> categoryIds = new List<object>() {};
         int categoriesLength = (categories?.Count ?? 0);

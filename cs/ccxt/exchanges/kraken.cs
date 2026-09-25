@@ -681,7 +681,7 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> promises = new List<object>() {};
         promises.Add(this.publicGetAssetPairs(parameters));
-        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             promises.Add(this.loadTimeDifference());
         }
@@ -2853,7 +2853,7 @@ public partial class kraken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByIds(object ids, string symbol = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByIds(IList<object> ids, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2862,7 +2862,7 @@ public partial class kraken : Exchange
         }
         Dictionary<string, object> response = await this.privatePostQueryOrders(this.extend(new Dictionary<string, object>() {
             { "trades", true },
-            { "txid", String.Join(",", ((IList<object>)ids).ToArray()) },
+            { "txid", String.Join(",", ids.ToArray()) },
         }, parameters));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> orders = new List<object>() {};

@@ -1782,11 +1782,11 @@ public partial class gemini : Exchange
         string? remaining = this.safeString(order, "remaining_amount");
         string? filled = this.safeString(order, "executed_amount");
         string status = "closed";
-        if ((this.safeBool(order, "is_live") == true))
+        if ((this.safeBool(order, "is_live", false) == true))
         {
             status = "open";
         }
-        if ((this.safeBool(order, "is_cancelled") == true))
+        if ((this.safeBool(order, "is_cancelled", false) == true))
         {
             status = "canceled";
         }

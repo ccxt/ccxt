@@ -466,7 +466,7 @@ public partial class coinbaseinternational : Exchange
         {
             IDictionary<string, object> account = this.safeDict(accounts, i);
             IDictionary<string, object> info = this.safeDict(account, "info", new Dictionary<string, object>() {});
-            if ((this.safeBool(info, "is_default") == true))
+            if ((this.safeBool(info, "is_default", false) == true))
             {
                 string? portfolioId = this.safeString(info, "portfolio_id");
                 this.options["portfolio"] = portfolioId;

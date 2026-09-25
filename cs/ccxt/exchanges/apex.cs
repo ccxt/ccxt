@@ -601,7 +601,7 @@ public partial class apex : Exchange
                             { "id", networkId },
                             { "network", networkCode },
                             { "active", null },
-                            { "deposit", ((this.safeBool(chain, "depositDisable") != true)) },
+                            { "deposit", (!(this.safeBool(chain, "depositDisable", false) == true)) },
                             { "withdraw", this.safeBool(token, "withdrawEnable") },
                             { "fee", this.safeNumber(token, "minFee") },
                             { "precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))) },

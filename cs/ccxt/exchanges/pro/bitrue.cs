@@ -466,7 +466,7 @@ public partial class bitrue : ccxt.bitrue
         for (int i = 0; i < symbols.Count; i++)
         {
             object candidate = getValue(markets, symbols[i]);
-            if ((this.safeBool(candidate, "swap") != true))
+            if (!(this.safeBool(candidate, "swap", false) == true))
             {
                 continue;
             }

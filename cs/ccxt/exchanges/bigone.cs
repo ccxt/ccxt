@@ -617,7 +617,7 @@ public partial class bigone : Exchange
         }
         int chainLength = chains.Count;
         string? type = null;
-        if ((this.safeBool(rawCurrency, "is_fiat") == true))
+        if ((this.safeBool(rawCurrency, "is_fiat", false) == true))
         {
             type = "fiat";
         } else if ((chainLength == 0))

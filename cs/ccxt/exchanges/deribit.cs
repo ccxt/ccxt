@@ -2349,7 +2349,7 @@ public partial class deribit : Exchange
         string? filledString = this.safeString(order, "filled_amount");
         string? amount = this.safeString(order, "amount");
         string? cost = Precise.stringMul(filledString, averageString);
-        if ((this.safeBool(marketResolved, "inverse") == true))
+        if ((this.safeBool(marketResolved, "inverse", false) == true))
         {
             if (averageString != "0")
             {

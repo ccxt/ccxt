@@ -1160,7 +1160,7 @@ public partial class tokocrypto : Exchange
         {
             if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isBuyer")))
             {
-                side = ((this.safeBool(trade, "isBuyer") == true)) ? "buy" : "sell"; // this is a true side
+                side = (this.safeBool(trade, "isBuyer", false) == true) ? "buy" : "sell"; // this is a true side
             }
         }
         Dictionary<string, object> fee = null;
@@ -1173,11 +1173,11 @@ public partial class tokocrypto : Exchange
         }
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isMaker")))
         {
-            takerOrMaker = ((this.safeBool(trade, "isMaker") == true)) ? "maker" : "taker";
+            takerOrMaker = (this.safeBool(trade, "isMaker", false) == true) ? "maker" : "taker";
         }
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker")))
         {
-            takerOrMaker = ((this.safeBool(trade, "maker") == true)) ? "maker" : "taker";
+            takerOrMaker = (this.safeBool(trade, "maker", false) == true) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -3008,7 +3008,7 @@ public partial class tokocrypto : Exchange
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error == "-2015") && ((this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully") == true)))
+            if ((error == "-2015") && (this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully", false) == true))
             {
                 throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
             }

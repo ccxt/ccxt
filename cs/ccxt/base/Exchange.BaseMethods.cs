@@ -1136,7 +1136,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " unWatchMarkPrices() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.DepositAddress>> FetchDepositAddresses(object codes = null, object parameters = null)
+    public async virtual Task<List<ccxt.DepositAddress>> FetchDepositAddresses(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchDepositAddresses() is not supported yet")) ;
@@ -5431,13 +5431,13 @@ public partial class BaseExchange
         return paramsOmitted;
     }
 
-    public async virtual Task<List<ccxt.Order>> CreateSpotOrders(object orders, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CreateSpotOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " createSpotOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Order>> CreateContractOrders(object orders, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CreateContractOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " createContractOrders() is not supported yet")) ;
@@ -5473,7 +5473,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " cancelAllOrdersAfter() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Order>> CancelOrdersForSymbols(object orders, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CancelOrdersForSymbols(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " cancelOrdersForSymbols() is not supported yet")) ;

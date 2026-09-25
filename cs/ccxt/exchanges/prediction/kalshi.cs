@@ -2705,18 +2705,18 @@ public partial class kalshi : PredictionExchange
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchEventsByQuery(object queries, Int64 limit, object rest = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchEventsByQuery(IList<object> queries, Int64 limit, object rest = null)
     {
         rest ??= new Dictionary<string, object>();
         object pageSize = (!isEqual(limit, null)) ? limit : this.safeInteger(this.options, "searchSeriesLimit", 25);
         // free-text query -> kalshi's series search endpoint (elections web host, ranked server-side)
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> eventTickers = new List<object>() {};
-        int queriesLength = getArrayLength(queries);
+        int queriesLength = queries?.Count ?? 0;
         for (int qi = 0; qi < queriesLength; qi++)
         {
             Dictionary<string, object> searchResponse = await this.electionsPublicGetSearchSeries(new Dictionary<string, object>() {
-                { "query", getValue(queries, qi) },
+                { "query", (queries != null && qi < queries.Count ? queries[qi] : null) },
                 { "order_by", "querymatch" },
                 { "page_size", pageSize },
             });
@@ -2873,11 +2873,11 @@ public partial class kalshi : PredictionExchange
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSeriesEvents(object seriesTickers, object status, Int64 limit, object rest = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSeriesEvents(IList<object> seriesTickers, object status, Int64 limit, object rest = null)
     {
         rest ??= new Dictionary<string, object>();
         List<object> rawEvents = new List<object>() {};
-        int seriesTickersLength = getArrayLength(seriesTickers);
+        int seriesTickersLength = seriesTickers?.Count ?? 0;
         Int64? pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 200);
         Int64? maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
         for (int si = 0; si < seriesTickersLength; si++)
@@ -2904,7 +2904,7 @@ public partial class kalshi : PredictionExchange
                     }
                 }
                 Dictionary<string, object> request = new Dictionary<string, object>() {
-                    { "series_ticker", getValue(seriesTickers, si) },
+                    { "series_ticker", (seriesTickers != null && si < seriesTickers.Count ? seriesTickers[si] : null) },
                     { "status", status },
                     { "with_nested_markets", true },
                     { "limit", reqLimit },

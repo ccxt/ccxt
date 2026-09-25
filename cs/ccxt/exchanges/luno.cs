@@ -1166,10 +1166,10 @@ public partial class luno : Exchange
             {
                 side = "buy";
             }
-            if ((side == "sell") && ((this.safeBool(trade, "is_buy") == true)))
+            if ((side == "sell") && (this.safeBool(trade, "is_buy", false) == true))
             {
                 takerOrMaker = "maker";
-            } else if ((side == "buy") && ((this.safeBool(trade, "is_buy") != true)))
+            } else if ((side == "buy") && (!(this.safeBool(trade, "is_buy", false) == true)))
             {
                 takerOrMaker = "maker";
             } else
@@ -1178,7 +1178,7 @@ public partial class luno : Exchange
             }
         } else
         {
-            side = ((this.safeBool(trade, "is_buy") == true)) ? "buy" : "sell";
+            side = (this.safeBool(trade, "is_buy", false) == true) ? "buy" : "sell";
         }
         string? feeBaseString = this.safeString(trade, "fee_base");
         string? feeCounterString = this.safeString(trade, "fee_counter");

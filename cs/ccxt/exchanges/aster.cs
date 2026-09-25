@@ -2995,7 +2995,7 @@ public partial class aster : Exchange
         }
         if ((symbol == null))
         {
-            if ((this.safeBool((this.options.ContainsKey("fetchOpenOrders") ? this.options["fetchOpenOrders"] : null), "warnIfNoSymbol") == true))
+            if ((this.safeBool((this.options.ContainsKey("fetchOpenOrders") ? this.options["fetchOpenOrders"] : null), "warnIfNoSymbol", false) == true))
             {
                 throw new ExchangeError ((((this.id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ") + this.id) + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
             }
@@ -3401,7 +3401,7 @@ public partial class aster : Exchange
         {
             requestParams = this.omit(parameters, omitKeys);
         }
-        if (((this.safeBool(this.options, "builderFee") == true)) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)))
+        if ((this.safeBool(this.options, "builderFee", false) == true) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)))
         {
             request["builder"] = this.safeString(this.options, "builder");
             request["feeRate"] = this.safeString(this.options, "builderRate");

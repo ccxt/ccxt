@@ -550,9 +550,9 @@ public partial class kucoin : ccxt.kucoin
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();
         Dictionary<string, object> market = this.getMarketFromSymbols(symbols);
-        bool isContract = ((this.safeBool(market, "contract") == true));
+        bool? isContract = this.safeBool(market, "contract", false);
         string urlType = "spot";
-        if (isContract)
+        if ((isContract == true))
         {
             urlType = "futures";
         }
@@ -845,9 +845,9 @@ public partial class kucoin : ccxt.kucoin
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        bool isFuturesMethod = ((this.safeBool(firstMarket, "contract") == true));
+        bool? isFuturesMethod = this.safeBool(firstMarket, "contract", false);
         string channelName = "/spotMarket/level1:";
-        if (isFuturesMethod)
+        if ((isFuturesMethod == true))
         {
             channelName = "/contractMarket/tickerV2:";
         }
@@ -1269,10 +1269,10 @@ public partial class kucoin : ccxt.kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        int symbolsLength = getArrayLength(symbols);
+        int symbolsLength = symbols?.Count ?? 0;
         if ((symbolsLength == 0))
         {
             throw new ArgumentsRequired ((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -1283,13 +1283,13 @@ public partial class kucoin : ccxt.kucoin
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        bool isFuturesMethod = ((this.safeBool(firstMarket, "contract") == true));
+        bool? isFuturesMethod = this.safeBool(firstMarket, "contract", false);
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         object url = await this.negotiate(false, isFuturesMethod);
         List<object> messageHashes = new List<object>() {};
         List<object> subscriptionHashes = new List<object>() {};
         string channelName = "/market/match:";
-        if (isFuturesMethod)
+        if ((isFuturesMethod == true))
         {
             channelName = "/contractMarket/execution:";
         }
@@ -1332,12 +1332,12 @@ public partial class kucoin : ccxt.kucoin
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        bool isFuturesMethod = ((this.safeBool(firstMarket, "contract") == true));
+        bool? isFuturesMethod = this.safeBool(firstMarket, "contract", false);
         object url = await this.negotiate(false, isFuturesMethod);
         List<object> messageHashes = new List<object>() {};
         List<object> subscriptionHashes = new List<object>() {};
         string channelName = "/market/match:";
-        if (isFuturesMethod)
+        if ((isFuturesMethod == true))
         {
             channelName = "/contractMarket/execution:";
         }
@@ -1655,10 +1655,10 @@ public partial class kucoin : ccxt.kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        int symbolsLength = getArrayLength(symbols);
+        int symbolsLength = symbols?.Count ?? 0;
         if ((symbolsLength == 0))
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -1677,15 +1677,15 @@ public partial class kucoin : ccxt.kucoin
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        bool isFuturesMethod = ((this.safeBool(firstMarket, "contract") == true));
+        bool? isFuturesMethod = this.safeBool(firstMarket, "contract", false);
         object url = await this.negotiate(false, isFuturesMethod);
         string defaultMethod = "/market/level2";
-        if (isFuturesMethod)
+        if ((isFuturesMethod == true))
         {
             defaultMethod = "/contractMarket/level2";
         }
         string optionName = "spotMethod";
-        if (isFuturesMethod)
+        if ((isFuturesMethod == true))
         {
             optionName = "contractMethod";
         }
@@ -1697,7 +1697,7 @@ public partial class kucoin : ccxt.kucoin
         {
             if (((limit == 5)) || ((limit == 50)))
             {
-                if (!isFuturesMethod)
+                if (isFuturesMethod != true)
                 {
                     method = "/spotMarket/level2";
                 }
@@ -1754,15 +1754,15 @@ public partial class kucoin : ccxt.kucoin
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        bool isFuturesMethod = ((this.safeBool(firstMarket, "contract") == true));
+        bool? isFuturesMethod = this.safeBool(firstMarket, "contract", false);
         object url = await this.negotiate(false, isFuturesMethod);
         string defaultMethod = "/market/level2";
-        if (isFuturesMethod)
+        if ((isFuturesMethod == true))
         {
             defaultMethod = "/contractMarket/level2";
         }
         string optionName = "spotMethod";
-        if (isFuturesMethod)
+        if ((isFuturesMethod == true))
         {
             optionName = "contractMethod";
         }
@@ -1774,7 +1774,7 @@ public partial class kucoin : ccxt.kucoin
         {
             if (((limit == 5)) || ((limit == 50)))
             {
-                if (!isFuturesMethod)
+                if (isFuturesMethod != true)
                 {
                     method = "/spotMarket/level2";
                 }

@@ -1359,7 +1359,7 @@ public partial class hyperliquid : Exchange
             if ((firstSymbol != null))
             {
                 Dictionary<string, object> market = this.market(firstSymbol);
-                if ((this.safeBool(this.safeDict(market, "info"), "hip3") == true))
+                if ((this.safeBool(this.safeDict(market, "info"), "hip3", false) == true))
                 {
                     hip3 = true;
                 }
@@ -2947,7 +2947,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrdersForSymbols(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrdersForSymbols(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -2966,7 +2966,7 @@ public partial class hyperliquid : Exchange
             { "cancels", new List<object>() {} },
         };
         bool cancelByCloid = false;
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> order = this.safeDict(orders, i);
             string? clientOrderId = this.safeString(order, "clientOrderId");
@@ -3909,8 +3909,8 @@ public partial class hyperliquid : Exchange
         {
             postOnly = (tif == "ALO");
         }
-        bool isTrigger = ((this.safeBool(entry, "isTrigger") == true));
-        double? triggerPx = isTrigger ? this.safeNumber(entry, "triggerPx") : null;
+        bool? isTrigger = this.safeBool(entry, "isTrigger", false);
+        double? triggerPx = isTrigger == true ? this.safeNumber(entry, "triggerPx") : null;
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         string orderTypeRaw = this.safeStringLower(entry, "orderType", "");

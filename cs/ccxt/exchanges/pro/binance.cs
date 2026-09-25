@@ -807,7 +807,7 @@ public partial class binance : ccxt.binance
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1379,7 +1379,7 @@ public partial class binance : ccxt.binance
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1754,9 +1754,9 @@ public partial class binance : ccxt.binance
         {
             if ((side == null))
             {
-                side = ((this.safeBool(trade, "m") == true)) ? "sell" : "buy"; // this is reversed intentionally
+                side = (this.safeBool(trade, "m", false) == true) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = ((this.safeBool(trade, "m") == true)) ? "maker" : "taker";
+            takerOrMaker = (this.safeBool(trade, "m", false) == true) ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");

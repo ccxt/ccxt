@@ -1976,7 +1976,7 @@ public partial class bitso : Exchange
                     result[(string)code] = new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
                             { "fee", this.safeNumber(entry, "fee") },
-                            { "percentage", ((this.safeBool(entry, "is_fixed") != true)) },
+                            { "percentage", (!(this.safeBool(entry, "is_fixed", false) == true)) },
                         } },
                         { "withdraw", new Dictionary<string, object>() {
                             { "fee", null },

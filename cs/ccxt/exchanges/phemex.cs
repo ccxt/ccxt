@@ -3127,7 +3127,7 @@ public partial class phemex : Exchange
             {
                 object cost = this.safeNumber(orderParams, "cost");
                 orderParams = this.omit(orderParams, "cost");
-                if ((this.safeBool(this.options, "createOrderByQuoteRequiresPrice") == true))
+                if ((this.safeBool(this.options, "createOrderByQuoteRequiresPrice", false) == true))
                 {
                     if ((price != null))
                     {
@@ -3154,7 +3154,7 @@ public partial class phemex : Exchange
             orderParams = this.omit(orderParams, "hedged");
             string? posSide = this.safeStringLower(orderParams, "posSide");
             // a hedged reduceOnly order without posSide closes the opposite side
-            bool flipSide = ((posSide == null)) && ((hedged == true)) && ((this.safeBool(orderParams, "reduceOnly") == true));
+            bool flipSide = ((posSide == null)) && ((hedged == true)) && (this.safeBool(orderParams, "reduceOnly", false) == true);
             string oppositeSide = ((side == "buy")) ? "sell" : "buy";
             string sideResolved = side;
             if (flipSide)

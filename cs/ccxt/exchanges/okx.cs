@@ -2659,7 +2659,7 @@ public partial class okx : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -4287,7 +4287,7 @@ public partial class okx : Exchange
         string? trailingPrice = this.safeString2(parameters, "trailingPrice", "callbackSpread");
         bool isTrailingPriceOrder = (trailingPrice != null);
         bool trigger = ((triggerPrice != null)) || ((type == "trigger"));
-        bool isReduceOnly = ((this.safeBool(parameters, "reduceOnly", false) == true)) || ((closeFraction != null));
+        bool isReduceOnly = (this.safeBool(parameters, "reduceOnly", false) == true) || ((closeFraction != null));
         string? defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
         string? marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not omitted so as to be extended into the request
         bool? margin = false;
@@ -5163,7 +5163,7 @@ public partial class okx : Exchange
      * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrdersForSymbols(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrdersForSymbols(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5181,7 +5181,7 @@ public partial class okx : Exchange
         {
             method = "privatePostTradeCancelAlgos";
         }
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> order = this.safeDict(orders, i);
             string? id = this.safeString(order, "id");

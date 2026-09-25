@@ -2423,7 +2423,7 @@ public partial class htx : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -2438,7 +2438,7 @@ public partial class htx : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((this.safeBool(types, key) == true))
+            if ((this.safeBool(types, key, false) == true))
             {
                 if (key == "spot")
                 {
@@ -3678,7 +3678,7 @@ public partial class htx : Exchange
             IList<object> requestparamsUntilVariable = (IList<object>)this.handleUntilOption("end_time", request, paramsMarketType);
             request = (Dictionary<string, object>)requestparamsUntilVariable[0];
             paramsUntil = requestparamsUntilVariable[1];
-            if ((this.safeBool(market, "linear") == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 request["contract_code"] = this.safeString(market, "id");
                 if ((limit != null))
@@ -3686,7 +3686,7 @@ public partial class htx : Exchange
                     request["limit"] = limit; // default 100, max 500
                 }
                 response = await this.contractPrivateGetV5TradeOrderDetails(this.extend(request, paramsUntil));
-            } else if ((this.safeBool(market, "inverse") == true))
+            } else if ((this.safeBool(market, "inverse", false) == true))
             {
                 if ((limit != null))
                 {
@@ -4797,7 +4797,7 @@ public partial class htx : Exchange
                     request["client_order_id"] = clientOrderId;
                 }
             }
-            if ((this.safeBool(market, "linear") == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 if ((isAlgo == true))
                 {
@@ -4831,7 +4831,7 @@ public partial class htx : Exchange
                     request["margin_mode"] = ((marginMode == null)) ? "cross" : marginMode;
                     response = await this.contractPrivateGetV5TradeOrder(this.extend(request, paramsMarginMode));
                 }
-            } else if ((this.safeBool(market, "inverse") == true))
+            } else if ((this.safeBool(market, "inverse", false) == true))
             {
                 if ((marketType == "future"))
                 {
@@ -5315,7 +5315,7 @@ public partial class htx : Exchange
                 throw new ArgumentsRequired ((((this.id + " fetchCanceledOrders() requires a symbol argument for ") + marketType) + " orders")) ;
             }
             Dictionary<string, object> request = new Dictionary<string, object>() {};
-            if ((this.safeBool(market, "linear") == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 bool? trigger = this.safeBool2(paramsMarketType, "stop", "trigger");
                 bool? stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit");
@@ -6901,21 +6901,21 @@ public partial class htx : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        if ((this.safeBool(market, "spot") == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.privatePostOrderBatchOrders(ordersRequests);
         } else
         {
-            if ((this.safeBool(market, "linear") == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 response = await this.contractPrivatePostV5TradeBatchOrders(ordersRequests);
-            } else if ((this.safeBool(market, "inverse") == true))
+            } else if ((this.safeBool(market, "inverse", false) == true))
             {
                 request["orders_data"] = ordersRequests;
-                if ((this.safeBool(market, "swap") == true))
+                if ((this.safeBool(market, "swap", false) == true))
                 {
                     response = await this.contractPrivatePostSwapApiV1SwapBatchorder(request);
-                } else if ((this.safeBool(market, "future") == true))
+                } else if ((this.safeBool(market, "future", false) == true))
                 {
                     response = await this.contractPrivatePostApiV1ContractBatchorder(request);
                 }
@@ -6986,7 +6986,7 @@ public partial class htx : Exchange
         //
         //
         object result = null;
-        if ((this.safeBool(market, "spot") == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             result = this.safeList(response, "data", new List<object>() {});
         } else
@@ -7078,7 +7078,7 @@ public partial class htx : Exchange
                     query = this.omit(query, new List<object>() {"client_order_id", "clientOrderId"});
                 }
             }
-            if ((this.safeBool(market, "future") == true))
+            if ((this.safeBool(market, "future", false) == true))
             {
                 request["symbol"] = this.safeString(market, "settleId");
             } else
@@ -7107,9 +7107,9 @@ public partial class htx : Exchange
                 {
                     response = await this.contractPrivatePostV5TradeCancelOrder(this.extend(request, query));
                 }
-            } else if ((this.safeBool(market, "inverse") == true))
+            } else if ((this.safeBool(market, "inverse", false) == true))
             {
-                if ((this.safeBool(market, "swap") == true))
+                if ((this.safeBool(market, "swap", false) == true))
                 {
                     if ((trigger == true))
                     {
@@ -7124,7 +7124,7 @@ public partial class htx : Exchange
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, query));
                     }
-                } else if ((this.safeBool(market, "future") == true))
+                } else if ((this.safeBool(market, "future", false) == true))
                 {
                     if ((trigger == true))
                     {
@@ -7280,7 +7280,7 @@ public partial class htx : Exchange
             object clientOrderIds = this.safeValue2(query, "client_order_id", "clientOrderId");
             clientOrderIds = this.safeValue2(query, "client_order_ids", "clientOrderIds", clientOrderIds);
             query = this.omit(query, new List<object>() {"client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"});
-            if ((this.safeBool(market, "linear") != true))
+            if (!(this.safeBool(market, "linear", false) == true))
             {
                 if ((clientOrderIds == null))
                 {
@@ -7290,14 +7290,14 @@ public partial class htx : Exchange
                     request["client_order_id"] = clientOrderIds;
                 }
             }
-            if ((this.safeBool(market, "future") == true))
+            if ((this.safeBool(market, "future", false) == true))
             {
                 request["symbol"] = this.safeString(market, "settleId");
             } else
             {
                 request["contract_code"] = this.safeString(market, "id");
             }
-            if ((this.safeBool(market, "linear") == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 if ((clientOrderIds == null))
                 {
@@ -7313,9 +7313,9 @@ public partial class htx : Exchange
                     }
                 }
                 response = await this.contractPrivatePostV5TradeCancelBatchOrders(this.extend(request, query));
-            } else if ((this.safeBool(market, "inverse") == true))
+            } else if ((this.safeBool(market, "inverse", false) == true))
             {
-                if ((this.safeBool(market, "swap") == true))
+                if ((this.safeBool(market, "swap", false) == true))
                 {
                     if ((trigger == true))
                     {
@@ -7327,7 +7327,7 @@ public partial class htx : Exchange
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, query));
                     }
-                } else if ((this.safeBool(market, "future") == true))
+                } else if ((this.safeBool(market, "future", false) == true))
                 {
                     if ((trigger == true))
                     {
@@ -7418,7 +7418,7 @@ public partial class htx : Exchange
         //         "ts": 1780822053167
         //     }
         //
-        if (((this.safeBool(market, "linear") == true)) && ((trigger != true)) && ((stopLossTakeProfit != true)))
+        if ((this.safeBool(market, "linear", false) == true) && ((trigger != true)) && ((stopLossTakeProfit != true)))
         {
             return ccxt.BaseExchange.ToOrderList(this.parseCancelOrders(response));
         }
@@ -7576,7 +7576,7 @@ public partial class htx : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
             }
-            if ((this.safeBool(market, "future") == true))
+            if ((this.safeBool(market, "future", false) == true))
             {
                 request["symbol"] = this.safeString(market, "settleId");
             }
@@ -7585,12 +7585,12 @@ public partial class htx : Exchange
             bool? stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit");
             bool? trailing = this.safeBool(paramsMarketType, "trailing", false);
             Dictionary<string, object> paramsOmitted = this.omit(paramsMarketType, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
-            if ((this.safeBool(market, "linear") == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 response = await this.contractPrivatePostV5TradeCancelAllOrders(this.extend(request, paramsOmitted));
-            } else if ((this.safeBool(market, "inverse") == true))
+            } else if ((this.safeBool(market, "inverse", false) == true))
             {
-                if ((this.safeBool(market, "swap") == true))
+                if ((this.safeBool(market, "swap", false) == true))
                 {
                     if ((trigger == true))
                     {
@@ -7605,7 +7605,7 @@ public partial class htx : Exchange
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapCancelall(this.extend(request, paramsOmitted));
                     }
-                } else if ((this.safeBool(market, "future") == true))
+                } else if ((this.safeBool(market, "future", false) == true))
                 {
                     if ((trigger == true))
                     {
@@ -7635,7 +7635,7 @@ public partial class htx : Exchange
             //         "ts": "1683435723755"
             //     }
             //
-            if (((this.safeBool(market, "linear") == true)) && (((trigger != true)) && ((trailing != true)) && ((stopLossTakeProfit != true))))
+            if ((this.safeBool(market, "linear", false) == true) && (((trigger != true)) && ((trailing != true)) && ((stopLossTakeProfit != true))))
             {
                 return ccxt.BaseExchange.ToOrderList(this.parseCancelOrders(response));
             }

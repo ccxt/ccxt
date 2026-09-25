@@ -469,7 +469,7 @@ public partial class bitopro : Exchange
 
     public override Dictionary<string, object> parseMarket(object market)
     {
-        bool active = ((this.safeBool(market, "maintain") != true));
+        bool active = (!(this.safeBool(market, "maintain", false) == true));
         string? id = this.safeString(market, "pair");
         if ((id == null))
         {

@@ -8,7 +8,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, object symbols)
+    async static public Task<object> testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, IList<object> symbols)
     {
         string method = "watchOrderBookForSymbols";
         // as in `watchOrderBook`, a pending subscription can not be cancelled, so the

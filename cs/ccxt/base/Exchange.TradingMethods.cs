@@ -89,7 +89,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " watchMyTradesForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchTradesForSymbols() is not supported yet")) ;
@@ -154,7 +154,7 @@ public partial class Exchange
         throw new BadRequest ((this.id + " fetchL3OrderBook() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async virtual Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchOrderBookForSymbols() is not supported yet")) ;

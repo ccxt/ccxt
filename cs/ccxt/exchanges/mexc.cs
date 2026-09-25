@@ -1377,8 +1377,8 @@ public partial class mexc : Exchange
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            bool success = ((this.safeBool(response, "success") == true));
-            status = success ? "ok" : this.json(response);
+            bool? success = this.safeBool(response, "success", false);
+            status = success == true ? "ok" : this.json(response);
             updated = this.safeInteger(response, "data");
         }
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", status },             { "updated", updated },             { "url", null },             { "eta", null },             { "info", response },         });
@@ -1544,7 +1544,7 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -2108,8 +2108,8 @@ public partial class mexc : Exchange
                     { "cost", this.safeString(trade, "fee") },
                     { "currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency")) },
                 };
-                bool isTaker = ((this.safeBool2(trade, "isTaker", "taker") == true));
-                takerOrMaker = isTaker ? "taker" : "maker";
+                bool? isTaker = this.safeBool2(trade, "isTaker", "taker", false);
+                takerOrMaker = isTaker == true ? "taker" : "maker";
             } else
             {
                 timestamp = this.safeInteger2(trade, "time", "T");
@@ -3426,7 +3426,7 @@ public partial class mexc : Exchange
         }
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByIds(object ids, string symbol = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByIds(IList<object> ids, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3448,7 +3448,7 @@ public partial class mexc : Exchange
             throw new BadRequest (((this.id + " fetchOrdersByIds() is not supported for ") + marketType)) ;
         } else
         {
-            request["order_ids"] = String.Join(",", ((IList<object>)ids).ToArray());
+            request["order_ids"] = String.Join(",", ids.ToArray());
             Dictionary<string, object> response = await this.contractPrivateGetOrderBatchQuery(this.extend(request, query));
             //
             //     {

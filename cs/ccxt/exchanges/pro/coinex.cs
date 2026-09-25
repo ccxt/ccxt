@@ -814,7 +814,7 @@ public partial class coinex : ccxt.coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -830,9 +830,9 @@ public partial class coinex : ccxt.coinex
         bool symbolsDefined = ((symbols != null));
         if (symbolsDefined)
         {
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 market = this.market(symbol);
                 subscribedSymbols.Add((market.ContainsKey("id") ? market["id"] : null));
                 messageHashes.Add(("trades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
@@ -876,7 +876,7 @@ public partial class coinex : ccxt.coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -909,9 +909,9 @@ public partial class coinex : ccxt.coinex
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a symbol argument")) ;
         }
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             market = this.market(symbol);
             messageHashes.Add(("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
             watchOrderBookSubscriptions[(string)symbol] = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), limitResolved, aggregation, true};

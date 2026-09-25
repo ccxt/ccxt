@@ -2095,7 +2095,7 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -2262,7 +2262,7 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
         object swapSettlementCurrencies = this.getSettlementCurrencies("swap", "fetchMarkets");
-        if ((this.safeBool(this.options, "sandboxMode") == true))
+        if ((this.safeBool(this.options, "sandboxMode", false) == true))
         {
             swapSettlementCurrencies = new List<object>() {"usdt"}; // gate sandbox only has usdt-margined swaps
         }
@@ -2289,7 +2289,7 @@ public partial class gate : Exchange
     public async virtual Task<List<ccxt.MarketInterface>> FetchFutureMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.safeBool(this.options, "sandboxMode") == true))
+        if ((this.safeBool(this.options, "sandboxMode", false) == true))
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(new List<object>() {});  // right now sandbox does not have inverse swaps
         }
@@ -2927,8 +2927,8 @@ public partial class gate : Exchange
                     { "id", networkId },
                     { "network", networkCode },
                     { "active", null },
-                    { "deposit", (this.safeBool(chain, "deposit_disabled") != true) },
-                    { "withdraw", (this.safeBool(chain, "withdraw_disabled") != true) },
+                    { "deposit", !(this.safeBool(chain, "deposit_disabled", false) == true) },
+                    { "withdraw", !(this.safeBool(chain, "withdraw_disabled", false) == true) },
                     { "fee", null },
                     { "precision", this.parseNumber("0.0001") },
                     { "limits", new Dictionary<string, object>() {
@@ -2949,9 +2949,9 @@ public partial class gate : Exchange
             { "code", code },
             { "name", this.safeString(rawCurrency, "name") },
             { "type", type },
-            { "active", (this.safeBool(rawCurrency, "delisted") != true) },
-            { "deposit", (this.safeBool(rawCurrency, "deposit_disabled") != true) },
-            { "withdraw", (this.safeBool(rawCurrency, "withdraw_disabled") != true) },
+            { "active", !(this.safeBool(rawCurrency, "delisted", false) == true) },
+            { "deposit", !(this.safeBool(rawCurrency, "deposit_disabled", false) == true) },
+            { "withdraw", !(this.safeBool(rawCurrency, "withdraw_disabled", false) == true) },
             { "fee", null },
             { "networks", networks },
             { "precision", this.parseNumber("0.0001") },
@@ -7291,7 +7291,7 @@ public partial class gate : Exchange
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrdersForSymbols(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrdersForSymbols(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7300,7 +7300,7 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> order = this.safeDict(orders, i);
             string? symbol = this.safeString(order, "symbol");
@@ -9936,7 +9936,7 @@ public partial class gate : Exchange
         Dictionary<string, object> response = null;
         bool? isUnified = this.safeBool(parameters, "unified");
         object paramsOmitted = this.omit(parameters, "unified");
-        if ((this.safeBool(market, "spot") == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             request["currency_pair"] = this.safeString(market, "id");
             if ((isUnified == true))

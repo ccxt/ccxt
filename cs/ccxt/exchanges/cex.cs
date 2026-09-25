@@ -414,9 +414,9 @@ public partial class cex : Exchange
     {
         string? id = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(id);
-        bool isFiat = ((this.safeBool(rawCurrency, "fiat") == true));
+        bool? isFiat = this.safeBool(rawCurrency, "fiat", false);
         string type = "crypto";
-        if (isFiat)
+        if ((isFiat == true))
         {
             type = "fiat";
         }

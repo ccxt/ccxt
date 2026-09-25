@@ -3686,7 +3686,7 @@ public partial class bitget : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -8070,7 +8070,7 @@ public partial class bitget : Exchange
         return this.extend(request, paramsMarketType);
     }
 
-    public async virtual Task<List<ccxt.Order>> CreateUtaOrders(object orders, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CreateUtaOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8080,7 +8080,7 @@ public partial class bitget : Exchange
         List<object> ordersRequests = new List<object>() {};
         string? symbol = null;
         string? marginMode = null;
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");

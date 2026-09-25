@@ -1379,7 +1379,7 @@ public partial class bitrue : Exchange
         string? last = this.safeString2(ticker, "lastPrice", "last");
         Int64? timestamp = this.safeInteger(ticker, "time");
         string? percentage = null;
-        if ((this.safeBool(market, "swap") == true))
+        if ((this.safeBool(market, "swap", false) == true))
         {
             percentage = Precise.stringMul(this.safeString(ticker, "rose"), "100");
         } else
