@@ -1,3 +1,4 @@
+import { installCacheRemoveCall } from './cache-remove-call.js';
 import Transpiler from "ast-transpiler";
 // "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
 import ts from "typescript6";
@@ -1693,6 +1694,7 @@ class NewTranspiler {
 
     setupTranspiler() {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
+        installCacheRemoveCall(this.transpiler, 'java');
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         this.patchJavaPropertyTypes();
