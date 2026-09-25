@@ -14225,3 +14225,126 @@ export function patchJavaNonNullStringLocals (transpiler) {
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => (retyped.has (declaration) ? 'String' : undefined));
 }
+
+// ===== 42. `a - b` over two proven non-null Long operands =====
+// Helpers.subtract widens Integer to Long and returns a Long for two integral boxes, so native
+// long `-` (re-boxed Long) is the same value and box once neither operand can be null.
+const JAVA_SUBTRACT_SAFE_INTEGER_DEFAULT_AT = { safeInteger: 2, safeInteger2: 3, safeIntegerN: 2 };
+const JAVA_SUBTRACT_BASE_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/](functions[\\/]type|Exchange(\.nooverloads\.\d+)?)\.ts$/;
+
+function javaSubtractIntegerLiteral (node) {
+    const n = unwrapParens (node);
+    return n !== undefined && ts.isNumericLiteral (n) && /^\d+$/.test (n.text);
+}
+
+// this.safeInteger*(.., <int literal>) resolved in the base: SafeIntegerN answers the default on every null path
+function javaSubtractSafeIntegerWithDefault (printer, node) {
+    if (!isThisCall (node)) {
+        return false;
+    }
+    const at = JAVA_SUBTRACT_SAFE_INTEGER_DEFAULT_AT[String (node.expression.name.text)];
+    if (at === undefined || node.arguments.length !== at + 1 || !javaSubtractIntegerLiteral (node.arguments[at])) {
+        return false;
+    }
+    const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    const file = (declaration?.resolve?.() ?? declaration)?.getSourceFile?.()?.fileName ?? '';
+    return JAVA_SUBTRACT_BASE_FILE.test (file)
+        && new RegExp (`^this\\.${node.expression.name.text}\\(`).test (printer.printNode (node, 0));
+}
+
+function javaSubtractDeclaredLong (printer, node) {
+    if (!ts.isIdentifier (node) || printer.printNode (node, 0) !== node.text) {
+        return false;
+    }
+    if (printer.javaLongParameterRead (node)) {
+        return printer.javaNullGuardAdmitsRead (node);
+    }
+    const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+    if (declaration === undefined || declaration.name?.text !== node.text) {
+        return false;
+    }
+    if (ts.isBindingElement (declaration)) {
+        return HANDLE_TYPED_BINDINGS.get (declaration) === 'Long' && printer.javaNullGuardAdmitsRead (node);
+    }
+    return javaSubtractNonNullLongLocal (printer, declaration);
+}
+
+// a never-rebound local printed `Long x = <non-null Long>` (or `x == null ? <int> : x`)
+function javaSubtractNonNullLongLocal (printer, declaration) {
+    if (!ts.isVariableDeclaration (declaration) || declaration.initializer === undefined || !ts.isIdentifier (declaration.name)
+        || String (printer.javaDeclaredTypeOfDeclaration (declaration) ?? '').replace (/^final\s+/, '') !== 'Long') {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const name = declaration.name.text;
+    const rebound = (identifierIndex (scope).get (name) ?? []).some ((n) => n !== declaration.name && (
+        (ts.isBinaryExpression (n.parent) && n.parent.left === n && n.parent.operatorToken.kind >= ts.SyntaxKind.FirstAssignment
+            && n.parent.operatorToken.kind <= ts.SyntaxKind.LastAssignment)
+        || ((ts.isPrefixUnaryExpression (n.parent) || ts.isPostfixUnaryExpression (n.parent))
+            && (n.parent.operator === ts.SyntaxKind.PlusPlusToken || n.parent.operator === ts.SyntaxKind.MinusMinusToken))
+        || ts.isArrayLiteralExpression (n.parent) || ts.isVariableDeclaration (n.parent) || ts.isParameter (n.parent)));
+    if (rebound) {
+        return false;
+    }
+    const value = unwrapParens (declaration.initializer);
+    if (ts.isConditionalExpression (value)) {
+        const symbol = printer.getChecker ().getSymbolAtLocation (unwrapParens (value.whenFalse));
+        return symbol !== undefined && javaSubtractIntegerLiteral (value.whenTrue) && ts.isIdentifier (unwrapParens (value.whenFalse))
+            && printer.javaTestProvesNonNull (value.condition, symbol, false);
+    }
+    return !ts.isIdentifier (value) && javaSubtractLongOperand (printer, value) === 'box';
+}
+
+// 'box' = non-null Long expression, 'literal' = int literal (printed with L), undefined = keep the helper
+function javaSubtractLongOperand (printer, node) {
+    const n = unwrapParens (node);
+    if (n === undefined) {
+        return undefined;
+    }
+    if (javaSubtractIntegerLiteral (n)) {
+        return 'literal';
+    }
+    if (ts.isCallExpression (n)) {
+        if (printer.javaBaseTimeLongCall (n) || printer.javaThisCallNumericKind (n) === 'long') {
+            return 'box';
+        }
+        return javaSubtractSafeIntegerWithDefault (printer, n) ? 'box' : undefined;
+    }
+    if (ts.isIdentifier (n)) {
+        return javaSubtractDeclaredLong (printer, n) ? 'box' : undefined;
+    }
+    if (ts.isBinaryExpression (n) && n.operatorToken.kind === ts.SyntaxKind.MinusToken) {
+        return javaSubtractLongPair (printer, n.left, n.right) ? 'box' : undefined;
+    }
+    return undefined;
+}
+
+function javaSubtractLongPair (printer, left, right) {
+    const l = javaSubtractLongOperand (printer, left);
+    const r = javaSubtractLongOperand (printer, right);
+    return l !== undefined && r !== undefined && (l === 'box' || r === 'box');
+}
+
+export function patchJavaNonNullLongSubtract (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printInlineHelperArithmetic !== 'function' || printer._javaNonNullLongSubtractPatched) {
+        return;
+    }
+    printer._javaNonNullLongSubtractPatched = true;
+    const upstream = printer.printInlineHelperArithmetic.bind (printer);
+    printer.printInlineHelperArithmetic = function (left, right, leftText, rightText, op) {
+        const out = upstream (left, right, leftText, rightText, op);
+        if (out !== undefined || op !== ts.SyntaxKind.MinusToken) {
+            return out;
+        }
+        try {
+            if (!javaSubtractLongPair (printer, left, right)) {
+                return undefined;
+            }
+            const text = (node, printed) => (javaSubtractIntegerLiteral (node) && !/L$/.test (printed) ? printed + 'L' : printed);
+            return `(${text (left, leftText)} - ${text (right, rightText)})`;
+        } catch (e) {
+            return undefined;
+        }
+    };
+}

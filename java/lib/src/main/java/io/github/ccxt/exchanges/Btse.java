@@ -994,7 +994,7 @@ public class Btse extends BtseApi
                     // if so, just omit until for correct paginated calls for not to get an error from the exchange
                     int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                     Long maxDelta = ((((long) duration) * ((long) maxLimit)) * 1000L); // parseTimeframe returns seconds, the difference below is in milliseconds
-                    Object difference = Helpers.subtract(until, since);
+                    Object difference = (until - since);
                     if (Helpers.isLessThan(difference, maxDelta))
                     {
                         request.put("end", this.parseToInt(Helpers.divide(until, 1000)));
@@ -4497,6 +4497,6 @@ public class Btse extends BtseApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
+        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 }

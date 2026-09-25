@@ -7159,7 +7159,7 @@ public class Mexc extends MexcApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
+        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

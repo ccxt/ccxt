@@ -3385,7 +3385,7 @@ public class Bullish extends BullishApi
 
     public Object getTimestamp()
     {
-        return Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0));
+        return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
     /**

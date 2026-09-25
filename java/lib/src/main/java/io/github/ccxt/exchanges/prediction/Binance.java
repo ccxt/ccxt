@@ -1280,7 +1280,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if ((offSet != null && offSet > 0))
@@ -1377,7 +1377,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if ((offSet != null && offSet > 0))
@@ -1680,7 +1680,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "FILLED" );
             }};

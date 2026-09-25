@@ -766,7 +766,7 @@ public class Bitrue extends BitrueApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
+        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     /**
