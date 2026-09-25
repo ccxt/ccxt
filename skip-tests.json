@@ -1,4 +1,7 @@
 {
+    "byteexchange": {
+        "skip": "private endpoints require an api key and an ip whitelist"
+    },
     "mudrex": {
         "skip": "load markets is private",
         "skipWs": "load markets is private",
