@@ -1687,7 +1687,8 @@ function goAccessInsideNilGuard (masked: string[], k: number, name: string): boo
         for (let c = line.length - 1; c >= 0; c--) {
             depth += (line[c] === '}') ? 1 : ((line[c] === '{') ? -1 : 0);
             if (depth < 0) {
-                return new RegExp ('^\\s*if ' + goAccessEscape (name) + ' != nil \\{\\s*$').test (line);
+                const head = /^\s*if (.*) \{\s*$/.exec (goMapWriteIfHeader (masked, j));
+                return (head !== null) && goMapWriteTopLevelParts (head[1], '&&').some ((c) => new RegExp ('^(?:\\(\\s*)?' + goAccessEscape (name) + ' != nil(?:\\s*\\))?$').test (c.trim ()));
             }
         }
     }
@@ -2014,7 +2015,7 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     const valueMasked = argsMasked.substring (comma + 2);
     // a pointer the enclosing `if p != nil {` proves non-nil: the helper stores *p
     const guardedPointer = (text: string) => /^\w+$/.test (text) && (GO_ACCESS_DEREF_POINTER_TYPES.indexOf (typeAt (text, k) ?? '') >= 0)
-        && notRebound (text) && goAccessInsideNilGuard (masked, k, text);
+        && notRebound (text) && (goAccessInsideNilGuard (masked, k, text) || goMapWriteDominatingNilGuard (masked, start, k, text, maskedFunc, declOf));
     let keyOut: string | undefined = undefined;
     if (/^"[^"\\\n]*"$/.test (key) || (/^\w+$/.test (key) && (typeAt (key, k) === 'string'))) {
         keyOut = key;
@@ -2049,6 +2050,97 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     const rewritten = (head[1] + name + '[' + keyOut + '] = ' + valueOut + suffix).split ('\n');
     lines.splice (k, rewritten.length, ...rewritten);
     masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
+}
+
+// an earlier `if name == nil [|| ...] { ...; continue|return|panic }` in a block that still
+// encloses line k, after the single declaration of name: every path reaching k has name != nil
+function goMapWriteDominatingNilGuard (masked: string[], start: number, k: number, name: string, maskedFunc: string, declOf: (name: string) => any): boolean {
+    const decl = declOf (name);
+    if ((decl === undefined) || (decl.index === undefined) || /\bgoto\b/.test (maskedFunc)) {
+        return false;
+    }
+    const declLine = start + maskedFunc.substring (0, decl.index).split ('\n').length - 1;
+    const n = goAccessEscape (name);
+    const nilTest = new RegExp ('^(?:\\(\\s*)?(?:' + n + ' == nil|IsEqual\\(' + n + ', nil\\))(?:\\s*\\))?$');
+    for (let g = k - 1; g > declLine; g--) {
+        const head = /^\s*if (.*) \{$/.exec (masked[g]);
+        if ((head === null) || !goMapWriteTopLevelParts (head[1], '||').some ((d) => nilTest.test (d.trim ()))) {
+            continue;
+        }
+        // the guard body: balanced, ends with a terminator, closed by a bare `}`
+        let depth = 1;
+        let close = -1;
+        let last = '';
+        for (let j = g + 1; (j < k) && (close < 0); j++) {
+            for (const c of masked[j]) {
+                depth += (c === '{') ? 1 : ((c === '}') ? -1 : 0);
+            }
+            if (depth === 0) {
+                close = j;
+            } else if ((depth === 1) && (masked[j].trim () !== '')) {
+                last = masked[j].trim ();
+            }
+        }
+        if ((close < 0) || (masked[close].trim () !== '}') || !/^(?:continue|return\b.*|panic\(.*\))$/.test (last)) {
+            continue;
+        }
+        // the guard's own block must still enclose line k
+        let level = 0;
+        let encloses = true;
+        for (let j = close + 1; (j < k) && encloses; j++) {
+            for (const c of masked[j]) {
+                level += (c === '{') ? 1 : ((c === '}') ? -1 : 0);
+                if (level < 0) {
+                    encloses = false;
+                    break;
+                }
+            }
+        }
+        if (encloses) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// the `if ... {` header ending on line j, joined when its condition spans lines
+// (a func literal inside it); the line itself when no balanced header starts above
+function goMapWriteIfHeader (masked: string[], j: number): string {
+    let text = masked[j];
+    for (let i = j; (i >= 0) && (i > j - 20); i--) {
+        text = (i === j) ? masked[j] : (masked[i] + '\n' + text);
+        if (/^\s*if /.test (masked[i])) {
+            let depth = 0;
+            const body = text.substring (0, text.lastIndexOf ('{'));
+            for (const c of body) {
+                depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
+                if (depth < 0) {
+                    break;
+                }
+            }
+            if (depth === 0) {
+                return text.replace (/\n\s*/g, ' ');
+            }
+        }
+    }
+    return masked[j];
+}
+
+// the `||` or `&&` operands of a condition at paren depth 0
+function goMapWriteTopLevelParts (condition: string, op: string): string[] {
+    const parts: string[] = [];
+    let depth = 0;
+    let from = 0;
+    for (let i = 0; i < condition.length; i++) {
+        const c = condition[i];
+        depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
+        if ((depth === 0) && condition.startsWith (op, i)) {
+            parts.push (condition.substring (from, i));
+            from = i + 2;
+        }
+    }
+    parts.push (condition.substring (from));
+    return parts;
 }
 
 // `GetValue(m, "lit")` -> `m["lit"]` for a map local whose every write is a Market/SafeMarket
