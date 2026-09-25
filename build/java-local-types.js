@@ -11090,7 +11090,7 @@ function joinListElementType (printer, node) {
     }
 }
 
-// ===== 16. default-valued `Strings` parameters answer their printed List<String> =====
+// ===== 16. default-valued `Strings` / `Dict` parameters answer their printed List<String> / Map =====
 // A split core prints `symbols: Strings = undefined` as `List<String> symbols` (the async
 // body copy too; writes go through toStringListArg), so its counter reads join as String.
 export function installJavaStringListParamTypes (transpiler) {
@@ -11113,7 +11113,7 @@ export function installJavaStringListParamTypes (transpiler) {
         } catch (e) {
             return undefined;
         }
-        return type === 'java.util.List<String>' ? type : undefined;
+        return type === 'java.util.List<String>' || type === 'java.util.Map<String, Object>' ? type : undefined;
     };
     printer._javaStringListParamTypesPatched = true;
 }
