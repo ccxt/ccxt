@@ -847,7 +847,7 @@ public partial class mexc : ccxt.mexc
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
     }
 
-    public override object getCacheIndex(object orderbook, object cache)
+    public override object getCacheIndex(object orderbook, IList<object> cache)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Int64? nonce = this.safeInteger(orderbook, "nonce");
@@ -861,7 +861,7 @@ public partial class mexc : ccxt.mexc
         {
             return -1;
         }
-        for (int i = 0; i < getArrayLength(cache); i++)
+        for (int i = 0; i < (cache?.Count ?? 0); i++)
         {
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
@@ -874,7 +874,7 @@ public partial class mexc : ccxt.mexc
                 return i;
             }
         }
-        return getArrayLength(cache);
+        return cache?.Count ?? 0;
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)

@@ -1145,10 +1145,10 @@ public partial class kraken : ccxt.kraken
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void customHandleDeltas(object bookside, object deltas)
+    public virtual void customHandleDeltas(object bookside, IList<object> deltas)
     {
         // const sortOrder = (key === 'bids') ? true : false;
-        for (int j = 0; j < getArrayLength(deltas); j++)
+        for (int j = 0; j < (deltas?.Count ?? 0); j++)
         {
             IDictionary<string, object> delta = this.safeDict(deltas, j);
             double? price = this.safeNumber(delta, "price");

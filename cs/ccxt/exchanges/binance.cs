@@ -7893,7 +7893,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> EditOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> EditOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7902,7 +7902,7 @@ public partial class binance : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         IList<object> orderSymbols = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -8730,7 +8730,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8739,7 +8739,7 @@ public partial class binance : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         IList<object> orderSymbols = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -15201,7 +15201,7 @@ public partial class binance : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market)
+    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market)
     {
         //
         // fetchSettlementHistory
@@ -15238,9 +15238,9 @@ public partial class binance : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(settlements); i++)
+        for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement(getValue(settlements, i), market));
+            result.Add(this.parseSettlement((settlements != null && i < settlements.Count ? settlements[i] : null), market));
         }
         return result;
     }

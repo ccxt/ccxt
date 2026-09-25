@@ -5650,12 +5650,12 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual object createOrdersRequest(object orders, object parameters = null)
+    public virtual object createOrdersRequest(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> ordersRequests = new List<object>() {};
         List<object> orderSymbols = new List<object>() {};
-        int ordersLength = getArrayLength(orders);
+        int ordersLength = orders?.Count ?? 0;
         if ((ordersLength == 0))
         {
             throw new BadRequest ((this.id + " createOrders() requires at least one order")) ;
@@ -5664,7 +5664,7 @@ public partial class gate : Exchange
         {
             throw new BadRequest ((this.id + " createOrders() accepts a maximum of 10 orders at a time")) ;
         }
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -5703,7 +5703,7 @@ public partial class gate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5712,7 +5712,7 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         object ordersRequests = this.createOrdersRequest(orders, parameters);
-        object firstOrder = getValue(orders, 0);
+        object firstOrder = (orders != null && 0 < orders.Count ? orders[0] : null);
         Dictionary<string, object> market = this.market(getValue(firstOrder, "symbol"));
         List<object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
@@ -9148,7 +9148,7 @@ public partial class gate : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market = null)
+    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market = null)
     {
         //
         // fetchSettlementHistory
@@ -9181,9 +9181,9 @@ public partial class gate : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(settlements); i++)
+        for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement(getValue(settlements, i), market));
+            result.Add(this.parseSettlement((settlements != null && i < settlements.Count ? settlements[i] : null), market));
         }
         return result;
     }

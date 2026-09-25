@@ -213,16 +213,16 @@ public partial class bitstamp : ccxt.bitstamp
         this.handleBidAsks(storedAsks, asks);
     }
 
-    public virtual void handleBidAsks(object bookSide, object bidAsks)
+    public virtual void handleBidAsks(object bookSide, IList<object> bidAsks)
     {
-        for (int i = 0; i < getArrayLength(bidAsks); i++)
+        for (int i = 0; i < (bidAsks?.Count ?? 0); i++)
         {
-            List<object> bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
+            List<object> bidAsk = this.parseOrderBookBidAsk((bidAsks != null && i < bidAsks.Count ? bidAsks[i] : null));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
         }
     }
 
-    public override object getCacheIndex(object orderbook, object deltas)
+    public override object getCacheIndex(object orderbook, IList<object> deltas)
     {
         // we will consider it a fail
         IDictionary<string, object> firstElement = this.safeDict(deltas, 0);
@@ -236,7 +236,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return -1;
         }
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
             IDictionary<string, object> delta = this.safeDict(deltas, i);
             Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");
@@ -245,7 +245,7 @@ public partial class bitstamp : ccxt.bitstamp
                 return add(i, 1);
             }
         }
-        return getArrayLength(deltas);
+        return deltas?.Count ?? 0;
     }
 
     /**
