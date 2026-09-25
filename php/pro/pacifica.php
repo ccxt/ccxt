@@ -1259,7 +1259,7 @@ class pacifica extends \ccxt\async\pacifica {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash = $messageHash . ':' . $symbolResolved;
         }
         $isTestnet = $this->isSandboxModeEnabled;

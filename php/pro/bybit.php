@@ -1349,7 +1349,7 @@ class bybit extends \ccxt\async\bybit {
             $marketType = 'contract';
         }
         if ($market !== null) {
-            $marketType = $market['type'];
+            $marketType = $this->safe_string($market, 'type');
         }
         $marketId = $this->safe_string($trade, 's');
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);

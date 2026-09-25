@@ -2026,7 +2026,7 @@ class gemini extends Exchange {
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddresses() requires a network parameter');
         }
-        $networkId = $this->network_code_to_id($networkCode, $currency['code']);
+        $networkId = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         $request = array(
             'network' => $networkId,
         );

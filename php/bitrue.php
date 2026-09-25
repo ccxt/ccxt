@@ -2930,7 +2930,7 @@ class bitrue extends Exchange {
         );
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
-            $request['chainName'] = $this->network_code_to_id($networkCode, $currency['code']);
+            $request['chainName'] = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         }
         if ($tagWithdrawTag !== null) {
             $request['tag'] = $tagWithdrawTag;
@@ -3406,7 +3406,7 @@ class bitrue extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {

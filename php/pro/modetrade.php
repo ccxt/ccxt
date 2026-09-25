@@ -771,7 +771,7 @@ class modetrade extends \ccxt\async\modetrade {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash .= ':' . $symbolResolved;
         }
         $request = array(
@@ -818,7 +818,7 @@ class modetrade extends \ccxt\async\modetrade {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash .= ':' . $symbolResolved;
         }
         $request = array(

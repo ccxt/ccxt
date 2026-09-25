@@ -1200,7 +1200,7 @@ class extended extends Exchange {
         for ($i = 0; $i < count($histories); $i++) {
             $result[] = $this->parse_funding_history($histories[$i], $market);
         }
-        $symbol = ($market === null) ? null : $market['symbol'];
+        $symbol = ($market === null) ? null : $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 

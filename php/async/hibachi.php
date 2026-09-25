@@ -2360,7 +2360,7 @@ class hibachi extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['contractId'] = $market['numericId'];
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         if ($since !== null) {
             $request['startTime'] = $this->parse_to_int($since / 1000);

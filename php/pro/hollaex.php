@@ -224,7 +224,7 @@ class hollaex extends \ccxt\async\hollaex {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash .= ':' . $market['id'];
         }
         $trades = Async\await($this->watch_private($messageHash, $params));
@@ -319,7 +319,7 @@ class hollaex extends \ccxt\async\hollaex {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $messageHash .= ':' . $market['id'];
         }
         $orders = Async\await($this->watch_private($messageHash, $params));
