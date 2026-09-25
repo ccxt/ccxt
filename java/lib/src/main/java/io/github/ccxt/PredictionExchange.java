@@ -1272,7 +1272,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String outcome, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1292,7 +1292,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String outcome, Object... optionalArgs)
     {
         return this.fetchOHLCV(outcome, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
@@ -1343,7 +1343,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1364,7 +1364,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1378,7 +1378,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<PredictionOrder> cancelOrder(Object id, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> cancelOrder(String id, String outcome, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1396,7 +1396,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> cancelOrder(String id, Object... optionalArgs)
     {
         return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1869,7 +1869,7 @@ public Object describe()
             // when the option is undeclared (it is for every prediction exchange)
             if (Boolean.TRUE.equals(this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false)) || Boolean.TRUE.equals(this.safeBool(this.has, "createMarketBuyOrderWithCost", false)))
             {
-                return (this.createOrder((Object)(outcome), "market", "buy", (Object)(cost), (Object)(1), (Object)(parameters))).join();
+                return (this.createOrder(outcome, "market", "buy", (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createMarketBuyOrderWithCost() is not supported yet")) ;
         }).thenApply(PredictionOrder::new);
@@ -1905,7 +1905,7 @@ public Object describe()
 
             if (Boolean.TRUE.equals(this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false)) || Boolean.TRUE.equals(this.safeBool(this.has, "createMarketSellOrderWithCost", false)))
             {
-                return (this.createOrder((Object)(outcome), "market", "sell", (Object)(cost), (Object)(1), (Object)(parameters))).join();
+                return (this.createOrder(outcome, "market", "sell", (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createMarketSellOrderWithCost() is not supported yet")) ;
         }).thenApply(PredictionOrder::new);
@@ -2854,8 +2854,8 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, St
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.cancelOrder((Object)(id), (Object)(symbol))).join();
-            return (this.createOrder((Object)(symbol), (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            (this.cancelOrder(id, (Object)(symbol))).join();
+            return (this.createOrder(symbol, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2928,7 +2928,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, St
              */
             if ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCost"), false)) || ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), false)) && (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), false))))
             {
-                return (this.createOrder((Object)(symbol), "market", (String) (side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
+                return (this.createOrder(symbol, "market", (String) (side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createMarketOrderWithCost() is not supported yet")) ;
         }).thenApply(PredictionOrder::new);

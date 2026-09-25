@@ -1651,7 +1651,7 @@ func (this *Ndax) ParseBalance(response any) any {
 			account["total"] = this.SafeString(balance, "Amount")
 			account["used"] = this.SafeString(balance, "Hold")
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 	}

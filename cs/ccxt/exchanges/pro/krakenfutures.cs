@@ -1212,8 +1212,9 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(object ticker, string? market = null)
     {
+        object marketVar = market;
         //
         //    {
         //        "time": 1680811086487,
@@ -1263,8 +1264,8 @@ public partial class krakenfutures : ccxt.krakenfutures
         //    }
         //
         string? marketId = this.safeString(ticker, "product_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        market = marketResolved;
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, marketVar);
+        marketVar = marketResolved;
         string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         Int64? timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         string? last = this.safeString(ticker, "last");

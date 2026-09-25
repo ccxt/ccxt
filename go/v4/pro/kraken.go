@@ -1691,7 +1691,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 			}
 			stored.(ccxt.Appender).Append(newOrder)
 			if symbol != nil {
-				ccxt.AddElementToObject(symbols, symbol, true)
+				symbols[*symbol] = true
 			}
 		}
 		var name string = "orders"

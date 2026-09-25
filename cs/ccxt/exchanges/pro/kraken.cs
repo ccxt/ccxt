@@ -112,10 +112,10 @@ public partial class kraken : ccxt.kraken
         });
     }
 
-    public virtual List<object> orderRequestWs(object method, string? symbol, object type, object request, double? amount, double? price = null, object parameters = null)
+    public virtual List<object> orderRequestWs(object method, string? symbol, string? type, object request, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        bool isLimitOrder = ((string)type).EndsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        bool isLimitOrder = type.EndsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if (isLimitOrder)
         {
             if ((price == null))
@@ -124,7 +124,7 @@ public partial class kraken : ccxt.kraken
             }
             ((IDictionary<string,object>)getValue(request, "params"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
         }
-        bool isMarket = (isEqual(type, "market"));
+        bool isMarket = ((type == "market"));
         bool? postOnly = null;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];

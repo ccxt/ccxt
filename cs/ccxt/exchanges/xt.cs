@@ -3121,7 +3121,7 @@ public partial class xt : Exchange
         }
     }
 
-    public async virtual Task<ccxt.Order> CreateSpotOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((side == null))
@@ -3135,8 +3135,8 @@ public partial class xt : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "side", ((string)side).ToUpper() },
-            { "type", ((string)type).ToUpper() },
+            { "side", side.ToUpper() },
+            { "type", type.ToUpper() },
         };
         string? timeInForce = null;
         string? marginMode = null;
@@ -3149,10 +3149,10 @@ public partial class xt : Exchange
             marginOrSpotRequest = "LEVER";
         }
         request["bizType"] = marginOrSpotRequest;
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
             timeInForce = this.safeStringUpper(parameters, "timeInForce", "FOK");
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 string? cost = this.safeString(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
@@ -3188,7 +3188,7 @@ public partial class xt : Exchange
             request["price"] = this.priceToPrecision(symbol, price);
         }
         bool? postOnly = null;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), timeInForce == "GTX", parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly((type == "market"), timeInForce == "GTX", parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         if ((postOnly == true))
@@ -3196,7 +3196,7 @@ public partial class xt : Exchange
             timeInForce = "GTX";
         }
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "postOnly"});
-        if ((isEqual(side, "sell")) || (isEqual(type, "limit")))
+        if (((side == "sell")) || ((type == "limit")))
         {
             request["quantity"] = this.amountToPrecision(symbol, amount);
         }
@@ -3216,7 +3216,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
 
-    public async virtual Task<ccxt.Order> CreateContractOrder(object symbol, object type, object side, object amount, double? price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateContractOrder(object symbol, string? type, string? side, object amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3230,7 +3230,7 @@ public partial class xt : Exchange
         };
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         bool? postOnly = null;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), timeInForce == "GTX", parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly((type == "market"), timeInForce == "GTX", parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         if ((postOnly == true))
@@ -3243,7 +3243,7 @@ public partial class xt : Exchange
             request["timeInForce"] = timeInForce;
         }
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        if (isEqual(side, "buy"))
+        if ((side == "buy"))
         {
             string requestType = "LONG";
             if ((reduceOnly == true))
@@ -3288,7 +3288,7 @@ public partial class xt : Exchange
         }
         if (isTrailing)
         {
-            request["orderSide"] = ((string)side).ToUpper();
+            request["orderSide"] = side.ToUpper();
             request["triggerPriceType"] = this.safeString(parameters, "triggerPriceType", "LATEST_PRICE");
             string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters, "cross");
@@ -3320,10 +3320,10 @@ public partial class xt : Exchange
         {
             request["timeInForce"] = ((timeInForce == null)) ? "GTC" : timeInForce;
             request["triggerPriceType"] = this.safeString(parameters, "triggerPriceType", "LATEST_PRICE");
-            request["orderSide"] = ((string)side).ToUpper();
+            request["orderSide"] = side.ToUpper();
             request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             string entrustType = "STOP";
-            if (isEqual(type, "market"))
+            if ((type == "market"))
             {
                 entrustType = "STOP_MARKET";
             }
@@ -3355,8 +3355,8 @@ public partial class xt : Exchange
             }
         } else
         {
-            request["orderSide"] = ((string)side).ToUpper();
-            request["orderType"] = ((string)type).ToUpper();
+            request["orderSide"] = side.ToUpper();
+            request["orderType"] = type.ToUpper();
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {
                 response = await this.privateLinearPostFutureTradeV1OrderCreate(this.extend(request, parameters));

@@ -344,7 +344,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(object ticker, string? market = null)
     {
         return this.parseTicker(ticker, market);
     }

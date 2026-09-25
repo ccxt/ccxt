@@ -326,8 +326,9 @@ public partial class bitget : ccxt.bitget
         client.resolve(ticker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object message, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(object message, string? market = null)
     {
+        object marketVar = market;
         //
         // spot
         //
@@ -434,12 +435,12 @@ public partial class bitget : ccxt.bitget
         }
         string? utaMarketId = this.safeString(arg, "symbol");
         string? marketId = this.safeString(ticker, "instId", utaMarketId);
-        market = this.safeMarket(marketId, market, null, marketType);
+        marketVar = this.safeMarket(marketId, marketVar, null, marketType);
         string? close = this.safeString2(ticker, "lastPr", "lastPrice");
         string? changeCoefficient = this.safeString2(ticker, "price24hPcnt", "change24h");
         string? changePercentage = Precise.stringMul(changeCoefficient, "100");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", getValue(marketVar, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString2(ticker, "high24h", "highPrice24h") },
@@ -459,7 +460,7 @@ public partial class bitget : ccxt.bitget
             { "baseVolume", this.safeString2(ticker, "baseVolume", "volume24h") },
             { "quoteVolume", this.safeString2(ticker, "quoteVolume", "turnover24h") },
             { "info", ticker },
-        }, market);
+        }, marketVar);
     }
 
     /**

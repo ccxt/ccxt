@@ -104,9 +104,9 @@ public interface PredictionTypedSurface {
     CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs);
     CompletableFuture<MarginLoan> borrowMargin(String code, Object amount, Object... optionalArgs);
     CompletableFuture<MarginLoan> repayMargin(String code, Object amount, Object... optionalArgs);
-    CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs);
-    CompletableFuture<List<OHLCV>> fetchSpotOHLCV(Object symbol, Object... optionalArgs);
-    CompletableFuture<List<OHLCV>> fetchContractOHLCV(Object symbol, Object... optionalArgs);
+    CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs);
+    CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, Object... optionalArgs);
+    CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, Object... optionalArgs);
     CompletableFuture<List<Account>> loadAccounts(Object... optionalArgs);
     CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(Object... optionalArgs);
     CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs);
@@ -134,8 +134,8 @@ public interface PredictionTypedSurface {
     CompletableFuture<ADL> fetchPositionADLRank(String symbol, Object... optionalArgs);
     CompletableFuture<List<Order>> createSpotOrders(Object orders, Object... optionalArgs);
     CompletableFuture<List<Order>> createContractOrders(Object orders, Object... optionalArgs);
-    CompletableFuture<Order> cancelSpotOrder(Object id, Object... optionalArgs);
-    CompletableFuture<Order> cancelContractOrder(Object id, Object... optionalArgs);
+    CompletableFuture<Order> cancelSpotOrder(String id, Object... optionalArgs);
+    CompletableFuture<Order> cancelContractOrder(String id, Object... optionalArgs);
     CompletableFuture<List<Order>> cancelAllSpotOrders(Object... optionalArgs);
     CompletableFuture<List<Order>> cancelAllContractOrders(Object... optionalArgs);
     CompletableFuture<List<Order>> cancelOrdersForSymbols(Object orders, Object... optionalArgs);
@@ -173,12 +173,12 @@ public interface PredictionTypedSurface {
     CompletableFuture<PredictionTicker> fetchTicker(String symbol, Object... optionalArgs);
     CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs);
     CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs);
-    CompletableFuture<PredictionOrder> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs);
+    CompletableFuture<PredictionOrder> createOrder(String symbol, String type, String side, Object amount, Object... optionalArgs);
     CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, String side, Object cost, Object... optionalArgs);
     CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs);
     CompletableFuture<PredictionOrder> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs);
     CompletableFuture<List<PredictionOrder>> createOrders(Object orders, Object... optionalArgs);
-    CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs);
+    CompletableFuture<PredictionOrder> cancelOrder(String id, Object... optionalArgs);
     CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs);
     CompletableFuture<List<PredictionOrder>> cancelAllOrders(Object... optionalArgs);
     CompletableFuture<List<PredictionOrder>> fetchOrders(Object... optionalArgs);
@@ -352,31 +352,31 @@ public interface PredictionTypedSurface {
     default CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount) { return repayMarginAsync(code, amount, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount, String symbol) { return repayMarginAsync(code, amount, symbol, (Map<String, Object>) null); }
 
-    default List<OHLCV> fetchOHLCV(String symbol) { return Helpers.joinUnwrapped(this.fetchOHLCV((Object) (symbol), (Object) ("1m"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
-    default List<OHLCV> fetchOHLCV(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchOHLCV((Object) (symbol), (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
-    default List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchOHLCV((Object) (symbol), (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
-    default List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchOHLCV((Object) (symbol), (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
-    default CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchOHLCV((Object) symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default List<OHLCV> fetchOHLCV(String symbol) { return Helpers.joinUnwrapped(this.fetchOHLCV(symbol, (Object) ("1m"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchOHLCV(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchOHLCV(symbol, (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchOHLCV(symbol, (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchOHLCV(symbol, (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
+    default CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchOHLCV(symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol) { return fetchOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe) { return fetchOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe, Long since) { return fetchOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
 
-    default List<OHLCV> fetchSpotOHLCV(String symbol) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV((Object) (symbol), (Object) ("1m"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
-    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV((Object) (symbol), (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
-    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV((Object) (symbol), (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
-    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV((Object) (symbol), (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
-    default CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchSpotOHLCV((Object) symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default List<OHLCV> fetchSpotOHLCV(String symbol) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV(symbol, (Object) ("1m"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV(symbol, (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV(symbol, (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV(symbol, (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
+    default CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchSpotOHLCV(symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol) { return fetchSpotOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe) { return fetchSpotOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe, Long since) { return fetchSpotOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchSpotOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
 
-    default List<OHLCV> fetchContractOHLCV(String symbol) { return Helpers.joinUnwrapped(this.fetchContractOHLCV((Object) (symbol), (Object) ("1m"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
-    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchContractOHLCV((Object) (symbol), (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
-    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchContractOHLCV((Object) (symbol), (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
-    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchContractOHLCV((Object) (symbol), (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
-    default CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchContractOHLCV((Object) symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default List<OHLCV> fetchContractOHLCV(String symbol) { return Helpers.joinUnwrapped(this.fetchContractOHLCV(symbol, (Object) ("1m"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchContractOHLCV(symbol, (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchContractOHLCV(symbol, (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchContractOHLCV(symbol, (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
+    default CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchContractOHLCV(symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol) { return fetchContractOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe) { return fetchContractOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since) { return fetchContractOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
@@ -480,15 +480,15 @@ public interface PredictionTypedSurface {
     default CompletableFuture<List<Order>> createContractOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createContractOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<Order>> createContractOrdersAsync(List<Map<String, Object>> orders) { return createContractOrdersAsync(orders, (Map<String, Object>) null); }
 
-    default Order cancelSpotOrder(String id) { return Helpers.joinUnwrapped(this.cancelSpotOrder((Object) (id), (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
-    default Order cancelSpotOrder(String id, String symbol) { return Helpers.joinUnwrapped(this.cancelSpotOrder((Object) (id), (Object) (symbol), (Object) ((Map<String, Object>) null))); }
-    default CompletableFuture<Order> cancelSpotOrderAsync(String id, String symbol, Map<String, Object> params) { return this.cancelSpotOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default Order cancelSpotOrder(String id) { return Helpers.joinUnwrapped(this.cancelSpotOrder(id, (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default Order cancelSpotOrder(String id, String symbol) { return Helpers.joinUnwrapped(this.cancelSpotOrder(id, (Object) (symbol), (Object) ((Map<String, Object>) null))); }
+    default CompletableFuture<Order> cancelSpotOrderAsync(String id, String symbol, Map<String, Object> params) { return this.cancelSpotOrder(id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Order> cancelSpotOrderAsync(String id) { return cancelSpotOrderAsync(id, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<Order> cancelSpotOrderAsync(String id, String symbol) { return cancelSpotOrderAsync(id, symbol, (Map<String, Object>) null); }
 
-    default Order cancelContractOrder(String id) { return Helpers.joinUnwrapped(this.cancelContractOrder((Object) (id), (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
-    default Order cancelContractOrder(String id, String symbol) { return Helpers.joinUnwrapped(this.cancelContractOrder((Object) (id), (Object) (symbol), (Object) ((Map<String, Object>) null))); }
-    default CompletableFuture<Order> cancelContractOrderAsync(String id, String symbol, Map<String, Object> params) { return this.cancelContractOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default Order cancelContractOrder(String id) { return Helpers.joinUnwrapped(this.cancelContractOrder(id, (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default Order cancelContractOrder(String id, String symbol) { return Helpers.joinUnwrapped(this.cancelContractOrder(id, (Object) (symbol), (Object) ((Map<String, Object>) null))); }
+    default CompletableFuture<Order> cancelContractOrderAsync(String id, String symbol, Map<String, Object> params) { return this.cancelContractOrder(id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Order> cancelContractOrderAsync(String id) { return cancelContractOrderAsync(id, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<Order> cancelContractOrderAsync(String id, String symbol) { return cancelContractOrderAsync(id, symbol, (Map<String, Object>) null); }
 
@@ -662,9 +662,9 @@ public interface PredictionTypedSurface {
     default CompletableFuture<PredictionOrder> fetchOrderAsync(String id) { return fetchOrderAsync(id, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrder> fetchOrderAsync(String id, String symbol) { return fetchOrderAsync(id, symbol, (Map<String, Object>) null); }
 
-    default PredictionOrder createOrder(String symbol, String type, String side, Double amount) { return Helpers.joinUnwrapped(this.createOrder((Object) (symbol), type, side, (Object) (amount), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
-    default PredictionOrder createOrder(String symbol, String type, String side, Double amount, Double price) { return Helpers.joinUnwrapped(this.createOrder((Object) (symbol), type, side, (Object) (amount), (Object) (price), (Object) ((Map<String, Object>) null))); }
-    default CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) { return this.createOrder((Object) symbol, type, side, (Object) amount, (Object) price, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default PredictionOrder createOrder(String symbol, String type, String side, Double amount) { return Helpers.joinUnwrapped(this.createOrder(symbol, type, side, (Object) (amount), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
+    default PredictionOrder createOrder(String symbol, String type, String side, Double amount, Double price) { return Helpers.joinUnwrapped(this.createOrder(symbol, type, side, (Object) (amount), (Object) (price), (Object) ((Map<String, Object>) null))); }
+    default CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) { return this.createOrder(symbol, type, side, (Object) amount, (Object) price, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount) { return createOrderAsync(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createOrderAsync(symbol, type, side, amount, price, (Map<String, Object>) null); }
 
@@ -684,9 +684,9 @@ public interface PredictionTypedSurface {
     default CompletableFuture<List<PredictionOrder>> createOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<PredictionOrder>> createOrdersAsync(List<Map<String, Object>> orders) { return createOrdersAsync(orders, (Map<String, Object>) null); }
 
-    default PredictionOrder cancelOrder(String id) { return Helpers.joinUnwrapped(this.cancelOrder((Object) (id), (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
-    default PredictionOrder cancelOrder(String id, String symbol) { return Helpers.joinUnwrapped(this.cancelOrder((Object) (id), (Object) (symbol), (Object) ((Map<String, Object>) null))); }
-    default CompletableFuture<PredictionOrder> cancelOrderAsync(String id, String symbol, Map<String, Object> params) { return this.cancelOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
+    default PredictionOrder cancelOrder(String id) { return Helpers.joinUnwrapped(this.cancelOrder(id, (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default PredictionOrder cancelOrder(String id, String symbol) { return Helpers.joinUnwrapped(this.cancelOrder(id, (Object) (symbol), (Object) ((Map<String, Object>) null))); }
+    default CompletableFuture<PredictionOrder> cancelOrderAsync(String id, String symbol, Map<String, Object> params) { return this.cancelOrder(id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrder> cancelOrderAsync(String id) { return cancelOrderAsync(id, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrder> cancelOrderAsync(String id, String symbol) { return cancelOrderAsync(id, symbol, (Map<String, Object>) null); }
 

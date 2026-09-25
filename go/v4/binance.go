@@ -4889,7 +4889,7 @@ func (this *Binance) ParseCurrency(rawCurrency any) any {
 			withdrawPrecision = DerefScalar(this.SafeString(this.Options, "defaultFiatWithdrawPrecision"))
 		}
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"info":      networkItem,
 				"id":        network,
 				"network":   networkCode,
@@ -4908,7 +4908,7 @@ func (this *Binance) ParseCurrency(rawCurrency any) any {
 						"max": nil,
 					},
 				},
-			})
+			}
 		}
 	}
 	var typeVar string
@@ -12791,7 +12791,7 @@ func (this *Binance) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) 
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var networkList []any = SafeListTyped(entry, "networkList")
 		if code != nil {
-			AddElementToObject(withdrawFees, code, map[string]any{})
+			withdrawFees[*code] = map[string]any{}
 		}
 		for j := 0; j < len(networkList); j++ {
 			var networkEntry map[string]any = SafeMapTyped(networkList, j)
@@ -13721,10 +13721,10 @@ func (this *Binance) ParseAccountPositions(account any, optionalArgs ...any) any
 		var crossWalletBalance *string = this.SafeString(entry, "crossWalletBalance")
 		var crossUnPnl *string = this.SafeString(entry, "crossUnPnl")
 		if code != nil {
-			AddElementToObject(balances, code, map[string]any{
+			balances[*code] = map[string]any{
 				"crossMargin":        Precise.StringAdd(crossWalletBalance, crossUnPnl),
 				"crossWalletBalance": crossWalletBalance,
-			})
+			}
 		}
 	}
 	var result []any = []any{}
@@ -18564,7 +18564,7 @@ func (this *Binance) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any
 		var id *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {
-			AddElementToObject(result, code, map[string]any{
+			result[*code] = map[string]any{
 				"info":      entry,
 				"id":        id,
 				"code":      code,
@@ -18591,7 +18591,7 @@ func (this *Binance) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any
 					},
 				},
 				"created": nil,
-			})
+			}
 		}
 	}
 

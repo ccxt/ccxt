@@ -600,7 +600,7 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 		var networkEntry map[string]any = SafeMapTyped(rawNetworks, networkId)
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"id":        networkId,
 				"network":   networkCode,
 				"active":    this.SafeBool(networkEntry, "active"),
@@ -615,7 +615,7 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 					},
 				},
 				"info": networkEntry,
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1218,7 +1218,7 @@ func (this *Hollaex) ParseBalance(response any) any {
 		account["free"] = this.SafeString(response, currencyId+"_available")
 		account["total"] = this.SafeString(response, currencyId+"_balance")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

@@ -604,7 +604,7 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) any {
 			}()
 		}
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"info":      chain,
 				"id":        networkId,
 				"network":   networkCode,
@@ -623,7 +623,7 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) any {
 						"max": nil,
 					},
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -2355,7 +2355,7 @@ func (this *Zebpay) ParseBalance(response any) any {
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

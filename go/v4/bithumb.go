@@ -1302,7 +1302,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 					_, ok := quoteCurrencies[*quoteId]
 					return ok
 				}()) {
-					AddElementToObject(requiredQuotes, quoteId, true)
+					requiredQuotes[*quoteId] = true
 				}
 			}
 			var requiredQuoteIds []string = ObjectKeys(requiredQuotes)

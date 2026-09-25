@@ -2011,7 +2011,7 @@ func (this *Opinion) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomesList, i))
 		var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 		if tokenId != nil {
-			ccxt.AddElementToObject(wantedTokenIds, tokenId, true)
+			wantedTokenIds[*tokenId] = true
 		}
 	}
 	var filtered []any = []any{}

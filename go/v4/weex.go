@@ -1073,7 +1073,7 @@ func (this *Weex) ParseCurrency(rawCurrency any) any {
 		var networkId *string = this.SafeString(chain, "network")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"info":      chain,
 				"id":        networkId,
 				"network":   networkCode,
@@ -1093,7 +1093,7 @@ func (this *Weex) ParseCurrency(rawCurrency any) any {
 						"max": nil,
 					},
 				},
-			})
+			}
 		}
 	}
 	var networkKeys []string = ObjectKeys(networks)
@@ -2576,7 +2576,7 @@ func (this *Weex) ParseBalance(response any) any {
 		account["used"] = this.SafeString2(entry, "frozen", "locked")
 		account["total"] = this.SafeString(entry, "balance")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

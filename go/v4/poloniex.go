@@ -1579,7 +1579,7 @@ func (this *Poloniex) ParseCurrency(currency any) any {
 		var chainId *string = this.SafeString(chain, "blockchain")
 		var networkCode *string = this.NetworkIdToCode(chainId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"info":      chain,
 				"id":        chainId,
 				"name":      nil,
@@ -1599,7 +1599,7 @@ func (this *Poloniex) ParseCurrency(currency any) any {
 						"max": nil,
 					},
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -3094,7 +3094,7 @@ func (this *Poloniex) ParseBalance(response any) any {
 			account["total"] = this.SafeString(balance, "avail")
 			account["used"] = this.SafeString(balance, "im")
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 		return this.SafeBalance(result)

@@ -531,7 +531,7 @@ func (this *Cryptomus) ParseCurrency(rawCurrency any) any {
 		var networkId *string = this.SafeString(networkEntry, "network_code")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"id":      networkId,
 				"network": networkCode,
 				"limits": map[string]any{
@@ -550,7 +550,7 @@ func (this *Cryptomus) ParseCurrency(rawCurrency any) any {
 				"fee":       nil,
 				"precision": nil,
 				"info":      networkEntry,
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -861,7 +861,7 @@ func (this *Cryptomus) ParseBalance(balance any) any {
 		account["free"] = this.SafeString(balanceEntry, "available")
 		account["used"] = this.SafeString(balanceEntry, "held")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

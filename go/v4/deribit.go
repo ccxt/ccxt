@@ -1486,7 +1486,7 @@ func (this *Deribit) ParseBalance(balance any) any {
 		account["used"] = this.SafeString(data, "maintenance_margin")
 		account["total"] = this.SafeString(data, "equity")
 		if currencyCode != nil {
-			AddElementToObject(result, currencyCode, account)
+			result[*currencyCode] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -1942,7 +1942,7 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}()))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
-			AddElementToObject(tickers, symbol, ticker)
+			tickers[*symbol] = ticker
 		}
 	}
 

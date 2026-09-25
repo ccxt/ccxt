@@ -606,7 +606,7 @@ func (this *Coinspot) ParseBalance(response any) any {
 				var account map[string]any = this.Account()
 				account["total"] = this.SafeString(balance, "balance")
 				if code != nil {
-					AddElementToObject(result, code, account)
+					result[*code] = account
 				}
 			}
 		}
@@ -618,7 +618,7 @@ func (this *Coinspot) ParseBalance(response any) any {
 			var account map[string]any = this.Account()
 			account["total"] = this.SafeString(balances, currencyId)
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 	}

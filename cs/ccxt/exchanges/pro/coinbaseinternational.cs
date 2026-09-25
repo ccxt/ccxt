@@ -453,7 +453,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         client.resolve(ticker, add(add(channel, "::"), (ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null)));
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(object ticker, string? market = null)
     {
         //
         //    {

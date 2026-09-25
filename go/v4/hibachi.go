@@ -514,7 +514,7 @@ func (this *Hibachi) ParseBalance(response any) any {
 	account["total"] = this.SafeString(response, "balance")
 	account["free"] = this.SafeString(response, "maximalWithdraw")
 	if code != nil {
-		AddElementToObject(result, code, account)
+		result[*code] = account
 	}
 	return this.SafeBalance(result)
 }

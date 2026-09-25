@@ -3218,7 +3218,7 @@ func (this *Bullish) ParseBalance(response any) any {
 		account["total"] = this.SafeString(balance, "availableQuantity")
 		account["used"] = this.SafeString(balance, "lockedQuantity")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

@@ -3212,7 +3212,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -3237,12 +3237,12 @@ public partial class aster : Exchange
          * @returns {object} request to be sent to the exchange
          */
         Dictionary<string, object> market = this.market(symbol);
-        string initialUppercaseType = ((string)type).ToUpper();
+        string initialUppercaseType = type.ToUpper();
         bool isMarketOrder = initialUppercaseType == "MARKET";
         bool isLimitOrder = initialUppercaseType == "LIMIT";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "side", ((string)side).ToUpper() },
+            { "side", side.ToUpper() },
         };
         string? clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
         if ((clientOrderId != null))

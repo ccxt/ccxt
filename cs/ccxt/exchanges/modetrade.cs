@@ -1869,7 +1869,7 @@ public partial class modetrade : Exchange
         return this.safeStringLower(types, type, type);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((side == null))
@@ -1894,13 +1894,13 @@ public partial class modetrade : Exchange
          * @returns {object} request to be sent to the exchange
          */
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        string orderType = ((string)type).ToUpper();
+        string orderType = type.ToUpper();
         Dictionary<string, object> market = this.market(symbol);
         if ((side == null))
         {
             throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
-        string orderSide = ((string)side).ToUpper();
+        string orderSide = side.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", orderSide },

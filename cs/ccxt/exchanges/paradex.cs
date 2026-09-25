@@ -2048,7 +2048,7 @@ public partial class paradex : Exchange
         return Precise.stringMul(num, "100000000");
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2061,8 +2061,8 @@ public partial class paradex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        string orderType = ((string)type).ToUpper();
-        string orderSide = ((string)side).ToUpper();
+        string orderType = type.ToUpper();
+        string orderSide = side.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", orderSide },

@@ -135,7 +135,7 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 		account["used"] = this.SafeString(usedBalance, currencyId)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
-			ccxt.AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	this.Balance = this.SafeBalance(result)

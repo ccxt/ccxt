@@ -647,7 +647,7 @@ func (this *Coinone) ParseBalance(response any) any {
 		account["free"] = this.SafeString(balance, "avail")
 		account["total"] = this.SafeString(balance, "balance")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

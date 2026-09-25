@@ -737,7 +737,7 @@ func (this *Coinbaseexchange) ParseCurrency(rawCurrency any) any {
 		var networkId *string = this.SafeString(network, "id")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"id":        networkId,
 				"name":      this.SafeString(network, "name"),
 				"network":   networkCode,
@@ -754,7 +754,7 @@ func (this *Coinbaseexchange) ParseCurrency(rawCurrency any) any {
 				},
 				"contract": this.SafeString(network, "contract_address"),
 				"info":     network,
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1008,7 +1008,7 @@ func (this *Coinbaseexchange) ParseBalance(response any) any {
 		account["used"] = this.SafeString(balance, "hold")
 		account["total"] = this.SafeString(balance, "balance")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

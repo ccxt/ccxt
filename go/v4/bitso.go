@@ -813,7 +813,7 @@ func (this *Bitso) ParseBalance(response any) any {
 		account["used"] = this.SafeString(balance, "locked")
 		account["total"] = this.SafeString(balance, "total")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -2076,14 +2076,14 @@ func (this *Bitso) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) an
 			continue
 		}
 		if code != nil {
-			AddElementToObject(result, code, map[string]any{
+			result[*code] = map[string]any{
 				"deposit":  this.SafeNumber(depositFee, "fee"),
 				"withdraw": nil,
 				"info": map[string]any{
 					"deposit":  depositFee,
 					"withdraw": nil,
 				},
-			})
+			}
 		}
 	}
 	var withdrawalFees any = this.SafeValue(payload, "withdrawal_fees", []any{})
@@ -2244,7 +2244,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (codes == nil) || ((code != nil) && (InOp(codes, code))) {
 			if code != nil {
-				AddElementToObject(result, code, map[string]any{
+				result[*code] = map[string]any{
 					"deposit": map[string]any{
 						"fee":        this.SafeNumber(entry, "fee"),
 						"percentage": (!IsEqual(this.SafeBool(entry, "is_fixed"), true)),
@@ -2255,7 +2255,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 					},
 					"networks": map[string]any{},
 					"info":     entry,
-				})
+				}
 			}
 		}
 	}

@@ -1108,7 +1108,7 @@ public partial class opinion : PredictionExchange
         return ((("0x" + this.remove0xPrefix(getValue(sig, "r"))) + this.remove0xPrefix(getValue(sig, "s"))) + this.intToBase16(getValue(sig, "v")));
     }
 
-    public virtual Dictionary<string, object> opinionOrderRawAmounts(object isMarket, object side, double? amount, double? price, object decimals)
+    public virtual Dictionary<string, object> opinionOrderRawAmounts(object isMarket, string? side, double? amount, double? price, object decimals)
     {
         string decimalsStr = "1";
         for (int i = 0; isLessThan(i, decimals); i++)
@@ -1116,7 +1116,7 @@ public partial class opinion : PredictionExchange
             decimalsStr = (decimalsStr + "0");
         }
         string? amountStr = this.numberToString(amount);
-        if (isTrue(isMarket) && (isEqual(side, "BUY")))
+        if (isTrue(isMarket) && ((side == "BUY")))
         {
             string marketMakerAmountWei = this.decimalToPrecision(Precise.stringMul(amountStr, decimalsStr), TRUNCATE, 0, DECIMAL_PLACES);
             return new Dictionary<string, object>() {
@@ -1135,14 +1135,14 @@ public partial class opinion : PredictionExchange
             throw new InvalidOrder (((this.id + " createOrder() invalid price ") + priceStr)) ;
         }
         string? makerRaw = amountStr;
-        if (isEqual(side, "BUY"))
+        if ((side == "BUY"))
         {
             makerRaw = Precise.stringMul(amountStr, priceStr);
         }
         string makerAmountWei = this.decimalToPrecision(Precise.stringMul(makerRaw, decimalsStr), TRUNCATE, 0, DECIMAL_PLACES);
         string? makerAmount = null;
         string? takerAmount = null;
-        if (isEqual(side, "BUY"))
+        if ((side == "BUY"))
         {
             string? k = Precise.stringDiv(makerAmountWei, priceNum, 0);
             makerAmount = Precise.stringMul(k, priceNum);

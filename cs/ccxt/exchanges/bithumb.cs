@@ -1858,7 +1858,7 @@ public partial class bithumb : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -1879,10 +1879,10 @@ public partial class bithumb : Exchange
             { "market", this.getGen2MarketId(market) },
         };
         string? sideRequest = null;
-        if (isEqual(side, "buy"))
+        if ((side == "buy"))
         {
             sideRequest = "bid";
-        } else if (isEqual(side, "sell"))
+        } else if ((side == "sell"))
         {
             sideRequest = "ask";
         } else
@@ -1899,7 +1899,7 @@ public partial class bithumb : Exchange
             parameters = this.omit(parameters, "timeInForce");
         }
         bool? postOnly = false;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly((type == "market"), false, parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         if ((postOnly == true) || (timeInForce == "PO"))
@@ -1913,7 +1913,7 @@ public partial class bithumb : Exchange
         {
             request["time_in_force"] = "ioc";
         }
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             request["price"] = this.priceToPrecision(symbol, price);
             request["volume"] = this.amountToPrecision(symbol, amount);
@@ -1921,7 +1921,7 @@ public partial class bithumb : Exchange
         } else
         {
             string? typeRequest = null;
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 typeRequest = "price";
                 // for market buy it requires the amount of quote currency to spend

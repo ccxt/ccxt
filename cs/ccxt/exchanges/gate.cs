@@ -5750,7 +5750,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -5777,7 +5777,7 @@ public partial class gate : Exchange
         object reduceOnly = this.safeValue(parameters, "reduceOnly");
         string? exchangeSpecificTimeInForce = this.safeStringLowerN(parameters, new List<object>() {"timeInForce", "tif", "time_in_force"});
         bool? postOnly = null;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), exchangeSpecificTimeInForce == "poc", parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly((type == "market"), exchangeSpecificTimeInForce == "poc", parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         string? timeInForce = this.handleTimeInForce(parameters);
@@ -5789,8 +5789,8 @@ public partial class gate : Exchange
         // this is because the other params will get extended into the request
         string? clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly", "clientOrderId"});
-        bool isLimitOrder = (isEqual(type, "limit"));
-        bool isMarketOrder = (isEqual(type, "market"));
+        bool isLimitOrder = ((type == "limit"));
+        bool isMarketOrder = ((type == "market"));
         if (isLimitOrder && (price == null))
         {
             throw new ArgumentsRequired ((((this.id + " createOrder () requires a price argument for ") + (type)) + " orders")) ;
@@ -5824,7 +5824,7 @@ public partial class gate : Exchange
             {
                 string? amountToPrecision = this.amountToPrecision(symbol, amount);
                 string? signedAmount = amountToPrecision;
-                if (isEqual(side, "sell"))
+                if ((side == "sell"))
                 {
                     signedAmount = Precise.stringNeg(amountToPrecision);
                 }
@@ -5874,7 +5874,7 @@ public partial class gate : Exchange
                     { "account", marginMode },
                     { "side", side },
                 };
-                if (isMarketOrder && (isEqual(side, "buy")))
+                if (isMarketOrder && ((side == "buy")))
                 {
                     string? quoteAmount = null;
                     bool? createMarketBuyOrderRequiresPrice = true;
@@ -5957,7 +5957,7 @@ public partial class gate : Exchange
                     } },
                     { "settle", (market.ContainsKey("settleId") ? market["settleId"] : null) },
                 };
-                if (isEqual(type, "market"))
+                if ((type == "market"))
                 {
                     ((IDictionary<string,object>)GetValue(request, "initial"))["price"] = "0";
                 } else
@@ -5972,11 +5972,11 @@ public partial class gate : Exchange
                     {
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
-                        rule = (isEqual(side, "buy")) ? 1 : 2;
+                        rule = ((side == "buy")) ? 1 : 2;
                         triggerOrderPrice = this.priceToPrecision(symbol, stopLossPrice);
                     } else if (isTakeProfitOrder)
                     {
-                        rule = (isEqual(side, "buy")) ? 2 : 1;
+                        rule = ((side == "buy")) ? 2 : 1;
                         triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     }
                     Int64? priceType = this.safeInteger(parameters, "price_type", 0);
@@ -6036,11 +6036,11 @@ public partial class gate : Exchange
                     {
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
-                        rule = (isEqual(side, "buy")) ? ">=" : "<=";
+                        rule = ((side == "buy")) ? ">=" : "<=";
                         triggerOrderPrice = this.priceToPrecision(symbol, stopLossPrice);
                     } else if (isTakeProfitOrder)
                     {
-                        rule = (isEqual(side, "buy")) ? "<=" : ">=";
+                        rule = ((side == "buy")) ? "<=" : ">=";
                         triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     }
                     request["trigger"] = new Dictionary<string, object>() {
@@ -6088,7 +6088,7 @@ public partial class gate : Exchange
         return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -6105,7 +6105,7 @@ public partial class gate : Exchange
         {
             account = "unified";
         }
-        bool isLimitOrder = (isEqual(type, "limit"));
+        bool isLimitOrder = ((type == "limit"));
         if (account == "spot")
         {
             if (!isLimitOrder)
@@ -6125,7 +6125,7 @@ public partial class gate : Exchange
                 request["amount"] = this.amountToPrecision(symbol, amount);
             } else
             {
-                if (isEqual(side, "sell"))
+                if ((side == "sell"))
                 {
                     request["size"] = this.parseToNumeric(Precise.stringNeg(this.amountToPrecision(symbol, amount)));
                 } else

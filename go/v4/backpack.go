@@ -720,7 +720,7 @@ func (this *Backpack) ParseCurrency(rawCurrency any) any {
 		var networkIdLowerCase *string = this.SafeStringLower(network, "blockchain")
 		var networkCode *string = this.NetworkIdToCode(networkIdLowerCase, code)
 		if networkCode != nil {
-			AddElementToObject(parsedNetworks, networkCode, map[string]any{
+			parsedNetworks[*networkCode] = map[string]any{
 				"id":      networkId,
 				"network": networkCode,
 				"limits": map[string]any{
@@ -739,7 +739,7 @@ func (this *Backpack) ParseCurrency(rawCurrency any) any {
 				"fee":       this.SafeNumber(network, "withdrawalFee"),
 				"precision": nil,
 				"info":      network,
-			})
+			}
 		}
 	}
 	var active any = nil
@@ -1809,7 +1809,7 @@ func (this *Backpack) ParseBalance(response any) any {
 		account["free"] = this.SafeString(balance, "available")
 		account["used"] = used
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

@@ -1128,7 +1128,7 @@ func (this *Phemex) HandleMyTrades(client any, message []any) {
 			}()
 		}
 		if symbol != nil {
-			ccxt.AddElementToObject(marketIds, symbol, true)
+			marketIds[*symbol] = true
 		}
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)

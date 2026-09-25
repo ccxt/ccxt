@@ -2237,7 +2237,7 @@ func (this *Coinbaseinternational) ParseBalance(response any) any {
 		account["total"] = this.SafeString(rawBalance, "quantity")
 		account["used"] = this.SafeString(rawBalance, "hold")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

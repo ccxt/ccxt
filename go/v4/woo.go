@@ -1593,7 +1593,7 @@ func (this *Woo) ParseCurrency(rawCurrency any) any {
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var specialNetworkId *string = this.SafeString(tokenEntry, "token")
 		if networkCode != nil {
-			AddElementToObject(resultingNetworks, networkCode, map[string]any{
+			resultingNetworks[*networkCode] = map[string]any{
 				"id":                networkId,
 				"currencyNetworkId": specialNetworkId,
 				"network":           networkCode,
@@ -1616,7 +1616,7 @@ func (this *Woo) ParseCurrency(rawCurrency any) any {
 					"network": networkEntry,
 					"token":   tokenEntry,
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -3423,7 +3423,7 @@ func (this *Woo) ParseBalance(response any) any {
 		account["total"] = this.SafeString(balance, "holding")
 		account["free"] = this.SafeString(balance, "availableBalance")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -5656,7 +5656,7 @@ func (this *Woo) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) an
 		var id *string = this.SafeString(entry, "token")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {
-			AddElementToObject(result, code, map[string]any{
+			result[*code] = map[string]any{
 				"info":      entry,
 				"id":        id,
 				"code":      code,
@@ -5683,7 +5683,7 @@ func (this *Woo) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) an
 					},
 				},
 				"created": this.SafeTimestamp(entry, "createdTime"),
-			})
+			}
 		}
 	}
 

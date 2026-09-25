@@ -2204,7 +2204,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
-			ccxt.AddElementToObject(marketSymbols, symbol, true)
+			marketSymbols[*symbol] = true
 		}
 	}
 	var keys []string = ccxt.ObjectKeys(marketSymbols)

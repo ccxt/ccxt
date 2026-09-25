@@ -2816,7 +2816,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 		var equity *string = this.SafeString(account, "equity")
 		var positionsValue *string = this.SafeString(account, "position_market_value")
 		cashAccount["total"] = Precise.StringSub(equity, positionsValue) // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
-		AddElementToObject(result, code, cashAccount)
+		result[*code] = cashAccount
 	}
 	for i := 0; i < len(positions); i++ {
 		var position map[string]any = SafeMapTyped(positions, i)

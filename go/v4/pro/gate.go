@@ -1651,7 +1651,7 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 		cachedTrades.(ccxt.Appender).Append(trade)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 		if symbol != nil {
-			ccxt.AddElementToObject(marketIds, symbol, true)
+			marketIds[*symbol] = true
 		}
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)

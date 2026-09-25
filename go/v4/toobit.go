@@ -990,7 +990,7 @@ func (this *Toobit) ParseCurrency(rawCurrency any) any {
 		var networkId *string = this.SafeString(rawNetwork, "chainType")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"id":        networkId,
 				"network":   networkCode,
 				"margin":    nil,
@@ -1010,7 +1010,7 @@ func (this *Toobit) ParseCurrency(rawCurrency any) any {
 					},
 				},
 				"info": rawNetwork,
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -2087,7 +2087,7 @@ func (this *Toobit) ParseBalance(response any) any {
 		account["total"] = this.SafeString2(balance, "total", "balance")
 		account["used"] = this.SafeString(balance, "locked")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

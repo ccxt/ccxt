@@ -401,7 +401,7 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.price] "mark" to fetch mark price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object timeframe, Long since2, Long limit, Map<String, Object> parameters2)
     {
         final Long since3 = since2;
         final Map<String, Object> parameters3 = parameters2;
@@ -492,7 +492,7 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.price] "mark" to fetch mark price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, Object... optionalArgs)
     {
         return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
@@ -514,7 +514,7 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(this.extend(parameters, new HashMap<String, Object>() {{
+            return (this.fetchOHLCV(symbol, (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(this.extend(parameters, new HashMap<String, Object>() {{
                 put( "price", "mark" );
             }})))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1050,7 +1050,7 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.trade_currency] the settlement currency for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(String symbol, String type2, String side, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final String type3 = type2;
         final Object price3 = price2;
@@ -1163,7 +1163,7 @@ public class Mudrex extends MudrexApi
      * @param {string} [params.trade_currency] the settlement currency for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1349,7 +1349,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol2, Map<String, Object> parameters)
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
@@ -1382,7 +1382,7 @@ public class Mudrex extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, Object... optionalArgs)
     {
         return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1822,7 +1822,7 @@ public class Mudrex extends MudrexApi
      * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Order> closePosition(Object symbol, String side2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> closePosition(String symbol, String side2, Map<String, Object> parameters2)
     {
         final String side3 = side2;
         final Map<String, Object> parameters3 = parameters2;
@@ -1893,7 +1893,7 @@ public class Mudrex extends MudrexApi
      * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
+    public CompletableFuture<Order> closePosition(String symbol, Object... optionalArgs)
     {
         return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

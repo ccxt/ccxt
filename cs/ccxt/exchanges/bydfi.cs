@@ -1429,10 +1429,11 @@ public partial class bydfi : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
+        string? typeVar = type;
         parameters ??= new Dictionary<string, object>();
-        if ((type == null))
+        if ((typeVar == null))
         {
             throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
@@ -1447,7 +1448,7 @@ public partial class bydfi : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "side", ((string)side).ToUpper() },
+            { "side", side.ToUpper() },
         };
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
         bool isStopLossOrder = ((stopLossPrice != null));
@@ -1475,39 +1476,39 @@ public partial class bydfi : Exchange
                 parameters = this.omit(parameters, new List<object>() {"trailingTriggerPrice"});
             }
         }
-        type = ((string)type).ToUpper();
-        bool isMarketOrder = ((isEqual(type, "MARKET")) || (isEqual(type, "STOP_MARKET")) || (isEqual(type, "TAKE_PROFIT_MARKET")) || (isEqual(type, "TRAILING_STOP_MARKET")));
+        typeVar = typeVar.ToUpper();
+        bool isMarketOrder = ((isEqual(typeVar, "MARKET")) || (isEqual(typeVar, "STOP_MARKET")) || (isEqual(typeVar, "TAKE_PROFIT_MARKET")) || (isEqual(typeVar, "TRAILING_STOP_MARKET")));
         if (isMarketOrder)
         {
-            if (isEqual(type, "MARKET"))
+            if (isEqual(typeVar, "MARKET"))
             {
                 if (isStopLossOrder)
                 {
-                    type = "STOP_MARKET";
+                    typeVar = "STOP_MARKET";
                 } else if (isTakeProfitOrder)
                 {
-                    type = "TAKE_PROFIT_MARKET";
+                    typeVar = "TAKE_PROFIT_MARKET";
                 } else if (isTailingStopOrder)
                 {
-                    type = "TRAILING_STOP_MARKET";
+                    typeVar = "TRAILING_STOP_MARKET";
                 }
             }
         } else
         {
             if ((price == null))
             {
-                throw new ArgumentsRequired ((((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
+                throw new ArgumentsRequired ((((this.id + " createOrder() requires a price argument for a ") + (typeVar)) + " order")) ;
             }
             request["price"] = this.priceToPrecision(symbol, price);
             if (isStopLossOrder)
             {
-                type = "STOP";
+                typeVar = "STOP";
             } else if (isTakeProfitOrder)
             {
-                type = "TAKE_PROFIT";
+                typeVar = "TAKE_PROFIT";
             }
         }
-        request["type"] = type;
+        request["type"] = typeVar;
         bool? hedged = false;
         IList<object> hedgedparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "hedged", hedged);
         hedged = (bool?)hedgedparametersVariable[0];
@@ -1516,10 +1517,10 @@ public partial class bydfi : Exchange
         if ((hedged == true))
         {
             parameters = this.omit(parameters, "reduceOnly");
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 request["positionSide"] = ((reduceOnly == true)) ? "SHORT" : "LONG";
-            } else if (isEqual(side, "sell"))
+            } else if ((side == "sell"))
             {
                 request["positionSide"] = ((reduceOnly == true)) ? "LONG" : "SHORT";
             }
@@ -1529,7 +1530,7 @@ public partial class bydfi : Exchange
         {
             parameters = this.omit(parameters, "closePosition");
             request["quantity"] = this.amountToPrecision(symbol, amount);
-        } else if ((!isEqual(type, "STOP_MARKET")) && (!isEqual(type, "TAKE_PROFIT_MARKET")))
+        } else if ((!isEqual(typeVar, "STOP_MARKET")) && (!isEqual(typeVar, "TAKE_PROFIT_MARKET")))
         {
             throw new NotSupported ((this.id + " createOrder() closePosition is only supported for stopLoss and takeProfit market orders")) ;
         }

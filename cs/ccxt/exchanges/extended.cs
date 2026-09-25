@@ -2945,7 +2945,7 @@ public partial class extended : Exchange
         return settlement;
     }
 
-    public async virtual Task<Dictionary<string, object>> CreateExtendedOrderRequest(string? symbol, object type, object side, double amount, double? price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateExtendedOrderRequest(string? symbol, string? type, string? side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2958,8 +2958,8 @@ public partial class extended : Exchange
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        string uppercaseType = ((string)type).ToUpper();
-        string uppercaseSide = ((string)side).ToUpper();
+        string uppercaseType = type.ToUpper();
+        string uppercaseSide = side.ToUpper();
         if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && uppercaseType != "LIMIT")
         {
             throw new BadRequest ((this.id + " createOrder() supports limit orders for spot markets only")) ;

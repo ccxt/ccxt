@@ -1291,7 +1291,7 @@ func (this *Coinex) ParseCurrency(coin any) any {
 			"info": chain,
 		}
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, network)
+			networks[*networkCode] = network
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -2338,7 +2338,7 @@ func (this *Coinex) fetchMarginBalanceBody(ch chan any, optionalArgs ...any) any
 		var baseInterest *string = this.SafeString(interest, "base_ccy")
 		baseAccount["debt"] = Precise.StringAdd(baseDebt, baseInterest)
 		if baseCurrencyCode != nil {
-			AddElementToObject(result, baseCurrencyCode, baseAccount)
+			result[*baseCurrencyCode] = baseAccount
 		}
 	}
 
@@ -2387,7 +2387,7 @@ func (this *Coinex) fetchSpotBalanceBody(ch chan any, optionalArgs ...any) any {
 		account["free"] = this.SafeString(entry, "available")
 		account["used"] = this.SafeString(entry, "frozen")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 
@@ -2439,7 +2439,7 @@ func (this *Coinex) fetchSwapBalanceBody(ch chan any, optionalArgs ...any) any {
 		account["free"] = this.SafeString(entry, "available")
 		account["used"] = this.SafeString(entry, "frozen")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 
@@ -2488,7 +2488,7 @@ func (this *Coinex) fetchFinancialBalanceBody(ch chan any, optionalArgs ...any) 
 		account["free"] = this.SafeString(entry, "available")
 		account["used"] = this.SafeString(entry, "frozen")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 

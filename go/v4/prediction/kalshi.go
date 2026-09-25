@@ -2207,7 +2207,7 @@ func (this *Kalshi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var marketTicker *string = this.SafeString(outcomeInfo, "ticker")
 		if marketTicker != nil {
-			ccxt.AddElementToObject(wantedTickers, marketTicker, true)
+			wantedTickers[*marketTicker] = true
 		}
 	}
 	var result []any = []any{}
