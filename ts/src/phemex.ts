@@ -4780,7 +4780,11 @@ export default class phemex extends Exchange {
             const auth = requestPath + queryString + expiryString + payload;
             privateHeaders['x-phemex-request-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         }
-        url = this.implodeHostname (this.urls['api'][api]) + url;
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        url = this.implodeHostname (baseApiUrl) + url;
         const isPrivatePost = (api === 'private') && (method === 'POST');
         let bodyResolved: Str = body;
         if (isPrivatePost) {

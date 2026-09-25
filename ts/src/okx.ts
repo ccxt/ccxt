@@ -6762,7 +6762,11 @@ export default class okx extends Exchange {
         const isArray = Array.isArray (params);
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        let url = this.implodeHostname (this.urls['api']['rest']) + request;
+        const baseApiUrl = this.safeString (this.urls['api'], 'rest');
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname (baseApiUrl) + request;
         let privateHeaders: NullableDict = undefined;
         let hasJsonBody = false;
         let jsonBody: Str = undefined;

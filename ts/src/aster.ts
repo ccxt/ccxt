@@ -4302,7 +4302,11 @@ export default class aster extends Exchange {
     }
 
     override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api] + '/' + path;
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = baseApiUrl + '/' + path;
         if (api === 'fapiPublic' || api === 'sapiPublic') {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.rawencode (params);

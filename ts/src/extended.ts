@@ -3600,7 +3600,11 @@ export default class extended extends Exchange {
         const endpoint = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const queryPost = (path === 'user/deadmanswitch');
-        let url = this.implodeHostname (this.urls['api']['rest']);
+        const baseApiUrl = this.safeString (this.urls['api'], 'rest');
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname (baseApiUrl);
         if (accessibility === 'private') {
             // this.checkRequiredCredentials ();
             if (this.apiKey === undefined) {
