@@ -1837,9 +1837,7 @@ export default class modetrade extends Exchange {
             response = await this.v1PrivatePutAlgoOrder (this.extend (request, paramsOmitted));
         } else {
             request['symbol'] = market['id'];
-            if (side !== undefined) {
-                request['side'] = side.toUpperCase ();
-            }
+            request['side'] = side.toUpperCase ();
             const orderType = type.toUpperCase ();
             const timeInForce = this.safeStringLower (paramsOmitted, 'timeInForce');
             const isMarket = orderType === 'MARKET';

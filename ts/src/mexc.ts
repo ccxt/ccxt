@@ -2533,7 +2533,7 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSwapOrder (market: any, type: any, side: Str, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}): Promise<Order> {
+    async createSwapOrder (market: any, type: any, side: OrderSide, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

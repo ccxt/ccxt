@@ -907,7 +907,7 @@ export default class lighter extends Exchange {
         return this.safeInteger (response, 'nonce');
     }
 
-    async signAndCreateOrder (method: string, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<any[]> {
+    async signAndCreateOrder (method: string, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Promise<any[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

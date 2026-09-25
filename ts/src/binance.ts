@@ -5787,13 +5787,7 @@ export default class binance extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    editSpotOrderRequest (id: string, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a type argument');
-        }
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a side argument');
-        }
+    editSpotOrderRequest (id: string, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         /**
          * @method
          * @ignore
@@ -5811,9 +5805,6 @@ export default class binance extends Exchange {
          */
         const market = this.market (symbol);
         const clientOrderId = this.safeStringN (params, [ 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ]);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' editSpotOrderRequest() requires a side argument');
-        }
         const request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),

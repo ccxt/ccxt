@@ -2250,17 +2250,8 @@ export default class weex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a type argument');
-        }
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a side argument');
-        }
+    createSpotOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createSpotOrderRequest() requires a side argument');
-        }
         const request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
@@ -2337,17 +2328,8 @@ export default class weex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createContractOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}) {
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a type argument');
-        }
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a side argument');
-        }
+    createContractOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}) {
         const market = this.market (symbol);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createContractOrderRequest() requires a side argument');
-        }
         const request: Dict = {
             'symbol': this.toSandboxMarketId (market),
             'side': side.toUpperCase (),

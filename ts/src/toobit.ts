@@ -1799,14 +1799,8 @@ export default class toobit extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): [ Dict, Dict ] {
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a type argument');
-        }
+    createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): [ Dict, Dict ] {
         const market = this.market (symbol);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
         const id = market['id'];
         const request: Dict = {
             'symbol': id,
@@ -1833,13 +1827,7 @@ export default class toobit extends Exchange {
         return [ request, paramsPostOnly ];
     }
 
-    createContractOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): [ Dict, Dict ] {
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a type argument');
-        }
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a side argument');
-        }
+    createContractOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): [ Dict, Dict ] {
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],

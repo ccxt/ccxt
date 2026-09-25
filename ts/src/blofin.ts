@@ -1639,7 +1639,7 @@ export default class blofin extends Exchange {
         return order;
     }
 
-    createTpslOrderRequest (symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
+    createTpslOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         const hedged = this.safeBool (params, 'hedged', false);
         let positionSide = 'net';

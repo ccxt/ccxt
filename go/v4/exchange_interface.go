@@ -21,7 +21,7 @@ type IPredictionDispatch interface {
 // each per-method assertion succeeds because it requires only that one method. Regular venues have
 // all of them, so their (regular-only) base dispatch sites satisfy the assertions too.
 type IEditOrder interface {
-	EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any
+	EditOrderAsync(id any, symbol any, typeVar string, side string, optionalArgs ...any) <-chan any
 }
 type IEditOrderWithClientOrderId interface {
 	EditOrderWithClientOrderIdAsync(clientOrderId any, symbol any, typeVar string, side string, optionalArgs ...any) <-chan any
@@ -54,7 +54,7 @@ type ICancelOrderWs interface {
 	CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any
 }
 type ICreateOrderWs interface {
-	CreateOrderWsAsync(symbol any, typeVar string, side any, amount any, optionalArgs ...any) <-chan any
+	CreateOrderWsAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any
 }
 type IFetchOrdersWs interface {
 	FetchOrdersWsAsync(optionalArgs ...any) <-chan any
