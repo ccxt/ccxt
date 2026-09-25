@@ -48,7 +48,8 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'fetchPremiumIndexOHLCV': [ 0 ], 'fetchL2OrderBook': [ 0 ], 'fetchL3OrderBook': [ 0 ], 'fetchLongShortRatio': [ 0 ],
     'createLimitBuyOrder': [ 0 ], 'createLimitSellOrder': [ 0 ], 'createMarketBuyOrder': [ 0 ],
     'createMarketSellOrder': [ 0 ], 'createLimitBuyOrderWs': [ 0 ], 'createLimitSellOrderWs': [ 0 ],
-    'createMarketBuyOrderWs': [ 0 ], 'createMarketSellOrderWs': [ 0 ],
+    'createMarketBuyOrderWs': [ 0 ], 'createMarketSellOrderWs': [ 0 ], 'fetchOrderBook': [ 0 ], 'fetchTicker': [ 0 ],
+    'fetchOHLCV': [ 0 ], 'watchOrderBook': [ 0 ], 'watchTicker': [ 0 ], 'fetchTradingFee': [ 0 ], 'fetchFundingRate': [ 0 ],
 };
 
 ansi.nice;
