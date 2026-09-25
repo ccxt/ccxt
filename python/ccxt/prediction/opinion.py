@@ -725,7 +725,7 @@ class opinion(PredictionExchange, ImplicitAPI):
                 result[symbolKey] = ticker
         return result
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         fetches the order book for a single outcome token
 
@@ -1636,7 +1636,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         orderbook = await future
         return orderbook.limit()
 
-    async def seed_order_book(self, outcome: Str, sym: Str, limit: Int = None):
+    async def seed_order_book(self, outcome: str, sym: Str, limit: Int = None):
         # the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
         snapshot = await self.fetch_order_book(outcome, limit)
         orderbook = self.order_book({})

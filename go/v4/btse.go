@@ -949,12 +949,12 @@ func (this *Btse) ParseMarket(market any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Btse) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Btse) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Btse) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1061,12 +1061,12 @@ func (this *Btse) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
  */
-func (this *Btse) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Btse) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btse) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Btse) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1524,12 +1524,12 @@ func (this *Btse) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Btse) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Btse) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btse) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Btse) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1742,12 +1742,12 @@ func (this *Btse) ParseOpenInterest(interest any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Btse) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Btse) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btse) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Btse) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3906,12 +3906,12 @@ func (this *Btse) ParseLedgerEntryDirection(typeVar *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Btse) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Btse) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btse) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Btse) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

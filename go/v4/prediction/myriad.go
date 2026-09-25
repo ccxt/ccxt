@@ -3011,12 +3011,12 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Myriad) FetchTickerAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Myriad) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Myriad) fetchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Myriad) fetchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3119,12 +3119,12 @@ func (this *Myriad) fetchTickerBody(ch chan any, outcome any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
  */
-func (this *Myriad) FetchTradingFeeAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Myriad) FetchTradingFeeAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Myriad) fetchTradingFeeBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Myriad) fetchTradingFeeBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3316,12 +3316,12 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func (this *Myriad) FetchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Myriad) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Myriad) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Myriad) fetchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -3523,12 +3523,12 @@ func (this *Myriad) ParseWeiOrderBook(response any, outcome any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Myriad) FetchOHLCVAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Myriad) FetchOHLCVAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Myriad) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Myriad) fetchOHLCVBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1d")
@@ -4326,12 +4326,12 @@ func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func (this *Myriad) WatchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Myriad) WatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Myriad) watchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Myriad) watchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -4378,12 +4378,12 @@ func (this *Myriad) watchOrderBookBody(ch chan any, outcome any, optionalArgs ..
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Myriad) SeedOrderBookAsync(outcome any, sym any, optionalArgs ...any) <-chan any {
+func (this *Myriad) SeedOrderBookAsync(outcome string, sym any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.seedOrderBookBody(ch, outcome, sym, optionalArgs...)
 	return ch
 }
-func (this *Myriad) seedOrderBookBody(ch chan any, outcome any, sym any, optionalArgs ...any) any {
+func (this *Myriad) seedOrderBookBody(ch chan any, outcome string, sym any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the order book channel streams deltas only, so seed the live book from the REST snapshot
@@ -4657,12 +4657,12 @@ func (this *Myriad) HandleTrades(client any, data any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Myriad) WatchTickerAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Myriad) WatchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Myriad) watchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Myriad) watchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

@@ -164,12 +164,12 @@ func (this *P2b) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
  * @param {object} [params.method] 'state' (default) or 'price'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *P2b) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *P2b) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *P2b) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *P2b) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -340,12 +340,12 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
  * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *P2b) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *P2b) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *P2b) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *P2b) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)

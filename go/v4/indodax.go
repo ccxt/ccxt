@@ -602,12 +602,12 @@ func (this *Indodax) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Indodax) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Indodax) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Indodax) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Indodax) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -681,12 +681,12 @@ func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Indodax) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Indodax) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Indodax) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Indodax) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -867,12 +867,12 @@ func (this *Indodax) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Indodax) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Indodax) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Indodax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Indodax) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")

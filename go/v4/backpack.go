@@ -1032,12 +1032,12 @@ func (this *Backpack) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Backpack) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Backpack) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Backpack) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1128,12 +1128,12 @@ func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Backpack) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Backpack) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Backpack) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1188,12 +1188,12 @@ func (this *Backpack) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Backpack) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Backpack) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Backpack) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1292,12 +1292,12 @@ func (this *Backpack) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Backpack) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Backpack) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Backpack) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1308,7 +1308,7 @@ func (this *Backpack) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 	}
 	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "spot") == true {
-		panic(BadRequest(Add(this.Id+" fetchFundingRate() symbol does not support market ", symbol)))
+		panic(BadRequest(this.Id + " fetchFundingRate() symbol does not support market " + symbol))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],

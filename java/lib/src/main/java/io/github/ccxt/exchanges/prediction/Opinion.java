@@ -2180,7 +2180,7 @@ public class Opinion extends OpinionApi
             Boolean isNewSubscription = java.util.Objects.equals(this.safeValue(client.subscriptions, subscriptionKey), null);
             if (Boolean.TRUE.equals(isNewSubscription))
             {
-                (this.seedOrderBook((String) (outcome), (String) (sym), limit)).join();
+                (this.seedOrderBook(outcome, (String) (sym), limit)).join();
             }
             Map<String, Object> subscribeMsg = Helpers.newMap(
                 "action", "SUBSCRIBE",

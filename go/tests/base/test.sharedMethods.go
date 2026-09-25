@@ -466,7 +466,7 @@ func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, s
 	if (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), false)) {
 		usedMethod = SafeStringPtr("fetchOrderBook")
 
-		orderbook := (<-exchange.FetchOrderBookAsync(symbol))
+		orderbook := (<-exchange.FetchOrderBookAsync(StringArg(symbol)))
 		PanicOnError(orderbook)
 		var bids any = exchange.SafeList(orderbook, "bids")
 		var asks any = exchange.SafeList(orderbook, "asks")
@@ -485,7 +485,7 @@ func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, s
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), false)) {
 		usedMethod = SafeStringPtr("fetchTicker")
 
-		ticker := (<-exchange.FetchTickerAsync(symbol))
+		ticker := (<-exchange.FetchTickerAsync(StringArg(symbol)))
 		PanicOnError(ticker)
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")

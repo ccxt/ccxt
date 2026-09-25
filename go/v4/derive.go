@@ -1142,12 +1142,12 @@ func (this *Derive) ParseMarket(market any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Derive) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Derive) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Derive) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Derive) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1587,12 +1587,12 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Derive) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Derive) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Derive) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Derive) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

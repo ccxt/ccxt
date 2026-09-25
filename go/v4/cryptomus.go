@@ -656,12 +656,12 @@ func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Cryptomus) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Cryptomus) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

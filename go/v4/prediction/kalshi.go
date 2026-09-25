@@ -1011,12 +1011,12 @@ func (this *Kalshi) ParseMarket(raw any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Kalshi) FetchTickerAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Kalshi) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) fetchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Kalshi) fetchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1477,12 +1477,12 @@ func (this *Kalshi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func (this *Kalshi) FetchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Kalshi) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Kalshi) fetchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1634,12 +1634,12 @@ func (this *Kalshi) SortedOrders(outcome any, timestamp any, bids any, asks any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Kalshi) FetchOHLCVAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Kalshi) FetchOHLCVAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")

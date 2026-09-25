@@ -1200,7 +1200,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             'created': self.parse8601(createdDatetime),
         }
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         fetches the order book for a single prediction outcome token
 
@@ -1271,7 +1271,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             }
             return self.safe_prediction_order_book(noOrderbook, outcomeObj)
 
-    async def fetch_ticker(self, outcome: Str, params: dict = {}) -> PredictionTicker:
+    async def fetch_ticker(self, outcome: str, params: dict = {}) -> PredictionTicker:
         """
         fetches the best bid and ask for a single prediction outcome token
 
@@ -1468,7 +1468,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
                     flattenTrades.append(self.extend(entry, {'partyToParse': makerParty}))
         return self.parse_prediction_trades(flattenTrades, outcomeObj, since, limit)
 
-    async def fetch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
+    async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         fetches the most recent settled matches for a single prediction outcome token
 

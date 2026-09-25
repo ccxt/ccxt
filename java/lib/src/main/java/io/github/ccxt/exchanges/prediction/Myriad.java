@@ -3963,7 +3963,7 @@ public class Myriad extends MyriadApi
             {
                 // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
                 // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
-                (this.seedOrderBook((String) (outcome), (String) (sym), limit)).join();
+                (this.seedOrderBook(outcome, (String) (sym), limit)).join();
             }
             Long requestId = this.requestId((String) (url));
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{

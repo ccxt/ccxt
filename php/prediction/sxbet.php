@@ -1423,11 +1423,11 @@ class sxbet extends Exchange {
         return $this->parse_prediction_order($row, $outcomeObj);
     }
 
-    public function fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_trades(...))($outcome, $since, $limit, $params);
     }
 
-    private function do_fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches the public trade tape of one outcome's market — every bettor's settled and in-flight bets on that market. the venue requires the $trades listing to be scoped, so the $outcome argument is mandatory
          *
@@ -1868,11 +1868,11 @@ class sxbet extends Exchange {
         return $this->safe_dict($response, 'data', array());
     }
 
-    public function fetch_ticker(?string $outcome, $params = array()): PromiseInterface {
+    public function fetch_ticker(string $outcome, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker(...))($outcome, $params);
     }
 
-    private function do_fetch_ticker(?string $outcome, $params = array()) {
+    private function do_fetch_ticker(string $outcome, $params = array()) {
         /**
          * fetches the current best resting odds for a single sx.bet $outcome-> sx.bet is a peer-to-peer odds book (no matched-trade tape or candles), so bid/ask are the best (highest) percentageOdds resting on this outcome's own side and its mirror (1 - best percentageOdds resting on the opposite $outcome)
          *
@@ -2094,11 +2094,11 @@ class sxbet extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_book(...))($outcome, $limit, $params);
     }
 
-    private function do_fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+    private function do_fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the resting maker order book for a single sx.bet $outcome-> bids are maker orders already betting on this $outcome (priced at each maker's own implied probability, sized by their remaining stake); asks mirror the opposite outcome's maker orders (price = 1 - their implied probability, sized by how much a taker could bet against them, per sx.bet's remaining-taker-space formula) — the same YES/NO-style mirrored construction used across this codebase's other binary prediction venues
          *

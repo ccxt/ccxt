@@ -230,12 +230,12 @@ func (this *Hashkey) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {bool} [params.binary] true or false - default false
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hashkey) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Hashkey) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hashkey) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -389,12 +389,12 @@ func (this *Hashkey) HandleTrades(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Hashkey) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Hashkey) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hashkey) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)

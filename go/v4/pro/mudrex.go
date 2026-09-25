@@ -73,12 +73,12 @@ func (this *Mudrex) SetBrokerHeaders() {
 	ccxt.AddElementToObject(wsOptions, "options", innerOptions)
 	this.Options.Store("ws", wsOptions)
 }
-func (this *Mudrex) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mudrex) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

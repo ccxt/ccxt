@@ -1331,12 +1331,12 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Delta) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Delta) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1669,12 +1669,12 @@ func (this *Delta) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Delta) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Delta) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1899,12 +1899,12 @@ func (this *Delta) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {string} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Delta) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Delta) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -3184,12 +3184,12 @@ func (this *Delta) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Delta) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Delta) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

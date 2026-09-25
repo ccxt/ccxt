@@ -1696,12 +1696,12 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Whitebit) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Whitebit) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Whitebit) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2151,12 +2151,12 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Whitebit) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Whitebit) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Whitebit) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2452,12 +2452,12 @@ func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Whitebit) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Whitebit) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Whitebit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -4517,12 +4517,12 @@ func (this *Whitebit) ParseBorrowInterest(info any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Whitebit) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Whitebit) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Whitebit) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

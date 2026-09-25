@@ -1341,12 +1341,12 @@ func (this *Woo) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Woo) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2742,12 +2742,12 @@ func (this *Woo) ParseOrderStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Woo) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2852,12 +2852,12 @@ func (this *Woo) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Woo) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2904,7 +2904,7 @@ func (this *Woo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	var rows []any = SafeListTyped(data, "rows")
 	var first map[string]any = SafeMapTyped(rows, 0)
 	if first == nil {
-		panic(BadSymbol(Add(this.Id+" fetchTicker() could not find ticker data for ", symbol)))
+		panic(BadSymbol(this.Id + " fetchTicker() could not find ticker data for " + symbol))
 	}
 	var ticker map[string]any = this.Extend(map[string]any{
 		"timestamp": this.SafeInteger(response, "timestamp"),
@@ -3008,12 +3008,12 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Woo) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -4591,12 +4591,12 @@ func (this *Woo) fetchFundingIntervalBody(ch chan any, symbol string, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Woo) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

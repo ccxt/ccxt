@@ -1414,12 +1414,12 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-func (this *Predictfun) FetchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Predictfun) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Predictfun) fetchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1505,12 +1505,12 @@ func (this *Predictfun) fetchOrderBookBody(ch chan any, outcome any, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Predictfun) FetchTickerAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Predictfun) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Predictfun) fetchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3449,12 +3449,12 @@ func (this *Predictfun) approveBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func (this *Predictfun) WatchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Predictfun) WatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) watchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Predictfun) watchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -3467,7 +3467,7 @@ func (this *Predictfun) watchOrderBookBody(ch chan any, outcome any, optionalArg
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var marketId *string = this.SafeString(info, "marketId")
 	if marketId == nil {
-		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id+" watchOrderBook() could not resolve the market id of ", outcome)))
+		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBook() could not resolve the market id of " + outcome))
 	}
 	var outcomeHandle any = this.SafeOutcomeSymbol(nil, outcomeObj)
 	// the venue publishes one book per market, quoted on the yes side, and the no side is its

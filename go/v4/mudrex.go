@@ -356,12 +356,12 @@ func (this *Mudrex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {string} [params.price] "mark" to fetch mark price candles
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Mudrex) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -481,12 +481,12 @@ func (this *Mudrex) fetchMarkOHLCVBody(ch chan any, symbol string, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Mudrex) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mudrex) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

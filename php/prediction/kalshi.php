@@ -716,11 +716,11 @@ class kalshi extends Exchange {
         );
     }
 
-    public function fetch_ticker(?string $outcome, $params = array()): PromiseInterface {
+    public function fetch_ticker(string $outcome, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker(...))($outcome, $params);
     }
 
-    private function do_fetch_ticker(?string $outcome, $params = array()) {
+    private function do_fetch_ticker(string $outcome, $params = array()) {
         /**
          * fetches the current market price and bid/ask for a single kalshi $outcome
          *
@@ -1084,11 +1084,11 @@ class kalshi extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_book(...))($outcome, $limit, $params);
     }
 
-    private function do_fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+    private function do_fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the order $book for a single kalshi $outcome
          *
@@ -1175,11 +1175,11 @@ class kalshi extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(?string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ohlcv(...))($outcome, $timeframe, $since, $limit, $params);
     }
 
-    private function do_fetch_ohlcv(?string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches OHLCV candlesticks for a single kalshi $outcome from the candlesticks endpoint
          *
@@ -1339,11 +1339,11 @@ class kalshi extends Exchange {
         );
     }
 
-    public function fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_trades(...))($outcome, $since, $limit, $params);
     }
 
-    private function do_fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches public $trade history for a single kalshi market $ticker
          *

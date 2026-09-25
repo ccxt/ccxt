@@ -1112,12 +1112,12 @@ func (this *Limitless) ParseEvent(event any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Limitless) FetchTickerAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Limitless) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Limitless) fetchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Limitless) fetchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1602,12 +1602,12 @@ func (this *Limitless) fetchTradesBody(ch chan any, outcome any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func (this *Limitless) FetchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Limitless) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Limitless) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Limitless) fetchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1708,12 +1708,12 @@ func (this *Limitless) fetchOrderBookBody(ch chan any, outcome any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Limitless) FetchOHLCVAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Limitless) FetchOHLCVAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Limitless) fetchOHLCVBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1d")

@@ -1229,12 +1229,12 @@ func (this *Digifinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Digifinex) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Digifinex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1436,12 +1436,12 @@ func (this *Digifinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Digifinex) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Digifinex) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1967,12 +1967,12 @@ func (this *Digifinex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Digifinex) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -4256,12 +4256,12 @@ func (this *Digifinex) ParseBorrowRates(info []any, codeKey any) map[string]any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Digifinex) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Digifinex) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4471,12 +4471,12 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Digifinex) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Digifinex) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Digifinex) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

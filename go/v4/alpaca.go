@@ -950,12 +950,12 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
  * @param {string} [params.loc] crypto location, default: us
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Alpaca) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Alpaca) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1038,12 +1038,12 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
  * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Alpaca) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Alpaca) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1206,12 +1206,12 @@ func (this *Alpaca) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {string} [params.loc] crypto location, default: us
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Alpaca) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Alpaca) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Alpaca) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

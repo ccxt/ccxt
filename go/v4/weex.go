@@ -1759,12 +1759,12 @@ func (this *Weex) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Weex) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Weex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1831,12 +1831,12 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
  * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Weex) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Weex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1854,12 +1854,12 @@ func (this *Weex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "spot") == true {
 
-		var retRes154619 []any = ListTyped(PanicOnError((<-this.FetchSpotOHLCVAsync(StringArg(symbol), timeframe, since, limit, params))))
+		var retRes154619 []any = ListTyped(PanicOnError((<-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, params))))
 		ch <- BoxAbsent(retRes154619)
 		return nil
 	} else {
 
-		var retRes154819 []any = ListTyped(PanicOnError((<-this.FetchContractOHLCVAsync(StringArg(symbol), timeframe, since, limit, params))))
+		var retRes154819 []any = ListTyped(PanicOnError((<-this.FetchContractOHLCVAsync(symbol, timeframe, since, limit, params))))
 		ch <- BoxAbsent(retRes154819)
 		return nil
 	}
@@ -4857,12 +4857,12 @@ func (this *Weex) closePositionBody(ch chan any, symbol string, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Weex) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Weex) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

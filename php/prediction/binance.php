@@ -771,11 +771,11 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_ticker(?string $outcome, $params = array()): PromiseInterface {
+    public function fetch_ticker(string $outcome, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker(...))($outcome, $params);
     }
 
-    private function do_fetch_ticker(?string $outcome, $params = array()) {
+    private function do_fetch_ticker(string $outcome, $params = array()) {
         /**
          * fetches the last trade price for a single prediction $outcome
          *
@@ -901,11 +901,11 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_book(...))($outcome, $limit, $params);
     }
 
-    private function do_fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+    private function do_fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the order book for a single prediction $outcome token
          *

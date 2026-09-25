@@ -191,12 +191,12 @@ func (this *Deribit) HandleBalance(client any, message map[string]any) {
  * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Deribit) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Deribit) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Deribit) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Deribit) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -682,12 +682,12 @@ func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
  * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Deribit) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Deribit) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Deribit) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Deribit) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)

@@ -89,12 +89,12 @@ func (this *Bithumb) HandlePong(client any, message any) {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
  */
-func (this *Bithumb) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bithumb) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bithumb) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -475,12 +475,12 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) any {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bithumb) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bithumb) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bithumb) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)

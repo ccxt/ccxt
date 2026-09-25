@@ -1273,12 +1273,12 @@ func (this *Gemini) ParseMarket(response any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Gemini) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Gemini) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Gemini) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1303,12 +1303,12 @@ func (this *Gemini) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")
 	return nil
 }
-func (this *Gemini) FetchTickerV1Async(symbol any, optionalArgs ...any) <-chan any {
+func (this *Gemini) FetchTickerV1Async(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerV1Body(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchTickerV1Body(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Gemini) fetchTickerV1Body(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1339,12 +1339,12 @@ func (this *Gemini) fetchTickerV1Body(ch chan any, symbol any, optionalArgs ...a
 	ch <- this.ParseTicker(response, market)
 	return nil
 }
-func (this *Gemini) FetchTickerV2Async(symbol any, optionalArgs ...any) <-chan any {
+func (this *Gemini) FetchTickerV2Async(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerV2Body(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchTickerV2Body(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Gemini) fetchTickerV2Body(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1376,12 +1376,12 @@ func (this *Gemini) fetchTickerV2Body(ch chan any, symbol any, optionalArgs ...a
 	ch <- this.ParseTicker(response, market)
 	return nil
 }
-func (this *Gemini) FetchTickerV1AndV2Async(symbol any, optionalArgs ...any) <-chan any {
+func (this *Gemini) FetchTickerV1AndV2Async(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerV1AndV2Body(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchTickerV1AndV2Body(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Gemini) fetchTickerV1AndV2Body(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1415,12 +1415,12 @@ func (this *Gemini) fetchTickerV1AndV2Body(ch chan any, symbol any, optionalArgs
  * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Gemini) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Gemini) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Gemini) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2815,12 +2815,12 @@ func (this *Gemini) createDepositAddressBody(ch chan any, code any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Gemini) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Gemini) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Gemini) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")

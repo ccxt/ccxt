@@ -1123,7 +1123,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         fetches the CLOB order book for a single outcome token
 
@@ -2875,7 +2875,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         stored.append(trade)
         client.resolve(stored, 'trades::' + outcome)
 
-    async def watch_order_book(self, outcome: Str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
+    async def watch_order_book(self, outcome: str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         streams live order-book updates for a single Polymarket outcome token
         :param str outcome: unified outcome(e.g. "TRUMP_WINS_2028:YES") or an outcome token id
@@ -2893,7 +2893,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         orderbook = await self.watch(url, messageHash, subscribeMsg, subscribeHash)
         return orderbook.limit()
 
-    async def watch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
+    async def watch_trades(self, outcome: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         streams live fills for a single Polymarket outcome token
         :param str outcome: unified outcome
@@ -2912,7 +2912,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         trades = await self.watch(url, messageHash, subscribeMsg, subscribeHash)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_ticker(self, outcome: Str, params: dict = {}) -> PredictionTicker:
+    async def watch_ticker(self, outcome: str, params: dict = {}) -> PredictionTicker:
         """
         streams a synthetic ticker derived from order-book snapshots and deltas(mid = (bid + ask) / 2)
         :param str outcome: unified outcome

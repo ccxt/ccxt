@@ -1045,12 +1045,12 @@ func (this *PredictionExchange) fetchOutcomeBody(ch chan any, outcomeSymbol any)
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *PredictionExchange) FetchTickerAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *PredictionExchange) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1090,12 +1090,12 @@ func (this *PredictionExchange) fetchTickersBody(ch chan any, optionalArgs ...an
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-func (this *PredictionExchange) FetchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *PredictionExchange) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1116,12 +1116,12 @@ func (this *PredictionExchange) fetchOrderBookBody(ch chan any, outcome any, opt
  * @param {object} [params] extra exchange-specific parameters
  * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *PredictionExchange) FetchOHLCVAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *PredictionExchange) FetchOHLCVAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchOHLCVBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1223,12 +1223,12 @@ func (this *PredictionExchange) cancelOrderBody(ch chan any, id any, optionalArg
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *PredictionExchange) WatchTickerAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *PredictionExchange) WatchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) watchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1245,12 +1245,12 @@ func (this *PredictionExchange) watchTickerBody(ch chan any, outcome any, option
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-func (this *PredictionExchange) WatchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *PredictionExchange) WatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) watchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1485,12 +1485,12 @@ func (this *PredictionExchange) fetchPositionsBody(ch chan any, optionalArgs ...
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
  */
-func (this *PredictionExchange) FetchTradingFeeAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *PredictionExchange) FetchTradingFeeAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchTradingFeeBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchTradingFeeBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

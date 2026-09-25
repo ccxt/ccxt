@@ -915,12 +915,12 @@ func (this *Extended) ParseCurrency(currency any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Extended) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Extended) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Extended) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Extended) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1125,12 +1125,12 @@ func (this *Extended) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Extended) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Extended) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Extended) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Extended) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1591,12 +1591,12 @@ func (this *Extended) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {int} [params.until] end timestamp in ms for the requested period
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Extended) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Extended) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Extended) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Extended) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -2804,12 +2804,12 @@ func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) any
  * @param {string} [params.builderId] builder client id
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Extended) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Extended) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Extended) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Extended) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

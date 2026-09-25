@@ -900,12 +900,12 @@ func (this *Dydx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Dydx) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Dydx) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Dydx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Dydx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -2157,12 +2157,12 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Dydx) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Dydx) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Dydx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Dydx) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

@@ -584,12 +584,12 @@ func (this *Okx) HandleFundingRate(client any, message map[string]any) {
  * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Okx) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Okx) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Okx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Okx) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1612,12 +1612,12 @@ func (this *Okx) HandleOHLCV(client any, message any) {
  * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Okx) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Okx) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Okx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Okx) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	//

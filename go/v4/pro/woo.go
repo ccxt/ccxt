@@ -172,12 +172,12 @@ func (this *Woo) unwatchPublicBody(ch chan any, subHash any, symbol any, topic s
  * @param {string} [params.method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Woo) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -444,12 +444,12 @@ func (this *Woo) HandleDeltas(bookside any, deltas any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Woo) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Woo) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Woo) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

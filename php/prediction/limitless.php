@@ -879,11 +879,11 @@ class limitless extends Exchange {
         ));
     }
 
-    public function fetch_ticker(?string $outcome, $params = array()): PromiseInterface {
+    public function fetch_ticker(string $outcome, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker(...))($outcome, $params);
     }
 
-    private function do_fetch_ticker(?string $outcome, $params = array()) {
+    private function do_fetch_ticker(string $outcome, $params = array()) {
         /**
          * fetches the current price and best bid/ask for a single $outcome token, combining the market detail and order book endpoints
          *
@@ -1210,11 +1210,11 @@ class limitless extends Exchange {
         return $result;
     }
 
-    public function fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_trades(...))($outcome, $since, $limit, $params);
     }
 
-    private function do_fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches recent public trades for a single $outcome token from the market events feed
          *
@@ -1272,11 +1272,11 @@ class limitless extends Exchange {
         return $this->parse_prediction_trades($filtered, $outcomeObj, $since, $limit);
     }
 
-    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_book(...))($outcome, $limit, $params);
     }
 
-    private function do_fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+    private function do_fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the order book for a single $outcome token, converting 6-decimal USDC sizes to whole units, no outcomes are quoted at 1 - price with the sides swapped
          *
@@ -1365,11 +1365,11 @@ class limitless extends Exchange {
         return $this->safe_prediction_order_book($orderbook, $outcomeObj);
     }
 
-    public function fetch_ohlcv(?string $outcome, $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_ohlcv(string $outcome, $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ohlcv(...))($outcome, $timeframe, $since, $limit, $params);
     }
 
-    private function do_fetch_ohlcv(?string $outcome, $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_ohlcv(string $outcome, $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical prices for a single limitless market $outcome and maps them to OHLCV format, uses the `$interval` query parameter and selects the YES/NO $series that matches the requested $outcome
          *

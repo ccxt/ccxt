@@ -738,12 +738,12 @@ func (this *Hibachi) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hibachi) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Hibachi) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hibachi) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1664,12 +1664,12 @@ func (this *Hibachi) SignMessage(message any, privateKey any) any {
  * @param {object} [params] extra parameters to be passed -- see documentation link above
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Hibachi) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Hibachi) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hibachi) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2070,12 +2070,12 @@ func (this *Hibachi) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Hibachi) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Hibachi) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -2942,12 +2942,12 @@ func (this *Hibachi) fetchOpenInterestBody(ch chan any, symbol string, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Hibachi) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Hibachi) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hibachi) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

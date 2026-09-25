@@ -77,7 +77,7 @@ func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 							var tickerSymbol *string = SafeStringPtr(GetValue(ticker, "symbol"))
 							if (tickerSymbol != nil) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
 
-								ohlcv = (<-exchange.FetchOHLCVAsync(tickerSymbol, "1d", nil, 5))
+								ohlcv = (<-exchange.FetchOHLCVAsync(StringArg(tickerSymbol), "1d", nil, 5))
 								PanicOnError(ohlcv)
 							}
 							ValidateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv)

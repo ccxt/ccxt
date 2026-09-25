@@ -3787,12 +3787,12 @@ func (this *Kucoin) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Kucoin) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3991,12 +3991,12 @@ func (this *Kucoin) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Kucoin) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -4028,12 +4028,12 @@ func (this *Kucoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		return nil
 	} else if GetValue(market, "contract") == true {
 
-		var retRes336219 []any = ListTyped(PanicOnError((<-this.FetchContractOHLCVAsync(StringArg(symbol), timeframe, since, limit, paramsRequest))))
+		var retRes336219 []any = ListTyped(PanicOnError((<-this.FetchContractOHLCVAsync(symbol, timeframe, since, limit, paramsRequest))))
 		ch <- BoxAbsent(retRes336219)
 		return nil
 	} else {
 
-		var retRes336419 []any = ListTyped(PanicOnError((<-this.FetchSpotOHLCVAsync(StringArg(symbol), timeframe, since, limit, paramsRequest))))
+		var retRes336419 []any = ListTyped(PanicOnError((<-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, paramsRequest))))
 		ch <- BoxAbsent(retRes336419)
 		return nil
 	}
@@ -4052,12 +4052,12 @@ func (this *Kucoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Kucoin) FetchUTAOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchUTAOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchUTAOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -4688,12 +4688,12 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Kucoin) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -9281,12 +9281,12 @@ func (this *Kucoin) ParseMyUtaTrade(trade any, optionalArgs ...any) any {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Kucoin) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -12372,12 +12372,12 @@ func (this *Kucoin) fetchFundingIntervalBody(ch chan any, symbol string, optiona
  * @param {boolean} [params.uta] set to true for the unified trading account (uta)
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Kucoin) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

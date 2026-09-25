@@ -660,12 +660,12 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) any {
  * @param {object} [params.side] side to fetch trading fee
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Zebpay) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Zebpay) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Zebpay) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -793,12 +793,12 @@ func (this *Zebpay) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Zebpay) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Zebpay) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -854,12 +854,12 @@ func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Zebpay) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Zebpay) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Zebpay) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -958,12 +958,12 @@ func (this *Zebpay) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.priceType] *swap only* LTP (default) or MARK_PRICE
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Zebpay) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Zebpay) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
