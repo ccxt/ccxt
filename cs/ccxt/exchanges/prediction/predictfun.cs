@@ -2106,7 +2106,7 @@ public partial class predictfun : PredictionExchange
         if ((price == null))
         {
             // a priceless limit order already threw above, so this is a market order
-            if (isTrue(warnOnMarketOrderWithoutPrice))
+            if ((warnOnMarketOrderWithoutPrice == true))
             {
                 throw new ArgumentsRequired ((this.id + " createOrder() market orders require a \"price\" argument. To use default values turn \"warnOnMarketOrderWithoutPrice\" off in options")) ;
             }
@@ -2199,7 +2199,7 @@ public partial class predictfun : PredictionExchange
         IList<object> postOnlyOptionparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarket, postOnly, paramsTaker);
         bool postOnlyOption = (bool)postOnlyOptionparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyOptionparamsPostOnlyVariable[1]);
-        if (isTrue(postOnlyOption))
+        if (postOnlyOption)
         {
             data["isPostOnly"] = postOnlyOption;
         }

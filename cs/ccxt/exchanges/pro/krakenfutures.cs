@@ -493,7 +493,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         IDictionary<string, object> paramsVerbose = ((IDictionary<string, object>)verboseparamsVerboseVariable[1]);
         string? name = "open_orders";
         string messageHash = "orders";
-        if (isTrue(verbose))
+        if ((verbose == true))
         {
             name = "open_orders_verbose";
             messageHash = "orders:verbose";

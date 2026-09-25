@@ -729,7 +729,7 @@ public partial class coinbase : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchAccounts", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToAccountList(await this.fetchPaginatedCallCursor("fetchAccounts", null, null, null, paramsPaginate, "next_starting_after", "starting_after", null, 100));
         }
@@ -806,7 +806,7 @@ public partial class coinbase : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchAccounts", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToAccountList(await this.fetchPaginatedCallCursor("fetchAccounts", null, null, null, paramsPaginate, "cursor", "cursor", null, 250));
         }
@@ -1688,7 +1688,7 @@ public partial class coinbase : Exchange
         bool? usePrivate = (bool?)usePrivateparamsUsePrivateVariable[0];
         IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable[1]);
         List<object> spotUnresolvedPromises = new List<object>() {};
-        if (isTrue(usePrivate))
+        if ((usePrivate == true))
         {
             spotUnresolvedPromises.Add(this.v3PrivateGetBrokerageProducts(paramsUsePrivate));
         } else
@@ -2434,7 +2434,7 @@ public partial class coinbase : Exchange
         IList<object> usePrivateparamsUsePrivateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsMarketType, "fetchTickers", "usePrivate", false);
         bool? usePrivate = (bool?)usePrivateparamsUsePrivateVariable[0];
         IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable[1]);
-        if (isTrue(usePrivate))
+        if ((usePrivate == true))
         {
             response = await this.v3PrivateGetBrokerageProducts(this.extend(request, paramsUsePrivate));
         } else
@@ -2564,7 +2564,7 @@ public partial class coinbase : Exchange
         bool? usePrivate = (bool?)usePrivateparamsUsePrivateVariable[0];
         IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable[1]);
         Dictionary<string, object> response = null;
-        if (isTrue(usePrivate))
+        if ((usePrivate == true))
         {
             response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, paramsUsePrivate));
         } else
@@ -2941,7 +2941,7 @@ public partial class coinbase : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, paramsPaginate, "next_starting_after", "starting_after", null, 100));
         }
@@ -3594,7 +3594,7 @@ public partial class coinbase : Exchange
                 if ((cost != null))
                 {
                     total = this.costToPrecision(symbol, cost);
-                } else if (isTrue(createMarketBuyOrderRequiresPrice))
+                } else if ((createMarketBuyOrderRequiresPrice == true))
                 {
                     if ((price == null))
                     {
@@ -4102,7 +4102,7 @@ public partial class coinbase : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limitVar, paramsPaginate, "cursor", "cursor", null, 1000));
         }
@@ -4292,7 +4292,7 @@ public partial class coinbase : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", null, 100));
         }
@@ -4322,7 +4322,7 @@ public partial class coinbase : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", null, 1000));
         }
@@ -4376,7 +4376,7 @@ public partial class coinbase : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitValue,timeframeVar, paramsPaginate, subtract(maxLimit, 1)));
         }
@@ -4411,7 +4411,7 @@ public partial class coinbase : Exchange
         IList<object> usePrivateparamsUsePrivateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "usePrivate", false);
         bool? usePrivate = (bool?)usePrivateparamsUsePrivateVariable[0];
         IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable[1]);
-        if (isTrue(usePrivate))
+        if ((usePrivate == true))
         {
             response = await this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, paramsUsePrivate));
         } else
@@ -4499,7 +4499,7 @@ public partial class coinbase : Exchange
         IList<object> usePrivateparamsUsePrivateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsUntil, "fetchTrades", "usePrivate", false);
         bool? usePrivate = (bool?)usePrivateparamsUsePrivateVariable[0];
         IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable[1]);
-        if (isTrue(usePrivate))
+        if ((usePrivate == true))
         {
             response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, paramsUsePrivate));
         } else
@@ -4549,7 +4549,7 @@ public partial class coinbase : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsPaginate, "cursor", "cursor", null, 250));
         }
@@ -4643,7 +4643,7 @@ public partial class coinbase : Exchange
         IList<object> usePrivateparamsUsePrivateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrderBook", "usePrivate", false);
         bool? usePrivate = (bool?)usePrivateparamsUsePrivateVariable[0];
         IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable[1]);
-        if (isTrue(usePrivate))
+        if ((usePrivate == true))
         {
             response = await this.v3PrivateGetBrokerageProductBook(this.extend(request, paramsUsePrivate));
         } else

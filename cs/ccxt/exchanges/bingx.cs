@@ -1648,7 +1648,7 @@ public partial class bingx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
         }
@@ -2362,7 +2362,7 @@ public partial class bingx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
         }
@@ -2454,7 +2454,7 @@ public partial class bingx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingHistory", symbol, since, limit, "24h", paramsPaginate));
         }
@@ -3040,7 +3040,7 @@ public partial class bingx : Exchange
         IList<object> marketTypemarketTypeQueryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, paramsSubType);
         string? marketType = (string)marketTypemarketTypeQueryVariable[0];
         IDictionary<string, object> marketTypeQuery = ((IDictionary<string, object>)marketTypemarketTypeQueryVariable[1]);
-        if (isTrue(standard))
+        if ((standard == true))
         {
             response = await this.contractV1PrivateGetBalance(marketTypeQuery);
         } else if (((marketType == "funding")) || ((marketType == "fund")))
@@ -3289,7 +3289,7 @@ public partial class bingx : Exchange
         bool? standard = (bool?)standardparamsStandardVariable[0];
         IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable[1]);
         Dictionary<string, object> response = null;
-        if (isTrue(standard))
+        if ((standard == true))
         {
             response = await this.contractV1PrivateGetAllPosition(paramsStandard);
         } else
@@ -5398,7 +5398,7 @@ public partial class bingx : Exchange
         IList<object> standardparamsStandardVariable = (IList<object>)this.handleOptionBoolAndParams(paramsSubType, "fetchCanceledAndClosedOrders", "standard", false);
         bool? standard = (bool?)standardparamsStandardVariable[0];
         IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable[1]);
-        if (isTrue(standard))
+        if ((standard == true))
         {
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, paramsStandard));
         } else if ((type == "spot"))
@@ -5553,7 +5553,7 @@ public partial class bingx : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPaginate, maxLimit));
         }

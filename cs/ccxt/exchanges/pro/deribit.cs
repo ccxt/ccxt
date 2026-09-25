@@ -631,12 +631,12 @@ public partial class deribit : ccxt.deribit
         var group = groupparamsGroupVariable[0];
         IDictionary<string, object> paramsGroup = ((IDictionary<string, object>)groupparamsGroupVariable[1]);
         object descriptor = interval;
-        if (isTrue(useDepthEndpoint))
+        if ((useDepthEndpoint == true))
         {
             descriptor = add(add(add(add(group, "."), depth), "."), interval);
         }
         object paramsResolved = paramsUseDepthEndpoint;
-        if (isTrue(useDepthEndpoint))
+        if ((useDepthEndpoint == true))
         {
             paramsResolved = paramsGroup;
         }

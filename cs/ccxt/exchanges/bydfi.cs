@@ -995,7 +995,7 @@ public partial class bydfi : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
         }
@@ -1833,7 +1833,7 @@ public partial class bydfi : Exchange
         IList<object> triggerOptionparamsTriggerVariable = (IList<object>)this.handleOptionBoolAndParams(paramsWallet, "fetchOpenOrders", "trigger", trigger);
         bool? triggerOption = (bool?)triggerOptionparamsTriggerVariable[0];
         IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)triggerOptionparamsTriggerVariable[1]);
-        if (!isTrue(triggerOption))
+        if (!(triggerOption == true))
         {
             //
             //     {
@@ -1923,7 +1923,7 @@ public partial class bydfi : Exchange
         IList<object> triggerOptionparamsTriggerVariable = (IList<object>)this.handleOptionBoolAndParams(paramsWallet, "fetchOpenOrder", "trigger", trigger);
         bool? triggerOption = (bool?)triggerOptionparamsTriggerVariable[0];
         IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)triggerOptionparamsTriggerVariable[1]);
-        if (!isTrue(triggerOption))
+        if (!(triggerOption == true))
         {
             response = await this.privateGetV1FapiTradeOpenOrder(this.extend(request, paramsTrigger));
         } else

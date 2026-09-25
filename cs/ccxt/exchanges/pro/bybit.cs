@@ -1475,7 +1475,7 @@ public partial class bybit : ccxt.bybit
         IList<object> executionFastparamsExecutionFastVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
         bool? executionFast = (bool?)executionFastparamsExecutionFastVariable[0];
         IDictionary<string, object> paramsExecutionFast = ((IDictionary<string, object>)executionFastparamsExecutionFastVariable[1]);
-        if (isTrue(executionFast))
+        if ((executionFast == true))
         {
             topic = "execution.fast";
         }
@@ -1525,7 +1525,7 @@ public partial class bybit : ccxt.bybit
         IList<object> executionFastparamsExecutionFastVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
         bool? executionFast = (bool?)executionFastparamsExecutionFastVariable[0];
         IDictionary<string, object> paramsExecutionFast = ((IDictionary<string, object>)executionFastparamsExecutionFastVariable[1]);
-        if (isTrue(executionFast))
+        if ((executionFast == true))
         {
             topic = "execution.fast";
         }

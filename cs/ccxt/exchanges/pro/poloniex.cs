@@ -268,7 +268,7 @@ public partial class poloniex : ccxt.poloniex
             if ((cost != null))
             {
                 quoteAmount = this.costToPrecision(symbol, cost);
-            } else if (isTrue(createMarketBuyOrderRequiresPrice))
+            } else if ((createMarketBuyOrderRequiresPrice == true))
             {
                 if ((price == null))
                 {

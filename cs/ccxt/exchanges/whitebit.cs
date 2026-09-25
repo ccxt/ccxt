@@ -2713,7 +2713,7 @@ public partial class whitebit : Exchange
             bool? isMargin = (bool?)isMarginparamsIsMarginVariable[0];
             IDictionary<string, object> paramsIsMargin = ((IDictionary<string, object>)isMarginparamsIsMarginVariable[1]);
             requestParams = paramsIsMargin;
-            if (isTrue(isMargin))
+            if ((isMargin == true))
             {
                 requestType.Add("margin");
             } else
@@ -4819,7 +4819,7 @@ public partial class whitebit : Exchange
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, maxLimit));
         }
