@@ -452,7 +452,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         } else if (java.util.Objects.equals(type, "ORDER_BOOK_UPDATE"))
         {
             List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(orderbook, changes);
+            this.handleBookDeltas(orderbook, changes);
         } else
         {
             throw new NotSupported(((this.id + " watchOrderBook() did not recognize message type ") + type)) ;
@@ -464,7 +464,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         client.resolve(orderbook, channel);
     }
 
-    public void handleDelta(Object orderbook, Object delta)
+    public void handleBookDelta(Object orderbook, Object delta)
     {
         //
         //   [ 'BUY', "0.053595", "0" ]
@@ -485,7 +485,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
     }
 
-    public void handleDeltas(Object orderbook, Object deltas)
+    public void handleBookDeltas(Object orderbook, Object deltas)
     {
         //
         //    [
@@ -495,7 +495,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //
         for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
-            this.handleDelta(orderbook, Helpers.GetValue(deltas, i));
+            this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
         }
     }
 

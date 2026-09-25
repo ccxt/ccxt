@@ -1163,11 +1163,11 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             return;
         }
-        this.handleDelta(storedOrderBook, data);
+        this.handleBookDelta(storedOrderBook, data);
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public void handleDelta(Object orderbook, Object delta)
+    public void handleBookDelta(Object orderbook, Object delta)
     {
         Long timestamp = this.parseToInt(Helpers.divide(this.safeInteger(delta, "T", 0), 1000));
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);

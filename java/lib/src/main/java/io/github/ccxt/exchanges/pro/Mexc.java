@@ -1032,7 +1032,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         try
         {
-            this.handleDelta(storedOrderBook, data);
+            this.handleBookDelta(storedOrderBook, data);
             Long timestamp = this.safeIntegerN(message, new ArrayList<Object>(Arrays.asList("t", "ts", "sendTime")));
             Helpers.addElementToObject(storedOrderBook, "timestamp", timestamp);
             Helpers.addElementToObject(storedOrderBook, "datetime", this.iso8601(timestamp));
@@ -1073,7 +1073,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
     }
 
-    public void handleDelta(Object orderbook, Object delta)
+    public void handleBookDelta(Object orderbook, Object delta)
     {
         Long existingNonce = this.safeInteger(orderbook, "nonce");
         Long deltaNonce = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("r", "version", "fromVersion")));

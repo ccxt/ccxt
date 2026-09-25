@@ -7121,14 +7121,6 @@ public class Xt extends XtApi
             "headers", headersValue
         );
     }
-    //             "page": 1,
-    //             "ps": 3,
-    //             "total": 2,
-    //             "items": [
-    //                 {
-    //                     "profitId": "216306213226230400",
-    //                     "symbol": "btc_usdt",
-    //                     "positionSide": "LONG",
     //                     "origQty": "1",
     //                     "triggerPriceType": "LATEST_PRICE",
     //                     "triggerProfitPrice": null,
