@@ -2769,7 +2769,7 @@ export default class phemex extends Exchange {
             if (qtyType === 'ByQuote') {
                 let cost = this.safeNumber (orderParams, 'cost');
                 orderParams = this.omit (orderParams, 'cost');
-                if (this.safeBool (this.options, 'createOrderByQuoteRequiresPrice') === true) {
+                if (this.safeBool (this.options, 'createOrderByQuoteRequiresPrice', false)) {
                     if (price !== undefined) {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
@@ -2791,7 +2791,7 @@ export default class phemex extends Exchange {
             orderParams = this.omit (orderParams, 'hedged');
             let posSide = this.safeStringLower (orderParams, 'posSide');
             // a hedged reduceOnly order without posSide closes the opposite side
-            const flipSide = (posSide === undefined) && (hedged === true) && (this.safeBool (orderParams, 'reduceOnly') === true);
+            const flipSide = (posSide === undefined) && (hedged === true) && (this.safeBool (orderParams, 'reduceOnly', false));
             const oppositeSide = (side === 'buy') ? 'sell' : 'buy';
             let sideResolved = side;
             if (flipSide) {

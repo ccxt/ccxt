@@ -717,7 +717,7 @@ export default class woo extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const response = await this.v3PublicGetInstruments (params);
@@ -4110,9 +4110,9 @@ export default class woo extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        if ((symbol === undefined) || (this.safeBool (market, 'spot') === true)) {
+        if ((symbol === undefined) || (this.safeBool (market, 'spot', false))) {
             return await this.v3PrivatePostSpotMarginLeverage (this.extend (request, params));
-        } else if (this.safeBool (market, 'swap') === true) {
+        } else if (this.safeBool (market, 'swap', false)) {
             request['symbol'] = this.safeString (market, 'id');
             const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
             request['marginMode'] = this.encodeMarginMode (marginMode);

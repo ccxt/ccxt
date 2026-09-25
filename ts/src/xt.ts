@@ -1062,7 +1062,7 @@ export default class xt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const promisesUnresolved = [
@@ -1414,7 +1414,7 @@ export default class xt extends Exchange {
         if (contract) {
             isActive = this.safeBool (market, 'isOpenApi', false);
         } else {
-            if ((state === 'ONLINE') && (this.safeBool (market, 'tradingEnabled') === true) && (this.safeBool (market, 'openapiEnabled') === true)) {
+            if ((state === 'ONLINE') && (this.safeBool (market, 'tradingEnabled', false)) && (this.safeBool (market, 'openapiEnabled', false))) {
                 isActive = true;
             }
         }

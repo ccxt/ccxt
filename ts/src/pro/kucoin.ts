@@ -491,7 +491,7 @@ export default class kucoin extends kucoinRest {
     async subscribePublicMultipleUta (messageHashes: string[], channel: string, symbols: any[], params: Dict = {}, subscription: NullableDict = undefined) {
         const requestId = this.requestId ().toString ();
         const market = this.getMarketFromSymbols (symbols);
-        const isContract = (this.safeBool (market, 'contract') === true);
+        const isContract = (this.safeBool (market, 'contract', false));
         let urlType: Str = 'spot';
         if (isContract) {
             urlType = 'futures';
@@ -765,7 +765,7 @@ export default class kucoin extends kucoinRest {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false, true, false);
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
-        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract', false));
         let channelName = '/spotMarket/level1:';
         if (isFuturesMethod) {
             channelName = '/contractMarket/tickerV2:';
@@ -1170,7 +1170,7 @@ export default class kucoin extends kucoinRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true);
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
-        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract', false));
         const marketIds = this.marketIds (symbolsNormalized);
         const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes: string[] = [];
@@ -1213,7 +1213,7 @@ export default class kucoin extends kucoinRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true);
         const marketIds = this.marketIds (symbolsNormalized);
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
-        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract', false));
         const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes: string[] = [];
         const subscriptionHashes: string[] = [];
@@ -1524,7 +1524,7 @@ export default class kucoin extends kucoinRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbolsNormalized);
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
-        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract', false));
         const url = await this.negotiate (false, isFuturesMethod);
         let defaultMethod: Str = '/market/level2';
         if (isFuturesMethod) {
@@ -1589,7 +1589,7 @@ export default class kucoin extends kucoinRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true);
         const marketIds = this.marketIds (symbolsNormalized);
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
-        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract', false));
         const url = await this.negotiate (false, isFuturesMethod);
         let defaultMethod: Str = '/market/level2';
         if (isFuturesMethod) {

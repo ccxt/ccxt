@@ -1079,15 +1079,15 @@ export default class luno extends Exchange {
             } else if ((type === 'BID') || (type === 'BUY')) {
                 side = 'buy';
             }
-            if ((side === 'sell') && (this.safeBool (trade, 'is_buy') === true)) {
+            if ((side === 'sell') && (this.safeBool (trade, 'is_buy', false))) {
                 takerOrMaker = 'maker';
-            } else if ((side === 'buy') && (this.safeBool (trade, 'is_buy') !== true)) {
+            } else if ((side === 'buy') && (!this.safeBool (trade, 'is_buy', false))) {
                 takerOrMaker = 'maker';
             } else {
                 takerOrMaker = 'taker';
             }
         } else {
-            side = (this.safeBool (trade, 'is_buy') === true) ? 'buy' : 'sell';
+            side = (this.safeBool (trade, 'is_buy', false)) ? 'buy' : 'sell';
         }
         const feeBaseString = this.safeString (trade, 'fee_base');
         const feeCounterString = this.safeString (trade, 'fee_counter');

@@ -1562,7 +1562,7 @@ export default class digifinex extends Exchange {
         //         0.029927
         //     ]
         //
-        if (this.safeBool (market, 'swap') === true) {
+        if (this.safeBool (market, 'swap', false)) {
             return [
                 this.safeInteger (ohlcv, 0),
                 this.safeNumber (ohlcv, 1), // open

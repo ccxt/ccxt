@@ -893,8 +893,8 @@ func (this *BaseExchange) SafeValueN(obj any, keys any, defaultValue ...any) any
 // bodies are imported free functions, TS declares these three as methods, so the printer emits
 // `any` copies into exchange_generated.go. build/goTranspiler.ts drops that copy (see the
 // SafeBool entry in its base-methods regexAll) and these hand-written twins stand in, with the
-// same contract as SafeString/SafeFloat/SafeInteger: nil means "absent" (no default supplied,
-// or the default is not a bool), a present false is returned as a pointer to false, and the
+// same contract as TS: a stored non-bool falls back to a bool default, so a bool default never
+// yields nil; nil means absent with no bool default; a present false is a pointer to false; the
 // value read back through a caller-facing shim is unchanged because every shim derefs at entry.
 func (this *BaseExchange) SafeBool(obj any, key any, defaultValue ...any) *bool {
 	var defVal any = nil
@@ -904,6 +904,9 @@ func (this *BaseExchange) SafeBool(obj any, key any, defaultValue ...any) *bool 
 	res := this.SafeValue(obj, key, defVal)
 	if v, ok := derefScalar(res).(bool); ok {
 		return &v
+	}
+	if d, ok := defVal.(bool); ok {
+		return &d
 	}
 	return nil
 }
@@ -921,6 +924,9 @@ func (this *BaseExchange) SafeBool2(obj any, key any, key2 any, defaultValue ...
 	if v, ok := derefScalar(res).(bool); ok {
 		return &v
 	}
+	if d, ok := defVal.(bool); ok {
+		return &d
+	}
 	return nil
 }
 
@@ -932,6 +938,9 @@ func (this *BaseExchange) SafeBoolN(obj any, keys any, defaultValue ...any) *boo
 	res := this.SafeValueN(obj, keys, defVal)
 	if v, ok := derefScalar(res).(bool); ok {
 		return &v
+	}
+	if d, ok := defVal.(bool); ok {
+		return &d
 	}
 	return nil
 }

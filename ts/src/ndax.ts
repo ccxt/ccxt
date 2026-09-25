@@ -540,7 +540,7 @@ export default class ndax extends Exchange {
             'type': type,
             'precision': this.safeNumber (rawCurrency, 'TickSize'),
             'info': rawCurrency,
-            'active': (this.safeBool (rawCurrency, 'IsDisabled') !== true),
+            'active': (!this.safeBool (rawCurrency, 'IsDisabled', false)),
             'deposit': this.safeBool (rawCurrency, 'DepositEnabled'),
             'withdraw': this.safeBool (rawCurrency, 'WithdrawEnabled'),
             'fee': undefined,

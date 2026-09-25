@@ -532,7 +532,7 @@ export default class apex extends Exchange {
                             'id': networkId,
                             'network': networkCode,
                             'active': undefined,
-                            'deposit': (this.safeBool (chain, 'depositDisable') !== true),
+                            'deposit': (!this.safeBool (chain, 'depositDisable', false)),
                             'withdraw': this.safeBool (token, 'withdrawEnable'),
                             'fee': this.safeNumber (token, 'minFee'),
                             'precision': this.parseNumber (this.parsePrecision (this.safeString (token, 'decimals'))),

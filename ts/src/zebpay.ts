@@ -399,9 +399,9 @@ export default class zebpay extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'chainId');
             const networkCode = this.networkIdToCode (networkId, code);
-            const depositAllowed = this.safeBool (chain, 'isDepositEnabled') === true;
+            const depositAllowed = this.safeBool (chain, 'isDepositEnabled', false);
             deposit = (depositAllowed) ? depositAllowed : deposit;
-            const withdrawAllowed = this.safeBool (chain, 'isWithdrawEnabled') === true;
+            const withdrawAllowed = this.safeBool (chain, 'isWithdrawEnabled', false);
             withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
             const withdrawFeeString = this.safeString (chain, 'withdrawalFee');
             if (withdrawFeeString !== undefined) {

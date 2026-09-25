@@ -2567,7 +2567,7 @@ export default class aster extends Exchange {
             request['symbol'] = market['id'];
         }
         if (symbol === undefined) {
-            if (this.safeBool (this.options['fetchOpenOrders'], 'warnIfNoSymbol') === true) {
+            if (this.safeBool (this.options['fetchOpenOrders'], 'warnIfNoSymbol', false)) {
                 throw new ExchangeError (this.id + ' fetchOpenOrders(): WARNING - this method without providing "symbol" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnIfNoSymbol"] = false to suppress this warning message.');
             }
         } else {
@@ -2913,7 +2913,7 @@ export default class aster extends Exchange {
         } else {
             requestParams = this.omit (params, omitKeys);
         }
-        if ((this.safeBool (this.options, 'builderFee') === true) && (market['swap'] === true)) {
+        if ((this.safeBool (this.options, 'builderFee', false)) && (market['swap'] === true)) {
             request['builder'] = this.safeString (this.options, 'builder');
             request['feeRate'] = this.safeString (this.options, 'builderRate');
         }

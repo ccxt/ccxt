@@ -595,7 +595,7 @@ export default class kraken extends Exchange {
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const promises: List = [];
         promises.push (this.publicGetAssetPairs (params));
-        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             promises.push (this.loadTimeDifference ());
         }
         const responses = await Promise.all (promises);

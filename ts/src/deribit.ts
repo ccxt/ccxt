@@ -1977,7 +1977,7 @@ export default class deribit extends Exchange {
         const filledString = this.safeString (order, 'filled_amount');
         const amount = this.safeString (order, 'amount');
         let cost = Precise.stringMul (filledString, averageString);
-        if (this.safeBool (marketResolved, 'inverse') === true) {
+        if (this.safeBool (marketResolved, 'inverse', false)) {
             if (averageString !== '0') {
                 cost = Precise.stringDiv (amount, averageString);
             }

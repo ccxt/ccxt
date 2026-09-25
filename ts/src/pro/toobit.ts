@@ -1008,7 +1008,7 @@ export default class toobit extends toobitRest {
     parseMyTrade (trade: Dict, market: Market = undefined): Trade {
         const marketId = this.safeString (trade, 's');
         const ts = this.safeString (trade, 't');
-        const isMaker = (this.safeBool (trade, 'm') === true);
+        const isMaker = (this.safeBool (trade, 'm', false));
         let takerOrMaker: Str = 'taker';
         if (isMaker) {
             takerOrMaker = 'maker';
