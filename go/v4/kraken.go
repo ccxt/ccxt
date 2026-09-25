@@ -1033,7 +1033,7 @@ func (this *Kraken) ParseCurrency(rawCurrency any) any {
 		if id == nil {
 			panic(ExchangeError(this.Id + " parseCurrency() missing id"))
 		}
-		if (id != altName && (id == nil || altName == nil || *id != *altName)) && (StartsWith(id, "X") || StartsWith(id, "Z")) {
+		if (id != altName && (id == nil || altName == nil || *id != *altName)) && ((id != nil && strings.HasPrefix(*id, "X")) || (id != nil && strings.HasPrefix(*id, "Z"))) {
 			code = this.SafeCurrencyCode(altName)
 			// also, add map in commonCurrencies:
 			if (id != nil) && (code != nil) {
@@ -2534,7 +2534,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var id *string = this.SafeStringN(order, []any{"id", "txid", "order_id", "amend_id"})
-	if (id == nil) || (StartsWith(id, "[")) {
+	if (id == nil) || (id != nil && strings.HasPrefix(*id, "[")) {
 		var txid any = this.SafeList(order, "txid")
 		id = this.SafeString(txid, 0)
 	}
@@ -2695,7 +2695,7 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 		var trailingPercentString any = nil
 		if trailingPercent != nil {
 			trailingPercentString = func() any {
-				if EndsWith(trailingPercent, "%") {
+				if trailingPercent != nil && strings.HasSuffix(*trailingPercent, "%") {
 					return ("+" + *trailingPercent)
 				}
 				return ("+" + *trailingPercent + "%")
@@ -2720,7 +2720,7 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 			AddElementToObject(request, "ordertype", "trailing-stop-limit")
 			if trailingLimitPercent != nil {
 				var trailingLimitPercentString any = func() any {
-					if EndsWith(trailingLimitPercent, "%") {
+					if trailingLimitPercent != nil && strings.HasSuffix(*trailingLimitPercent, "%") {
 						return (*offset + *trailingLimitPercent)
 					}
 					return (*offset + *trailingLimitPercent + "%")
@@ -4582,7 +4582,7 @@ func (this *Kraken) Sign(path any, optionalArgs ...any) any {
 		var isTriggerPercent bool = false
 		if price != nil {
 			isTriggerPercent = func() bool {
-				if EndsWith(price, "%") {
+				if price != nil && strings.HasSuffix(*price, "%") {
 					return true
 				}
 				return false

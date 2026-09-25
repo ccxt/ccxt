@@ -12775,7 +12775,7 @@ func (this *Kucoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		}()
 		var marketId *string = this.SafeString(entry, "symbol")
 		// kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
-		var isFundingIndex bool = (marketId != nil) && (StartsWith(marketId, "."))
+		var isFundingIndex bool = (marketId != nil && strings.HasPrefix(*marketId, "."))
 		if !isFundingIndex {
 			rates = append(rates, entry)
 		}

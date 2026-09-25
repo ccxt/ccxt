@@ -3251,7 +3251,7 @@ func (this *Okx) HandleErrorMessage(client any, message any) any {
 						if id == nil {
 							// try to parse it from the stringified json inside msg
 							var msg *string = this.SafeString(message, "msg")
-							if (msg != nil) && ccxt.StartsWith(msg, "Illegal request: {") {
+							if msg != nil && strings.HasPrefix(*msg, "Illegal request: {") {
 								var stringifiedJson string = ccxt.Replace(msg, "Illegal request: ", "")
 								var parsedJson any = this.ParseJson(stringifiedJson)
 								id = this.SafeString(parsedJson, "id")
@@ -3461,7 +3461,7 @@ func (this *Okx) HandleUnsubscription(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	if (channel != nil && *channel == "trades") || (channel != nil && *channel == "trades-all") {
 		this.HandleUnSubscriptionTrades(client, symbol, channel)
-	} else if ccxt.StartsWith(channel, "bbo") || ccxt.StartsWith(channel, "book") {
+	} else if (channel != nil && strings.HasPrefix(*channel, "bbo")) || (channel != nil && strings.HasPrefix(*channel, "book")) {
 		this.HandleUnsubscriptionOrderBook(client, symbol, channel)
 	} else if func() int {
 		if channel == nil {
@@ -3470,7 +3470,7 @@ func (this *Okx) HandleUnsubscription(client any, message map[string]any) {
 		return strings.Index(*channel, "tickers")
 	}() > -1 {
 		this.HandleUnsubscriptionTicker(client, symbol, channel)
-	} else if ccxt.StartsWith(channel, "candle") {
+	} else if channel != nil && strings.HasPrefix(*channel, "candle") {
 		this.HandleUnsubscriptionOHLCV(client, symbol, channel)
 	}
 }
