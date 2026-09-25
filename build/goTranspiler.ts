@@ -2440,6 +2440,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = retagLoopBoundedElementReads (content);
     content = nativeLoopBoundedSliceReads (content);
     content = nativeTupleHolderReads (content);
+    content = nativeAsyncTupleHolderReads (content);
     content = nativeTypedContainerAccess (content);
     content = nativeOrderBookSideReads (content);
     return goGofmtSplicedText (content);
@@ -8304,7 +8305,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -8521,5 +8522,145 @@ function goProvenParamNilSelfTest (): string[] {
     const typed = '\nfunc (this *X) HandleErrors(code any, reason any, url any, method any, headers any, body any, response map[string]any, requestHeaders any, requestBody any) any {\n\tif IsEqual(response, nil) {\n\t\treturn nil\n\t}\n\treturn nil\n}\n';
     ok (goProvenParamNativeNilCompares (typed, 'IsEqual(') === typed, 'non-any param keeps the helper');
     ok (goProvenParamNativeNilCompares (pos, 'IsEqual(') === pos, 'second application is a no-op');
+    return problems;
+}
+
+// `func (this *R) <m>Async` whose goroutine body (same file, same receiver) sends only two-element []any literals:
+// every body-level return follows such a send, the body ends in a return or panic, and panics reach
+// the receiver as a "panic:" string that PanicOnError re-raises (a bare panic("break") sends nothing: rejected).
+function goAsyncPairProducerInFile (content: string, masked: string, receiver: string, method: string): boolean {
+    const body = method.charAt (0).toLowerCase () + method.slice (1) + 'Body';
+    const wrapper = new RegExp ('\\nfunc \\(this \\*' + receiver + '\\) ' + method + 'Async\\([^\\n]*\\) <-chan any \\{\\n\\s*ch := make\\(chan any, 1\\)\\n\\s*go this\\.' + body + '\\(ch(?:, [^\\n]*)?\\)\\n\\s*return ch\\n\\}\\n');
+    if (!wrapper.test (masked) || (masked.split ('func (this *' + receiver + ') ' + method + 'Async(').length !== 2)) {
+        return false;
+    }
+    const start = masked.indexOf ('\nfunc (this *' + receiver + ') ' + body + '(ch chan any');
+    if ((start < 0) || (masked.split (') ' + body + '(').length !== 2)) {
+        return false;
+    }
+    const end = masked.indexOf ('\n}\n', start);
+    const lines = masked.substring (start + 1, end + 2).split ('\n');
+    if (content.substring (start + 1, end + 2).indexOf ('panic("break")') >= 0) {
+        return false;
+    }
+    if ((lines[1].trim () !== 'defer close(ch)') || (lines[2].trim () !== 'defer ReturnPanicError(ch)')) {
+        return false;
+    }
+    const { 'blocks': blocks } = goTextBlocks (lines);
+    const inLiteral = (k: number) => blocks.some ((b: any) => (b.depth > 1) && (b.open < k) && (k <= b.close) && /\bfunc\s*\(/.test (lines[b.open]));
+    const pairSend = /^\s*ch <- \[\]any\{[^{}(),]+(?:\([^(){}]*\))?, [^{}(),]+\}$/;
+    let last = '';
+    for (let k = 3; k < lines.length - 1; k++) {
+        const line = lines[k];
+        if (/\bgo\b|\bch\b(?!\s*<-\s*\[\]any\{)/.test (line) && !pairSend.test (line)) {
+            return false;
+        }
+        if (/\bch\s*<-/.test (line) && (!pairSend.test (line) || inLiteral (k))) {
+            return false;
+        }
+        if (/\breturn\b/.test (line) && !inLiteral (k) && ((line.trim () !== 'return nil') || !pairSend.test (last))) {
+            return false;
+        }
+        if (line.trim () !== '') {
+            last = line;
+        }
+    }
+    return (last.trim () === 'return nil') || /^\s*panic\(/.test (last);
+}
+
+// `C(GetValue(h, 0|1))` -> `C(h[0|1])` for `var h []any = ListTyped(PanicOnError((<-this.<m>Async(...))))`, <m> proven above.
+function nativeAsyncTupleHolderReads (content: string): string {
+    if (content.indexOf ('Async(') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const maskedLines = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== maskedLines.length) {
+        return content;
+    }
+    const masked = maskedLines.join ('\n');
+    const { 'blocks': blocks } = goTextBlocks (maskedLines);
+    const readRx = new RegExp ('\\b((?:ccxt\\.)?(?:' + GO_TUPLE_DEREF_CONSUMERS.join ('|') + '))\\((?:ccxt\\.)?GetValue\\(([A-Za-z_]\\w*), ([01])\\)\\)', 'g');
+    const proven = new Map<string, boolean> ();
+    let changed = false;
+    for (let index = 0; index < lines.length; index++) {
+        if (maskedLines[index].indexOf ('GetValue(') < 0) {
+            continue;
+        }
+        lines[index] = lines[index].replace (readRx, (match: string, consumer: string, holder: string, slot: string, offset: number) => {
+            if ((maskedLines[index].substr (offset, match.length) !== match) || (offset > 0 && /[\w.]$/.test (maskedLines[index].substring (0, offset)) && !/ccxt\.$/.test (maskedLines[index].substring (0, offset)))) {
+                return match;
+            }
+            const fn = blocks.find ((b: any) => (b.depth === 1) && (b.open < index) && (index <= b.close));
+            const recv = (fn === undefined) ? null : /^func \(this \*(\w+)\) /.exec (maskedLines[fn.open]);
+            if (recv === null) {
+                return match;
+            }
+            const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
+            const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], holder);
+            if ((decl === undefined) || (decl.type !== '[]any') || (decl.line === undefined)) {
+                return match;
+            }
+            const init = new RegExp ('^\\s*var ' + holder + ' \\[\\]any = (?:ccxt\\.)?ListTyped\\((?:ccxt\\.)?PanicOnError\\(\\(<-this\\.(\\w+)Async\\([^\\n]*\\)\\)\\)\\)$').exec (decl.line);
+            if (init === null) {
+                return match;
+            }
+            const key = recv[1] + '.' + init[1];
+            if (!proven.has (key)) {
+                proven.set (key, goAsyncPairProducerInFile (content, masked, recv[1], init[1]));
+            }
+            if (!proven.get (key)) {
+                return match;
+            }
+            let declLine = -1;
+            for (let k = fn.open + 1; k < fn.close; k++) {
+                if (new RegExp ('^\\s*var ' + holder + ' \\[\\]any = ').test (maskedLines[k])) {
+                    declLine = k;
+                    continue;
+                }
+                if (goTextWritesName (maskedLines[k], holder) || new RegExp ('\\b' + holder + '\\s*=\\s*append\\(').test (maskedLines[k])) {
+                    return match;
+                }
+            }
+            const declBlock = (declLine < 0) ? undefined : goTextEnclosingBlock (blocks, declLine);
+            if ((declLine < 0) || (declLine >= index) || (declBlock === undefined) || !((declBlock.open < index) && (index <= declBlock.close))) {
+                return match;
+            }
+            changed = true;
+            return consumer + '(' + holder + '[' + slot + '])';
+        });
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+function goAsyncTupleIndexSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const wrap = 'func (this *X) PairAsync(p any) <-chan any {\n\tch := make(chan any, 1)\n\tgo this.pairBody(ch, p)\n\treturn ch\n}\n';
+    const body = (b: string) => 'func (this *X) pairBody(ch chan any, p any) any {\n\tdefer close(ch)\n\tdefer ReturnPanicError(ch)\n' + b + '}\n';
+    const good = '\tif p != nil {\n\n\t\tch <- []any{p, p}\n\t\treturn nil\n\t}\n\tvar r any = func(this *X) any {\n\t\treturn nil\n\t}(this)\n\n\tch <- []any{r, p}\n\treturn nil\n';
+    const reader = 'func (this *X) f(p any) any {\n\tvar h []any = ListTyped(PanicOnError((<-this.PairAsync(p))))\n\tvar a *string = SafeStringPtr(GetValue(h, 0))\n\tvar b map[string]any = MapTyped(GetValue(h, 1))\n\treturn nil\n}\n';
+    const run = (b: string, r: string = reader) => nativeAsyncTupleHolderReads ('package ccxt\n' + wrap + body (b) + r);
+    const pos = run (good);
+    ok (pos.indexOf ('SafeStringPtr(h[0])') >= 0 && pos.indexOf ('MapTyped(h[1])') >= 0, 'async pair producer reads go native');
+    ok (nativeAsyncTupleHolderReads (pos) === pos, 'second application is a no-op');
+    ok (run ('\tif p != nil {\n\t\tpanic(\"x\")\n\t}\n\tch <- []any{p, p}\n\treturn nil\n').indexOf ('h[1]') >= 0, 'panic exits are fine');
+    const keepBodies: string[] = [
+        '\tif p != nil {\n\t\treturn nil\n\t}\n\tch <- []any{p, p}\n\treturn nil\n',
+        '\tch <- []any{p, p, p}\n\treturn nil\n',
+        '\tch <- p\n\treturn nil\n',
+        '\tch <- []any{p, p}\n',
+        '\tfor {\n\t\tpanic(\"break\")\n\t}\n\tch <- []any{p, p}\n\treturn nil\n',
+        '\tgo func() {\n\t\tch <- []any{p, p}\n\t}()\n\treturn nil\n',
+        '\tif p != nil {\n\t\tch <- []any{p}\n\t\treturn nil\n\t}\n\tch <- []any{p, p}\n\treturn nil\n',
+    ];
+    keepBodies.forEach ((b: string, i: number) => ok (run (b).indexOf ('GetValue(h, 1)') >= 0, 'async negative body ' + i + ' keeps GetValue'));
+    const keepReaders: string[] = [
+        reader.replace ('\treturn nil\n}', '\th = nil\n\treturn nil\n}'),
+        reader.replace ('this.PairAsync', 'this.OtherAsync'),
+        reader.replace ('func (this *X) f', 'func (this *Y) f'),
+        reader.replace ('MapTyped(GetValue(h, 1))', 'MapTyped(GetValue(h, 2))').replace ('SafeStringPtr(GetValue(h, 0))', 'IsEqual(GetValue(h, 1), nil)'),
+    ];
+    keepReaders.forEach ((r: string, i: number) => ok (run (good, r).indexOf ('GetValue(h, ') >= 0, 'async negative reader ' + i + ' keeps GetValue'));
     return problems;
 }
