@@ -1047,11 +1047,11 @@ public partial class backpack : ccxt.backpack
         {
             return;
         }
-        this.handleDelta(storedOrderBook, data);
+        this.handleBookDelta(storedOrderBook, data);
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         Int64? timestamp = this.parseToInt(((double?)this.safeInteger(delta, "T", 0) / 1000));
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;

@@ -174,7 +174,7 @@ public partial class xt : ccxt.xt
         return getArrayLength(cache);
     }
 
-    public override void handleDelta(object orderbook, object delta)
+    public override void handleBookDelta(object orderbook, object delta)
     {
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger2(delta, "i", "u");
         List<object> obAsks = this.safeList(delta, "a", new List<object>() {});
