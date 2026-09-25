@@ -1334,8 +1334,12 @@ public class Bithumb extends BithumbApi
                         Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
                         Object ticker = (data == null || currencyId == null ? null : data.get(currencyId));
                         String base = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-                        Object symbol = Helpers.add((base + "/"), quote);
-                        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(symbol), (Map<String, Object>) null, (String) null, (String) null);
+                        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                        {
+                            continue;
+                        }
+                        String symbol = ((base + "/") + quote);
+                        Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
                         Helpers.addElementToObject(ticker, "date", timestamp);
                         result.put((String)symbol, this.parseTicker(ticker, Helpers.toMapArg(market)));
                     }

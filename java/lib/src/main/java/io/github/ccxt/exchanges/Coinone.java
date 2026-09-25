@@ -923,8 +923,13 @@ public class Coinone extends CoinoneApi
         String quoteId = this.safeString(ticker, "quote_currency");
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String symbol = null;
+        if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
+        {
+            symbol = ((base + "/") + quote);
+        }
         return this.safeTicker(Helpers.newMap(
-            "symbol", ((base + "/") + quote),
+            "symbol", symbol,
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
             "high", this.safeString(ticker, "high"),
