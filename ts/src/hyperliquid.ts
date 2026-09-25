@@ -2725,7 +2725,7 @@ export default class hyperliquid extends Exchange {
         }
         cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
         cancelAction['cancels'] = cancelReq;
-        const [ vaultAddressOption ] = this.handleOptionStringAndParams2 (params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress');
+        const vaultAddressOption = this.handleOptionStringAndParams2 (params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress')[0];
         const vaultAddress: Str = this.formatVaultAddress (vaultAddressOption);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
@@ -4106,7 +4106,7 @@ export default class hyperliquid extends Exchange {
             'isBuy': true,
             'ntli': sz,
         };
-        const [ vaultAddressOption ] = this.handleOptionStringAndParams2 (params, 'modifyMargin', 'vaultAddress', 'subAccountAddress');
+        const vaultAddressOption = this.handleOptionStringAndParams2 (params, 'modifyMargin', 'vaultAddress', 'subAccountAddress')[0];
         const vaultAddress: Str = this.formatVaultAddress (vaultAddressOption);
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request: Dict = {
@@ -4321,7 +4321,7 @@ export default class hyperliquid extends Exchange {
                 throw new NotSupported (this.id + ' withdraw() only support USDC');
             }
         }
-        const [ vaultAddressOption ] = this.handleOptionStringAndParams (params, 'withdraw', 'vaultAddress');
+        const vaultAddressOption = this.handleOptionStringAndParams (params, 'withdraw', 'vaultAddress')[0];
         const vaultAddress: Str = this.formatVaultAddress (vaultAddressOption);
         const nonce = this.incrementingNonce ();
         let action: Dict = {};
