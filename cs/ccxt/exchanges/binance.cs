@@ -5335,6 +5335,7 @@ public partial class binance : Exchange
         object fees = this.fees;
         bool? linear = null;
         bool? inverse = null;
+        string? subType = null;
         object symbol = add(add(bs, "/"), quote);
         string? strike = null;
         if (contract)
@@ -5353,6 +5354,13 @@ public partial class binance : Exchange
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = (settle == quote);
             inverse = isEqual(settle, bs);
+            if ((linear == true))
+            {
+                subType = "linear";
+            } else if ((inverse == true))
+            {
+                subType = "inverse";
+            }
             string feesType = (linear == true) ? "linear" : "inverse";
             fees = this.safeDict(this.fees, feesType, new Dictionary<string, object>() {});
         }
@@ -5436,6 +5444,7 @@ public partial class binance : Exchange
             { "contract", contract },
             { "linear", linear },
             { "inverse", inverse },
+            { "subType", subType },
             { "taker", getValue(getValue(fees, "trading"), "taker") },
             { "maker", getValue(getValue(fees, "trading"), "maker") },
             { "contractSize", contractSize },
