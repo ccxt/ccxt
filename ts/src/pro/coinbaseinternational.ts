@@ -1056,7 +1056,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         };
         const client = this.client (url);
         await client.send (request);
-        delete client.subscriptions[channel];
+        if (channel in client.subscriptions) {
+            delete client.subscriptions[channel];
+        }
         await this.subscribe ([ channel ], [ channel ], isPrivate, {});
     }
 
