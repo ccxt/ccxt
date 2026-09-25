@@ -7221,7 +7221,7 @@ class BaseExchange {
         return $this->safe_value($res, 0);
     }
 
-    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array(), mixed $defaultValue = null) {
+    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array(), ?string $defaultValue = null) {
         /**
          * @ignore
          * @param $methodName the method calling handleMarketTypeAndParams
