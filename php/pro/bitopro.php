@@ -274,6 +274,9 @@ class bitopro extends \ccxt\async\bitopro {
         $quoteId = $this->safe_string($data, 'quote');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return;
+        }
         $symbol = $this->symbol($base . '/' . $quote);
         $messageHash = $this->safe_string($message, 'event');
         if ($this->myTrades === null) {

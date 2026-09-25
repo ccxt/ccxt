@@ -466,6 +466,9 @@ class upbit extends Exchange {
         $quoteId = $this->safe_string($bid, 'currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $state = $this->safe_string($marketInfo, 'state');
         $bidFee = $this->safe_string($response, 'bid_fee');
         $askFee = $this->safe_string($response, 'ask_fee');
