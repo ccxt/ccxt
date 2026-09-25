@@ -618,7 +618,9 @@ class okx(ccxt.async_support.okx):
         newTickers = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
             tickers = {}
-            tickers[newTickers['symbol']] = newTickers
+            newTickersSymbol = self.safe_string(newTickers, 'symbol')
+            if newTickersSymbol is not None:
+                tickers[newTickersSymbol] = newTickers
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
 

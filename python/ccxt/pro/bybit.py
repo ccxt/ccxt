@@ -418,7 +418,9 @@ class bybit(ccxt.async_support.bybit):
         ticker = await self.watch_topics(url, messageHashes, topics, paramsValue)
         if self.newUpdates:
             result = {}
-            result[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                result[tickerSymbol] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbolsValue)
 

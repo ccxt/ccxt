@@ -193,7 +193,9 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         ticker = await self.watch_multi_helper('ticker', 'ticker', symbolsNormalized, None, params)
         if self.newUpdates:
             result = {}
-            result[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                result[tickerSymbol] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
@@ -210,7 +212,9 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         ticker = await self.watch_multi_helper('bidask', 'ticker_lite', symbols, None, params)
         if self.newUpdates:
             result = {}
-            result[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                result[tickerSymbol] = ticker
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 

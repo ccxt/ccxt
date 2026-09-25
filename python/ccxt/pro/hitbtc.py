@@ -357,7 +357,9 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.newUpdates:
             if not isinstance(newTickers, list):
                 tickers = {}
-                tickers[newTickers['symbol']] = newTickers
+                newTickersSymbol = self.safe_string(newTickers, 'symbol')
+                if newTickersSymbol is not None:
+                    tickers[newTickersSymbol] = newTickers
                 return tickers
         return self.filter_by_array(newTickers, 'symbol', symbolsNormalized)
 
@@ -501,7 +503,9 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.newUpdates:
             if not isinstance(newTickers, list):
                 tickers = {}
-                tickers[newTickers['symbol']] = newTickers
+                newTickersSymbol = self.safe_string(newTickers, 'symbol')
+                if newTickersSymbol is not None:
+                    tickers[newTickersSymbol] = newTickers
                 return tickers
         return self.filter_by_array(newTickers, 'symbol', symbolsNormalized)
 

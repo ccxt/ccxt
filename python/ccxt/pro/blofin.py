@@ -264,7 +264,9 @@ class blofin(ccxt.async_support.blofin):
         ticker = await self.watch_multiple_wrapper(True, 'tickers', 'watchTickers', symbols, params)
         if self.newUpdates:
             tickers = {}
-            tickers[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                tickers[tickerSymbol] = ticker
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
@@ -328,7 +330,9 @@ class blofin(ccxt.async_support.blofin):
         ticker = await self.watch_multiple(url, messageHashes, self.deep_extend(request, paramsMarketType), messageHashes)
         if self.newUpdates:
             tickers = {}
-            tickers[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                tickers[tickerSymbol] = ticker
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
 

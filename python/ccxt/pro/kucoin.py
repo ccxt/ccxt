@@ -436,7 +436,9 @@ class kucoin(ccxt.async_support.kucoin):
             tickers = await self.subscribe_multiple(url, messageHashes, symbolsTopic, topics, query)
             if self.newUpdates:
                 newDict = {}
-                newDict[tickers['symbol']] = tickers
+                tickersSymbol = self.safe_string(tickers, 'symbol')
+                if tickersSymbol is not None:
+                    newDict[tickersSymbol] = tickers
                 return newDict
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
@@ -707,7 +709,9 @@ class kucoin(ccxt.async_support.kucoin):
         ticker = await self.watch_multi_helper('watchBidsAsks', channelName, isFuturesMethod, symbolsNormalized, params)
         if self.newUpdates:
             tickers = {}
-            tickers[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                tickers[tickerSymbol] = ticker
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
 

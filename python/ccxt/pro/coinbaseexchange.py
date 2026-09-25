@@ -152,7 +152,9 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         ticker = await self.subscribe_multiple(channel, symbols, messageHash, params)
         if self.newUpdates:
             result = {}
-            result[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                result[tickerSymbol] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 

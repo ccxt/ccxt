@@ -100,7 +100,9 @@ class upbit(ccxt.async_support.upbit):
         newTickers = await self.watch_public_multiple(symbols, 'ticker')
         if self.newUpdates:
             tickers = {}
-            tickers[newTickers['symbol']] = newTickers
+            newTickersSymbol = self.safe_string(newTickers, 'symbol')
+            if newTickersSymbol is not None:
+                tickers[newTickersSymbol] = newTickers
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 

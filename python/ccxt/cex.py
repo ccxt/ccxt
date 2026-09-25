@@ -859,8 +859,9 @@ class cex(Exchange, ImplicitAPI):
             if useKeyAsId:
                 market = self.safe_market(key)
             parsed = self.parse_trading_fee(response[key], market)
-            if parsed['symbol'] is not None:
-                result[parsed['symbol']] = parsed
+            parsedSymbol = self.safe_string(parsed, 'symbol')
+            if parsedSymbol is not None:
+                result[parsedSymbol] = parsed
         symbols = self.symbols
         for i in range(0, len(symbols)):
             symbol = symbols[i]

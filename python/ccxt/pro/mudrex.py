@@ -108,7 +108,9 @@ class mudrex(ccxt.async_support.mudrex):
         ticker = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
             result = {}
-            result[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                result[tickerSymbol] = ticker
             return result
         return self.filter_by_array_tickers(self.tickers, 'symbol', symbolsNormalized)
 

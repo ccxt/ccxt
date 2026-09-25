@@ -177,7 +177,9 @@ class aster(ccxt.async_support.aster):
         newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, paramsOmitted), messageHashes)
         if self.newUpdates:
             result = {}
-            result[newTicker['symbol']] = newTicker
+            newTickerSymbol = self.safe_string(newTicker, 'symbol')
+            if newTickerSymbol is not None:
+                result[newTickerSymbol] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbolsList)
 
@@ -299,7 +301,9 @@ class aster(ccxt.async_support.aster):
         newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, paramsOmitted), messageHashes)
         if self.newUpdates:
             result = {}
-            result[newTicker['symbol']] = newTicker
+            newTickerSymbol = self.safe_string(newTicker, 'symbol')
+            if newTickerSymbol is not None:
+                result[newTickerSymbol] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbolsList)
 
@@ -465,7 +469,9 @@ class aster(ccxt.async_support.aster):
         newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
             result = {}
-            result[newTicker['symbol']] = newTicker
+            newTickerSymbol = self.safe_string(newTicker, 'symbol')
+            if newTickerSymbol is not None:
+                result[newTickerSymbol] = newTicker
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsList)
 

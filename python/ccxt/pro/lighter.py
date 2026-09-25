@@ -370,7 +370,9 @@ class lighter(ccxt.async_support.lighter):
         newTicker = await self.subscribe_public_multiple(messageHashes, self.extend(request, params))
         if self.newUpdates:
             result = {}
-            result[newTicker['symbol']] = newTicker
+            newTickerSymbol = self.safe_string(newTicker, 'symbol')
+            if newTickerSymbol is not None:
+                result[newTickerSymbol] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 

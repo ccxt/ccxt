@@ -813,7 +813,9 @@ class gate(ccxt.async_support.gate):
         tickerOrBidAsk = await self.subscribe_public_multiple(url, messageHashes, marketIds, channel, paramsMethod)
         if self.newUpdates:
             items = {}
-            items[tickerOrBidAsk['symbol']] = tickerOrBidAsk
+            tickerOrBidAskSymbol = self.safe_string(tickerOrBidAsk, 'symbol')
+            if tickerOrBidAskSymbol is not None:
+                items[tickerOrBidAskSymbol] = tickerOrBidAsk
             return items
         result = self.tickers if isWatchTickers else self.bidsasks
         return self.filter_by_array(result, 'symbol', symbolsNormalized, True)
