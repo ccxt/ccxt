@@ -7310,6 +7310,34 @@ function destructuredElementReadType (csharp, context, identifier) {
     return destructuredSlotType (csharp, context.scope, declaration, element.parent.elements.indexOf (element), context);
 }
 
+// A read of a string-list parameter typeCoreArgs prints `IList<object>` (CORE_LIST_ARGS position,
+// `Strings`/`string[]` annotation) that the body never writes: no `<name>Var` shadow exists, so
+// the read's static type IS IList<object>.
+function listCoreParameterReadType (csharp, scope, name) {
+    const parameter = (scope?.parameters ?? []).find ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.escapedText === name);
+    if (parameter === undefined || typeof csharp.csharpListTypedCoreArg !== 'function' || !stringListParameterAnnotation (parameter)) {
+        return undefined;
+    }
+    const methodName = (scope.kind === ts.SyntaxKind.MethodDeclaration && scope.name?.kind === ts.SyntaxKind.Identifier) ? scope.name.escapedText : undefined;
+    const type = (methodName === undefined) ? undefined : csharp.csharpListTypedCoreArg (methodName, scope.parameters.indexOf (parameter));
+    if (type === undefined) {
+        return undefined;
+    }
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === parameter.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, parameter, use) === false) {
+            continue;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            return undefined;
+        }
+        if (parameterListUseIsMutation (use) || enclosingFunction (use) !== scope) {
+            return undefined;
+        }
+    }
+    return type;
+}
+
 function resolveLocalReadType (csharp, context, identifier) {
     if (!context || !context.scope) {
         return undefined;
@@ -7318,6 +7346,9 @@ function resolveLocalReadType (csharp, context, identifier) {
     const name = identifier.escapedText;
     const declarations = index.declarations.get (name);
     if (!declarations || declarations.length === 0) {
+        if (index.parameterNames.has (name)) {
+            return listCoreParameterReadType (csharp, context.scope, name);
+        }
         return destructuredElementReadType (csharp, context, identifier); // not a plain local
     }
     // The read must provably refer to a plain local declaration of this function. The
