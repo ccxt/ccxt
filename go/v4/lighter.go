@@ -1013,7 +1013,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	}
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false) // default false
 	var orderType string = ToUpper(typeVar)
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var orderSide string = ToUpper(side)
 	var request map[string]any = map[string]any{
 		"market_index": this.ParseToInt(market["id"]),
@@ -1379,7 +1379,7 @@ func (this *Lighter) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var amountScale any = this.Pow("10", marketInfo["size_decimals"])
 	var priceScale any = this.Pow("10", marketInfo["price_decimals"])
@@ -1830,7 +1830,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market_id": market["id"],
 		"limit":     100,
@@ -1938,7 +1938,7 @@ func (this *Lighter) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "market_id")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var last *string = this.SafeString(ticker, "last_trade_price")
 	var high *string = this.SafeString(ticker, "daily_price_high")
@@ -2000,7 +2000,7 @@ func (this *Lighter) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market_id": market["id"],
 	}
@@ -2152,7 +2152,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var until *int64 = this.SafeInteger(params, "until")
 	params = MapTyped(this.Omit(params, []any{"until"}))
 	var now int64 = this.Milliseconds()
@@ -2587,7 +2587,7 @@ func (this *Lighter) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "market_id")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var sign *int64 = this.SafeInteger(position, "sign")
 	var side *string = nil
 	if sign != nil {
@@ -2800,7 +2800,7 @@ func (this *Lighter) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
 	PanicOnError((<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market_id":     market["id"],
 		"account_index": accountIndex,
@@ -2902,7 +2902,7 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
 	PanicOnError((<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market_id":     market["id"],
 		"account_index": accountIndex,
@@ -3001,7 +3001,7 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "market_index")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeTimestamp(order, "timestamp")
 	var isAsk any = this.SafeBool(order, "is_ask")
 	if IsEqual(isAsk, nil) {
@@ -3205,7 +3205,7 @@ func (this *Lighter) transferBody(ch chan any, code any, amount any, fromAccount
 
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	if GetValue(currency, "code") == "USDC" {
 		amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision(code, amount)))
 	} else if GetValue(currency, "code") == "ETH" {
@@ -3315,7 +3315,7 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)))
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransferHistory(this.Extend(request, params))).Raw))
@@ -3459,7 +3459,7 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)))
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
 
@@ -3551,7 +3551,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	PanicOnError((<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)))
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
 
@@ -3691,7 +3691,7 @@ func (this *Lighter) withdrawBody(ch chan any, code any, amount any, address any
 
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	if GetValue(currency, "code") == "USDC" {
 		amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision(code, amount)))
 	} else if GetValue(currency, "code") == "ETH" {
@@ -3877,7 +3877,7 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "market_id")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var accountIndex *string = this.SafeString(trade, "account_index")
 	var askAccountId *string = this.SafeString(trade, "ask_account_id")
@@ -4040,7 +4040,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan any, leverage any, 
 
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 
 	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))))
 	var signRaw map[string]any = map[string]any{
@@ -4411,7 +4411,7 @@ func (this *Lighter) setMarginBody(ch chan any, symbol any, amount any, optional
 
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 
 	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))))
 	var signRaw map[string]any = map[string]any{

@@ -437,7 +437,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{}}});
+        orderbook.reset(new HashMap<String, Object>() {{}});
         Helpers.addElementToObject(orderbook, "symbol", symbol);
         io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
         io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");

@@ -2286,7 +2286,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Client client = this.client(url);
             (this.authenticate(url)).join();
             this.setPositionsCache(client, symbols);
-            Object cache = this.positions;
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
             if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (java.util.Objects.equals(awaitPositionsSnapshot, true)) && (java.util.Objects.equals(cache, null)))
@@ -2360,14 +2360,14 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     }})));
             Object promises = (Helpers.promiseAll(fetchFunctions)).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
-            Object cache = this.positions;
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
                 Object positions = (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i));
                 for (var ii = 0; ii < ((List<?>)positions).size(); ii++)
                 {
                     Object position = (positions == null || ii < 0 || ii >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(ii));
-                    Helpers.callDynamically(cache, "append", new Object[]{position});
+                    cache.append(position);
                 }
             }
             // don't remove the future from the .futures cache
@@ -2427,7 +2427,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         List<Object> rawPositions = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
@@ -2443,14 +2443,14 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 // closing update, adding both sides to "reset" both sides
                 // since we don't know which side is being closed
                 position.put("side", "long");
-                Helpers.callDynamically(cache, "append", new Object[]{position});
+                cache.append(position);
                 position.put("side", "short");
-                Helpers.callDynamically(cache, "append", new Object[]{position});
+                cache.append(position);
                 Helpers.addElementToObject(position, "side", null);
             } else
             {
                 // regular update
-                Helpers.callDynamically(cache, "append", new Object[]{position});
+                cache.append(position);
             }
         }
         Object messageHashes = this.findMessageHashes(client, "positions::");
@@ -2624,8 +2624,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                     this.liquidations = new ArrayCache(((Number)limit).intValue());
                 }
-                Object cache = this.liquidations;
-                Helpers.callDynamically(cache, "append", new Object[]{liquidation});
+                io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.liquidations;
+                cache.append(liquidation);
                 client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), "liquidations");
                 client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), ("liquidations::" + symbol));
             }
@@ -2641,8 +2641,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(((Number)limit).intValue());
             }
-            Object cache = this.liquidations;
-            Helpers.callDynamically(cache, "append", new Object[]{liquidation});
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.liquidations;
+            cache.append(liquidation);
             client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), "liquidations");
             client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), ("liquidations::" + symbol));
         }

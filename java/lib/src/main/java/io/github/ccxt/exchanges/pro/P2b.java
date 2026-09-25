@@ -649,7 +649,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger
             // and cross the book, see https://github.com/ccxt/ccxt/issues/24944
-            Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{}}});
+            orderbook.reset(new HashMap<String, Object>() {{}});
         }
         if (!java.util.Objects.equals(bids, null))
         {

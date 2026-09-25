@@ -2647,11 +2647,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
             List<Position> positions = (this.fetchPositions((Object)(null), (Object)(parameters))).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
-            Object cache = this.positions;
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
-                Helpers.callDynamically(cache, "append", new Object[]{position});
+                cache.append(position);
             }
             // don't remove the future from the .futures cache
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
@@ -2756,14 +2756,14 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         List<Object> data = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> rawPosition = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition));
-            Helpers.callDynamically(cache, "append", new Object[]{position});
+            cache.append(position);
             ((List<Object>)newPositions).add(position);
         }
         Object messageHashes = this.findMessageHashes(client, "positions::");

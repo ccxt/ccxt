@@ -318,7 +318,7 @@ func (this *Bingx) HandleTicker(client any, message any) {
 	if isSwap {
 		marketType = "swap"
 	}
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	// the Coin-M stream is a distinct endpoint, so it identifies an inverse
 	// ticker even when the market id could not be resolved
@@ -636,7 +636,7 @@ func (this *Bingx) HandleTrades(client any, message any) {
 	if isSwap {
 		marketType = "swap"
 	}
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trade::" + *symbol
 	var trades any = nil
@@ -855,7 +855,7 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 	if isSwap {
 		marketType = "swap"
 	}
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
@@ -994,7 +994,7 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 	if isSwap {
 		marketType = "swap"
 	}
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var candles []any = nil
 	if isSwap {
 		if market["inverse"] == true {
@@ -2169,7 +2169,7 @@ func (this *Bingx) HandleMyTrades(client any, message any) {
 		typeVar = "spot"
 	}
 	var marketId *string = this.SafeString(result, "s")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "-", typeVar))
+	var market map[string]any = this.SafeMarket(marketId, nil, "-", typeVar)
 	var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(result, market))
 	var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 	var spotHash string = "spot:mytrades"

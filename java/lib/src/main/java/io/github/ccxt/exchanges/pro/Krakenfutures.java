@@ -595,7 +595,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             // https://github.com/ccxt/ccxt/issues/29709
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> rawPositions = (List<Object>) this.safeList(message, "positions");
         if (java.util.Objects.equals(rawPositions, null))
         {
@@ -613,7 +613,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
             ((List<Object>)newPositions).add(position);
-            Helpers.callDynamically(cache, "append", new Object[]{position});
+            cache.append(position);
         }
         Object messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)

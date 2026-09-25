@@ -178,7 +178,7 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	var trades any = data
 	var parts []string = ccxt.Split(topic, ".")
 	var marketId *string = this.SafeString(parts, 2)
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil))
+	var market map[string]any = this.SafeMarket(marketId, nil, nil)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
@@ -213,7 +213,7 @@ func (this *Apex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeStringN(trade, []any{"i", "id", "v"})
 	var marketId *string = this.SafeString2(trade, "s", "symbol")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil))
+	market = this.SafeMarket(marketId, market, nil)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"t", "T", "createdAt"})
 	var side *string = this.SafeStringLower2(trade, "S", "side")
@@ -410,7 +410,7 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	var isSnapshot bool = (typeVar != nil && *typeVar == "snapshot")
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "s")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil))
+	var market map[string]any = this.SafeMarket(marketId, nil, nil)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerProduct(message, "ts", 0.001)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
@@ -560,7 +560,7 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 		var topicParts []string = strings.Split(*topic, ".")
 		var topicLength int = len(topicParts)
 		var marketId *string = this.SafeString(topicParts, topicLength-1)
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil))
+		var market map[string]any = this.SafeMarket(marketId, nil, nil)
 		symbol = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		var ticker map[string]any = ccxt.SafeMapTyped(this.Tickers, symbol)
 		var rawTicker any = this.SafeDict(ticker, "info", map[string]any{})
@@ -700,7 +700,7 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	if isSpot {
 		marketType = "spot"
 	}
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})

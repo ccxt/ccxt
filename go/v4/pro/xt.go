@@ -431,7 +431,7 @@ func (this *Xt) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var defaultMethod *string = this.SafeString(options, "method", "ticker")
 	var method *string = this.SafeString(params, "method", defaultMethod)
@@ -466,7 +466,7 @@ func (this *Xt) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "unWatchTicker")
 	var defaultMethod *string = this.SafeString(options, "method", "ticker")
 	var method *string = this.SafeString(params, "method", defaultMethod)
@@ -604,7 +604,7 @@ func (this *Xt) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var name *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("kline@", market["id"]), ","), timeframe))
 
 	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeAsync(name, "public", "watchOHLCV", market, nil, params))))
@@ -643,16 +643,16 @@ func (this *Xt) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var name any = ccxt.Add(ccxt.Add(ccxt.Add("kline@", market["id"]), ","), timeframe)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", name))
 	var symbolsAndTimeframes []any = []any{[]any{market["symbol"], timeframe}}
 
-	retRes46015 := (<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, []any{symbol}, params, map[string]any{
+	retRes46115 := (<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, []any{symbol}, params, map[string]any{
 		"symbolsAndTimeframes": symbolsAndTimeframes,
 	}))
-	ccxt.PanicOnError(retRes46015)
-	ch <- retRes46015
+	ccxt.PanicOnError(retRes46115)
+	ch <- retRes46115
 	return nil
 }
 
@@ -686,7 +686,7 @@ func (this *Xt) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var name *string = ccxt.SafeStringPtr(ccxt.Add("trade@", market["id"]))
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeAsync(name, "public", "watchTrades", market, nil, params))))
@@ -722,7 +722,7 @@ func (this *Xt) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var name any = ccxt.Add("trade@", market["id"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", name))
 
@@ -760,7 +760,7 @@ func (this *Xt) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any)
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var levels *string = this.SafeString(params, "levels")
 	params = ccxt.MapTyped(this.Omit(params, "levels"))
 	var name any = ccxt.Add("depth_update@", market["id"])
@@ -801,7 +801,7 @@ func (this *Xt) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var levels *string = this.SafeString(params, "levels")
 	params = ccxt.MapTyped(this.Omit(params, "levels"))
 	var name any = ccxt.Add("depth_update@", market["id"])
@@ -1018,7 +1018,7 @@ func (this *Xt) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " watchFundingRate() supports swap contracts only"))
 	}
@@ -1051,7 +1051,7 @@ func (this *Xt) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " unWatchFundingRate() supports swap contracts only"))
 	}
@@ -1428,7 +1428,7 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 		if func() bool { _, ok := data["q"]; return ok }() {
 			tradeType = "spot"
 		}
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, tradeType))
+		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var parsed any = this.ParseOHLCV(data, market)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
@@ -1485,7 +1485,7 @@ func (this *Xt) HandleTrade(client any, message map[string]any) any {
 		if i != nil {
 			tradeType = "spot"
 		}
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, tradeType))
+		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var event *string = this.SafeString(message, "event")
 		var tradesArray any = this.SafeValue(this.Trades, symbol)
@@ -1570,7 +1570,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		if (!ccxt.IsEqual(data, nil)) && (ccxt.InOp(data, "fu")) {
 			tradeType = "contract"
 		}
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, tradeType))
+		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var obAsks []any = ccxt.SafeListTyped(data, "a")
 		var obBids []any = ccxt.SafeListTyped(data, "b")
@@ -1657,7 +1657,7 @@ func (this *Xt) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	if ccxt.InOp(trade, "symbol") {
 		tradeType = "contract"
 	}
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, tradeType))
+	market = this.SafeMarket(marketId, market, nil, tradeType)
 	var timestamp *string = this.SafeString(trade, "t")
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -1729,7 +1729,7 @@ func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) any {
 	if ccxt.InOp(order, "symbol") {
 		tradeType = "contract"
 	}
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, tradeType))
+	market = this.SafeMarket(marketId, market, nil, tradeType)
 	var timestamp *int64 = this.SafeInteger2(order, "ct", "createTime")
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -1816,7 +1816,7 @@ func (this *Xt) HandleOrder(client any, message map[string]any) any {
 		if func() bool { _, ok := order["symbol"]; return ok }() {
 			tradeType = "contract"
 		}
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, tradeType))
+		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order, market))
 		orders.(ccxt.Appender).Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(orders, "order::"+tradeType)
@@ -1922,7 +1922,7 @@ func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 	if tradeSymbol == nil {
 		return
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(tradeSymbol))
+	var market map[string]any = this.Market(tradeSymbol)
 	stored.(ccxt.Appender).Append(parsedTrade)
 	var tradeType string = "spot"
 	if ccxt.GetValue(market, "contract") == true {

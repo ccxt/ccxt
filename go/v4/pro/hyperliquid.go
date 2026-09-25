@@ -207,7 +207,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan any, id any, symbol any, typeVa
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(id, symbol, typeVar, side, amount, price, params)
 	var order map[string]any = ccxt.MapTyped(ccxt.GetValue(orderglobalParamsVariable, 0))
@@ -445,7 +445,7 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	var entry map[string]any = ccxt.SafeMapTyped(message, "data")
 	var coin *string = this.SafeString(entry, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
+	var market map[string]any = this.Market(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var rawData []any = ccxt.SafeListTyped(entry, "levels")
 	var data map[string]any = map[string]any{
@@ -595,7 +595,7 @@ func (this *Hyperliquid) watchTickersBody(ch chan any, optionalArgs ...any) any 
 	var defaultDex *string = this.SafeString(params, "dex")
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	if firstSymbol != nil {
-		var market map[string]any = ccxt.MapTyped(this.Market(firstSymbol))
+		var market map[string]any = this.Market(firstSymbol)
 		var dexName *string = this.SafeString(this.SafeDict(market, "info", map[string]any{}), "dex")
 		if dexName != nil {
 			defaultDex = dexName
@@ -794,7 +794,7 @@ func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) any
 		for i := 0; i < len(keys); i++ {
 			var name string = ccxt.GetValue(keys, i).(string)
 			var marketId any = this.CoinToMarketId(name)
-			var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, "swap"))
+			var market map[string]any = this.SafeMarket(marketId, nil, nil, "swap")
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 			var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(map[string]any{
 				"price": this.SafeNumber(mids, name),
@@ -836,7 +836,7 @@ func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var coin *string = this.SafeString(data, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var ctx map[string]any = ccxt.MapTyped(this.SafeDict(data, "ctx", map[string]any{}))
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(ctx, market))
@@ -1039,7 +1039,7 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 	var first map[string]any = ccxt.SafeMapTyped(entry, 0)
 	var coin *string = this.SafeString(first, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
+	var market map[string]any = this.Market(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1096,7 +1096,7 @@ func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(trade, "sz")
 	var coin *string = this.SafeString(trade, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	market = ccxt.MapTyped(this.SafeMarket(marketId))
+	market = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var id *string = this.SafeString(trade, "tid")
 	var side *string = this.SafeString(trade, "side")

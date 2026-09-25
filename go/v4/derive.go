@@ -1152,7 +1152,7 @@ func (this *Derive) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 	}
@@ -1521,7 +1521,7 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 	}
@@ -1715,7 +1715,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if price == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
@@ -1919,7 +1919,7 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("editOrder", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
@@ -2093,7 +2093,7 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelOrder", params)
@@ -2581,7 +2581,7 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(order, "order_id")
 	var marketId *string = this.SafeString(order, "instrument_name")
 	if marketId != nil {
-		market = MapTyped(this.SafeMarket(marketId, market))
+		market = this.SafeMarket(marketId, market)
 	}
 	var symbol *string = this.SafeString(market, "symbol")
 	var price *string = this.SafeString(order, "limit_price")
@@ -2973,7 +2973,7 @@ func (this *Derive) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var contract *string = this.SafeString(position, "instrument_name")
-	market = MapTyped(this.SafeMarket(contract, market))
+	market = this.SafeMarket(contract, market)
 	var size *string = this.SafeString(position, "amount")
 	var side string
 	if Precise.StringGt(size, "0") {
@@ -3327,7 +3327,7 @@ func (this *Derive) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
 	// }
 	//
-	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
+	var currency map[string]any = this.SafeCurrency(code)
 	var result map[string]any = SafeMapTyped(response, "result")
 	var events []any = SafeListTypedDefault(result, "events", []any{})
 
@@ -3397,7 +3397,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	//     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
 	// }
 	//
-	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
+	var currency map[string]any = this.SafeCurrency(code)
 	var result map[string]any = SafeMapTyped(response, "result")
 	var events []any = SafeListTypedDefault(result, "events", []any{})
 

@@ -615,8 +615,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(((Number)limit).intValue());
         }
-        Object cache = this.liquidations;
-        Helpers.callDynamically(cache, "append", new Object[]{liquidation});
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.liquidations;
+        cache.append(liquidation);
         client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), "liquidations");
         client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), ("liquidations::" + symbol));
     }
@@ -1218,19 +1218,6 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
-    //                {
-    //                    "asset": "USDT",
-    //                    "free": "1021.21000000",
-    //                    "locked": "0.00000000"
-    //                }
-    //            ],
-    //            "permissions": [
-    //                "SPOT"
-    //            ]
-    //        }
-    //    }
-    // swap
-    //
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
     {
         return this.unWatchOrderBook(symbol, (Object) (parameters));
@@ -2566,7 +2553,6 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
-    //
     public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
     {
         return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, (Object) (parameters));
@@ -3251,6 +3237,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchMarkPrice(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    //    {
+    //        "id": "605a6d20-6588-4cb9-afa0-b0ab087507ba",
     //        "status": 200,
     //        "result": {
     //            "makerCommission": 15,

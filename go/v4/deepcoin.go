@@ -810,7 +810,7 @@ func (this *Deepcoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if limit == nil {
 		limit = Int64PtrTyped(400)
 	}
@@ -893,7 +893,7 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		ch <- BoxAbsent(retRes67419)
 		return nil
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var price *string = this.SafeString(params, "price")
 	params = MapTyped(this.Omit(params, "price"))
 	var bar *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1107,7 +1107,7 @@ func (this *Deepcoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -1169,7 +1169,7 @@ func (this *Deepcoin) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "instId")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(trade, "ts")
 	var side *string = this.SafeString(trade, "side")
 	var execType *string = this.SafeString(trade, "execType")
@@ -1323,7 +1323,7 @@ func (this *Deepcoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -1395,7 +1395,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -1509,7 +1509,7 @@ func (this *Deepcoin) fetchDepositAddressesBody(ch chan any, optionalArgs ...any
 		panic(NotSupported(this.Id + " fetchDepositAddresses requires a list with one currency code"))
 	}
 	var code *string = SafeStringPtr(GetValue(codes, 0))
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency_id": currency["id"],
 		"lang":        "en",
@@ -1678,7 +1678,7 @@ func (this *Deepcoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["ccy"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -1747,7 +1747,7 @@ func (this *Deepcoin) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		direction = "out"
 	}
 	var currencyId *string = this.SafeString(item, "ccy")
-	currency = MapTyped(this.SafeCurrency(currencyId, currency))
+	currency = this.SafeCurrency(currencyId, currency)
 	var typeVar *string = this.SafeString(item, "type")
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
@@ -1818,7 +1818,7 @@ func (this *Deepcoin) transferBody(ch chan any, code any, amount any, fromAccoun
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -1926,7 +1926,7 @@ func (this *Deepcoin) createOrderBody(ch chan any, symbol any, typeVar any, side
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 	var response map[string]any = nil
@@ -1974,7 +1974,7 @@ func (this *Deepcoin) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	// const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
 	var isTriggerOrder bool = (triggerPrice != nil)
@@ -2022,7 +2022,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var orderType any = typeVar
 	orderTypeparamsVariable := this.HandleTypePostOnlyAndTimeInForce(typeVar, params)
 	orderType = GetValue(orderTypeparamsVariable, 0)
@@ -2129,7 +2129,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId":       market["id"],
 		"productGroup": this.Capitalize(market["type"]),
@@ -2319,7 +2319,7 @@ func (this *Deepcoin) fetchClosedOrderBody(ch chan any, id any, optionalArgs ...
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchClosedOrder() requires a symbol argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 		"ordId":  id,
@@ -2408,7 +2408,7 @@ func (this *Deepcoin) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchClosedOrder() requires a symbol argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 		"ordId":  id,
@@ -2707,7 +2707,7 @@ func (this *Deepcoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrders() requires a symbol argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var index *int64 = this.SafeInteger(params, "index", 1) // todo add pagination handling
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
@@ -2842,7 +2842,7 @@ func (this *Deepcoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 		"ordId":  id,
@@ -2895,7 +2895,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "spot") == true {
 		panic(NotSupported(this.Id + " cancelAllOrders() is not supported for spot markets"))
 	}
@@ -3141,7 +3141,7 @@ func (this *Deepcoin) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "instId")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(order, "cTime")
 	var timestampString *string = this.SafeString(order, "cTime", "")
 	if GetLength(timestampString) < 13 {
@@ -3248,7 +3248,7 @@ func (this *Deepcoin) fetchPositionsForSymbolBody(ch chan any, symbol any, optio
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var instrumentType any = this.ConvertToInstrumentType(market["type"])
 	var request map[string]any = map[string]any{
 		"instType": instrumentType,
@@ -3354,7 +3354,7 @@ func (this *Deepcoin) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "instId")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(position, "cTime")
 	return this.SafePosition(map[string]any{
 		"symbol":                      GetValue(market, "symbol"),
@@ -3424,7 +3424,7 @@ func (this *Deepcoin) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var marginMode any = "cross"
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("setLeverage", params, marginMode)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -3562,7 +3562,7 @@ func (this *Deepcoin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "swap") != true {
 		panic(ExchangeError(this.Id + " fetchFundingRate() is only valid for swap markets"))
 	}
@@ -3661,7 +3661,7 @@ func (this *Deepcoin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -3711,7 +3711,7 @@ func (this *Deepcoin) ParseFundingRateHistory(info any, optionalArgs ...any) any
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp(info, "CreateTime")
 	var instrumentID *string = this.SafeString2(info, "instrumentID", "instrumentId")
-	market = MapTyped(this.SafeMarket(instrumentID, market, nil, "swap"))
+	market = this.SafeMarket(instrumentID, market, nil, "swap")
 	return map[string]any{
 		"info":        info,
 		"symbol":      GetValue(market, "symbol"),
@@ -3898,7 +3898,7 @@ func (this *Deepcoin) closePositionBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var productGroup any = this.GetProductGroupFromMarket(market)
 	var positionId *string = this.SafeString(params, "positionId")
 	var positionIds []any = SafeListTyped(params, "positionIds")

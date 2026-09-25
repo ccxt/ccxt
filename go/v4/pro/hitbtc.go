@@ -295,7 +295,7 @@ func (this *Hitbtc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	} else if name != nil && *name == "orderbook/{depth}/{speed}/batch" {
 		name = ccxt.SafeStringPtr("orderbook/D" + *depth + "/" + *speed + "ms/batch")
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"params": map[string]any{
 			"symbols": []any{market["id"]},
@@ -340,7 +340,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var item any = data[marketId]
 		var messageHash string = "orderbooks::" + *symbol
@@ -523,7 +523,7 @@ func (this *Hitbtc) HandleTicker(client any, message map[string]any) {
 	var topic string = "tickers"
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data[marketId], market))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -670,7 +670,7 @@ func (this *Hitbtc) HandleBidAsk(client any, message map[string]any) {
 	var topic string = "bidask"
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var ticker any = this.ParseWsBidAsk(data[marketId], market)
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
@@ -729,7 +729,7 @@ func (this *Hitbtc) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"params": map[string]any{
 			"symbols": []any{market["id"]},
@@ -792,7 +792,7 @@ func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var stored any = this.SafeValue(this.Trades, symbol)
@@ -893,7 +893,7 @@ func (this *Hitbtc) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	var period *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "candles/" + *period
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"params": map[string]any{
 			"symbols": []any{market["id"]},
@@ -956,7 +956,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
@@ -1221,7 +1221,7 @@ func (this *Hitbtc) ParseWsOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *string = this.SafeString(order, "created_at")
 	var marketId *string = this.SafeString(order, "symbol")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var tradeId *string = this.SafeString(order, "trade_id")
 	var trades []any = nil
 	if tradeId != nil {
@@ -1343,7 +1343,7 @@ func (this *Hitbtc) createOrderWsBody(ch chan any, symbol any, typeVar any, side
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request any = map[string]any{}
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)

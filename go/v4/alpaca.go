@@ -866,7 +866,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var marketId *string = SafeStringPtr(market["id"])
 	var loc *string = this.SafeString(params, "loc", "us")
 	var method *string = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocTrades")
@@ -963,7 +963,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var id *string = SafeStringPtr(market["id"])
 	var loc *string = this.SafeString(params, "loc", "us")
 	var request map[string]any = map[string]any{
@@ -1055,7 +1055,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var marketId *string = SafeStringPtr(market["id"])
 	var loc *string = this.SafeString(params, "loc", "us")
 	var method *string = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
@@ -1322,7 +1322,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var marketIds []string = ObjectKeys(snapshots)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
-		var market map[string]any = MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var entry map[string]any = SafeMapTyped(snapshots, marketId)
 		var dailyBar map[string]any = SafeMapTyped(entry, "dailyBar")
 		var prevDailyBar map[string]any = SafeMapTyped(entry, "prevDailyBar")
@@ -1501,7 +1501,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var id *string = SafeStringPtr(market["id"])
 	var request map[string]any = map[string]any{
 		"symbol": id,
@@ -1695,7 +1695,7 @@ func (this *Alpaca) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 
 	var order map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params))).Raw))
 	var marketId *string = this.SafeString(order, "symbol")
-	var market map[string]any = MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -1992,7 +1992,7 @@ func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var alpacaStatus *string = this.SafeString(order, "status")
 	var status *string = this.ParseOrderStatus(alpacaStatus)
@@ -2240,7 +2240,7 @@ func (this *Alpaca) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"asset": currency["id"],
 	}
@@ -2312,7 +2312,7 @@ func (this *Alpaca) withdrawBody(ch chan any, code any, amount any, address any,
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	if (tag != nil) && (!IsEqual(tag, "")) {
 		address = Add(Add(address, ":"), tag)
 	}
@@ -2362,7 +2362,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 	}
 	var currency map[string]any = nil
 	if !IsEqual(code, nil) {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	var sandboxMode bool = this.IsSandboxModeEnabled || (this.SafeBool(this.Options, "sandboxMode", false) != nil && *this.SafeBool(this.Options, "sandboxMode", false))
 	if sandboxMode == true {

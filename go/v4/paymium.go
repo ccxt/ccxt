@@ -219,7 +219,7 @@ func (this *Paymium) ParseBalance(response any) any {
 	var currencies []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(currencies); i++ {
 		var code string = GetValue(currencies, i).(string)
-		var currency map[string]any = MapTyped(this.Currency(code))
+		var currency map[string]any = this.Currency(code)
 		var currencyId *string = SafeStringPtr(currency["id"])
 		var free string = "balance_" + *currencyId
 		if InOp(response, free) {
@@ -288,7 +288,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["id"],
 	}
@@ -372,7 +372,7 @@ func (this *Paymium) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["id"],
 	}
@@ -405,7 +405,7 @@ func (this *Paymium) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp(trade, "created_at_int")
 	var id *string = this.SafeString(trade, "uuid")
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	var side *string = this.SafeString(trade, "side")
 	var price *string = this.SafeString(trade, "price")
 	var amountField string = "traded_" + ToLower(GetValue(market, "base"))
@@ -456,7 +456,7 @@ func (this *Paymium) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["id"],
 	}
@@ -638,7 +638,7 @@ func (this *Paymium) createOrderBody(ch chan any, symbol any, typeVar any, side 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"type":      this.Capitalize(typeVar) + "Order",
 		"currency":  market["id"],
@@ -720,7 +720,7 @@ func (this *Paymium) transferBody(ch chan any, code any, amount any, fromAccount
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	if GetIndexOf(toAccount, "@") < 0 {
 		panic(ExchangeError(this.Id + " transfer() only allows transfers to an email address"))
 	}

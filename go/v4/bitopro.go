@@ -578,7 +578,7 @@ func (this *Bitopro) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "pair")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(market, "symbol")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -627,7 +627,7 @@ func (this *Bitopro) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -726,7 +726,7 @@ func (this *Bitopro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -795,7 +795,7 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) any {
 		timestamp = this.SafeInteger(trade, "timestamp")
 	}
 	var marketId *string = this.SafeString(trade, "pair")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(market, "symbol")
 	var price *string = this.SafeString(trade, "price")
 	var typeVar *string = this.SafeStringLower(trade, "type")
@@ -877,7 +877,7 @@ func (this *Bitopro) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1045,7 +1045,7 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"pair":       market["id"],
@@ -1285,7 +1285,7 @@ func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString2(order, "amount", "originalAmount")
 	var price *string = this.SafeString(order, "price")
 	var marketId *string = this.SafeString(order, "pair")
-	market = MapTyped(this.SafeMarket(marketId, market, "_"))
+	market = this.SafeMarket(marketId, market, "_")
 	var symbol *string = this.SafeString(market, "symbol")
 	var orderStatus *string = this.SafeString(order, "status")
 	var status any = this.ParseOrderStatus(orderStatus)
@@ -1362,7 +1362,7 @@ func (this *Bitopro) createOrderBody(ch chan any, symbol any, typeVar any, side 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"type":      typeVar,
 		"pair":      market["id"],
@@ -1441,7 +1441,7 @@ func (this *Bitopro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"id":   id,
 		"pair": market["id"],
@@ -1508,7 +1508,7 @@ func (this *Bitopro) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var id *string = SafeStringPtr(market["uppercaseId"])
 	var request map[string]any = map[string]any{}
 	if id != nil {
@@ -1560,7 +1560,7 @@ func (this *Bitopro) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	if symbol != nil {
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		request["pair"] = market["id"]
 
 		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersPair(this.Extend(request, params))).Raw))
@@ -1613,7 +1613,7 @@ func (this *Bitopro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"orderId": id,
 		"pair":    market["id"],
@@ -1682,7 +1682,7 @@ func (this *Bitopro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1843,7 +1843,7 @@ func (this *Bitopro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -2006,7 +2006,7 @@ func (this *Bitopro) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
+	var currency map[string]any = this.SafeCurrency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -2079,7 +2079,7 @@ func (this *Bitopro) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
+	var currency map[string]any = this.SafeCurrency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -2146,7 +2146,7 @@ func (this *Bitopro) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
+	var currency map[string]any = this.SafeCurrency(code)
 	var request map[string]any = map[string]any{
 		"serial":   id,
 		"currency": currency["id"],
@@ -2207,7 +2207,7 @@ func (this *Bitopro) withdrawBody(ch chan any, code any, amount any, address any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	this.CheckAddress(address)
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   this.NumberToString(amount),

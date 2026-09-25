@@ -318,7 +318,7 @@ func (this *Kraken) createOrderWsBody(ch chan any, symbol any, typeVar any, side
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 
 	var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.AuthenticateAsync())))
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2"))
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
@@ -676,7 +676,7 @@ func (this *Kraken) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var parsed any = this.ParseTrades(data, market)
 	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsed, i))
@@ -1012,7 +1012,7 @@ func (this *Kraken) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	var name string = "ohlc"
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2"))
 	var requestId int64 = this.RequestId()

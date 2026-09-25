@@ -2721,12 +2721,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(((Number)limit).intValue());
         }
-        Object cache = this.liquidations;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.liquidations;
         for (var i = 0; i < ((List<?>)rawLiquidations).size(); i++)
         {
             Object rawLiquidation = (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
             Object liquidation = this.parseWsLiquidation((Map<String, Object>) (rawLiquidation));
-            Helpers.callDynamically(cache, "append", new Object[]{liquidation});
+            cache.append(liquidation);
             String symbol = this.safeString(liquidation, "symbol");
             List<Object> symbolLiquidations = (List<Object>) this.safeList(cache, symbol, new ArrayList<Object>(Arrays.asList()));
             client.resolve(symbolLiquidations, ("myLiquidations::" + symbol));

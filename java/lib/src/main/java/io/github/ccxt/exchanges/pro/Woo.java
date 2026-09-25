@@ -1929,14 +1929,14 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Object messageHash = messageHash3;
             List<Position> positions = (this.fetchPositions(new Object[0])).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
-            Object cache = this.positions;
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
                 if ((!java.util.Objects.equals(contracts, null)) && (Helpers.isGreaterThan(contracts, 0)))
                 {
-                    Helpers.callDynamically(cache, "append", new Object[]{position});
+                    cache.append(position);
                 }
             }
             // don't remove the future from the .futures cache
@@ -1985,7 +1985,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)postitionsIds).size(); i++)
         {
@@ -1994,7 +1994,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Object rawPosition = (rawPositions == null || marketId == null ? null : rawPositions.get(marketId));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), market);
             ((List<Object>)newPositions).add(position);
-            Helpers.callDynamically(cache, "append", new Object[]{position});
+            cache.append(position);
             String messageHash = ("positions::" + ((Map<String, Object>)market).get("symbol"));
             client.resolve(position, messageHash);
         }

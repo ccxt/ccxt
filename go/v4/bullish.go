@@ -1132,7 +1132,7 @@ func (this *Bullish) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1207,7 +1207,7 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		ch <- BoxAbsent(retRes97919)
 		return nil
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1426,7 +1426,7 @@ func (this *Bullish) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(trade, "createdAtTimestamp")
 	var price *string = this.SafeString(trade, "price")
@@ -1490,7 +1490,7 @@ func (this *Bullish) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1580,7 +1580,7 @@ func (this *Bullish) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(ticker, "createdAtTimestamp")
 	return this.SafeTicker(map[string]any{
 		"symbol":        GetValue(market, "symbol"),
@@ -1726,7 +1726,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var maxLimit int = 100
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
@@ -1834,7 +1834,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		ch <- BoxAbsent(retRes144419)
 		return nil
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "swap") != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap markets only"))
 	}
@@ -2309,7 +2309,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
 	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"commandType":      "V3CreateOrder",
 		"symbol":           market["id"],
@@ -2393,7 +2393,7 @@ func (this *Bullish) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
 	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"commandType":      "V1AmendOrder",
 		"symbol":           market["id"],
@@ -2455,7 +2455,7 @@ func (this *Bullish) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol":           market["id"],
 		"tradingAccountId": tradingAccountId,
@@ -2582,7 +2582,7 @@ func (this *Bullish) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
 	if market == nil {
-		market = MapTyped(this.SafeMarket(marketId))
+		market = this.SafeMarket(marketId)
 	}
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var id *string = this.SafeString(order, "orderId")
@@ -2731,7 +2731,7 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 
 	ch <- this.ParseTransactions(data, currency, since, limit)
@@ -2768,7 +2768,7 @@ func (this *Bullish) withdrawBody(ch chan any, code any, amount any, address any
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 	// todo check this method properly
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"command": map[string]any{
 			"commandType":   "V1Withdraw",
@@ -3066,7 +3066,7 @@ func (this *Bullish) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	_ = params
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"symbol": currency["id"],
 	}
@@ -3161,7 +3161,7 @@ func (this *Bullish) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	var code *string = this.SafeString(params, "code")
 	if code != nil {
-		request["symbol"] = GetValue(this.Currency(code), "id")
+		request["symbol"] = this.Currency(code)["id"]
 
 		response = (<-this.PrivateGetV1AccountsAssetSymbol(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -3302,7 +3302,7 @@ func (this *Bullish) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	market = MapTyped(this.SafeMarket(this.SafeString(position, "symbol"), market))
+	market = this.SafeMarket(this.SafeString(position, "symbol"), market)
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(position, "createdAtTimestamp")
 	var side *string = this.SafeString(position, "side")
@@ -3394,7 +3394,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["assetSymbol"] = GetValue(currency, "id")
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -3457,7 +3457,7 @@ func (this *Bullish) transferBody(ch chan any, code any, amount any, fromAccount
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 	// todo check this method properly
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"commandType":          "V2TransferAsset",
 		"assetSymbol":          currency["id"],
@@ -3569,7 +3569,7 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
 
 	var tradingAccountId *string = SafeStringPtr(PanicOnError((<-this.LoadAccountAsync(params))))
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"assetSymbol":      currency["id"],
 		"tradingAccountId": tradingAccountId,
@@ -3658,7 +3658,7 @@ func (this *Bullish) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}

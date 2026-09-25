@@ -947,9 +947,9 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object positions = this.positions;
+        io.github.ccxt.ws.ArrayCache positions = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (message));
-        Helpers.callDynamically(positions, "append", new Object[]{parsed});
+        positions.append(parsed);
         String messageHash = "positions";
         client.resolve(parsed, messageHash);
         String symbol = (String) ((Map<String, Object>)parsed).get("symbol");

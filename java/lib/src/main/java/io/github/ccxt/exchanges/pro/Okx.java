@@ -1322,8 +1322,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(((Number)limit).intValue());
             }
-            Object cache = this.liquidations;
-            Helpers.callDynamically(cache, "append", new Object[]{liquidation});
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.liquidations;
+            cache.append(liquidation);
             client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), "liquidations");
             client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), ("liquidations::" + symbol));
         }
@@ -1461,8 +1461,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(((Number)limit).intValue());
             }
-            Object cache = this.liquidations;
-            Helpers.callDynamically(cache, "append", new Object[]{liquidation});
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.liquidations;
+            cache.append(liquidation);
             client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), "myLiquidations");
             client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), ("myLiquidations::" + symbol));
         }
@@ -2838,7 +2838,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -2849,11 +2849,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 position.put("side", "long");
                 Object shortPosition = this.clone(position);
                 Helpers.addElementToObject(shortPosition, "side", "short");
-                Helpers.callDynamically(cache, "append", new Object[]{shortPosition});
+                cache.append(shortPosition);
                 ((List<Object>)newPositions).add(shortPosition);
             }
             ((List<Object>)newPositions).add(position);
-            Helpers.callDynamically(cache, "append", new Object[]{position});
+            cache.append(position);
         }
         String messageHash = channel;
         if (!java.util.Objects.equals(symbol, null))
