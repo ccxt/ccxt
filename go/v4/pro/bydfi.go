@@ -198,7 +198,7 @@ func (this *Bydfi) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", symbol))
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add(marketId, "@ticker"))
@@ -561,7 +561,7 @@ func (this *Bydfi) HandleOHLCV(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "s")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(message, "i")
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
@@ -883,7 +883,7 @@ func (this *Bydfi) HandleOrder(client any, message any) {
 	//
 	var rawOrder map[string]any = ccxt.MapTyped(this.SafeDict(message, "o", map[string]any{}))
 	var marketId *string = this.SafeString(rawOrder, "s")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "orders"
 	var symbolMessageHash string = messageHash + "::" + *symbol
@@ -926,7 +926,7 @@ func (this *Bydfi) ParseWsOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "s")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var rawStatus *string = this.SafeString(order, "st")
 	var rawType *string = this.SafeString(order, "t")
 	var fee map[string]any = nil
@@ -1065,7 +1065,7 @@ func (this *Bydfi) HandlePositions(client any, message any) {
 	var positionsData []any = ccxt.SafeListTyped(data, "p")
 	var rawPosition map[string]any = ccxt.MapTyped(this.SafeDict(positionsData, 0, map[string]any{}))
 	var marketId *string = this.SafeString(rawPosition, "s")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "positions"
 	var symbolMessageHash string = messageHash + "::" + *symbol
@@ -1105,7 +1105,7 @@ func (this *Bydfi) ParseWsPosition(position map[string]any, optionalArgs ...any)
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "s")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var rawPositionSide *string = this.SafeString(position, "S")
 	var positionMode *string = this.SafeString(position, "pt")
 	return this.SafePosition(map[string]any{

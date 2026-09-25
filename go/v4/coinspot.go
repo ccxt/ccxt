@@ -703,7 +703,7 @@ func (this *Coinspot) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"cointype": market["id"],
 	}
@@ -774,7 +774,7 @@ func (this *Coinspot) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetLatest(params)).Raw))
 	var id *string = this.SafeString(market, "id", "")
@@ -847,7 +847,7 @@ func (this *Coinspot) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var ids []string = ObjectKeys(prices)
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
-		var market map[string]any = MapTyped(this.SafeMarket(id))
+		var market map[string]any = this.SafeMarket(id)
 		if market["spot"] == true {
 			var symbol *string = SafeStringPtr(market["symbol"])
 			var ticker any = prices[id]
@@ -888,7 +888,7 @@ func (this *Coinspot) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"cointype": market["id"],
 	}
@@ -1096,7 +1096,7 @@ func (this *Coinspot) createOrderBody(ch chan any, symbol any, typeVar any, side
 	if IsEqual(typeVar, "market") {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"cointype": market["id"],
 		"amount":   amount,

@@ -174,7 +174,7 @@ func (this *Coinex) HandleTicker(client any, message map[string]any) {
 		}()
 		var marketId *string = this.SafeString(entry, "market")
 		var symbol *string = this.SafeSymbol(marketId, nil, nil, defaultType)
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, defaultType))
+		var market map[string]any = this.SafeMarket(marketId, nil, nil, defaultType)
 		var parsedTicker any = this.ParseWSTicker(entry, market)
 		ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
 		ccxt.AddElementToObject(newTickers, symbol, parsedTicker)
@@ -554,7 +554,7 @@ func (this *Coinex) HandleMyTrades(client any, message map[string]any) {
 	if isSpot {
 		defaultType = "spot"
 	}
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, defaultType))
+	var market map[string]any = this.SafeMarket(marketId, nil, nil, defaultType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "myTrades:" + *symbol
 	var messageWithType *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", market["type"]))
@@ -618,7 +618,7 @@ func (this *Coinex) HandleTrades(client any, message map[string]any) {
 	if isSpot {
 		defaultType = "spot"
 	}
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, defaultType))
+	var market map[string]any = this.SafeMarket(marketId, nil, nil, defaultType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trades:" + *symbol
 	var stored any = this.SafeValue(this.Trades, symbol)
@@ -687,7 +687,7 @@ func (this *Coinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 		defaultType = "spot"
 	}
 	var marketId *string = this.SafeString(trade, "market")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
+	market = this.SafeMarket(marketId, market, nil, defaultType)
 	var fee map[string]any = map[string]any{}
 	var feeCost any = this.OmitZero(this.SafeString(trade, "fee"))
 	if feeCost != nil {
@@ -738,7 +738,7 @@ func (this *Coinex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 
 	var tickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchTickersAsync([]any{symbol}, params))))
 
@@ -1077,7 +1077,7 @@ func (this *Coinex) HandleOrderBook(client any, message map[string]any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var depth map[string]any = ccxt.MapTyped(this.SafeDict(data, "depth", map[string]any{}))
 	var marketId *string = this.SafeString(data, "market")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, defaultType))
+	var market map[string]any = this.SafeMarket(marketId, nil, nil, defaultType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "orderbook"
 	var messageHash string = name + ":" + *symbol
@@ -1312,7 +1312,7 @@ func (this *Coinex) HandleOrders(client any, message map[string]any) {
 	}, this.SafeDict2(data, "order", "stop", map[string]any{}))
 	var parsedOrder map[string]any = ccxt.MapTyped(this.ParseWsOrder(order))
 	var symbol *string = ccxt.SafeStringPtr(parsedOrder["symbol"])
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1424,7 +1424,7 @@ func (this *Coinex) ParseWsOrder(order any, optionalArgs ...any) any {
 	if isSpot {
 		defaultType = "spot"
 	}
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
+	market = this.SafeMarket(marketId, market, nil, defaultType)
 	var fee map[string]any = nil
 	var feeCost any = this.OmitZero(this.SafeString2(order, "fee", "quote_ccy_fee"))
 	if feeCost != nil {
@@ -1573,7 +1573,7 @@ func (this *Coinex) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 	_ = market
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var marketId *string = this.SafeString(ticker, "market")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
+	market = this.SafeMarket(marketId, market, nil, defaultType)
 	var timestamp *int64 = this.SafeInteger(ticker, "updated_at")
 	return this.SafeTicker(map[string]any{
 		"symbol":    this.SafeSymbol(marketId, market, nil, defaultType),

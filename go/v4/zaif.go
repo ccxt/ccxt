@@ -490,7 +490,7 @@ func (this *Zaif) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -566,7 +566,7 @@ func (this *Zaif) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -661,7 +661,7 @@ func (this *Zaif) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -724,7 +724,7 @@ func (this *Zaif) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	if !IsEqual(typeVar, "limit") {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency_pair": market["id"],
 		"action": func() string {
@@ -985,7 +985,7 @@ func (this *Zaif) withdrawBody(ch chan any, code any, amount any, address any, o
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	if IsEqual(code, "JPY") {
 		panic(ExchangeError(Add(Add(this.Id+" withdraw() does not allow ", code), " withdrawals")))
 	}
@@ -1036,7 +1036,7 @@ func (this *Zaif) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	currency = MapTyped(this.SafeCurrency(nil, currency))
+	currency = this.SafeCurrency(nil, currency)
 	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	if feeCost != nil {

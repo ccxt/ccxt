@@ -2345,6 +2345,11 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     {
         return this.fetchMarketsWs(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    //            },
+    //            ...
+    //        ]
+    //    }
+    //
     public CompletableFuture<Object> fetchMarketsWs(Map<String, Object> parameters)
     {
         return this.fetchMarketsWs((Object) (parameters));

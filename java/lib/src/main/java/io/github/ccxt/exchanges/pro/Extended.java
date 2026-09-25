@@ -611,7 +611,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object stored = this.positions;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
@@ -630,7 +630,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             }
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
             ((List<Object>)newPositions).add(position);
-            Helpers.callDynamically(stored, "append", new Object[]{position});
+            stored.append(position);
         }
         Object messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)

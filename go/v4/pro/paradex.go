@@ -137,7 +137,7 @@ func (this *Paradex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var messageHash any = "trades."
 	if !ccxt.IsEqual(symbol, nil) {
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		messageHash = ccxt.Add(messageHash, market["id"])
 	} else {
 		messageHash = ccxt.Add(messageHash, "ALL")
@@ -219,7 +219,7 @@ func (this *Paradex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("order_book.", market["id"]), ".snapshot@15@100ms"))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
@@ -268,7 +268,7 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = ccxt.SafeMapTyped(params, "data")
 	var marketId *string = this.SafeString(data, "market")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var timestamp *int64 = this.SafeInteger(data, "last_updated_at")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
@@ -285,11 +285,11 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 		var price *string = this.SafeString(insert, "price")
 		var size *string = this.SafeString(insert, "size")
 		if side != nil && *side == "BUY" {
-			retRes23816 := orderbookData["bids"]
-			ccxt.AppendToArray(&retRes23816, []any{price, size})
+			retRes23916 := orderbookData["bids"]
+			ccxt.AppendToArray(&retRes23916, []any{price, size})
 		} else {
-			retRes24016 := orderbookData["asks"]
-			ccxt.AppendToArray(&retRes24016, []any{price, size})
+			retRes24116 := orderbookData["asks"]
+			ccxt.AppendToArray(&retRes24116, []any{price, size})
 		}
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
@@ -433,7 +433,7 @@ func (this *Paradex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "orders"
 	var channel any = "orders."
 	if symbol != nil {
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		symbol = market["symbol"]
 		channel = ccxt.Add(channel, market["id"])
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
@@ -529,7 +529,7 @@ func (this *Paradex) HandleTicker(client any, message map[string]any) any {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var channel *string = this.SafeString(params, "channel")
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, "."), symbol))

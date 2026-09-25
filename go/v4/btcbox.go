@@ -423,7 +423,7 @@ func (this *Btcbox) ParseBalance(response any) any {
 	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(codes); i++ {
 		var code string = GetValue(codes, i).(string)
-		var currency map[string]any = MapTyped(this.Currency(code))
+		var currency map[string]any = this.Currency(code)
 		var currencyId *string = SafeStringPtr(currency["id"])
 		var free string = *currencyId + "_balance"
 		if InOp(response, free) {
@@ -492,7 +492,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
@@ -556,7 +556,7 @@ func (this *Btcbox) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
@@ -614,7 +614,7 @@ func (this *Btcbox) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp(trade, "date")
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	var id *string = this.SafeString(trade, "tid")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
@@ -666,7 +666,7 @@ func (this *Btcbox) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
@@ -719,7 +719,7 @@ func (this *Btcbox) createOrderBody(ch chan any, symbol any, typeVar any, side a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"amount": amount,
 		"price":  price,
@@ -769,7 +769,7 @@ func (this *Btcbox) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	if symbol == nil {
 		symbol = SafeStringPtr("BTC/JPY")
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"id":   id,
 		"coin": market["baseId"],
@@ -829,7 +829,7 @@ func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var trades any = nil // todo: this.parseTrades (order['trades']);
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	var side *string = this.SafeString(order, "type")
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
@@ -886,7 +886,7 @@ func (this *Btcbox) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	if symbol == nil {
 		symbol = SafeStringPtr("BTC/JPY")
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.Extend(map[string]any{
 		"id":   id,
 		"coin": market["baseId"],
@@ -933,7 +933,7 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan any, typeVar any, optionalArgs
 	if symbol == nil {
 		symbol = SafeStringPtr("BTC/JPY")
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"type": typeVar,
 		"coin": market["baseId"],

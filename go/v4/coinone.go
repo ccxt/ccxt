@@ -705,7 +705,7 @@ func (this *Coinone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"quote_currency":  market["quote"],
 		"target_currency": market["base"],
@@ -849,7 +849,7 @@ func (this *Coinone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"quote_currency":  market["quote"],
 		"target_currency": market["base"],
@@ -982,7 +982,7 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side *string = nil
 	if isSellerMaker != nil {
@@ -1060,7 +1060,7 @@ func (this *Coinone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"quote_currency":  market["quote"],
 		"target_currency": market["base"],
@@ -1131,7 +1131,7 @@ func (this *Coinone) createOrderBody(ch chan any, symbol any, typeVar any, side 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	// the v1 order/limit_buy and order/limit_sell endpoints were retired by
 	// the exchange and return 404, the v2.1 order endpoint replaces them,
 	// see https://github.com/ccxt/ccxt/issues/23174
@@ -1185,7 +1185,7 @@ func (this *Coinone) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"order_id": id,
 		"currency": market["id"],
@@ -1287,7 +1287,7 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol any = nil
 	if (base != nil) && (quote != nil) {
 		symbol = Add(Add(base, "/"), quote)
-		market = MapTyped(this.SafeMarket(symbol, market, "/"))
+		market = this.SafeMarket(symbol, market, "/")
 	}
 	var timestamp *int64 = this.SafeTimestamp2(order, "timestamp", "updatedAt")
 	if timestamp == nil {
@@ -1388,7 +1388,7 @@ func (this *Coinone) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"quote_currency":  market["quoteId"],
 		"target_currency": market["baseId"],
@@ -1451,7 +1451,7 @@ func (this *Coinone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["id"],
 	}

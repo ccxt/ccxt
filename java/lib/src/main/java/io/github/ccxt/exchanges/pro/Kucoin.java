@@ -3900,7 +3900,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             this.setPositionsCache(client, uta);
             Object fetchPositionSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-            Object cache = this.positions;
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             if ((java.util.Objects.equals(fetchPositionSnapshot, true)) && (java.util.Objects.equals(awaitPositionSnapshot, true)) && (java.util.Objects.equals(cache, null)))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
@@ -3979,14 +3979,14 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 put( "uta", uta );
             }}))).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
-            Object cache = this.positions;
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
                 if (Helpers.isGreaterThan(contracts, 0))
                 {
-                    Helpers.callDynamically(cache, "append", new Object[]{position});
+                    cache.append(position);
                 }
             }
             // don't remove the future from the .futures cache
@@ -4022,8 +4022,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object messageHash = messageHash3;
             Position position = (this.fetchPosition((Object)(symbol))).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
-            Object cache = this.positions;
-            Helpers.callDynamically(cache, "append", new Object[]{position});
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
+            cache.append(position);
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
@@ -4134,7 +4134,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote(":"))));
         String marketId = this.safeString(parts, 1);
         String symbol = this.safeSymbol(marketId, null, "");
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Object currentPosition = this.getCurrentPosition(symbol);
         String messageHash = ("position:" + symbol);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
@@ -4149,7 +4149,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
         }
         Map<String, Object> position = this.extend(currentPosition, newPosition);
-        Helpers.callDynamically(cache, "append", new Object[]{position});
+        cache.append(position);
         client.resolve(position, messageHash);
     }
 
@@ -4187,7 +4187,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "d", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         String symbol = this.safeSymbol(marketId);
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Object currentPosition = this.getCurrentPosition(symbol);
         Object newPosition = this.parseWsUtaPosition((Map<String, Object>) (data));
         List<String> keys = new ArrayList<String>(((Map<String, Object>)newPosition).keySet());
@@ -4200,7 +4200,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
         }
         Map<String, Object> position = this.extend(currentPosition, newPosition);
-        Helpers.callDynamically(cache, "append", new Object[]{position});
+        cache.append(position);
         String messageHash = "positions";
         String symbolMessageHash = ((messageHash + ":") + symbol);
         client.resolve(this.positions, messageHash);

@@ -807,7 +807,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	var messageHashes []any = []any{}
 	var firstEntry []any = ccxt.SafeListTyped(symbolsAndTimeframes, 0)
 	var firstSymbol *string = this.SafeString(firstEntry, 0)
-	var firstMarket map[string]any = ccxt.MapTyped(this.Market(firstSymbol))
+	var firstMarket map[string]any = this.Market(firstSymbol)
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
 	var priceType any = "LAST_PRICE"
 	if isContract != nil && *isContract == true {
@@ -903,7 +903,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	var unSubHashes []any = []any{}
 	var firstEntry []any = ccxt.SafeListTyped(symbolsAndTimeframes, 0)
 	var firstSymbol *string = this.SafeString(firstEntry, 0)
-	var firstMarket map[string]any = ccxt.MapTyped(this.Market(firstSymbol))
+	var firstMarket map[string]any = this.Market(firstSymbol)
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
 	var priceType any = "LAST_PRICE"
 	if isContract != nil && *isContract == true {
@@ -1610,7 +1610,7 @@ func (this *Weex) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any 
 	if positionSide != nil {
 		marketType = "swap"
 	}
-	var marketResolved map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var marketResolved map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	market = marketResolved
 	var side *string = this.SafeStringLower(trade, "orderSide")
 	var fee map[string]any = nil
@@ -1928,7 +1928,7 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) any {
 	if positionSide != nil {
 		marketType = "swap"
 	}
-	var marketResolved map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var marketResolved map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	market = marketResolved
 	var side *string = this.SafeStringLower(order, "orderSide")
 	var fee map[string]any = nil
@@ -2385,7 +2385,7 @@ func (this *Weex) GetMarketFromClientAndMessage(client any, message any) any {
 		marketType = "swap"
 	}
 	var marketId *string = this.SafeString(message, "s")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	return market
 }
 func (this *Weex) PongAsync(client any, message any) <-chan any {

@@ -493,7 +493,7 @@ func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel any, messag
 	if !ccxt.IsEqual(symbol, nil) {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		symbol = market["symbol"]
 		var symbols []any = []any{symbol}
 		var marketIds any = this.MarketIds(symbols)
@@ -677,7 +677,7 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "order_timestamp"))
 	var status *string = this.ParseWsOrderStatus(this.SafeString(order, "state"))
 	var marketId *string = this.SafeString(order, "code")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(order, "paid_fee")
 	if feeCost != nil {
@@ -723,7 +723,7 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "trade_timestamp"))
 	var marketId *string = this.SafeString(trade, "code")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "paid_fee")
 	if feeCost != nil {

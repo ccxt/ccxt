@@ -2011,7 +2011,7 @@ func (this *BaseExchange) FeatureValue(symbol any, optionalArgs ...any) any {
 	defaultValue := GetArg(optionalArgs, 2, nil)
 	_ = defaultValue
 
-	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+	var market map[string]any = this.DerivedExchange.Market(symbol)
 	PanicOnError(market)
 	return this.FeatureValueByType(market["type"], market["subType"], methodName, paramName, defaultValue)
 }
@@ -2152,7 +2152,7 @@ func (this *BaseExchange) GetDefaultOptions() any {
 func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	currency = MapTyped(this.SafeCurrency(nil, currency))
+	currency = this.SafeCurrency(nil, currency)
 	var direction *string = this.SafeString(entry, "direction")
 	var before *string = this.SafeString(entry, "before")
 	var after *string = this.SafeString(entry, "after")
@@ -3870,7 +3870,7 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) any {
 	var isLinearSubType any = nil
 	for i := 0; i < GetArrayLength(symbols); i++ {
 
-		var market map[string]any = MapTyped(this.DerivedExchange.Market(GetValue(symbols, i)))
+		var market map[string]any = this.DerivedExchange.Market(GetValue(symbols, i))
 		PanicOnError(market)
 		if (sameTypeOnly == true) && (marketType != nil) {
 			if GetValue(market, "type") != marketType {
@@ -4651,7 +4651,7 @@ func (this *BaseExchange) Symbol(symbol any) any {
 		panic(ArgumentsRequired(this.Id + " symbol() requires a symbol argument"))
 	}
 
-	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+	var market map[string]any = this.DerivedExchange.Market(symbol)
 	PanicOnError(market)
 	return this.SafeString(market, "symbol", symbol)
 }
@@ -5159,26 +5159,26 @@ func (this *BaseExchange) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) 
 	}
 	return bidAsk
 }
-func (this *BaseExchange) SafeCurrency(currencyId any, optionalArgs ...any) any {
+func (this *BaseExchange) SafeCurrency(currencyId any, optionalArgs ...any) map[string]any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	if (IsEqual(currencyId, nil)) && (currency != nil) {
-		return currency
+		return MapTyped(currency)
 	}
 	if (!IsEqual(currencyId, nil)) && (this.Currencies_by_id != nil) && (InOp(this.Currencies_by_id, currencyId)) && (!IsEqual(GetValue(this.Currencies_by_id, currencyId), nil)) {
-		return GetValue(this.Currencies_by_id, currencyId)
+		return MapTyped(GetValue(this.Currencies_by_id, currencyId))
 	}
 	var code any = currencyId
 	if !IsEqual(currencyId, nil) {
 		code = this.CommonCurrencyCode(ToUpper(currencyId))
 	}
-	return this.SafeCurrencyStructure(map[string]any{
+	return MapTyped(this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
 		"code":      code,
 		"precision": nil,
-	})
+	}))
 }
-func (this *BaseExchange) SafeMarket(optionalArgs ...any) any {
+func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 	marketId := GetArg(optionalArgs, 0, nil)
 	_ = marketId
 	market := GetArg(optionalArgs, 1, nil)
@@ -5192,7 +5192,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) any {
 			var markets any = GetValue(this.Markets_by_id, marketId)
 			var numMarkets int = GetArrayLength(markets)
 			if IsEqual(numMarkets, 1) {
-				return GetValue(markets, 0)
+				return MapTyped(GetValue(markets, 0))
 			} else {
 				if marketType == nil {
 					if market == nil {
@@ -5204,7 +5204,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) any {
 				for i := 0; i < GetArrayLength(markets); i++ {
 					var currentMarket any = GetValue(markets, i)
 					if IsEqual(GetValue(currentMarket, marketType), true) {
-						return currentMarket
+						return MapTyped(currentMarket)
 					}
 				}
 			}
@@ -5239,11 +5239,11 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) any {
 					AddElementToObject(result, "symbol", Add(Add(base, "/"), quote))
 				}
 			}
-			return result
+			return MapTyped(result)
 		}
 	}
 	if market != nil {
-		return market
+		return MapTyped(market)
 	}
 	var emptyMarket any = this.SafeMarketStructure(map[string]any{
 		"symbol":   marketId,
@@ -5252,7 +5252,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) any {
 	if IsEqual(emptyMarket, nil) {
 		panic(ExchangeError(this.Id + " safeMarket() failed to build market structure"))
 	}
-	return emptyMarket
+	return MapTyped(emptyMarket)
 }
 func (this *BaseExchange) MarketOrNull(optionalArgs ...any) any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5998,7 +5998,7 @@ func (this *BaseExchange) fetchPositionADLRankBody(ch chan any, symbol any, opti
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 
-		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		symbol = market["symbol"]
 
@@ -6507,7 +6507,7 @@ func (this *BaseExchange) CommonCurrencyCode(code any) any {
 	}
 	return this.SafeString(this.CommonCurrencies, code, code)
 }
-func (this *BaseExchange) Currency(code any) any {
+func (this *BaseExchange) Currency(code any) map[string]any {
 	if IsEqual(code, nil) {
 		panic(ArgumentsRequired(this.Id + " currency() requires a code argument"))
 	}
@@ -6520,9 +6520,9 @@ func (this *BaseExchange) Currency(code any) any {
 		var currencies any = this.Currencies
 		var currenciesById any = this.Currencies_by_id
 		if InOp(currencies, code) {
-			return GetValue(currencies, code)
+			return MapTyped(GetValue(currencies, code))
 		} else if (!IsEqual(currenciesById, nil)) && (InOp(currenciesById, code)) {
-			return GetValue(currenciesById, code)
+			return MapTyped(GetValue(currenciesById, code))
 		}
 	}
 	panic(ExchangeError(Add(this.Id+" does not have currency code ", code)))
@@ -6602,7 +6602,7 @@ func (this *BaseExchange) CostToPrecision(symbol any, cost any) any {
 		return nil
 	}
 
-	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+	var market map[string]any = this.DerivedExchange.Market(symbol)
 	PanicOnError(market)
 	return this.DecimalToPrecision(cost, TRUNCATE, this.SafeString2(market["precision"], "cost", "price"), this.PrecisionMode, this.PaddingMode)
 }
@@ -6611,7 +6611,7 @@ func (this *BaseExchange) PriceToPrecision(symbol any, price any) *string {
 		return SafeStringPtr(nil)
 	}
 
-	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+	var market map[string]any = this.DerivedExchange.Market(symbol)
 	PanicOnError(market)
 	var result string = this.DecimalToPrecision(price, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
 	if result == "0" {
@@ -6624,7 +6624,7 @@ func (this *BaseExchange) AmountToPrecision(symbol any, amount any) *string {
 		return SafeStringPtr(nil)
 	}
 
-	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+	var market map[string]any = this.DerivedExchange.Market(symbol)
 	PanicOnError(market)
 	var result string = this.DecimalToPrecision(amount, TRUNCATE, GetValue(market["precision"], "amount"), this.PrecisionMode, this.PaddingMode)
 	if result == "0" {
@@ -6637,7 +6637,7 @@ func (this *BaseExchange) FeeToPrecision(symbol any, fee any) any {
 		return nil
 	}
 
-	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+	var market map[string]any = this.DerivedExchange.Market(symbol)
 	PanicOnError(market)
 	return this.DecimalToPrecision(fee, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
 }
@@ -6769,7 +6769,7 @@ func (this *BaseExchange) fetchMarketLeverageTiersBody(ch chan any, symbol any, 
 	_ = params
 	if !IsEqual(this.Has["fetchLeverageTiers"], nil) && !IsEqual(this.Has["fetchLeverageTiers"], false) {
 
-		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		if GetValue(market, "contract") != true {
 			panic(BadSymbol(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
@@ -6799,7 +6799,7 @@ func (this *BaseExchange) createSubAccountBody(ch chan any, name any, optionalAr
 func (this *BaseExchange) SafeCurrencyCode(currencyId any, optionalArgs ...any) *string {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	currency = MapTyped(this.SafeCurrency(currencyId, currency))
+	currency = this.SafeCurrency(currencyId, currency)
 	return SafeStringPtr(currency["code"])
 }
 func (this *BaseExchange) FilterBySymbolSinceLimit(array any, optionalArgs ...any) any {
@@ -6871,7 +6871,7 @@ func (this *BaseExchange) ParseLastPrices(pricesData any, optionalArgs ...any) a
 		for i := 0; i < len(marketIds); i++ {
 			var marketId string = GetValue(marketIds, i).(string)
 
-			var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId))
+			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
 			var priceData map[string]any = this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, marketId), market), params)
 			results = append(results, priceData)
@@ -6921,7 +6921,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
 		for i := 0; i < len(marketIds); i++ {
 			var marketId string = GetValue(marketIds, i).(string)
 
-			var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId))
+			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
 
 			var parsed map[string]any = MapTyped(this.DerivedExchange.ParseTicker(GetValue(tickers, marketId), market))
@@ -7018,7 +7018,7 @@ func (this *BaseExchange) SafeSymbol(marketId any, optionalArgs ...any) *string 
 	_ = delimiter
 	var marketType *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = marketType
-	market = MapTyped(this.DerivedExchange.SafeMarket(marketId, market, delimiter, marketType))
+	market = this.DerivedExchange.SafeMarket(marketId, market, delimiter, marketType)
 	return SafeStringPtr(market["symbol"])
 }
 func (this *BaseExchange) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -7313,7 +7313,7 @@ func (this *BaseExchange) fetchFundingRateBody(ch chan any, symbol any, optional
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 
-		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		symbol = market["symbol"]
 		if GetValue(market, "contract") != true {
@@ -7348,7 +7348,7 @@ func (this *BaseExchange) fetchFundingIntervalBody(ch chan any, symbol any, opti
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 
-		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		symbol = market["symbol"]
 		if GetValue(market, "contract") != true {
@@ -7519,7 +7519,7 @@ func (this *BaseExchange) ConvertTypeToAccount(account any) any {
 	var marketsById any = this.Markets_by_id
 	if ((!IsEqual(markets, nil)) && (InOp(markets, account))) || ((!IsEqual(marketsById, nil)) && (InOp(marketsById, account))) {
 
-		var market map[string]any = MapTyped(this.DerivedExchange.Market(account))
+		var market map[string]any = this.DerivedExchange.Market(account)
 		PanicOnError(market)
 		return market["id"]
 	} else {
@@ -7598,7 +7598,7 @@ func (this *BaseExchange) ParseDepositWithdrawFees(response any, optionalArgs ..
 				return this.SafeString(dictionary, currencyIdKey)
 			}()
 		}
-		var currency map[string]any = this.SafeCurrency(currencyId).(map[string]any)
+		var currency map[string]any = this.SafeCurrency(currencyId)
 		var code *string = this.SafeString(currency, "code")
 		if (codes == nil) || (this.InArray(code, codes)) {
 			AddElementToObject(depositWithdrawFees, code, this.DerivedExchange.ParseDepositWithdrawFee(dictionary, currency))
@@ -8532,7 +8532,7 @@ func (this *BaseExchange) ParseAllGreeks(greeks any, optionalArgs ...any) any {
 		for i := 0; i < len(marketIds); i++ {
 			var marketId string = GetValue(marketIds, i).(string)
 
-			var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId))
+			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
 
 			var parsed any = this.DerivedExchange.ParseGreeks(GetValue(greeks, marketId), market)
@@ -8565,7 +8565,7 @@ func (this *BaseExchange) ParseOptionChain(response any, optionalArgs ...any) an
 			}
 			return this.SafeString(info, currencyKey)
 		}()
-		var currency map[string]any = this.SafeCurrency(currencyId).(map[string]any)
+		var currency map[string]any = this.SafeCurrency(currencyId)
 		var marketId *string = func() *string {
 			if symbolKey == nil {
 				return nil
@@ -8573,7 +8573,7 @@ func (this *BaseExchange) ParseOptionChain(response any, optionalArgs ...any) an
 			return this.SafeString(info, symbolKey)
 		}()
 
-		var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId, nil, nil, "option"))
+		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, "option")
 		PanicOnError(market)
 		AddElementToObject(optionStructures, market["symbol"], this.DerivedExchange.ParseOption(info, currency, market))
 	}
@@ -8599,7 +8599,7 @@ func (this *BaseExchange) ParseMarginModes(response any, optionalArgs ...any) an
 			return this.SafeString(info, symbolKey)
 		}()
 
-		var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType))
+		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType)
 		PanicOnError(market)
 		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
 			AddElementToObject(marginModeStructures, market["symbol"], this.DerivedExchange.ParseMarginMode(info, market))
@@ -8632,7 +8632,7 @@ func (this *BaseExchange) ParseLeverages(response any, optionalArgs ...any) any 
 			return this.SafeString(info, symbolKey)
 		}()
 
-		var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType))
+		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType)
 		PanicOnError(market)
 		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
 			AddElementToObject(leverageStructures, market["symbol"], this.DerivedExchange.ParseLeverage(info, market))
@@ -8682,10 +8682,10 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 			return this.SafeString(entry, toCurrencyKey)
 		}()
 		if fromId != nil {
-			fromCurrency = MapTyped(this.SafeCurrency(fromId))
+			fromCurrency = this.SafeCurrency(fromId)
 		}
 		if toId != nil {
-			toCurrency = MapTyped(this.SafeCurrency(toId))
+			toCurrency = this.SafeCurrency(toId)
 		}
 		var conversion map[string]any = this.Extend(this.DerivedExchange.ParseConversion(entry, fromCurrency, toCurrency), params)
 		result = append(result, conversion)
@@ -8693,7 +8693,7 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 	var sorted []any = this.SortBy(result, "timestamp")
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.SafeCurrency(code))
+		currency = this.SafeCurrency(code)
 		if IsEqual(currency, nil) {
 			panic(ExchangeError(this.Id + " parseConversions() could not resolve currency"))
 		}
@@ -8837,7 +8837,7 @@ func (this *BaseExchange) ParseMarginModifications(response any, optionalArgs ..
 			return this.SafeString(info, symbolKey)
 		}()
 
-		var market map[string]any = MapTyped(this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType))
+		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType)
 		PanicOnError(market)
 		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
 			marginModifications = append(marginModifications, this.DerivedExchange.ParseMarginModification(info, market))
@@ -9338,7 +9338,7 @@ func (this *Exchange) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 
-		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		symbol = market["symbol"]
 
@@ -10175,7 +10175,7 @@ func (this *Exchange) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 
-		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		symbol = market["symbol"]
 
@@ -10546,7 +10546,7 @@ func (this *Exchange) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 
-		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
+		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		symbol = market["symbol"]
 

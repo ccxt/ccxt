@@ -69,7 +69,7 @@ func (this *Ndax) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var name string = "SubscribeLevel1"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
@@ -118,7 +118,7 @@ func (this *Ndax) HandleTicker(client any, message map[string]any) {
 	//
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(payload))
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	}
@@ -157,7 +157,7 @@ func (this *Ndax) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var name string = "SubscribeTrades"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
@@ -236,7 +236,7 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 	var symbols []string = ccxt.ObjectKeys(updates)
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = ccxt.GetValue(symbols, i).(string)
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
 		var tradesArray any = this.SafeValue(this.Trades, symbol)
 		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
@@ -276,7 +276,7 @@ func (this *Ndax) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var name string = "SubscribeTicker"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":"+timeframe+":", market["id"]))
@@ -334,8 +334,8 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 	for i := 0; i < len(payload); i++ {
 		var ohlcv []any = ccxt.SafeListTyped(payload, i)
 		var marketId *string = this.SafeString(ohlcv, 8)
-		var market any = this.SafeMarket(marketId)
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		var market map[string]any = this.SafeMarket(marketId)
+		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		if marketId != nil {
 			ccxt.AddElementToObject(updates, marketId, map[string]any{})
 		}
@@ -450,8 +450,8 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 		for j := 0; j < len(timeframes); j++ {
 			var timeframe string = ccxt.GetValue(timeframes, j).(string)
 			var messageHash string = name + ":" + timeframe + ":" + marketId
-			var market any = this.SafeMarket(marketId)
-			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+			var market map[string]any = this.SafeMarket(marketId)
+			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 			var stored any = this.SafeList(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, []any{})
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		}
@@ -485,7 +485,7 @@ func (this *Ndax) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var name string = "SubscribeLevel2"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
@@ -554,7 +554,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	if marketId == nil {
 		return
 	}
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {

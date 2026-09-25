@@ -1004,7 +1004,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
         List<Object> data = (List<Object>) this.safeList(message, "data");
@@ -1013,7 +1013,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
             ((List<Object>)newPositions).add(position);
-            Helpers.callDynamically(cache, "append", new Object[]{position});
+            cache.append(position);
             String messageHash = Helpers.add((channelName + ":"), ((Map<String, Object>)position).get("symbol"));
             client.resolve(position, messageHash);
         }

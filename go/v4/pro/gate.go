@@ -195,7 +195,7 @@ func (this *Gate) createOrderWsBody(ch chan any, symbol any, typeVar any, side a
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_place")
@@ -238,7 +238,7 @@ func (this *Gate) createOrdersWsBody(ch chan any, orders any, optionalArgs ...an
 	}
 	var request any = this.CreateOrdersRequest(orders, params)
 	var firstOrder map[string]any = ccxt.MapTyped(ccxt.GetValue(orders, 0))
-	var market map[string]any = ccxt.MapTyped(this.Market(firstOrder["symbol"]))
+	var market map[string]any = this.Market(firstOrder["symbol"])
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " createOrdersWs is not supported for swap markets"))
 	}
@@ -415,7 +415,7 @@ func (this *Gate) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var extendedRequest any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_amend")
@@ -511,8 +511,8 @@ func (this *Gate) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes36415 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersByStatusWsAsync("open", symbol, since, limit, params))))
-	ch <- ccxt.BoxAbsent(retRes36415)
+	var retRes36515 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersByStatusWsAsync("open", symbol, since, limit, params))))
+	ch <- ccxt.BoxAbsent(retRes36515)
 	return nil
 }
 
@@ -544,8 +544,8 @@ func (this *Gate) fetchClosedOrdersWsBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes37915 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersByStatusWsAsync("finished", symbol, since, limit, params))))
-	ch <- ccxt.BoxAbsent(retRes37915)
+	var retRes38015 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersByStatusWsAsync("finished", symbol, since, limit, params))))
+	ch <- ccxt.BoxAbsent(retRes38015)
 	return nil
 }
 
@@ -640,7 +640,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var url any = this.GetUrlByMarket(market)
@@ -722,7 +722,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var url any = this.GetUrlByMarket(market)
 	symbol = market["symbol"]
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
@@ -1017,7 +1017,7 @@ func (this *Gate) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	ccxt.AddElementToObject(params, "callerMethodName", "watchTicker")
 
@@ -1051,11 +1051,11 @@ func (this *Gate) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes78915 := (<-this.SubscribeWatchTickersAndBidsAsksAsync(symbols, "watchTickers", this.Extend(map[string]any{
+	retRes79015 := (<-this.SubscribeWatchTickersAndBidsAsksAsync(symbols, "watchTickers", this.Extend(map[string]any{
 		"method": "tickers",
 	}, params)))
-	ccxt.PanicOnError(retRes78915)
-	ch <- retRes78915
+	ccxt.PanicOnError(retRes79015)
+	ch <- retRes79015
 	return nil
 }
 func (this *Gate) HandleTicker(client any, message map[string]any) {
@@ -1104,11 +1104,11 @@ func (this *Gate) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes82615 := (<-this.SubscribeWatchTickersAndBidsAsksAsync(symbols, "watchBidsAsks", this.Extend(map[string]any{
+	retRes82715 := (<-this.SubscribeWatchTickersAndBidsAsksAsync(symbols, "watchBidsAsks", this.Extend(map[string]any{
 		"method": "book_ticker",
 	}, params)))
-	ccxt.PanicOnError(retRes82615)
-	ch <- retRes82615
+	ccxt.PanicOnError(retRes82715)
+	ch <- retRes82715
 	return nil
 }
 func (this *Gate) HandleBidAsk(client any, message map[string]any) {
@@ -1153,7 +1153,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 	callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable, 0)
 	params = ccxt.GetValue(callerMethodNameparamsVariable, 1)
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
+	var market map[string]any = this.Market(ccxt.GetValue(symbols, 0))
 	var messageType any = this.GetTypeByMarket(market)
 	var marketIds any = this.MarketIds(symbols)
 	var channelName *string = nil
@@ -1219,7 +1219,7 @@ func (this *Gate) HandleTickerAndBidAsk(objectName any, client any, message map[
 			return nil
 		}()
 		var marketId *string = this.SafeString(rawTicker, "s")
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_", marketType))
+		var market map[string]any = this.SafeMarket(marketId, nil, "_", marketType)
 		var parsedItem map[string]any = ccxt.MapTyped(this.ParseTicker(rawTicker, market))
 		var symbol *string = ccxt.SafeStringPtr(parsedItem["symbol"])
 		if isTicker {
@@ -1303,7 +1303,7 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	}
 	symbols = this.MarketSymbols(symbols)
 	var marketIds any = this.MarketIds(symbols)
-	var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
+	var market map[string]any = this.Market(ccxt.GetValue(symbols, 0))
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".trades")
 	var messageHashes []any = []any{}
@@ -1348,7 +1348,7 @@ func (this *Gate) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 	}
 	symbols = this.MarketSymbols(symbols)
 	var marketIds any = this.MarketIds(symbols)
-	var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
+	var market map[string]any = this.Market(ccxt.GetValue(symbols, 0))
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".trades")
 	var subMessageHashes []any = []any{}
@@ -1460,7 +1460,7 @@ func (this *Gate) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	// todo add options support
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -2240,7 +2240,7 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 		}
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		if !ccxt.IsEqual(market["id"], nil) {
 			ccxt.AddElementToObject(marketIds, market["id"], true)
 		}
@@ -2461,7 +2461,7 @@ func (this *Gate) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(liquidation, "contract")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(liquidation, "time_ms")
 	var originalSize *string = this.SafeString(liquidation, "size")
 	var left *string = this.SafeString(liquidation, "left")
