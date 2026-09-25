@@ -4012,7 +4012,8 @@ function handleProvablyStringValue (printer, node, selfName) {
                 return true;
             }
             if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
-                return HANDLE_DECLARED_STRING_ACCESSORS.has (method) || HANDLE_DECLARED_STRING_METHODS.has (method);
+                return HANDLE_DECLARED_STRING_ACCESSORS.has (method) || HANDLE_DECLARED_STRING_METHODS.has (method)
+                    || internalReturnLocalType (printer, node)?.type === 'String'; // section 53
             }
             return callee.expression.kind === ts.SyntaxKind.Identifier
                 && callee.expression.text === 'Precise'
@@ -15492,4 +15493,45 @@ export function installJavaNativeReplace (transpiler) {
             }
         };
     }
+}
+
+// ===== 53. String returns built by String.replace / native concat =====
+// On a TS string, `x.replace (a, b)` prints Helpers.replace (declared String) and toLowerCase /
+// toUpperCase / trim print the String methods; a native concat and a String-declared identifier
+// are String too. These let an annotated `: Str` method print `String`.
+export function installJavaStringReturnSites (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaExpressionPrintsType !== 'function' || printer._javaStringReturnSitesPatched) {
+        return;
+    }
+    printer._javaStringReturnSitesPatched = true;
+    const upstream = printer.javaExpressionPrintsType.bind (printer);
+    printer.javaExpressionPrintsType = function (expression, target) {
+        if (upstream (expression, target)) {
+            return true;
+        }
+        const node = unwrapParens (expression);
+        if (target !== 'String' || node === undefined) {
+            return false;
+        }
+        if (ts.isIdentifier (node)) {
+            // an unwritten optional parameter the printer declares `String` (`x: Str = undefined`)
+            if (printer.javaDeclaredStringType?.(node) === true) {
+                return true; // a local or parameter the printer declared `String`
+            }
+            const declaration = printer.javaDeclarationOfIdentifier?.(node);
+            return declaration !== undefined && ts.isParameterDeclaration (declaration) && !parameterIsWritten (declaration)
+                && printer.javaOptionalParameterTypeOf?.(declaration) === 'String';
+        }
+        if (ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+            return printedConcatIsNative (printer, node.left, node.right);
+        }
+        if (ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
+            && ((node.expression.name.text === 'replace' && node.arguments.length === 2)
+                || ([ 'toLowerCase', 'toUpperCase', 'trim' ].includes (node.expression.name.text) && node.arguments.length === 0))) {
+            const receiver = printer.getChecker ().getTypeAtLocation (node.expression.expression);
+            return receiver !== undefined && (receiver.flags & ts.TypeFlags.StringLike) !== 0;
+        }
+        return false;
+    };
 }

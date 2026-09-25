@@ -4990,7 +4990,7 @@ export default class hyperliquid extends Exchange {
         return records;
     }
 
-    formatVaultAddress (address: Str = undefined) {
+    formatVaultAddress (address: Str = undefined): Str {
         if (address === undefined) {
             return undefined;
         }
@@ -5012,7 +5012,7 @@ export default class hyperliquid extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');
     }
 
-    coinToMarketId (coin: Str) {
+    coinToMarketId (coin: Str): Str {
         // handle also hip3 tokens like flx:CRCL
         if (coin === undefined) {
             return undefined;
