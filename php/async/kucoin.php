@@ -1884,7 +1884,7 @@ class kucoin extends Exchange {
             $contractMarkets = $this->safe_list($responses, $contractIndex, array());
             $result = $this->array_concat($result, $contractMarkets);
         }
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         return $result;
@@ -2240,7 +2240,7 @@ class kucoin extends Exchange {
                 'info' => $market,
             );
         }
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         return $result;

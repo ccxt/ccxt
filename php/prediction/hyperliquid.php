@@ -1690,7 +1690,7 @@ class hyperliquid extends Exchange {
         $tifRaw = $this->safe_string($entry, 'tif');
         $tif = $this->parse_time_in_force($tifRaw);
         $postOnly = ($tif === 'PO');
-        $isTrigger = ($this->safe_bool($entry, 'isTrigger') === true);
+        $isTrigger = $this->safe_bool($entry, 'isTrigger', false);
         $triggerPrice = $isTrigger ? $this->safe_number($entry, 'triggerPx') : null;
         return $this->safe_prediction_order(array(
             'id' => $this->safe_string($entry, 'oid'),
@@ -1902,7 +1902,7 @@ class hyperliquid extends Exchange {
         if (($price !== null) && ($amount !== null)) {
             $cost = $this->parse_number(Precise::string_mul($price, $amount));
         }
-        $crossed = ($this->safe_bool($trade, 'crossed') === true);
+        $crossed = $this->safe_bool($trade, 'crossed', false);
         $takerOrMaker = 'maker';
         if ($crossed) {
             $takerOrMaker = 'taker';

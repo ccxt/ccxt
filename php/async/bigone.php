@@ -576,7 +576,7 @@ class bigone extends Exchange {
         }
         $chainLength = count($chains);
         $type = null;
-        if ($this->safe_bool($rawCurrency, 'is_fiat') === true) {
+        if ($this->safe_bool($rawCurrency, 'is_fiat', false)) {
             $type = 'fiat';
         } elseif ($chainLength === 0) {
             if ($this->is_leveraged_currency($id)) {

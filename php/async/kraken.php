@@ -604,7 +604,7 @@ class kraken extends Exchange {
          */
         $promises = array();
         $promises[] = $this->publicGetAssetPairs($params);
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             $promises[] = $this->load_time_difference();
         }
         $responses = Async\await(Promise\all($promises));

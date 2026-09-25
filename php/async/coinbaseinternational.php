@@ -377,7 +377,7 @@ class coinbaseinternational extends Exchange {
         for ($i = 0; $i < count($accounts); $i++) {
             $account = $this->safe_dict($accounts, $i);
             $info = $this->safe_dict($account, 'info', array());
-            if ($this->safe_bool($info, 'is_default') === true) {
+            if ($this->safe_bool($info, 'is_default', false)) {
                 $portfolioId = $this->safe_string($info, 'portfolio_id');
                 $this->options['portfolio'] = $portfolioId;
                 return array( $portfolioId, $paramsPortfolio );

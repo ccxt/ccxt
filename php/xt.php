@@ -1056,7 +1056,7 @@ class xt extends Exchange {
          * @param {array} $params extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false) === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             $this->load_time_difference();
         }
         $promisesUnresolved = array(
@@ -1408,7 +1408,7 @@ class xt extends Exchange {
         if ($contract) {
             $isActive = $this->safe_bool($market, 'isOpenApi', false);
         } else {
-            if (($state === 'ONLINE') && ($this->safe_bool($market, 'tradingEnabled') === true) && ($this->safe_bool($market, 'openapiEnabled') === true)) {
+            if (($state === 'ONLINE') && ($this->safe_bool($market, 'tradingEnabled', false)) && ($this->safe_bool($market, 'openapiEnabled', false))) {
                 $isActive = true;
             }
         }

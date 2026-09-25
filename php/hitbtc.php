@@ -1012,7 +1012,7 @@ class hitbtc extends Exchange {
             'id' => $currencyId,
             'precision' => $this->safe_number($entry, 'precision_transfer'),
             'name' => $this->safe_string($entry, 'full_name'),
-            'active' => $this->safe_bool($entry, 'delisted') !== true,
+            'active' => !$this->safe_bool($entry, 'delisted', false),
             'deposit' => $this->safe_bool($entry, 'payin_enabled'),
             'withdraw' => $this->safe_bool($entry, 'payout_enabled'),
             'networks' => $networks,

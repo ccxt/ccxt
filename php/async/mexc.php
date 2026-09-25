@@ -1089,7 +1089,7 @@ class mexc extends Exchange {
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            $success = ($this->safe_bool($response, 'success') === true);
+            $success = $this->safe_bool($response, 'success', false);
             $status = $success ? 'ok' : $this->json($response);
             $updated = $this->safe_integer($response, 'data');
         }
@@ -1259,7 +1259,7 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         $spotMarketPromise = $this->fetch_spot_markets($params);
@@ -1828,7 +1828,7 @@ class mexc extends Exchange {
                     'cost' => $this->safe_string($trade, 'fee'),
                     'currency' => $this->safe_currency_code($this->safe_string($trade, 'feeCurrency')),
                 );
-                $isTaker = ($this->safe_bool_2($trade, 'isTaker', 'taker') === true);
+                $isTaker = $this->safe_bool_2($trade, 'isTaker', 'taker', false);
                 $takerOrMaker = $isTaker ? 'taker' : 'maker';
             } else {
                 $timestamp = $this->safe_integer_2($trade, 'time', 'T');

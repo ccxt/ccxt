@@ -2516,7 +2516,7 @@ class nado extends Exchange {
                 $code = 'USDT0';
             } elseif ($code === $currencyId) {
                 $market = $this->safe_market($currencyId, null, null, 'spot');
-                if ($this->safe_bool($market, 'spot') === true) {
+                if ($this->safe_bool($market, 'spot', false)) {
                     $code = $this->safe_string($market, 'base', $code);
                 }
             }

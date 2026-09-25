@@ -1093,7 +1093,7 @@ class bingx extends Exchange {
         $isActive = false;
         if (($this->safe_string($market, 'apiStateOpen') === 'true') && ($this->safe_string($market, 'apiStateClose') === 'true')) {
             $isActive = true; // swap active
-        } elseif (($this->safe_bool($market, 'apiStateSell') === true) && ($this->safe_bool($market, 'apiStateBuy') === true) && ($this->safe_string($market, 'status') === '1')) {
+        } elseif (($this->safe_bool($market, 'apiStateSell', false)) && ($this->safe_bool($market, 'apiStateBuy', false)) && ($this->safe_string($market, 'status') === '1')) {
             $isActive = true; // spot active
         } elseif ($checkIsInverse && ($this->safe_string($market, 'status') === '1')) {
             $isActive = true; // inverse swap active

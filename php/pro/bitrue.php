@@ -449,7 +449,7 @@ class bitrue extends \ccxt\async\bitrue {
         $symbols = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $candidate = $markets[$symbols[$i]];
-            if ($this->safe_bool($candidate, 'swap') !== true) {
+            if (!$this->safe_bool($candidate, 'swap', false)) {
                 continue;
             }
             $baseId = $this->safe_string_lower($candidate, 'baseId');

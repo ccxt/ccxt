@@ -376,7 +376,7 @@ class cex extends Exchange {
     public function parse_currency(array $rawCurrency): array {
         $id = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($id);
-        $isFiat = ($this->safe_bool($rawCurrency, 'fiat') === true);
+        $isFiat = $this->safe_bool($rawCurrency, 'fiat', false);
         $type = 'crypto';
         if ($isFiat) {
             $type = 'fiat';

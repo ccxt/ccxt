@@ -769,7 +769,7 @@ class tokocrypto extends Exchange {
         //         "timestamp":1659492212507
         //     }
         //
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false) === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             $this->load_time_difference();
         }
         $data = $this->safe_dict($response, 'data', array());
@@ -1065,7 +1065,7 @@ class tokocrypto extends Exchange {
             $side = $this->safe_string_lower($trade, 'side');
         } else {
             if (is_array($trade) && array_key_exists('isBuyer' ?? '', $trade)) {
-                $side = ($this->safe_bool($trade, 'isBuyer') === true) ? 'buy' : 'sell'; // this is a true side
+                $side = ($this->safe_bool($trade, 'isBuyer', false)) ? 'buy' : 'sell'; // this is a true side
             }
         }
         $fee = null;
@@ -1076,10 +1076,10 @@ class tokocrypto extends Exchange {
             );
         }
         if (is_array($trade) && array_key_exists('isMaker' ?? '', $trade)) {
-            $takerOrMaker = ($this->safe_bool($trade, 'isMaker') === true) ? 'maker' : 'taker';
+            $takerOrMaker = ($this->safe_bool($trade, 'isMaker', false)) ? 'maker' : 'taker';
         }
         if (is_array($trade) && array_key_exists('maker' ?? '', $trade)) {
-            $takerOrMaker = ($this->safe_bool($trade, 'maker') === true) ? 'maker' : 'taker';
+            $takerOrMaker = ($this->safe_bool($trade, 'maker', false)) ? 'maker' : 'taker';
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -2732,7 +2732,7 @@ class tokocrypto extends Exchange {
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if (($error === '-2015') && ($this->safe_bool($this->options, 'hasAlreadyAuthenticatedSuccessfully') === true)) {
+            if (($error === '-2015') && ($this->safe_bool($this->options, 'hasAlreadyAuthenticatedSuccessfully', false))) {
                 throw new DDoSProtection($this->id . ' ' . $body);
             }
             $feedback = $this->id . ' ' . $body;

@@ -1111,8 +1111,8 @@ class grvt extends Exchange {
             $side = $isTakerBuyer ? 'buy' : 'sell';
             $takerOrMaker = 'taker';
         } else {
-            $isTaker = ($this->safe_bool($trade, 'is_taker') === true);
-            $isBuyer = ($this->safe_bool($trade, 'is_buyer') === true);
+            $isTaker = $this->safe_bool($trade, 'is_taker', false);
+            $isBuyer = $this->safe_bool($trade, 'is_buyer', false);
             $takerOrMaker = $isTaker ? 'taker' : 'maker';
             $side = $isBuyer ? 'buy' : 'sell';
         }
@@ -3039,7 +3039,7 @@ class grvt extends Exchange {
         $marketResolved = ($firstLeg !== null) ? $this->safe_market($legMarketId, $market) : $market;
         if ($firstLeg !== null) {
             $size = $this->safe_string($firstLeg, 'size');
-            $isBuyingAsset = ($this->safe_bool($firstLeg, 'is_buying_asset') === true);
+            $isBuyingAsset = $this->safe_bool($firstLeg, 'is_buying_asset', false);
             $side = $isBuyingAsset ? 'buy' : 'sell';
             $price = $this->safe_string($firstLeg, 'limit_price');
             $filled = $this->safe_string($filledAmounts, $primaryOrderIndex);

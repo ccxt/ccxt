@@ -1406,7 +1406,7 @@ class gate extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         if ($this->check_required_credentials(false)) {
@@ -1566,7 +1566,7 @@ class gate extends Exchange {
     private function do_fetch_swap_markets($params = array()) {
         $result = array();
         $swapSettlementCurrencies = $this->get_settlement_currencies('swap', 'fetchMarkets');
-        if ($this->safe_bool($this->options, 'sandboxMode') === true) {
+        if ($this->safe_bool($this->options, 'sandboxMode', false)) {
             $swapSettlementCurrencies = array( 'usdt' ); // gate sandbox only has usdt-margined swaps
         }
         for ($c = 0; $c < count($swapSettlementCurrencies); $c++) {
@@ -1591,7 +1591,7 @@ class gate extends Exchange {
     }
 
     private function do_fetch_future_markets($params = array()) {
-        if ($this->safe_bool($this->options, 'sandboxMode') === true) {
+        if ($this->safe_bool($this->options, 'sandboxMode', false)) {
             return array(); // right now sandbox does not have inverse swaps
         }
         $result = array();
@@ -2171,8 +2171,8 @@ class gate extends Exchange {
                     'id' => $networkId,
                     'network' => $networkCode,
                     'active' => null,
-                    'deposit' => $this->safe_bool($chain, 'deposit_disabled') !== true,
-                    'withdraw' => $this->safe_bool($chain, 'withdraw_disabled') !== true,
+                    'deposit' => !$this->safe_bool($chain, 'deposit_disabled', false),
+                    'withdraw' => !$this->safe_bool($chain, 'withdraw_disabled', false),
                     'fee' => null,
                     'precision' => $this->parse_number('0.0001'), // temporary safe default, because no value provided from API,
                     'limits' => array(
@@ -2193,9 +2193,9 @@ class gate extends Exchange {
             'code' => $code,
             'name' => $this->safe_string($rawCurrency, 'name'),
             'type' => $type,
-            'active' => $this->safe_bool($rawCurrency, 'delisted') !== true,
-            'deposit' => $this->safe_bool($rawCurrency, 'deposit_disabled') !== true,
-            'withdraw' => $this->safe_bool($rawCurrency, 'withdraw_disabled') !== true,
+            'active' => !$this->safe_bool($rawCurrency, 'delisted', false),
+            'deposit' => !$this->safe_bool($rawCurrency, 'deposit_disabled', false),
+            'withdraw' => !$this->safe_bool($rawCurrency, 'withdraw_disabled', false),
             'fee' => null,
             'networks' => $networks,
             'precision' => $this->parse_number('0.0001'),
@@ -8612,7 +8612,7 @@ class gate extends Exchange {
         $request = array();
         $isUnified = $this->safe_bool($params, 'unified');
         $paramsOmitted = $this->omit($params, 'unified');
-        if ($this->safe_bool($market, 'spot') === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request['currency_pair'] = $this->safe_string($market, 'id');
             if ($isUnified === true) {
                 $response = Async\await($this->publicMarginGetUniCurrencyPairsCurrencyPair($this->extend($request, $paramsOmitted)));

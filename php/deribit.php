@@ -1971,7 +1971,7 @@ class deribit extends Exchange {
         $filledString = $this->safe_string($order, 'filled_amount');
         $amount = $this->safe_string($order, 'amount');
         $cost = Precise::string_mul($filledString, $averageString);
-        if ($this->safe_bool($marketResolved, 'inverse') === true) {
+        if ($this->safe_bool($marketResolved, 'inverse', false)) {
             if ($averageString !== '0') {
                 $cost = Precise::string_div($amount, $averageString);
             }

@@ -450,7 +450,7 @@ class bitopro extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        $active = ($this->safe_bool($market, 'maintain') !== true);
+        $active = (!$this->safe_bool($market, 'maintain', false));
         $id = $this->safe_string($market, 'pair');
         if ($id === null) {
             throw new ExchangeError($this->id . ' parseMarket() missing id');

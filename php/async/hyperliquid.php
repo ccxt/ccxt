@@ -1348,7 +1348,7 @@ class hyperliquid extends Exchange {
             $firstSymbol = $this->safe_string($symbolsNormalized, 0);
             if ($firstSymbol !== null) {
                 $market = $this->market($firstSymbol);
-                if ($this->safe_bool($this->safe_dict($market, 'info'), 'hip3') === true) {
+                if ($this->safe_bool($this->safe_dict($market, 'info'), 'hip3', false)) {
                     $hip3 = true;
                 }
             }
@@ -3683,7 +3683,7 @@ class hyperliquid extends Exchange {
         if ($tif !== null) {
             $postOnly = ($tif === 'ALO');
         }
-        $isTrigger = ($this->safe_bool($entry, 'isTrigger') === true);
+        $isTrigger = $this->safe_bool($entry, 'isTrigger', false);
         $triggerPx = $isTrigger ? $this->safe_number($entry, 'triggerPx') : null;
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318

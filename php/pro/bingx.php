@@ -806,13 +806,13 @@ class bingx extends \ccxt\async\bingx {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        $isSpot = ($this->safe_bool($market, 'spot') === true);
-        $isInverse = ($this->safe_bool($market, 'inverse') === true);
+        $isSpot = $this->safe_bool($market, 'spot', false);
+        $isInverse = $this->safe_bool($market, 'inverse', false);
         $timestamp = 'T';
         if ($isSpot) {
             $timestamp = 't';
         }
-        if ($this->safe_bool($market, 'swap') === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $timestamp = $isInverse ? 't' : 'T';
         }
         return array(

@@ -930,7 +930,7 @@ class bybit extends \ccxt\async\bybit {
         //         "timestamp": 1670363219614
         //     }
         //
-        $isInverse = ($this->safe_bool($market, 'inverse') === true);
+        $isInverse = $this->safe_bool($market, 'inverse', false);
         $volumeIndex = 'volume';
         if ($isInverse) {
             $volumeIndex = 'turnover';

@@ -2315,8 +2315,8 @@ class gate extends \ccxt\async\gate {
 
     public function get_url_by_market(mixed $market): string {
         $baseUrl = $this->urls['api'][$market['type']];
-        if ($this->safe_bool($market, 'contract') === true) {
-            return ($this->safe_bool($market, 'linear') === true) ? $baseUrl['usdt'] : $baseUrl['btc'];
+        if ($this->safe_bool($market, 'contract', false)) {
+            return ($this->safe_bool($market, 'linear', false)) ? $baseUrl['usdt'] : $baseUrl['btc'];
         } else {
             return $baseUrl;
         }

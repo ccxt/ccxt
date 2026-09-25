@@ -1780,7 +1780,7 @@ class bitso extends Exchange {
                     $result[$code] = array(
                         'deposit' => array(
                             'fee' => $this->safe_number($entry, 'fee'),
-                            'percentage' => ($this->safe_bool($entry, 'is_fixed') !== true),
+                            'percentage' => (!$this->safe_bool($entry, 'is_fixed', false)),
                         ),
                         'withdraw' => array(
                             'fee' => null,

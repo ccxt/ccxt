@@ -1556,7 +1556,7 @@ class digifinex extends Exchange {
         //         0.029927
         //     ]
         //
-        if ($this->safe_bool($market, 'swap') === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             return array(
                 $this->safe_integer($ohlcv, 0),
                 $this->safe_number($ohlcv, 1), // open

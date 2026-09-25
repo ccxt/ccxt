@@ -7523,7 +7523,7 @@ class bybit extends Exchange {
         }
         $query = $params;
         if ($symbol !== null) {
-            $isLinear = ($this->safe_bool($market, 'linear') === true);
+            $isLinear = $this->safe_bool($market, 'linear', false);
             $request['category'] = $isLinear ? 'linear' : 'inverse';
         } else {
             $type = null;
@@ -7739,8 +7739,8 @@ class bybit extends Exchange {
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $openInterest = $this->safe_number_2($interest, 'open_interest', 'openInterest');
         // the openInterest is in the base asset for linear and quote asset for inverse
-        $isLinear = ($this->safe_bool($market, 'linear') === true);
-        $isInverse = ($this->safe_bool($market, 'inverse') === true);
+        $isLinear = $this->safe_bool($market, 'linear', false);
+        $isInverse = $this->safe_bool($market, 'inverse', false);
         $amount = $isLinear ? $openInterest : null;
         $value = $isInverse ? $openInterest : null;
         return $this->safe_open_interest(array(

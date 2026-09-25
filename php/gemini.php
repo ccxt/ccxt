@@ -1485,10 +1485,10 @@ class gemini extends Exchange {
         $remaining = $this->safe_string($order, 'remaining_amount');
         $filled = $this->safe_string($order, 'executed_amount');
         $status = 'closed';
-        if ($this->safe_bool($order, 'is_live') === true) {
+        if ($this->safe_bool($order, 'is_live', false)) {
             $status = 'open';
         }
-        if ($this->safe_bool($order, 'is_cancelled') === true) {
+        if ($this->safe_bool($order, 'is_cancelled', false)) {
             $status = 'canceled';
         }
         $price = $this->safe_string($order, 'price');

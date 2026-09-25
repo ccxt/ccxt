@@ -2752,7 +2752,7 @@ class phemex extends Exchange {
             if ($qtyType === 'ByQuote') {
                 $cost = $this->safe_number($orderParams, 'cost');
                 $orderParams = $this->omit($orderParams, 'cost');
-                if ($this->safe_bool($this->options, 'createOrderByQuoteRequiresPrice') === true) {
+                if ($this->safe_bool($this->options, 'createOrderByQuoteRequiresPrice', false)) {
                     if ($price !== null) {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -2774,7 +2774,7 @@ class phemex extends Exchange {
             $orderParams = $this->omit($orderParams, 'hedged');
             $posSide = $this->safe_string_lower($orderParams, 'posSide');
             // a hedged reduceOnly order without posSide closes the opposite side
-            $flipSide = ($posSide === null) && ($hedged === true) && ($this->safe_bool($orderParams, 'reduceOnly') === true);
+            $flipSide = ($posSide === null) && ($hedged === true) && ($this->safe_bool($orderParams, 'reduceOnly', false));
             $oppositeSide = ($side === 'buy') ? 'sell' : 'buy';
             $sideResolved = $side;
             if ($flipSide) {
