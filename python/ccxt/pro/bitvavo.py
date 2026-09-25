@@ -1680,6 +1680,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         #    }
         #
         error = self.safe_string(message, 'error')
+        if error is None:
+            return None
         code = self.safe_integer(error, 'errorCode')
         action = self.safe_string(message, 'action')
         buildMessage = self.build_message_hash(action, message)
