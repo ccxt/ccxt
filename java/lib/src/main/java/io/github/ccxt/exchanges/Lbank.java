@@ -1951,7 +1951,7 @@ public class Lbank extends LbankApi
             String clientOrderId = this.safeString2(parameters, "custom_id", "clientOrderId");
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-            Object paramsRequest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("custom_id", "clientOrderId", "timeInForce", "postOnly")));
+            Map<String, Object> paramsRequest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("custom_id", "clientOrderId", "timeInForce", "postOnly")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -2023,7 +2023,7 @@ public class Lbank extends LbankApi
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "spotPrivatePostSupplementCreateOrder");
             String method = this.safeString(paramsRequest, "method", defaultMethod);
-            Object paramsOmitted = this.omit(paramsRequest, "method");
+            Map<String, Object> paramsOmitted = this.omit(paramsRequest, "method");
             Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "spotPrivatePostCreateOrder"))
             {

@@ -1170,7 +1170,7 @@ public class Hitbtc extends HitbtcApi
                     request.put("currency", parsedNetwork);
                 }
             }
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if ((!java.util.Objects.equals(network, null)) && (java.util.Objects.equals(code, "USDT")))
             {
                 paramsOmitted = this.omit(parameters, "network");
@@ -1223,7 +1223,7 @@ public class Hitbtc extends HitbtcApi
                     request.put("currency", parsedNetwork);
                 }
             }
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if ((!java.util.Objects.equals(network, null)) && (java.util.Objects.equals(code, "USDT")))
             {
                 paramsOmitted = this.omit(parameters, "network");
@@ -3317,7 +3317,7 @@ public class Hitbtc extends HitbtcApi
                     request.put("network_code", parsedNetwork);
                 }
             }
-            Object paramsOmitted = paramsWithdrawTag;
+            Map<String, Object> paramsOmitted = paramsWithdrawTag;
             if ((!java.util.Objects.equals(network, null)) && (java.util.Objects.equals(code, "USDT")))
             {
                 paramsOmitted = this.omit(paramsWithdrawTag, "network");

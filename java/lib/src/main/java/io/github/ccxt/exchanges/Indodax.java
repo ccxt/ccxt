@@ -1159,7 +1159,7 @@ public class Indodax extends IndodaxApi
             Boolean priceIsRequired = false;
             Boolean quantityIsRequired = false;
             Boolean isMarketBuy = (java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy"));
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (Boolean.TRUE.equals(isMarketBuy))
             {
                 paramsOmitted = this.omit(parameters, "cost");

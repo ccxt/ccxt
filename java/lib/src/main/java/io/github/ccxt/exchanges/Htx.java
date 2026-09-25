@@ -8387,7 +8387,7 @@ public class Htx extends HtxApi
             Object amountValue = Helpers.parseFloat(amountPrecision);
             Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean includeFee = (Boolean) this.safeBool(withdrawOptions, "includeFee", false);
-            Object paramsFee = paramsNetwork;
+            Map<String, Object> paramsFee = paramsNetwork;
             if (Boolean.TRUE.equals(includeFee))
             {
                 paramsFee = this.omit(paramsNetwork, "fee");
@@ -8580,7 +8580,7 @@ public class Htx extends HtxApi
                 response = (this.privatePostDwTransferOutMargin(this.extend(request, paramsSubType))).join();
             } else
             {
-                Object query = paramsSubType;
+                Map<String, Object> query = paramsSubType;
                 if (java.util.Objects.equals(subType, "linear"))
                 {
                     if ((java.util.Objects.equals(fromAccountId, "swap")) || (java.util.Objects.equals(fromAccount, "linear-swap")))

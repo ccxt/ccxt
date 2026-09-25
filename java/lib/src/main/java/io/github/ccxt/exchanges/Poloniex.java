@@ -2487,7 +2487,7 @@ public class Poloniex extends PoloniexApi
         String hedged = (String) ((List<Object>) hedgedparamsHedgedVariable).get(0);
         Map<String, Object> paramsHedged = (Map<String, Object>) ((List<Object>) hedgedparamsHedgedVariable).get(1);
         // marginMode and hedged are consumed for contract markets only
-        Object query = parameters;
+        Map<String, Object> query = parameters;
         if (Boolean.TRUE.equals(isContract))
         {
             query = paramsHedged;
@@ -2505,7 +2505,7 @@ public class Poloniex extends PoloniexApi
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")) ;
                 }
-                if (!(((Map<?, ?>)query).containsKey("posSide")))
+                if (!(query.containsKey("posSide")))
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders")) ;
                 }
@@ -2513,8 +2513,8 @@ public class Poloniex extends PoloniexApi
         }
         String upperCaseType = ((String)type).toUpperCase();
         Boolean isMarket = java.util.Objects.equals(upperCaseType, "MARKET");
-        Boolean isPostOnly = this.isPostOnly(isMarket, java.util.Objects.equals(upperCaseType, "LIMIT_MAKER"), Helpers.toMapArg(query));
-        Object queryOmitted = this.omit(query, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice")));
+        Boolean isPostOnly = this.isPostOnly(isMarket, java.util.Objects.equals(upperCaseType, "LIMIT_MAKER"), query);
+        Map<String, Object> queryOmitted = this.omit(query, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice")));
         if (!java.util.Objects.equals(triggerPrice, null))
         {
             if (!java.util.Objects.equals(market.get("spot"), true))

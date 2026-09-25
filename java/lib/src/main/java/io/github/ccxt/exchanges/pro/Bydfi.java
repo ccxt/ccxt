@@ -161,7 +161,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Client client = this.client(url);
             Object privateSubscription = this.safeValue(client.subscriptions, subHash);
             Map<String, Object> subscription = new HashMap<String, Object>() {{}};
-            Object paramsLogin = null;
+            Map<String, Object> paramsLogin = null;
             if (java.util.Objects.equals(privateSubscription, null))
             {
                 Long id = this.requestId();
@@ -337,10 +337,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 }
                 subscription.put("symbols", symbolsNormalized);
             }
-            Object paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
+            Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
-            return (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsExtended), subscription)).join();
+            return (this.watchPublic(messageHashes, channels, paramsExtended, subscription)).join();
         });
 
     }
@@ -514,14 +514,14 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 ((List<Object>)channels).add(Helpers.add((market.get("id") + "@kline_"), interval));
                 messageHashes.add(((("unsubscribe::ohlcv::" + market.get("symbol")) + "::") + interval));
             }
-            Object paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
+            Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "ohlcv" );
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
             }};
-            return (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsExtended), subscription)).join();
+            return (this.watchPublic(messageHashes, channels, paramsExtended, subscription)).join();
         });
 
     }
@@ -702,10 +702,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 put( "topic", "orderbook" );
                 put( "symbols", symbolsNormalized );
             }};
-            Object paramsExtended = this.extend(paramsFrequency, new HashMap<String, Object>() {{
+            Map<String, Object> paramsExtended = this.extend(paramsFrequency, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
-            return (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsExtended), subscription)).join();
+            return (this.watchPublic(messageHashes, channels, paramsExtended, subscription)).join();
         });
 
     }

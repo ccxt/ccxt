@@ -3537,7 +3537,7 @@ public class Aster extends AsterApi
         Map<String, Object> paramsTifOption = tifOptionparamsTifOptionVariable.second();
         Boolean tifIsMissing = Boolean.TRUE.equals(timeInForceIsRequired) && (java.util.Objects.equals(this.safeString(parameters, "timeInForce"), null)) && (java.util.Objects.equals(this.safeString(request, "timeInForce"), null));
         List<Object> omitKeys = new ArrayList<Object>(Arrays.asList("newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"));
-        Object requestParams = null;
+        Map<String, Object> requestParams = null;
         if (Boolean.TRUE.equals(tifIsMissing))
         {
             request.put("timeInForce", tifOption);

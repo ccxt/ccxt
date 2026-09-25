@@ -3597,7 +3597,7 @@ public class Coinbase extends CoinbaseApi
             }
             Map<String, Object> market = this.market(symbol);
             String id = this.safeString(this.options, "brokerId", "ccxt");
-            Object request = Helpers.newMap(
+            Map<String, Object> request = Helpers.newMap(
                 "client_order_id", ((id + "-") + this.uuid()),
                 "product_id", market.get("id"),
                 "side", ((String)((String)side)).toUpperCase()
@@ -3641,7 +3641,7 @@ public class Coinbase extends CoinbaseApi
                         {
                             throw new ExchangeError((this.id + " createOrder() requires an end_time parameter for a GTD order")) ;
                         }
-                        ((Map<String, Object>)request).put("order_configuration", Helpers.newMap(
+                        request.put("order_configuration", Helpers.newMap(
         "stop_limit_stop_limit_gtd", Helpers.newMap(
             "base_size", this.amountToPrecision(symbol, amount),
             "limit_price", this.priceToPrecision(symbol, price),
@@ -3652,7 +3652,7 @@ public class Coinbase extends CoinbaseApi
     ));
                     } else
                     {
-                        ((Map<String, Object>)request).put("order_configuration", Helpers.newMap(
+                        request.put("order_configuration", Helpers.newMap(
         "stop_limit_stop_limit_gtc", Helpers.newMap(
             "base_size", this.amountToPrecision(symbol, amount),
             "limit_price", this.priceToPrecision(symbol, price),
@@ -3679,7 +3679,7 @@ public class Coinbase extends CoinbaseApi
                         }
                         tpslPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     }
-                    ((Map<String, Object>)request).put("order_configuration", Helpers.newMap(
+                    request.put("order_configuration", Helpers.newMap(
         "stop_limit_stop_limit_gtc", Helpers.newMap(
             "base_size", this.amountToPrecision(symbol, amount),
             "limit_price", this.priceToPrecision(symbol, price),
@@ -3695,7 +3695,7 @@ public class Coinbase extends CoinbaseApi
                         {
                             throw new ExchangeError((this.id + " createOrder() requires an end_time parameter for a GTD order")) ;
                         }
-                        ((Map<String, Object>)request).put("order_configuration", Helpers.newMap(
+                        request.put("order_configuration", Helpers.newMap(
         "limit_limit_gtd", Helpers.newMap(
             "base_size", this.amountToPrecision(symbol, amount),
             "limit_price", this.priceToPrecision(symbol, price),
@@ -3705,7 +3705,7 @@ public class Coinbase extends CoinbaseApi
     ));
                     } else if (java.util.Objects.equals(timeInForce, "IOC"))
                     {
-                        ((Map<String, Object>)request).put("order_configuration", Helpers.newMap(
+                        request.put("order_configuration", Helpers.newMap(
         "sor_limit_ioc", Helpers.newMap(
             "base_size", this.amountToPrecision(symbol, amount),
             "limit_price", this.priceToPrecision(symbol, price)
@@ -3713,7 +3713,7 @@ public class Coinbase extends CoinbaseApi
     ));
                     } else if (java.util.Objects.equals(timeInForce, "FOK"))
                     {
-                        ((Map<String, Object>)request).put("order_configuration", Helpers.newMap(
+                        request.put("order_configuration", Helpers.newMap(
         "limit_limit_fok", Helpers.newMap(
             "base_size", this.amountToPrecision(symbol, amount),
             "limit_price", this.priceToPrecision(symbol, price)
@@ -3721,7 +3721,7 @@ public class Coinbase extends CoinbaseApi
     ));
                     } else
                     {
-                        ((Map<String, Object>)request).put("order_configuration", Helpers.newMap(
+                        request.put("order_configuration", Helpers.newMap(
         "limit_limit_gtc", Helpers.newMap(
             "base_size", this.amountToPrecision(symbol, amount),
             "limit_price", this.priceToPrecision(symbol, price),
@@ -3763,14 +3763,14 @@ public class Coinbase extends CoinbaseApi
                     {
                         total = this.costToPrecision(symbol, amount);
                     }
-                    ((Map<String, Object>)request).put("order_configuration", Helpers.newMap(
+                    request.put("order_configuration", Helpers.newMap(
         "market_market_ioc", Helpers.newMap(
             "quote_size", total
         )
     ));
                 } else
                 {
-                    ((Map<String, Object>)request).put("order_configuration", new HashMap<String, Object>() {{
+                    request.put("order_configuration", new HashMap<String, Object>() {{
         put( "market_market_ioc", new HashMap<String, Object>() {{
             put( "base_size", Coinbase.this.amountToPrecision(symbol, amount) );
         }} );
@@ -3783,10 +3783,10 @@ public class Coinbase extends CoinbaseApi
             {
                 if (java.util.Objects.equals(marginMode, "isolated"))
                 {
-                    ((Map<String, Object>)request).put("margin_type", "ISOLATED");
+                    request.put("margin_type", "ISOLATED");
                 } else if (java.util.Objects.equals(marginMode, "cross"))
                 {
-                    ((Map<String, Object>)request).put("margin_type", "CROSS");
+                    request.put("margin_type", "CROSS");
                 }
             }
             Object paramsOmitted = this.omit(paramsBase, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode")));

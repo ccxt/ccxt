@@ -3271,12 +3271,12 @@ public class Xt extends XtApi
                 request.put("price", this.priceToPrecision(symbol, price));
             }
             Boolean isMarketBuy = (java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy"));
-            Object paramsWithoutCost = paramsMarginMode;
+            Map<String, Object> paramsWithoutCost = paramsMarginMode;
             if (Boolean.TRUE.equals(isMarketBuy))
             {
                 paramsWithoutCost = this.omit(paramsMarginMode, "cost");
             }
-            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(timeInForce, "GTX"), Helpers.toMapArg(paramsWithoutCost));
+            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(timeInForce, "GTX"), paramsWithoutCost);
             Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
             Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
             if (java.util.Objects.equals(postOnly, true))
@@ -3916,7 +3916,7 @@ public class Xt extends XtApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object request = new HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -3925,11 +3925,11 @@ public class Xt extends XtApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit);
+                request.put("size", limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             Map<String, Object> response = null;
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters, (String) null);
@@ -3956,42 +3956,42 @@ public class Xt extends XtApi
             {
                 if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)))
                 {
-                    ((Map<String, Object>)request).put("state", "NOT_TRIGGERED");
+                    request.put("state", "NOT_TRIGGERED");
                 } else if (java.util.Objects.equals(type, "swap"))
                 {
-                    ((Map<String, Object>)request).put("state", "UNFINISHED"); // NEW & PARTIALLY_FILLED
+                    request.put("state", "UNFINISHED"); // NEW & PARTIALLY_FILLED
                 }
             } else if (java.util.Objects.equals(status, "closed"))
             {
                 if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)))
                 {
-                    ((Map<String, Object>)request).put("state", "TRIGGERED");
+                    request.put("state", "TRIGGERED");
                 } else
                 {
-                    ((Map<String, Object>)request).put("state", "FILLED");
+                    request.put("state", "FILLED");
                 }
             } else if (java.util.Objects.equals(status, "canceled"))
             {
                 if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)))
                 {
-                    ((Map<String, Object>)request).put("state", "USER_REVOCATION");
+                    request.put("state", "USER_REVOCATION");
                 } else
                 {
-                    ((Map<String, Object>)request).put("state", "CANCELED");
+                    request.put("state", "CANCELED");
                 }
             } else
             {
-                ((Map<String, Object>)request).put("state", status);
+                request.put("state", status);
             }
             if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
             {
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("startTime", since);
+                    request.put("startTime", since);
                 }
                 if ((!java.util.Objects.equals(limit, null)) && (!java.util.Objects.equals(trailing, true)))
                 {
-                    ((Map<String, Object>)request).put("size", limit);
+                    request.put("size", limit);
                 }
             }
             if (java.util.Objects.equals(trigger, true))
@@ -4055,17 +4055,17 @@ public class Xt extends XtApi
                 {
                     marginOrSpotRequest = "LEVER";
                 }
-                ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
+                request.put("bizType", marginOrSpotRequest);
                 if (!java.util.Objects.equals(status, "open"))
                 {
                     if (!java.util.Objects.equals(since, null))
                     {
-                        ((Map<String, Object>)request).put("startTime", since);
+                        request.put("startTime", since);
                     }
                     if (!java.util.Objects.equals(limit, null))
                     {
                         request = this.omit(request, "size");
-                        ((Map<String, Object>)request).put("limit", limit);
+                        request.put("limit", limit);
                     }
                     response = (this.privateSpotGetHistoryOrder(this.extend(request, paramsMarginMode))).join();
                 } else

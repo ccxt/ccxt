@@ -2812,7 +2812,7 @@ public class Deribit extends DeribitApi
             }
             String trailingAmount = this.safeString2(parameters, "trailingAmount", "trigger_offset");
             Boolean isTrailingAmountOrder = !java.util.Objects.equals(trailingAmount, null);
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (Boolean.TRUE.equals(isTrailingAmountOrder))
             {
                 paramsOmitted = this.omit(parameters, "trigger_offset");
@@ -4024,7 +4024,7 @@ public class Deribit extends DeribitApi
                 request.put("end_timestamp", time);
             }
             Boolean isPaginationCall = (paramsUntil.containsKey("isDeribitPaginationCall"));
-            Object paramsOmitted = paramsUntil;
+            Map<String, Object> paramsOmitted = paramsUntil;
             if (Boolean.TRUE.equals(isPaginationCall))
             {
                 paramsOmitted = this.omit(paramsUntil, "isDeribitPaginationCall");

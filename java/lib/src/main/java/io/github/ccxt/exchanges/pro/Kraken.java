@@ -341,17 +341,17 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
         }
         Boolean isCreateOrder = (java.util.Objects.equals(method, "createOrderWs"));
-        Object paramsCreate = paramsPostOnly;
+        Map<String, Object> paramsCreate = paramsPostOnly;
         if (Boolean.TRUE.equals(isCreateOrder))
         {
             paramsCreate = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("reduceOnly", "timeInForce")));
         }
-        Object paramsPreset = paramsCreate;
+        Map<String, Object> paramsPreset = paramsCreate;
         if (Boolean.TRUE.equals(isCreateOrder) && (Boolean.TRUE.equals(isPresetStopLoss) || Boolean.TRUE.equals(isPresetTakeProfit)))
         {
             paramsPreset = this.omit(paramsCreate, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
         }
-        Object paramsOmitted = this.omit(paramsPreset, new ArrayList<Object>(Arrays.asList("clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent")));
+        Map<String, Object> paramsOmitted = this.omit(paramsPreset, new ArrayList<Object>(Arrays.asList("clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent")));
         return new ArrayList<Object>(Arrays.asList(request, paramsOmitted));
     }
 

@@ -1328,14 +1328,14 @@ public class Bullish extends BullishApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            Object paramsExtended = parameters;
+            Map<String, Object> paramsExtended = parameters;
             if (java.util.Objects.equals(clientOrderId, null))
             {
                 paramsExtended = this.extend(new HashMap<String, Object>() {{
                     put( "orderId", id );
                 }}, parameters);
             }
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(paramsExtended))).join();
+            return (this.fetchMyTrades(symbol, since, limit, paramsExtended)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1903,7 +1903,7 @@ public class Bullish extends BullishApi
     {
         Object until = this.safeInteger(parameters, "until");
         Boolean sinceFromUntil = (java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(until, null));
-        Object paramsResult = parameters;
+        Map<String, Object> paramsResult = parameters;
         if (Boolean.TRUE.equals(sinceFromUntil))
         {
             paramsResult = this.omit(parameters, "until");
@@ -3162,14 +3162,14 @@ public class Bullish extends BullishApi
             Long until = this.safeInteger(paramsPaginate, "until");
             // since and until are mandatory for this endpoint, set until to now if both are undefined
             Boolean untilMissing = (java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null));
-            Object paramsUntil = paramsPaginate;
+            Map<String, Object> paramsUntil = paramsPaginate;
             if (Boolean.TRUE.equals(untilMissing))
             {
                 paramsUntil = this.extend(paramsPaginate, new HashMap<String, Object>() {{
                     put( "until", Bullish.this.milliseconds() );
                 }});
             }
-            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, Helpers.toMapArg(paramsUntil), "createdAtDatetime[gte]", "createdAtDatetime[lte]");
+            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsUntil, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("_pageSize", this.getClosestLimit(limit));

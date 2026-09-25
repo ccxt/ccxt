@@ -1346,7 +1346,7 @@ public class Bitso extends BitsoApi
                 throw new ExchangeError((this.id + " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
             }
             // convert it to an integer unconditionally
-            Object paramsMarker = parameters;
+            Map<String, Object> paramsMarker = parameters;
             if (Boolean.TRUE.equals(markerInParams))
             {
                 paramsMarker = this.extend(parameters, new HashMap<String, Object>() {{
@@ -1624,7 +1624,7 @@ public class Bitso extends BitsoApi
                 throw new ExchangeError((this.id + " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
             }
             // convert it to an integer unconditionally
-            Object paramsMarker = parameters;
+            Map<String, Object> paramsMarker = parameters;
             if (Boolean.TRUE.equals(markerInParams))
             {
                 paramsMarker = this.extend(parameters, new HashMap<String, Object>() {{

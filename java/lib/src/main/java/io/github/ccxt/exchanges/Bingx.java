@@ -3842,12 +3842,12 @@ public class Bingx extends BingxApi
             Boolean hasStopLoss = !java.util.Objects.equals(stopLossDict, null);
             Boolean hasTakeProfit = !java.util.Objects.equals(takeProfitDict, null);
             // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
-            Object paramsStopLoss = paramsPostOnly;
+            Map<String, Object> paramsStopLoss = paramsPostOnly;
             if (Boolean.TRUE.equals(hasStopLoss))
             {
                 paramsStopLoss = this.omit(paramsPostOnly, "stopLoss");
             }
-            Object paramsTakeProfit = paramsStopLoss;
+            Map<String, Object> paramsTakeProfit = paramsStopLoss;
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 paramsTakeProfit = this.omit(paramsStopLoss, "takeProfit");

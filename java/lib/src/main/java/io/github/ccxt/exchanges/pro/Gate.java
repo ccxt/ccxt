@@ -1724,7 +1724,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             }
             String type = null;
-            Object query = null;
+            Map<String, Object> query = null;
             io.github.ccxt.base.Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters, (String) null);
             type = typequeryVariable.first();
             query = typequeryVariable.second();
@@ -1748,7 +1748,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             String channel = (typeId + ".positions");
             String subType = null;
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams("watchPositions", market, Helpers.toMapArg(query), (Object) null);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams("watchPositions", market, query, (Object) null);
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = subTypequeryVariable.second();
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
@@ -2161,7 +2161,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             String type = null;
-            Object query = null;
+            Map<String, Object> query = null;
             io.github.ccxt.base.Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters, (String) null);
             type = typequeryVariable.first();
             query = typequeryVariable.second();
@@ -2171,7 +2171,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 put( "option", "options" );
             }});
             String subType = null;
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, Helpers.toMapArg(query), (Object) null);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, query, (Object) null);
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = subTypequeryVariable.second();
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));

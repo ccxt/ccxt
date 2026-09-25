@@ -3735,12 +3735,12 @@ public class Bybit extends BybitApi
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (Boolean.TRUE.equals(hasOptionSymbol))
             {
                 paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("code", "currency")));
             }
-            var categoryparamsCategoryVariable = this.getBybitType("fetchTickers", market, Helpers.toMapArg(paramsOmitted));
+            var categoryparamsCategoryVariable = this.getBybitType("fetchTickers", market, paramsOmitted);
             String category = (String) ((List<Object>) categoryparamsCategoryVariable).get(0);
             Map<String, Object> paramsCategory = (Map<String, Object>) ((List<Object>) categoryparamsCategoryVariable).get(1);
             request.put("category", category);
@@ -8874,7 +8874,7 @@ public class Bybit extends BybitApi
                     Object sellLeverage = null;
                     Object buyLeverage = null;
                     String leverage = this.safeString(paramsType, "leverage");
-                    Object paramsOmitted = null;
+                    Map<String, Object> paramsOmitted = null;
                     if (java.util.Objects.equals(leverage, null))
                     {
                         sellLeverage = this.safeString2(paramsType, "sell_leverage", "sellLeverage");

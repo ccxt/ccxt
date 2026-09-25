@@ -2675,7 +2675,7 @@ public class Coinsph extends CoinsphApi
     public Object urlEncodeQuery(Map<String, Object> query)
     {
         String encodedArrayParams = "";
-        Object remainingQuery = query;
+        Map<String, Object> remainingQuery = query;
         List<String> keys = new ArrayList<String>(query.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
