@@ -4843,13 +4843,13 @@ class bingx(Exchange, ImplicitAPI):
         elif type == 'spot':
             if since is not None:
                 request['startTime'] = since
-            until = self.safe_integer_2(params, 'until', 'till')
+            until = self.safe_integer_2(paramsStandard, 'until', 'till')
             if until is not None:
                 request['endTime'] = until
-            params = self.omit(params, ['until', 'till'])
+            paramsSpot = self.omit(paramsStandard, ['until', 'till'])
             if limit is not None:
                 request['pageSize'] = limit
-            response = self.spotV1PrivateGetTradeHistoryOrders(self.extend(request, paramsStandard))
+            response = self.spotV1PrivateGetTradeHistoryOrders(self.extend(request, paramsSpot))
             #
             #    {
             #        "code": 0,
