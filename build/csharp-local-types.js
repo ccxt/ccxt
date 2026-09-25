@@ -14633,6 +14633,9 @@ export function installCsharpConditionOperands (transpiler) {
         }
         const symbol = (typeof csharp.getChecker === 'function') ? csharp.getChecker ().getSymbolAtLocation (node) : undefined;
         const declaration = symbol?.valueDeclaration?.resolve ();
+        if (declaration?.kind === ts.SyntaxKind.Parameter) {
+            return csharpBooleanParamReadType (csharp, declaration, symbol) ?? printerType;
+        }
         if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.parent?.declarations?.length !== 1) {
             return printerType;
         }
@@ -16554,6 +16557,35 @@ function csharpBooleanParamType (csharp, node) {
     }
     // an initializer prints `= null`, and the printer appends the `?` itself
     return ((wanted === 'bool?') && (node.initializer !== undefined)) ? 'bool' : wanted;
+}
+
+// the printed type of a CSHARP_BOOLEAN_PARAMS parameter the body never writes (a written one
+// may print through a `<name>Var` copy), for native condition reads
+function csharpBooleanParamReadType (csharp, declaration, symbol) {
+    const own = csharpBooleanParamType (csharp, declaration);
+    if (own === undefined || declaration.parent?.body === undefined) {
+        return undefined;
+    }
+    const checker = csharp.getChecker ();
+    let written = false;
+    const visit = (n) => {
+        if (written) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n.text === declaration.name?.text) && (checker.getSymbolAtLocation (n) === symbol)) {
+            const parent = n.parent;
+            written = ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n) && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))
+                || (((parent?.kind === ts.SyntaxKind.PrefixUnaryExpression) || (parent?.kind === ts.SyntaxKind.PostfixUnaryExpression)) && ((parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken)))
+                || (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) || (parent?.kind === ts.SyntaxKind.ShorthandPropertyAssignment);
+            return;
+        }
+        n.forEachChild (visit);
+    };
+    declaration.parent.body.forEachChild (visit);
+    if (written) {
+        return undefined;
+    }
+    return (declaration.initializer !== undefined) ? 'bool?' : own;
 }
 
 export function installCsharpBooleanParams (transpiler) {
