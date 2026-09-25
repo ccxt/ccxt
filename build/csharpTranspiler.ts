@@ -592,7 +592,10 @@ function csharpNativeOperatorText (helper: string, left, right, leftText: string
         const integer = (o) => isName (o, CSHARP_OPERATOR_INTEGER_TYPES) || isName (o, CSHARP_OPERATOR_NULLABLE_INTEGER_TYPES) || (o.kind === 'integer-literal');
         const integerPair = integer (left) && integer (right)
             && ((left.kind === 'name') || (right.kind === 'name'));
-        return (stringPair || nullTest || boolPair || integerPair) ? `(${leftText} == ${rightText})` : undefined;
+        if (stringPair || nullTest || boolPair || integerPair) {
+            return `(${leftText} == ${rightText})`;
+        }
+        return objectNull ? csharpStringConstantPattern (left, right, leftText, rightText) : undefined;
     }
     const token = CSHARP_OPERATOR_TOKENS[helper];
     if (token === undefined) {
@@ -623,6 +626,19 @@ function csharpNativeOperatorText (helper: string, left, right, leftText: string
         }
     }
     return undefined;
+}
+
+// `isEqual(x, "lit")` on an object/string name is true only for a string box equal to the literal
+// (null and other boxes answer false), which is the constant pattern `x is "lit"`; a literal that
+// Double.TryParse could read would reach isEqual's numeric branch for a double box, so it keeps the helper
+function csharpStringConstantPattern (left, right, leftText: string, rightText: string): string | undefined {
+    const pair = (name, nameText: string, literal, literalText: string) => {
+        if ((name.kind !== 'name') || ![ 'object', 'string', 'string?' ].includes (name.type) || (literal.kind !== 'string-literal')) return undefined;
+        const body = literalText.slice (1, -1);
+        if ((body === '') || /[0-9\\]/.test (body) || /nan|inf|\u221e/i.test (body)) return undefined;
+        return `(${nameText} is ${literalText})`;
+    };
+    return pair (left, leftText, right, rightText) ?? pair (right, rightText, left, leftText);
 }
 
 // `(book as ccxt.pro.OrderBook).cache`: the book's `IList<object> cache` property
