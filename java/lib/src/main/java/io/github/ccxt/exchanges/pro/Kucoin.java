@@ -2149,8 +2149,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         String change = this.safeString(delta, "change");
         Object changes = this.safeDict(delta, "changes", delta);
-        Object storedBids = Helpers.GetValue(orderbook, "bids");
-        Object storedAsks = Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
         if (!java.util.Objects.equals(change, null))
         {
             // handling futures orderbook update
@@ -2166,10 +2166,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             List<Object> value = new ArrayList<Object>(Arrays.asList(price, quantity));
             if (java.util.Objects.equals(type, "bids"))
             {
-                Helpers.callDynamically(storedBids, "storeArray", new Object[]{value});
+                storedBids.storeArray(value);
             } else
             {
-                Helpers.callDynamically(storedAsks, "storeArray", new Object[]{value});
+                storedAsks.storeArray(value);
             }
         } else if (!java.util.Objects.equals(changes, null))
         {

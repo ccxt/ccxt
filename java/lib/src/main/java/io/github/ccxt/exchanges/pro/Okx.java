@@ -1738,8 +1738,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //
         List<Object> asks = (List<Object>) this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = (List<Object>) this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
-        Object storedAsks = Helpers.GetValue(orderbook, "asks");
-        Object storedBids = Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
         String marketId = this.safeString(message, "instId");

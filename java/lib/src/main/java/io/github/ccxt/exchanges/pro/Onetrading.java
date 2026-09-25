@@ -473,12 +473,12 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String type = this.safeString(delta, 0);
         if (java.util.Objects.equals(type, "BUY"))
         {
-            Object bids = Helpers.GetValue(orderbook, "bids");
-            Helpers.callDynamically(bids, "storeArray", new Object[]{bidAsk});
+            io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+            bids.storeArray(bidAsk);
         } else if (java.util.Objects.equals(type, "SELL"))
         {
-            Object asks = Helpers.GetValue(orderbook, "asks");
-            Helpers.callDynamically(asks, "storeArray", new Object[]{bidAsk});
+            io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+            asks.storeArray(bidAsk);
         } else
         {
             throw new NotSupported(((this.id + " watchOrderBook () received unknown change type ") + this.json(delta))) ;

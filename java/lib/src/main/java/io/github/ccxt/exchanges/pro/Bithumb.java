@@ -625,8 +625,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             side = "bids";
         }
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "quantity", 2);
-        Object orderbookSide = Helpers.GetValue(orderbook, side);
-        Helpers.callDynamically(orderbookSide, "storeArray", new Object[]{bidAsk});
+        io.github.ccxt.ws.OrderBookSide orderbookSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, side);
+        orderbookSide.storeArray(bidAsk);
     }
 
     public void handleBookDeltas(Object orderbook, Object deltas)

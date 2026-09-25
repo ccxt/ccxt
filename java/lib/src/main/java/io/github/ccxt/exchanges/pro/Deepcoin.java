@@ -998,19 +998,19 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public void handleBookDelta(Object orderbook, Object entry)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(entry, "d", new HashMap<String, Object>() {{}});
-        Object bids = Helpers.GetValue(orderbook, "bids");
-        Object asks = Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
         String side = this.safeString(data, "D");
         Double price = this.safeNumber(data, "P", (Object) null);
         Double volume = this.safeNumber(data, "V", (Object) null);
         if (java.util.Objects.equals(side, "0"))
         {
             // bid
-            Helpers.callDynamically(bids, "store", new Object[]{price, volume});
+            bids.store(price, volume);
         } else if (java.util.Objects.equals(side, "1"))
         {
             // ask
-            Helpers.callDynamically(asks, "store", new Object[]{price, volume});
+            asks.store(price, volume);
         }
     }
 

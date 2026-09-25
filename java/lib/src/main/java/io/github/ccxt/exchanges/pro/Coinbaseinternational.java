@@ -867,8 +867,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
         Double price = this.safeFloat(delta, 1);
         Double amount = this.safeFloat(delta, 2);
-        Object bookside = Helpers.GetValue(orderbook, side);
-        Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
+        io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, side);
+        bookside.store(price, amount);
     }
 
     public void handleBookDeltas(Object orderbook, Object deltas)

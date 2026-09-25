@@ -212,21 +212,21 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(delta, "i", "u"));
         List<Object> obAsks = (List<Object>) this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
         List<Object> obBids = (List<Object>) this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
-        Object bids = Helpers.GetValue(orderbook, "bids");
-        Object asks = Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
         for (var i = 0; i < ((List<?>)obBids).size(); i++)
         {
             List<Object> bid = (List<Object>) this.safeList(obBids, i, (Object) null);
             Double price = this.safeNumber(bid, 0, (Object) null);
             Double quantity = this.safeNumber(bid, 1, (Object) null);
-            Helpers.callDynamically(bids, "store", new Object[]{price, quantity});
+            bids.store(price, quantity);
         }
         for (var i = 0; i < ((List<?>)obAsks).size(); i++)
         {
             List<Object> ask = (List<Object>) this.safeList(obAsks, i, (Object) null);
             Double price = this.safeNumber(ask, 0, (Object) null);
             Double quantity = this.safeNumber(ask, 1, (Object) null);
-            Helpers.callDynamically(asks, "store", new Object[]{price, quantity});
+            asks.store(price, quantity);
         }
     }
 

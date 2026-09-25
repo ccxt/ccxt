@@ -1086,8 +1086,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Helpers.addElementToObject(orderbook, "nonce", deltaNonce);
         List<Object> asks = (List<Object>) this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = (List<Object>) this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
-        Object asksOrderSide = Helpers.GetValue(orderbook, "asks");
-        Object bidsOrderSide = Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide asksOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide bidsOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
         this.handleBooksideDelta(asksOrderSide, asks);
         this.handleBooksideDelta(bidsOrderSide, bids);
     }

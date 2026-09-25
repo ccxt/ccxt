@@ -242,8 +242,8 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "microtimestamp"));
         List<Object> bids = (List<Object>) this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
         List<Object> asks = (List<Object>) this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
-        Object storedBids = Helpers.GetValue(orderbook, "bids");
-        Object storedAsks = Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
         this.handleBidAsks(storedBids, bids);
         this.handleBidAsks(storedAsks, asks);
     }
