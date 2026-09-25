@@ -3029,7 +3029,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "side", ((Map<String, Object>)order).get("side") );
             }};
-            return (this.cancelOrder(((String)((Map<String, Object>)order).get("id")), Helpers.toStringArg(((Map<String, Object>)order).get("symbol")), Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.cancelOrder(((String)((Map<String, Object>)order).get("id")), Helpers.toStringArg(((Map<String, Object>)order).get("symbol")), this.extend(request, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -3724,7 +3724,7 @@ public class Bithumb extends BithumbApi
             //         }
             //     ]
             //
-            return this.parseDepositAddresses(response, codes, false, Helpers.toMapArg(new HashMap<String, Object>() {{}}));
+            return this.parseDepositAddresses(response, codes, false, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
     }

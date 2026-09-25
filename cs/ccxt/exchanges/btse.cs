@@ -1350,7 +1350,7 @@ public partial class btse : Exchange
         for (int i = 0; i < symbolKeys.Count; i++)
         {
             string? symbolKey = ((string)symbolKeys[i]);
-            object tiersList = getValue(result, symbolKey);
+            object tiersList = (symbolKey != null && result.ContainsKey(symbolKey) ? result[symbolKey] : null);
             for (object j = 0; isLessThan(j, getArrayLength(tiersList)); postFixIncrement(ref j))
             {
                 if (isEqual(j, 0))
@@ -2869,7 +2869,7 @@ public partial class btse : Exchange
      * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot'
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4074,7 +4074,7 @@ public partial class btse : Exchange
      * @param {string} [params.positionId] existing position id to update, disambiguates the target position in hedge mode
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -4199,8 +4199,8 @@ public partial class btse : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object baseUrl = apiUrl;
-        object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
+        string baseUrl = apiUrl;
+        string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         // the futures v3 trading api reads DELETE params from a signed json
         // body like its POST and PUT counterparts, while the spot v4 and the
@@ -4213,7 +4213,7 @@ public partial class btse : Exchange
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 queryString = this.urlencode(query);
-                url = add(url, ("?" + queryString));
+                url = url + ("?" + queryString);
             }
         }
         if (isEqual(api, "private"))
@@ -4232,7 +4232,7 @@ public partial class btse : Exchange
             // spot and futures apis of every generation mount under /spot and /futures and
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
-            object signPath = null;
+            string? signPath = null;
             if ((path.StartsWith("public-api/") == true))
             {
                 signPath = ("/" + path);
@@ -4240,7 +4240,7 @@ public partial class btse : Exchange
             {
                 signPath = this.cleanPath(path);
             }
-            object payload = add(add(signPath, nonce.ToString()), bodyString);
+            string payload = ((signPath + nonce.ToString()) + bodyString);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
             requestHeaders = new Dictionary<string, object>() {
                 { "request-api", this.apiKey },
@@ -4278,6 +4278,6 @@ public partial class btse : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
+        return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 }

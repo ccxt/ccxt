@@ -348,7 +348,7 @@ func (this *Indodax) Describe() any {
 	})
 }
 func (this *Indodax) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 /**
@@ -904,7 +904,7 @@ func (this *Indodax) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		return limit
 	}()
 	if since != nil {
-		request["from"] = MathFloor(Divide(since, 1000))
+		request["from"] = MathFloor(float64(*since) / 1000)
 	} else {
 		var duration int64 = this.ParseTimeframe(timeframe)
 		request["from"] = Subtract(Subtract(now, Multiply(limitResolved, duration)), 1)

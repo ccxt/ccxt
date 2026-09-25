@@ -972,9 +972,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
+            return (this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.extend(new HashMap<String, Object>() {{
                 put( "method", "tickers" );
-            }}, parameters)))).join();
+            }}, parameters))).join();
         }).thenApply(Tickers::new);
 
     }
@@ -1018,9 +1018,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.subscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
+            return (this.subscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.extend(new HashMap<String, Object>() {{
                 put( "method", "book_ticker" );
-            }}, parameters)))).join();
+            }}, parameters))).join();
         }).thenApply(Tickers::new);
 
     }
@@ -1466,13 +1466,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchMyTrades", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            Object messageType = this.getSupportedMapping(type, Helpers.toMapArg(new HashMap<String, Object>() {{
+            Object messageType = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "spot", "spot" );
                 put( "margin", "spot" );
                 put( "future", "futures" );
                 put( "swap", "futures" );
                 put( "option", "options" );
-            }}));
+            }});
             String channel = (messageType + ".usertrades");
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(symbol, null))
@@ -1581,13 +1581,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
             Object url = this.getUrlByMarketType(type, isInverse);
             Object requiresUid = (!java.util.Objects.equals(type, "spot"));
-            Object channelType = this.getSupportedMapping(type, Helpers.toMapArg(new HashMap<String, Object>() {{
+            Object channelType = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "spot", "spot" );
                 put( "margin", "spot" );
                 put( "future", "futures" );
                 put( "swap", "futures" );
                 put( "option", "options" );
-            }}));
+            }});
             // todo: add correct margin support
             String channel = (channelType + ".balances");
             String messageHash = (type + ".balance");
@@ -1684,11 +1684,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String channel = this.safeString(message, "channel");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String rawType = this.safeString(parts, 0);
-        Object channelType = this.getSupportedMapping((String) (rawType), Helpers.toMapArg(new HashMap<String, Object>() {{
+        Object channelType = this.getSupportedMapping((String) (rawType), new HashMap<String, Object>() {{
             put( "spot", "spot" );
             put( "futures", "swap" );
             put( "options", "option" );
-        }}));
+        }});
         String messageHash = (channelType + ".balance");
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
@@ -1732,11 +1732,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 type = "swap";
             }
-            Object typeId = this.getSupportedMapping(type, Helpers.toMapArg(new HashMap<String, Object>() {{
+            Object typeId = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "future", "futures" );
                 put( "swap", "futures" );
                 put( "option", "options" );
-            }}));
+            }});
             String messageHash = (type + ":positions");
             if (!this.isEmpty(symbolsNormalized))
             {
@@ -1802,9 +1802,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Position> positions = (this.fetchPositions((List<String>) null, Helpers.toMapArg(Helpers.newMap(
+            List<Position> positions = (this.fetchPositions((List<String>) null, Helpers.newMap(
                 "type", type
-            )))).join();
+            ))).join();
             Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
             Object cache = Helpers.GetValue(this.positions, type);
             for (var i = 0; i < ((List<?>)positions).size(); i++)
@@ -1960,13 +1960,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, (Object) null);
             type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
-            Object typeId = this.getSupportedMapping(type, Helpers.toMapArg(new HashMap<String, Object>() {{
+            Object typeId = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "spot", "spot" );
                 put( "margin", "spot" );
                 put( "future", "futures" );
                 put( "swap", "futures" );
                 put( "option", "options" );
-            }}));
+            }});
             Boolean isTrigger = false;
             List<Object> isTriggerqueryVariable = (List<Object>) this.handleParamBool2(query, "trigger", "stop", false);
             isTrigger = (Boolean) ((List<Object>) isTriggerqueryVariable).get(0);
@@ -2165,11 +2165,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters, (Object) null);
             type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
-            Object typeId = this.getSupportedMapping(type, Helpers.toMapArg(new HashMap<String, Object>() {{
+            Object typeId = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "future", "futures" );
                 put( "swap", "futures" );
                 put( "option", "options" );
-            }}));
+            }});
             String subType = null;
             List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, Helpers.toMapArg(query), (Object) null);
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);

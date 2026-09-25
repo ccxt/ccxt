@@ -2002,7 +2002,7 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any {
 		rowOutcomeId = this.SafeString(info, "outcomeId")
 	}
 	if since != nil {
-		request["since"] = this.ParseToInt(ccxt.Divide(since, 1000))
+		request["since"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
 		request["limit"] = limit

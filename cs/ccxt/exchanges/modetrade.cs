@@ -3369,15 +3369,15 @@ public partial class modetrade : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        bool isMinLeverage = isLessThan(leverage, 1);
-        bool isMaxLeverage = isGreaterThan(leverage, 50);
+        bool isMinLeverage = (leverage < 1);
+        bool isMaxLeverage = (leverage > 50);
         if (isMinLeverage || isMaxLeverage)
         {
             throw new BadRequest ((this.id + " leverage should be between 1 and 50")) ;

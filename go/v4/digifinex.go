@@ -2022,9 +2022,9 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs .
 			request["start_time"] = startTime
 			if (limit != nil) || (until != nil) {
 				if until != nil {
-					var endByUntil int64 = this.ParseToInt(Divide(until, 1000))
+					var endByUntil int64 = this.ParseToInt(float64(*until) / 1000)
 					if limit != nil {
-						var endByLimit any = this.Sum(startTime, Multiply(limit, duration))
+						var endByLimit any = this.Sum(startTime, *limit*duration)
 						request["end_time"] = mathMin(endByLimit, endByUntil)
 					} else {
 						request["end_time"] = endByUntil
@@ -2033,7 +2033,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs .
 					if limit == nil {
 						panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a limit argument"))
 					}
-					request["end_time"] = this.Sum(startTime, Multiply(limit, duration))
+					request["end_time"] = this.Sum(startTime, *limit*duration)
 				}
 			}
 		}
@@ -2983,7 +2983,7 @@ func (this *Digifinex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		request["market"] = marketType
 		if since != nil {
-			request["start_time"] = this.ParseToInt(Divide(since, 1000)) // default 3 days from now, max 30 days
+			request["start_time"] = this.ParseToInt(float64(*since) / 1000) // default 3 days from now, max 30 days
 		}
 	}
 	if market != nil {
@@ -3237,7 +3237,7 @@ func (this *Digifinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		request["market"] = marketType
 		if since != nil {
-			request["start_time"] = this.ParseToInt(Divide(since, 1000)) // default 3 days from now, max 30 days
+			request["start_time"] = this.ParseToInt(float64(*since) / 1000) // default 3 days from now, max 30 days
 		}
 	}
 	var marketIdRequest string = "symbol"
@@ -3418,7 +3418,7 @@ func (this *Digifinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		request["market"] = marketType
 		if since != nil {
-			request["start_time"] = this.ParseToInt(Divide(since, 1000)) // default 3 days from now, max 30 days
+			request["start_time"] = this.ParseToInt(float64(*since) / 1000) // default 3 days from now, max 30 days
 		}
 	}
 	var currencyIdRequest string = "currency_mark"

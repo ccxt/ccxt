@@ -1828,10 +1828,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //
         String marketId = this.safeString2(position, "instId", "symbol");
         String marginModeId = this.safeString(position, "marginMode");
-        Object marginMode = this.getSupportedMapping((String) (marginModeId), Helpers.toMapArg(new HashMap<String, Object>() {{
+        Object marginMode = this.getSupportedMapping((String) (marginModeId), new HashMap<String, Object>() {{
             put( "crossed", "cross" );
             put( "isolated", "isolated" );
-        }}));
+        }});
         String hedgedId = this.safeString2(position, "posMode", "holdMode");
         Boolean hedged = false;
         if (java.util.Objects.equals(hedgedId, "hedge_mode"))
@@ -3111,9 +3111,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     }
                 }
             }
-            (this.authenticate(Helpers.toMapArg(Helpers.newMap(
+            (this.authenticate(Helpers.newMap(
                 "url", url
-            )))).join();
+            ))).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new ArrayList<Object>(Arrays.asList(args)) );

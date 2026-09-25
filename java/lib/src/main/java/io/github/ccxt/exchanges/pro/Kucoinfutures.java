@@ -73,7 +73,7 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "futuresPublicGetAllTickers" );
             }};
-            return (this.fetchTickers(symbols, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchTickers(symbols, this.extend(request, parameters))).join();
         }).thenApply(Tickers::new);
 
     }

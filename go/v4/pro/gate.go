@@ -921,7 +921,7 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 		return
 	} else if (deltaEnd != nil) && (nonce != nil && *nonce >= *deltaEnd) {
 		return
-	} else if (deltaStart != nil) && (ccxt.IsGreaterThanOrEqual(nonce, ccxt.Subtract(deltaStart, 1))) {
+	} else if (deltaStart != nil) && (ccxt.IsGreaterThanOrEqual(nonce, *deltaStart-1)) {
 		this.HandleBookDelta(storedOrderBook, delta)
 	} else {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -945,7 +945,7 @@ func (this *Gate) GetCacheIndex(orderBook any, cache any) any {
 		var delta map[string]any = ccxt.SafeMapTyped(cache, i)
 		var deltaStart *int64 = this.SafeInteger(delta, "U")
 		var deltaEnd *int64 = this.SafeInteger(delta, "u")
-		if (nonce != nil) && (deltaStart != nil) && (deltaEnd != nil) && (ccxt.IsGreaterThanOrEqual(nonce, ccxt.Subtract(deltaStart, 1))) && (*nonce < *deltaEnd) {
+		if (nonce != nil) && (deltaStart != nil) && (deltaEnd != nil) && (*nonce >= *deltaStart - 1) && (*nonce < *deltaEnd) {
 			return i
 		}
 	}

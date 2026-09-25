@@ -1358,7 +1358,7 @@ func (this *Bitstamp) fetchMarketsFromCacheBody(ch chan any, optionalArgs ...any
 	var timestamp *int64 = this.SafeInteger(options, "timestamp")
 	var expires *int64 = this.SafeInteger(options, "expires", 1000)
 	var now int64 = this.Milliseconds()
-	if (timestamp == nil) || (IsGreaterThan((Subtract(now, timestamp)), expires)) {
+	if (timestamp == nil) || (IsGreaterThan((now - *timestamp), expires)) {
 
 		response := (<-this.PublicGetMarkets(params)).Raw
 		PanicOnError(response)
@@ -1536,7 +1536,7 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 	if microtimestamp == nil {
 		panic(ExchangeError(this.Id + " fetchOrderBook() missing microtimestamp"))
 	}
-	var timestamp int64 = this.ParseToInt(Divide(microtimestamp, 1000))
+	var timestamp int64 = this.ParseToInt(float64(*microtimestamp) / 1000)
 	var orderbook map[string]any = this.ParseOrderBook(response, market["symbol"], timestamp)
 	orderbook["nonce"] = microtimestamp
 
@@ -2022,15 +2022,15 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		if since == nil {
 			request["limit"] = limitResolved
 			if untilIsDefined {
-				var end any = this.ParseToInt(Divide(until, 1000))
+				var end any = this.ParseToInt(float64(*until) / 1000)
 				request["start"] = Subtract(Subtract(end, (Multiply(duration, limitResolved))), 1)
 				request["end"] = end
 			}
 		} else {
-			var start int64 = this.ParseToInt(Divide(since, 1000))
+			var start int64 = this.ParseToInt(float64(*since) / 1000)
 			request["start"] = start
 			if untilIsDefined {
-				request["end"] = this.ParseToInt(Divide(until, 1000))
+				request["end"] = this.ParseToInt(float64(*until) / 1000)
 			} else {
 				request["end"] = this.Sum(start, Subtract(Multiply(duration, limitResolved), 1))
 			}
@@ -2038,15 +2038,15 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		}
 	} else {
 		if since != nil {
-			var start int64 = this.ParseToInt(Divide(since, 1000))
+			var start int64 = this.ParseToInt(float64(*since) / 1000)
 			request["start"] = start
 			var end any = this.Sum(start, Subtract(Multiply(duration, limitResolved), 1))
 			if untilIsDefined {
-				end = mathMin(end, this.ParseToInt(Divide(until, 1000)))
+				end = mathMin(end, this.ParseToInt(float64(*until)/1000))
 			}
 			request["end"] = end
 		} else if untilIsDefined {
-			var end any = this.ParseToInt(Divide(until, 1000))
+			var end any = this.ParseToInt(float64(*until) / 1000)
 			request["end"] = end
 			request["start"] = Subtract(Subtract(end, (Multiply(duration, limitResolved))), 1)
 		}
@@ -2871,7 +2871,7 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		request["pair"] = market["id"]
 	}
 	if since != nil {
-		request["since_timestamp"] = MathRound(Divide(since, 1000))
+		request["since_timestamp"] = MathRound(float64(*since) / 1000)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("until_timestamp", request, paramsPaginate, 0.001)
 	if limit != nil {
@@ -3020,7 +3020,7 @@ func (this *Bitstamp) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["timedelta"] = Subtract(this.Milliseconds(), since)
+		request["timedelta"] = this.Milliseconds() - *since
 	} else {
 		request["timedelta"] = 50000000 // use max bitstamp approved value
 	}

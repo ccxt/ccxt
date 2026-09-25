@@ -112,7 +112,7 @@ public partial class kucoin : ccxt.kucoin
         // fetch different urls and overwrite each other
         urls[(string)connectId] = this.spawn(this.negotiateHelper, new object[] { privateChannel, connectId, parameters});
         this.options["urls"] = urls;
-        future = (urls != null && urls.ContainsKey(connectId) ? urls[connectId] : null);
+        future = (connectId != null && urls.ContainsKey(connectId) ? urls[connectId] : null);
         return await (future as Exchange.Future);
     }
 
@@ -274,7 +274,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? refreshInterval = (((1000L * 60L) * 60) * 24); // 24 hours
         refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", refreshInterval);
         Int64 now = this.milliseconds();
-        bool expired = isGreaterThanOrEqual((subtract(now, lastUpdate)), refreshInterval);
+        bool expired = isGreaterThanOrEqual(((now - lastUpdate)), refreshInterval);
         string messageHash = "utaToken";
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         var client = this.client(url);
@@ -1995,7 +1995,7 @@ public partial class kucoin : ccxt.kucoin
             {
                 continue;
             }
-            if ((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))) && (isLessThan(nonce, deltaEnd)))
+            if ((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }

@@ -465,7 +465,7 @@ public partial class hitbtc : ccxt.hitbtc
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            Dictionary<string, object> ticker = this.parseWsTicker(getValue(data, marketId), market);
+            Dictionary<string, object> ticker = this.parseWsTicker((marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
             this.tickers[(string)symbol] = ticker;
             result.Add(ticker);
             string messageHash = ((topic + "::") + symbol);
@@ -602,7 +602,7 @@ public partial class hitbtc : ccxt.hitbtc
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            Dictionary<string, object> ticker = this.parseWsBidAsk(getValue(data, marketId), market);
+            Dictionary<string, object> ticker = this.parseWsBidAsk((marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
             this.bidsasks[(string)symbol] = ticker;
             result.Add(ticker);
             string messageHash = ((topic + "::") + symbol);

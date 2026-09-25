@@ -558,12 +558,22 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var id *string = this.SafeString(market, "symbol")
 		var marketType *string = this.SafeString(market, "type")
 		var typeVar string
-		var index bool = (GetIndexOf(marketType, " index") >= 0)
+		var index bool = (func() int {
+			if marketType == nil {
+				return -1
+			}
+			return strings.Index(*marketType, " index")
+		}() >= 0)
 		var linear any = nil
 		var inverse any = nil
 		var expiry any = nil
 		if !index {
-			linear = (GetIndexOf(marketType, "_vanilla") >= 0)
+			linear = (func() int {
+				if marketType == nil {
+					return -1
+				}
+				return strings.Index(*marketType, "_vanilla")
+			}() >= 0)
 			inverse = !(linear == true)
 			var settleTime *string = this.SafeString(market, "lastTradingTime")
 			typeVar = func() string {
@@ -1140,7 +1150,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol string, optionalAr
 	}
 	if since != nil {
 		var duration int64 = this.ParseTimeframe(timeframe)
-		request["from"] = this.ParseToInt(Divide(since, 1000))
+		request["from"] = this.ParseToInt(float64(*since) / 1000)
 		var toTimestamp any = this.Sum(request["from"], Subtract(Multiply(windowLimit, duration), 1))
 		var currentTimestamp int64 = this.Seconds()
 		request["to"] = mathMin(toTimestamp, currentTimestamp)
@@ -3056,7 +3066,7 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan any, optionalArgs ...any) any
 		// each trade execution emits two rows and the position-size legs are
 		// filtered out below, so ask for twice the limit to compensate,
 		// parseLedger re-applies the limit on the filtered entries
-		request["count"] = Multiply(limit, 2)
+		request["count"] = *limit * 2
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {

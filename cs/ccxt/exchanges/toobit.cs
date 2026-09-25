@@ -3250,7 +3250,7 @@ public partial class toobit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -3426,8 +3426,8 @@ public partial class toobit : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object baseUrl = baseApiUrl;
-        object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
+        string baseUrl = baseApiUrl;
+        string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         bool isPost = (method == "POST");
         bool isDelete = (method == "DELETE");
         Dictionary<string, object> extraQuery = new Dictionary<string, object>() {};
@@ -3439,7 +3439,7 @@ public partial class toobit : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                 }
             }
         } else
@@ -3481,7 +3481,7 @@ public partial class toobit : Exchange
             if (queryString != "")
             {
                 queryString = queryString + ("&signature=" + signature);
-                url = add(url, ("?" + queryString));
+                url = url + ("?" + queryString);
             } else
             {
                 privateBody = add(privateBody, ("&signature=" + signature));

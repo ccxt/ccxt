@@ -610,7 +610,9 @@ export const CORE_NUMERIC_ARGS = {
     'createTriggerOrderWs': { 3: 'double', 4: 'double?' },
     'createTwapOrder': { 2: 'double' },
     'createUtaOrder': { 3: 'double', 4: 'double?' },
+    'cancelAllOrdersAfter': { 0: 'Int64?' },
     'deposit': { 1: 'double' },
+    'setLeverage': { 0: 'Int64' },
     'editContractOrder': { 4: 'double', 5: 'double?' },
     'editOrder': { 4: 'double?', 5: 'double?' },
     'editOrderWs': { 4: 'double?', 5: 'double?' },
@@ -7547,6 +7549,9 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         // but the left spine still selects add(string, …) (see
                         // stringAccumulatorWriteType)
                         const selfStringWrite = (csharpType === 'string') && nonNullStringInit (csharp, context, declaration) && (stringAccumulatorWriteType (csharp, context, declaration, parent.right) === 'string');
+                        // a write whose value is a statically-`string`, provably non-null string
+                        // (nonNullStringValue): the non-null spelling holds that same box
+                        const nonNullWrite = (csharpType === 'string') && nonNullStringValue (csharp, declaration, parent.right, 0);
                         const selfOmit = (csharpType === 'Dictionary<string, object>') && (selfOmitWriteType (csharp, context, declaration, parent.right) === 'Dictionary<string, object>');
 // the same arm as the join's: a write that reads this very declaration
                         // resolves the read to the candidate type it is being checked against
@@ -7563,7 +7568,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         const selfTernaryCollection = (written === undefined) && safeCollectionFamilyLocal (declaration.initializer)
                             && assignable (csharpType, selfTernaryCollectionWriteType (csharp, context, declaration, parent.right));
                         const selfTernary = ((selfTernaryType !== undefined) && assignable (csharpType, selfTernaryType)) || selfTernaryString || selfTernaryCollection;
-                        if (!selfConcat && !selfStringWrite && !selfOmit && !selfTernary && !assignable (csharpType, selfRead)) {
+                        if (!selfConcat && !selfStringWrite && !nonNullWrite && !selfOmit && !selfTernary && !assignable (csharpType, selfRead)) {
                             return false;
                         }
                     }
@@ -8225,6 +8230,10 @@ function stringValueIsNonNullAtUse (csharp, scope, declaration, name, read, cont
                     continue;
                 }
                 if (exitGuardProvesNonNull (candidate, csharp, scope, declaration)) {
+                    proof = candidate;
+                    continue;
+                }
+                if (statementDefinitelyWritesNonNullString (candidate, csharp, scope, declaration, writes, context, 0)) {
                     proof = candidate;
                     continue;
                 }
@@ -11177,6 +11186,13 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     if (!safe && csharpType === 'string?' && nonNullStringDefaultCall (csharp, declaration.initializer, ctx) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
         csharpType = 'string';
         cast = 'string';
+        safe = true;
+    }
+    // a `string?` candidate whose initializer is a proven non-null string (and whose every write
+    // the scan accepts as one): the non-null spelling binds add(string, *) on its `+` reads
+    // (see nonNullStringValue)
+    if (!safe && csharpType === 'string?' && nonNullStringValue (csharp, declaration, declaration.initializer, 0) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
         safe = true;
     }
     // the safeValue-twin box is only named when no use of the local treats it as the other
@@ -17001,25 +17017,54 @@ const NATIVE_COMPARISON_SYMBOLS = {
 
 const NATIVE_COMPARISON_INTEGER_KINDS = [ 'int', 'uint', 'Int64' ];
 
-function nativeComparisonOperandIsIdentifier (node) {
+function nativeComparisonOperandIsIdentifier (node, symbol) {
     let current = node;
     while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
         current = current.expression;
     }
-    return current?.kind === ts.SyntaxKind.Identifier;
+    const inner = NATIVE_COMPARISON_GUARDED_SYMBOLS.includes (symbol) ? nativeComparisonUnwrap (node) : current;
+    return inner?.kind === ts.SyntaxKind.Identifier;
+}
+
+// parentheses and the assertions that print the bare operand (`x as number`)
+function nativeComparisonUnwrap (node) {
+    let current = node;
+    while ((current?.kind === ts.SyntaxKind.ParenthesizedExpression)
+            || ((current?.kind === ts.SyntaxKind.AsExpression) && (current.type?.kind === ts.SyntaxKind.NumberKeyword))) {
+        current = current.expression;
+    }
+    return current;
+}
+
+// comparisons whose operands may also be proven non-null at the use (a dominating null test)
+const NATIVE_COMPARISON_GUARDED_SYMBOLS = [ '<' ];
+
+// the non-nullable kind an operand has AT this comparison: an `Int64?` identifier under a
+// dominating null test with no later write, or a guarded subtract printed natively
+function nativeComparisonGuardedKind (csharp, comparison, node) {
+    const inner = nativeComparisonUnwrap (node);
+    if (inner?.kind === ts.SyntaxKind.Identifier) {
+        return (nativeArithmeticOperandKind (csharp, inner) === 'Int64?') && !nativeSubtractOperandIsRebound (csharp, inner)
+            && (typeof csharp.csharpNullGuardAdmitsRead === 'function') && csharp.csharpNullGuardAdmitsRead (comparison, inner) ? 'Int64' : undefined;
+    }
+    if ((inner?.kind === ts.SyntaxKind.BinaryExpression) && (nativeGuardedSubtractExpression (csharp, inner) !== undefined)) {
+        return 'Int64';
+    }
+    return undefined;
 }
 
 // the operand kind a comparison may consume, or undefined: integer kinds, Int64?, and doubles
 // only for `>`; a nullable operand must be an identifier (the null test reads it again)
-function nativeComparisonOperand (csharp, node, symbol) {
-    const kind = nativeArithmeticOperandKind (csharp, node);
+function nativeComparisonOperand (csharp, node, symbol, comparison) {
+    const guarded = NATIVE_COMPARISON_GUARDED_SYMBOLS.includes (symbol) ? nativeComparisonGuardedKind (csharp, comparison, node) : undefined;
+    const kind = guarded ?? nativeArithmeticOperandKind (csharp, node);
     const base = nativeArithmeticBaseKind (kind);
     const nullable = nativeArithmeticIsNullableKind (kind);
     if (kind === 'int?' || kind === 'uint?') {
         return undefined;
     }
     const numeric = NATIVE_COMPARISON_INTEGER_KINDS.includes (base) || ((base === 'double') && (symbol === '>'));
-    if (!numeric || (nullable && !nativeComparisonOperandIsIdentifier (node))) {
+    if (!numeric || (nullable && !nativeComparisonOperandIsIdentifier (node, symbol))) {
         return undefined;
     }
     return { nullable, text: csharp.printNode (node, 0).trim () };
@@ -17030,8 +17075,8 @@ function nativeComparisonExpression (csharp, node) {
     if (symbol === undefined) {
         return undefined;
     }
-    const left = nativeComparisonOperand (csharp, node.left, symbol);
-    const right = left && nativeComparisonOperand (csharp, node.right, symbol);
+    const left = nativeComparisonOperand (csharp, node.left, symbol, node);
+    const right = left && nativeComparisonOperand (csharp, node.right, symbol, node);
     if (right === undefined || right === null) {
         return undefined;
     }
@@ -17069,6 +17114,9 @@ function nativeGuardedSubtractExpression (csharp, node) {
         }
         const kind = nativeArithmeticOperandKind (csharp, operand);
         if (kind === 'Int64?') {
+            if (nativeInt64ValueIsNonNull (csharp, operand, 0)) {
+                return 'Int64';
+            }
             return (operand.kind === ts.SyntaxKind.Identifier) && !nativeSubtractOperandIsRebound (csharp, operand)
                 && csharp.csharpNullGuardAdmitsRead (node, operand) ? 'Int64' : undefined;
         }
@@ -17081,6 +17129,66 @@ function nativeGuardedSubtractExpression (csharp, node) {
         return undefined; // no nullable operand: nativeArithmeticIsProven's decision
     }
     return '(' + csharp.printNode (node.left, 0) + ' - ' + csharp.printNode (node.right, 0) + ')';
+}
+
+// default argument position of the base safe integer readers (Exchange.SafeMethods.cs)
+const NON_NULL_DEFAULT_INT64_READERS = { 'safeInteger': 2, 'safeInteger2': 3, 'safeIntegerN': 2 };
+
+// an `Int64?` value that is never null: a safe integer read with a non-null integer default
+// (SafeIntegerN answers the default on every null path), a conditional picking the tested
+// identifier only when it is non-null, or a never-rebound local initialised with either
+function nativeInt64ValueIsNonNull (csharp, node, depth) {
+    let current = node;
+    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.expression;
+    }
+    if (current === undefined || depth > 4) {
+        return false;
+    }
+    const nonNullIntKind = (n) => NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (nativeArithmeticOperandKind (csharp, n))
+        || ((nativeArithmeticOperandKind (csharp, n) === 'Int64?') && nativeInt64ValueIsNonNull (csharp, n, depth + 1));
+    if (current.kind === ts.SyntaxKind.CallExpression) {
+        const callee = current.expression;
+        const position = (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword)
+            ? NON_NULL_DEFAULT_INT64_READERS[callee.name?.text] : undefined;
+        return (position !== undefined) && (current.arguments.length === position + 1) && nonNullIntKind (current.arguments[position]);
+    }
+    if (current.kind === ts.SyntaxKind.ConditionalExpression) {
+        const tested = [ current.whenTrue, current.whenFalse ].map ((arm) => {
+            let inner = arm;
+            while (inner?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+                inner = inner.expression;
+            }
+            return inner;
+        });
+        for (const [ index, arm ] of tested.entries ()) {
+            if (arm?.kind !== ts.SyntaxKind.Identifier || typeof csharp.csharpTestIsNonNullCheck !== 'function') {
+                continue;
+            }
+            let symbol;
+            try {
+                symbol = csharp.getChecker ().getSymbolAtLocation (arm);
+            } catch (e) {
+                return false;
+            }
+            const other = index === 0 ? current.whenFalse : current.whenTrue;
+            if ((symbol !== undefined) && csharp.csharpTestIsNonNullCheck (current.condition, symbol, index === 0) && nonNullIntKind (other)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    if ((current.kind !== ts.SyntaxKind.Identifier) || nativeSubtractOperandIsRebound (csharp, current)) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = csharp.getChecker ().getSymbolAtLocation (current)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return (declaration?.kind === ts.SyntaxKind.VariableDeclaration) && (declaration.initializer !== undefined)
+        && nativeInt64ValueIsNonNull (csharp, declaration.initializer, depth + 1);
 }
 
 // the guard proof is dropped for a binding written anywhere after its declaration (a write
@@ -17409,4 +17517,220 @@ export function installCsharpNativeIntProducts (transpiler) {
     const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
     csharp.printCustomBinaryExpressionIfAny = (node, identation) => nativeIntLiteralProduct (csharp, node) ?? upstream (node, identation);
     csharp._nativeIntProductsPatched = true;
+}
+
+// ===== identifier-key reads on a non-null dictionary local =====
+// `getValue (d, k)` -> `(d.ContainsKey(k) ? d[k] : null)` where d is a local declared
+// Dictionary/IDictionary<string, object> that is never null and k a string local: the
+// GetValue(IDictionary, string) twin's own branches. A key not proven non-null keeps the
+// twin's null test: `(k != null && d.ContainsKey(k) ? d[k] : null)`.
+function dictKeyNameIsRebound (block, name) {
+    let rebound = false;
+    const walk = (n) => {
+        if (rebound) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name) {
+            const parent = n.parent;
+            rebound = (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))
+                || ((parent?.kind === ts.SyntaxKind.PrefixUnaryExpression || parent?.kind === ts.SyntaxKind.PostfixUnaryExpression) && parent.operand === n)
+                || parent?.kind === ts.SyntaxKind.BindingElement
+                || parent?.kind === ts.SyntaxKind.ArrayLiteralExpression
+                || parent?.kind === ts.SyntaxKind.ShorthandPropertyAssignment;
+        }
+        n.forEachChild (walk);
+    };
+    walk (block);
+    return rebound;
+}
+
+// the identifier `const`/`let` declaration a read resolves to, with the C# type it was
+// declared with and the block that holds it; undefined for anything else
+function dictKeyLocal (csharp, node) {
+    const declaration = resolveReference (csharp, node);
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.name.text !== node.text) {
+        return undefined;
+    }
+    if (declaration.getStart () >= node.getStart ()) {
+        return undefined;
+    }
+    const list = declaration.parent;
+    const statement = list?.parent;
+    if (list?.kind !== ts.SyntaxKind.VariableDeclarationList || statement?.kind !== ts.SyntaxKind.VariableStatement || statement.parent === undefined) {
+        return undefined;
+    }
+    const type = referenceDeclaredCSharpType (csharp, node);
+    return (type === undefined) ? undefined : { declaration, type, block: statement.parent };
+}
+
+// initializers whose C# value is a dictionary object, never null: an object literal
+// (`new Dictionary<string, object>()`), the hand-written groupBy/indexBy (return their own
+// new dictionary), and safeDict with an object-literal default (returns the value or the default)
+function dictNeverNullInitializer (initializer) {
+    let node = initializer;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+        return true;
+    }
+    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = node.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const name = callee.name?.text;
+    if (name === 'groupBy' || name === 'indexBy') {
+        return true;
+    }
+    return name === 'safeDict' && node.arguments.length === 3 && node.arguments[2].kind === ts.SyntaxKind.ObjectLiteralExpression;
+}
+
+function dictIdentKeyRead (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return undefined;
+    }
+    const fileName = (node.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (!fileName.includes ('ts/src/') || fileName.includes ('ts/src/test/') || fileName.includes ('examples/')) {
+        return undefined;
+    }
+    const receiver = node.expression;
+    const key = node.argumentExpression;
+    if (receiver?.kind !== ts.SyntaxKind.Identifier || key?.kind !== ts.SyntaxKind.Identifier || key.text === 'undefined' || receiver.text === key.text) {
+        return undefined;
+    }
+    const parent = node.parent;
+    if ((parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === node && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))
+        || parent?.kind === ts.SyntaxKind.DeleteExpression
+        || parent?.kind === ts.SyntaxKind.PrefixUnaryExpression || parent?.kind === ts.SyntaxKind.PostfixUnaryExpression) {
+        return undefined;
+    }
+    const dict = dictKeyLocal (csharp, receiver);
+    if (dict === undefined || TYPED_DICT_RECEIVER_TYPES.indexOf (dict.type) < 0) {
+        return undefined;
+    }
+    if (!dictNeverNullInitializer (dict.declaration.initializer) || dictKeyNameIsRebound (dict.block, receiver.text)) {
+        return undefined;
+    }
+    const k = dictKeyLocal (csharp, key);
+    if (k === undefined || (k.type !== 'string' && k.type !== 'string?')) {
+        return undefined;
+    }
+    const d = receiver.text;
+    // a declared `string` is only an annotation: the bare form needs a dominating null test
+    const keyNonNull = !dictKeyNameIsRebound (k.block, key.text)
+        && typeof csharp.csharpNullGuardAdmitsRead === 'function' && csharp.csharpNullGuardAdmitsRead (node, key);
+    return keyNonNull
+        ? `(${d}.ContainsKey(${key.text}) ? ${d}[${key.text}] : null)`
+        : `(${key.text} != null && ${d}.ContainsKey(${key.text}) ? ${d}[${key.text}] : null)`;
+}
+
+export function installCsharpDictIdentKeyReads (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printElementAccessExpression !== 'function' || csharp._dictIdentKeyReadsPatched) {
+        return;
+    }
+    const upstream = csharp.printElementAccessExpression.bind (csharp);
+    csharp.printElementAccessExpression = (node, identation) => {
+        let read;
+        try {
+            read = dictIdentKeyRead (csharp, node);
+        } catch (e) {
+            read = undefined;
+        }
+        return read ?? upstream (node, identation);
+    };
+    csharp._dictIdentKeyReadsPatched = true;
+}
+
+// ===== non-null string locals (native `+` on their reads) =====
+// A value proven to be a non-null C# `string` whose PRINTED static type is `string`: a
+// literal, a `+` tree whose left spine ends in such a value (add(string, *) / a native
+// concat never returns null), a conditional over two such arms, a read of the declaration
+// being classified (its running type), a `string` local, a `string?` local proven non-null
+// at this read by a dominating guard or write (stringValueIsNonNullAtUse), a call the
+// return tables name `string`, or implodeHostname / implodeParams of a non-null string path
+// (their only null result is a null path).
+const NON_NULL_PATH_STRING_CALLS = [ 'implodeHostname', 'implodeParams' ];
+
+function nonNullStringValue (csharp, declaration, node, depth) {
+    if (depth > 8) {
+        return false;
+    }
+    const current = stripParens (node);
+    if (current === undefined) {
+        return false;
+    }
+    if (isStringLiteral (current)) {
+        return true;
+    }
+    switch (current.kind) {
+    case ts.SyntaxKind.Identifier: {
+        if (isSelfRead (csharp, current, declaration)) {
+            return true;
+        }
+        const type = localIdentifierType (csharp, current);
+        if (type === 'string') {
+            return true;
+        }
+        if (type !== 'string?') {
+            return false;
+        }
+        const binding = resolveReference (csharp, current);
+        if (binding?.kind !== ts.SyntaxKind.VariableDeclaration || binding.name?.kind !== ts.SyntaxKind.Identifier) {
+            return false;
+        }
+        const scope = enclosingFunction (binding);
+        return stringValueIsNonNullAtUse (csharp, scope, binding, binding.name.text, current, { scope, stack: new Set (), depth: 0 });
+    }
+    case ts.SyntaxKind.BinaryExpression:
+        return (current.operatorToken.kind === ts.SyntaxKind.PlusToken) && nonNullStringValue (csharp, declaration, current.left, depth + 1);
+    case ts.SyntaxKind.ConditionalExpression:
+        return nonNullStringValue (csharp, declaration, current.whenTrue, depth + 1) && nonNullStringValue (csharp, declaration, current.whenFalse, depth + 1);
+    case ts.SyntaxKind.CallExpression: {
+        const callee = current.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
+                && NON_NULL_PATH_STRING_CALLS.includes (callee.name?.text) && current.arguments?.length >= 1) {
+            return nonNullStringValue (csharp, declaration, current.arguments[0], depth + 1);
+        }
+        return nonNullStringWriteLeaf (csharp, current);
+    }
+    case ts.SyntaxKind.PropertyAccessExpression:
+        return nonNullStringWriteLeaf (csharp, current);
+    }
+    return false;
+}
+
+// every path through `statement` that reaches its end leaves the binding holding a proven
+// non-null string: an if/else whose both branches do, or a block whose last statement
+// touching the binding does (statements after it never write it). Exits need no write.
+function statementDefinitelyWritesNonNullString (statement, csharp, scope, declaration, writes, context, depth) {
+    if (statement === undefined || depth > 8) {
+        return false;
+    }
+    if (plainStringWriteQualifies (statement, csharp, scope, declaration, context)) {
+        return true;
+    }
+    if (statement.kind === ts.SyntaxKind.IfStatement) {
+        if (statement.elseStatement === undefined) {
+            return false;
+        }
+        const branch = (s) => statementAlwaysExits (s) || statementDefinitelyWritesNonNullString (s, csharp, scope, declaration, writes, context, depth + 1);
+        const touchesCondition = writes.some ((w) => w.getStart () >= statement.expression.getStart () && w.getEnd () <= statement.expression.getEnd ());
+        return !touchesCondition && branch (statement.thenStatement) && branch (statement.elseStatement);
+    }
+    if (statement.kind === ts.SyntaxKind.Block) {
+        const statements = statement.statements ?? [];
+        for (let i = statements.length - 1; i >= 0; i--) {
+            const candidate = statements[i];
+            const touches = writes.some ((w) => w.getStart () >= candidate.getStart () && w.getEnd () <= candidate.getEnd ());
+            if (!touches) {
+                continue;
+            }
+            return statementDefinitelyWritesNonNullString (candidate, csharp, scope, declaration, writes, context, depth + 1);
+        }
+    }
+    return false;
 }

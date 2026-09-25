@@ -372,7 +372,7 @@ func (this *Kucoin) authenticateUtaBody(ch chan any) any {
 	var refreshInterval any = (1000 * 60) * 60 * 24 // 24 hours
 	refreshInterval = ccxt.DerefScalar(this.SafeInteger(this.Options, "utaTokenRefreshInterval", refreshInterval))
 	var now int64 = this.Milliseconds()
-	var expired bool = ccxt.IsGreaterThanOrEqual((ccxt.Subtract(now, lastUpdate)), refreshInterval)
+	var expired bool = ccxt.IsGreaterThanOrEqual((now - *lastUpdate), refreshInterval)
 	var messageHash string = "utaToken"
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 	var client ccxt.ClientInterface = this.Client(url)
@@ -883,7 +883,12 @@ func (this *Kucoin) HandleTicker(client any, message any) {
 	//    }
 	//
 	var topic *string = this.SafeString(message, "topic")
-	if ccxt.GetIndexOf(topic, "contractMarket") < 0 {
+	if func() int {
+		if topic == nil {
+			return -1
+		}
+		return strings.Index(*topic, "contractMarket")
+	}() < 0 {
 		var market any = nil
 		if topic != nil {
 			var parts []string = strings.Split(*topic, ":")
@@ -1146,7 +1151,12 @@ func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var topic *string = this.SafeString(ticker, "topic")
-	if ccxt.GetIndexOf(topic, "contractMarket") < 0 {
+	if func() int {
+		if topic == nil {
+			return -1
+		}
+		return strings.Index(*topic, "contractMarket")
+	}() < 0 {
 		var parts []string = ccxt.Split(topic, ":")
 		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 		var marketResolved map[string]any = this.SafeMarket(marketId, market)
@@ -1393,7 +1403,12 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 	}
-	var isContractMarket bool = (ccxt.GetIndexOf(topic, "contractMarket") >= 0)
+	var isContractMarket bool = (func() int {
+		if topic == nil {
+			return -1
+		}
+		return strings.Index(*topic, "contractMarket")
+	}() >= 0)
 	var baseVolumeIndex int = 5
 	if isContractMarket {
 		baseVolumeIndex = 6 // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
@@ -2140,7 +2155,12 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var messageHash string = "orderbook:" + *symbol
 	// let orderbook = this.safeDict (this.orderbooks, symbol)
-	if ccxt.GetIndexOf(topic, "Depth") >= 0 {
+	if func() int {
+		if topic == nil {
+			return -1
+		}
+		return strings.Index(*topic, "Depth")
+	}() >= 0 {
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 		} else {

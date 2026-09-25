@@ -1745,14 +1745,14 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		if (until != nil) || (since != nil) {
 			var candleDuration int64 = this.ParseTimeframe(timeframe)
 			if since != nil {
-				sinceSeconds = MathRound(Divide(since, 1000))
+				sinceSeconds = MathRound(float64(*since) / 1000)
 			} else {
 				// when 'to' is defined since is mandatory
 				sinceSeconds = Subtract(MathRound(Divide(until, 1000)), (Multiply(maxLimit, candleDuration)))
 			}
 			request["from"] = sinceSeconds
 			if until != nil {
-				request["to"] = MathRound(Divide(until, 1000))
+				request["to"] = MathRound(float64(*until) / 1000)
 			} else {
 				// when since is defined 'to' is mandatory
 				var to any = Add(sinceSeconds, (Multiply(maxLimit, candleDuration)))

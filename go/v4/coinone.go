@@ -1126,8 +1126,8 @@ func (this *Coinone) createOrderBody(ch chan any, symbol string, typeVar string,
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var orderType string = ToUpper(typeVar) // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
-	var orderSide string = ToUpper(side)    // unified lowercase order sides, same override rule
+	var orderType string = strings.ToUpper(typeVar) // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+	var orderSide string = strings.ToUpper(side)    // unified lowercase order sides, same override rule
 	if orderType != "LIMIT" {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}

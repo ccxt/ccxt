@@ -6287,7 +6287,7 @@ public class Bingx extends BingxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", 1 );
             }};
-            return (this.setMargin(symbol, amount, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -6300,7 +6300,7 @@ public class Bingx extends BingxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", 2 );
             }};
-            return (this.setMargin(symbol, amount, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
         }).thenApply(MarginModification::new);
 
     }

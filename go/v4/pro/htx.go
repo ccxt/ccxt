@@ -735,7 +735,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 						numAttempts = this.Sum(numAttempts, 1)
 						var delayTime any = 1000
 						if (lastTimestamp != nil) && (snapshotTimestamp != nil) {
-							delayTime = this.Sum(1000, ccxt.Subtract(lastTimestamp, snapshotTimestamp))
+							delayTime = this.Sum(1000, *lastTimestamp-*snapshotTimestamp)
 						}
 						subscription["numAttempts"] = numAttempts
 						ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, subscription)
@@ -932,7 +932,7 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 		}
 	}
 	var spotConditon bool = (market["spot"] == true) && (ccxt.IsEqual(prevSeqNum, ccxt.GetValue(orderbook, "nonce")))
-	var nonSpotCondition bool = (market["contract"] == true) && (version != nil) && (ccxt.IsEqual(ccxt.Subtract(version, 1), ccxt.GetValue(orderbook, "nonce")))
+	var nonSpotCondition bool = (market["contract"] == true) && (version != nil) && (ccxt.IsEqual(*version-1, ccxt.GetValue(orderbook, "nonce")))
 	if (spotConditon == true) || (nonSpotCondition == true) {
 		var asks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(tick, "bids", []any{})

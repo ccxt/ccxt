@@ -2819,15 +2819,15 @@ public partial class dydx : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = apiUrl;
+        string url = apiUrl;
         object paramsOmitted = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> paramsSorted = this.keysort(paramsOmitted);
-        url = add(url, ("/" + pathWithParams));
+        url = url + ("/" + pathWithParams);
         if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)paramsSorted).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(paramsSorted)));
+                url = url + ("?" + this.urlencode(paramsSorted));
             }
         } else
         {

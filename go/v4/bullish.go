@@ -2307,7 +2307,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol string, typeVar string,
 	var request map[string]any = map[string]any{
 		"commandType":      "V3CreateOrder",
 		"symbol":           market["id"],
-		"side":             ToUpper(side),
+		"side":             strings.ToUpper(side),
 		"quantity":         this.AmountToPrecision(symbol, amount),
 		"tradingAccountId": tradingAccountId,
 	}
@@ -3628,7 +3628,7 @@ func (this *Bullish) ParseBorrowRate(info any, optionalArgs ...any) any {
 	}
 }
 func (this *Bullish) GetTimestamp() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 /**

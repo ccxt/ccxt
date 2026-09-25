@@ -1944,7 +1944,7 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		}
 		request["start"] = Subtract(end, Multiply(limitValue, duration))
 	} else {
-		var start int64 = this.ParseToInt(Divide(since, 1000))
+		var start int64 = this.ParseToInt(float64(*since) / 1000)
 		request["start"] = start
 		request["end"] = func() any {
 			if untilIsDefined {

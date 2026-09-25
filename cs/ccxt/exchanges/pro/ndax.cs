@@ -338,7 +338,7 @@ public partial class ndax : ccxt.ndax
                     ((List<object>)stored)[Convert.ToInt32((length - 1))] = new List<object>() {((List<object>)parsed)[0], getValue(previous, 1), high, low, ((List<object>)parsed)[4], this.sum(((List<object>)parsed)[5], getValue(previous, 5))};
                     if ((marketId != null))
                     {
-                        ((IDictionary<string,object>)getValue(updates, marketId))[timeframe] = true;
+                        ((IDictionary<string,object>)(updates.ContainsKey(marketId) ? updates[marketId] : null))[timeframe] = true;
                     }
                 } else
                 {
@@ -355,7 +355,7 @@ public partial class ndax : ccxt.ndax
                         }
                         if ((marketId != null))
                         {
-                            ((IDictionary<string,object>)getValue(updates, marketId))[timeframe] = true;
+                            ((IDictionary<string,object>)(updates.ContainsKey(marketId) ? updates[marketId] : null))[timeframe] = true;
                         }
                     }
                 }
@@ -367,7 +367,7 @@ public partial class ndax : ccxt.ndax
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
-            List<object> timeframes = new List<object>(((IDictionary<string,object>)getValue(updates, marketId)).Keys);
+            List<object> timeframes = new List<object>(((IDictionary<string,object>)(marketId != null && updates.ContainsKey(marketId) ? updates[marketId] : null)).Keys);
             for (int j = 0; j < timeframes.Count; j++)
             {
                 string? timeframe = ((string)timeframes[j]);

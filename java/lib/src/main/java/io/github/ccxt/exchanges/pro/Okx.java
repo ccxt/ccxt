@@ -299,9 +299,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (java.util.Objects.equals(channel, "trades-all"))
             {
                 access = "business";
-                (this.authenticate(Helpers.toMapArg(Helpers.newMap(
+                (this.authenticate(Helpers.newMap(
                     "access", access
-                )))).join();
+                ))).join();
             }
             String url = this.getUrl((String) (channel), access);
             List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
@@ -358,9 +358,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (java.util.Objects.equals(channel, "trades-all"))
             {
                 access = "business";
-                (this.authenticate(Helpers.toMapArg(Helpers.newMap(
+                (this.authenticate(Helpers.newMap(
                     "access", access
-                )))).join();
+                ))).join();
             }
             String url = this.getUrl((String) (channel), access);
             return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
@@ -1091,9 +1091,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 accessType = "business";
             }
-            (this.authenticate(Helpers.toMapArg(Helpers.newMap(
+            (this.authenticate(Helpers.newMap(
                 "access", accessType
-            )))).join();
+            ))).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
             String messageHash = "myLiquidations";
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -1571,9 +1571,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 {
                     throw new AuthenticationError((this.id + " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5")) ;
                 }
-                (this.authenticate(Helpers.toMapArg(new HashMap<String, Object>() {{
+                (this.authenticate(new HashMap<String, Object>() {{
                     put( "access", "public" );
-                }}))).join();
+                }})).join();
             }
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -2164,9 +2164,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 access = "business";
             }
-            (this.authenticate(Helpers.toMapArg(Helpers.newMap(
+            (this.authenticate(Helpers.newMap(
                 "access", access
-            )))).join();
+            ))).join();
             String channel = "orders";
             if (java.util.Objects.equals(isTrigger, true))
             {
@@ -2205,7 +2205,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Map<String, Object> request = Helpers.newMap(
                 "instType", uppercaseType
             );
-            List<Object> orders = (List<Object>) (this.subscribe("private", messageHash, channel, (String) (null), Helpers.toMapArg(this.extend(request, paramsMarginMode)))).join();
+            List<Object> orders = (List<Object>) (this.subscribe("private", messageHash, channel, (String) (null), this.extend(request, paramsMarginMode))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -2258,7 +2258,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 newPositions = (this.watch(url, channel, nonSymbolRequest, channel, null)).join();
             } else
             {
-                newPositions = (this.subscribeMultiple("private", channel, symbolsNormalized, Helpers.toMapArg(this.extend(request, parameters)))).join();
+                newPositions = (this.subscribeMultiple("private", channel, symbolsNormalized, this.extend(request, parameters))).join();
             }
             if (this.newUpdates)
             {
@@ -2406,9 +2406,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 accessType = "business";
             }
-            (this.authenticate(Helpers.toMapArg(Helpers.newMap(
+            (this.authenticate(Helpers.newMap(
                 "access", accessType
-            )))).join();
+            ))).join();
             Map<String, Object> market = null;
             String symbolResolved = null;
             String type = typeOption;
@@ -2445,7 +2445,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 channel = "orders-algo";
             }
-            List<Object> orders = (List<Object>) (this.subscribe("private", channel, channel, (String) (symbolResolved), Helpers.toMapArg(this.extend(request, paramsMarginMode)))).join();
+            List<Object> orders = (List<Object>) (this.subscribe("private", channel, channel, (String) (symbolResolved), this.extend(request, paramsMarginMode))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

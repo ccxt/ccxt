@@ -1221,7 +1221,7 @@ func (this *Xt) Describe() any {
 	})
 }
 func (this *Xt) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 /**

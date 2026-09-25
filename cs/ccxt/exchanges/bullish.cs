@@ -3234,7 +3234,7 @@ public partial class bullish : Exchange
 
     public virtual object getTimestamp()
     {
-        return subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0));
+        return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
     /**

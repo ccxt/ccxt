@@ -514,7 +514,7 @@ public class Binance extends BinanceApi
                         ((List<Object>)postOmitKeys).add("sortBy");
                     }
                 }
-                Object listed = (this.fetchRawTopics(fetchCap, Helpers.toMapArg(this.extend(listingRequest, rest)))).join();
+                Object listed = (this.fetchRawTopics(fetchCap, this.extend(listingRequest, rest))).join();
                 rawTopics = (this.completeRawTopics(listed)).join();
             }
             Integer rawTopicsLength = ((List<?>)rawTopics).size();
@@ -2126,7 +2126,7 @@ public class Binance extends BinanceApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", (String) (((String)side)), cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", (String) (((String)side)), cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(PredictionOrder::new);
 
     }

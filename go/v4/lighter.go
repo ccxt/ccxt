@@ -2143,7 +2143,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 			endTs = until
 		} else if limit != nil {
 			var duration int64 = this.ParseTimeframe(timeframe)
-			endTs = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
+			endTs = this.Sum(since, (duration * *limit)*1000)
 		} else {
 			endTs = now
 		}
@@ -2156,7 +2156,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		}()
 		var defaultLimit int = 100
 		if limit != nil {
-			startTs = Subtract(endTs, Multiply(this.ParseTimeframe(timeframe)*1000, limit))
+			startTs = Subtract(endTs, (this.ParseTimeframe(timeframe)*1000)**limit)
 		} else {
 			startTs = Subtract(endTs, Multiply(this.ParseTimeframe(timeframe)*1000, defaultLimit))
 		}

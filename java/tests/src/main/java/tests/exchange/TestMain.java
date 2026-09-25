@@ -3166,9 +3166,9 @@ public class TestMain extends BaseTest
             Object swapAlgoOrderRequest = new HashMap<String, Object>() {{}};
             try
             {
-                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 0.002, 102000, Helpers.toMapArg(new HashMap<String, Object>() {{
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new HashMap<String, Object>() {{
                     put( "triggerPrice", 101000 );
-                }})})).join();
+                }}})).join();
                 Object checkOrderRequest = this.urlencodedToDict(exchange.last_request_body);
                 Boolean algoOrderIdDefined = (!java.util.Objects.equals(((Map<String, Object>)checkOrderRequest).get("algoOrderId"), null));
                 Assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined");
@@ -3332,9 +3332,9 @@ public class TestMain extends BaseTest
             try
             {
                 // legacy path: generation 1, the hmac-signed endpoints
-                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/KRW", "limit", "buy", 1, 20000, Helpers.toMapArg(new HashMap<String, Object>() {{
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/KRW", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{
                     put( "generation", 1 );
-                }})})).join();
+                }}})).join();
             } catch(Exception e)
             {
                 reqHeaders = (((!java.util.Objects.equals(exchange.last_request_headers, null) && !java.util.Objects.equals(exchange.last_request_headers, null)))) ? exchange.last_request_headers : new HashMap<String, Object>() {{}};
@@ -3387,9 +3387,9 @@ public class TestMain extends BaseTest
             Assert(java.util.Objects.equals(((Map<String, Object>)reqHeaders).get("KC-API-PARTNER"), id), (("kucoin - id: " + id) + " not in headers for spot orders."));
             try
             {
-                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000, Helpers.toMapArg(new HashMap<String, Object>() {{
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{
                     put( "uta", true );
-                }})})).join();
+                }}})).join();
             } catch(Exception e)
             {
                 reqHeaders = (((!java.util.Objects.equals(exchange.last_request_headers, null) && !java.util.Objects.equals(exchange.last_request_headers, null)))) ? exchange.last_request_headers : new HashMap<String, Object>() {{}};
@@ -3406,9 +3406,9 @@ public class TestMain extends BaseTest
             Assert(java.util.Objects.equals(((Map<String, Object>)reqHeaders).get("KC-API-PARTNER"), id), (("kucoin - id: " + id) + " not in headers for swap orders."));
             try
             {
-                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000, Helpers.toMapArg(new HashMap<String, Object>() {{
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{
                     put( "uta", true );
-                }})})).join();
+                }}})).join();
             } catch(Exception e)
             {
                 reqHeaders = (((!java.util.Objects.equals(exchange.last_request_headers, null) && !java.util.Objects.equals(exchange.last_request_headers, null)))) ? exchange.last_request_headers : new HashMap<String, Object>() {{}};
@@ -3587,9 +3587,9 @@ public class TestMain extends BaseTest
             Object stopOrderRequest = new HashMap<String, Object>() {{}};
             try
             {
-                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000, Helpers.toMapArg(new HashMap<String, Object>() {{
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{
                     put( "stopPrice", 30000 );
-                }})})).join();
+                }}})).join();
             } catch(Exception e)
             {
                 stopOrderRequest = jsonParse(exchange.last_request_body);

@@ -857,7 +857,7 @@ public partial class mexc : ccxt.mexc
         {
             return -1;
         }
-        if (isLessThan(nonce, (firstDeltaNonce - 1)))
+        if ((nonce < (firstDeltaNonce - 1)))
         {
             return -1;
         }
@@ -1016,7 +1016,7 @@ public partial class mexc : ccxt.mexc
     {
         Int64? existingNonce = this.safeInteger(orderbook, "nonce");
         Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
-        if (((deltaNonce != null)) && ((existingNonce != null)) && ((existingNonce != null && (deltaNonce == null || deltaNonce < existingNonce))))
+        if (((deltaNonce != null)) && ((existingNonce != null)) && ((deltaNonce < existingNonce)))
         {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
@@ -2401,7 +2401,7 @@ public partial class mexc : ccxt.mexc
         };
         if (((channel != null)) && (((channel != null) && (methods?.ContainsKey(channel) == true))))
         {
-            object method = getValue(methods, channel);
+            object method = (channel != null && methods.ContainsKey(channel) ? methods[channel] : null);
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
         }
     }

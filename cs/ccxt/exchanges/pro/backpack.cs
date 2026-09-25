@@ -1089,7 +1089,7 @@ public partial class backpack : ccxt.backpack
         {
             return -1;
         }
-        if (isLessThan(nonce, (firstDeltaStart - 1)))
+        if ((nonce < (firstDeltaStart - 1)))
         {
             return -1;
         }
@@ -1102,7 +1102,7 @@ public partial class backpack : ccxt.backpack
             {
                 return cache?.Count ?? 0;
             }
-            if ((isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
+            if ((isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }

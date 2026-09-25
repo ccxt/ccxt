@@ -850,7 +850,7 @@ func (this *Weex) Describe() any {
 	})
 }
 func (this *Weex) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 /**

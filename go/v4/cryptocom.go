@@ -3997,7 +3997,7 @@ func (this *Cryptocom) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(contract, "t")
 	var fundingTimestamp any = nil
 	if timestamp != nil {
-		fundingTimestamp = Multiply(MathCeil(Divide(timestamp, 3600000)), 3600000) // end of the next hour
+		fundingTimestamp = Multiply(MathCeil(float64(*timestamp)/3600000), 3600000) // end of the next hour
 	}
 	return map[string]any{
 		"info":                     contract,

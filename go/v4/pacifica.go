@@ -1640,7 +1640,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	var until any = DerefScalar(this.SafeInteger(requestUntil, "end_time"))
 	if until == nil {
 		if limit != nil {
-			until = Subtract(Add(since, (Multiply(limit, (this.ParseTimeframe(tf)*1000)))), 1)
+			until = Subtract(Add(since, (*limit*(this.ParseTimeframe(tf)*1000))), 1)
 		}
 		if until == nil {
 			until = Subtract(Add(since, (Multiply(defaultMaxLimit, (this.ParseTimeframe(tf)*1000)))), 1)

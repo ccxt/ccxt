@@ -1732,7 +1732,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var timeInForce *string = this.SafeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force")
 	var postOnly *bool = this.SafeBool(paramsDeriveSubaccountId, "postOnly")
 	var orderType string = strings.ToLower(typeVar)
-	var orderSide string = ToLower(side)
+	var orderSide string = strings.ToLower(side)
 	var orderSideIsBuy bool = (orderSide == "buy") // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
 	var nonce any = this.IncrementingNonce()
 	// Order signature expiry must be between 2592000 and 7776000 sec from now

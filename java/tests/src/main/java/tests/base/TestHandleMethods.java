@@ -43,28 +43,28 @@ public class TestHandleMethods extends BaseTest
             //
             // case #2, should prevail: market.type
             //
-            var marketType2params2Variable = exchange.handleMarketTypeAndParams("fetchX", Helpers.toMapArg(market), Helpers.toMapArg(new HashMap<String, Object>() {{}}), "valueDefault");
+            var marketType2params2Variable = exchange.handleMarketTypeAndParams("fetchX", Helpers.toMapArg(market), new HashMap<String, Object>() {{}}, "valueDefault");
             var marketType2 = ((List<Object>) marketType2params2Variable).get(0);
             var params2 = ((List<Object>) marketType2params2Variable).get(1);
             Assert(java.util.Objects.equals(marketType2, "spot"));
             //
             // case #3, should prevail: valueDefault
             //
-            var marketType3params3Variable = exchange.handleMarketTypeAndParams("fetchX", (Map<String, Object>) null, Helpers.toMapArg(new HashMap<String, Object>() {{}}), "valueDefault");
+            var marketType3params3Variable = exchange.handleMarketTypeAndParams("fetchX", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, "valueDefault");
             var marketType3 = ((List<Object>) marketType3params3Variable).get(0);
             var params3 = ((List<Object>) marketType3params3Variable).get(1);
             Assert(java.util.Objects.equals(marketType3, "valueDefault"));
             //
             // case #4, should prevail: method options
             //
-            var marketType4params4Variable = exchange.handleMarketTypeAndParams("fetchX", (Map<String, Object>) null, Helpers.toMapArg(new HashMap<String, Object>() {{}}), (Object) null);
+            var marketType4params4Variable = exchange.handleMarketTypeAndParams("fetchX", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, (Object) null);
             var marketType4 = ((List<Object>) marketType4params4Variable).get(0);
             var params4 = ((List<Object>) marketType4params4Variable).get(1);
             Assert(java.util.Objects.equals(marketType4, "valueFromMethodOptions"));
             //
             // case #5, should prevail: options
             //
-            var marketType5params5Variable = exchange.handleMarketTypeAndParams("fetchY", (Map<String, Object>) null, Helpers.toMapArg(new HashMap<String, Object>() {{}}), (Object) null);
+            var marketType5params5Variable = exchange.handleMarketTypeAndParams("fetchY", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, (Object) null);
             var marketType5 = ((List<Object>) marketType5params5Variable).get(0);
             var params5 = ((List<Object>) marketType5params5Variable).get(1);
             Assert(java.util.Objects.equals(marketType5, "valueFromOptions"));
@@ -72,7 +72,7 @@ public class TestHandleMethods extends BaseTest
             // case #6, should prevail: spot (because hardcoded in base)
             //
             Helpers.addElementToObject(exchange.options, "defaultType", null);
-            var marketType6params6Variable = exchange.handleMarketTypeAndParams("fetchY", (Map<String, Object>) null, Helpers.toMapArg(new HashMap<String, Object>() {{}}), (Object) null);
+            var marketType6params6Variable = exchange.handleMarketTypeAndParams("fetchY", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, (Object) null);
             var marketType6 = ((List<Object>) marketType6params6Variable).get(0);
             var params6 = ((List<Object>) marketType6params6Variable).get(1);
             Assert(java.util.Objects.equals(marketType6, "spot"));
@@ -112,7 +112,7 @@ public class TestHandleMethods extends BaseTest
                     }} );
                 }} );
             }});
-            var marginModeparams1Variable = exchange.handleMarginModeAndParams("fetchX", Helpers.toMapArg(new HashMap<String, Object>() {{}}), "cross");
+            var marginModeparams1Variable = exchange.handleMarginModeAndParams("fetchX", new HashMap<String, Object>() {{}}, "cross");
             var marginMode = ((List<Object>) marginModeparams1Variable).get(0);
             var params1 = ((List<Object>) marginModeparams1Variable).get(1);
             Assert(java.util.Objects.equals(marginMode, "isolated"));

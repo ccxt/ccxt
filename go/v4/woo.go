@@ -1848,7 +1848,7 @@ func (this *Woo) createOrderBody(ch chan any, symbol string, typeVar string, sid
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var orderSide string = ToUpper(side)
+	var orderSide string = strings.ToUpper(side)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"side":   orderSide,
@@ -3032,7 +3032,7 @@ func (this *Woo) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 		request["limit"] = mathMin(limit, 1000)
 	}
 	if since != nil {
-		request["after"] = Subtract(since, 1) // #27793
+		request["after"] = *since - 1 // #27793
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
@@ -4238,7 +4238,7 @@ func (this *Woo) ParseMarginLoan(info any, optionalArgs ...any) any {
 	}
 }
 func (this *Woo) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Woo) Sign(path string, optionalArgs ...any) any {
 	section := GetArg(optionalArgs, 0, "public")

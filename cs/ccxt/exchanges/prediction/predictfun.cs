@@ -755,7 +755,7 @@ public partial class predictfun : PredictionExchange
                     {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
-                        object bucket = getValue(orphanMarkets, marketSlug);
+                        object bucket = (orphanMarkets.ContainsKey(marketSlug) ? orphanMarkets[marketSlug] : null);
                         ((IList<object>)bucket).Add(rawMarket);
                         orphanMarkets[(string)marketSlug] = bucket;
                     } else
@@ -775,7 +775,7 @@ public partial class predictfun : PredictionExchange
             if (!(((orphanSlug != null) && (seenSlugs?.ContainsKey(orphanSlug) == true))))
             {
                 seenSlugs[(string)orphanSlug] = true;
-                object markets = getValue(orphanMarkets, orphanSlug);
+                object markets = (orphanSlug != null && orphanMarkets.ContainsKey(orphanSlug) ? orphanMarkets[orphanSlug] : null);
                 IDictionary<string, object> first = this.safeDict(markets, 0, new Dictionary<string, object>() {});
                 // the market row's 'status' is the registration enum ('REGISTERED' /
                 // 'DEREGISTERED'), while parseEvent () reads the topic vocabulary ('OPEN' /

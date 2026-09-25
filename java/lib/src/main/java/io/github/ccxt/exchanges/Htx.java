@@ -5363,7 +5363,7 @@ public class Htx extends HtxApi
             {
                 request.put("status", "6");
             }
-            return (this.fetchContractOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchContractOrders(symbol, since, limit, this.extend(request, parameters))).join();
         });
 
     }
@@ -5494,7 +5494,7 @@ public class Htx extends HtxApi
                 {
                     request.put("status", "5,7"); // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
                 }
-                return (this.fetchContractOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, paramsMarketType)))).join();
+                return (this.fetchContractOrders(symbol, since, limit, this.extend(request, paramsMarketType))).join();
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

@@ -1540,7 +1540,7 @@ public class Opinion extends OpinionApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "1" );
             }};
-            return (this.fetchOrders(outcome, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -1565,7 +1565,7 @@ public class Opinion extends OpinionApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "2,3,4,5" );
             }};
-            return (this.fetchOrders(outcome, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }

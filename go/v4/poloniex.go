@@ -2495,7 +2495,7 @@ func (this *Poloniex) createOrderBody(ch chan any, symbol string, typeVar string
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
-		"side":   ToUpper(side),
+		"side":   strings.ToUpper(side),
 	}
 	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
 	requestValueparamsValueVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, params)
@@ -3617,7 +3617,7 @@ func (this *Poloniex) fetchTransactionsHelperBody(ch chan any, optionalArgs ...a
 	var now int64 = this.Seconds()
 	var start any = func() any {
 		if since != nil {
-			return this.ParseToInt(Divide(since, 1000))
+			return this.ParseToInt(float64(*since) / 1000)
 		}
 		return Subtract(now, 10*year)
 	}()

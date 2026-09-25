@@ -1098,7 +1098,7 @@ public partial class gemini : Exchange
             string lowerCaseId = marketIdWithoutPerp.ToLower();
             if (conflictingMarkets.ContainsKey(lowerCaseId))
             {
-                object conflictingMarket = (conflictingMarkets != null && conflictingMarkets.ContainsKey(lowerCaseId) ? conflictingMarkets[lowerCaseId] : null);
+                object conflictingMarket = (lowerCaseId != null && conflictingMarkets.ContainsKey(lowerCaseId) ? conflictingMarkets[lowerCaseId] : null);
                 baseId = getValue(conflictingMarket, "base");
                 quoteId = getValue(conflictingMarket, "quote");
                 if (isPerp)

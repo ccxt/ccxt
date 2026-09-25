@@ -245,8 +245,8 @@ public partial class revolutx : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object baseUrl = baseApiUrl;
-        object url = add(add(baseUrl, "/"), implodedPath);
+        string baseUrl = baseApiUrl;
+        string url = ((baseUrl + "/") + implodedPath);
         string queryString = "";
         if (isEqual(api, "private"))
         {
@@ -257,14 +257,14 @@ public partial class revolutx : Exchange
                 if (queryLength > 0)
                 {
                     queryString = this.urlencode(query);
-                    url = add(url, ("?" + queryString));
+                    url = url + ("?" + queryString);
                 }
             } else if ((method == "DELETE"))
             {
                 if (queryLength > 0)
                 {
                     queryString = this.urlencode(query);
-                    url = add(url, ("?" + queryString));
+                    url = url + ("?" + queryString);
                 }
             } else
             {
@@ -291,7 +291,7 @@ public partial class revolutx : Exchange
                 if (queryLength > 0)
                 {
                     queryString = this.urlencode(query);
-                    url = add(url, ("?" + queryString));
+                    url = url + ("?" + queryString);
                 }
             } else
             {
@@ -661,7 +661,7 @@ public partial class revolutx : Exchange
                 string? s = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 if (((s != null) && (result?.ContainsKey(s) == true)))
                 {
-                    filtered[(string)s] = getValue(result, s);
+                    filtered[(string)s] = (s != null && result.ContainsKey(s) ? result[s] : null);
                 }
             }
             return ccxt.BaseExchange.ToTickers(filtered);

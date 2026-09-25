@@ -1903,13 +1903,13 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         return BaseExchange.supplyAsync(() -> {
 
             // as only one ws channel gives positions for all types, for snapshot must load all positions
-            List<Object> fetchFunctions = new ArrayList<Object>(Arrays.asList(this.fetchPositions((List<String>) null, Helpers.toMapArg(new HashMap<String, Object>() {{
+            List<Object> fetchFunctions = new ArrayList<Object>(Arrays.asList(this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
         put( "type", "swap" );
         put( "subType", "linear" );
-    }})), this.fetchPositions((List<String>) null, Helpers.toMapArg(new HashMap<String, Object>() {{
+    }}), this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
         put( "type", "swap" );
         put( "subType", "inverse" );
-    }}))));
+    }})));
             Object promises = (Helpers.promiseAll(fetchFunctions)).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;

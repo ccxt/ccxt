@@ -988,7 +988,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	}
 	if since != nil {
 		// the endpoint accepts timestamps in seconds
-		request["start"] = this.ParseToInt(Divide(since, 1000))
+		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchOHLCV", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
@@ -1150,7 +1150,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	if period == nil {
 		period = SafeStringPtr("7D")
 		if since != nil {
-			var age any = Subtract(this.Milliseconds(), since)
+			var age int64 = this.Milliseconds() - *since
 			var day int = 86400000
 			if IsGreaterThan(age, 14*day) {
 				period = SafeStringPtr("1M")
@@ -1855,7 +1855,7 @@ func (this *Btse) ParseFundingRate(contract any, optionalArgs ...any) any {
 	// interval: a caller annualising a rate divides by it. anything under an
 	// hour rounds to the same string, and the vocabulary has no minutes
 	if (fundingIntervalMinutes != nil) && (*fundingIntervalMinutes >= 60) {
-		var hours int64 = this.ParseToInt(Divide(fundingIntervalMinutes, 60))
+		var hours int64 = this.ParseToInt(float64(*fundingIntervalMinutes) / 60)
 		interval = SafeStringPtr(strconv.FormatInt(hours, 10) + "h")
 	}
 	return map[string]any{
@@ -2363,7 +2363,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol string, typeVar string
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
 	var typeValue string = strings.ToUpper(typeVar)
-	var upperSide string = ToUpper(side)
+	var upperSide string = strings.ToUpper(side)
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
 		"orderSide": upperSide,
@@ -2585,7 +2585,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 	var typeValue string = strings.ToUpper(typeVar)
 	var request map[string]any = map[string]any{
 		"symbol":    this.FuturesRequestId(market),
-		"orderSide": ToUpper(side),
+		"orderSide": strings.ToUpper(side),
 		"orderSize": this.AmountToPrecision(symbol, amount),
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -4694,7 +4694,7 @@ func (this *Btse) CleanPath(path string) any {
 	return result
 }
 func (this *Btse) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 func NewBtse(userConfig map[string]any) *Btse {

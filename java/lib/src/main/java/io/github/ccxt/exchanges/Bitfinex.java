@@ -2644,7 +2644,7 @@ public class Bitfinex extends BitfinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", new ArrayList<Object>(Arrays.asList(Helpers.parseInt(id))) );
             }};
-            List<Order> orders = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<Order> orders = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
             Object order = this.safeValue(orders, 0);
             if (java.util.Objects.equals(order, null))
             {
@@ -2674,7 +2674,7 @@ public class Bitfinex extends BitfinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", new ArrayList<Object>(Arrays.asList(Helpers.parseInt(id))) );
             }};
-            List<Order> orders = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<Order> orders = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
             Object order = this.safeValue(orders, 0);
             if (java.util.Objects.equals(order, null))
             {
@@ -2994,7 +2994,7 @@ public class Bitfinex extends BitfinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op_renew", 1 );
             }};
-            return (this.fetchDepositAddress(code, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchDepositAddress(code, this.extend(request, parameters))).join();
         }).thenApply(DepositAddress::new);
 
     }

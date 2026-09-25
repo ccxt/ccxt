@@ -2019,7 +2019,7 @@ public partial class kucoin : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
+        return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     /**
@@ -4549,7 +4549,7 @@ public partial class kucoin : Exchange
                 timestamp = this.parseToInt(((double?)nanoseconds / 1000000));
             }
         }
-        Dictionary<string, object> orderbook = this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", subtract(level, 2), subtract(level, 1));
+        Dictionary<string, object> orderbook = this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", (level - 2), (level - 1));
         orderbook["nonce"] = this.safeInteger(data, "sequence");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -8988,7 +8988,7 @@ public partial class kucoin : Exchange
         request = (Dictionary<string, object>)requestparamsRequestVariable[0];
         paramsRequest = requestparamsRequestVariable[1];
         Dictionary<string, object> response = null;
-        if ((since != null) && ((since == null || since < 1550448000000)))
+        if ((since != null) && (since < 1550448000000))
         {
             // if since is earlier than 2019-02-18T00:00:00Z
             request["startAt"] = this.parseToInt(((double?)since / 1000));
@@ -9166,7 +9166,7 @@ public partial class kucoin : Exchange
         request = (Dictionary<string, object>)requestparamsRequestVariable[0];
         paramsRequest = requestparamsRequestVariable[1];
         Dictionary<string, object> response = null;
-        if ((since != null) && ((since == null || since < 1550448000000)))
+        if ((since != null) && (since < 1550448000000))
         {
             // if since is earlier than 2019-02-18T00:00:00Z
             request["startAt"] = this.parseToInt(((double?)since / 1000));
@@ -10940,7 +10940,7 @@ public partial class kucoin : Exchange
                     borrowRateHistories[(string)code] = new List<object>() {};
                 }
                 Dictionary<string, object> borrowRateStructure = this.parseBorrowRate(item);
-                object borrowRateHistoriesCode = getValue(borrowRateHistories, code);
+                object borrowRateHistoriesCode = (borrowRateHistories.ContainsKey(code) ? borrowRateHistories[code] : null);
                 ((IList<object>)borrowRateHistoriesCode).Add(borrowRateStructure);
             }
         }
@@ -10948,7 +10948,7 @@ public partial class kucoin : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? code = ((string)keys[i]);
-            borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit(getValue(borrowRateHistories, code),code, since, limit);
+            borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit((code != null && borrowRateHistories.ContainsKey(code) ? borrowRateHistories[code] : null),code, since, limit);
         }
         return borrowRateHistories;
     }
@@ -11280,7 +11280,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.code] *uta margin only* the unified currency code for the margin to set the leverage for
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -13050,7 +13050,7 @@ public partial class kucoin : Exchange
                 {
                     result[(string)symbol] = new List<object>() {};
                 }
-                ((IList<object>)getValue(result, symbol)).Add(tier);
+                ((IList<object>)(result.ContainsKey(symbol) ? result[symbol] : null)).Add(tier);
             }
         }
         return ccxt.BaseExchange.ToLeverageTiers(result);

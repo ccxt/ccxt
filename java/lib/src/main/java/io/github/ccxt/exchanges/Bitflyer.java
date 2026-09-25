@@ -1039,7 +1039,7 @@ public class Bitflyer extends BitflyerApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "child_order_state", "ACTIVE" );
             }};
-            return (this.fetchOrders(symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1063,7 +1063,7 @@ public class Bitflyer extends BitflyerApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "child_order_state", "COMPLETED" );
             }};
-            return (this.fetchOrders(symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

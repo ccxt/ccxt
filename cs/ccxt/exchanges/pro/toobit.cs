@@ -1349,7 +1349,7 @@ public partial class toobit : ccxt.toobit
         Int64? lastAuthenticatedTime = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "lastAuthenticatedTime", 0);
         Int64? listenKeyRefreshRate = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKeyRefreshRate", 1200000);
         Int64? delay = (listenKeyRefreshRate + 10000);
-        if (isGreaterThan(subtract(time, lastAuthenticatedTime), delay))
+        if (isGreaterThan((time - lastAuthenticatedTime), delay))
         {
             this.checkRequiredCredentials();
             // single-flight leader election on a never-dialed client, see

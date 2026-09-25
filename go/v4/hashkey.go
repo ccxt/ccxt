@@ -2865,7 +2865,12 @@ func (this *Hashkey) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(item, "change")
 	var amount *float64 = Float64PtrTyped(this.ParseNumber(amountString))
 	var direction string = "in"
-	if GetIndexOf(amountString, "-") >= 0 {
+	if func() int {
+		if amountString == nil {
+			return -1
+		}
+		return strings.Index(*amountString, "-")
+	}() >= 0 {
 		direction = "out"
 	}
 	var afterString *string = this.SafeString(item, "total")

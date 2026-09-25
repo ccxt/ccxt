@@ -4096,7 +4096,7 @@ public partial class coinex : Exchange
         {
             throw new ArgumentsRequired ((this.id + " setMarginMode() requires a leverage parameter")) ;
         }
-        if ((((leverage == null || leverage < 1))) || ((leverage != null && (maxLeverage == null || leverage > maxLeverage))))
+        if (((leverage < 1)) || ((leverage != null && (maxLeverage == null || leverage > maxLeverage))))
         {
             throw new BadRequest (((((this.id + " setMarginMode() leverage should be between 1 and ") + ((object)maxLeverage).ToString()) + " for ") + symbol)) ;
         }
@@ -4120,7 +4120,7 @@ public partial class coinex : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated' (default is 'cross')
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -4141,7 +4141,7 @@ public partial class coinex : Exchange
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         Int64? minLeverage = this.safeInteger(getValue((market.ContainsKey("limits") ? market["limits"] : null), "leverage"), "min", 1);
         Int64? maxLeverage = this.safeInteger(getValue((market.ContainsKey("limits") ? market["limits"] : null), "leverage"), "max", 100);
-        if ((isLessThan(leverage, minLeverage)) || (isGreaterThan(leverage, maxLeverage)))
+        if (((leverage < minLeverage)) || (((maxLeverage == null || leverage > maxLeverage))))
         {
             throw new BadRequest ((string)((((((this.id + " setLeverage() leverage should be between ") + ((object)minLeverage).ToString()) + " and ") + ((object)maxLeverage).ToString()) + " for ") + symbol)) ;
         }

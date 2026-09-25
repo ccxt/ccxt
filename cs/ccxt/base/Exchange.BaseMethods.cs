@@ -1382,7 +1382,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " createDepositAddress() is not supported yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " setLeverage() is not supported yet")) ;
@@ -1931,7 +1931,7 @@ public partial class BaseExchange
             for (int i = 0; i < length; i++)
             {
                 string? key = ((string)(keys != null && i < keys.Count ? keys[i] : null));
-                object network = getValue(networks, key);
+                object network = (key != null && networks.ContainsKey(key) ? networks[key] : null);
                 bool? deposit = this.safeBool(network, "deposit");
                 bool? currencyDeposit = this.safeBool(currency, "deposit");
                 if ((currencyDeposit == null) || ((deposit == true)))
@@ -3104,18 +3104,18 @@ public partial class BaseExchange
                     reduced[(string)feeCurrencyCode] = new Dictionary<string, object>() {};
                 }
                 string? rateKey = ((rate == null)) ? "" : rate;
-                if (inOp(getValue(reduced, feeCurrencyCode), rateKey))
+                if (inOp((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey))
                 {
-                    ((IDictionary<string,object>)getValue(getValue(reduced, feeCurrencyCode), rateKey))["cost"] = Precise.stringAdd(getValue(getValue(getValue(reduced, feeCurrencyCode), rateKey), "cost"), cost);
+                    ((IDictionary<string,object>)getValue((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey))["cost"] = Precise.stringAdd(getValue(getValue((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey), "cost"), cost);
                 } else
                 {
-                    ((IDictionary<string,object>)getValue(reduced, feeCurrencyCode))[(string)rateKey] = new Dictionary<string, object>() {
+                    ((IDictionary<string,object>)(reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null))[(string)rateKey] = new Dictionary<string, object>() {
                         { "currency", code },
                         { "cost", cost },
                     };
                     if ((rate != null))
                     {
-                        ((IDictionary<string,object>)getValue(getValue(reduced, feeCurrencyCode), rateKey))["rate"] = rate;
+                        ((IDictionary<string,object>)getValue((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey))["rate"] = rate;
                     }
                 }
             }
@@ -3724,7 +3724,7 @@ public partial class BaseExchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? baseCoin = ((string)keys[i]);
-            object entry = getValue(replacements, baseCoin);
+            object entry = (baseCoin != null && replacements.ContainsKey(baseCoin) ? replacements[baseCoin] : null);
             object primary = getValue(entry, "primary");
             object secondary = getValue(entry, "secondary");
             if (!isEqual(networkCode, primary) && !isEqual(networkCode, secondary))
@@ -5467,7 +5467,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " cancelAllContractOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " cancelAllOrdersAfter() is not supported yet")) ;
@@ -6652,7 +6652,7 @@ public partial class BaseExchange
         string lowercaseAccount = ((string)account).ToLower();
         if ((accountsByType != null && accountsByType.ContainsKey(lowercaseAccount)))
         {
-            return ((string?)((object)((accountsByType != null && accountsByType.ContainsKey(lowercaseAccount) ? accountsByType[lowercaseAccount] : null))));
+            return ((string?)((object)((lowercaseAccount != null && accountsByType.ContainsKey(lowercaseAccount) ? accountsByType[lowercaseAccount] : null))));
         }
         IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
         IDictionary<string, object> marketsById = this.markets_by_id;

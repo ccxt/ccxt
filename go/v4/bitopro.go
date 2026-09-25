@@ -1070,7 +1070,7 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	} else {
 		var timeframeInMilliseconds int64 = timeframeInSeconds * 1000
 		alignedSince = Multiply(MathFloor(Divide(since, timeframeInMilliseconds)), timeframeInMilliseconds)
-		request["from"] = MathFloor(Divide(since, 1000))
+		request["from"] = MathFloor(float64(*since) / 1000)
 		request["to"] = this.Sum(request["from"], Multiply(limitResolved, timeframeInSeconds))
 	}
 

@@ -4127,7 +4127,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 				request["from"] = Subtract(now, Multiply(duration, (Subtract(contractLimit, 1))))
 				calcualtedEnd = now
 			} else {
-				var start int64 = this.ParseToInt(Divide(since, 1000))
+				var start int64 = this.ParseToInt(float64(*since) / 1000)
 				request["from"] = start
 				calcualtedEnd = this.Sum(start, Multiply(duration, (Subtract(contractLimit, 1))))
 			}
@@ -4211,7 +4211,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 		} else {
 			// "from & to" only available for the this endpoint
 			if since != nil {
-				request["from"] = this.ParseToInt(Divide(since, 1000))
+				request["from"] = this.ParseToInt(float64(*since) / 1000)
 			}
 			if !IsEqual(untilSeconds, nil) {
 				request["to"] = untilSeconds
@@ -9347,7 +9347,7 @@ func (this *Htx) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	}
 }
 func (this *Htx) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Htx) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")

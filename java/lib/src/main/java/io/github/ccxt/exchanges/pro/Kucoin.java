@@ -1113,7 +1113,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> extendedParams = new HashMap<String, Object>() {{
                     put( "interval", period );
                 }};
-                ohlcv = (this.subscribePublicUta(messageHash, channel, symbolValue, Helpers.toMapArg(this.extend(extendedParams, paramsUta)), (Object) null)).join();
+                ohlcv = (this.subscribePublicUta(messageHash, channel, symbolValue, this.extend(extendedParams, paramsUta), (Object) null)).join();
             } else
             {
                 Boolean isFuturesMethod = (Boolean) market.get("contract");
@@ -1182,7 +1182,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> extendedParams = new HashMap<String, Object>() {{
                     put( "interval", period );
                 }};
-                return (this.subscribePublicUta(utaMessageHash, "kline", symbolValue, Helpers.toMapArg(this.extend(extendedParams, paramsUta)), subscription)).join();
+                return (this.subscribePublicUta(utaMessageHash, "kline", symbolValue, this.extend(extendedParams, paramsUta), subscription)).join();
             } else
             {
                 Boolean isFuturesMethod = (Boolean) market.get("contract");
@@ -2380,7 +2380,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "privateChannel", true );
                 }};
-                orders = (this.subscribe(url, messageHash, topic, Helpers.toMapArg(this.extend(request, paramsMarketType)), (Object) null)).join();
+                orders = (this.subscribe(url, messageHash, topic, this.extend(request, paramsMarketType), (Object) null)).join();
             }
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -2846,7 +2846,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                     String suffix = this.getMyTradesMessageHashSuffix(topic);
                     messageHash = Helpers.add(messageHash, suffix);
                 }
-                trades = (this.subscribe(url, messageHash, topic, Helpers.toMapArg(this.extend(request, paramsTopic)), (Object) null)).join();
+                trades = (this.subscribe(url, messageHash, topic, this.extend(request, paramsTopic), (Object) null)).join();
             }
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -3105,7 +3105,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                     "accountType", uniformType
                 );
                 String channel = "balance";
-                return (this.subscribePrivateUta(new ArrayList<Object>(Arrays.asList(messageHash)), subscriptionHash, channel, (String) null, Helpers.toMapArg(this.extend(extendedParams, paramsOmitted)), (Object) null)).join();
+                return (this.subscribePrivateUta(new ArrayList<Object>(Arrays.asList(messageHash)), subscriptionHash, channel, (String) null, this.extend(extendedParams, paramsOmitted), (Object) null)).join();
             } else
             {
                 String requestId = String.valueOf(this.requestId());
@@ -3367,7 +3367,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Object snapshot = client.future(("fetchPositionSnapshot:" + symbol)).getFuture().join();
                 return snapshot;
             }
-            return (this.subscribe(url, messageHash, topic, Helpers.toMapArg(this.extend(request, parameters)), (Object) null)).join();
+            return (this.subscribe(url, messageHash, topic, this.extend(request, parameters), (Object) null)).join();
         }).thenApply(Position::new);
 
     }
@@ -3479,9 +3479,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Position> positions = (this.fetchPositions((List<String>) null, Helpers.toMapArg(new HashMap<String, Object>() {{
+            List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
                 put( "uta", uta );
-            }}))).join();
+            }})).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)

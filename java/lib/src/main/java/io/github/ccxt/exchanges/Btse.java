@@ -2063,7 +2063,7 @@ public class Btse extends BtseApi
                     "clOrderID", clientOrderId
                 );
             }
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(this.extend(parameters, orderIdParams)))).join();
+            return (this.fetchMyTrades(symbol, since, limit, this.extend(parameters, orderIdParams))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

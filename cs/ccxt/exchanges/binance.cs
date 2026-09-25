@@ -12525,7 +12525,7 @@ public partial class binance : Exchange
                 double? fee = this.safeNumber(networkEntry, "withdrawFee");
                 if (((code != null)) && ((networkCode != null)))
                 {
-                    ((IDictionary<string,object>)getValue(withdrawFees, code))[(string)networkCode] = fee;
+                    ((IDictionary<string,object>)(withdrawFees.ContainsKey(code) ? withdrawFees[code] : null))[(string)networkCode] = fee;
                 }
             }
         }
@@ -14722,7 +14722,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.portfolioMargin] set to true if you would like to set the leverage for a trading pair in a portfolio margin account
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -14731,7 +14731,7 @@ public partial class binance : Exchange
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 125)))
+        if (((leverage < 1)) || ((leverage > 125)))
         {
             throw new BadRequest ((this.id + " leverage should be between 1 and 125")) ;
         }
@@ -15530,7 +15530,7 @@ public partial class binance : Exchange
         for (int i = 0; i < networkCodes.Count; i++)
         {
             string? currentNetworkCode = ((string)networkCodes[i]);
-            IDictionary<string, object> info = this.safeDict(getValue(networks, currentNetworkCode), "info", new Dictionary<string, object>() {});
+            IDictionary<string, object> info = this.safeDict((currentNetworkCode != null && networks.ContainsKey(currentNetworkCode) ? networks[currentNetworkCode] : null), "info", new Dictionary<string, object>() {});
             string? siteUrl = this.safeString(info, "contractAddressUrl");
             // check if url matches the field's value
             string? baseDomain = this.getBaseDomainFromUrl(siteUrl);
@@ -15577,8 +15577,8 @@ public partial class binance : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = baseApiUrl;
-        url = add(url, ("/" + path));
+        string url = baseApiUrl;
+        url = url + ("/" + path);
         Dictionary<string, object> signedHeaders = null;
         object signedBody = null;
         if ((path == "historicalTrades"))
@@ -15614,7 +15614,7 @@ public partial class binance : Exchange
         } else if ((isEqual(api, "private")) || (isEqual(api, "eapiPrivate")) || (isEqual(api, "sapi") && (path != "system/status")) || (isEqual(api, "sapiV2")) || (isEqual(api, "sapiV3")) || (isEqual(api, "sapiV4")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")) || (isEqual(api, "fapiPrivateV3")) || (isEqual(api, "papiV2") || isEqual(api, "papi") && (path != "ping")))
         {
             this.checkRequiredCredentials();
-            if ((getIndexOf(url, "testnet.binancefuture.com") > -1) && this.isSandboxModeEnabled && ((this.safeBool(this.options, "disableFuturesSandboxWarning") != true)))
+            if ((url.IndexOf("testnet.binancefuture.com", StringComparison.Ordinal) > -1) && this.isSandboxModeEnabled && ((this.safeBool(this.options, "disableFuturesSandboxWarning") != true)))
             {
                 throw new NotSupported ((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
@@ -15740,7 +15740,7 @@ public partial class binance : Exchange
             };
             if (((method == "GET")) || ((method == "DELETE")))
             {
-                url = add(url, ("?" + (query)));
+                url = url + ("?" + (query));
             } else
             {
                 signedBody = query;
@@ -15750,7 +15750,7 @@ public partial class binance : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(parameters)));
+                url = url + ("?" + this.urlencode(parameters));
             }
         }
         object headersResolved = ((signedHeaders != null)) ? signedHeaders : headers;

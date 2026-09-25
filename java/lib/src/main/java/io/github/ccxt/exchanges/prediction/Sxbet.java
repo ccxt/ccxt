@@ -533,22 +533,22 @@ public class Sxbet extends SxbetApi
             Object rawMarkets = null;
             if (!java.util.Objects.equals(eventId, null))
             {
-                rawMarkets = (this.fetchRawMarketsPaged(Helpers.toMapArg(this.extend(Helpers.newMap(
+                rawMarkets = (this.fetchRawMarketsPaged(this.extend(Helpers.newMap(
                     "sportXeventId", eventId
-                ), rest)), (Long) null)).join();
+                ), rest), (Long) null)).join();
                 // the venue's sportXeventId filter on /markets/active is unreliable (observed live
                 // returning every fixture) — enforce the scope client-side
                 rawMarkets = this.filterRawMarketsByFixture(rawMarkets, eventId);
             } else if (!java.util.Objects.equals(leagueId, null))
             {
-                rawMarkets = (this.fetchRawMarketsPaged(Helpers.toMapArg(this.extend(Helpers.newMap(
+                rawMarkets = (this.fetchRawMarketsPaged(this.extend(Helpers.newMap(
                     "leagueId", leagueId
-                ), rest)), (Long) null)).join();
+                ), rest), (Long) null)).join();
             } else if (!java.util.Objects.equals(sportId, null))
             {
-                rawMarkets = (this.fetchRawMarketsPaged(Helpers.toMapArg(this.extend(Helpers.newMap(
+                rawMarkets = (this.fetchRawMarketsPaged(this.extend(Helpers.newMap(
                     "sportId", sportId
-                ), rest)), (Long) null)).join();
+                ), rest), (Long) null)).join();
             } else
             {
                 // no server-side scope left, only query/tags — full scan honoring the fetchMarkets
@@ -628,9 +628,9 @@ public class Sxbet extends SxbetApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object rawMarkets = (this.fetchRawMarketsPaged(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
+            Object rawMarkets = (this.fetchRawMarketsPaged(this.extend(new HashMap<String, Object>() {{
                 put( "sportXeventId", id );
-            }}, parameters)), (Long) null)).join();
+            }}, parameters), (Long) null)).join();
             // enforce the fixture scope client-side — see filterRawMarketsByFixture
             rawMarkets = this.filterRawMarketsByFixture(rawMarkets, id);
             Integer rawMarketsLength = ((List<?>)rawMarkets).size();

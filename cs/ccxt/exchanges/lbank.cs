@@ -3028,7 +3028,7 @@ public partial class lbank : Exchange
                     {
                         if (((code != null)) && ((networkCode != null)))
                         {
-                            ((IDictionary<string,object>)getValue(withdrawFees, code))[(string)networkCode] = fee;
+                            ((IDictionary<string,object>)(withdrawFees.ContainsKey(code) ? withdrawFees[code] : null))[(string)networkCode] = fee;
                         }
                     }
                 }
@@ -3101,7 +3101,7 @@ public partial class lbank : Exchange
                 }
                 if (((codeInner != null)) && ((network != null)))
                 {
-                    ((IDictionary<string,object>)getValue(withdrawFees, codeInner))[(string)network] = this.parseNumber(fee);
+                    ((IDictionary<string,object>)(withdrawFees.ContainsKey(codeInner) ? withdrawFees[codeInner] : null))[(string)network] = this.parseNumber(fee);
                 }
             }
         }
@@ -3265,13 +3265,13 @@ public partial class lbank : Exchange
                             result[(string)code] = this.depositWithdrawFee(new List<object>() {fee});
                         } else
                         {
-                            object resultCodeInfo = getValue(getValue(result, code), "info");
+                            object resultCodeInfo = getValue((result.ContainsKey(code) ? result[code] : null), "info");
                             ((IList<object>)resultCodeInfo).Add(fee);
                         }
                         string? networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);
                         if ((networkCode != null))
                         {
-                            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                            ((IDictionary<string,object>)getValue((result.ContainsKey(code) ? result[code] : null), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                                 { "withdraw", new Dictionary<string, object>() {
                                     { "fee", withdrawFee },
                                     { "percentage", null },
@@ -3283,7 +3283,7 @@ public partial class lbank : Exchange
                             };
                         } else
                         {
-                            ((IDictionary<string,object>)getValue(result, code))["withdraw"] = new Dictionary<string, object>() {
+                            ((IDictionary<string,object>)(result.ContainsKey(code) ? result[code] : null))["withdraw"] = new Dictionary<string, object>() {
                                 { "fee", withdrawFee },
                                 { "percentage", null },
                             };

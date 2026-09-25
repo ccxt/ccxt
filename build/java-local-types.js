@@ -13728,6 +13728,35 @@ export function patchJavaObjectKeysLength (transpiler) {
     };
 }
 
+// ===== 41. core Map arguments that already print a Map<String, Object> =====
+// Helpers.toMapArg is the identity on a Map: drop it for a 2-arg extend / deepExtend / keysort /
+// indexBy / groupBy resolved in base generic/misc.ts, and for an object literal (a HashMap).
+export function patchJavaMapArgIdentity (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaConvertToCoreType !== 'function' || printer._javaMapArgIdentityPatched) {
+        return;
+    }
+    printer._javaMapArgIdentityPatched = true;
+    const upstream = printer.javaConvertToCoreType.bind (printer);
+    printer.javaConvertToCoreType = function (type, printed, node) {
+        const out = upstream (type, printed, node);
+        if (type !== JAVA_MAP_TYPE || out !== `Helpers.toMapArg(${printed})` || node === undefined) {
+            return out;
+        }
+        const bare = unwrapParens (node);
+        if (bare !== undefined && ts.isObjectLiteralExpression (bare)
+            && /^\(*(new (java\.util\.)?HashMap<String, Object>\(\)|Helpers\.newMap\()/.test (printed)) {
+            return printed;
+        }
+        const info = collectionCallInfo (printer, node);
+        if (info !== undefined && info.type === JAVA_MAP_TYPE && !info.cast
+            && new RegExp (`^\\(*this\\.${bare.expression.name.text}\\(`).test (printed)) {
+            return printed;
+        }
+        return out;
+    };
+}
+
 // ===== 36. non-null String locals (native `+` on their reads) =====
 // An `Object` local whose initializer and every write is a provably non-null String becomes
 // `String`: the printer's concat rule then anchors on it. The `+` chains it heads take no

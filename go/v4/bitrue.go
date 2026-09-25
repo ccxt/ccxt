@@ -742,7 +742,7 @@ func (this *Bitrue) Describe() any {
 	})
 }
 func (this *Bitrue) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 /**
@@ -2289,7 +2289,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var data any = map[string]any{}
 	var uppercaseType string = strings.ToUpper(typeVar)
 	var request map[string]any = map[string]any{
-		"side": ToUpper(side),
+		"side": strings.ToUpper(side),
 		"type": uppercaseType,
 	}
 	if uppercaseType == "LIMIT" {

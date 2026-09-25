@@ -1467,7 +1467,7 @@ public partial class polymarket : PredictionExchange
                 {
                     continue;
                 }
-                object outcomeObj = getValue(outcomesByTokenId, tokenId);
+                object outcomeObj = (outcomesByTokenId.ContainsKey(tokenId) ? outcomesByTokenId[tokenId] : null);
                 string? mid = this.safeString(midpoints, tokenId);
                 Dictionary<string, object> tickerInput = new Dictionary<string, object>() {
                     { "midpoint", new Dictionary<string, object>() {
@@ -1728,7 +1728,7 @@ public partial class polymarket : PredictionExchange
                 buckets[(string)bucketKey] = new List<object>() {snappedMs, price, price, price, price, vol};
             } else
             {
-                object candle = (buckets != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null);
+                object candle = (bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null);
                 ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), price); // high
                 ((List<object>)candle)[Convert.ToInt32(3)] = mathMin(getValue(candle, 3), price); // low
                 ((List<object>)candle)[Convert.ToInt32(4)] = price; // close (last tick wins)

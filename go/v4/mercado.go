@@ -630,7 +630,7 @@ func (this *Mercado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"coin": market["base"],
 	}
 	if since != nil {
-		request["from"] = this.ParseToInt(Divide(since, 1000))
+		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var to *int64 = this.SafeInteger(params, "to")
 	var response []any = nil
@@ -1136,7 +1136,7 @@ func (this *Mercado) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		return limit
 	}()
 	if since != nil {
-		request["from"] = this.ParseToInt(Divide(since, 1000))
+		request["from"] = this.ParseToInt(float64(*since) / 1000)
 		request["to"] = this.Sum(request["from"], Multiply(limitResolved, this.ParseTimeframe(timeframe)))
 	} else {
 		var to int64 = this.Seconds()

@@ -232,7 +232,7 @@ public partial class bitstamp : ccxt.bitstamp
             return -1;
         }
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        if (((nonce == null)) || ((firstElementNonce != null && (nonce == null || nonce < firstElementNonce))))
+        if (((nonce == null)) || (((nonce == null || nonce < firstElementNonce))))
         {
             return -1;
         }
@@ -1017,7 +1017,7 @@ public partial class bitstamp : ccxt.bitstamp
             string? key = ((string)keys[i]);
             if (channel.IndexOf(key, StringComparison.Ordinal) > -1)
             {
-                object method = getValue(methods, key);
+                object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             }
         }

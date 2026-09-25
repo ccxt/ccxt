@@ -1849,7 +1849,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome string, optionalArgs
 	var startS any = nil
 	var endS any = nowS
 	if since != nil {
-		startS = this.ParseToInt(ccxt.Divide(since, 1000))
+		startS = this.ParseToInt(float64(*since) / 1000)
 		if limit != nil {
 			var endBound any = this.Sum(startS, ccxt.Multiply(ccxt.Multiply(limit, fidelityMin), 60))
 			endS = func() any {
@@ -1898,7 +1898,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome string, optionalArgs
 	var history []any = ccxt.SafeListTyped(response, "history")
 	// ccxt.Client-side bucket aggregation: snap each tick to its candle boundary and
 	// build open/high/low/close/volume. Assumes history is sorted ascending by time.
-	var resolutionMs any = ccxt.Multiply(ccxt.Multiply(fidelityMin, 60), 1000)
+	var resolutionMs int64 = (*fidelityMin * 60) * 1000
 	var buckets map[string]any = map[string]any{}
 	for i := 0; i < len(history); i++ {
 		var item map[string]any = ccxt.SafeMapTyped(history, i)
@@ -1907,7 +1907,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome string, optionalArgs
 		if (t == nil) || (price == nil) {
 			continue
 		}
-		var rawMs any = ccxt.Multiply(t, 1000)
+		var rawMs int64 = *t * 1000
 		var snappedMs any = ccxt.Multiply(ccxt.MathFloor(ccxt.Divide(rawMs, resolutionMs)), resolutionMs)
 		// the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
 		// rather than fabricating a 0, probing s/v in case the field ever appears

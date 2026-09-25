@@ -3989,13 +3989,13 @@ public partial class htx : Exchange
                 if ((since == null))
                 {
                     Int64 now = this.seconds();
-                    request["from"] = subtract(now, multiply(duration, (subtract(contractLimit, 1))));
+                    request["from"] = subtract(now, multiply(duration, ((contractLimit - 1))));
                     calcualtedEnd = now;
                 } else
                 {
                     Int64? start = this.parseToInt(((double?)since / 1000));
                     request["from"] = start;
-                    calcualtedEnd = this.sum(start, multiply(duration, (subtract(contractLimit, 1))));
+                    calcualtedEnd = this.sum(start, multiply(duration, ((contractLimit - 1))));
                 }
                 request["to"] = ((untilSeconds != null)) ? untilSeconds : calcualtedEnd;
             }
@@ -4678,7 +4678,7 @@ public partial class htx : Exchange
                     for (int j = 0; j < subCodes.Count; j++)
                     {
                         string? subCode = ((string)subCodes[j]);
-                        result = this.mergeBalanceAccount(result,subCode, getValue(subResult, subCode));
+                        result = this.mergeBalanceAccount(result,subCode, (subCode != null && subResult.ContainsKey(subCode) ? subResult[subCode] : null));
                     }
                 }
                 result = this.safeBalance(result);
@@ -7653,7 +7653,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7665,7 +7665,7 @@ public partial class htx : Exchange
             throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "timeout", (isGreaterThan(timeout, 0)) ? this.parseToInt(divide(timeout, 1000)) : 0 },
+            { "timeout", ((timeout > 0)) ? this.parseToInt(((double?)timeout / 1000)) : 0 },
         };
         Dictionary<string, object> response = await this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, parameters));
         //
@@ -8954,7 +8954,7 @@ public partial class htx : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
+        return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
@@ -9315,7 +9315,7 @@ public partial class htx : Exchange
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))

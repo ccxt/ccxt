@@ -1689,7 +1689,7 @@ public partial class zebpay : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -2202,9 +2202,9 @@ public partial class zebpay : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = baseApiUrl;
+        string url = baseApiUrl;
         string tail = ("/api/" + this.implodeParams(path, paramsOmitted));
-        url = add(url, tail);
+        url = url + tail;
         string timestamp = this.milliseconds().ToString();
         string signature = "";
         object query = this.omit(paramsOmitted, this.extractParams(path));
@@ -2216,7 +2216,7 @@ public partial class zebpay : Exchange
             {
                 if ((queryLength != 0))
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                 }
             } else
             {
@@ -2224,9 +2224,9 @@ public partial class zebpay : Exchange
                 object paramsBody = this.omit(paramsOmitted, "priceType");
                 if ((priceType != null))
                 {
-                    url = add(url, ("?" + this.urlencode(new Dictionary<string, object>() {
+                    url = url + ("?" + this.urlencode(new Dictionary<string, object>() {
     { "priceType", priceType },
-})));
+}));
                 }
                 bodySigned = json(paramsBody);
                 headersSigned = new Dictionary<string, object>() {
@@ -2244,7 +2244,7 @@ public partial class zebpay : Exchange
                 // For GET/DELETE: Append params to URL and sign the query string
                 string queryString = this.urlencode(paramsOmitted);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256, "hex");
-                url = add(url, ("?" + queryString));
+                url = url + ("?" + queryString);
             } else
             {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload

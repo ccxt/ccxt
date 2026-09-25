@@ -807,7 +807,7 @@ public partial class gate : ccxt.gate
         Int64? nonce = this.safeInteger(orderBook, "nonce");
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? firstDeltaStart = this.safeInteger(firstDelta, "U");
-        if (((nonce != null)) && ((firstDeltaStart != null)) && ((firstDeltaStart != null && (nonce == null || nonce < firstDeltaStart))))
+        if (((nonce != null)) && ((firstDeltaStart != null)) && ((nonce < firstDeltaStart)))
         {
             return -1;
         }
@@ -816,7 +816,7 @@ public partial class gate : ccxt.gate
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
             Int64? deltaEnd = this.safeInteger(delta, "u");
-            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && (isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
+            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && (isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }
@@ -1308,7 +1308,7 @@ public partial class gate : ccxt.gate
         for (int i = 0; i < keys.Count; i++)
         {
             string? symbol = ((string)keys[i]);
-            object timeframe = getValue(marketIds, symbol);
+            object timeframe = (symbol != null && marketIds.ContainsKey(symbol) ? marketIds[symbol] : null);
             string? interval = this.findTimeframe(timeframe);
             string hash = (((("candles" + ":") + interval) + ":") + symbol);
             ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), interval));
@@ -2307,7 +2307,7 @@ public partial class gate : ccxt.gate
         {
             string? subscriptionHash = this.safeString(client.subscriptions, id);
             object subscription = this.safeValue(client.subscriptions, subscriptionHash);
-            object method = (methods != null && methods.ContainsKey(channel) ? methods[channel] : null);
+            object method = (channel != null && methods.ContainsKey(channel) ? methods[channel] : null);
             DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
         }
         if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
@@ -2577,7 +2577,7 @@ public partial class gate : ccxt.gate
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object value = getValue(findBy, key);
+            object value = (key != null && findBy.ContainsKey(key) ? findBy[key] : null);
             if (((string)url).IndexOf(key, StringComparison.Ordinal) >= 0)
             {
                 return value;

@@ -2272,7 +2272,7 @@ func (this *Bybit) EnableDemoTrading(enable any) {
 	this.Options.Store("enableDemoTrading", enable)
 }
 func (this *Bybit) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Bybit) AddPaginationCursorToResult(response any) any {
 	var result map[string]any = SafeMapTyped(response, "result")
@@ -4009,7 +4009,7 @@ func (this *Bybit) ParseFundingRate(ticker any, optionalArgs ...any) any {
 	var fundingInterval *int64 = this.SafeInteger(info, "fundingInterval")
 	var intervalString *string = nil
 	if fundingInterval != nil {
-		var interval int64 = this.ParseToInt(Divide(fundingInterval, 60))
+		var interval int64 = this.ParseToInt(float64(*fundingInterval) / 60)
 		intervalString = SafeStringPtr(strconv.FormatInt(interval, 10) + "h")
 	}
 	return map[string]any{
@@ -4198,9 +4198,9 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	} else {
 		if since != nil {
 			// end time is required when since is not empty
-			var fundingInterval any = (60 * 60) * 8 * 1000
+			var fundingInterval int64 = (60 * 60) * 8 * 1000
 			if fundingTimeFrameMins != nil {
-				fundingInterval = Multiply(Multiply(fundingTimeFrameMins, 60), 1000)
+				fundingInterval = (*fundingTimeFrameMins * 60) * 1000
 			}
 			request["endTime"] = this.Sum(since, Multiply(limitResolved, fundingInterval))
 		}

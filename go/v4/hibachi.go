@@ -2823,7 +2823,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 		symbolResolved = DerefScalar(this.SafeString(market, "symbol"))
 	}
 	if since != nil {
-		request["startTime"] = this.ParseToInt(Divide(since, 1000))
+		request["startTime"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
 		request["limit"] = limit

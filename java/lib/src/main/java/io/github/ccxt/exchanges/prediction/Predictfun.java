@@ -2450,7 +2450,7 @@ public class Predictfun extends PredictfunApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", Predictfun.this.safeString(info, "marketId") );
             }};
-            List<PredictionPosition> positions = (this.fetchPositions(new ArrayList<Object>(Arrays.asList(outcome)), Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<PredictionPosition> positions = (this.fetchPositions(new ArrayList<Object>(Arrays.asList(outcome)), this.extend(request, parameters))).join();
             // holding none of an outcome is an ordinary read, so the empty slot is returned rather
             // than raised - the same shape polymarket and binance answer with
             return this.safeDict(positions, 0, (Object) null);
@@ -2734,7 +2734,7 @@ public class Predictfun extends PredictfunApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "OPEN" );
             }};
-            return (this.fetchOrdersHelper(outcome, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrdersHelper(outcome, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -2761,7 +2761,7 @@ public class Predictfun extends PredictfunApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "FILLED" );
             }};
-            return (this.fetchOrdersHelper(outcome, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrdersHelper(outcome, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }

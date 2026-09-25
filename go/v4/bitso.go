@@ -1050,12 +1050,12 @@ func (this *Bitso) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		request["start"] = since
 		if limit != nil {
 			var duration int64 = this.ParseTimeframe(timeframe)
-			request["end"] = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
+			request["end"] = this.Sum(since, (duration * *limit)*1000)
 		}
 	} else if limit != nil {
 		var now int64 = this.Milliseconds()
 		request["end"] = now
-		request["start"] = Subtract(now, Multiply(this.ParseTimeframe(timeframe)*1000, limit))
+		request["start"] = now - (this.ParseTimeframe(timeframe)*1000)**limit
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOhlc(this.Extend(request, params))).Raw))
@@ -1972,7 +1972,12 @@ func (this *Bitso) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	var payload map[string]any = SafeMapTyped(response, "payload")
 	var address *string = this.SafeString(payload, "account_identifier")
 	var tag *string = nil
-	if GetIndexOf(address, "?dt=") >= 0 {
+	if func() int {
+		if address == nil {
+			return -1
+		}
+		return strings.Index(*address, "?dt=")
+	}() >= 0 {
 		var parts []string = Split(address, "?dt=")
 		address = this.SafeString(parts, 0)
 		tag = this.SafeString(parts, 1)

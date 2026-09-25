@@ -860,9 +860,9 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
-	request["to"] = this.ParseToInt((Divide(until, 1000)))
+	request["to"] = this.ParseToInt((float64(*until) / 1000))
 	if since != nil {
-		request["from"] = this.ParseToInt(Divide(since, 1000))
+		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var limitDefaulted any = limit
 	if (since == nil) && (limit == nil) {
@@ -881,7 +881,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		var seconds int64 = this.ParseTimeframe(timeframe)
 		var limitSeconds any = Multiply(seconds, (Subtract(limitResolved, 1)))
 		if since != nil {
-			var to any = Add(this.ParseToInt(Divide(since, 1000)), limitSeconds)
+			var to any = Add(this.ParseToInt(float64(*since)/1000), limitSeconds)
 			request["to"] = mathMin(request["to"], to)
 		} else {
 			request["from"] = Subtract(this.ParseToInt(float64(0)/1000), limitSeconds)
@@ -1142,7 +1142,7 @@ func (this *Btcturk) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["last"] = limit
 	}
 	if since != nil {
-		request["startTime"] = MathFloor(Divide(since, 1000))
+		request["startTime"] = MathFloor(float64(*since) / 1000)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAllOrders(this.Extend(request, params))).Raw))

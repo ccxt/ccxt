@@ -2682,7 +2682,7 @@ public partial class backpack : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = apiUrl;
+        string url = apiUrl;
         object sortedParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.keysort(parameters);
         Dictionary<string, object> headersSigned = null;
         string? bodySigned = null;
@@ -2731,7 +2731,7 @@ public partial class backpack : Exchange
                 endpoint = endpoint + ("?" + query);
             }
         }
-        url = add(url, endpoint);
+        url = url + endpoint;
         object headersResolved = (isEqual(api, "private")) ? headersSigned : headers;
         object bodyResolved = body;
         if ((isEqual(api, "private")) && ((method != "GET")))

@@ -1150,7 +1150,7 @@ func (this *Bigone) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " fetchTime() missing timestamp"))
 	}
 
-	ch <- this.ParseToInt(Divide(timestamp, 1000000))
+	ch <- this.ParseToInt(float64(*timestamp) / 1000000)
 	return nil
 }
 
@@ -2335,7 +2335,7 @@ func (this *Bigone) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *Bigone) Nonce() any {
-	var exchangeTimeCorrection any = Multiply(this.SafeInteger(this.Options, "exchangeMillisecondsCorrection", 0), 1000000)
+	var exchangeTimeCorrection int64 = *this.SafeInteger(this.Options, "exchangeMillisecondsCorrection", 0) * 1000000
 	return this.Sum(this.Microseconds()*1000, exchangeTimeCorrection)
 }
 func (this *Bigone) Sign(path string, optionalArgs ...any) any {

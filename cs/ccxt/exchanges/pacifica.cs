@@ -3260,7 +3260,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "update_leverage";
@@ -4014,8 +4014,8 @@ public partial class pacifica : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object host = this.implodeHostname(baseApiUrl);
-        object url = add(add(add(add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
+        string host = this.implodeHostname(baseApiUrl);
+        string url = ((((host + "/api/") + this.version) + "/") + this.implodeParams(path, parameters));
         object paramsOmitted = this.omit(parameters, this.extractParams(path));
         int paramsLen = (new List<object>(((IDictionary<string,object>)paramsOmitted).Keys)).Count;
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {
@@ -4023,7 +4023,7 @@ public partial class pacifica : Exchange
         };
         if (((method == "GET")) && (paramsLen > 0))
         {
-            url = add(url, ("?" + this.urlencode(paramsOmitted)));
+            url = url + ("?" + this.urlencode(paramsOmitted));
             headersValue["Accept"] = "*/*";
         }
         if ((method == "POST"))

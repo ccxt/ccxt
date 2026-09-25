@@ -1709,9 +1709,9 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         // const messageHash = this.buildMessageHash (action, message);
         List<Object> response = (List<Object>) this.safeList(message, "response", (Object) null);
         String messageHash = this.safeString(message, "requestId");
-        List<Object> withdrawals = this.parseTransactions((List<Object>)(response), (Map<String, Object>) null, (Long) null, (Long) null, Helpers.toMapArg(new HashMap<String, Object>() {{
+        List<Object> withdrawals = this.parseTransactions((List<Object>)(response), (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{
             put( "type", "withdrawal" );
-        }}));
+        }});
         client.resolve(withdrawals, messageHash);
     }
 
@@ -1790,9 +1790,9 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         List<Object> response = (List<Object>) this.safeList(message, "response", new ArrayList<Object>(Arrays.asList()));
-        List<Object> deposits = this.parseTransactions(response, (Map<String, Object>) null, (Long) null, (Long) null, Helpers.toMapArg(new HashMap<String, Object>() {{
+        List<Object> deposits = this.parseTransactions(response, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{
             put( "type", "deposit" );
-        }}));
+        }});
         String messageHash = this.safeString(message, "requestId");
         client.resolve(deposits, messageHash);
     }

@@ -1477,7 +1477,7 @@ func (this *Toobit) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var lastAuthenticatedTime *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", 0)
 	var listenKeyRefreshRate *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "listenKeyRefreshRate", 1200000)
 	var delay int64 = ccxt.Add(listenKeyRefreshRate, 10000).(int64)
-	if ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay) {
+	if time - *lastAuthenticatedTime > delay {
 		this.CheckRequiredCredentials()
 		// single-flight leader election on a never-dialed client, see
 		// https://github.com/ccxt/ccxt/issues/29393: the user-stream url embeds the listenKey being minted,

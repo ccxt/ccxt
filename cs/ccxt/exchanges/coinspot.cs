@@ -810,7 +810,7 @@ public partial class coinspot : Exchange
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-                object ticker = getValue(prices, id);
+                object ticker = (id != null && prices.ContainsKey(id) ? prices[id] : null);
                 result[(string)symbol] = this.parseTicker(ticker, market);
             }
         }

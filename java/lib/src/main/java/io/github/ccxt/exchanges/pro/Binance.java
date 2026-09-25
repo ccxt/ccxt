@@ -725,10 +725,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // subType from params, so a bare authenticate would re-derive from
             // options.defaultType and seed a different bucket than the listenKey
             // read below indexes - the derive-first shape watchBalance uses
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{
                 put( "type", type );
                 put( "subType", subType );
-            }}, paramsValue)))).join();
+            }}, paramsValue))).join();
             Object listenKey = Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get(type)), "listenKey");
             Object url = this.getPrivateWsUrl(type, (String) (listenKey));
             List<String> message = null;
@@ -2490,9 +2490,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolValue = this.symbol(symbol);
-            Tickers tickers = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
+            Tickers tickers = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), this.extend(parameters, new HashMap<String, Object>() {{
                 put( "callerMethodName", "watchTicker" );
-            }})))).join();
+            }}))).join();
             return Helpers.GetValue(tickers, symbolValue);
         }).thenApply(Ticker::new);
 
@@ -2518,9 +2518,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolValue = this.symbol(symbol);
-            Tickers tickers = (this.watchMarkPrices(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
+            Tickers tickers = (this.watchMarkPrices(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), this.extend(parameters, new HashMap<String, Object>() {{
                 put( "callerMethodName", "watchMarkPrice" );
-            }})))).join();
+            }}))).join();
             return Helpers.GetValue(tickers, symbolValue);
         }).thenApply(Ticker::new);
 
@@ -3422,7 +3422,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", requestHash );
                 put( "method", "userDataStream.subscribe.signature" );
-                put( "params", Binance.this.signParams(Helpers.toMapArg(new HashMap<String, Object>() {{}})) );
+                put( "params", Binance.this.signParams(new HashMap<String, Object>() {{}}) );
             }};
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", requestHash );
@@ -4003,7 +4003,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> message = Helpers.newMap(
                 "id", messageHash,
                 "method", method,
-                "params", this.signParams(Helpers.toMapArg(this.extend(payload, paramsMethod)))
+                "params", this.signParams(this.extend(payload, paramsMethod))
             );
             Map<String, Object> subscription = Helpers.newMap(
                 "method", (((java.util.Objects.equals(method, "account.status")))) ? "handleAccountStatusWs" : "handleBalanceWs");
@@ -4249,10 +4249,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String type = (String) ((List<Object>) typesubTypeparamsValueVariable).get(0);
             var subType = ((List<Object>) typesubTypeparamsValueVariable).get(1);
             var paramsValue = ((List<Object>) typesubTypeparamsValueVariable).get(2);
-            (this.authenticate(Helpers.toMapArg(this.extend(Helpers.newMap(
+            (this.authenticate(this.extend(Helpers.newMap(
                 "type", type,
                 "subType", subType
-            ), paramsValue)))).join();
+            ), paramsValue))).join();
             Boolean isPortfolioMargin = (Boolean) ((List<Object>)this.handleOptionBoolAndParams2(paramsValue, "watchBalance", "papi", "portfolioMargin", false)).get(0);
             Object url = "";
             String urlType = type;
@@ -4733,7 +4733,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> message = Helpers.newMap(
                 "id", messageHash,
                 "method", ((Boolean.TRUE.equals(isSwap))) ? "order.modify" : "order.cancelReplace",
-                "params", this.signParams(Helpers.toMapArg(this.extend(payload, paramsReturnRateLimits)))
+                "params", this.signParams(this.extend(payload, paramsReturnRateLimits))
             );
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleEditOrderWs");
@@ -5246,9 +5246,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 // literal on top: a stray type in the caller params must not override
                 // the forced stock, the removed authenticateStock ignored it entirely
-                (this.authenticate(Helpers.toMapArg(this.extend(paramsStock, new HashMap<String, Object>() {{
+                (this.authenticate(this.extend(paramsStock, new HashMap<String, Object>() {{
                     put( "type", "stock" );
-                }})))).join();
+                }}))).join();
                 Map<String, Object> stockOptions = (Map<String, Object>) this.safeDict(this.options, "stock", new HashMap<String, Object>() {{}});
                 String stockListenKey = this.safeString(stockOptions, "listenKey");
                 if (java.util.Objects.equals(stockListenKey, null))
@@ -5973,7 +5973,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> marketTypeObject = new HashMap<String, Object>() {{}};
             marketTypeObject.put("type", type);
             marketTypeObject.put("subType", subType);
-            (this.authenticate(Helpers.toMapArg(this.extend(marketTypeObject, paramsAuth)))).join();
+            (this.authenticate(this.extend(marketTypeObject, paramsAuth))).join();
             messageHash = ((type + ":positions") + messageHash);
             List<Object> portfolioMarginAndParams = (List<Object>) this.handleOptionBoolAndParams2(paramsAuth, "watchPositions", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = (Boolean) ((List<Object>)portfolioMarginAndParams).get(0);
@@ -6489,10 +6489,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 );
             }
             Map<String, Object> paramsSymbol = this.extend(paramsAuth, symbolParams);
-            (this.authenticate(Helpers.toMapArg(this.extend(Helpers.newMap(
+            (this.authenticate(this.extend(Helpers.newMap(
                 "type", type,
                 "subType", subType
-            ), paramsSymbol)))).join();
+            ), paramsSymbol))).join();
             String urlType = type; // we don't change type because the listening key is different
             if (java.util.Objects.equals(type, "margin"))
             {

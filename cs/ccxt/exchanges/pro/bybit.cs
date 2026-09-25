@@ -2942,7 +2942,7 @@ public partial class bybit : ccxt.bybit
             string? key = ((string)keys[i]);
             if ((topic?.IndexOf(key, StringComparison.Ordinal) ?? -1) >= 0)
             {
-                object method = getValue(methods, key);
+                object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                 return;
             }
