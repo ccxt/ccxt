@@ -2404,9 +2404,9 @@ func (this *Delta) createOrderBody(ch chan any, symbol any, typeVar string, side
 	if reduceOnly != nil && *reduceOnly == true {
 		request["reduce_only"] = reduceOnly
 	}
-	var paramsOmitted2 any = func() any {
+	var paramsOmitted2 map[string]any = func() map[string]any {
 		if reduceOnly != nil && *reduceOnly == true {
-			return this.Omit(paramsOmitted, "reduceOnly")
+			return MapTyped(this.Omit(paramsOmitted, "reduceOnly"))
 		}
 		return paramsOmitted
 	}()
@@ -3114,9 +3114,9 @@ func (this *Delta) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 	if networkCode != nil {
 		request["network"] = this.NetworkCodeToId(networkCode, code)
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if networkCode != nil {
-			return this.Omit(params, "network")
+			return MapTyped(this.Omit(params, "network"))
 		}
 		return params
 	}()

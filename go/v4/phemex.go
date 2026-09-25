@@ -3128,9 +3128,9 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	} else {
 		request["clOrdID"] = clientOrderId
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(params, []any{"clOrdID", "clientOrderId"})
+			return MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId"}))
 		}
 		return params
 	}()

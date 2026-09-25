@@ -122,9 +122,9 @@ func (this *Bydfi) watchPublicBody(ch chan any, messageHashes any, channels any,
 	}
 	var unsubscribe *bool = this.SafeBool(params, "unsubscribe", false)
 	var method string = "SUBSCRIBE"
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if unsubscribe != nil && *unsubscribe == true {
-			return this.Omit(params, "unsubscribe")
+			return ccxt.MapTyped(this.Omit(params, "unsubscribe"))
 		}
 		return params
 	}()

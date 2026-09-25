@@ -2443,9 +2443,9 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar string, s
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(params, []any{"clientOrderId"})
+			return MapTyped(this.Omit(params, []any{"clientOrderId"}))
 		}
 		return params
 	}()
@@ -2536,9 +2536,9 @@ func (this *Bitstamp) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	} else {
 		request["id"] = id
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(params, []any{"clientOrderId"})
+			return MapTyped(this.Omit(params, []any{"clientOrderId"}))
 		}
 		return params
 	}()
@@ -2687,9 +2687,9 @@ func (this *Bitstamp) fetchOrderStatusBody(ch chan any, id any, optionalArgs ...
 	} else {
 		request["id"] = id
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if !IsEqual(clientOrderId, nil) {
-			return this.Omit(params, []any{"client_order_id", "clientOrderId"})
+			return MapTyped(this.Omit(params, []any{"client_order_id", "clientOrderId"}))
 		}
 		return params
 	}()
@@ -2737,9 +2737,9 @@ func (this *Bitstamp) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	} else {
 		request["id"] = id
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if !IsEqual(clientOrderId, nil) {
-			return this.Omit(params, []any{"client_order_id", "clientOrderId"})
+			return MapTyped(this.Omit(params, []any{"client_order_id", "clientOrderId"}))
 		}
 		return params
 	}()

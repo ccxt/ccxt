@@ -2819,9 +2819,9 @@ func (this *Btse) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) a
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(params, "clientOrderId")
+			return MapTyped(this.Omit(params, "clientOrderId"))
 		}
 		return params
 	}()
@@ -2897,9 +2897,9 @@ func (this *Btse) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(params, "clientOrderId")
+			return MapTyped(this.Omit(params, "clientOrderId"))
 		}
 		return params
 	}()
@@ -2992,9 +2992,9 @@ func (this *Btse) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(params, "clientOrderId")
+			return MapTyped(this.Omit(params, "clientOrderId"))
 		}
 		return params
 	}()
@@ -4388,9 +4388,9 @@ func (this *Btse) closePositionBody(ch chan any, symbol any, optionalArgs ...any
 		}
 		request["orderPrice"] = this.PriceToPrecision(symbol, price)
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if typeUpper == "LIMIT" {
-			return this.Omit(paramsOrderType, "price")
+			return MapTyped(this.Omit(paramsOrderType, "price"))
 		}
 		return paramsOrderType
 	}()

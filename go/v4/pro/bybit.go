@@ -1259,9 +1259,9 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
 	var channel string = "orderbook."
 	var limit any = this.SafeInteger(params, "limit")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if !ccxt.IsEqual(limit, nil) {
-			return this.Omit(params, "limit")
+			return ccxt.MapTyped(this.Omit(params, "limit"))
 		}
 		return params
 	}()

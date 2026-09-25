@@ -4515,9 +4515,9 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		request["start_at"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, "until")
+			return MapTyped(this.Omit(params, "until"))
 		}
 		return params
 	}()

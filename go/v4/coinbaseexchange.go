@@ -1463,9 +1463,9 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan any, optionalArgs ...any
 	if !IsEqual(until, nil) {
 		request["end_date"] = this.Iso8601(until)
 	}
-	var paramsUntil any = func() any {
+	var paramsUntil map[string]any = func() map[string]any {
 		if !IsEqual(until, nil) {
-			return this.Omit(paramsPaginate, []any{"until"})
+			return MapTyped(this.Omit(paramsPaginate, []any{"until"}))
 		}
 		return paramsPaginate
 	}()
@@ -1992,9 +1992,9 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 	if !IsEqual(until, nil) {
 		request["end_date"] = this.Iso8601(until)
 	}
-	var paramsUntil any = func() any {
+	var paramsUntil map[string]any = func() map[string]any {
 		if !IsEqual(until, nil) {
-			return this.Omit(paramsPaginate, []any{"until"})
+			return MapTyped(this.Omit(paramsPaginate, []any{"until"}))
 		}
 		return paramsPaginate
 	}()
@@ -2175,9 +2175,9 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan any, id any, optionalArgs 
 	} else {
 		request["client_oid"] = clientOrderId
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(params, []any{"clientOrderId", "client_oid"})
+			return MapTyped(this.Omit(params, []any{"clientOrderId", "client_oid"}))
 		}
 		return params
 	}()
@@ -2460,9 +2460,9 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 	if !IsEqual(until, nil) {
 		request["end_date"] = this.Iso8601(until)
 	}
-	var paramsUntil any = func() any {
+	var paramsUntil map[string]any = func() map[string]any {
 		if !IsEqual(until, nil) {
-			return this.Omit(params, []any{"until"})
+			return MapTyped(this.Omit(params, []any{"until"}))
 		}
 		return params
 	}()

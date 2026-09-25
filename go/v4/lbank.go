@@ -2895,9 +2895,9 @@ func (this *Lbank) fetchDepositAddressDefaultBody(ch chan any, code any, optiona
 		"assetCode": currency["id"],
 	}
 	var network any = this.GetNetworkCodeForCurrency(code, params)
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
-			return this.Omit(params, "network")
+			return MapTyped(this.Omit(params, "network"))
 		}
 		return params
 	}()
@@ -2955,9 +2955,9 @@ func (this *Lbank) fetchDepositAddressSupplementBody(ch chan any, code any, opti
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper(params, "network")
 	network = this.SafeString(networks, network, network)
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
-			return this.Omit(params, "network")
+			return MapTyped(this.Omit(params, "network"))
 		}
 		return params
 	}()

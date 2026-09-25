@@ -4474,9 +4474,9 @@ func (this *Aster) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = mathMin(limit, 1000) // max 1000
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, "until")
+			return MapTyped(this.Omit(params, "until"))
 		}
 		return params
 	}()

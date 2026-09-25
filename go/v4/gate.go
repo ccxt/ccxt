@@ -6985,9 +6985,9 @@ func (this *Gate) FetchOrderRequest(id any, optionalArgs ...any) any {
 		}
 		orderId = clientOrderId
 	}
-	var paramsOrder any = func() any {
+	var paramsOrder map[string]any = func() map[string]any {
 		if !IsEqual(clientOrderId, nil) {
-			return this.Omit(paramsOmitted, []any{"text", "clientOrderId"})
+			return MapTyped(this.Omit(paramsOmitted, []any{"text", "clientOrderId"}))
 		}
 		return paramsOmitted
 	}()

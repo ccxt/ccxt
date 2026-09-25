@@ -2618,9 +2618,9 @@ func (this *Bitfinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 			"id": ParseInt(id),
 		}
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if !IsEqual(cid, nil) {
-			return this.Omit(params, []any{"cid", "clientOrderId"})
+			return MapTyped(this.Omit(params, []any{"cid", "clientOrderId"}))
 		}
 		return params
 	}()

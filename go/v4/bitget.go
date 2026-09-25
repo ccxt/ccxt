@@ -9282,9 +9282,9 @@ func (this *Bitget) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(params, []any{"clientOrderId"})
+			return MapTyped(this.Omit(params, []any{"clientOrderId"}))
 		}
 		return params
 	}()

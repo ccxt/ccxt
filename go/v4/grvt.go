@@ -3731,9 +3731,9 @@ func (this *Grvt) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	} else {
 		request["order_id"] = id
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(params, "clientOrderId", "client_order_id")
+			return MapTyped(this.Omit(params, "clientOrderId", "client_order_id"))
 		}
 		return params
 	}()
@@ -4069,9 +4069,9 @@ func (this *Grvt) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	} else {
 		request["order_id"] = id
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(params, "clientOrderId")
+			return MapTyped(this.Omit(params, "clientOrderId"))
 		}
 		return params
 	}()

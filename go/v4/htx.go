@@ -4944,9 +4944,9 @@ func (this *Htx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing == true))
 		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"}))
 		var clientOrderId *string = this.SafeStringN(paramsOmitted, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
-		var paramsClientOrderId any = func() any {
+		var paramsClientOrderId map[string]any = func() map[string]any {
 			if clientOrderId != nil {
-				return this.Omit(paramsOmitted, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
+				return MapTyped(this.Omit(paramsOmitted, []any{"client_order_id", "clientOrderId", "algo_client_order_id"}))
 			}
 			return paramsOmitted
 		}()
@@ -8780,9 +8780,9 @@ func (this *Htx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["start_time"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, "until")
+			return MapTyped(this.Omit(params, "until"))
 		}
 		return params
 	}()
@@ -11680,9 +11680,9 @@ func (this *Htx) closePositionBody(ch chan any, symbol any, optionalArgs ...any)
 	var request map[string]any = map[string]any{
 		"contract_code": market["id"],
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(params, "clientOrderId")
+			return MapTyped(this.Omit(params, "clientOrderId"))
 		}
 		return params
 	}()

@@ -2178,9 +2178,9 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if endTimeExclusive != nil {
 		request["endTimeExclusive"] = endTimeExclusive
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if endTimeExclusive != nil {
-			return this.Omit(params, []any{"endTime", "endTimeExclusive", "until"})
+			return MapTyped(this.Omit(params, []any{"endTime", "endTimeExclusive", "until"}))
 		}
 		return params
 	}()
@@ -2293,9 +2293,9 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if endTimeExclusive != nil {
 		request["endTimeExclusive"] = endTimeExclusive
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if endTimeExclusive != nil {
-			return this.Omit(params, []any{"endTime", "endTimeExclusive", "until"})
+			return MapTyped(this.Omit(params, []any{"endTime", "endTimeExclusive", "until"}))
 		}
 		return params
 	}()
@@ -2358,9 +2358,9 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	if endTimeExclusive != nil {
 		request["endTimeExclusive"] = endTimeExclusive
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if endTimeExclusive != nil {
-			return this.Omit(params, []any{"endTime", "endTimeExclusive", "until"})
+			return MapTyped(this.Omit(params, []any{"endTime", "endTimeExclusive", "until"}))
 		}
 		return params
 	}()

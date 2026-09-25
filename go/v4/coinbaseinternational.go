@@ -651,9 +651,9 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan any, symbol any, optio
 	if unitl != nil {
 		request["end"] = this.Iso8601(unitl)
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if unitl != nil {
-			return this.Omit(paramsPaginate, "until")
+			return MapTyped(this.Omit(paramsPaginate, "until"))
 		}
 		return paramsPaginate
 	}()

@@ -1676,9 +1676,9 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar string, side
 	} else {
 		panic(InvalidOrder(this.Id + " createOrder() supports only limit or market types in the type argument."))
 	}
-	var paramsOrdType any = func() any {
+	var paramsOrdType map[string]any = func() map[string]any {
 		if customType != nil && *customType == "best" {
-			return this.Omit(params, []any{"ordType", "ord_type"})
+			return MapTyped(this.Omit(params, []any{"ordType", "ord_type"}))
 		}
 		return params
 	}()
@@ -1883,9 +1883,9 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	} else {
 		panic(InvalidOrder(this.Id + " editOrder() supports only limit or market types in the type argument."))
 	}
-	var paramsOrdType any = func() any {
+	var paramsOrdType map[string]any = func() map[string]any {
 		if customType != nil && *customType == "best" {
-			return this.Omit(paramsOmitted, []any{"newOrdType", "new_ord_type"})
+			return MapTyped(this.Omit(paramsOmitted, []any{"newOrdType", "new_ord_type"}))
 		}
 		return paramsOmitted
 	}()

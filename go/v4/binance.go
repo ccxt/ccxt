@@ -11142,9 +11142,9 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		"symbol": market["id"],
 	}
 	var origClientOrderIdList any = this.SafeList2(params, "origClientOrderIdList", "clientOrderIds")
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if !IsEqual(origClientOrderIdList, nil) {
-			return this.Omit(params, []any{"clientOrderIds"})
+			return MapTyped(this.Omit(params, []any{"clientOrderIds"}))
 		}
 		return params
 	}()

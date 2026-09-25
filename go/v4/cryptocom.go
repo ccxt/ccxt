@@ -2293,9 +2293,9 @@ func (this *Cryptocom) EditOrderRequest(id any, symbol any, amount any, optional
 			request["orig_client_oid"] = originalClientOrderId
 		}
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if IsEqual(id, nil) {
-			return this.Omit(params, []any{"orig_client_oid", "clientOrderId"})
+			return MapTyped(this.Omit(params, []any{"orig_client_oid", "clientOrderId"}))
 		}
 		return params
 	}()

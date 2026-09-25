@@ -1623,9 +1623,9 @@ func (this *Bitrue) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		if until != nil {
 			request["fromIdx"] = until
 		}
-		var paramsOmitted any = func() any {
+		var paramsOmitted map[string]any = func() map[string]any {
 			if until != nil {
-				return this.Omit(params, "until")
+				return MapTyped(this.Omit(params, "until"))
 			}
 			return params
 		}()
@@ -2367,9 +2367,9 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar string, sid
 		if clientOrderId != nil {
 			request["newClientOrderId"] = clientOrderId
 		}
-		var paramsNoClientOrderId any = func() any {
+		var paramsNoClientOrderId map[string]any = func() map[string]any {
 			if clientOrderId != nil {
-				return this.Omit(params, []any{"newClientOrderId", "clientOrderId"})
+				return MapTyped(this.Omit(params, []any{"newClientOrderId", "clientOrderId"}))
 			}
 			return params
 		}()
@@ -3550,9 +3550,9 @@ func (this *Bitrue) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if until != nil {
 		request["endTime"] = until
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(params, "until")
+			return MapTyped(this.Omit(params, "until"))
 		}
 		return params
 	}()
