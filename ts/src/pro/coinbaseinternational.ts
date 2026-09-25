@@ -3,7 +3,8 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { AuthenticationError, ExchangeError, NotSupported, ArgumentsRequired } from '../base/errors.js';
-import { Ticker, Int, Str, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
+import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
@@ -721,9 +722,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
     }
 
-    override handleBookDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: Ob, delta: any) {
         const rawSide = this.safeStringLower (delta, 0);
-        let side: Str = 'asks';
+        let side: 'asks' | 'bids' = 'asks';
         if (rawSide === 'buy') {
             side = 'bids';
         }
@@ -733,7 +734,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         bookside.store (price, amount);
     }
 
-    override handleBookDeltas (orderbook: any, deltas: any) {
+    override handleBookDeltas (orderbook: Ob, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleBookDelta (orderbook, deltas[i]);
         }
