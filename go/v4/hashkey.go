@@ -1919,7 +1919,7 @@ func (this *Hashkey) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetQuoteV1Ticker24hr(params)).Raw))
 
@@ -2003,7 +2003,7 @@ func (this *Hashkey) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetQuoteV1TickerPrice(this.Extend(request, params))).Raw))
@@ -4208,7 +4208,7 @@ func (this *Hashkey) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"timestamp": this.Milliseconds(),
 	}
@@ -4805,7 +4805,7 @@ func (this *Hashkey) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) an
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiV1ExchangeInfo(params)).Raw))
 	// response is the same as in fetchMarkets()
 	var data []any = SafeListTypedDefault(response, "contracts", []any{})
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- this.ParseLeverageTiers(data, symbolsNormalized, "symbol")
 	return nil

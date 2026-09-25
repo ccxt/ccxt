@@ -1063,9 +1063,9 @@ func (this *Lbank) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
 		}
@@ -1775,7 +1775,7 @@ func (this *Lbank) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"productGroup": "SwapU",
 	}

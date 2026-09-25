@@ -2401,7 +2401,7 @@ func (this *Bingx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, "swap", true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true, true, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbolsNormalized)
 	var subType string = "linear"
 	subTypeOption, paramsSubType := this.HandleSubTypeAndParams("fetchFundingRates", firstMarket, params, subType)
@@ -2929,7 +2929,7 @@ func (this *Bingx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !IsEqual(symbolsNormalized, nil) {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		if firstSymbol != nil {
@@ -3060,7 +3060,7 @@ func (this *Bingx) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !IsEqual(symbolsNormalized, nil) {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		if firstSymbol != nil {
@@ -3506,7 +3506,7 @@ func (this *Bingx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var standardparamsStandardVariable []any = this.HandleOptionBoolAndParams(params, "fetchPositions", "standard", false)
 	var standard bool = GetValueBool(standardparamsStandardVariable, 0, false)
 	var paramsStandard map[string]any = MapTyped(GetValue(standardparamsStandardVariable, 1))
@@ -4300,14 +4300,9 @@ func (this *Bingx) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	var symbols []any = ArrayTyped(this.MarketSymbols(marketIds, nil, false, true, true))
+	var symbols []string = this.MarketSymbols(marketIds, nil, false, true, true)
 	var symbolsLength int = len(symbols)
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbols) {
-			return DerefScalar(symbols[0])
-		}
-		return nil
-	}())
+	var market map[string]any = this.Market(GetValue(symbols, 0))
 	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " createOrders() is not supported for inverse swap markets"))
 	}

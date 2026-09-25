@@ -236,7 +236,7 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var symbolsList any = func() any {
 		if ccxt.IsEqual(symbolsNormalized, nil) {
 			return []any{}
@@ -514,7 +514,7 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var symbolsList any = func() any {
 		if ccxt.IsEqual(symbolsNormalized, nil) {
 			return []any{}
@@ -1029,7 +1029,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols))
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var channel string = "books"
 	var incrementalFeed bool = true
 	if (ccxt.IsEqual(limit, 1)) || (ccxt.IsEqual(limit, 5)) || (ccxt.IsEqual(limit, 15)) || (ccxt.IsEqual(limit, 50)) {
@@ -1043,12 +1043,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var paramsUta map[string]any = ccxt.MapTyped(ccxt.GetValue(utaparamsUtaVariable, 1))
 	var paramsCursor any = paramsUta
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
 		instTypeparamsInstTypeVariable := this.GetInstType("watchOrderBookForSymbols", market, uta, paramsCursor)
 		var instType *string = ccxt.SafeStringPtr(ccxt.GetValue(instTypeparamsInstTypeVariable, 0))
@@ -1068,7 +1063,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		args[topicOrChannel] = channel
 		args[symbolOrInstId] = market["id"]
 		topics = append(topics, args)
-		messageHashes = append(messageHashes, "orderbook:"+*symbol)
+		messageHashes = append(messageHashes, "orderbook:"+symbol)
 	}
 	if uta {
 		ccxt.AddElementToObject(paramsCursor, "uta", true)
@@ -1308,7 +1303,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols))
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var utaparamsUtaVariable []any = this.HandleOptionBoolAndParams(params, "watchTradesForSymbols", "uta", false)
 	var uta bool = ccxt.GetValueBool(utaparamsUtaVariable, 0, false)
 	var paramsUta map[string]any = ccxt.MapTyped(ccxt.GetValue(utaparamsUtaVariable, 1))
@@ -1316,12 +1311,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
 		instTypeparamsInstTypeVariable := this.GetInstType("watchTradesForSymbols", market, uta, paramsCursor)
 		var instType *string = ccxt.SafeStringPtr(ccxt.GetValue(instTypeparamsInstTypeVariable, 0))
@@ -1346,7 +1336,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		}()
 		args[symbolOrInstId] = market["id"]
 		topics = append(topics, args)
-		messageHashes = append(messageHashes, "trade:"+*symbol)
+		messageHashes = append(messageHashes, "trade:"+symbol)
 	}
 	var paramsRequest any = paramsCursor
 	if uta {
@@ -1666,7 +1656,7 @@ func (this *Bitget) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var utaparamsUtaVariable []any = this.HandleOptionBoolAndParams(params, "watchPositions", "uta", false)
 	var uta bool = ccxt.GetValueBool(utaparamsUtaVariable, 0, false)
 	var paramsUta map[string]any = ccxt.MapTyped(ccxt.GetValue(utaparamsUtaVariable, 1))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var hasSymbols bool = (!ccxt.IsEqual(symbolsNormalized, nil)) && !this.IsEmpty(symbolsNormalized)
 	if hasSymbols {
 		market = this.GetMarketFromSymbols(symbolsNormalized)

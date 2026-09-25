@@ -1534,7 +1534,7 @@ func (this *Coinbaseinternational) fetchPositionsBody(ch chan any, optionalArgs 
 		ch <- positions
 		return nil
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- this.FilterByArrayPositions(positions, "symbol", symbolsNormalized, false)
 	return nil
@@ -2037,7 +2037,7 @@ func (this *Coinbaseinternational) fetchTickersBody(ch chan any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	instruments := (<-this.V1PublicGetInstruments(params)).Raw
 	PanicOnError(instruments)

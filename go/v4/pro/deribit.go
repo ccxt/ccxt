@@ -258,7 +258,7 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var interval *string = this.SafeString(params, "interval", "100ms")
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "interval"))
@@ -271,7 +271,7 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	}
 	var channels []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add("ticker.", market["id"]), "."), interval))
 	}
@@ -362,10 +362,10 @@ func (this *Deribit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var channels []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		channels = append(channels, ccxt.Add("quote.", market["id"]))
 	}

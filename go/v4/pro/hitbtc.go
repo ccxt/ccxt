@@ -159,12 +159,12 @@ func (this *Hitbtc) subscribePublicBody(ch chan any, name any, messageHashPrefix
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var isBatch bool = (ccxt.GetIndexOf(name, "batch") >= 0)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbolsNormalized, nil) && !isBatch {
-		for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+		for i := 0; i < len(symbolsNormalized); i++ {
 			messageHashes = append(messageHashes, ccxt.Add(messageHashPrefix+"::", ccxt.GetValue(symbolsNormalized, i)))
 		}
 	} else {
@@ -437,7 +437,7 @@ func (this *Hitbtc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var defaultMethod *string = this.SafeString(options, "method", "ticker/{speed}/batch")
 	var method *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
@@ -450,7 +450,7 @@ func (this *Hitbtc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(symbolsNormalized, nil) {
 		marketIds = append(marketIds, "*")
 	} else {
-		for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+		for i := 0; i < len(symbolsNormalized); i++ {
 			var marketId any = this.MarketId(ccxt.GetValue(symbolsNormalized, i))
 			if marketId != nil {
 				marketIds = append(marketIds, marketId)
@@ -618,7 +618,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBidsAsks")
 	var defaultMethod *string = this.SafeString(options, "method", "orderbook/top/{speed}/batch")
 	var method *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)

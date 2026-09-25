@@ -4544,7 +4544,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"currency", "code"}))
 	var paramsSettle any = paramsOmitted
@@ -6556,7 +6556,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"currency", "code"}))
 	var paramsSettle any = paramsOmitted

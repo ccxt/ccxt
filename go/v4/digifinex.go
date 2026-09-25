@@ -1339,7 +1339,7 @@ func (this *Digifinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var first *string = this.SafeString(symbolsNormalized, 0)
 	var market map[string]any = nil
 	if first != nil {
@@ -4557,14 +4557,14 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var marketType *string = nil
 	if !IsEqual(symbolsNormalized, nil) {
 		var symbol any = nil
-		if IsArray(symbolsNormalized) {
-			var symbolsLength int = GetArrayLength(symbolsNormalized)
+		if true {
+			var symbolsLength int = len(symbolsNormalized)
 			if symbolsLength > 1 {
 				panic(BadRequest(this.Id + " fetchPositions() symbols argument cannot contain more than 1 symbol"))
 			}
@@ -5088,7 +5088,7 @@ func (this *Digifinex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) 
 	//     }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- this.ParseLeverageTiers(data, symbolsNormalized, "instrument_id")
 	return nil

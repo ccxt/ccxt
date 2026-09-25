@@ -1185,7 +1185,7 @@ func (this *Ndax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetSummary(params)).Raw))
 	//

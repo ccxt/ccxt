@@ -1211,7 +1211,7 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProductsSparkLines(this.Extend(request, params))).Raw))

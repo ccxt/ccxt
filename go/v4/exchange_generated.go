@@ -3843,68 +3843,6 @@ func (this *BaseExchange) MarketsForSymbols(optionalArgs ...any) any {
 }
 
 // allowEmpty: false always returns string[] (throws on empty/undefined at runtime)
-func (this *BaseExchange) MarketSymbols(optionalArgs ...any) any {
-	/**
-	 * @param {string[]|undefined} symbols list of unified symbols
-	 * @param {string|undefined} type filter by market type
-	 * @param {boolean} allowEmpty whether empty/undefined symbols is allowed
-	 * @param {boolean} sameTypeOnly require all markets to share type
-	 * @param {boolean} sameSubTypeOnly require all markets to share linear/inverse subType
-	 * @returns {string[]|undefined} validated unified symbols
-	 * Overloads: `allowEmpty: false` or non-null `string[]` input yields `string[]`; permissive form yields `Strings`.
-	 */
-	symbols := GetArg(optionalArgs, 0, nil)
-	_ = symbols
-	typeVar := GetArg(optionalArgs, 1, nil)
-	_ = typeVar
-	var allowEmpty bool = GetArgBool(optionalArgs, 2, true)
-	_ = allowEmpty
-	var sameTypeOnly bool = GetArgBool(optionalArgs, 3, false)
-	_ = sameTypeOnly
-	var sameSubTypeOnly bool = GetArgBool(optionalArgs, 4, false)
-	_ = sameSubTypeOnly
-	if symbols == nil {
-		if !(allowEmpty == true) {
-			panic(ArgumentsRequired(this.Id + " empty list of symbols is not supported"))
-		}
-		return symbols
-	}
-	var symbolsLength int = GetArrayLength(symbols)
-	if symbolsLength == 0 {
-		if !(allowEmpty == true) {
-			panic(ArgumentsRequired(this.Id + " empty list of symbols is not supported"))
-		}
-		return symbols
-	}
-	var result []any = []any{}
-	var marketType any = nil
-	var isLinearSubType any = nil
-	for i := 0; i < GetArrayLength(symbols); i++ {
-
-		var market map[string]any = this.DerivedExchange.Market(GetValue(symbols, i))
-		PanicOnError(market)
-		if (sameTypeOnly == true) && (!IsEqual(marketType, nil)) {
-			if !IsEqual(market["type"], marketType) {
-				panic(BadRequest(Add(Add(Add(Add(this.Id+" symbols must be of the same type, either ", marketType), " or "), market["type"]), ".")))
-			}
-		}
-		if (sameSubTypeOnly == true) && (!IsEqual(isLinearSubType, nil)) {
-			if !IsEqual(market["linear"], isLinearSubType) {
-				panic(BadRequest(this.Id + " symbols must be of the same subType, either linear or inverse."))
-			}
-		}
-		if (typeVar != nil) && (GetValue(market, "type") != typeVar) {
-			panic(BadRequest(Add(Add(this.Id+" symbols must be of the same type ", typeVar), ". If the type is incorrect you can change it in options or the params of the request")))
-		}
-		marketType = this.SafeString(market, "type")
-		if GetValue(market, "spot") != true {
-			isLinearSubType = this.SafeBool(market, "linear")
-		}
-		var symbol *string = this.SafeString(market, "symbol", GetValue(symbols, i))
-		result = append(result, symbol)
-	}
-	return result
-}
 func (this *BaseExchange) MarketCodes(optionalArgs ...any) any {
 	codes := GetArg(optionalArgs, 0, nil)
 	_ = codes
@@ -4293,11 +4231,11 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 	_ = symbols
 	var marketIdKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = marketIdKey
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var tiers map[string]any = map[string]any{}
 	var symbolsLength int = 0
 	if !IsEqual(symbolsNormalized, nil) {
-		symbolsLength = GetArrayLength(symbolsNormalized)
+		symbolsLength = len(symbolsNormalized)
 	}
 	var noSymbols bool = (IsEqual(symbolsNormalized, nil)) || (symbolsLength == 0)
 	if IsArray(response) {
@@ -4400,7 +4338,7 @@ func (this *BaseExchange) ParsePositions(positions any, optionalArgs ...any) any
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var positionsArray []any = this.ToArray(positions)
 	var result []any = []any{}
 	for i := 0; i < len(positionsArray); i++ {
@@ -4427,7 +4365,7 @@ func (this *BaseExchange) ParseADLRanks(ranks any, optionalArgs ...any) any {
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var ranksArray []any = this.ToArray(ranks)
 	var result []any = []any{}
 	for i := 0; i < len(ranksArray); i++ {
@@ -6859,7 +6797,7 @@ func (this *BaseExchange) ParseLastPrices(pricesData any, optionalArgs ...any) a
 			results = append(results, priceData)
 		}
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	return this.FilterByArray(results, "symbol", symbolsNormalized)
 }
 func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
@@ -6912,7 +6850,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
 			results = append(results, ticker)
 		}
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	return this.FilterByArray(results, "symbol", symbolsNormalized)
 }
 func (this *BaseExchange) ParseDepositAddresses(addresses any, optionalArgs ...any) any {
@@ -8563,7 +8501,7 @@ func (this *BaseExchange) ParseAllGreeks(greeks any, optionalArgs ...any) any {
 			results = append(results, greek)
 		}
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	return this.FilterByArray(results, "symbol", symbolsNormalized)
 }
 func (this *BaseExchange) ParseOption(chain any, optionalArgs ...any) any {

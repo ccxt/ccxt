@@ -1262,7 +1262,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 		return symbols
 	}()
-	var symbolsNormalized any = this.MarketSymbols(symbolsSorted)
+	var symbolsNormalized []string = this.MarketSymbols(symbolsSorted)
 	var loc *string = this.SafeString(params, "loc", "us")
 	var ids any = this.MarketIds(symbolsNormalized)
 	var request map[string]any = map[string]any{

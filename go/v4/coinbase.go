@@ -2687,7 +2687,7 @@ func (this *Coinbase) fetchTickersV2Body(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 
 	response := (<-this.V2PublicGetExchangeRates(this.Extend(request, params)))
@@ -2737,7 +2737,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
 		request["product_ids"] = this.MarketIds(symbolsNormalized)
@@ -5277,7 +5277,7 @@ func (this *Coinbase) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
 		request["product_ids"] = this.MarketIds(symbolsNormalized)
@@ -6207,7 +6207,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
 		market = this.Market(GetValue(symbolsNormalized, 0))

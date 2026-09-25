@@ -1382,7 +1382,7 @@ func (this *Hitbtc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
 		var marketIds any = this.MarketIds(symbolsNormalized)
@@ -3238,7 +3238,7 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !IsEqual(symbolsNormalized, nil) {
 		market = this.Market(GetValue(symbolsNormalized, 0))
 	}
@@ -3487,7 +3487,7 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	}
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !IsEqual(symbolsNormalized, nil) {
 		market = this.Market(GetValue(symbolsNormalized, 0))
 		var queryMarketIds any = this.MarketIds(symbolsNormalized)
@@ -3969,7 +3969,7 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds any = nil
 	if !IsEqual(symbolsNormalized, nil) {
 		marketIds = this.MarketIds(symbolsNormalized)

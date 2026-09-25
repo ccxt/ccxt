@@ -365,7 +365,7 @@ func (this *Paradex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var channel string = "markets_summary"
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
@@ -376,8 +376,8 @@ func (this *Paradex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		},
 	}
 	var messageHashes []any = []any{}
-	if !ccxt.IsEqual(symbolsNormalized, nil) && ccxt.IsArray(symbolsNormalized) {
-		for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	if !ccxt.IsEqual(symbolsNormalized, nil) && true {
+		for i := 0; i < len(symbolsNormalized); i++ {
 			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+".", ccxt.GetValue(symbolsNormalized, i)))
 			messageHashes = append(messageHashes, messageHash)
 		}
@@ -611,7 +611,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var channel string = "funding_data"
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
@@ -623,9 +623,9 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	}
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = ccxt.GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
-			for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+			for i := 0; i < len(symbolsNormalized); i++ {
 				var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+".", ccxt.GetValue(symbolsNormalized, i)))
 				messageHashes = append(messageHashes, messageHash)
 			}

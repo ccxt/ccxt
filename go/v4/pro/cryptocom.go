@@ -186,7 +186,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols))
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	var limitResolved any = 50
@@ -206,12 +206,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 		ccxt.AddElementToObject(ccxt.GetValue(paramsBookUpdateFrequency2, "params"), "bookSubscriptionType", bookUpdateFrequency2)
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
 		var currentTopic *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("book"+".", market["id"]), "."), ccxt.ToString(limitResolved)))
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", market["symbol"]))
@@ -251,7 +246,7 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var topics []any = []any{}
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
@@ -268,8 +263,8 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, 
 	if bookUpdateFrequency2 != nil {
 		ccxt.AddElementToObject(ccxt.GetValue(paramsBookUpdateFrequency2, "params"), "bookSubscriptionType", bookUpdateFrequency2)
 	}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
 		var currentTopic *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("book"+".", market["id"]), "."), ccxt.ToString(limit)))
 		var messageHash any = ccxt.Add("orderbook:", market["symbol"])
@@ -470,15 +465,10 @@ func (this *Cryptocom) watchTradesForSymbolsBody(ch chan any, symbols any, optio
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols))
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var topics []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
 		var currentTopic *string = ccxt.SafeStringPtr(ccxt.Add("trade"+".", market["id"]))
 		topics = append(topics, currentTopic)
@@ -519,11 +509,11 @@ func (this *Cryptocom) unWatchTradesForSymbolsBody(ch chan any, symbols any, opt
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
 		var currentTopic *string = ccxt.SafeStringPtr(ccxt.Add("trade"+".", market["id"]))
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:trades:", market["symbol"]))
@@ -725,7 +715,7 @@ func (this *Cryptocom) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
@@ -780,7 +770,7 @@ func (this *Cryptocom) unWatchTickersBody(ch chan any, optionalArgs ...any) any 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
 	var subMessageHashes []any = []any{}
 	var marketIds any = this.MarketIds(symbolsNormalized)
@@ -918,7 +908,7 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
 	var topics []any = []any{}
 	var marketIds any = this.MarketIds(symbolsNormalized)
@@ -1254,12 +1244,12 @@ func (this *Cryptocom) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 		"nonce": id,
 	}
 	var messageHash string = "positions"
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !this.IsEmpty(symbolsNormalized) {
 		if ccxt.IsEqual(symbolsNormalized, nil) {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 		}
-		messageHash = "positions::" + ccxt.Join(symbolsNormalized, ",")
+		messageHash = "positions::" + strings.Join(symbolsNormalized, ",")
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)

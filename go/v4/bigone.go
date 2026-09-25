@@ -1069,7 +1069,7 @@ func (this *Bigone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var request map[string]any = map[string]any{}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var data any = nil
 	if isSpot {
 		if !IsEqual(symbolsNormalized, nil) {

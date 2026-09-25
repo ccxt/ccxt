@@ -2137,7 +2137,7 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var response any = nil
@@ -2210,7 +2210,7 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
 	var response any = nil
@@ -2256,7 +2256,7 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 		}(), safeMarket), paramsMarketType)
 		results = append(results, priceData)
 	}
-	var symbolsNormalized2 any = this.MarketSymbols(symbolsNormalized)
+	var symbolsNormalized2 []string = this.MarketSymbols(symbolsNormalized)
 
 	ch <- this.FilterByArray(results, "symbol", symbolsNormalized2)
 	return nil
@@ -2311,7 +2311,7 @@ func (this *Aster) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	var response any = nil
@@ -2475,7 +2475,7 @@ func (this *Aster) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	response := (<-this.FapiPublicGetV3PremiumIndex(this.Extend(params)))
 	PanicOnError(response)
@@ -2523,7 +2523,7 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response []any = ListTyped(PanicOnError((<-this.FapiPublicGetV3FundingInfo(params)).Raw))
 
@@ -3461,13 +3461,8 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	var orderSymbolsResolved []any = ArrayTyped(this.MarketSymbols(orderSymbols, nil, false, true, true))
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(orderSymbolsResolved) {
-			return DerefScalar(orderSymbolsResolved[0])
-		}
-		return nil
-	}())
+	var orderSymbolsResolved []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
+	var market map[string]any = this.Market(GetValue(orderSymbolsResolved, 0))
 	if GetValue(market, "spot") == true {
 		panic(NotSupported(Add(Add(this.Id+" createOrders() does not support ", market["type"]), " orders")))
 	}
@@ -4752,7 +4747,7 @@ func (this *Aster) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) any 
 			result = append(result, this.ParsePositionRisk(rawPosition))
 		}
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)
 	return nil
@@ -5076,7 +5071,7 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
 	var response map[string]any = MapTyped(PanicOnError((<-this.FapiPrivateGetV4Account(params)).Raw))
 	var filterClosed *bool = SafeBoolPtr(GetValue(this.HandleOptionBoolAndParams(params, "fetchAccountPositions", "filterClosed", false), 0))
 	var result any = this.ParseAccountPositions(response, filterClosed)
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)
 	return nil

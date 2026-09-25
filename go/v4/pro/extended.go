@@ -493,10 +493,10 @@ func (this *Extended) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
-		messageHash += "::" + ccxt.Join(symbolsNormalized, ",")
+		messageHash += "::" + strings.Join(symbolsNormalized, ",")
 	}
 
 	positions := (<-this.WatchPrivateAsync(messageHash, map[string]any{

@@ -1331,11 +1331,11 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !IsEqual(symbolsNormalized, nil) {
 		var marketIds []any = []any{}
-		for i := 0; i < GetArrayLength(symbolsNormalized); i++ {
-			var symbol *string = SafeStringPtr(GetValue(symbolsNormalized, i))
+		for i := 0; i < len(symbolsNormalized); i++ {
+			var symbol string = GetValue(symbolsNormalized, i).(string)
 			var market map[string]any = this.Market(symbol)
 			if market["active"] == true {
 				marketIds = append(marketIds, market["id"])
@@ -4354,7 +4354,7 @@ func (this *Kraken) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var result []any = SafeListTyped(response, "result")
 	var results any = this.ParsePositions(result, symbolsNormalized)
 

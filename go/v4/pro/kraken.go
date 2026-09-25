@@ -802,7 +802,7 @@ func (this *Kraken) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 
 	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("ticker", "ticker", symbolsNormalized, nil, params))))
 	if this.NewUpdates {
@@ -840,7 +840,7 @@ func (this *Kraken) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	params["event_trigger"] = "bbo"
 
 	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("bidask", "ticker", symbolsNormalized, nil, params))))
@@ -1809,13 +1809,13 @@ func (this *Kraken) watchMultiHelperBody(ch chan any, unifiedName string, channe
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	// symbols are required
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false, true, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, false)
 	if ccxt.IsEqual(symbolsNormalized, nil) {
 
 		return nil
 	}
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		var eventTrigger *string = this.SafeString(params, "event_trigger")
 		if eventTrigger != nil {
 			messageHashes = append(messageHashes, this.GetMessageHash(channelName, nil, this.Symbol(ccxt.GetValue(symbolsNormalized, i))))

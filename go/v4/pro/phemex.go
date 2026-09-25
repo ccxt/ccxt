@@ -627,7 +627,7 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var first *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, 0))
 	var market map[string]any = this.Market(first)
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
@@ -645,7 +645,7 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var requestId int64 = this.RequestId()
 	var subscriptionHash string = name + ".subscribe"
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(symbolsNormalized, i)))
 	}
 	var subscribe map[string]any = map[string]any{

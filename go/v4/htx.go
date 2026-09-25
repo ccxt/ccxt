@@ -3160,7 +3160,7 @@ func (this *Htx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var first *string = this.SafeString(symbolsNormalized, 0)
 	var market map[string]any = nil
 	if first != nil {
@@ -3289,7 +3289,7 @@ func (this *Htx) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchLastPrices", market, params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchLastPrices", market, paramsSubType)
@@ -9188,7 +9188,7 @@ func (this *Htx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var defaultSubType string = "linear"
 	subTypeOption, paramsSubType := this.HandleOptionStringAndParams(params, "fetchFundingRates", "subType", defaultSubType)
 	var subType *string = subTypeOption
@@ -10032,10 +10032,10 @@ func (this *Htx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			var first *string = this.SafeString(symbolsNormalized, 0)
 			market = this.Market(first)
@@ -10607,10 +10607,10 @@ func (this *Htx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			var first *string = this.SafeString(symbolsNormalized, 0)
 			market = this.Market(first)
@@ -11817,10 +11817,10 @@ func (this *Htx) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			var first *string = this.SafeString(symbolsNormalized, 0)
 			market = this.Market(first)

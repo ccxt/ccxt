@@ -1502,7 +1502,7 @@ func (this *Delta) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
 	//
@@ -3279,7 +3279,7 @@ func (this *Delta) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"contract_types": "perpetual_futures",
 	}
@@ -4524,7 +4524,7 @@ func (this *Delta) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPositionsMargined(params)).Raw))
 	//

@@ -354,13 +354,13 @@ func (this *Whitebit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var method string = "market_subscribe"
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var id any = this.IncrementingNonce()
 	var messageHashes []any = []any{}
 	var args []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
 		args = append(args, market["id"])

@@ -1490,10 +1490,10 @@ func (this *Bingx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market any = nil
 	var messageHash string = ""
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if (!ccxt.IsEqual(symbolsNormalized, nil)) && !this.IsEmpty(symbolsNormalized) {
 		market = this.GetMarketFromSymbols(symbolsNormalized)
-		messageHash = "::" + ccxt.Join(symbolsNormalized, ",")
+		messageHash = "::" + strings.Join(symbolsNormalized, ",")
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchPositions", market, params, "swap")
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchPositions", market, paramsMarketType, "linear")

@@ -487,7 +487,7 @@ func (this *Lighter) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbolsNormalized)
 	if (!ccxt.IsEqual(firstMarket, nil)) && (ccxt.GetValue(firstMarket, "swap") != true) {
 		panic(ccxt.NotSupported(this.Id + " watchTickers() is only supported for swap markets"))
@@ -498,13 +498,13 @@ func (this *Lighter) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	var symbolsLength int = 0
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
-		symbolsLength = ccxt.GetArrayLength(symbolsNormalized)
+		symbolsLength = len(symbolsNormalized)
 	}
 	if (ccxt.IsEqual(symbolsNormalized, nil)) || (symbolsLength == 0) {
 		messageHashes = append(messageHashes, this.GetMessageHash("ticker"))
 	} else {
-		for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
-			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
+		for i := 0; i < len(symbolsNormalized); i++ {
+			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 			messageHashes = append(messageHashes, this.GetMessageHash("ticker", symbol))
 		}
 	}
@@ -547,7 +547,7 @@ func (this *Lighter) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbolsNormalized)
 	if (!ccxt.IsEqual(firstMarket, nil)) && (ccxt.GetValue(firstMarket, "swap") != true) {
 		panic(ccxt.NotSupported(this.Id + " unWatchTickers() is only supported for swap markets"))

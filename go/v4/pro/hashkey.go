@@ -806,15 +806,15 @@ func (this *Hashkey) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	listenKey := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(listenKey)
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
 	var messageHashes []any = []any{}
 	if ccxt.IsEqual(symbolsNormalized, nil) {
 		messageHashes = append(messageHashes, messageHash)
 	} else {
-		for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
-			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
-			messageHashes = append(messageHashes, messageHash+":"+*symbol)
+		for i := 0; i < len(symbolsNormalized); i++ {
+			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			messageHashes = append(messageHashes, messageHash+":"+symbol)
 		}
 	}
 	var url any = this.GetPrivateUrl(listenKey)

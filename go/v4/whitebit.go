@@ -2032,11 +2032,11 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var onlyContractSymbols bool = true
 	if !IsEqual(symbolsNormalized, nil) {
-		for i := 0; i < GetArrayLength(symbolsNormalized); i++ {
-			var symbol *string = SafeStringPtr(GetValue(symbolsNormalized, i))
+		for i := 0; i < len(symbolsNormalized); i++ {
+			var symbol string = GetValue(symbolsNormalized, i).(string)
 			var market map[string]any = this.Market(symbol)
 			if market["contract"] != true {
 				onlyContractSymbols = false
@@ -4564,7 +4564,7 @@ func (this *Whitebit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V4PublicGetFutures(params)).Raw))
 	//
@@ -5233,7 +5233,7 @@ func (this *Whitebit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountPositionsOpen(params)).Raw))
 

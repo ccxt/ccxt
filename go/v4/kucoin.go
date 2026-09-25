@@ -3600,7 +3600,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParams(params, "fetchTickers", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
@@ -12466,7 +12466,7 @@ func (this *Kucoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.UtaV2GetMarketFundingRate(params)).Raw))
 	//
@@ -13064,9 +13064,9 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	paramsRequest = GetValue(utaparamsRequestVariable, 1)
 	var response map[string]any = nil
 	var request map[string]any = map[string]any{}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !IsEqual(symbolsNormalized, nil) {
-		var length int = GetArrayLength(symbolsNormalized)
+		var length int = len(symbolsNormalized)
 		if length == 1 {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
 			request["symbol"] = market["id"]
@@ -14123,7 +14123,7 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 	if symbols == nil {
 		panic(ArgumentsRequired(this.Id + " fetchLeverageTiers() requires a symbols argument"))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, "swap", false, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", false, true)
 	var marginMode any = "cross"
 	var paramsRequest any = nil
 	marginModeparamsRequestVariable := TupleSlice(this.HandleOptionStringAndParams(params, "fetchLeverageTiers", "marginMode", marginMode))
@@ -14223,10 +14223,10 @@ func (this *Kucoin) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
-		var length int = GetArrayLength(symbolsNormalized)
+		var length int = len(symbolsNormalized)
 		if length < 11 {
 			// the endpoint does not accept more than 10 symbols at a time
 			// if user provided more than 10 symbols, we will fetch all symbols
@@ -14670,7 +14670,7 @@ func (this *Kucoin) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivateGetPositions(params)).Raw))
 	//

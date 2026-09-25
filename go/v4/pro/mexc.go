@@ -246,7 +246,7 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil)
 	var messageHashes []any = []any{}
 	var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 	var market map[string]any = nil
@@ -472,7 +472,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, false, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, false, true)
 	if ccxt.IsEqual(symbolsNormalized, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks required symbols argument"))
 	}
@@ -484,7 +484,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHashes []any = []any{}
 	var topics []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		if isSpot {
 			var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 			topics = append(topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"]))
@@ -2053,7 +2053,7 @@ func (this *Mexc) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols, nil))
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil)
 	var messageHashes []any = []any{}
 	var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 	var market map[string]any = nil
@@ -2107,7 +2107,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, false, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, false, true)
 	if ccxt.IsEqual(symbolsNormalized, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks required symbols argument"))
 	}
@@ -2119,7 +2119,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHashes []any = []any{}
 	var topics []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		if isSpot {
 			var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 			topics = append(topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", market["id"]))

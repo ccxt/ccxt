@@ -119,10 +119,10 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
 	var symbolsLength int = ccxt.GetArrayLength(symbolsResolved)
 	var messageHashes []any = []any{}
 	if symbolsLength > 1 {
-		var parsedSymbols any = this.MarketSymbols(symbolsResolved)
+		var parsedSymbols []string = this.MarketSymbols(symbolsResolved)
 		var marketIds any = this.MarketIds(parsedSymbols)
 		productIds = marketIds
-		for i := 0; i < ccxt.GetArrayLength(parsedSymbols); i++ {
+		for i := 0; i < len(parsedSymbols); i++ {
 			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(parsedSymbols, i)))
 		}
 	} else if symbolsLength == 1 {
@@ -697,7 +697,7 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan any, symbol
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeMultipleAsync("MATCH", symbolsNormalized, params))))
 	var limitResolved *int64 = limit

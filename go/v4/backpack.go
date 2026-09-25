@@ -2791,7 +2791,7 @@ func (this *Backpack) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		ch <- positions
 		return nil
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- this.FilterByArrayPositions(positions, "symbol", symbolsNormalized, false)
 	return nil

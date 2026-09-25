@@ -5617,7 +5617,7 @@ func (this *Mexc) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, "swap", true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true, true)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPublicGetDetail(params)).Raw))
 	//

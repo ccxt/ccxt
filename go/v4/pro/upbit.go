@@ -61,7 +61,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan any, symbols any, channel any
 	if ccxt.IsEqual(symbols, nil) {
 		symbolsRequested = this.Symbols
 	}
-	var symbolsMarket any = this.MarketSymbols(symbolsRequested)
+	var symbolsMarket []string = this.MarketSymbols(symbolsRequested)
 	var symbolsNormalized any = func() any {
 		if ccxt.IsEqual(symbolsMarket, nil) {
 			return []any{}

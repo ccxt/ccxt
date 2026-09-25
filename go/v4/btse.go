@@ -1359,10 +1359,10 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
-		var length int = GetArrayLength(symbolsNormalized)
+		var length int = len(symbolsNormalized)
 		if length == 1 {
 			var requestedSymbol *string = this.SafeString(symbolsNormalized, 0)
 			var market map[string]any = this.Market(requestedSymbol)
@@ -1504,7 +1504,7 @@ func (this *Btse) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	// the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
 
@@ -1693,7 +1693,7 @@ func (this *Btse) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(params)).Raw))
 	var data []any = SafeListTyped(response, "data")
@@ -1796,7 +1796,7 @@ func (this *Btse) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(params)).Raw))
 	var data []any = SafeListTyped(response, "data")
@@ -3971,7 +3971,7 @@ func (this *Btse) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	response := (<-this.PrivateGetFuturesApiV3TradePositions(params)).Raw
 	PanicOnError(response)

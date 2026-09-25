@@ -3063,12 +3063,12 @@ func (this *Grvt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"sub_account_id": this.GetSubAccountId(params),
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !IsEqual(symbolsNormalized, nil) {
 		request["base"] = []any{}
 		request["quote"] = []any{}
-		for i := 0; i < GetArrayLength(symbolsNormalized); i++ {
-			var symbol *string = SafeStringPtr(GetValue(symbolsNormalized, i))
+		for i := 0; i < len(symbolsNormalized); i++ {
+			var symbol string = GetValue(symbolsNormalized, i).(string)
 			var market map[string]any = this.Market(symbol)
 			if GetValue(market, "contract") != true {
 				panic(BadRequest(this.Id + " fetchPositions() supports contract markets only"))

@@ -1433,9 +1433,9 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, false)
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
 			if symbolsLength == 1 {
@@ -4401,7 +4401,7 @@ func (this *Poloniex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateGetV3TradePositionOpens(params)).Raw))
 	//

@@ -2798,7 +2798,7 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetInfoPrices(params)).Raw))
 	//
@@ -3516,7 +3516,7 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchPositions", params)
 	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsOriginAndSingleAddressVariable, 0))
 	var paramsOriginAndSingleAddress map[string]any = MapTyped(GetValue(userAddressparamsOriginAndSingleAddressVariable, 1))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
@@ -3881,7 +3881,7 @@ func (this *Pacifica) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetInfoPrices(params)).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})

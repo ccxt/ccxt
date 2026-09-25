@@ -1733,7 +1733,7 @@ func (this *Bitfinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
 		var ids any = this.MarketIds(symbolsNormalized)
@@ -3780,7 +3780,7 @@ func (this *Bitfinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	response := (<-this.PrivatePostAuthRPositions(params))
 	PanicOnError(response)
@@ -4528,7 +4528,7 @@ func (this *Bitfinex) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds any = []any{"ALL"}
 	if !IsEqual(symbolsNormalized, nil) {
 		marketIds = this.MarketIds(symbolsNormalized)

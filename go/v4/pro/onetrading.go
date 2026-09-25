@@ -218,7 +218,7 @@ func (this *Onetrading) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var symbolsList any = func() any {
 		if ccxt.IsEqual(symbolsNormalized, nil) {
 			return []any{}

@@ -126,16 +126,11 @@ func (this *Bitvavo) watchPublicMultipleBody(ch chan any, methodName string, cha
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols))
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHashes []any = []any{methodName}
 	var args []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		args = append(args, market["id"])
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
@@ -201,7 +196,7 @@ func (this *Bitvavo) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var channel string = "ticker24h"
 
 	tickers := (<-this.WatchPublicMultipleAsync(channel, channel, symbolsNormalized, params))
@@ -280,7 +275,7 @@ func (this *Bitvavo) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var channel string = "ticker24h"
 
 	tickers := (<-this.WatchPublicMultipleAsync("bidask", channel, symbolsNormalized, params))
@@ -424,17 +419,12 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols, nil, false))
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "trades"
 	var marketIds []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		marketIds = append(marketIds, market["id"])
 		messageHashes = append(messageHashes, ccxt.Add(name+"@", market["id"]))
 	}
@@ -507,11 +497,11 @@ func (this *Bitvavo) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "trades"
 	var marketIds []any = []any{}
 	var subMessageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		marketIds = append(marketIds, market["id"])
 		subMessageHashes = append(subMessageHashes, ccxt.Add(name+"@", market["id"]))
@@ -930,11 +920,11 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "book"
 	var marketIds []any = []any{}
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		marketIds = append(marketIds, market["id"])
 		messageHashes = append(messageHashes, ccxt.Add(name+"@", market["id"]))
@@ -1010,11 +1000,11 @@ func (this *Bitvavo) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "book"
 	var marketIds []any = []any{}
 	var subMessageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		marketIds = append(marketIds, market["id"])
 		subMessageHashes = append(subMessageHashes, ccxt.Add(name+"@", market["id"]))

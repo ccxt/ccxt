@@ -2953,7 +2953,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, "swap", true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true, true)
 	var paramsRequest any = params
 	if IsEqual(symbolsNormalized, nil) {
 		marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", nil, params, "swap")
@@ -4664,7 +4664,7 @@ func (this *Woo) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetFundingRate(params)).Raw))
 	//
@@ -5156,10 +5156,10 @@ func (this *Woo) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
 			request["symbol"] = market["id"]
@@ -5726,10 +5726,10 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
 			request["symbol"] = market["id"]

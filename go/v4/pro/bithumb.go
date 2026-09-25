@@ -171,12 +171,12 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	generation := ccxt.GetValue(generationparamsGenerationVariable, 0)
 	paramsGeneration := ccxt.GetValue(generationparamsGenerationVariable, 1)
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var symbolsLength int = func() int {
 		if ccxt.IsEqual(symbolsNormalized, nil) {
 			return 0
 		}
-		return ccxt.GetArrayLength(symbolsNormalized)
+		return len(symbolsNormalized)
 	}()
 	if isGenerationTwo && (symbolsLength == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() requires symbols for the generation 2 API"))

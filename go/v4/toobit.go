@@ -1645,7 +1645,7 @@ func (this *Toobit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
@@ -1653,7 +1653,7 @@ func (this *Toobit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if symbol != nil {
 			market = this.Market(symbol)
 		}
-		var length int = GetArrayLength(symbolsNormalized)
+		var length int = len(symbolsNormalized)
 		if (length == 1) && ((market != nil)) {
 			request["symbol"] = GetValue(market, "id")
 		}
@@ -1749,10 +1749,10 @@ func (this *Toobit) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
-		var length int = GetArrayLength(symbolsNormalized)
+		var length int = len(symbolsNormalized)
 		if length == 1 {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
 			request["symbol"] = market["id"]
@@ -1813,10 +1813,10 @@ func (this *Toobit) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
-		var length int = GetArrayLength(symbolsNormalized)
+		var length int = len(symbolsNormalized)
 		if length == 1 {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
 			request["symbol"] = market["id"]
@@ -1850,7 +1850,7 @@ func (this *Toobit) ParseBidsAsksCustom(tickers any, optionalArgs ...any) any {
 		var ticker map[string]any = this.Extend(parsedTicker, params)
 		results = append(results, ticker)
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	return this.FilterByArray(results, "symbol", symbolsNormalized)
 }
 func (this *Toobit) ParseBidAskCustom(ticker any) map[string]any {
@@ -1896,10 +1896,10 @@ func (this *Toobit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
-		var length int = GetArrayLength(symbolsNormalized)
+		var length int = len(symbolsNormalized)
 		if length == 1 {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
 			request["symbol"] = market["id"]

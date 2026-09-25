@@ -237,13 +237,13 @@ func (this *Toobit) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
 	var subParams []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
-		messageHashes = append(messageHashes, "trade::"+*symbol)
+		messageHashes = append(messageHashes, "trade::"+symbol)
 		var rawHash *string = ccxt.SafeStringPtr(market["id"])
 		subParams = append(subParams, rawHash)
 	}
@@ -554,13 +554,13 @@ func (this *Toobit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
 	var subParams []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
-		messageHashes = append(messageHashes, "ticker::"+*symbol)
+		messageHashes = append(messageHashes, "ticker::"+symbol)
 		var rawHash *string = ccxt.SafeStringPtr(market["id"])
 		subParams = append(subParams, rawHash)
 	}
@@ -710,14 +710,14 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "channel", "depth")
 	var messageHashes []any = []any{}
 	var subParams []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
-		messageHashes = append(messageHashes, "orderBook::"+*symbol+"::"+*channel)
+		messageHashes = append(messageHashes, "orderBook::"+symbol+"::"+*channel)
 		var rawHash *string = ccxt.SafeStringPtr(market["id"])
 		subParams = append(subParams, rawHash)
 	}
