@@ -2038,11 +2038,8 @@ const PARSE_MARKET_PARAM_DICTS: string[] = [
     'spotOrderPrepareRequest',
     'subscribe', 'toEp', 'toEv', 'toSandboxMarketId', 'unSubscribe', 'unWatch', 'unWatchPublic',
     'unsubscribePublic', 'watchPublic', 'wathPublic',
-    // trade / ohlcv row builders: same admission (fixed point over the generated tree, tests and
-    // examples; no declaration renames or writes `market`)
-    'fromEp', 'fromEr', 'fromEv', 'getOutcomeBySlugAndLabel', 'outcomeForToken', 'parseContractTicker',
-    'parseContractTrade', 'parseDustTrade', 'parseMyUtaTrade', 'parseOHLCV', 'parseSpotOrUtaTrade',
-    'parseTrade', 'parseTrades', 'parseTradesHelper', 'resolveMarketByAltnameOrId',
+    // row builders whose every caller passes null, a dictionary or an admitted name's own `market`
+    'fromEr', 'parseContractTrade', 'parseSpotOrUtaTrade',
 ];
 
 // the emitted declaration line the pass rewrites, and the `market` parameter inside it (with and

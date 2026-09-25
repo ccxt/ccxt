@@ -15,3 +15,12 @@ bitfinex parseCurrenciesCustom/parseCurrencyCustom indexed, grvt eipMessageForOr
 grvt createSignedRequest `request: any` -> Dict is OPTION 3 (callers: 4x Dictionary request + orderRequest Dictionary).
 calculateRateLimiterCost config: base `config = {}` + 8 overrides `config: any = {}` -> needs base+overrides+PHP check.
 handleDelta bookside/orderbook: measure only (36 reads; declared object in base void handleDelta(object bookside, object delta)).
+## j2046 RED (buildCS 16 CS1503): U51 census fixed point let `market` of NON-admitted callers through
+(parseWsTrade/parseWsOHLCV/parseTicker/parsePrediction*/safeOrder/parseOHLCVs pass their own object market).
+New checker research/r16/cs-getvalue-param-dict/admit.py (fixed point: an own-`market` argument proves only when the
+enclosing name is admitted). Intersection with U51: fromEr, parseContractTrade, parseSpotOrUtaTrade. parseTrades/
+parseTradesHelper need safeOrder (U51 rejects: object marketResolved locals) -> not taken.
+Blocker chain for parseTrade (95 decls, 20 bingx reads): pro/bitrue handleTrades/handleOHLCV/handleTicker
+`object market = this.findSwapMarketByWsBaseQuote(..)` -> parseWsTrade -> parseTrade; hyperliquid FetchTickers
+`object market = getValue(response, i)` -> parseTicker -> parseContractTicker; kucoin parseTrade -> parseMyUtaTrade.
+## ts/src: grvt createSignedRequest request any -> Dict (callers: 4 Dict locals + Dict orderRequest). tsc 0, lint 0 errors.
