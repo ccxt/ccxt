@@ -675,9 +675,10 @@ export default class lighter extends Exchange {
     }
 
     async checkIfStandardTier (accountIndex: number) {
-        const isStandardAccountTier = this.safeBool (this.options, 'isStandardAccountTier');
-        if (isStandardAccountTier !== undefined) {
-            return isStandardAccountTier;
+        const accountIndexTiers = this.safeDict (this.options, 'accountIndexTiers', {});
+        const isStandardTier = this.safeBool (accountIndexTiers, accountIndex);
+        if (isStandardTier !== undefined) {
+            return isStandardTier;
         }
         const accountLimits = await this.privateGetAccountLimits ({ 'account_index': accountIndex });
         //
@@ -697,7 +698,8 @@ export default class lighter extends Exchange {
         //
         const tier = this.safeString (accountLimits, 'user_tier');
         const isStandard = (tier === 'standard');
-        this.options['isStandardAccountTier'] = isStandard;
+        accountIndexTiers[accountIndex] = isStandard;
+        this.options['accountIndexTiers'] = accountIndexTiers;
         return isStandard;
     }
 
