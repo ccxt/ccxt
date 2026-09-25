@@ -4091,7 +4091,8 @@ export default class hyperliquid extends Exchange {
         }
         const market = this.market (symbol);
         const asset = this.parseToInt (market['baseId']);
-        let sz = this.parseToInt (Precise.stringMul (this.amountToPrecision (symbol, amount), '1000000'));
+        // amount is USDC margin (6 decimals), not a position size, so the market's size precision does not apply
+        let sz = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
         if (type === 'reduce') {
             sz = -sz;
         }
