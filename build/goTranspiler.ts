@@ -731,6 +731,13 @@ const GO_ANY_NIL_SAFE_CALLS = new Set ([
     'this.Milliseconds', 'this.Seconds', 'this.Uuid', 'this.Json', 'this.ParseToInt', 'this.Sum', 'this.ParseJson',
     'Add', 'Subtract', 'Multiply', 'Divide', 'mathMin', 'mathMax', 'ParseInt', 'GetArrayLength',
     'NewArrayCache', 'NewArrayCacheByTimestamp', 'NewArrayCacheBySymbolById', 'NewArrayCacheBySymbolBySide',
+    // Go signature returns string/bool/int/int64/float64 (no exchange overrides the this.* ones)
+    'Slice', 'Join', 'Replace', 'ToLower', 'ToUpper', 'ToString', 'NumberToString', 'PadStart', 'PadEnd', 'JsonStringify',
+    'MathAbs', 'MathFloor', 'MathCeil', 'MathRound', 'MathPow', 'GetLength', 'IndexOf', 'GetIndexOf', 'InOp', 'IsArray',
+    'Base64urlencode', 'this.Json', 'this.Strip', 'this.Capitalize', 'this.Ymd', 'this.Ymdhms', 'this.Yyyymmdd', 'this.Yymmdd',
+    'this.ImplodeParams', 'this.ImplodeHostname', 'this.DecimalToPrecision', 'this.ParseTimeframe', 'this.Microseconds',
+    // return untyped nil or a float64/int64/string value
+    'MathMin', 'MathMax', 'ParseFloat', 'OpNeg', 'Iso8601',
 ]);
 // SafeDict/SafeList* return a non-nil container or their default: safe with a nil/literal default
 const GO_ANY_NIL_SAFE_DEFAULTED = new Set ([
@@ -771,8 +778,8 @@ function goCallArgsSpanningText (text: string, open: number): string[] | undefin
     return undefined;
 }
 
-function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>): boolean {
-    const text = rhs.replace (/\bccxt\./g, '').trim ();
+function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (name: string) => boolean = () => false, stringSlices: Set<string> = new Set ()): boolean {
+    const text = rhs.replace (/\bccxt\./g, '').replace (/\s+\/\/[^"]*$/, '').trim ();
     if (/^(?:nil|true|false|-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?|"(?:[^"\\]|\\.)*")$/.test (text)) {
         return true;
     }
@@ -781,7 +788,7 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>): boolean {
         return (args !== undefined) || !/\}\s*$/.test (text) && text.endsWith ('{');
     }
     if (/^\w+$/.test (text)) {
-        return scalarLocals.has (text);
+        return scalarLocals.has (text) || safeLocal (text);
     }
     const call = /^((?:this\.)?\w+)\(/.exec (text);
     if (!call) {
@@ -797,6 +804,14 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>): boolean {
     if (GO_ANY_NIL_SAFE_CALLS.has (call[1])) {
         return true;
     }
+    // an element of a []string is a string; out of range reads untyped nil
+    if ((call[1] === 'GetValue') && (args.length === 2) && (stringSlices.has (args[0]) || /^Split\(/.test (args[0]) && (goCallArgsSpanningText (args[0], 5) !== undefined))) {
+        return true;
+    }
+    // ParseNumber yields untyped nil, a float64 or its (literal) default
+    if (call[1] === 'this.ParseNumber') {
+        return (args.length === 1) || ((args.length === 2) && goAnyNilSafeWrite (args[1], scalarLocals));
+    }
     if (GO_ANY_NIL_SAFE_DEFAULTED.has (call[1])) {
         const keys = (call[1].endsWith ('2')) ? 3 : 2;
         if (args.length <= keys) {
@@ -811,30 +826,66 @@ function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
     if (fn.indexOf (isEqualFn) < 0) {
         return fn;
     }
-    const helper = isEqualFn.replace (/[.(]/g, '\\$&');
+    // ws/prediction files get their `ccxt.` qualifier after this pass, so accept both spellings
+    const helper = '(?:ccxt\\.)?' + isEqualFn.replace (/^ccxt\./, '').replace (/[.(]/g, '\\$&');
     const sigEnd = fn.indexOf ('{');
     const signature = fn.slice (0, sigEnd);
     const commentState = { 'inBlockComment': false };
     const lines = fn.split ('\n');
     const code = lines.map ((line) => stripGoLiterals (line, commentState));
     const scalarLocals = new Set<string> ();
+    const stringSlices = new Set<string> ();
     for (const line of code) {
-        const decl = /^\s*var (\w+) (\w+) = /.exec (line);
+        const decl = /^\s*var (\w+) (\w+|\[\]string) = /.exec (line);
         if (decl && GO_ANY_NIL_SCALAR_TYPES.has (decl[2])) {
             scalarLocals.add (decl[1]);
+        } else if (decl && (decl[2] === '[]string')) {
+            stringSlices.add (decl[1]);
         }
     }
-    for (const name of Array.from (scalarLocals)) {
-        const count = code.filter ((line) => new RegExp ('(?<![.\\w])' + name + '\\b[^=\\n]*:=|\\bvar ' + name + ' ').test (line)).length;
-        if ((count !== 1) || new RegExp ('[(,]\\s*' + name + ' ').test (signature)) {
-            scalarLocals.delete (name);
+    for (const locals of [ scalarLocals, stringSlices ]) {
+        for (const name of Array.from (locals)) {
+            const count = code.filter ((line) => new RegExp ('(?<![.\\w])' + name + '\\b[^=\\n]*:=|\\bvar ' + name + ' ').test (line)).length;
+            if ((count !== 1) || new RegExp ('[(,]\\s*' + name + ' ').test (signature)) {
+                locals.delete (name);
+            }
         }
     }
     const verdict = new Map<string, boolean> ();
+    // `func() T {` .. `}()` written at line i: every return (no nested func) must be a safe write
+    const invokedLiteralSafe = (rhs: string, i: number): boolean => {
+        const head = /^func\(\) (\w+(?:\[\w+\]\w+)?|\[\]\w+) \{$/.exec (rhs.trim ());
+        if (!head) {
+            return false;
+        }
+        const indent = /^\s*/.exec (lines[i])[0];
+        let returns = 0;
+        for (let j = i + 1; j < lines.length; j++) {
+            if (lines[j] === indent + '}()') {
+                return (returns > 0) && (GO_ANY_NIL_SCALAR_TYPES.has (head[1]) || (head[1] === 'any'));
+            }
+            if (/\bfunc\b/.test (code[j])) {
+                return false;
+            }
+            const ret = /^\s*return (.*)$/.exec (lines[j]);
+            if (ret) {
+                returns++;
+                if (!GO_ANY_NIL_SCALAR_TYPES.has (head[1]) && !goAnyNilSafeWrite (ret[1], scalarLocals, provable, stringSlices)) {
+                    return false;
+                }
+            } else if (/\breturn\b/.test (code[j])) {
+                return false;
+            }
+        }
+        return false;
+    };
+    const safeWrite = (rhs: string, i: number): boolean => goAnyNilSafeWrite (rhs, scalarLocals, provable, stringSlices) || invokedLiteralSafe (rhs, i);
     const provable = (name: string): boolean => {
         if (verdict.has (name)) {
             return verdict.get (name);
         }
+        // a cycle through another local stays unproven
+        verdict.set (name, false);
         let ok = !new RegExp ('[(,]\\s*' + name + ' ').test (signature);
         let decls = 0;
         const mention = new RegExp ('(?<![.\\w])' + name + '(?!\\w)');
@@ -847,7 +898,7 @@ function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
             if (decl) {
                 decls++;
                 const raw = new RegExp ('^\\s*var ' + name + ' any = (.*)$').exec (lines[i]);
-                ok = (decl[1] === undefined) || ((raw !== null) && goAnyNilSafeWrite (raw[1], scalarLocals));
+                ok = (decl[1] === undefined) || ((raw !== null) && safeWrite (raw[1], i));
                 continue;
             }
             if (new RegExp ('&' + name + '\\b|(?<![.\\w])' + name + '\\s*(?:\\+\\+|--|[-+*/%|&^]=|:=)|\\bvar ' + name + '\\b|,\\s*' + name + '\\s*(?:,[^=\\n]*)?:?=[^=]|(?<![.\\w])' + name + '\\s*,[\\w\\s,]*:?=[^=]|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (line)) {
@@ -856,7 +907,7 @@ function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
             }
             const write = new RegExp ('^\\s*' + name + ' = (.*)$').exec (lines[i]);
             if (write) {
-                ok = goAnyNilSafeWrite (write[1], scalarLocals);
+                ok = safeWrite (write[1], i);
                 continue;
             }
             if (new RegExp ('(?<![.\\w=!<>])' + name + '\\s*=[^=]').test (line)) {
@@ -878,7 +929,7 @@ function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
 // `P && P` / `P || P` over one ident (TS `x !== undefined && x !== null`) is one Go nil test; vet
 // rejects the duplicate. A helper/native pair folds only where the helper side absorbs the other.
 export function goCollapseDuplicateNilCompares (text: string, isEqualFn: string): string {
-    const helper = isEqualFn.replace (/[.(]/g, '\\$&');
+    const helper = '(?:ccxt\\.)?' + isEqualFn.replace (/^ccxt\./, '').replace (/[.(]/g, '\\$&');
     const side = '(\\(*)(?:(!?)' + helper + '(\\w+), nil\\)|(\\w+) ([!=])= nil)(\\)*)';
     const pattern = new RegExp (side + ' (&&|\\|\\|) ' + side, 'g');
     // true when the side tests "is nil"
@@ -920,7 +971,7 @@ export function goAnyLocalNativeNilCompares (content: string, isEqualFn: string)
     const ranges = goFuncBlockRanges (content);
     for (let i = ranges.length - 1; i >= 0; i--) {
         const block = content.slice (ranges[i].start, ranges[i].end);
-        const rewritten = goCollapseDuplicateNilCompares (goAnyLocalNilCompareText (block, isEqualFn), isEqualFn);
+        const rewritten = goCollapseDuplicateNilCompares (goAnyLocalNilCompareText (block, isEqualFn.replace (/^ccxt\./, '')), isEqualFn);
         if (rewritten !== block) {
             content = content.slice (0, ranges[i].start) + rewritten + content.slice (ranges[i].end);
         }
@@ -949,9 +1000,28 @@ function goAnyLocalNilSelfTest (): string[] {
         '\tvar v any = this.Extend(p).X\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar q *string = nil\n\tvar v any = q\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = DerefScalar(this.SafeValue(p, "a"))\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = Precise.StringAbs(p)\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = this.ParseNumber(p, q)\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = GetValue(p, 0)\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = this.Iso8601(p)\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar s []string = nil\n\ts, ok := p.([]string)\n\tvar v any = GetValue(s, 0)\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = func() any {\n\t\tif true {\n\t\t\treturn this.SafeString(p, "a")\n\t\t}\n\t\treturn nil\n\t}()\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = func() any {\n\t\tf := func() any { return p }\n\t\treturn f()\n\t}()\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar w any = this.SafeValue(p, "w")\n\tvar v any = w\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = nil\n\tvar w any = v\n\tv = w\n\tif IsEqual(v, nil) {\n\t}\n',
     ];
     keep.forEach ((body, index) => ok (f (body).indexOf ('IsEqual(v, nil)') >= 0, 'unproven write must keep the helper #' + index));
     ok (pass ('\nfunc (this *X) f(v any) any {\n\tif IsEqual(v, nil) {\n\t}\n}\n').indexOf ('IsEqual(v, nil)') >= 0, 'a parameter keeps the helper');
+    const safe = [
+        '\tvar v any = nil\n\tv = Slice(p, 0, 3)\n\tv = ToUpper(Replace(p, "a", "b"))\n\tv = MathMin(p, 2)\n\tv = Iso8601(p)\n',
+        '\tvar v any = this.ParseNumber(this.SafeString(p, "a"))\n\tv = this.ParseNumber(p, 0)\n\tv = ParseFloat(p) // note\n',
+        '\tvar s []string = Split(p, "-")\n\tvar v any = GetValue(s, 1)\n\tv = GetValue(Split(p, "/"), 0)\n',
+        '\tvar v any = func() any {\n\t\tif true {\n\t\t\treturn DerefScalar(this.SafeString(p, "a"))\n\t\t}\n\t\treturn map[string]any{}\n\t}()\n',
+        '\tvar v any = func() int {\n\t\treturn 1\n\t}()\n',
+        '\tvar w any = this.SafeDict(p, "w")\n\tvar v any = w\n',
+    ];
+    safe.forEach ((body, index) => ok (f (body + '\tif IsEqual(v, nil) {\n\t}\n').indexOf ('if (v == nil) {') >= 0, 'proven write compares natively #' + index));
+    ok (f ('\tvar v any = Slice(p, 0, 1)\n\tif ccxt.IsEqual(v, nil) {\n\t}\n').indexOf ('if (v == nil) {') >= 0, 'a qualified helper in an unqualified pass is rewritten');
     const ws = goAnyLocalNativeNilCompares ('\nfunc (this *X) f() any {\n\tvar c any = ccxt.NewArrayCache(1)\n\tif !ccxt.IsEqual(c, nil) {\n\t}\n}\n', 'ccxt.IsEqual(');
     ok (ws.indexOf ('if (c != nil) {') >= 0, 'the package-qualified helper is rewritten');
     ok (pass (ws) === ws, 'a second application is a no-op');
@@ -985,7 +1055,7 @@ const GO_STRING_CMP_PLAIN_ARG = /^(?:nil|true|false|""|-?\d+(?:\.\d+)?|map\[stri
 
 // true when the masked right-hand side cannot yield a pointer box; `ident` judges bare names
 function goStringCmpSafeWrite (rhs: string, ident: (name: string) => boolean, boxOnly: boolean): boolean {
-    const text = rhs.replace (/\bccxt\./g, '').trim ();
+    const text = rhs.replace (/\bccxt\./g, '').replace (/\s+\/\/[^"]*$/, '').trim ();
     if (text === '""') {
         return true;
     }
