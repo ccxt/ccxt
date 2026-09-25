@@ -2335,7 +2335,7 @@ public class Extended extends ExtendedApi
             }
             String toVault = this.safeString2(parameters, "toVault", "receiverPositionId");
             String toL2Key = this.safeString2(parameters, "toL2Key", "receiverPublicKey");
-            if ((java.util.Objects.equals(toAccount, null)) || (java.util.Objects.equals(toVault, null)) || (java.util.Objects.equals(toL2Key, null)))
+            if ((java.util.Objects.equals(toVault, null)) || (java.util.Objects.equals(toL2Key, null)))
             {
                 throw new ArgumentsRequired((this.id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
             }

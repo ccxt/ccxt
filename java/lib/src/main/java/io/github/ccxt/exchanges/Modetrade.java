@@ -3391,15 +3391,12 @@ public class Modetrade extends ModetradeApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             this.checkAddress(address);
-            Object codeUpper = (((!java.util.Objects.equals(code, null)))) ? ((String)code).toUpperCase() : code;
-            if (!java.util.Objects.equals(codeUpper, null))
+            String codeUpper = ((String)code).toUpperCase();
+            if (!java.util.Objects.equals(codeUpper, "USDC"))
             {
-                if (!java.util.Objects.equals(codeUpper, "USDC"))
-                {
-                    throw new NotSupported((this.id + " withdraw() only support USDC")) ;
-                }
+                throw new NotSupported((this.id + " withdraw() only support USDC")) ;
             }
-            Map<String, Object> currency = this.currency((String) (codeUpper));
+            Map<String, Object> currency = this.currency(codeUpper);
             String verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
             String chainId = this.safeString(parameters, "chainId");
             Map<String, Object> currencyNetworks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
