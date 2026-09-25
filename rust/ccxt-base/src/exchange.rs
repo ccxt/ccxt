@@ -1349,7 +1349,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 let deltas: Vec<Value> = (idx..clen)
                     .map(|i| crate::get_value(&cache, &Value::Int(i)))
                     .collect();
-                self.dispatch_to_derived("handle_deltas", vec![stored.clone(), Value::List(deltas)]).await;
+                self.dispatch_to_derived("handle_book_deltas", vec![stored.clone(), Value::List(deltas)]).await;
                 crate::set_value(&mut stored, &Value::Str("cache".into()), Value::List(Vec::new()));
                 crate::pro::ws_client::value_resolve(&client, &[stored.clone(), message_hash.clone()]);
                 return;

@@ -305,7 +305,7 @@ public partial class Exchange
                 if (isTrue(isGreaterThanOrEqual(index, 0)))
                 {
                     stored.reset(orderBook);
-                    this.handleDeltas(stored, arraySlice(cache, index));
+                    this.handleBookDeltas(stored, arraySlice(cache, index));
                     stored.cache.Clear();
                     client.resolve(stored, messageHash);
                     return;
