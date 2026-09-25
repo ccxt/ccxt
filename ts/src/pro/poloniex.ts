@@ -150,7 +150,10 @@ export default class poloniex extends poloniexRest {
         if (isPrivate) {
             publicOrPrivate = 'private';
         }
-        const url = this.urls['api']['ws'][publicOrPrivate];
+        const url = this.safeString (this.urls['api']['ws'], publicOrPrivate);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscribe: Dict = {
             'event': 'subscribe',
             'channel': [

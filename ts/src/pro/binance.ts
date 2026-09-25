@@ -924,7 +924,10 @@ export default class binance extends binanceRest {
         if (marketType !== 'future') {
             throw new BadRequest (this.id + ' fetchOrderBookWs only supports swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], marketType);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (params, 'fetchOrderBookWs', 'returnRateLimits', false);
@@ -1972,7 +1975,10 @@ export default class binance extends binanceRest {
         if (type !== 'future') {
             throw new BadRequest (this.id + ' fetchTickerWs only supports swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const subscription: Dict = {
@@ -2016,7 +2022,10 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'future') {
             throw new BadRequest (this.id + ' fetchOHLCVWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], marketType);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (params, 'fetchOHLCVWs', 'returnRateLimits', false);
@@ -2830,7 +2839,10 @@ export default class binance extends binanceRest {
      * @returns Promise<number> The subscription ID for the user data stream
      */
     async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot') {
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], marketType);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const client = this.client (url);
         const subscriptions = client.subscriptions;
         const subscriptionsKeys = Object.keys (subscriptions);
@@ -2907,7 +2919,10 @@ export default class binance extends binanceRest {
      * @returns Promise<void>
      */
     async ensureUserDataStreamWsSubscribeListenToken (marketType: string = 'margin', params: Dict = {}) {
-        const url = this.urls['api']['ws']['ws-api']['spot'];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], 'spot');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const options = this.safeDict (this.options, marketType, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenTokenRefreshRate = this.safeInteger (this.options, 'listenTokenRefreshRate', 82800000); // 23 hours default
@@ -3290,7 +3305,10 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchBalanceWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (params, 'fetchBalanceWs', 'returnRateLimits', false);
@@ -3427,7 +3445,10 @@ export default class binance extends binanceRest {
         if (type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchPositionsWs only supports swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (params, 'fetchPositionsWs', 'returnRateLimits', false);
@@ -3735,7 +3756,10 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
             throw new BadRequest (this.id + ' createOrderWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], marketType);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
@@ -3902,7 +3926,10 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
             throw new BadRequest (this.id + ' editOrderWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], marketType);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const isSwap = (marketType === 'future' || marketType === 'delivery');
@@ -4060,7 +4087,10 @@ export default class binance extends binanceRest {
         }
         const market = this.market (symbol);
         const type = this.getMarketType ('cancelOrderWs', market, params);
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (params, 'cancelOrderWs', 'returnRateLimits', false);
@@ -4120,7 +4150,10 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (params, 'cancelAllOrdersWs', 'returnRateLimits', false);
@@ -4163,7 +4196,10 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchOrderWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
@@ -4215,7 +4251,10 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' fetchOrdersWs only supports spot markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (params, 'fetchOrdersWs', 'returnRateLimits', false);
@@ -4278,7 +4317,10 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' fetchOpenOrdersWs only supports spot markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrdersWs', 'returnRateLimits', false);
@@ -5264,7 +5306,10 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future') {
             throw new BadRequest (this.id + ' fetchMyTradesWs does not support ' + type + ' markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (params, 'fetchMyTradesWs', 'returnRateLimits', false);
@@ -5317,7 +5362,10 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future') {
             throw new BadRequest (this.id + ' fetchTradesWs does not support ' + type + ' markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (params, 'fetchTradesWs', 'returnRateLimits', false);

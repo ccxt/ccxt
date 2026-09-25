@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import pacificaRest from '../pacifica.js';
-import { ArgumentsRequired, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError, NotSupported } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
@@ -114,7 +114,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction (operationType, request);
         const requestId = this.safeString (wsRequest, 'id');
         if (operationType === 'create_stop_order') {
@@ -197,7 +200,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction (batchOperationType, request);
         const requestId = this.safeString (wsRequest, 'id');
         const response = await this.watch (url, requestId, wsRequest, requestId);
@@ -258,7 +264,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction (batchOperationType, request);
         const requestId = this.safeString (wsRequest, 'id');
         const response = await this.watch (url, requestId, wsRequest, requestId);
@@ -336,7 +345,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction (operationType, request);
         const requestId = this.safeString (wsRequest, 'id');
         const response = await this.watch (url, requestId, wsRequest, requestId);
@@ -394,7 +406,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction (operationType, request);
         const requestId = this.safeString (wsRequest, 'id');
         const response = await this.watch (url, requestId, wsRequest, requestId);
@@ -439,7 +454,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -476,7 +494,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'unsubscribe',
             'params': {
@@ -583,7 +604,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -618,7 +642,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'unsubscribe',
             'params': {
@@ -656,7 +683,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -697,7 +727,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'unsubscribe',
             'params': {
@@ -828,7 +861,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -867,7 +903,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'unsubscribe',
             'params': {
@@ -1021,7 +1060,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -1061,7 +1103,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'unsubscribe',
             'params': {
@@ -1148,7 +1193,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -1188,7 +1236,10 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.urls[urlKey]['ws']['public'];
+        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('unWatchOrders', params);
         const request: Dict = {
             'method': 'unsubscribe',

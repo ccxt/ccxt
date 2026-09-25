@@ -3,7 +3,7 @@
 
 import asterRest from '../aster.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, MarketInterface, FeeString } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -165,7 +165,10 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -213,7 +216,10 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -291,7 +297,10 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -343,7 +352,10 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -472,7 +484,10 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -518,7 +533,10 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -639,7 +657,10 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -690,7 +711,10 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -955,7 +979,10 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -1002,7 +1029,10 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -1129,7 +1159,10 @@ export default class aster extends asterRest {
         const marketSymbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (marketSymbols[0]);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
@@ -1187,7 +1220,10 @@ export default class aster extends asterRest {
         const marketSymbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (marketSymbols[0]);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const url = this.urls['api']['ws']['public'][type];
+        const url = this.safeString (this.urls['api']['ws']['public'], type);
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const request: Dict = {
