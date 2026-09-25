@@ -670,7 +670,7 @@ export default class bybit extends bybitRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbolsValue);
     }
 
-    parseWsBidAsk (orderbook: any, market: Market = undefined): Ticker {
+    parseWsBidAsk (orderbook: Ob, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (orderbook, 'timestamp');
         const bids = this.sortBy (this.aggregate (orderbook['bids']), 0);
         const asks = this.sortBy (this.aggregate (orderbook['asks']), 0);

@@ -1049,7 +1049,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: any) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: Ob) {
         const u = this.safeInteger (message, 'u');
         this.handleDeltas (orderbook['asks'], this.safeList (message, 'a', []));
         this.handleDeltas (orderbook['bids'], this.safeList (message, 'b', []));

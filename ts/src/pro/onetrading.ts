@@ -407,7 +407,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (orderbook, channel);
     }
 
-    override handleBookDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: Ob, delta: any) {
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
@@ -424,7 +424,7 @@ export default class onetrading extends onetradingRest {
         }
     }
 
-    override handleBookDeltas (orderbook: any, deltas: any) {
+    override handleBookDeltas (orderbook: Ob, deltas: any) {
         //
         //    [
         //       [ 'BUY', "0.053593", "0" ],

@@ -831,7 +831,7 @@ export default class deepcoin extends deepcoinRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: any) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: Ob) {
         //     {
         //         "a": "PMO",
         //         "t": "i", // i - update, f - snapshot
@@ -857,7 +857,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    override handleBookDelta (orderbook: any, entry: any) {
+    override handleBookDelta (orderbook: Ob, entry: any) {
         const data = this.safeDict (entry, 'd', {});
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];

@@ -3360,13 +3360,13 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' handleDelta not supported yet');
     }
 
-    handleBookDeltas (orderbook: any, deltas: any) {
+    handleBookDeltas (orderbook: Ob, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleBookDelta (orderbook, deltas[i]);
         }
     }
 
-    handleBookDelta (orderbook: any, delta: any) {
+    handleBookDelta (orderbook: Ob, delta: any) {
         throw new NotSupported (this.id + ' handleBookDelta not supported yet');
     }
 
