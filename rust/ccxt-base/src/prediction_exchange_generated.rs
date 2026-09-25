@@ -489,7 +489,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             while { if !__for_first_192 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_192 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut event: Value = get_value(&self.pred().events, &keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut identity: Value = self.safe_string2(event.clone(), Value::Str("id".into()), Value::Str("event".into()), &[keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
-            if !(in_op(&seen, &identity)) {
+            if !(matches!((&seen, &identity), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&identity), Value::Bool(true)); }
                 append_to_array(&mut result, event);
             }
@@ -532,10 +532,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     fn get_event(&self, mut eventIdOrSlug: Value) -> Value {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
-        if (self.pred().events.clone() != Value::Null) && (in_op(&self.pred().events, &eventIdOrSlug)) {
+        if (self.pred().events.clone() != Value::Null) && (matches!((&self.pred().events, &eventIdOrSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return get_value(&self.pred().events, &eventIdOrSlug);
         }
-        if (self.pred().events_by_slug.clone() != Value::Null) && (in_op(&self.pred().events_by_slug, &eventIdOrSlug)) {
+        if (self.pred().events_by_slug.clone() != Value::Null) && (matches!((&self.pred().events_by_slug, &eventIdOrSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return get_value(&self.pred().events_by_slug, &eventIdOrSlug);
         }
         panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" has no cached event ".into())).into()), eventIdOrSlug).into()), Value::Str(" - call fetchEvents ({ 'query': ... }) first".into()))));
@@ -550,10 +550,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (self.pred().outcomes.clone() == Value::Null) || self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" outcomes not loaded - call loadOutcomes () or an outcome-addressed method first".into()))));
         }
-        if (in_op(&self.pred().outcomes, &outcomeSymbol)) {
+        if (matches!((&self.pred().outcomes, &outcomeSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return get_value(&self.pred().outcomes, &outcomeSymbol);
         }
-        if (self.pred().outcomes_by_id.clone() != Value::Null) && (in_op(&self.pred().outcomes_by_id, &outcomeSymbol)) {
+        if (self.pred().outcomes_by_id.clone() != Value::Null) && (matches!((&self.pred().outcomes_by_id, &outcomeSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return get_value(&self.pred().outcomes_by_id, &outcomeSymbol);
         }
         panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have outcome ".into())).into()), outcomeSymbol).into()), Value::Str(" - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first".into()))));
@@ -568,10 +568,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (outcomeIdOrSymbol == Value::Null) {
             return Value::Bool(false);
         }
-        if (self.pred().outcomes.clone() != Value::Null) && (in_op(&self.pred().outcomes, &outcomeIdOrSymbol)) {
+        if (self.pred().outcomes.clone() != Value::Null) && (matches!((&self.pred().outcomes, &outcomeIdOrSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return Value::Bool(true);
         }
-        if (self.pred().outcomes_by_id.clone() != Value::Null) && (in_op(&self.pred().outcomes_by_id, &outcomeIdOrSymbol)) {
+        if (self.pred().outcomes_by_id.clone() != Value::Null) && (matches!((&self.pred().outcomes_by_id, &outcomeIdOrSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return Value::Bool(true);
         }
         return Value::Bool(false);
@@ -582,10 +582,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     fn safe_outcome(&self, mut outcomeIdOrSymbol: Value, optional_args: &[Value]) -> Value {
         let mut outcomeObj = get_arg(optional_args, 0, Value::Null);
         if (outcomeIdOrSymbol != Value::Null) {
-            if (self.pred().outcomes.clone() != Value::Null) && (in_op(&self.pred().outcomes, &outcomeIdOrSymbol)) {
+            if (self.pred().outcomes.clone() != Value::Null) && (matches!((&self.pred().outcomes, &outcomeIdOrSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return get_value(&self.pred().outcomes, &outcomeIdOrSymbol);
             }
-            if (self.pred().outcomes_by_id.clone() != Value::Null) && (in_op(&self.pred().outcomes_by_id, &outcomeIdOrSymbol)) {
+            if (self.pred().outcomes_by_id.clone() != Value::Null) && (matches!((&self.pred().outcomes_by_id, &outcomeIdOrSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return get_value(&self.pred().outcomes_by_id, &outcomeIdOrSymbol);
             }
         }

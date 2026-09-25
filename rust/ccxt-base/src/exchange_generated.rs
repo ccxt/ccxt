@@ -2126,7 +2126,7 @@ pub trait ExchangeBase:
             while { if !__for_first_81 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_81 = false; i.as_f64().unwrap_or(f64::NAN) < ((unifiedMarketTypes.len() as i64) as f64) } {
             let mut marketType: Value = unifiedMarketTypes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             // if marketType is not filled for this exchange, don't add that in `features`
-            if !(in_op(&initialFeatures, &marketType)) {
+            if !(matches!((&initialFeatures, &marketType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut self.features { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketType), Value::Null); }
             }  else {
                 if (marketType.as_str() == Some("spot")) {
@@ -2249,7 +2249,7 @@ pub trait ExchangeBase:
             return defaultValue;
         }
         // if marketType (e.g. 'option') does not exist in features
-        if !(in_op(&self.features, &marketType)) {
+        if !(matches!((&self.features, &marketType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return defaultValue;
         }
         // if marketType dict undefined
@@ -2262,7 +2262,7 @@ pub trait ExchangeBase:
                 return defaultValue;
             }
         }  else {
-            if !(in_op(&get_value(&self.features, &marketType), &subType)) {
+            if !(matches!((&get_value(&self.features, &marketType), &subType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return defaultValue;
             }
             // if subType dict undefined
@@ -2275,7 +2275,7 @@ pub trait ExchangeBase:
         if (methodName == Value::Null) {
             return (if (defaultValue != Value::Null) { defaultValue.clone() } else { methodsContainer.clone() });
         }
-        if !(in_op(&methodsContainer, &methodName)) {
+        if !(matches!((&methodsContainer, &methodName), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return defaultValue;
         }
         let mut methodDict: Value = get_value(&methodsContainer, &methodName);
@@ -3666,7 +3666,7 @@ pub trait ExchangeBase:
                 if (cost == Value::Null) {
                     continue;
                 }
-                if !(in_op(&reduced, &feeCurrencyCode)) {
+                if !(matches!((&reduced, &feeCurrencyCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut reduced { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&feeCurrencyCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4463,7 +4463,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (in_op(&networks, &networkCode)) {
+            if (matches!((&networks, &networkCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return self.safe_string(networks.as_map().and_then(|__m| networkCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("id".into()), &[]);
             }
         }
@@ -4473,7 +4473,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if (in_op(&oldCodes, &networkCode)) {
+        if (matches!((&oldCodes, &networkCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return self.network_code_to_id(oldCodes.as_map().and_then(|__m| networkCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[currencyCode]);
         }
         return networkCode;
@@ -4514,7 +4514,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (in_op(&networkIdsByCodes, &preferredChain)) && (in_op(&networkIdsByCodes, &alternativeChain)) {
+            if (matches!((&networkIdsByCodes, &preferredChain), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && (matches!((&networkIdsByCodes, &alternativeChain), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return networkCode;
             }
         }
@@ -4539,7 +4539,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if (in_op(&defaultNetworks, &currencyCode)) {
+        if (matches!((&defaultNetworks, &currencyCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             // if currency had set its network in "defaultNetworks", use it
             defaultNetworkCode = defaultNetworks.as_map().and_then(|__m| currencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }  else {
@@ -5546,7 +5546,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (currencyId == Value::Null) && (currency != Value::Null) {
             return currency;
         }
-        if (currencyId != Value::Null) && (self.currencies_by_id.clone() != Value::Null) && (in_op(&self.currencies_by_id, &currencyId)) && (get_value(&self.currencies_by_id, &currencyId) != Value::Null) {
+        if (currencyId != Value::Null) && (self.currencies_by_id.clone() != Value::Null) && (matches!((&self.currencies_by_id, &currencyId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && (get_value(&self.currencies_by_id, &currencyId) != Value::Null) {
             return get_value(&self.currencies_by_id, &currencyId);
         }
         let mut code: Value = currencyId.clone();
@@ -5570,7 +5570,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
         if (marketId != Value::Null) {
-            if (self.markets_by_id.clone() != Value::Null) && (in_op(&self.markets_by_id, &marketId)) {
+            if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut markets: Value = get_value(&self.markets_by_id, &marketId);
                 let mut numMarkets: Value = get_array_length(&markets);
                 if is_equal(&numMarkets, &Value::Int(1)) {
@@ -6718,7 +6718,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
  */
     fn merge_balance_account(&self, mut result: Value, mut code: Value, mut account: Value) -> Value {
-        if !(in_op(&result, &code)) {
+        if !(matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
             return result;
         }
@@ -6763,9 +6763,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if matches!(&code, Value::Str(_)) {
             let mut currencies: Value = self.currencies.clone();
             let mut currenciesById: Value = self.currencies_by_id.clone();
-            if (in_op(&currencies, &code)) {
+            if (matches!((&currencies, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return currencies.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            }  else if (currenciesById != Value::Null) && (in_op(&currenciesById, &code)) {
+            }  else if (currenciesById != Value::Null) && (matches!((&currenciesById, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return currenciesById.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             }
         }
@@ -6783,9 +6783,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
         }
         let mut marketsById: Value = self.markets_by_id.clone();
-        if (in_op(&markets, &symbol)) {
+        if (matches!((&markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return get_value(&markets, &symbol);
-        }  else if (marketsById != Value::Null) && (in_op(&marketsById, &symbol)) {
+        }  else if (marketsById != Value::Null) && (matches!((&marketsById, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut marketsList: Value = get_value(&marketsById, &symbol);
             let mut marketsList: Value = get_value(&marketsById, &symbol);
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("defaultType".into()), Value::Str("defaultSubType".into()), &[Value::Str("spot".into())]);
@@ -8626,7 +8626,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut entry: Value = get_value(&input, &i);
             let mut entry: Value = get_value(&input, &i);
             let mut uniqValue: Value = (if is_true(&fallbackToTimestamp) { self.safe_string_n(entry.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("timestamp".into()), Value::Int(0)]), &[]) } else { self.safe_string_k(entry.clone(), "id", &[]) });
-            if (uniqValue != Value::Null) && !(in_op(&uniqueDic, &uniqValue)) {
+            if (uniqValue != Value::Null) && !(matches!((&uniqueDic, &uniqValue), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut uniqueDic { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&uniqValue), Value::Int(1)); }
                 append_to_array(&mut uniqueResult, entry);
             }
@@ -8664,7 +8664,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
                 id = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("t_".into()), to_string_val(&timestamp)).into()), Value::Str("_".into())).into()), side).into()), Value::Str("_".into())).into()), price).into()), Value::Str("_".into())).into()), amount).into());
             }
-            if (id != Value::Null) && !(in_op(&uniqueResult, &id)) {
+            if (id != Value::Null) && !(matches!((&uniqueResult, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut uniqueResult { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&id), entry); }
             }
         }
@@ -9273,8 +9273,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (timeframe == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cleanCache() requires a timeframe argument".into()))));
                 }
-                if (self.ohlcvs.clone() != Value::Null) && (in_op(&self.ohlcvs, &symbol)) {
-                    if (in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
+                if (self.ohlcvs.clone() != Value::Null) && (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    if (matches!((&get_value(&self.ohlcvs, &symbol), &timeframe), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
                     }
                 }
@@ -9332,7 +9332,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut __for_first_177: bool = true;
                     while { if !__for_first_177 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_177 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickerSymbols.len() as i64) as f64) } {
                     let mut tickerSymbol: Value = tickerSymbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                    if (in_op(&self.tickers, &tickerSymbol)) {
+                    if (matches!((&self.tickers, &tickerSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         remove(&mut self.tickers.clone(), &tickerSymbol);
                     }
                 }
@@ -9344,7 +9344,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut __for_first_178: bool = true;
                     while { if !__for_first_178 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_178 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidsaskSymbols.len() as i64) as f64) } {
                     let mut bidsaskSymbol: Value = bidsaskSymbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                    if (in_op(&self.bidsasks, &bidsaskSymbol)) {
+                    if (matches!((&self.bidsasks, &bidsaskSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         remove(&mut self.bidsasks.clone(), &bidsaskSymbol);
                     }
                 }
