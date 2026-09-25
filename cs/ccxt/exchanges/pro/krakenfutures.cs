@@ -1591,7 +1591,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 futuresResult[(string)symbol] = new Dictionary<string, object>() {};
                 if (((symbol != null)) && ((code != null)))
                 {
-                    ((IDictionary<string,object>)getValue(futuresResult, symbol))[(string)code] = newAccount;
+                    ((IDictionary<string,object>)(futuresResult.ContainsKey(symbol) ? futuresResult[symbol] : null))[(string)code] = newAccount;
                 }
             }
             this.balance["margin"] = futuresResult;

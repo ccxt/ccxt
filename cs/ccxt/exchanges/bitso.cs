@@ -1995,14 +1995,14 @@ public partial class bitso : Exchange
             string? code = this.safeCurrencyCode(currencyId);
             if (((code != null)) && (((codes == null)) || (inOp(codes, code))))
             {
-                double? withdrawFee = this.parseNumber(getValue(withdrawalResponse, currencyId));
+                double? withdrawFee = this.parseNumber((currencyId != null && withdrawalResponse.ContainsKey(currencyId) ? withdrawalResponse[currencyId] : null));
                 IDictionary<string, object> resultValue = this.safeDict(result, code);
                 if ((resultValue == null))
                 {
                     result[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
                 }
-                ((IDictionary<string,object>)getValue(getValue(result, code), "withdraw"))["fee"] = withdrawFee;
-                ((IDictionary<string,object>)getValue(getValue(result, code), "info"))[(string)code] = withdrawFee;
+                ((IDictionary<string,object>)getValue((result.ContainsKey(code) ? result[code] : null), "withdraw"))["fee"] = withdrawFee;
+                ((IDictionary<string,object>)getValue((result.ContainsKey(code) ? result[code] : null), "info"))[(string)code] = withdrawFee;
             }
         }
         return result;

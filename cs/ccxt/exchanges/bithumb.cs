@@ -675,7 +675,7 @@ public partial class bithumb : Exchange
                     {
                         continue;
                     }
-                    object market = getValue(data, currencyId);
+                    object market = (currencyId != null && data.ContainsKey(currencyId) ? data[currencyId] : null);
                     string? bs = this.safeCurrencyCode(currencyId);
                     if ((bs == null))
                     {
@@ -1289,7 +1289,7 @@ public partial class bithumb : Exchange
                 for (int j = 0; j < currencyIds.Count; j++)
                 {
                     string? currencyId = ((string)currencyIds[j]);
-                    object ticker = getValue(data, currencyId);
+                    object ticker = (currencyId != null && data.ContainsKey(currencyId) ? data[currencyId] : null);
                     string? bs = this.safeCurrencyCode(currencyId);
                     if (((bs == null)) || ((quote == null)))
                     {

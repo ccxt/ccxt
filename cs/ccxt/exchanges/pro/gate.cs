@@ -1308,7 +1308,7 @@ public partial class gate : ccxt.gate
         for (int i = 0; i < keys.Count; i++)
         {
             string? symbol = ((string)keys[i]);
-            object timeframe = getValue(marketIds, symbol);
+            object timeframe = (symbol != null && marketIds.ContainsKey(symbol) ? marketIds[symbol] : null);
             string? interval = this.findTimeframe(timeframe);
             string hash = (((("candles" + ":") + interval) + ":") + symbol);
             ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), interval));
@@ -2307,7 +2307,7 @@ public partial class gate : ccxt.gate
         {
             string? subscriptionHash = this.safeString(client.subscriptions, id);
             object subscription = this.safeValue(client.subscriptions, subscriptionHash);
-            object method = (methods != null && methods.ContainsKey(channel) ? methods[channel] : null);
+            object method = (channel != null && methods.ContainsKey(channel) ? methods[channel] : null);
             DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
         }
         if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
@@ -2577,7 +2577,7 @@ public partial class gate : ccxt.gate
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object value = getValue(findBy, key);
+            object value = (key != null && findBy.ContainsKey(key) ? findBy[key] : null);
             if (((string)url).IndexOf(key, StringComparison.Ordinal) >= 0)
             {
                 return value;

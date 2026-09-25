@@ -1486,8 +1486,8 @@ public partial class woo : Exchange
             string? id = ((string)currencyIds[i]);
             Dictionary<string, object> customCurrency = new Dictionary<string, object>() {
                 { "_coin_id", id },
-                { "_tokens_by_id", getValue(tokensById, id) },
-                { "_networks_by_id", getValue(networksById, id) },
+                { "_tokens_by_id", (id != null && tokensById.ContainsKey(id) ? tokensById[id] : null) },
+                { "_networks_by_id", (id != null && networksById.ContainsKey(id) ? networksById[id] : null) },
             };
             Dictionary<string, object> parsed = this.parseCurrency(customCurrency);
             string? code = this.safeString(parsed, "code");

@@ -112,7 +112,7 @@ public partial class kucoin : ccxt.kucoin
         // fetch different urls and overwrite each other
         urls[(string)connectId] = this.spawn(this.negotiateHelper, new object[] { privateChannel, connectId, parameters});
         this.options["urls"] = urls;
-        future = (urls != null && urls.ContainsKey(connectId) ? urls[connectId] : null);
+        future = (connectId != null && urls.ContainsKey(connectId) ? urls[connectId] : null);
         return await (future as Exchange.Future);
     }
 

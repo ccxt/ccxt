@@ -4976,7 +4976,7 @@ public partial class aster : Exchange
                 { "user", walletAddress },
                 { "signer", signerAddress },
             }, parameters);
-            object paramString = null;
+            string? paramString = null;
             Dictionary<string, object> paramsToEncode = null;
             bool isApproveBuilder = (path.IndexOf("/approveBuilder", StringComparison.Ordinal) >= 0);
             if (isApproveBuilder)
@@ -5015,10 +5015,10 @@ public partial class aster : Exchange
             }
             byte[] encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
             string signature = this.signMessage(encodedMessage, this.privateKey);
-            object queryString = add(add(add(paramString, "&"), "signature="), signature);
+            string queryString = (((paramString + "&") + "signature=") + signature);
             if ((method == "GET"))
             {
-                url = url + ("?" + (queryString));
+                url = url + ("?" + queryString);
             } else
             {
                 Dictionary<string, object> formHeaders = new Dictionary<string, object>() {

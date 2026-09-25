@@ -4678,7 +4678,7 @@ public partial class htx : Exchange
                     for (int j = 0; j < subCodes.Count; j++)
                     {
                         string? subCode = ((string)subCodes[j]);
-                        result = this.mergeBalanceAccount(result,subCode, getValue(subResult, subCode));
+                        result = this.mergeBalanceAccount(result,subCode, (subCode != null && subResult.ContainsKey(subCode) ? subResult[subCode] : null));
                     }
                 }
                 result = this.safeBalance(result);

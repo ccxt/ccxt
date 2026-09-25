@@ -1450,8 +1450,8 @@ public partial class bitbns : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object baseUrl = this.implodeHostname(baseApiUrl);
-        object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
+        string baseUrl = this.implodeHostname(baseApiUrl);
+        string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string nonce = this.nonce().ToString();
         int queryLength = (new List<object>(((IDictionary<string,object>)query).Keys)).Count;
@@ -1465,7 +1465,7 @@ public partial class bitbns : Exchange
         {
             if (queryLength > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         } else if ((method == "POST"))
         {

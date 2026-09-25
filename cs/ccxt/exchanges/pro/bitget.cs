@@ -1509,9 +1509,9 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object messageHash = "";
+        string messageHash = "";
         string subscriptionHash = "positions";
-        object instType = "USDT-FUTURES";
+        string instType = "USDT-FUTURES";
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
@@ -1525,14 +1525,14 @@ public partial class bitget : ccxt.bitget
         if (hasSymbols)
         {
             var instTypeparamsInstTypeVariable = this.getInstType("watchPositions", market, uta, paramsUta);
-            instType = instTypeparamsInstTypeVariable[0];
+            instType = (string)instTypeparamsInstTypeVariable[0];
             paramsInstType = instTypeparamsInstTypeVariable[1];
         }
         if ((uta == true))
         {
             instType = "UTA";
         }
-        messageHash = add(add(instType, ":positions"), messageHash);
+        messageHash = ((instType + ":positions") + messageHash);
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };

@@ -3235,7 +3235,7 @@ public partial class myriad : PredictionExchange
                 marketKeys.Add(key);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            object grouped = getValue(outcomesByMarket, key);
+            object grouped = (key != null && outcomesByMarket.ContainsKey(key) ? outcomesByMarket[key] : null);
             ((IList<object>)grouped).Add(outcomeObj);
             outcomesByMarket[(string)key] = grouped;
         }
@@ -3243,7 +3243,7 @@ public partial class myriad : PredictionExchange
         for (int i = 0; i < (marketKeys?.Count ?? 0); i++)
         {
             string? key = ((string)marketKeys[i]);
-            IList<object> grouped = (IList<object>)(getValue(outcomesByMarket, key));
+            IList<object> grouped = (IList<object>)((key != null && outcomesByMarket.ContainsKey(key) ? outcomesByMarket[key] : null));
             IDictionary<string, object> firstOutcome = this.safeDict(grouped, 0);
             IDictionary<string, object> info = this.safeDict(firstOutcome, "info", new Dictionary<string, object>() {});
             promises.Add(this.myriadPublicGetMarketsId(this.extend(new Dictionary<string, object>() {
@@ -3256,7 +3256,7 @@ public partial class myriad : PredictionExchange
         {
             string? key = ((string)marketKeys[i]);
             object response = (responses != null && i < responses.Count ? responses[i] : null);
-            IList<object> grouped = (IList<object>)(getValue(outcomesByMarket, key));
+            IList<object> grouped = (IList<object>)((key != null && outcomesByMarket.ContainsKey(key) ? outcomesByMarket[key] : null));
             for (int j = 0; j < (grouped?.Count ?? 0); j++)
             {
                 object outcomeObj = grouped[j];

@@ -1969,7 +1969,7 @@ public partial class htx : ccxt.htx
             }
             newPositions.Add(position);
             positionsByMarginMode[(string)marginMode] = this.safeList(positionsByMarginMode, marginMode, new List<object>() {});
-            ((IList<object>)getValue(positionsByMarginMode, marginMode)).Add(position);
+            ((IList<object>)(marginMode != null && positionsByMarginMode.ContainsKey(marginMode) ? positionsByMarginMode[marginMode] : null)).Add(position);
             cache.append(position);
         }
         List<object> marginModes = new List<object>(((IDictionary<string,object>)positionsByMarginMode).Keys);

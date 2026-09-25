@@ -449,7 +449,7 @@ public partial class coinone : ccxt.coinone
                 string? key = ((string)keys[i]);
                 if (topic.IndexOf(((string)keys[i]), StringComparison.Ordinal) >= 0)
                 {
-                    object method = getValue(methods, key);
+                    object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                     return;
                 }

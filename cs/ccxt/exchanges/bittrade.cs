@@ -1508,7 +1508,7 @@ public partial class bittrade : Exchange
             object account = null;
             if (((code != null)) && (((code != null) && result.ContainsKey(code))))
             {
-                account = getValue(result, code);
+                account = (result.ContainsKey(code) ? result[code] : null);
             } else
             {
                 account = this.account();

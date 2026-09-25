@@ -3569,7 +3569,7 @@ public partial class poloniex : Exchange
                                 } },
                             };
                         }
-                        ((IDictionary<string,object>)getValue(depositWithdrawFees, code))["networks"] = this.extend(getValue(getValue(depositWithdrawFees, code), "networks"), networkObject);
+                        ((IDictionary<string,object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null))["networks"] = this.extend(getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "networks"), networkObject);
                     }
                 }
             }

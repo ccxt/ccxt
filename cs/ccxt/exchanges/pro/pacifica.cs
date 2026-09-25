@@ -1686,7 +1686,7 @@ public partial class pacifica : ccxt.pacifica
             string? key = ((string)keys[i]);
             if (getIndexOf(topic, keys[i]) >= 0)
             {
-                object method = getValue(methods, key);
+                object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                 return;
             }

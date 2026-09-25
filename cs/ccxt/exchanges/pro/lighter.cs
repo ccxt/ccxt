@@ -322,7 +322,7 @@ public partial class lighter : ccxt.lighter
                 string? marketId = ((string)marketIds[i]);
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-                Dictionary<string, object> ticker = this.parseTicker(getValue(data, marketId), market);
+                Dictionary<string, object> ticker = this.parseTicker((marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
                 this.tickers[(string)symbol] = ticker;
                 client.resolve(ticker, this.getMessageHash("ticker", symbol));
                 client.resolve(ticker, this.getMessageHash("ticker"));

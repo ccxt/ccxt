@@ -436,7 +436,7 @@ public partial class kalshi : PredictionExchange
                                 { "markets", new List<object>() {} },
                             };
                         }
-                        object eventEntry = getValue(eventsDict, eventKey);
+                        object eventEntry = (eventKey != null && eventsDict.ContainsKey(eventKey) ? eventsDict[eventKey] : null);
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
@@ -1247,7 +1247,7 @@ public partial class kalshi : PredictionExchange
                 tickers.Add(ticker);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            object grouped = getValue(outcomesByTicker, ticker);
+            object grouped = (outcomesByTicker.ContainsKey(ticker) ? outcomesByTicker[ticker] : null);
             ((IList<object>)grouped).Add(outcomeObj);
             outcomesByTicker[(string)ticker] = grouped;
         }
@@ -1281,7 +1281,7 @@ public partial class kalshi : PredictionExchange
                 {
                     continue;
                 }
-                object grouped = getValue(outcomesByTicker, marketTicker);
+                object grouped = (outcomesByTicker.ContainsKey(marketTicker) ? outcomesByTicker[marketTicker] : null);
                 for (int j = 0; j < getArrayLength(grouped); j++)
                 {
                     Dictionary<string, object> ticker = this.parsePredictionTicker(raw, getValue(grouped, j));

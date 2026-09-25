@@ -8826,7 +8826,7 @@ public partial class okx : Exchange
                 Dictionary<string, object> borrowRateStructure = this.parseBorrowRate(item);
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
                 borrowRateStructure["period"] = 31536000000;
-                object borrrowRateCode = getValue(borrowRateHistories, code);
+                object borrrowRateCode = (borrowRateHistories.ContainsKey(code) ? borrowRateHistories[code] : null);
                 ((IList<object>)borrrowRateCode).Add(borrowRateStructure);
             }
         }
@@ -8834,7 +8834,7 @@ public partial class okx : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? code = ((string)keys[i]);
-            borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit(getValue(borrowRateHistories, code),code, since, limit);
+            borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit((code != null && borrowRateHistories.ContainsKey(code) ? borrowRateHistories[code] : null),code, since, limit);
         }
         return borrowRateHistories;
     }
@@ -9798,7 +9798,7 @@ public partial class okx : Exchange
                 }
                 if ((currencyId != null))
                 {
-                    ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "info"))[(string)currencyId] = feeInfo;
+                    ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "info"))[(string)currencyId] = feeInfo;
                 }
                 string? chain = this.safeString(feeInfo, "chain");
                 if ((chain == null))
@@ -9819,7 +9819,7 @@ public partial class okx : Exchange
                 string? networkCode = this.networkIdToCode(networkId, code);
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                    ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", withdrawResult },
                         { "deposit", depositResult },
                     };
@@ -9831,7 +9831,7 @@ public partial class okx : Exchange
         {
             string? code = ((string)depositWithdrawCodes[i]);
             Dictionary<string, object> currency = this.currency(code);
-            depositWithdrawFees[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
+            depositWithdrawFees[(string)code] = this.assignDefaultDepositWithdrawFees((code != null && depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), currency);
         }
         return depositWithdrawFees;
     }

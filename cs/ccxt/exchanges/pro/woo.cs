@@ -1582,7 +1582,7 @@ public partial class woo : ccxt.woo
         {
             string? marketId = ((string)postitionsIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object rawPosition = getValue(rawPositions, marketId);
+            object rawPosition = (marketId != null && rawPositions.ContainsKey(marketId) ? rawPositions[marketId] : null);
             Dictionary<string, object> position = this.parsePosition(rawPosition, market);
             newPositions.Add(position);
             cache.append(position);

@@ -554,7 +554,7 @@ public partial class bitvavo : ccxt.bitvavo
             {
                 marketIdsByInterval[(string)interval] = new List<object>() {};
             }
-            object intervalIds = getValue(marketIdsByInterval, interval);
+            object intervalIds = (interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null);
             ((IList<object>)intervalIds).Add((market.ContainsKey("id") ? market["id"] : null));
             messageHashes.Add(((((("multi:" + name) + "@") + ((market.ContainsKey("id") ? market["id"] : null))) + "_") + interval));
         }
@@ -566,7 +566,7 @@ public partial class bitvavo : ccxt.bitvavo
             channels.Add(new Dictionary<string, object>() {
                 { "name", name },
                 { "interval", new List<object>() {interval} },
-                { "markets", getValue(marketIdsByInterval, interval) },
+                { "markets", (interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null) },
             });
         }
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -635,7 +635,7 @@ public partial class bitvavo : ccxt.bitvavo
             {
                 marketIdsByInterval[(string)interval] = new List<object>() {};
             }
-            object intervalIds = getValue(marketIdsByInterval, interval);
+            object intervalIds = (interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null);
             ((IList<object>)intervalIds).Add((market.ContainsKey("id") ? market["id"] : null));
             // both the single-symbol and the multi-symbol watch hashes must be released
             subMessageHashes.Add(((((name + "@") + ((market.ContainsKey("id") ? market["id"] : null))) + "_") + interval));
@@ -649,7 +649,7 @@ public partial class bitvavo : ccxt.bitvavo
             channels.Add(new Dictionary<string, object>() {
                 { "name", name },
                 { "interval", new List<object>() {interval} },
-                { "markets", getValue(marketIdsByInterval, interval) },
+                { "markets", (interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null) },
             });
         }
         Dictionary<string, object> subscriptionArgs = new Dictionary<string, object>() {

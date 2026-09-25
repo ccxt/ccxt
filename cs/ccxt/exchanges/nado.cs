@@ -3405,10 +3405,10 @@ public partial class nado : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = baseApiUrl;
+        string url = baseApiUrl;
         if ((path != ""))
         {
-            url = add(url, ("/" + this.implodeParams(path, parameters)));
+            url = url + ("/" + this.implodeParams(path, parameters));
         }
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {};
@@ -3420,7 +3420,7 @@ public partial class nado : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         } else
         {

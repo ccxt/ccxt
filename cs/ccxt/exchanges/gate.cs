@@ -4412,7 +4412,7 @@ public partial class gate : Exchange
             for (int i = 0; i < keys.Count; i++)
             {
                 string? currencyId = ((string)keys[i]);
-                object content = getValue(balances, currencyId);
+                object content = (currencyId != null && balances.ContainsKey(currencyId) ? balances[currencyId] : null);
                 ((IDictionary<string,object>)content)["currency"] = currencyId;
                 flatBalances.Add(content);
             }

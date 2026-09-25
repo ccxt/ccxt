@@ -752,8 +752,8 @@ public partial class luno : Exchange
             string? balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
             if (((code != null)) && (((code != null) && result.ContainsKey(code))))
             {
-                ((IDictionary<string,object>)getValue(result, code))["used"] = Precise.stringAdd(getValue(getValue(result, code), "used"), reservedUnconfirmed);
-                ((IDictionary<string,object>)getValue(result, code))["total"] = Precise.stringAdd(getValue(getValue(result, code), "total"), balanceUnconfirmed);
+                ((IDictionary<string,object>)(result.ContainsKey(code) ? result[code] : null))["used"] = Precise.stringAdd(getValue((result.ContainsKey(code) ? result[code] : null), "used"), reservedUnconfirmed);
+                ((IDictionary<string,object>)(result.ContainsKey(code) ? result[code] : null))["total"] = Precise.stringAdd(getValue((result.ContainsKey(code) ? result[code] : null), "total"), balanceUnconfirmed);
             } else if ((code != null))
             {
                 Dictionary<string, object> account = this.account();
@@ -1079,7 +1079,7 @@ public partial class luno : Exchange
             string? id = ((string)ids[i]);
             Dictionary<string, object> market = this.safeMarket(id);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            object ticker = getValue(tickers, id);
+            object ticker = (id != null && tickers.ContainsKey(id) ? tickers[id] : null);
             result[(string)symbol] = this.parseTicker(ticker, market);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));

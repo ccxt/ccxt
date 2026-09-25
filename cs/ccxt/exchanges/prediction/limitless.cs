@@ -433,7 +433,7 @@ public partial class limitless : PredictionExchange
                         { "markets", new List<object>() {} },
                     };
                 }
-                object eventGroup = getValue(eventGroups, eventKey);
+                object eventGroup = (eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
@@ -447,7 +447,7 @@ public partial class limitless : PredictionExchange
         for (int i = 0; i < eventKeys.Count; i++)
         {
             string? eventKey = ((string)eventKeys[i]);
-            object g = getValue(eventGroups, eventKey);
+            object g = (eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null);
             eventsDict[(string)eventKey] = this.parseEvent(g);
         }
         this.events = eventsDict;
@@ -572,7 +572,7 @@ public partial class limitless : PredictionExchange
         for (int i = 0; i < tokenEntries.Count; i++)
         {
             string? outcomeLabel = ((string)tokenEntries[i]);
-            object tokenData = getValue(tokens, outcomeLabel);
+            object tokenData = (outcomeLabel != null && tokens.ContainsKey(outcomeLabel) ? tokens[outcomeLabel] : null);
             object tokenId = tokenData;
             string? outcomeHandle = this.slugToOutcomeSymbol(groupId, slug, outcomeLabel);
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
@@ -1390,7 +1390,7 @@ public partial class limitless : PredictionExchange
                 { "market", detail },
                 { "book", book },
             };
-            object grouped = getValue(outcomesBySlug, slug);
+            object grouped = (slug != null && outcomesBySlug.ContainsKey(slug) ? outcomesBySlug[slug] : null);
             for (int j = 0; j < getArrayLength(grouped); j++)
             {
                 Dictionary<string, object> ticker = this.parsePredictionTicker(tickerInput, getValue(grouped, j));
@@ -1708,7 +1708,7 @@ public partial class limitless : PredictionExchange
                 bucketOrder.Add(key);
             } else
             {
-                object candle = (candles != null && candles.ContainsKey(key) ? candles[key] : null);
+                object candle = (key != null && candles.ContainsKey(key) ? candles[key] : null);
                 double? pPriceOrZero = ((pPrice == null)) ? 0 : pPrice;
                 ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), pPriceOrZero);
                 object candleLow = (isEqual(getValue(candle, 3), null)) ? pPrice : getValue(candle, 3);
@@ -3423,7 +3423,7 @@ public partial class limitless : PredictionExchange
                         { "markets", new List<object>() {} },
                     };
                 }
-                object eventGroup = getValue(eventGroups, eventKey);
+                object eventGroup = (eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go

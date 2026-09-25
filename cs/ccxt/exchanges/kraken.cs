@@ -746,7 +746,7 @@ public partial class kraken : Exchange
             {
                 isSynthetic = true;
             }
-            object market = getValue(markets, id);
+            object market = (id != null && markets.ContainsKey(id) ? markets[id] : null);
             string? baseIdRaw = this.safeString(market, "base");
             string? quoteIdRaw = this.safeString(market, "quote");
             string? baseId = this.safeCurrencyCode(baseIdRaw);
@@ -1276,7 +1276,7 @@ public partial class kraken : Exchange
             string? id = ((string)ids[i]);
             Dictionary<string, object> market = this.safeMarket(id);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            object ticker = getValue(tickers, id);
+            object ticker = (id != null && tickers.ContainsKey(id) ? tickers[id] : null);
             result[(string)symbol] = this.parseTicker(ticker, market);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
@@ -1521,7 +1521,7 @@ public partial class kraken : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object value = getValue(ledger, key);
+            object value = (key != null && ledger.ContainsKey(key) ? ledger[key] : null);
             ((IDictionary<string,object>)value)["id"] = key;
             items.Add(value);
         }
@@ -1556,7 +1556,7 @@ public partial class kraken : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object value = getValue(result, key);
+            object value = (key != null && result.ContainsKey(key) ? result[key] : null);
             ((IDictionary<string,object>)value)["id"] = key;
             items.Add(value);
         }
@@ -2870,7 +2870,7 @@ public partial class kraken : Exchange
         for (int i = 0; i < orderIds.Count; i++)
         {
             string? id = ((string)orderIds[i]);
-            object item = getValue(result, id);
+            object item = (id != null && result.ContainsKey(id) ? result[id] : null);
             Dictionary<string, object> order = this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "id", id },
             }, item));
@@ -3192,7 +3192,7 @@ public partial class kraken : Exchange
         for (int i = 0; i < orderIds.Count; i++)
         {
             string? id = ((string)orderIds[i]);
-            object item = getValue(open, id);
+            object item = (id != null && open.ContainsKey(id) ? open[id] : null);
             orders.Add(this.extend(new Dictionary<string, object>() {
                 { "id", id },
             }, item));
@@ -3293,7 +3293,7 @@ public partial class kraken : Exchange
         for (int i = 0; i < orderIds.Count; i++)
         {
             string? id = ((string)orderIds[i]);
-            object item = getValue(closed, id);
+            object item = (id != null && closed.ContainsKey(id) ? closed[id] : null);
             orders.Add(this.extend(new Dictionary<string, object>() {
                 { "id", id },
             }, item));

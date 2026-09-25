@@ -2848,11 +2848,11 @@ public partial class tokocrypto : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = baseApiUrl;
-        url = add(url, ("/" + path));
+        string url = baseApiUrl;
+        url = url + ("/" + path);
         if (isEqual(api, "wapi"))
         {
-            url = add(url, ".html");
+            url = url + ".html";
         }
         bool userDataStream = ((path == "userDataStream")) || ((path == "listenKey"));
         if (userDataStream)
@@ -2878,7 +2878,7 @@ public partial class tokocrypto : Exchange
         } else if ((isEqual(api, "private")) || (isEqual(api, "sapi") && (path != "system/status")) || (isEqual(api, "sapiV3")) || (isEqual(api, "wapi") && (path != "systemStatus")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")))
         {
             this.checkRequiredCredentials();
-            object query = null;
+            string? query = null;
             Int64? defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
                 { "timestamp", this.nonce() },
@@ -2903,7 +2903,7 @@ public partial class tokocrypto : Exchange
                 query = this.urlencode(extendedParams);
             }
             string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
-            query = add(query, (("&" + "signature=") + signature));
+            query = query + (("&" + "signature=") + signature);
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
@@ -2915,7 +2915,7 @@ public partial class tokocrypto : Exchange
             }
             if (queryInUrl)
             {
-                url = add(url, ("?" + (query)));
+                url = url + ("?" + query);
             } else
             {
                 headersSigned["Content-Type"] = "application/x-www-form-urlencoded";
@@ -2930,7 +2930,7 @@ public partial class tokocrypto : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(parameters)));
+                url = url + ("?" + this.urlencode(parameters));
             }
         }
         return new Dictionary<string, object>() {

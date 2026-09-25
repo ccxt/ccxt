@@ -10940,7 +10940,7 @@ public partial class kucoin : Exchange
                     borrowRateHistories[(string)code] = new List<object>() {};
                 }
                 Dictionary<string, object> borrowRateStructure = this.parseBorrowRate(item);
-                object borrowRateHistoriesCode = getValue(borrowRateHistories, code);
+                object borrowRateHistoriesCode = (borrowRateHistories.ContainsKey(code) ? borrowRateHistories[code] : null);
                 ((IList<object>)borrowRateHistoriesCode).Add(borrowRateStructure);
             }
         }
@@ -10948,7 +10948,7 @@ public partial class kucoin : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? code = ((string)keys[i]);
-            borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit(getValue(borrowRateHistories, code),code, since, limit);
+            borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit((code != null && borrowRateHistories.ContainsKey(code) ? borrowRateHistories[code] : null),code, since, limit);
         }
         return borrowRateHistories;
     }
@@ -13050,7 +13050,7 @@ public partial class kucoin : Exchange
                 {
                     result[(string)symbol] = new List<object>() {};
                 }
-                ((IList<object>)getValue(result, symbol)).Add(tier);
+                ((IList<object>)(result.ContainsKey(symbol) ? result[symbol] : null)).Add(tier);
             }
         }
         return ccxt.BaseExchange.ToLeverageTiers(result);

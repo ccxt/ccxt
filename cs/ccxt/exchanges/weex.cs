@@ -5060,8 +5060,8 @@ public partial class weex : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object baseUrl = baseApiUrl;
-        string? url = ((string)add(add(baseUrl, "/"), endpoint));
+        string baseUrl = baseApiUrl;
+        string url = ((baseUrl + "/") + (endpoint));
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

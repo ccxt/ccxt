@@ -1486,7 +1486,7 @@ public partial class bitfinex : Exchange
             {
                 side = "bids";
             }
-            ((IList<object>)(result != null && result.ContainsKey(side) ? result[side] : null)).Add(new List<object>() {price, this.parseNumber(amount)});
+            ((IList<object>)(side != null && result.ContainsKey(side) ? result[side] : null)).Add(new List<object>() {price, this.parseNumber(amount)});
         }
         result["bids"] = this.sortBy(((IDictionary<string,object>)result)["bids"], 0, true);
         result["asks"] = this.sortBy(((IDictionary<string,object>)result)["asks"], 0);

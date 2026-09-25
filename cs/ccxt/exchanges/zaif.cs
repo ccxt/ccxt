@@ -956,26 +956,26 @@ public partial class zaif : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object baseUrl = baseApiUrl;
-        object url = add(baseUrl, "/");
+        string baseUrl = baseApiUrl;
+        string url = (baseUrl + "/");
         if (isEqual(api, "public"))
         {
-            url = add(url, ((("api/" + this.version) + "/") + this.implodeParams(path, parameters)));
+            url = url + ((("api/" + this.version) + "/") + this.implodeParams(path, parameters));
         } else if (isEqual(api, "fapi"))
         {
-            url = add(url, ((("fapi/" + this.version) + "/") + this.implodeParams(path, parameters)));
+            url = url + ((("fapi/" + this.version) + "/") + this.implodeParams(path, parameters));
         } else
         {
             this.checkRequiredCredentials();
             if (isEqual(api, "ecapi"))
             {
-                url = add(url, "ecapi");
+                url = url + "ecapi";
             } else if (isEqual(api, "tlapi"))
             {
-                url = add(url, "tlapi");
+                url = url + "tlapi";
             } else
             {
-                url = add(url, "tapi");
+                url = url + "tapi";
             }
             object nonce = this.customNonce();
             string bodyEncoded = this.urlencode(this.extend(new Dictionary<string, object>() {

@@ -2689,16 +2689,16 @@ public partial class upbit : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = this.implodeParams(baseApiUrl, new Dictionary<string, object>() {
+        string url = this.implodeParams(baseApiUrl, new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
-        url = add(url, ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
+        url = url + ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if ((method != "POST"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         }
         bool hasBody = (isEqual(api, "private")) && ((method != "GET")) && ((method != "DELETE"));

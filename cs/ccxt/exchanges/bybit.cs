@@ -10553,7 +10553,7 @@ public partial class bybit : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)keys[i]);
-            object entry = getValue(grouped, marketId);
+            object entry = (marketId != null && grouped.ContainsKey(marketId) ? grouped[marketId] : null);
             for (int j = 0; j < getArrayLength(entry); j++)
             {
                 Int64? id = this.safeInteger(getValue(entry, j), "id");

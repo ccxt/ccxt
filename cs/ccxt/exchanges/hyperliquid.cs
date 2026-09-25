@@ -3677,7 +3677,7 @@ public partial class hyperliquid : Exchange
                     deduplicatedByOid[(string)oid] = rawOrder;
                 } else
                 {
-                    Int64? existingTimestamp = this.safeInteger(getValue(deduplicatedByOid, oid), "statusTimestamp");
+                    Int64? existingTimestamp = this.safeInteger((deduplicatedByOid.ContainsKey(oid) ? deduplicatedByOid[oid] : null), "statusTimestamp");
                     Int64? currentTimestamp = this.safeInteger(rawOrder, "statusTimestamp");
                     if ((currentTimestamp != null) && ((existingTimestamp == null) || (currentTimestamp != null && (existingTimestamp == null || currentTimestamp > existingTimestamp))))
                     {

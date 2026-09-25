@@ -1745,7 +1745,7 @@ public partial class hyperliquid : PredictionExchange
                     deduped[(string)oid] = raw;
                 } else
                 {
-                    Int64? existingTs = this.safeInteger(getValue(deduped, oid), "statusTimestamp");
+                    Int64? existingTs = this.safeInteger((deduped.ContainsKey(oid) ? deduped[oid] : null), "statusTimestamp");
                     Int64? currentTs = this.safeInteger(raw, "statusTimestamp");
                     if ((currentTs != null) && ((existingTs == null) || (currentTs != null && (existingTs == null || currentTs > existingTs))))
                     {
@@ -2244,7 +2244,7 @@ public partial class hyperliquid : PredictionExchange
         for (int gi = 0; gi < groupKeys.Count; gi++)
         {
             string? key = ((string)groupKeys[gi]);
-            object groupMarkets = getValue(groupMap, key);
+            object groupMarkets = (key != null && groupMap.ContainsKey(key) ? groupMap[key] : null);
             Dictionary<string, object> eventVar = this.parseEvent(new Dictionary<string, object>() {
                 { "parentSymbol", key },
                 { "markets", groupMarkets },

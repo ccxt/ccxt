@@ -2401,7 +2401,7 @@ public partial class mexc : ccxt.mexc
         };
         if (((channel != null)) && (((channel != null) && (methods?.ContainsKey(channel) == true))))
         {
-            object method = getValue(methods, channel);
+            object method = (channel != null && methods.ContainsKey(channel) ? methods[channel] : null);
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
         }
     }

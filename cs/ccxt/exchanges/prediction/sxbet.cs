@@ -545,7 +545,7 @@ public partial class sxbet : PredictionExchange
                 grouped[(string)sportXeventId] = new List<object>() {};
                 order.Add(sportXeventId);
             }
-            ((IList<object>)getValue(grouped, sportXeventId)).Add(raw);
+            ((IList<object>)(grouped.ContainsKey(sportXeventId) ? grouped[sportXeventId] : null)).Add(raw);
         }
         if ((this.markets == null))
         {
@@ -556,7 +556,7 @@ public partial class sxbet : PredictionExchange
         for (int i = 0; i < orderLength; i++)
         {
             string? fixtureId = ((string)(order != null && i < order.Count ? order[i] : null));
-            Dictionary<string, object> eventVar = this.parseEvent(fixtureId, getValue(grouped, fixtureId));
+            Dictionary<string, object> eventVar = this.parseEvent(fixtureId, (fixtureId != null && grouped.ContainsKey(fixtureId) ? grouped[fixtureId] : null));
             List<object> evMarkets = this.safeList(eventVar, "markets", new List<object>() {});
             int evMarketsLength = evMarkets.Count;
             for (int j = 0; j < evMarketsLength; j++)

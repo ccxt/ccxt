@@ -1216,7 +1216,7 @@ public partial class whitebit : Exchange
                 {
                     depositWithdrawFees[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
                 }
-                ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "info"))[(string)entry] = feeInfo;
+                ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "info"))[(string)entry] = feeInfo;
                 string? networkId = this.safeString(splitEntry, 1);
                 IDictionary<string, object> withdraw = this.safeDict(feeInfo, "withdraw");
                 IDictionary<string, object> deposit = this.safeDict(feeInfo, "deposit");
@@ -1237,15 +1237,15 @@ public partial class whitebit : Exchange
                     string? networkCode = this.networkIdToCode(networkId, code);
                     if ((networkCode != null))
                     {
-                        ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                             { "withdraw", withdrawResult },
                             { "deposit", depositResult },
                         };
                     }
                 } else
                 {
-                    ((IDictionary<string,object>)getValue(depositWithdrawFees, code))["withdraw"] = withdrawResult;
-                    ((IDictionary<string,object>)getValue(depositWithdrawFees, code))["deposit"] = depositResult;
+                    ((IDictionary<string,object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null))["withdraw"] = withdrawResult;
+                    ((IDictionary<string,object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null))["deposit"] = depositResult;
                 }
             }
         }
@@ -1254,7 +1254,7 @@ public partial class whitebit : Exchange
         {
             string? code = ((string)depositWithdrawCodes[i]);
             Dictionary<string, object> currency = this.currency(code);
-            depositWithdrawFees[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
+            depositWithdrawFees[(string)code] = this.assignDefaultDepositWithdrawFees((code != null && depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), currency);
         }
         return depositWithdrawFees;
     }

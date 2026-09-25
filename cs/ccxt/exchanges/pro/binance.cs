@@ -2699,7 +2699,7 @@ public partial class binance : ccxt.binance
         {
             suffix = ((use1sFreq == true)) ? "@1s" : "";
         }
-        object unifiedPrefix = null;
+        string? unifiedPrefix = null;
         if (isBidAsk)
         {
             unifiedPrefix = "bidask";
@@ -2717,10 +2717,10 @@ public partial class binance : ccxt.binance
             {
                 string? symbol = ((string)symbolsNormalized[i]);
                 Dictionary<string, object> market = this.market(symbol);
-                messageHashes.Add(add(add(add(add(unifiedPrefix, ":"), channelName), "@"), symbol));
+                messageHashes.Add(((((unifiedPrefix + ":") + (channelName)) + "@") + symbol));
                 if (isUnsubscribe == true)
                 {
-                    unsubscribeMessageHashes.Add(((((("unsubscribe::" + (unifiedPrefix)) + ":") + (channelName)) + "@") + symbol));
+                    unsubscribeMessageHashes.Add(((((("unsubscribe::" + unifiedPrefix) + ":") + (channelName)) + "@") + symbol));
                 }
                 if (isOptionMarkPrice)
                 {
@@ -2778,7 +2778,7 @@ public partial class binance : ccxt.binance
                     // isOptionMarkPrice: one stream covers all contracts for the underlying
                     subscriptionArgs.Add((underlying + "@optionMarkPrice"));
                 }
-                messageHashes.Add(add(add(unifiedPrefix, "s:"), channelName));
+                messageHashes.Add(((unifiedPrefix + "s:") + (channelName)));
                 unsubscribeMessageHashes.Add(("unsubscribe::" + (channelName)));
             } else if (isBidAsk)
             {
@@ -2787,17 +2787,17 @@ public partial class binance : ccxt.binance
                     throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires symbols for this channel for spot markets")) ;
                 }
                 subscriptionArgs.Add(("!" + (channelName)));
-                messageHashes.Add(add(add(unifiedPrefix, "s:"), channelName));
+                messageHashes.Add(((unifiedPrefix + "s:") + (channelName)));
                 unsubscribeMessageHashes.Add(("unsubscribe::" + (channelName)));
             } else if (isMarkPrice)
             {
                 subscriptionArgs.Add(((("!" + (channelName)) + "@arr") + suffix));
-                messageHashes.Add(add(add(unifiedPrefix, "s:"), channelName));
+                messageHashes.Add(((unifiedPrefix + "s:") + (channelName)));
                 unsubscribeMessageHashes.Add(("unsubscribe::" + (channelName)));
             } else
             {
                 subscriptionArgs.Add((("!" + (channelName)) + "@arr"));
-                messageHashes.Add(add(add(unifiedPrefix, "s:"), channelName));
+                messageHashes.Add(((unifiedPrefix + "s:") + (channelName)));
                 unsubscribeMessageHashes.Add(("unsubscribe::" + (channelName)));
             }
         }
@@ -2834,7 +2834,7 @@ public partial class binance : ccxt.binance
         List<object> waitHashes = hashes;
         if (isOptionMarkPrice && isUnsubscribe != true)
         {
-            waitHashes = new List<object>() {add(add(unifiedPrefix, "s:"), channelName)};
+            waitHashes = new List<object>() {((unifiedPrefix + "s:") + (channelName))};
         }
         object result = await this.watchMultiple(url, waitHashes, this.deepExtend(request, paramsSubType), hashes, subscription);
         if (isUnsubscribe == true)
@@ -3094,7 +3094,7 @@ public partial class binance : ccxt.binance
     {
         bool isBidAsk = ((methodType == "bidasks"));
         bool isMarkPrice = ((methodType == "markPrices"));
-        object unifiedPrefix = null;
+        string? unifiedPrefix = null;
         if (isBidAsk)
         {
             unifiedPrefix = "bidask";
@@ -3162,7 +3162,7 @@ public partial class binance : ccxt.binance
                     this.tickers[(string)symbol] = parsedTicker;
                 }
             }
-            object messageHash = add(add(add(add(unifiedPrefix, ":"), channelName), "@"), symbol);
+            string messageHash = ((((unifiedPrefix + ":") + channelName) + "@") + symbol);
             resolvedMessageHashes.Add(messageHash);
             client.resolve(parsedTicker, messageHash);
         }
@@ -3170,7 +3170,7 @@ public partial class binance : ccxt.binance
         int length = (resolvedMessageHashes?.Count ?? 0);
         if (length > 0)
         {
-            object batchMessageHash = add(add(unifiedPrefix, "s:"), channelName);
+            string batchMessageHash = ((unifiedPrefix + "s:") + channelName);
             client.resolve(newTickers, batchMessageHash);
         }
     }
