@@ -4440,7 +4440,7 @@ public partial class binance : Exchange
         {
             throw new ExchangeError ((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
+        return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
     /**
@@ -11502,7 +11502,7 @@ public partial class binance : Exchange
         List<object> results = this.safeList(response, "userAssetDribblets", new List<object>() {});
         Int64? rows = this.safeInteger(response, "total", 0);
         List<object> data = new List<object>() {};
-        for (int i = 0; isLessThan(i, rows); i++)
+        for (int i = 0; (i < rows); i++)
         {
             List<object> logs = this.safeList((results != null && i < results.Count ? results[i] : null), "userAssetDribbletDetails", new List<object>() {});
             for (int j = 0; j < logs.Count; j++)
@@ -18370,7 +18370,7 @@ public partial class binance : Exchange
         {
             if ((longNum != null) && (shortNum != null))
             {
-                if (isGreaterThan(longNum, shortNum))
+                if ((longNum != null && (shortNum == null || longNum > shortNum)))
                 {
                     rank = longNum;
                 } else

@@ -2816,7 +2816,7 @@ public partial class woo : Exchange
         }
         if ((since != null))
         {
-            request["after"] = subtract(since, 1); // #27793
+            request["after"] = (since - 1); // #27793
         }
         Int64? until = this.safeInteger(parameters, "until");
         object paramsOmitted = this.omit(parameters, "until");

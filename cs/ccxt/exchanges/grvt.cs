@@ -763,7 +763,7 @@ public partial class grvt : Exchange
         // expires in 24 hours as CS suggested
         Int64? expires = this.safeInteger(this.options, "signInExpiration", 0);
         // if previous sign-in not expired (give 10 seconds margin)
-        if ((expires != null) && isGreaterThan(expires, (now + 10000)))
+        if ((expires != null) && (expires > (now + 10000)))
         {
             return new Dictionary<string, object>() {};
         }
@@ -789,7 +789,7 @@ public partial class grvt : Exchange
         // expires in 24 hours as CS suggested
         Int64? expires = this.safeInteger(this.options, "signInExpiration", 0);
         // if previous sign-in not expired (give 10 seconds margin)
-        if ((expires != null) && isGreaterThan(expires, (now + 10000)))
+        if ((expires != null) && (expires > (now + 10000)))
         {
             return new Dictionary<string, object>() {};
         }

@@ -423,7 +423,7 @@ public class Mudrex extends MudrexApi
             }
             Object endTime = Helpers.add(startTime, Helpers.multiply(duration, requestLimit));
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
             if (!java.util.Objects.equals(until, null))
             {
                 endTime = this.parseToInt((((double) until) / ((double) 1000)));
@@ -750,7 +750,7 @@ public class Mudrex extends MudrexApi
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             String requested = this.safeStringN(paramsMarketType, new ArrayList<Object>(Arrays.asList("trade_currency", "tradeCurrency", "currency")));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trade_currency", "tradeCurrency", "currency")));
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trade_currency", "tradeCurrency", "currency")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
@@ -875,7 +875,7 @@ public class Mudrex extends MudrexApi
                 put( "margin_type", marginType );
                 put( "leverage", leverage );
             }};
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginType")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginType")));
             Map<String, Object> response = (this.privatePostFuturesAssetIdLeverage(this.extend(request, paramsOmitted))).join();
             return response;
         });
@@ -926,7 +926,7 @@ public class Mudrex extends MudrexApi
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
                 }
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "positionId", "position_id")));
+                Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "positionId", "position_id")));
                 Map<String, Object> riskRequest = Helpers.newMap(
                     "position_id", positionId
                 );
@@ -972,7 +972,7 @@ public class Mudrex extends MudrexApi
                 request.put("is_stoploss", true);
                 request.put("stoploss_price", this.priceToPrecision(symbol, this.safeStringN(stopLoss, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "price")))));
             }
-            Map<String, Object> orderParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("leverage", "reduceOnly", "takeProfit", "stopLoss")));
+            Map<String, Object> orderParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("leverage", "reduceOnly", "takeProfit", "stopLoss")));
             Map<String, Object> response = (this.privatePostFuturesAssetIdOrder(this.extend(request, orderParams))).join();
             Object data = this.safeDict(response, "data", response);
             // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
@@ -1522,11 +1522,11 @@ public class Mudrex extends MudrexApi
                 {
                     request.put("limit_price", lp);
                 }
-                Map<String, Object> partialParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("order_type", "limit_price", "amount", "position_id")));
+                Map<String, Object> partialParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("order_type", "limit_price", "amount", "position_id")));
                 Object partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, partialParams))).join();
                 return partialResponse;
             }
-            Map<String, Object> closeParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("position_id")));
+            Map<String, Object> closeParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("position_id")));
             Object response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, closeParams))).join();
             return response;
         }).thenApply(Order::new);
@@ -1575,7 +1575,7 @@ public class Mudrex extends MudrexApi
                 "position_id", positionId,
                 "margin", this.costToPrecision(symbol, amount)
             );
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("position_id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("position_id")));
             Object response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, paramsOmitted))).join();
             return response;
         }).thenApply(MarginModification::new);

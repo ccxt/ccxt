@@ -2645,7 +2645,7 @@ public partial class okx : Exchange
         {
             throw new ExchangeError ((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
+        return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
     /**
@@ -3744,13 +3744,13 @@ public partial class okx : Exchange
             Int64 durationInMilliseconds = multiply(duration, 1000);
             // switch to history candles if since is past the cutoff for current candles
             Int64 historyBorder = (now - ((((1440 - 1)) * durationInMilliseconds)));
-            if (isLessThan(since, historyBorder))
+            if (((since == null || since < historyBorder)))
             {
                 defaultType = "HistoryCandles";
                 int maxLimit = isMarkOrIndex ? 100 : 300;
                 limitResolved = mathMin(limitResolved, maxLimit);
             }
-            object startTime = mathMax(subtract(since, 1), 0);
+            object startTime = mathMax((since - 1), 0);
             request["before"] = startTime;
             request["after"] = this.sum(since, multiply(durationInMilliseconds, limitResolved));
         }
@@ -3850,7 +3850,7 @@ public partial class okx : Exchange
         };
         if ((since != null))
         {
-            request["before"] = mathMax(subtract(since, 1), 0);
+            request["before"] = mathMax((since - 1), 0);
         }
         if ((limit != null))
         {
@@ -6956,7 +6956,7 @@ public partial class okx : Exchange
         }
         if ((since != null))
         {
-            request["before"] = mathMax(subtract(since, 1), 0);
+            request["before"] = mathMax((since - 1), 0);
         }
         if ((limit != null))
         {
@@ -7076,7 +7076,7 @@ public partial class okx : Exchange
         }
         if ((since != null))
         {
-            request["before"] = mathMax(subtract(since, 1), 0);
+            request["before"] = mathMax((since - 1), 0);
         }
         if ((limit != null))
         {
@@ -8667,7 +8667,7 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? lever = this.safeInteger2(parameters, "lever", "leverage");
-        if (((lever == null)) || (isLessThan(lever, 1)) || ((lever > 125)))
+        if (((lever == null)) || (((lever == null || lever < 1))) || ((lever > 125)))
         {
             throw new BadRequest ((this.id + " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
         }
@@ -9233,7 +9233,7 @@ public partial class okx : Exchange
         }
         if ((since != null))
         {
-            request["before"] = subtract(since, 1);
+            request["before"] = (since - 1);
         }
         if ((limit != null))
         {
@@ -9872,7 +9872,7 @@ public partial class okx : Exchange
         };
         if ((since != null))
         {
-            request["before"] = subtract(since, 1);
+            request["before"] = (since - 1);
         }
         if ((limit != null))
         {

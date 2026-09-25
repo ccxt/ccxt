@@ -1567,7 +1567,7 @@ public class Kraken extends KrakenApi
                 request.put("start", this.parseToInt((((double) since) / ((double) 1000))));
             }
             String until = this.safeString2(parameters, "until", "till");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))) : parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 String untilDivided = Precise.stringDiv(until, "1000");
@@ -2529,7 +2529,7 @@ public class Kraken extends KrakenApi
     public Object orderRequest(Object method, String symbol, String type, Map<String, Object> request, Object amount, Object price, Map<String, Object> parameters)
     {
         String clientOrderId = this.safeString(parameters, "clientOrderId");
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             request.put("cl_ord_id", clientOrderId);
@@ -2549,7 +2549,7 @@ public class Kraken extends KrakenApi
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
         String cost = this.safeString(paramsOmitted, "cost");
         String flags = this.safeString(paramsOmitted, "oflags");
-        Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("cost", "oflags")));
+        Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("cost", "oflags")));
         Boolean isViqcOrder = (!java.util.Objects.equals(flags, null)) && (((String)flags).indexOf("viqc") > -1); // volume in quote currency
         if (Boolean.TRUE.equals(isMarketOrder) && (!java.util.Objects.equals(cost, null) || Boolean.TRUE.equals(isViqcOrder)))
         {
@@ -2684,7 +2684,7 @@ public class Kraken extends KrakenApi
         {
             request.put("oflags", flags);
         }
-        Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset")));
+        Map<String, Object> paramsOmitted3 = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset")));
         return new ArrayList<Object>(Arrays.asList(request, paramsOmitted3));
     }
 
@@ -3027,7 +3027,7 @@ public class Kraken extends KrakenApi
                 request.put("start", this.parseToInt((((double) since) / ((double) 1000))));
             }
             String until = this.safeString2(parameters, "until", "till");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))) : parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 String untilDivided = Precise.stringDiv(until, "1000");
@@ -3103,12 +3103,12 @@ public class Kraken extends KrakenApi
             }
             Map<String, Object> response = null;
             Object requestId = this.safeValue(parameters, "userref", id); // string or integer
-            Map<String, Object> paramsUserref = (Map<String, Object>) this.omit(parameters, "userref");
+            Map<String, Object> paramsUserref = this.omit(parameters, "userref");
             Object request = new HashMap<String, Object>() {{
                 put( "txid", requestId );
             }};
             String clientOrderId = this.safeString2(paramsUserref, "clientOrderId", "cl_ord_id");
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsUserref, new ArrayList<Object>(Arrays.asList("clientOrderId", "cl_ord_id"))) : paramsUserref;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsUserref, new ArrayList<Object>(Arrays.asList("clientOrderId", "cl_ord_id"))) : paramsUserref;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 ((Map<String, Object>)request).put("cl_ord_id", clientOrderId);
@@ -3279,7 +3279,7 @@ public class Kraken extends KrakenApi
                 request.put("start", this.parseToInt((((double) since) / ((double) 1000))));
             }
             Long userref = this.safeInteger(parameters, "userref");
-            Object paramsOmitted = (((!java.util.Objects.equals(userref, null)))) ? this.omit(parameters, "userref") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(userref, null)))) ? this.omit(parameters, "userref") : parameters;
             if (!java.util.Objects.equals(userref, null))
             {
                 request.put("userref", userref);
@@ -3637,7 +3637,7 @@ public class Kraken extends KrakenApi
                 request.put("start", Precise.stringDiv(sinceString, "1000"));
             }
             String until = this.safeString2(parameters, "until", "till");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))) : parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 String untilDivided = Precise.stringDiv(until, "1000");
@@ -3736,7 +3736,7 @@ public class Kraken extends KrakenApi
                 request.put("start", Precise.stringDiv(sinceString, "1000"));
             }
             String until = this.safeString2(paramsPaginate, "until", "till");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until", "till"))) : paramsPaginate;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until", "till"))) : paramsPaginate;
             if (!java.util.Objects.equals(until, null))
             {
                 String untilDivided = Precise.stringDiv(until, "1000");
@@ -3904,7 +3904,7 @@ public class Kraken extends KrakenApi
             String network = this.safeStringUpper(parameters, "network");
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             String codeResolved = code;
             if ((java.util.Objects.equals(code, "USDT")) && (java.util.Objects.equals(network, "TRC20")))
             {

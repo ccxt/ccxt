@@ -885,7 +885,7 @@ public class Cryptomus extends CryptomusApi
                 "tag", "ccxt"
             );
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("client_order_id", clientOrderId);

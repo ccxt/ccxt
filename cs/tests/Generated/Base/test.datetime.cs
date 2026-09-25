@@ -166,7 +166,7 @@ public partial class BaseTest
             string? value2 = exchange.yymmdd(exchange.milliseconds());
             Assert((value2.Length == 6));
             Int64? intNum = exchange.parseToInt(value2);
-            Assert(isGreaterThan(intNum, 260000) && isLessThan(intNum, 360000)); // date between 2026 and 2036
+            Assert((intNum > 260000) && ((intNum == null || intNum < 360000))); // date between 2026 and 2036
         }
         public void testYyyymmdd()
         {
@@ -179,7 +179,7 @@ public partial class BaseTest
             string? value2 = exchange.yyyymmdd(exchange.milliseconds());
             Assert((value2.Length == 10));
             Int64? intNum = exchange.parseToInt(((string)(value2.Replace((string)"-", (string)""))).Replace((string)"-", (string)""));
-            Assert(isGreaterThan(intNum, 20260000) && isLessThan(intNum, 20360000)); // date between 2026 and 2036
+            Assert((intNum > 20260000) && ((intNum == null || intNum < 20360000))); // date between 2026 and 2036
         }
         public void testYmd()
         {

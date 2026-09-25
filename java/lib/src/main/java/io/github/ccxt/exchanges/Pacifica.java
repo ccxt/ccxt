@@ -1896,7 +1896,7 @@ public class Pacifica extends PacificaApi
             var requestoperationTypeVariable = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             var request = ((List<Object>) requestoperationTypeVariable).get(0);
             var operationType = ((List<Object>) requestoperationTypeVariable).get(1);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(operationType, "create_market_order"))
             {
@@ -2056,7 +2056,7 @@ public class Pacifica extends PacificaApi
         {
             sigPayload.put("amount", this.amountToPrecision(symbol, amount));
         }
-        Object paramsClientOrderId = (((java.util.Objects.equals(operationType, "create_stop_order")))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : parameters;
+        Map<String, Object> paramsClientOrderId = (((java.util.Objects.equals(operationType, "create_stop_order")))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : parameters;
         String clientOrderId = this.safeString(paramsClientOrderId, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
@@ -2240,7 +2240,7 @@ public class Pacifica extends PacificaApi
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a \"symbol\" argument!")) ;
             }
             Object request = this.cancelOrdersRequest(ids, symbol, parameters);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "clientOrderIds")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "clientOrderIds")));
             Map<String, Object> response = (this.privatePostOrdersBatch(this.extend(request, paramsOmitted))).join();
             //
             // {
@@ -2302,7 +2302,7 @@ public class Pacifica extends PacificaApi
             ((List<Object>)actions).add(action);
         }
         List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "clientOrderIds");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "clientOrderIds");
         for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
         {
             Object cloid = (clientOrderIds == null || i < 0 || i >= clientOrderIds.size() ? null : clientOrderIds.get(i));
@@ -2341,7 +2341,7 @@ public class Pacifica extends PacificaApi
             }
             (this.initializeClient()).join();
             Object request = this.cancelAllOrdersRequest((String) (symbol), parameters);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("excludeReduceOnly", "expiryWindow")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("excludeReduceOnly", "expiryWindow")));
             Map<String, Object> response = (this.privatePostOrdersCancelAll(this.extend(request, paramsOmitted))).join();
             //
             // {
@@ -2409,7 +2409,7 @@ public class Pacifica extends PacificaApi
             }
             Object request = this.cancelOrderRequest(id, symbol, parameters);
             Boolean isStopOrder = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "trigger", "stop", "clientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "trigger", "stop", "clientOrderId")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(isStopOrder, true))
             {
@@ -2496,7 +2496,7 @@ public class Pacifica extends PacificaApi
             (this.initializeClient()).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), type, (String) (side), amount, price, (Map<String, Object>) (market), parameters);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "clientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "clientOrderId")));
             Map<String, Object> response = (this.privatePostOrdersEdit(this.extend(request, paramsOmitted))).join();
             //
             // {
@@ -3492,7 +3492,7 @@ public class Pacifica extends PacificaApi
                 put( "amount", String.valueOf(amount) );
             }};
             Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));
             Map<String, Object> response = (this.privatePostAccountWithdraw(this.extend(request, paramsOmitted))).join();
             return new HashMap<String, Object>() {{
                 put( "info", response );
@@ -3937,7 +3937,7 @@ public class Pacifica extends PacificaApi
                 put( "amount", Pacifica.this.numberToString(amount) );
             }};
             Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));
             Map<String, Object> response = (this.privatePostAccountSubaccountTransfer(this.extend(request, paramsOmitted))).join();
             //
             // {

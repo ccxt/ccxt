@@ -1074,7 +1074,7 @@ public partial class lbank : ccxt.lbank
             } else
             {
                 Int64? expires = this.safeInteger(authenticated, "expires", 0);
-                if (isLessThan(expires, now))
+                if (((expires == null || expires < now)))
                 {
                     Dictionary<string, object> request = new Dictionary<string, object>() {
                         { "subscribeKey", GetValue(authenticated, "key") },

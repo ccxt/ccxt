@@ -1430,7 +1430,7 @@ public class Hyperliquid extends HyperliquidApi
             // at this stage, to get tickers data, we use fetchMarkets endpoints
             Object response = new ArrayList<Object>(Arrays.asList());
             String type = this.safeString(parameters, "type");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             List<Object> hip3OptionparamsHip3Variable = (List<Object>) this.handleOptionBoolAndParams(paramsOmitted, "fetchTickers", "hip3", false);
             Boolean hip3Option = (Boolean) ((List<Object>) hip3OptionparamsHip3Variable).get(0);
             Map<String, Object> paramsHip3 = (Map<String, Object>) ((List<Object>) hip3OptionparamsHip3Variable).get(1);
@@ -1696,7 +1696,7 @@ public class Hyperliquid extends HyperliquidApi
                     startTime = 0;
                 }
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             Map<String, Object> request = Helpers.newMap(
                 "type", "candleSnapshot",
                 "req", Helpers.newMap(
@@ -1797,7 +1797,7 @@ public class Hyperliquid extends HyperliquidApi
                 request.put("type", "userFills");
             }
             Long until = this.safeInteger(paramsPublicAddress, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPublicAddress, "until");
+            Map<String, Object> paramsOmitted = this.omit(paramsPublicAddress, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
@@ -2495,7 +2495,7 @@ public class Hyperliquid extends HyperliquidApi
             Object nonce = this.incrementingNonce();
             Boolean isBuy = (java.util.Objects.equals(side, "BUY"));
             Boolean randomize = (Boolean) this.safeBool(parameters, "randomize", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "randomize");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "randomize");
             List<Object> vaultAddressOptionparamsVaultVariable = (List<Object>) this.handleOptionStringAndParams(paramsOmitted, "createOrder", "vaultAddress", (String) null);
             String vaultAddressOption = (String) ((List<Object>) vaultAddressOptionparamsVaultVariable).get(0);
             Map<String, Object> paramsVault = (Map<String, Object>) ((List<Object>) vaultAddressOptionparamsVaultVariable).get(1);
@@ -3584,7 +3584,7 @@ public class Hyperliquid extends HyperliquidApi
                 request.put("startTime", Helpers.subtract(this.milliseconds(), Helpers.multiply(Helpers.multiply(Helpers.multiply(maxLimit, 60), 60), 1000)));
             }
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
@@ -4241,7 +4241,7 @@ public class Hyperliquid extends HyperliquidApi
                 request.put("type", "userFills");
             }
             Long until = this.safeInteger(paramsPublicAddress, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPublicAddress, "until");
+            Map<String, Object> paramsOmitted = this.omit(paramsPublicAddress, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
@@ -5657,7 +5657,7 @@ public class Hyperliquid extends HyperliquidApi
                 request.put("startTime", since);
             }
             Long until = this.safeInteger(paramsPublicAddress, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPublicAddress, "until");
+            Map<String, Object> paramsOmitted = this.omit(paramsPublicAddress, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);

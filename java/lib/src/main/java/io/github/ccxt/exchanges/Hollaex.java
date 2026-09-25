@@ -1122,7 +1122,7 @@ public class Hollaex extends HollaexApi
             }
             request.put("from", this.parseToInt(Helpers.divide(start, 1000))); // convert to seconds
             request.put("to", this.parseToInt((((double) until) / ((double) 1000)))); // convert to seconds
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, "until");
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "until");
             List<Object> response = (this.publicGetChart(this.extend(request, paramsOmitted))).join();
             //
             //     [
@@ -1576,7 +1576,7 @@ public class Hollaex extends HollaexApi
         put( "post_only", true );
     }});
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop")));
             Map<String, Object> response = (this.privatePostOrder(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -1803,7 +1803,7 @@ public class Hollaex extends HollaexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String network = this.safeString(parameters, "network");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             Map<String, Object> response = (this.privateGetUser(paramsOmitted)).join();
             //
             //     {
@@ -2195,7 +2195,7 @@ public class Hollaex extends HollaexApi
             {
                 throw new ArgumentsRequired((this.id + " withdraw() requires a network parameter")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsWithdrawTag, "network");
+            Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
             Map<String, Object> request = Helpers.newMap(
                 "currency", currency.get("id"),
                 "amount", amount,

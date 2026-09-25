@@ -1630,8 +1630,8 @@ public class Apex extends ApexApi
                     timeInForce = "IMMEDIATE_OR_CANCEL";
                 }
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "timeInForce");
-            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, "postOnly");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "timeInForce");
+            Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, "postOnly");
             Object clientOrderId = this.safeStringN(paramsOmitted2, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             Object accountId = (this.getAccountId()).join();
             if (java.util.Objects.equals(clientOrderId, null))
@@ -1639,7 +1639,7 @@ public class Apex extends ApexApi
                 clientOrderId = this.generateRandomClientIdOmni((String) (accountId));
             }
             Object finalClientOrderId = clientOrderId; // java req
-            Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice")));
+            Map<String, Object> paramsOmitted3 = this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice")));
             String finalOrderPrice = orderPrice; // java req
             Map<String, Object> orderToSign = new HashMap<String, Object>() {{
                 put( "accountId", accountId );
@@ -1755,7 +1755,7 @@ public class Apex extends ApexApi
                 clientOrderId = this.generateRandomClientIdOmni(this.safeString(this.options, "accountId"));
             }
             Object finalClientOrderId = clientOrderId; // java req
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             if (java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract"))
             {
                 String formattedUint32 = "4294967295";
@@ -2036,7 +2036,7 @@ public class Apex extends ApexApi
             {
                 request.put("endTimeExclusive", endTimeExclusive);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(endTimeExclusive, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(endTimeExclusive, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until"))) : parameters;
             Map<String, Object> response = (this.privateGetV3HistoryOrders(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
@@ -2075,7 +2075,7 @@ public class Apex extends ApexApi
             {
                 request.put("orderId", id);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientId")));
             Map<String, Object> response = (this.privateGetV3OrderFills(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
@@ -2128,7 +2128,7 @@ public class Apex extends ApexApi
             {
                 request.put("endTimeExclusive", endTimeExclusive);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(endTimeExclusive, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(endTimeExclusive, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until"))) : parameters;
             Map<String, Object> response = (this.privateGetV3Fills(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
@@ -2180,7 +2180,7 @@ public class Apex extends ApexApi
             {
                 request.put("endTimeExclusive", endTimeExclusive);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(endTimeExclusive, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(endTimeExclusive, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until"))) : parameters;
             Map<String, Object> response = (this.privateGetV3Funding(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> fundingValues = (List<Object>) this.safeList(data, "fundingValues", new ArrayList<Object>(Arrays.asList()));

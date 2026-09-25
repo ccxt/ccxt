@@ -1140,7 +1140,7 @@ func (this *Blofin) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Blofin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2611,7 +2611,7 @@ func (this *Blofin) withdrawBody(ch chan any, code string, amount any, address a
 	//   with 152002 "Invalid parameter" - see options["networks"]
 	// - 152002 responses omit the offending field name even though the
 	//   error table documents the message as "Parameter {} error"
-	tag := GetArg(optionalArgs, 0, nil)
+	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3117,7 +3117,7 @@ func (this *Blofin) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Blofin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3380,7 +3380,7 @@ func (this *Blofin) FetchLeveragesAsync(optionalArgs ...any) <-chan any {
 func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3889,7 +3889,7 @@ func (this *Blofin) FetchPositionsADLRankAsync(optionalArgs ...any) <-chan any {
 func (this *Blofin) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

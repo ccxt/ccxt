@@ -659,7 +659,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 request.put("end", this.iso8601(unitl));
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(unitl, null)))) ? this.omit(paramsPaginate, "until") : paramsPaginate;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(unitl, null)))) ? this.omit(paramsPaginate, "until") : paramsPaginate;
             Map<String, Object> response = (this.v1PublicGetInstrumentsInstrumentCandles(this.extend(request, paramsOmitted))).join();
             //
             //   {
@@ -2231,7 +2231,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("post_only", postOnly);
             }
             request.put("tif", tif);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPortfolio, new ArrayList<Object>(Arrays.asList("client_order_id", "user", "postOnly", "timeInForce")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPortfolio, new ArrayList<Object>(Arrays.asList("client_order_id", "user", "postOnly", "timeInForce")));
             Map<String, Object> response = (this.v1PrivatePostOrders(this.extend(request, paramsOmitted))).join();
             //
             //    {
@@ -2734,7 +2734,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 request.put("ref_datetime", this.iso8601(until));
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsMaxEntriesPerRequest, new ArrayList<Object>(Arrays.asList("until"))) : paramsMaxEntriesPerRequest;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsMaxEntriesPerRequest, new ArrayList<Object>(Arrays.asList("until"))) : paramsMaxEntriesPerRequest;
             Map<String, Object> response = (this.v1PrivateGetPortfoliosFills(this.extend(request, paramsOmitted))).join();
             //
             //    {

@@ -478,7 +478,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 put( "topic", "orders" );
             }};
             String tradingAccountId = this.safeString(parameters, "tradingAccountId");
-            Object paramsOmitted = (((!java.util.Objects.equals(tradingAccountId, null)))) ? this.omit(parameters, "tradingAccountId") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(tradingAccountId, null)))) ? this.omit(parameters, "tradingAccountId") : parameters;
             if (!java.util.Objects.equals(tradingAccountId, null))
             {
                 request.put("tradingAccountId", tradingAccountId);
@@ -616,7 +616,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 put( "topic", "trades" );
             }};
             String tradingAccountId = this.safeString(parameters, "tradingAccountId");
-            Object paramsOmitted = (((!java.util.Objects.equals(tradingAccountId, null)))) ? this.omit(parameters, "tradingAccountId") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(tradingAccountId, null)))) ? this.omit(parameters, "tradingAccountId") : parameters;
             if (!java.util.Objects.equals(tradingAccountId, null))
             {
                 request.put("tradingAccountId", tradingAccountId);
@@ -737,7 +737,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }};
             String messageHash = "balance";
             String tradingAccountId = this.safeString(parameters, "tradingAccountId");
-            Object paramsOmitted = (((!java.util.Objects.equals(tradingAccountId, null)))) ? this.omit(parameters, "tradingAccountId") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(tradingAccountId, null)))) ? this.omit(parameters, "tradingAccountId") : parameters;
             if (!java.util.Objects.equals(tradingAccountId, null))
             {
                 request.put("tradingAccountId", tradingAccountId);

@@ -188,7 +188,7 @@ func (this *Bitvavo) WatchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Bitvavo) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -269,7 +269,7 @@ func (this *Bitvavo) WatchBidsAsksAsync(optionalArgs ...any) <-chan any {
 func (this *Bitvavo) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1823,7 +1823,7 @@ func (this *Bitvavo) WithdrawWsAsync(code string, amount any, address string, op
 func (this *Bitvavo) withdrawWsBody(ch chan any, code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	tag := ccxt.GetArg(optionalArgs, 0, nil)
+	var tag *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

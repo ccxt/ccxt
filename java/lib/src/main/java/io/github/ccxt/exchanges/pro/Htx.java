@@ -1043,7 +1043,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 subType = this.safeString(parameters, "subType", subType);
             }
             Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
-            Object paramsRequest = (((!java.util.Objects.equals(symbol, null)))) ? parameters : this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "subType")));
+            Map<String, Object> paramsRequest = (((!java.util.Objects.equals(symbol, null)))) ? parameters : this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "subType")));
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
             Boolean swap = (java.util.Objects.equals(type, "swap"));
             Boolean future = (java.util.Objects.equals(type, "future"));
@@ -1061,13 +1061,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 channel = messageHash;
             } else if (Boolean.TRUE.equals(isV5Linear))
             {
-                Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("trade", market, Helpers.toMapArg(paramsRequest));
+                Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("trade", market, paramsRequest);
                 channel = this.safeString(channelAndMessageHashAndParams, 0);
                 messageHash = this.safeString(channelAndMessageHashAndParams, 1);
-                paramsRequest = this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
+                paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
             } else
             {
-                Object channelAndMessageHash = this.getOrderChannelAndMessageHash((String) (type), (String) (subType), market, Helpers.toMapArg(paramsRequest));
+                Object channelAndMessageHash = this.getOrderChannelAndMessageHash((String) (type), (String) (subType), market, paramsRequest);
                 channel = this.safeString(channelAndMessageHash, 0);
                 String orderMessageHash = this.safeString(channelAndMessageHash, 1);
                 // we will take advantage of the order messageHash because already handles stuff
@@ -1080,7 +1080,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
                 put( "isV5", isV5Linear );
             }};
-            trades = (this.subscribePrivate((String) (channel), (String) (messageHash), (String) (type), (String) (subType), Helpers.toMapArg(paramsRequest), subscriptionParams)).join();
+            trades = (this.subscribePrivate((String) (channel), (String) (messageHash), (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
             if (java.util.Objects.equals(trades, null))
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() trades is required")) ;
@@ -1101,7 +1101,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Object channel = null;
         String orderType = this.safeString(this.options, "orderType", "orders"); // orders or matchOrders
         orderType = this.safeString(parameters, "orderType", orderType);
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "orderType");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "orderType");
         Object marketCode = null;
         if ((!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(((Map<String, Object>)market).get("lowercaseId"), null)))
         {
@@ -1174,7 +1174,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             messageHash = Helpers.add((topic + "."), ((String)contractCode).toLowerCase());
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "contract_code");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "contract_code");
         Map<String, Object> requestParams = this.extend(Helpers.newMap(
             "contract_code", contractCode
         ), paramsOmitted);
@@ -1220,7 +1220,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 subType = this.safeString(parameters, "subType", subType);
             }
             Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
-            Object paramsRequest = (((!java.util.Objects.equals(symbol, null)))) ? parameters : this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "subType")));
+            Map<String, Object> paramsRequest = (((!java.util.Objects.equals(symbol, null)))) ? parameters : this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "subType")));
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
             Boolean swap = (java.util.Objects.equals(type, "swap"));
             Boolean future = (java.util.Objects.equals(type, "future"));
@@ -1233,20 +1233,20 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 channel = messageHash;
             } else if (Boolean.TRUE.equals(isV5Linear))
             {
-                Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("orders", market, Helpers.toMapArg(paramsRequest));
+                Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("orders", market, paramsRequest);
                 channel = this.safeString(channelAndMessageHashAndParams, 0);
                 messageHash = this.safeString(channelAndMessageHashAndParams, 1);
-                paramsRequest = this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
+                paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
             } else
             {
-                Object channelAndMessageHash = this.getOrderChannelAndMessageHash((String) (type), (String) (subType), market, Helpers.toMapArg(paramsRequest));
+                Object channelAndMessageHash = this.getOrderChannelAndMessageHash((String) (type), (String) (subType), market, paramsRequest);
                 channel = this.safeString(channelAndMessageHash, 0);
                 messageHash = this.safeString(channelAndMessageHash, 1);
             }
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
                 put( "isV5", isV5Linear );
             }};
-            Object orders = (this.subscribePrivate((String) (channel), messageHash, (String) (type), (String) (subType), Helpers.toMapArg(paramsRequest), subscriptionParams)).join();
+            Object orders = (this.subscribePrivate((String) (channel), messageHash, (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -2085,8 +2085,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             var subType = ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean isUnifiedAccount = (Boolean) this.safeBool2(paramsSubType, "isUnifiedAccount", "unified", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("isUnifiedAccount", "unified")));
-            Object paramsRequest = (((!java.util.Objects.equals(type, "spot")))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("currency", "symbol", "margin"))) : paramsOmitted;
+            Map<String, Object> paramsOmitted = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("isUnifiedAccount", "unified")));
+            Map<String, Object> paramsRequest = (((!java.util.Objects.equals(type, "spot")))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("currency", "symbol", "margin"))) : paramsOmitted;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2193,7 +2193,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             // because huobi returns a different topic than the topic sent. Example: we send
             // "accounts.*" and "accounts" is returned so we're setting channel = "accounts.*" and
             // messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
-            return (this.subscribePrivate((String) (channel), (String) (messageHash), (String) (type), (String) (subType), Helpers.toMapArg(paramsRequest), subscriptionParams)).join();
+            return (this.subscribePrivate((String) (channel), (String) (messageHash), (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
         }).thenApply(Balances::new);
 
     }
@@ -3331,7 +3331,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 "topic", topic
             );
             List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(parameters, "symbolsAndTimeframes", (Object) null);
-            Object paramsOmitted = (((!java.util.Objects.equals(symbolsAndTimeframes, null)))) ? this.omit(parameters, "symbolsAndTimeframes") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(symbolsAndTimeframes, null)))) ? this.omit(parameters, "symbolsAndTimeframes") : parameters;
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
                 subscription.put("symbolsAndTimeframes", symbolsAndTimeframes);

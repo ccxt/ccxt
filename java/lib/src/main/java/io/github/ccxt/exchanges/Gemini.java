@@ -2105,7 +2105,7 @@ public class Gemini extends GeminiApi
             // timeInForce and postOnly are consumed only by non-trigger orders
             List<Object> omitKeys = new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id", "type", "triggerPrice", "stop_price", "stopPrice"));
             List<Object> optionKeys = (((java.util.Objects.equals(triggerPrice, null)))) ? new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")) : new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, this.arrayConcat(omitKeys, optionKeys));
+            Map<String, Object> paramsOmitted = this.omit(parameters, this.arrayConcat(omitKeys, optionKeys));
             if (java.util.Objects.equals(typeValue, "stopLimit"))
             {
                 throw new ArgumentsRequired((((this.id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for ") + typeValue) + " orders")) ;

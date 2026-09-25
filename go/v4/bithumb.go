@@ -1135,7 +1135,7 @@ func (this *Bithumb) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1287,7 +1287,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var quotes []string = ObjectKeys(quoteCurrencies)
 		if symbols != nil {
 			var requiredQuotes map[string]any = map[string]any{}
-			for i := 0; i < GetArrayLength(symbols); i++ {
+			for i := 0; i < len(symbols); i++ {
 				var symbol *string = SafeStringPtr(GetValue(symbols, i))
 				var market map[string]any = this.Market(symbol)
 				var quoteId *string = this.SafeString(market, "quoteId")
@@ -3144,7 +3144,7 @@ func (this *Bithumb) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Bithumb) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	tag := GetArg(optionalArgs, 0, nil)
+	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

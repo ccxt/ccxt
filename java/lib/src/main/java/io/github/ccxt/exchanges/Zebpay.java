@@ -931,7 +931,7 @@ public class Zebpay extends ZebpayApi
                 put( "symbol", market.get("id") );
             }};
             Long until = (Long) this.safeInteger2(parameters, "until", "endtime");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "endtime", "endTime", "interval", "startTime")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "endtime", "endTime", "interval", "startTime")));
             Map<String, Object> response = null;
             Long limitResolved = limit;
             if (java.util.Objects.equals(market.get("spot"), true))
@@ -953,7 +953,7 @@ public class Zebpay extends ZebpayApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")) ;
                 }
-                Map<String, Object> paramsSpot = (Map<String, Object>) this.omit(paramsOmitted, "priceType");
+                Map<String, Object> paramsSpot = this.omit(paramsOmitted, "priceType");
                 response = (this.publicSpotGetV2MarketKlines(this.extend(request, paramsSpot))).join();
             } else
             {
@@ -1379,7 +1379,7 @@ public class Zebpay extends ZebpayApi
         String quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost");
         String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         String clientOrderId = this.safeString(parameters, "clientOrderId", this.uuid());
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "cost", "timeInForce", "clientOrderId")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "cost", "timeInForce", "clientOrderId")));
         request.put("type", upperCaseType);
         request.put("clientOrderId", clientOrderId);
         request.put("timeInForce", timeInForce);

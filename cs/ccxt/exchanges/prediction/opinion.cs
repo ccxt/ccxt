@@ -250,7 +250,7 @@ public partial class opinion : PredictionExchange
                 }
             }
             int collectedLength = (flatMarkets?.Count ?? 0);
-            if ((isLessThan(rawMarketsLength, pageLimit)) || (isGreaterThanOrEqual(page, maxPages)) || (((total != null)) && (isGreaterThanOrEqual(fetchedRawCount, total))) || (((userLimit != null)) && (isGreaterThanOrEqual(collectedLength, userLimit))))
+            if (((rawMarketsLength < pageLimit)) || (isGreaterThanOrEqual(page, maxPages)) || (((total != null)) && (isGreaterThanOrEqual(fetchedRawCount, total))) || (((userLimit != null)) && ((userLimit == null || collectedLength >= userLimit))))
             {
                 break;
             }
@@ -258,7 +258,7 @@ public partial class opinion : PredictionExchange
         }
         this.setEvents(eventsList);
         int flatMarketsLength = (flatMarkets?.Count ?? 0);
-        if (((userLimit != null)) && (isGreaterThan(flatMarketsLength, userLimit)))
+        if (((userLimit != null)) && (((userLimit == null || flatMarketsLength > userLimit))))
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arraySlice(flatMarkets, 0, userLimit));
         }

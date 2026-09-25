@@ -1583,7 +1583,7 @@ public class Aster extends AsterApi
             String price = this.safeString(paramsUntil, "price");
             Boolean isMark = (java.util.Objects.equals(price, "mark"));
             Boolean isIndex = (java.util.Objects.equals(price, "index"));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUntil, "price");
+            Map<String, Object> paramsOmitted = this.omit(paramsUntil, "price");
             List<Object> response = null;
             if (Boolean.TRUE.equals(isMark))
             {
@@ -2895,7 +2895,7 @@ public class Aster extends AsterApi
                 put( "symbol", market.get("id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientOid")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientOid")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("origClientOrderId", clientOrderId);
@@ -2971,7 +2971,7 @@ public class Aster extends AsterApi
                 put( "symbol", market.get("id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientOid")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientOid")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("origClientOrderId", clientOrderId);
@@ -3634,7 +3634,7 @@ public class Aster extends AsterApi
             {
                 request.put("orderId", id);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("swap"), true))
             {
@@ -3928,7 +3928,7 @@ public class Aster extends AsterApi
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = this.market(symbol);
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -4246,7 +4246,7 @@ public class Aster extends AsterApi
                 request.put("limit", Math.min(limit, 1000)); // max 1000
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
@@ -5003,7 +5003,7 @@ public class Aster extends AsterApi
                 throw new ArgumentsRequired((this.id + " withdraw require fee parameter")) ;
             }
             request.put("fee", fee);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("chainId", "network", "fee")));
+            Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("chainId", "network", "fee")));
             request.put("amount", this.currencyToPrecision((String) (code), amount, network));
             request.put("userSignature", this.signWithdrawPayload(request, network));
             Map<String, Object> response = (this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, paramsOmitted))).join();

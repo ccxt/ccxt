@@ -820,7 +820,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 topic = "algoexecutionreport";
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String messageHash = topic;
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -876,7 +876,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 topic = "algoexecutionreport";
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "stop");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "stop");
             String messageHash = "myTrades";
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))

@@ -1659,7 +1659,7 @@ public partial class bingx : Exchange
         object requestLimit = ((limit == null)) ? 500 : mathMin(limit, maxLimit);
         if ((since != null))
         {
-            request["startTime"] = mathMax(subtract(since, 1), 0);
+            request["startTime"] = mathMax((since - 1), 0);
         }
         if ((limit != null))
         {

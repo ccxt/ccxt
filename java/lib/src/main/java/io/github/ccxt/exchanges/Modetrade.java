@@ -1559,7 +1559,7 @@ public class Modetrade extends ModetradeApi
                 request.put("start_t", since);
             }
             Long until = this.safeInteger(paramsPaginate, "until"); // unified in milliseconds
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_t", until);
@@ -2095,7 +2095,7 @@ public class Modetrade extends ModetradeApi
             }
             request.put("child_orders", new ArrayList<Object>(Arrays.asList(outterOrder)));
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit")));
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 
@@ -2282,7 +2282,7 @@ public class Modetrade extends ModetradeApi
             {
                 request.put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isConditional))
             {
@@ -2312,7 +2312,7 @@ public class Modetrade extends ModetradeApi
                     request.put("order_type", orderType);
                 }
                 String clientOrderId = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
-                Map<String, Object> paramsOrder = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce")));
+                Map<String, Object> paramsOrder = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce")));
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
                     request.put("client_order_id", clientOrderId);
@@ -2358,7 +2358,7 @@ public class Modetrade extends ModetradeApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if ((!java.util.Objects.equals(trigger, true)) && (java.util.Objects.equals(symbol, null)))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
@@ -2378,7 +2378,7 @@ public class Modetrade extends ModetradeApi
             String clientOrderIdUnified = this.safeString2(paramsOmitted, "clOrdID", "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "client_order_id", clientOrderIdUnified);
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
-            Map<String, Object> paramsClientOrder = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+            Map<String, Object> paramsClientOrder = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
@@ -2460,7 +2460,7 @@ public class Modetrade extends ModetradeApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object clientOrderIds = this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderIds, null))
@@ -2509,7 +2509,7 @@ public class Modetrade extends ModetradeApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2578,7 +2578,7 @@ public class Modetrade extends ModetradeApi
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
@@ -2673,7 +2673,7 @@ public class Modetrade extends ModetradeApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -3323,7 +3323,7 @@ public class Modetrade extends ModetradeApi
             //         "success":true
             //     }
             //
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "side"); // request-side filter, not a unified transaction field
+            Map<String, Object> paramsOmitted = this.omit(parameters, "side"); // request-side filter, not a unified transaction field
             return this.parseTransactions(rows, Helpers.toMapArg(currency), since, limit, paramsOmitted);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3455,7 +3455,7 @@ public class Modetrade extends ModetradeApi
                 put( "verifyingContract", verifyingContractAddress );
                 put( "message", withdrawRequest );
             }};
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "chainId");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "chainId");
             Map<String, Object> response = (this.v1PrivatePostWithdrawRequest(this.extend(request, paramsOmitted))).join();
             //
             //     {

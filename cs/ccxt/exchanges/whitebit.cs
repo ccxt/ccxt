@@ -2762,7 +2762,7 @@ public partial class whitebit : Exchange
         // Sort by timestamp (most recent first)
         List<object> sortedOrders = this.sortBy(allOrders, "timestamp", true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
-        if ((limit != null) && isGreaterThan((sortedOrders?.Count ?? 0), limit))
+        if ((limit != null) && ((limit == null || (sortedOrders?.Count ?? 0) > limit)))
         {
             return ccxt.BaseExchange.ToOrderList(slice(sortedOrders, 0, limit));
         }

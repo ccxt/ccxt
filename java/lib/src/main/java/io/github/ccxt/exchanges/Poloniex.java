@@ -2244,7 +2244,7 @@ public class Poloniex extends PoloniexApi
                 request.put("limit", Helpers.mathMax(limit, max));
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsMarketType, "trigger", "stop", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(marketType, "spot"))
             {
@@ -2707,7 +2707,7 @@ public class Poloniex extends PoloniexApi
             Object idValue = (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : id;
             request.put("id", idValue);
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "trigger", "stop")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "trigger", "stop")));
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(isTrigger, true))
             {
@@ -2782,7 +2782,7 @@ public class Poloniex extends PoloniexApi
                 return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsMarketType, "trigger", "stop", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 response = (this.privateDeleteSmartorders(this.extend(request, paramsOmitted))).join();
@@ -2848,7 +2848,7 @@ public class Poloniex extends PoloniexApi
                 throw new NotSupported((((this.id + " fetchOrder() is not supported for ") + marketType) + " markets yet")) ;
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsMarketType, "trigger", "stop", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             Object response = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(isTrigger, true))
             {

@@ -559,7 +559,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         return BaseExchange.supplyAsync(() -> {
 
             Boolean unsubscribed = (Boolean) this.safeBool(parameters, "unsubscribed", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("unsubscribed")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("unsubscribed")));
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
             String method = "SUBSCRIPTION";
             if (java.util.Objects.equals(unsubscribed, true))

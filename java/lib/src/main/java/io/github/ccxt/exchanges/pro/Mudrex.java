@@ -174,7 +174,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String priceType = this.safeString(parameters, "price");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "price");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "price");
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             if (!java.util.Objects.equals(interval, "1s") && !java.util.Objects.equals(interval, "1m"))
             {

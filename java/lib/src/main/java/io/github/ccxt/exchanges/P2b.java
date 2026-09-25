@@ -1268,7 +1268,7 @@ public class P2b extends P2bApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             if (java.util.Objects.equals(until, null))
             {
                 if (java.util.Objects.equals(since, null))
@@ -1355,7 +1355,7 @@ public class P2b extends P2bApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {

@@ -2520,7 +2520,7 @@ public class Grvt extends GrvtApi
             {
                 clientOrderId = ((String.valueOf(this.nonce()) + "000") + String.valueOf(this.requestId()));
             }
-            Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+            Map<String, Object> paramsOmitted3 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
             String subAccountId = this.getSubAccountId((Map<String, Object>) (paramsOmitted3));
             Boolean isReduceOnly = (Boolean) this.safeBool(paramsOmitted3, "reduceOnly", false);
@@ -2565,7 +2565,7 @@ public class Grvt extends GrvtApi
                     timeInForce = "IMMEDIATE_OR_CANCEL";
                 }
             }
-            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted3, new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly", "timeInForce")));
+            Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted3, new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly", "timeInForce")));
             // Trigger & SL & TP
             List<Object> triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, paramsOmitted2, true);
             String triggerPrice = (String) ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(0);
@@ -3477,7 +3477,7 @@ public class Grvt extends GrvtApi
             {
                 request.put("order_id", id);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId", "client_order_id") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId", "client_order_id") : parameters;
             Map<String, Object> response = (this.privateTradingPostFullV1Order(this.extend(request, paramsOmitted))).join();
             //
             //    {
@@ -3787,7 +3787,7 @@ public class Grvt extends GrvtApi
             {
                 request.put("order_id", id);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
             Map<String, Object> response = (this.privateTradingPostFullV1CancelOrder(this.extend(request, paramsOmitted))).join();
             //
             //    {

@@ -1524,7 +1524,7 @@ public partial class phemex : Exchange
             response = await this.v2GetMdV2Orderbook(this.extend(request, parameters));
         } else
         {
-            if (((limit != null)) && (isLessThanOrEqual(limit, 30)))
+            if (((limit != null)) && ((limit == null || limit <= 30)))
             {
                 response = await this.v1GetMdOrderbook(this.extend(request, parameters));
             } else

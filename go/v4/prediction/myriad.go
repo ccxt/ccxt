@@ -789,7 +789,7 @@ func (this *Myriad) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	// resolve the owner the same way fetchBalance does — derive from the configured privateKey
 	// when no explicit walletAddress/param is set, so a privateKey-only config works for both
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

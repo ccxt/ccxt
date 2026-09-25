@@ -4076,7 +4076,7 @@ public class Htx extends HtxApi
                 put( "period", Htx.this.safeString(Htx.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             String priceType = this.safeString2(paramsPaginate, "priceType", "price");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("priceType", "price")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("priceType", "price")));
             List<Object> untilparamsUntilVariable = (List<Object>) this.handleParamInteger(paramsOmitted, "until", (Long) null);
             Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
@@ -4907,9 +4907,9 @@ public class Htx extends HtxApi
                 Boolean takeProfit = (Boolean) this.safeBool(paramsMarketType, "takeProfit", (Object) null);
                 Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", (Object) null);
                 Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+                Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
                 String clientOrderId = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
-                Object paramsClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id"))) : paramsOmitted;
+                Map<String, Object> paramsClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id"))) : paramsOmitted;
                 if (java.util.Objects.equals(clientOrderId, null))
                 {
                     if (java.util.Objects.equals(isAlgo, true))
@@ -4957,7 +4957,7 @@ public class Htx extends HtxApi
                             throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
                         }
                         request.put("contract_code", this.safeString(market, "id"));
-                        List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", Helpers.toMapArg(paramsClientOrderId), (String) null);
+                        List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", paramsClientOrderId, (String) null);
                         String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
                         Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
                         request.put("margin_mode", (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode);
@@ -5238,7 +5238,7 @@ public class Htx extends HtxApi
             Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit", (Object) null);
             Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start_time", since);
@@ -5624,7 +5624,7 @@ public class Htx extends HtxApi
                 {
                     request.put("size", limit);
                 }
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "account-id");
+                Map<String, Object> paramsOmitted = this.omit(paramsSubType, "account-id");
                 response = (this.spotPrivateGetV1OrderOpenOrders(this.extend(request, paramsOmitted))).join();
             } else
             {
@@ -5648,7 +5648,7 @@ public class Htx extends HtxApi
                 Boolean stopLoss = (Boolean) this.safeBool(paramsSubType, "stopLoss", (Object) null);
                 Boolean takeProfit = (Boolean) this.safeBool(paramsSubType, "takeProfit", (Object) null);
                 Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+                Map<String, Object> paramsOmitted = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
                 if (Boolean.TRUE.equals(isLinear))
                 {
                     if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(trailing, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)))
@@ -7260,7 +7260,7 @@ public class Htx extends HtxApi
             Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "stop", "trigger", (Object) null);
             Boolean stopLossTakeProfit = (Boolean) this.safeBoolN(paramsSubType, new ArrayList<Object>(Arrays.asList("stopLossTakeProfit", "stopLoss", "takeProfit")), (Object) null);
             Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
-            Object query = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+            Map<String, Object> query = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -7466,7 +7466,7 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", (Object) null);
             Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsMarketType, "stopLossTakeProfit", (Object) null);
-            Object query = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trigger")));
+            Map<String, Object> query = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trigger")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -7812,7 +7812,7 @@ public class Htx extends HtxApi
                 Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", (Object) null);
                 Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsMarketType, "stopLossTakeProfit", (Object) null);
                 Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", false);
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
+                Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
                 if (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true))
                 {
                     response = (this.contractPrivatePostV5TradeCancelAllOrders(this.extend(request, paramsOmitted))).join();
@@ -8660,7 +8660,7 @@ public class Htx extends HtxApi
                 request.put("start_time", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_time", until);
@@ -11296,7 +11296,7 @@ public class Htx extends HtxApi
             {
                 request.put("trade_type", tradeType);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trade_type", "tradeType")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trade_type", "tradeType")));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start_time", since);
@@ -11442,7 +11442,7 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contract_code", market.get("id") );
             }};
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("client_order_id", clientOrderId);
@@ -11450,7 +11450,7 @@ public class Htx extends HtxApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("linear"), true))
             {
-                List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("closePosition", Helpers.toMapArg(paramsOmitted), "cross");
+                List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("closePosition", paramsOmitted, "cross");
                 String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
                 Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
                 request.put("margin_mode", marginMode);
@@ -11465,7 +11465,7 @@ public class Htx extends HtxApi
                 }
                 request.put("volume", this.amountToPrecision(symbol, amount));
                 request.put("direction", side);
-                Object paramsVolume = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("volume", "amount")));
+                Map<String, Object> paramsVolume = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("volume", "amount")));
                 if (java.util.Objects.equals(market.get("swap"), true))
                 {
                     response = (this.contractPrivatePostSwapApiV1SwapLightningClosePosition(this.extend(request, paramsVolume))).join();

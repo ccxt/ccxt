@@ -310,7 +310,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Object queries = (List<Object>)(this.parseSearchQueries(parameters));
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             Integer queriesLength = ((List<?>)queries).size();
             Object rawMarkets = new ArrayList<Object>(Arrays.asList());
             if ((queriesLength != null && queriesLength > 0))
@@ -359,7 +359,7 @@ public class Myriad extends MyriadApi
 
             Long limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
             String state = this.safeString(parameters, "state", this.safeString(this.options, "defaultMarketStatus", "open"));
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "state")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "state")));
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)queries).size(); i++)
@@ -413,7 +413,7 @@ public class Myriad extends MyriadApi
             String state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
             // include both AMM and order-book markets so order-book trading methods can resolve their markets
             String tradingModel = this.safeString2(parameters, "tradingModel", "trading_model", this.safeString(this.options, "defaultTradingModel", "all"));
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("state", "status", "limit", "tradingModel", "trading_model")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("state", "status", "limit", "tradingModel", "trading_model")));
             List<Object> allRawMarkets = new ArrayList<Object>(Arrays.asList());
             // track the running count with an explicit counter (avoids inline array .length / .slice,
             // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
@@ -584,7 +584,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Long limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             List<Object> rawQuestions = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)queries).size(); i++)
@@ -630,7 +630,7 @@ public class Myriad extends MyriadApi
             Long limit = this.safeInteger(this.options, "defaultFetchEventsLimit", 50);
             Long maxQuestions = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchEventsLimit", 1000));
             String state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("state", "status", "limit", "tradingModel", "trading_model")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("state", "status", "limit", "tradingModel", "trading_model")));
             List<Object> allRawQuestions = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             Object collected = 0;
@@ -705,7 +705,7 @@ public class Myriad extends MyriadApi
             {
                 throw new ArgumentsRequired((this.id + " fetchPositions() requires a walletAddress or an address parameter")) ;
             }
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("address", "user")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("address", "user")));
             Map<String, Object> response = (this.myriadPublicGetUsersAddressPortfolio(this.extend(Helpers.newMap(
                 "address", address
             ), rest))).join();
@@ -847,7 +847,7 @@ public class Myriad extends MyriadApi
             {
                 request.put("shares", amount);
             }
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("slippage")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("slippage")));
             Map<String, Object> response = (this.myriadPublicPostMarketsQuote(this.extend(request, rest))).join();
             //
             //     {
@@ -1038,7 +1038,7 @@ public class Myriad extends MyriadApi
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String defaultModel = this.safeString(info, "tradingModel", "amm");
             String tradingModel = this.safeStringLower(parameters, "tradingModel", defaultModel);
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("tradingModel")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tradingModel")));
             if (java.util.Objects.equals(tradingModel, "ob"))
             {
                 return (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, rest)).join();
@@ -1340,7 +1340,7 @@ public class Myriad extends MyriadApi
             String tokenAddress = this.safeString2(parameters, "token", "tokenAddress", this.safeString(info, "tokenAddress"));
             String gasLimit = this.safeString(parameters, "gasLimit", "0xaae60");
             String sideStr = sideLower;
-            Map<String, Object> quoteParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated", "quote", "transactionHash", "txHash", "skipAllowance", "skipWaitForReceipt")));
+            Map<String, Object> quoteParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated", "quote", "transactionHash", "txHash", "skipAllowance", "skipWaitForReceipt")));
             Map<String, Object> quote = (Map<String, Object>) this.safeDict(parameters, "quote", (Object) null);
             if (java.util.Objects.equals(quote, null))
             {
@@ -1826,7 +1826,7 @@ public class Myriad extends MyriadApi
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trader", "address", "status")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trader", "address", "status")));
             Map<String, Object> response = (this.myriadPublicGetUsersAddressEvents(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -1907,7 +1907,7 @@ public class Myriad extends MyriadApi
             }
             Object fetched = this.getOrderResponseFromParams((String) (id), parameters);
             String networkIdParam = this.safeString2(parameters, "networkId", "network_id");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderResponse", "orderResponses", "rawOrder", "networkId", "network_id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderResponse", "orderResponses", "rawOrder", "networkId", "network_id")));
             if (java.util.Objects.equals(fetched, null))
             {
                 fetched = (this.myriadPublicGetOrdersHash(this.extend(new HashMap<String, Object>() {{
@@ -2048,7 +2048,7 @@ public class Myriad extends MyriadApi
             }
             Map<String, Object> paramsForLookup = parameters;
             String networkIdParam = this.safeString2(parameters, "networkId", "network_id");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderResponse", "orderResponses", "rawOrder", "networkId", "network_id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderResponse", "orderResponses", "rawOrder", "networkId", "network_id")));
             Integer idsLength = ((List<?>)ids).size();
             List<Object> signedOrders = new ArrayList<Object>(Arrays.asList());
             List<Object> wrappers = new ArrayList<Object>(Arrays.asList());
@@ -2199,7 +2199,7 @@ public class Myriad extends MyriadApi
                 }
             }
             String requestedTradingModel = this.safeStringLower2(parameters, "tradingModel", "trading_model");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("tradingModel", "trading_model")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tradingModel", "trading_model")));
             Map<String, Object> outcomeObj = null;
             String outcomeSymbol = null;
             if (!java.util.Objects.equals(outcome, null))

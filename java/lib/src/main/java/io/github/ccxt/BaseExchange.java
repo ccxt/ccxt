@@ -905,8 +905,17 @@ public class BaseExchange {
         return io.github.ccxt.base.Functions.omit(a, key);
     }
 
+    // a Map source always yields a fresh Map (or null); List/Object sources keep the Object overloads
     public java.util.Map<String, Object> omit(java.util.Map<String, Object> a, String key) {
-        return (java.util.Map<String, Object>) io.github.ccxt.base.Functions.omit(a, key);
+        return io.github.ccxt.base.Functions.omitMap(a, java.util.Collections.singletonList(key));
+    }
+
+    public java.util.Map<String, Object> omit(java.util.Map<String, Object> a, Object keys) {
+        return io.github.ccxt.base.Functions.omitMap(a, keys);
+    }
+
+    public java.util.Map<String, Object> omit(java.util.Map<String, Object> a, Object... keys) {
+        return io.github.ccxt.base.Functions.omitMap(a, java.util.Arrays.asList(keys));
     }
 
     public java.util.Map<String, Object> omitN(Object a, java.util.List<Object> keys) {
@@ -4886,7 +4895,7 @@ public Object describe()
             {
                 Helpers.addElementToObject(this.urls, "api", this.clone(this.urls.get("apiBackup")));
             }
-            Map<String, Object> newUrls = (Map<String, Object>) this.omit(this.urls, "apiBackup");
+            Map<String, Object> newUrls = this.omit(this.urls, "apiBackup");
             this.urls = newUrls;
             // set flag
             this.isSandboxModeEnabled = false;
@@ -4912,7 +4921,7 @@ public Object describe()
         } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
         {
             Helpers.addElementToObject(this.urls, "api", ((Object)this.urls.get("apiBackupDemoTrading")));
-            Map<String, Object> newUrls = (Map<String, Object>) this.omit(this.urls, "apiBackupDemoTrading");
+            Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
@@ -9617,7 +9626,7 @@ public Object describe()
         {
             Helpers.addElementToObject(Helpers.GetValue(parameters, "stopLoss"), "amount", this.parseToNumeric(stopLossAmount));
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount")));
         return paramsOmitted;
     }
 
@@ -9865,7 +9874,7 @@ public Object describe()
             } else if (!java.util.Objects.equals(this.has.get("fetchDepositAddressesByNetwork"), null) && !java.util.Objects.equals(this.has.get("fetchDepositAddressesByNetwork"), false))
             {
                 String network = this.safeString(parameters, "network");
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
+                Map<String, Object> paramsOmitted = this.omit(parameters, "network");
                 Object addressStructures = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
                 if (!java.util.Objects.equals(network, null))
                 {
@@ -11430,7 +11439,7 @@ public Object describe()
             // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
             // pagination always walks forward internally, so strip it here to avoid leaking an
             // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMaxEntriesPerRequest, "paginationDirection");
+            Map<String, Object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "paginationDirection");
             Long current = this.milliseconds();
             List<Object> tasks = new ArrayList<Object>(Arrays.asList());
             Long time = (((long) this.parseTimeframe(timeframe)) * 1000L);
@@ -11516,7 +11525,7 @@ public Object describe()
             Object errors = 0;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             String timeframe = this.safeString(paramsMaxEntriesPerRequest, "timeframe");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMaxEntriesPerRequest, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
+            Map<String, Object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
             while (Helpers.isLessThan(i, maxCallsPaginationCalls))
             {
                 try
@@ -11777,7 +11786,7 @@ public Object describe()
         {
             request.put((String)key, this.parseToInt(Helpers.multiply(until, java.util.Objects.requireNonNullElse(multiplier, 1))));
         }
-        Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))) : parameters;
+        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))) : parameters;
         return new ArrayList<Object>(Arrays.asList(request, paramsOmitted));
     }
 

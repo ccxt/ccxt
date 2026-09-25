@@ -221,7 +221,7 @@ func (this *Coinbase) SubscribeMultipleAsync(name string, isPrivate any, optiona
 func (this *Coinbase) subscribeMultipleBody(ch chan any, name string, isPrivate any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -273,7 +273,7 @@ func (this *Coinbase) UnSubscribeMultipleAsync(topic string, name string, isPriv
 func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic string, name string, isPrivate any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

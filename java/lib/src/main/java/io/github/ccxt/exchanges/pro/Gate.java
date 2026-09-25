@@ -294,7 +294,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             var channelOption = ((List<Object>) channelOptionparamsChannelVariable).get(0);
             Map<String, Object> paramsChannel = (Map<String, Object>) ((List<Object>) channelOptionparamsChannelVariable).get(1);
             Object url = this.getUrlByMarket(market);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsChannel, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(paramsChannel, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
@@ -338,7 +338,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 market = this.market(symbol);
             }
             Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);

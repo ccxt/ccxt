@@ -937,7 +937,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             this.checkContractMarket((Map<String, Object>) (market), "watchOrderBook");
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("orderbook:" + market.get("symbol"));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "aggregation");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "aggregation");
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );

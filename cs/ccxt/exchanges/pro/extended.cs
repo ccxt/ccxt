@@ -804,7 +804,7 @@ public partial class extended : ccxt.extended
         }
         Int64? previousNonce = this.safeInteger(subscription, "nonce");
         Int64? nonce = this.safeInteger(message, "seq");
-        if (((previousNonce != null)) && ((nonce != null)) && (isLessThanOrEqual(nonce, previousNonce)))
+        if (((previousNonce != null)) && ((nonce != null)) && ((nonce == null || nonce <= previousNonce)))
         {
             return;
         }
@@ -926,7 +926,7 @@ public partial class extended : ccxt.extended
         }
         Int64? previousNonce = this.safeInteger(subscription, "nonce");
         Int64? nonce = this.safeInteger(message, "seq");
-        if (((previousNonce != null)) && ((nonce != null)) && (isLessThanOrEqual(nonce, previousNonce)))
+        if (((previousNonce != null)) && ((nonce != null)) && ((nonce == null || nonce <= previousNonce)))
         {
             return;
         }

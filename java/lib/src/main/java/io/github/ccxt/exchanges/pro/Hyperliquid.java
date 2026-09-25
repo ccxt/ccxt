@@ -522,7 +522,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                     defaultDex = dexName;
                 }
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(defaultDex, null)))) ? this.omit(parameters, "dex") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(defaultDex, null)))) ? this.omit(parameters, "dex") : parameters;
             if (!java.util.Objects.equals(defaultDex, null))
             {
                 messageHash = ("tickers:" + defaultDex);

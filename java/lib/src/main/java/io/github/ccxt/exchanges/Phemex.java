@@ -1737,7 +1737,7 @@ public class Phemex extends PhemexApi
                 put( "resolution", Phemex.this.safeString(Phemex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             Long until = this.safeInteger2(parameters, "until", "to");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             Boolean isStableSettled = (java.util.Objects.equals(market.get("settle"), "USDT")) || (java.util.Objects.equals(market.get("settle"), "USDC"));
             Boolean usesSpecialFromToEndpoint = (((java.util.Objects.equals(market.get("linear"), true)) || Boolean.TRUE.equals(isStableSettled))) && ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)));
             Integer maxLimit = 1000;
@@ -2022,7 +2022,7 @@ public class Phemex extends PhemexApi
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            Map<String, Object> query = (Map<String, Object>) this.omit(paramsSubType, "type");
+            Map<String, Object> query = this.omit(paramsSubType, "type");
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
@@ -2550,7 +2550,7 @@ public class Phemex extends PhemexApi
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             String code = this.safeString(paramsMarketType, "code");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("code")));
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("code")));
             Map<String, Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if ((!java.util.Objects.equals(type, "spot")) && (!java.util.Objects.equals(type, "swap")))
@@ -3153,7 +3153,7 @@ public class Phemex extends PhemexApi
             {
                 request.put("clOrdID", clientOrderId);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId"))) : parameters;
             String triggerPrice = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("stopPx", "stopPrice", "triggerPrice")));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
@@ -3494,7 +3494,7 @@ public class Phemex extends PhemexApi
                 put( "symbol", market.get("id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdID")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdID")));
             Boolean isStableSettled = (java.util.Objects.equals(market.get("settle"), "USDT")) || (java.util.Objects.equals(market.get("settle"), "USDC"));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -3515,7 +3515,7 @@ public class Phemex extends PhemexApi
             }
             // Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at this moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
             String finalQty = this.safeString(paramsOmitted, "baseQtyEv");
-            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("baseQtyEv")));
+            Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("baseQtyEv")));
             if (!java.util.Objects.equals(finalQty, null))
             {
                 request.put("baseQtyEV", finalQty);
@@ -3540,7 +3540,7 @@ public class Phemex extends PhemexApi
                     request.put("stopPxEp", this.toEp(triggerPrice, market));
                 }
             }
-            Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
+            Map<String, Object> paramsOmitted3 = this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isStableSettled))
             {
@@ -3592,7 +3592,7 @@ public class Phemex extends PhemexApi
                 put( "symbol", market.get("id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdID")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdID")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("clOrdID", clientOrderId);
@@ -3646,7 +3646,7 @@ public class Phemex extends PhemexApi
             }
             Map<String, Object> market = this.market(symbol);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -3700,7 +3700,7 @@ public class Phemex extends PhemexApi
                 put( "symbol", market.get("id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdID")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdID")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("clOrdID", clientOrderId);
@@ -4191,7 +4191,7 @@ public class Phemex extends PhemexApi
             String defaultNetwork = this.safeStringUpper(defaultNetworks, code);
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper2(parameters, "network", "chainName", defaultNetwork);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             network = this.safeString(networks, network, network);
             if (java.util.Objects.equals(network, null))
             {
@@ -4502,7 +4502,7 @@ public class Phemex extends PhemexApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Object code = this.safeString2(parameters, "currency", "code", "USDT");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
             Object paramsSettle = paramsOmitted;
             String settle = null;
             Map<String, Object> market = null;
@@ -6394,7 +6394,7 @@ public class Phemex extends PhemexApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
             Object code = this.safeString2(parameters, "currency", "code", "USDT");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
             Object paramsSettle = paramsOmitted;
             String settle = null;
             Map<String, Object> market = null;

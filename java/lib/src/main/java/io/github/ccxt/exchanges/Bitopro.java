@@ -1347,8 +1347,8 @@ public class Bitopro extends BitoproApi
                     request.put("condition", condition);
                 }
             }
-            Object paramsOmitted = (((java.util.Objects.equals(orderType, "STOP_LIMIT")))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice"))) : parameters;
-            Boolean postOnly = this.isPostOnly(java.util.Objects.equals(orderType, "MARKET"), null, Helpers.toMapArg(paramsOmitted));
+            Map<String, Object> paramsOmitted = (((java.util.Objects.equals(orderType, "STOP_LIMIT")))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice"))) : parameters;
+            Boolean postOnly = this.isPostOnly(java.util.Objects.equals(orderType, "MARKET"), null, paramsOmitted);
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("timeInForce", "POST_ONLY");

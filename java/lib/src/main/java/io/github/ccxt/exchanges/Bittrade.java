@@ -2042,7 +2042,7 @@ public class Bittrade extends BittradeApi
             {
                 request.put("client-order-id", clientOrderId);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client-order-id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client-order-id")));
             Object paramsOrder = paramsOmitted;
             if ((java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy")))
             {
@@ -2169,7 +2169,7 @@ public class Bittrade extends BittradeApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object clientOrderIds = this.safeValue2(parameters, "clientOrderIds", "client-order-ids");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "client-order-ids")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "client-order-ids")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(clientOrderIds, null))
             {
@@ -2604,7 +2604,7 @@ public class Bittrade extends BittradeApi
                     request.put("chain", (network + currency.get("id")));
                 }
             }
-            Object paramsNetwork = (((!java.util.Objects.equals(network, null)))) ? this.omit(paramsWithdrawTag, "network") : paramsWithdrawTag;
+            Map<String, Object> paramsNetwork = (((!java.util.Objects.equals(network, null)))) ? this.omit(paramsWithdrawTag, "network") : paramsWithdrawTag;
             Map<String, Object> response = (this.privatePostDwWithdrawApiCreate(this.extend(request, paramsNetwork))).join();
             //
             //     {

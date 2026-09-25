@@ -5943,7 +5943,7 @@ public partial class coinbase : Exchange
         {
             throw new ExchangeError ((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
+        return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)

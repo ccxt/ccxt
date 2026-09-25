@@ -203,7 +203,7 @@ func (this *Coinbaseexchange) WatchTickersAsync(optionalArgs ...any) <-chan any 
 func (this *Coinbaseexchange) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -214,7 +214,7 @@ func (this *Coinbaseexchange) watchTickersBody(ch chan any, optionalArgs ...any)
 	if symbols == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() symbols is required"))
 	}
-	var symbolsLength int = ccxt.GetArrayLength(symbols)
+	var symbolsLength int = len(symbols)
 	if symbolsLength == 0 {
 		panic(ccxt.BadSymbol(this.Id + " watchTickers requires a non-empty symbols array"))
 	}

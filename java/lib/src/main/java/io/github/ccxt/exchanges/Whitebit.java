@@ -1870,7 +1870,7 @@ public class Whitebit extends WhitebitApi
             // Extract control parameters from params
             Boolean checkActive = (Boolean) this.safeBool(parameters, "checkActive", true);
             Boolean checkExecuted = (Boolean) this.safeBool(parameters, "checkExecuted", true);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("checkActive", "checkExecuted")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("checkActive", "checkExecuted")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
@@ -2581,7 +2581,7 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("clientOrderId", clientOrderId);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsCost, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : paramsCost;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsCost, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : paramsCost;
             String marketType = this.safeString(market, "type");
             Boolean isLimitOrder = java.util.Objects.equals(type, "limit");
             Boolean isMarketOrder = java.util.Objects.equals(type, "market");
@@ -2592,7 +2592,7 @@ public class Whitebit extends WhitebitApi
             {
                 throw new NotSupported((((this.id + " createOrder() does not support timeInForce ") + timeInForce) + ", only GTC, IOC and PO are allowed")) ;
             }
-            Boolean postOnly = this.isPostOnly(isMarketOrder, false, Helpers.toMapArg(paramsOmitted));
+            Boolean postOnly = this.isPostOnly(isMarketOrder, false, paramsOmitted);
             Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC"));
             if (Boolean.TRUE.equals(isStopOrder) && (Boolean.TRUE.equals(postOnly) || Boolean.TRUE.equals(ioc)))
             {
@@ -2602,7 +2602,7 @@ public class Whitebit extends WhitebitApi
             {
                 throw new NotSupported((this.id + " createOrder() timeInForce IOC is only supported for limit orders")) ;
             }
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsOmitted), (String) null);
+            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", paramsOmitted, (String) null);
             String marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
             if (Boolean.TRUE.equals(postOnly))
@@ -2617,7 +2617,7 @@ public class Whitebit extends WhitebitApi
             {
                 throw new NotSupported((this.id + " createOrder() is only available for cross margin")) ;
             }
-            Map<String, Object> orderParams = (Map<String, Object>) this.omit(query, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice", "timeInForce")));
+            Map<String, Object> orderParams = this.omit(query, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice", "timeInForce")));
             Boolean useCollateralEndpoint = !java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "swap");
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isStopOrder))
@@ -2751,7 +2751,7 @@ public class Whitebit extends WhitebitApi
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total")));
             Map<String, Object> response = (this.v4PrivatePostOrderModify(this.extend(request, paramsOmitted))).join();
             return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
@@ -2937,7 +2937,7 @@ public class Whitebit extends WhitebitApi
                 throw new ArgumentsRequired((this.id + " cancelAllOrdersAfter() requires a symbol argument in params")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "symbol");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "symbol");
             if (java.util.Objects.equals(timeout, null))
             {
                 throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
@@ -3029,7 +3029,7 @@ public class Whitebit extends WhitebitApi
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchBalance", new HashMap<String, Object>() {{}});
                 String defaultAccount = this.safeString(options, "account");
                 String account = this.safeString2(paramsMarketType, "account", "type", defaultAccount);
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("account", "type")));
+                Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("account", "type")));
                 if (java.util.Objects.equals(account, "main") || java.util.Objects.equals(account, "funding"))
                 {
                     response = (this.v4PrivatePostMainAccountBalance(paramsOmitted)).join();

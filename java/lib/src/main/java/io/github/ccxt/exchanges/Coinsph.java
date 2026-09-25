@@ -1350,7 +1350,7 @@ public class Coinsph extends CoinsphApi
                 request.put("startTime", Helpers.subtract(until, (Helpers.multiply(duration, (Helpers.subtract(limitResolved, 1))))));
             }
             request.put("limit", limitResolved);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             List<Object> response = (this.publicGetOpenapiQuoteV1Klines(this.extend(request, paramsOmitted))).join();
             //
             //     [
@@ -1693,10 +1693,10 @@ public class Coinsph extends CoinsphApi
             }
             Map<String, Object> market = this.market(symbol);
             Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "test");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "test");
             String orderType = this.safeString(paramsOmitted, "type", type);
             orderType = this.encodeOrderType(orderType);
-            Map<String, Object> paramsType = (Map<String, Object>) this.omit(paramsOmitted, "type");
+            Map<String, Object> paramsType = this.omit(paramsOmitted, "type");
             Object paramsQuote = null;
             String orderSide = this.encodeOrderSide((String) (side));
             Map<String, Object> request = Helpers.newMap(
@@ -1836,7 +1836,7 @@ public class Coinsph extends CoinsphApi
             {
                 request.put("orderId", id);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId")));
             Map<String, Object> response = (this.privateGetOpenapiV1Order(this.extend(request, paramsOmitted))).join();
             return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
@@ -1947,7 +1947,7 @@ public class Coinsph extends CoinsphApi
             {
                 request.put("orderId", id);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "origClientOrderId")));
             Map<String, Object> response = (this.privateDeleteOpenapiV1Order(this.extend(request, paramsOmitted))).join();
             return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
@@ -2339,7 +2339,7 @@ public class Coinsph extends CoinsphApi
             {
                 request.put("withdrawOrderId", tag);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             Map<String, Object> response = (this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, paramsOmitted))).join();
             return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
@@ -2638,7 +2638,7 @@ public class Coinsph extends CoinsphApi
                 "coin", currency.get("id"),
                 "network", networkId
             );
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             Map<String, Object> response = (this.privateGetOpenapiWalletV1DepositAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {

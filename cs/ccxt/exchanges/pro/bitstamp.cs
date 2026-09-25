@@ -191,7 +191,7 @@ public partial class bitstamp : ccxt.bitstamp
             }
             (storedOrderBook as ccxt.pro.OrderBook).cache.Add(delta);
             return;
-        } else if (isGreaterThanOrEqual(nonce, deltaNonce))
+        } else if ((deltaNonce == null || nonce >= deltaNonce))
         {
             return;
         }
@@ -232,7 +232,7 @@ public partial class bitstamp : ccxt.bitstamp
             return -1;
         }
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        if (((nonce == null)) || (isLessThan(nonce, firstElementNonce)))
+        if (((nonce == null)) || ((firstElementNonce != null && (nonce == null || nonce < firstElementNonce))))
         {
             return -1;
         }
@@ -1098,7 +1098,7 @@ public partial class bitstamp : ccxt.bitstamp
         this.checkRequiredCredentials();
         Int64 time = this.milliseconds();
         Int64? expiresIn = this.safeInteger(this.options, "expiresIn");
-        if (((expiresIn == null)) || (isGreaterThan(time, expiresIn)))
+        if (((expiresIn == null)) || (((expiresIn == null || time > expiresIn))))
         {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: the websocket token is

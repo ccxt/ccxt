@@ -755,7 +755,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             Map<String, Object> market = this.market(symbol);
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String type = this.safeString(parameters, "type", "l2");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             String messageHash = ((("orderbook:" + symbol) + ":") + type);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );

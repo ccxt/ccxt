@@ -2406,7 +2406,7 @@ public class Bitteam extends BitteamApi
             put( "datetime", null );
         }};
         Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        Map<String, Object> balanceByCurrencies = (Map<String, Object>) this.omit(result, new ArrayList<Object>(Arrays.asList("free", "used", "total")));
+        Map<String, Object> balanceByCurrencies = this.omit(result, new ArrayList<Object>(Arrays.asList("free", "used", "total")));
         List<String> rawCurrencyIds = new ArrayList<String>(balanceByCurrencies.keySet());
         for (var i = 0; i < ((List<?>)rawCurrencyIds).size(); i++)
         {

@@ -1285,7 +1285,7 @@ public class Hitbtc extends HitbtcApi
         return BaseExchange.supplyAsync(() -> {
 
             String type = this.safeStringLower(parameters, "type", "spot");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("type")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("type")));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String account = (((java.util.Objects.equals(type, null)))) ? null : this.safeString(accountsByType, type, type);
             Map<String, Object> response = null;
@@ -2179,7 +2179,7 @@ public class Hitbtc extends HitbtcApi
                 ((Map<String, Object>)requestUntil).put("limit", Math.min(limit, 1000));
             }
             String price = this.safeString(paramsUntil, "price");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUntil, "price");
+            Map<String, Object> paramsOmitted = this.omit(paramsUntil, "price");
             List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(price, "mark"))
             {
@@ -2957,7 +2957,7 @@ public class Hitbtc extends HitbtcApi
         {
             throw new ExchangeError((this.id + " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")) ;
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly")));
         if (java.util.Objects.equals(marketType, "swap"))
         {
             // set default margin mode to cross

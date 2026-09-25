@@ -1623,7 +1623,7 @@ public class Upbit extends UpbitApi
             {
                 throw new InvalidOrder((this.id + " createOrder() supports only limit or market types in the type argument.")) ;
             }
-            Object paramsOrdType = (((java.util.Objects.equals(customType, "best")))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("ordType", "ord_type"))) : parameters;
+            Map<String, Object> paramsOrdType = (((java.util.Objects.equals(customType, "best")))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("ordType", "ord_type"))) : parameters;
             if (java.util.Objects.equals(customType, "best"))
             {
                 request.put("ord_type", "best");
@@ -1664,7 +1664,7 @@ public class Upbit extends UpbitApi
                 throw new ArgumentsRequired((this.id + " createOrder() requires a timeInForce parameter for best type orders")) ;
             }
             Map<String, Object> response = null;
-            Object paramsRequest = this.omit(paramsOrdType, new ArrayList<Object>(Arrays.asList("timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test")));
+            Map<String, Object> paramsRequest = this.omit(paramsOrdType, new ArrayList<Object>(Arrays.asList("timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test")));
             if (java.util.Objects.equals(test, true))
             {
                 response = (this.privatePostOrdersTest(this.extend(request, paramsRequest))).join();
@@ -1786,7 +1786,7 @@ public class Upbit extends UpbitApi
             {
                 throw new ExchangeError((this.id + " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "clientOrderId");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "clientOrderId");
             if (!java.util.Objects.equals(id, null))
             {
                 request.put("prev_order_uuid", id);
@@ -1826,7 +1826,7 @@ public class Upbit extends UpbitApi
             {
                 throw new InvalidOrder((this.id + " editOrder() supports only limit or market types in the type argument.")) ;
             }
-            Object paramsOrdType = (((java.util.Objects.equals(customType, "best")))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("newOrdType", "new_ord_type"))) : paramsOmitted;
+            Map<String, Object> paramsOrdType = (((java.util.Objects.equals(customType, "best")))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("newOrdType", "new_ord_type"))) : paramsOmitted;
             if (java.util.Objects.equals(customType, "best"))
             {
                 request.put("new_ord_type", "best");
@@ -1870,7 +1870,7 @@ public class Upbit extends UpbitApi
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires a timeInForce parameter for best type orders")) ;
             }
-            Object paramsRequest = this.omit(paramsOrdType, new ArrayList<Object>(Arrays.asList("newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type")));
+            Map<String, Object> paramsRequest = this.omit(paramsOrdType, new ArrayList<Object>(Arrays.asList("newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type")));
             // console.log ('check the each request paramsOmitted: ', request);
             Map<String, Object> response = (this.privatePostOrdersCancelAndNew(this.extend(request, paramsRequest))).join();
             //   {
@@ -2857,7 +2857,7 @@ public class Upbit extends UpbitApi
                 {
                     throw new ArgumentsRequired((this.id + " withdraw() requires a network argument")) ;
                 }
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsTag, new ArrayList<Object>(Arrays.asList("network")));
+                Map<String, Object> paramsOmitted = this.omit(paramsTag, new ArrayList<Object>(Arrays.asList("network")));
                 request.put("net_type", network);
                 request.put("currency", currency.get("id"));
                 request.put("address", address);

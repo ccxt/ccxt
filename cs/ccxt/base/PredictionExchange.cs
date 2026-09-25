@@ -1529,7 +1529,7 @@ public partial class PredictionExchange : BaseExchange
                     if ((lastTradeTimestamp == null))
                     {
                         lastTradeTimestamp = tradeTimestamp;
-                    } else if (isGreaterThan(tradeTimestamp, lastTradeTimestamp))
+                    } else if ((tradeTimestamp != null && (lastTradeTimestamp == null || tradeTimestamp > lastTradeTimestamp)))
                     {
                         lastTradeTimestamp = tradeTimestamp;
                     }
@@ -1977,7 +1977,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return ((string?)((object)(hex)));
         }
-        if (isLessThan(byteLength, 56))
+        if (((byteLength == null || byteLength < 56)))
         {
             return (this.intToBase16(add(128, byteLength)) + hex);
         }
@@ -1995,7 +1995,7 @@ public partial class PredictionExchange : BaseExchange
             concatenated = add(concatenated, getValue(items, i));
         }
         Int64? byteLength = this.parseToInt(((double)((string)concatenated).Length / 2));
-        if (isLessThan(byteLength, 56))
+        if (((byteLength == null || byteLength < 56)))
         {
             return (this.intToBase16(add(192, byteLength)) + (concatenated));
         }

@@ -1860,7 +1860,7 @@ public partial class paradex : Exchange
             {
                 throw new ExchangeError ((this.id + " authenticateRest() missing cachedExpires")) ;
             }
-            if (isLessThan(now, cachedExpires))
+            if ((now < cachedExpires))
             {
                 return ((string?)((object)(cachedToken)));
             }

@@ -6723,7 +6723,7 @@ func (this *BaseExchange) FilterByCurrencySinceLimit(array any, optionalArgs ...
 	return this.FilterByValueSinceLimit(array, "currency", code, since, limit, "timestamp", tail)
 }
 func (this *BaseExchange) FilterBySymbolsSinceLimit(array any, optionalArgs ...any) any {
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -6832,7 +6832,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
 	return this.FilterByArray(results, "symbol", symbolsNormalized)
 }
 func (this *BaseExchange) ParseDepositAddresses(addresses any, optionalArgs ...any) any {
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var indexed bool = GetArgBool(optionalArgs, 1, true)
 	_ = indexed
@@ -6927,7 +6927,7 @@ func (this *BaseExchange) ParseFundingRate(contract any, optionalArgs ...any) an
 	panic(NotSupported(this.Id + " parseFundingRate() is not supported yet"))
 }
 func (this *BaseExchange) ParseFundingRates(response any, optionalArgs ...any) any {
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var fundingRates map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(response); i++ {
@@ -7184,7 +7184,7 @@ func (this *BaseExchange) ParseOpenInterest(interest any, optionalArgs ...any) a
 	panic(NotSupported(this.Id + " parseOpenInterest () is not supported yet"))
 }
 func (this *BaseExchange) ParseOpenInterests(response any, optionalArgs ...any) any {
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(response); i++ {

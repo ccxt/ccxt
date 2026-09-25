@@ -5954,7 +5954,7 @@ public partial class gate : Exchange
                         triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     }
                     Int64? priceType = this.safeInteger(query, "price_type", 0);
-                    if (isLessThan(priceType, 0) || (priceType > 2))
+                    if (((priceType == null || priceType < 0)) || (priceType > 2))
                     {
                         throw new BadRequest ((this.id + " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")) ;
                     }
@@ -8586,7 +8586,7 @@ public partial class gate : Exchange
         {
             throw new ExchangeError ((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
+        return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)

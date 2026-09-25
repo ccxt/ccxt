@@ -944,7 +944,7 @@ public partial class btse : Exchange
                 // if so, just omit until for correct paginated calls for not to get an error from the exchange
                 int duration = this.parseTimeframe(timeframeVar);
                 Int64 maxDelta = multiply(multiply(duration, maxLimit), 1000); // parseTimeframe returns seconds, the difference below is in milliseconds
-                object difference = subtract(until, since);
+                object difference = (until - since);
                 if (isLessThan(difference, maxDelta))
                 {
                     request["end"] = this.parseToInt(((double?)until / 1000));
@@ -1074,7 +1074,7 @@ public partial class btse : Exchange
             period = "7D";
             if ((since != null))
             {
-                object age = subtract(this.milliseconds(), since);
+                object age = (this.milliseconds() - since);
                 int day = 86400000;
                 if (isGreaterThan(age, multiply(14, day)))
                 {
@@ -1118,7 +1118,7 @@ public partial class btse : Exchange
         {
             object rate = getValue(rates, i);
             Int64? timestamp = this.safeInteger(rate, "timestamp");
-            if (((timestamp == null)) || (isLessThanOrEqual(timestamp, until)))
+            if (((timestamp == null)) || ((timestamp == null || timestamp <= until)))
             {
                 result.Add(rate);
             }
@@ -1778,7 +1778,7 @@ public partial class btse : Exchange
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)trades[i]);
             Int64? timestamp = this.safeInteger(trade, "timestamp");
-            if (((timestamp == null)) || (isLessThanOrEqual(timestamp, until)))
+            if (((timestamp == null)) || ((timestamp == null || timestamp <= until)))
             {
                 result.Add(trade);
             }

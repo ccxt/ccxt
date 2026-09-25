@@ -2886,7 +2886,7 @@ public class Gate extends GateApi
          */
         String defaultMarginMode = this.safeStringLower2(this.options, "defaultMarginMode", "marginMode", "spot"); // 'margin' is isolated margin on gate's api
         String marginMode = this.safeStringLower2(parameters, "marginMode", "account", defaultMarginMode);
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "account")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "account")));
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             marginMode = "cross_margin";
@@ -4289,7 +4289,7 @@ public class Gate extends GateApi
             }
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
             String symbol = this.safeString(parameters, "symbol");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "symbol");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "symbol");
             List<Object> isUnifiedAccountparamsUnifiedAccountVariable = (List<Object>) this.handleOptionBoolAndParams(paramsOmitted, "fetchBalance", "unifiedAccount", false);
             Boolean isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(0);
             Map<String, Object> paramsUnifiedAccount = (Map<String, Object>) ((List<Object>) isUnifiedAccountparamsUnifiedAccountVariable).get(1);
@@ -5058,7 +5058,7 @@ public class Gate extends GateApi
             Object query = null;
             Map<String, Object> market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
             Long until = this.safeInteger(paramsPaginate, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, paramsOmitted, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
@@ -6778,7 +6778,7 @@ public class Gate extends GateApi
     {
         Map<String, Object> market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
         Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("trigger", "is_stop_order", "stop")), false);
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
         String clientOrderId = this.safeString2(paramsOmitted, "text", "clientOrderId");
         Object orderId = id;
         if (!java.util.Objects.equals(clientOrderId, null))
@@ -6789,8 +6789,8 @@ public class Gate extends GateApi
             }
             orderId = clientOrderId;
         }
-        Object paramsOrder = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("text", "clientOrderId"))) : paramsOmitted;
-        List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, Helpers.toMapArg(paramsOrder), (Object) null);
+        Map<String, Object> paramsOrder = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("text", "clientOrderId"))) : paramsOmitted;
+        List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, paramsOrder, (Object) null);
         String type = (String) ((List<Object>) typequeryVariable).get(0);
         var query = ((List<Object>) typequeryVariable).get(1);
         Boolean contract = (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")) || (java.util.Objects.equals(type, "option"));
@@ -7292,7 +7292,7 @@ public class Gate extends GateApi
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
             Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
@@ -7573,7 +7573,7 @@ public class Gate extends GateApi
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
@@ -10248,7 +10248,7 @@ public class Gate extends GateApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             Boolean isUnified = (Boolean) this.safeBool(parameters, "unified", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "unified");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "unified");
             if (java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true))
             {
                 request.put("currency_pair", this.safeString(market, "id"));
@@ -10293,7 +10293,7 @@ public class Gate extends GateApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> response = null;
             Boolean isUnified = (Boolean) this.safeBool(parameters, "unified", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "unified");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "unified");
             String marketIdRequest = "id";
             if (java.util.Objects.equals(isUnified, true))
             {
@@ -10567,7 +10567,7 @@ public class Gate extends GateApi
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Long until = this.safeInteger(paramsMarketType, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, "until");
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, "until");
             var requestparamsValueVariable = this.prepareRequest(market, marketType, paramsOmitted);
             var request = ((List<Object>) requestparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
