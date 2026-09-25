@@ -2241,7 +2241,7 @@ public partial class kalshi : PredictionExchange
         object remaining = this.safeNumber(order, "remaining_count_fp");
         if ((isEqual(remaining, null)) && (!isEqual(amount, null)) && (!isEqual(filled, null)))
         {
-            remaining = subtract(amount, filled);
+            remaining = (amount - filled);
         }
         Int64? ts = this.parse8601(this.safeString(order, "created_time"));
         return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
@@ -2385,7 +2385,7 @@ public partial class kalshi : PredictionExchange
             ((IDictionary<string,object>)order)["filled"] = filledCount;
         } else if ((!isEqual(remainingCount, null)) && (!isEqual(amount, null)))
         {
-            ((IDictionary<string,object>)order)["filled"] = subtract(amount, remainingCount);
+            ((IDictionary<string,object>)order)["filled"] = (amount - remainingCount);
         }
         if (!isEqual(remainingCount, null))
         {

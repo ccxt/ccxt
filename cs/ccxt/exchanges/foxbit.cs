@@ -2239,7 +2239,7 @@ public partial class foxbit : Exchange
             { "type", type },
             { "currency", currencySymbol },
             { "amount", realAmount },
-            { "before", subtract(balance, amount) },
+            { "before", (balance - amount) },
             { "after", balance },
             { "status", "ok" },
             { "fee", fee },

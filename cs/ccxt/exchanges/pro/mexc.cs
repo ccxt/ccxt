@@ -849,7 +849,7 @@ public partial class mexc : ccxt.mexc
         {
             return -1;
         }
-        if (isLessThan(nonce, subtract(firstDeltaNonce, 1)))
+        if (isLessThan(nonce, (firstDeltaNonce - 1)))
         {
             return -1;
         }

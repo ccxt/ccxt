@@ -2800,7 +2800,7 @@ public partial class woo : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["after"] = subtract(since, 1); // #27793
+            ((IDictionary<string,object>)request)["after"] = (since - 1); // #27793
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");

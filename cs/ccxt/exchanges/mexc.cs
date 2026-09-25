@@ -3303,7 +3303,7 @@ public partial class mexc : Exchange
                     ((IDictionary<string,object>)request)["end_time"] = this.sum(since, (this.options.ContainsKey("maxTimeTillEnd") ? this.options["maxTimeTillEnd"] : null));
                 } else
                 {
-                    if (isGreaterThan((subtract(end, since)), (this.options.ContainsKey("maxTimeTillEnd") ? this.options["maxTimeTillEnd"] : null)))
+                    if (isGreaterThan(((end - since)), (this.options.ContainsKey("maxTimeTillEnd") ? this.options["maxTimeTillEnd"] : null)))
                     {
                         throw new BadRequest ((string)(this.id + " end is invalid, i.e. exceeds allowed 90 days.")) ;
                     } else

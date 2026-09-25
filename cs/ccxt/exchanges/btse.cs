@@ -1069,7 +1069,7 @@ public partial class btse : Exchange
             period = "7D";
             if ((since != null))
             {
-                object age = subtract(this.milliseconds(), since);
+                object age = (this.milliseconds() - since);
                 int day = 86400000;
                 if (isGreaterThan(age, multiply(14, day)))
                 {

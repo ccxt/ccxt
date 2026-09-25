@@ -1081,7 +1081,7 @@ public partial class backpack : ccxt.backpack
         {
             return -1;
         }
-        if (isLessThan(nonce, subtract(firstDeltaStart, 1)))
+        if (isLessThan(nonce, (firstDeltaStart - 1)))
         {
             return -1;
         }
@@ -1094,7 +1094,7 @@ public partial class backpack : ccxt.backpack
             {
                 return getArrayLength(cache);
             }
-            if ((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))) && (isLessThan(nonce, deltaEnd)))
+            if ((isGreaterThanOrEqual(nonce, (deltaStart - 1))) && (isLessThan(nonce, deltaEnd)))
             {
                 return i;
             }

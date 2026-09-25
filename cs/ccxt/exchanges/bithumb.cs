@@ -2427,7 +2427,7 @@ public partial class bithumb : Exchange
                 Int64? normalizedTimestamp = this.parse8601(normalized);
                 if (!isEqual(normalizedTimestamp, null))
                 {
-                    timestamp = subtract(normalizedTimestamp, multiply(9, 3600000));
+                    timestamp = (normalizedTimestamp - multiply(9, 3600000));
                 } else
                 {
                     timestamp = this.parse8601(datetime);
@@ -3093,7 +3093,7 @@ public partial class bithumb : Exchange
             Int64? normalizedTimestamp = this.parse8601(normalized);
             if (!isEqual(normalizedTimestamp, null))
             {
-                timestamp = subtract(normalizedTimestamp, multiply(9, 3600000));
+                timestamp = (normalizedTimestamp - multiply(9, 3600000));
             }
         }
         return new Dictionary<string, object>() {

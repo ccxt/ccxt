@@ -1338,7 +1338,7 @@ public partial class blofin : Exchange
         };
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["before"] = mathMax(subtract(since, 1), 0);
+            ((IDictionary<string,object>)request)["before"] = mathMax((since - 1), 0);
         }
         if ((limit != null))
         {
@@ -2268,7 +2268,7 @@ public partial class blofin : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["before"] = mathMax(subtract(since, 1), 0);
+            ((IDictionary<string,object>)request)["before"] = mathMax((since - 1), 0);
         }
         if ((limit != null))
         {
@@ -2319,7 +2319,7 @@ public partial class blofin : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["before"] = mathMax(subtract(since, 1), 0);
+            ((IDictionary<string,object>)request)["before"] = mathMax((since - 1), 0);
         }
         if ((limit != null))
         {

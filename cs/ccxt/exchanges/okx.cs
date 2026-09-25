@@ -3750,7 +3750,7 @@ public partial class okx : Exchange
                 int maxLimit = isMarkOrIndex ? 100 : 300;
                 limitVar = mathMin(limitVar, maxLimit);
             }
-            object startTime = mathMax(subtract(since, 1), 0);
+            object startTime = mathMax((since - 1), 0);
             ((IDictionary<string,object>)request)["before"] = startTime;
             ((IDictionary<string,object>)request)["after"] = this.sum(since, multiply(durationInMilliseconds, limitVar));
         }
@@ -3851,7 +3851,7 @@ public partial class okx : Exchange
         };
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["before"] = mathMax(subtract(since, 1), 0);
+            ((IDictionary<string,object>)request)["before"] = mathMax((since - 1), 0);
         }
         if ((limit != null))
         {
@@ -6955,7 +6955,7 @@ public partial class okx : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["before"] = mathMax(subtract(since, 1), 0);
+            ((IDictionary<string,object>)request)["before"] = mathMax((since - 1), 0);
         }
         if ((limit != null))
         {
@@ -7076,7 +7076,7 @@ public partial class okx : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["before"] = mathMax(subtract(since, 1), 0);
+            ((IDictionary<string,object>)request)["before"] = mathMax((since - 1), 0);
         }
         if ((limit != null))
         {
@@ -9228,7 +9228,7 @@ public partial class okx : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["before"] = subtract(since, 1);
+            ((IDictionary<string,object>)request)["before"] = (since - 1);
         }
         if ((limit != null))
         {
@@ -9871,7 +9871,7 @@ public partial class okx : Exchange
         };
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["before"] = subtract(since, 1);
+            ((IDictionary<string,object>)request)["before"] = (since - 1);
         }
         if ((limit != null))
         {

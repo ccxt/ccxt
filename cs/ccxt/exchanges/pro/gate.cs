@@ -752,7 +752,7 @@ public partial class gate : ccxt.gate
         } else if ((!isEqual(deltaEnd, null)) && (isGreaterThanOrEqual(nonce, deltaEnd)))
         {
             return;
-        } else if ((!isEqual(deltaStart, null)) && (isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))))
+        } else if ((!isEqual(deltaStart, null)) && (isGreaterThanOrEqual(nonce, (deltaStart - 1))))
         {
             this.handleDelta(storedOrderBook, delta);
         } else
@@ -783,7 +783,7 @@ public partial class gate : ccxt.gate
             object delta = getValue(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
             Int64? deltaEnd = this.safeInteger(delta, "u");
-            if ((!isEqual(nonce, null)) && (!isEqual(deltaStart, null)) && (!isEqual(deltaEnd, null)) && (isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))) && (isLessThan(nonce, deltaEnd)))
+            if ((!isEqual(nonce, null)) && (!isEqual(deltaStart, null)) && (!isEqual(deltaEnd, null)) && (isGreaterThanOrEqual(nonce, (deltaStart - 1))) && (isLessThan(nonce, deltaEnd)))
             {
                 return i;
             }

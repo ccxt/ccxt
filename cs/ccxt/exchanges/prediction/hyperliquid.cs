@@ -337,7 +337,7 @@ public partial class hyperliquid : PredictionExchange
                             bucketLabel = ("ABOVE_" + (getValue(thresholds, lastIdx)));
                         } else
                         {
-                            bucketLabel = ((("BETWEEN_" + (getValue(thresholds, subtract(index, 1)))) + "_") + (getValue(thresholds, index)));
+                            bucketLabel = ((("BETWEEN_" + (getValue(thresholds, (index - 1)))) + "_") + (getValue(thresholds, index)));
                         }
                         object bs = ((questionUnderlying.ToUpper() + "_") + (bucketLabel));
                         if (((expiryDate != null)) && (!isEqual(expiryDate, "")))
