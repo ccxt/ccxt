@@ -393,7 +393,7 @@ func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan any, method any,
 	}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	var response []any = nil
 	if IsEqual(method, "privateGetTransfers") {
@@ -862,7 +862,7 @@ func (this *Btcmarkets) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"marketId":   market["id"],
 		"timeWindow": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -913,7 +913,7 @@ func (this *Btcmarkets) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"marketId": market["id"],
 	}
@@ -963,7 +963,7 @@ func (this *Btcmarkets) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "marketId")
-	market = MapTyped(this.SafeMarket(marketId, market, "-"))
+	market = this.SafeMarket(marketId, market, "-")
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "timestamp"))
 	var last *string = this.SafeString(ticker, "lastPrice")
@@ -1018,7 +1018,7 @@ func (this *Btcmarkets) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"marketId": market["id"],
 	}
@@ -1057,7 +1057,7 @@ func (this *Btcmarkets) fetchTicker2Body(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"id": market["id"],
 	}
@@ -1170,7 +1170,7 @@ func (this *Btcmarkets) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"marketId": market["id"],
 	}
@@ -1218,7 +1218,7 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar any, si
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"marketId": market["id"],
 		"amount":   this.AmountToPrecision(symbol, amount),
@@ -1417,7 +1417,7 @@ func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount a
 	_ = takerOrMaker
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var currency *string = nil
 	var cost any = nil
 	if GetValue(market, "quote") == "AUD" {
@@ -1481,7 +1481,7 @@ func (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "creationTime"))
 	var marketId *string = this.SafeString(order, "marketId")
-	market = MapTyped(this.SafeMarket(marketId, market, "-"))
+	market = this.SafeMarket(marketId, market, "-")
 	var side *string = this.SafeString(order, "side")
 	if side != nil && *side == "Bid" {
 		side = SafeStringPtr("buy")
@@ -1788,7 +1788,7 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code any, amount any, address 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"assetName": currency["id"],
 		"amount":    this.CurrencyToPrecision(code, amount),

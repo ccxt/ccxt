@@ -321,7 +321,7 @@ func (this *Coinbaseinternational) GetActiveSymbols() any {
 	var output []any = []any{}
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = ccxt.GetValue(symbols, i).(string)
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		if ccxt.GetValue(market, "active") == true {
 			output = append(output, symbol)
 		}
@@ -588,7 +588,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan any, symbol any, optio
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(options, timeframe, timeframe)
@@ -622,7 +622,7 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message any) {
 	//
 	var messageHash *string = this.SafeString(message, "channel")
 	var marketId *string = this.SafeString(message, "product_id")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timeframe *string = this.FindTimeframe(messageHash)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))

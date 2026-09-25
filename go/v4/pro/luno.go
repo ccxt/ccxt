@@ -75,7 +75,7 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var subscriptionHash any = ccxt.Add("/stream/", market["id"])
 	var subscription map[string]any = map[string]any{
@@ -119,7 +119,7 @@ func (this *Luno) HandleTrades(client any, message map[string]any, subscription 
 		return
 	}
 	var symbol any = subscription["symbol"]
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
@@ -205,7 +205,7 @@ func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var subscriptionHash any = ccxt.Add("/stream/", market["id"])
 	var subscription map[string]any = map[string]any{

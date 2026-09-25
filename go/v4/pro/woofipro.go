@@ -173,7 +173,7 @@ func (this *Woofipro) HandleOrderBook(client any, message map[string]any) {
 	//
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var topic *string = this.SafeString(message, "topic")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
@@ -280,7 +280,7 @@ func (this *Woofipro) HandleTicker(client any, message map[string]any) any {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ccxt.AddElementToObject(data, "date", timestamp)
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
@@ -361,7 +361,7 @@ func (this *Woofipro) HandleTickers(client any, message map[string]any) {
 			}
 			return nil
 		}(), "symbol")
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(this.Extend(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
@@ -456,7 +456,7 @@ func (this *Woofipro) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) 
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(market, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "ts")
 	return this.SafeTicker(map[string]any{
@@ -546,7 +546,7 @@ func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(data, "type")
 	var timeframe *string = this.FindTimeframe(interval)
@@ -627,7 +627,7 @@ func (this *Woofipro) HandleTrade(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(this.Extend(data, map[string]any{
 		"timestamp": timestamp,
@@ -682,7 +682,7 @@ func (this *Woofipro) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var price *string = this.SafeString2(trade, "executedPrice", "price")
 	var amount *string = this.SafeString2(trade, "executedQuantity", "size")
@@ -873,7 +873,7 @@ func (this *Woofipro) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	var messageHash any = topic
 	if symbol != nil {
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		symbol = market["symbol"]
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
@@ -933,7 +933,7 @@ func (this *Woofipro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.MapTyped(this.Omit(params, "stop"))
 	var messageHash any = "myTrades"
 	if symbol != nil {
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		symbol = market["symbol"]
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
@@ -1185,7 +1185,7 @@ func (this *Woofipro) HandleMyTrade(client any, message any) {
 	//
 	var messageHash string = "myTrades"
 	var marketId *string = this.SafeString(message, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, market))
 	var trades any = this.MyTrades
@@ -1365,7 +1365,7 @@ func (this *Woofipro) HandlePositions(client any, message map[string]any) {
 			return nil
 		}()
 		var marketId *string = this.SafeString(rawPosition, "symbol")
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var position any = this.ParseWsPosition(rawPosition, market)
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
@@ -1402,7 +1402,7 @@ func (this *Woofipro) ParseWsPosition(position any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var contract *string = this.SafeString(position, "symbol")
-	market = ccxt.MapTyped(this.SafeMarket(contract, market))
+	market = this.SafeMarket(contract, market)
 	var size *string = this.SafeString(position, "positionQty")
 	var side string
 	if ccxt.Precise.StringGt(size, "0") {

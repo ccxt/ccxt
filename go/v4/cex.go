@@ -788,7 +788,7 @@ func (this *Cex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -844,7 +844,7 @@ func (this *Cex) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var dateStr *string = this.SafeString(trade, "dateISO")
 	var timestamp *int64 = this.Parse8601(dateStr)
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -888,7 +888,7 @@ func (this *Cex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -959,7 +959,7 @@ func (this *Cex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair":       market["id"],
 		"resolution": GetValue(this.Timeframes, timeframe),
@@ -1076,7 +1076,7 @@ func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) 
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = GetValue(symbols, i).(string)
 		if !(func() bool { _, ok := result[symbol]; return ok }()) {
-			var market any = this.Market(symbol)
+			var market map[string]any = this.Market(symbol)
 			result[symbol] = this.ParseTradingFee(response, market)
 		}
 	}
@@ -1535,7 +1535,7 @@ func (this *Cex) ParseOrder(order any, optionalArgs ...any) any {
 	if (currency1 != nil) && (currency2 != nil) {
 		marketId = *currency1 + "-" + *currency2
 	}
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var fee map[string]any = map[string]any{}
@@ -1615,7 +1615,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
@@ -1834,7 +1834,7 @@ func (this *Cex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -1884,7 +1884,7 @@ func (this *Cex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		direction = "in"
 	}
 	var currencyId *string = this.SafeString(item, "currency")
-	currency = MapTyped(this.SafeCurrency(currencyId, currency))
+	currency = this.SafeCurrency(currencyId, currency)
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestampString *string = this.SafeString(item, "timestamp")
 	var timestamp *int64 = this.Parse8601(timestampString)
@@ -1950,7 +1950,7 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	if since != nil {
 		request["dateFrom"] = since
@@ -2092,7 +2092,7 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan any, code any, amo
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var fromMain bool = (IsEqual(fromAccount, ""))
 	var targetAccount any = fromAccount
 	if fromMain {
@@ -2145,7 +2145,7 @@ func (this *Cex) transferBetweenSubAccountsBody(ch chan any, code any, amount an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency":      currency["id"],
 		"amount":        this.CurrencyToPrecision(code, amount),
@@ -2242,7 +2242,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"accountId":  accountId,
 		"currency":   currency["id"],
@@ -2271,7 +2271,7 @@ func (this *Cex) ParseDepositAddress(depositAddress any, optionalArgs ...any) an
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
 	var currencyId *string = this.SafeString(depositAddress, "currency")
-	currency = MapTyped(this.SafeCurrency(currencyId, currency))
+	currency = this.SafeCurrency(currencyId, currency)
 	this.CheckAddress(address)
 	return map[string]any{
 		"info":     depositAddress,

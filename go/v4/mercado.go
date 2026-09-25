@@ -463,7 +463,7 @@ func (this *Mercado) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"coin": market["base"],
 	}
@@ -537,7 +537,7 @@ func (this *Mercado) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"coin": market["base"],
 	}
@@ -566,7 +566,7 @@ func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp2(trade, "date", "executed_timestamp")
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	var id *string = this.SafeString2(trade, "tid", "operation_id")
 	var typeVar any = nil
 	var side *string = this.SafeString(trade, "type")
@@ -625,7 +625,7 @@ func (this *Mercado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"coin": market["base"],
 	}
@@ -727,7 +727,7 @@ func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"coin_pair": market["id"],
 	}
@@ -796,7 +796,7 @@ func (this *Mercado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"coin_pair": market["id"],
 		"order_id":  id,
@@ -881,7 +881,7 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var marketId *string = this.SafeString(order, "coin_pair")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeTimestamp(order, "created_timestamp")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "fee"),
@@ -948,7 +948,7 @@ func (this *Mercado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"coin_pair": market["id"],
 		"order_id":  ParseInt(id),
@@ -993,7 +993,7 @@ func (this *Mercado) withdrawBody(ch chan any, code any, amount any, address any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"coin":     currency["id"],
 		"quantity": ToFixed(amount, 10),
@@ -1062,7 +1062,7 @@ func (this *Mercado) ParseTransaction(transaction any, optionalArgs ...any) any 
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	currency = MapTyped(this.SafeCurrency(nil, currency))
+	currency = this.SafeCurrency(nil, currency)
 	return map[string]any{
 		"id":          this.SafeString(transaction, "id"),
 		"txid":        nil,
@@ -1180,7 +1180,7 @@ func (this *Mercado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"coin_pair": market["id"],
 	}
@@ -1226,7 +1226,7 @@ func (this *Mercado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"coin_pair":   market["id"],
 		"status_list": "[2]",
@@ -1273,7 +1273,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"coin_pair": market["id"],
 		"has_fills": true,

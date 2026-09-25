@@ -71,7 +71,7 @@ func (this *Bitfinex) subscribeBody(ch chan any, channel any, symbol any, option
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var client ccxt.ClientInterface = this.Client(url)
@@ -116,7 +116,7 @@ func (this *Bitfinex) unSubscribeBody(ch chan any, channel any, topic any, symbo
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var client ccxt.ClientInterface = this.Client(url)
@@ -192,7 +192,7 @@ func (this *Bitfinex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var channel string = "candles"
@@ -240,7 +240,7 @@ func (this *Bitfinex) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var channel string = "candles"
@@ -330,7 +330,7 @@ func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[st
 	var marketId *string = key
 	marketId = ccxt.SafeStringPtr(strings.Replace(*marketId, "trade:", "", 1))
 	marketId = ccxt.SafeStringPtr(ccxt.Replace(marketId, ccxt.Add(interval, ":"), ""))
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var timeframe *string = this.FindTimeframe(interval)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channel, ":"), interval), ":"), marketId))
@@ -439,7 +439,7 @@ func (this *Bitfinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = "myTrade"
 	if symbol != nil {
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 	}
 
@@ -525,7 +525,7 @@ func (this *Bitfinex) HandleMyTrade(client any, message []any, optionalArgs ...a
 	var data []any = ccxt.SafeListTyped(message, 2)
 	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
 	if ccxt.IsEqual(this.MyTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -572,7 +572,7 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 	//
 	var channel *string = this.SafeString(subscription, "channel")
 	var marketId *string = this.SafeString(subscription, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -657,7 +657,7 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	if !isPublic {
 		marketId = ccxt.DerefScalar(this.SafeString(trade, 1))
 	}
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var createdKey int = func() int {
 		if isPublic {
 			return 1
@@ -770,7 +770,7 @@ func (this *Bitfinex) HandleTicker(client any, message []any, subscription map[s
 	//
 	var ticker any = this.SafeValue(message, 1)
 	var marketId *string = this.SafeString(subscription, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId)
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, market))
 	var channel string = "ticker"
@@ -795,7 +795,7 @@ func (this *Bitfinex) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	market = ccxt.MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var last *string = this.SafeString(ticker, 6)
 	var change *string = this.SafeString(ticker, 4)
@@ -1392,7 +1392,7 @@ func (this *Bitfinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = "orders"
 	if symbol != nil {
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 	}
 
@@ -1481,7 +1481,7 @@ func (this *Bitfinex) HandleOrders(client any, message []any, subscription map[s
 	var keys []string = ccxt.ObjectKeys(symbolIds)
 	for i := 0; i < len(keys); i++ {
 		var symbol string = ccxt.GetValue(keys, i).(string)
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	}
@@ -1538,7 +1538,7 @@ func (this *Bitfinex) ParseWsOrder(order any, optionalArgs ...any) any {
 	var clientOrderId *string = this.SafeString(order, 1)
 	var marketId *string = this.SafeString(order, 3)
 	var symbol *string = this.SafeSymbol(marketId)
-	market = ccxt.MapTyped(this.SafeMarket(symbol))
+	market = this.SafeMarket(symbol)
 	var amount *string = this.SafeString(order, 7)
 	var side string = "buy"
 	if ccxt.Precise.StringLt(amount, "0") {

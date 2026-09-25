@@ -2793,7 +2793,7 @@ func (this *Limitless) SignOrderRequest(signRequest any, marketSymbol any) any {
 	if ccxt.IsEqual(this.PrivateKey, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders"))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(marketSymbol))
+	var market map[string]any = this.Market(marketSymbol)
 	var info map[string]any = ccxt.SafeMapTyped(market, "info")
 	var venue map[string]any = ccxt.SafeMapTyped(info, "venue")
 	var exchange *string = this.SafeString(venue, "exchange")
@@ -3440,7 +3440,7 @@ func (this *Limitless) ParsePredictionTrade(trade any, optionalArgs ...any) any 
 func (this *Limitless) GetOutcomeBySlugAndLabel(slug any, label any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var mkt map[string]any = ccxt.MapTyped(this.SafeMarket(slug, market))
+	var mkt map[string]any = this.SafeMarket(slug, market)
 	var outcomes []any = ccxt.SafeListTyped(mkt, "outcomes")
 	for i := 0; i < len(outcomes); i++ {
 		var outcome map[string]any = ccxt.SafeMapTyped(outcomes, i)

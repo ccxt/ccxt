@@ -138,7 +138,7 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
+	var market map[string]any = this.SafeMarket(marketId, nil, "_")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, ":"), symbol))
@@ -181,7 +181,7 @@ func (this *Bitopro) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("TRADE"+":", symbol))
 
@@ -214,7 +214,7 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
+	var market map[string]any = this.SafeMarket(marketId, nil, "_")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, ":"), symbol))
@@ -266,7 +266,7 @@ func (this *Bitopro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = "USER_TRADE"
 	if symbol != nil {
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), market["symbol"])
 	}
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "user-trades")
@@ -350,7 +350,7 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
-	market = ccxt.MapTyped(this.SafeMarket(symbol, market))
+	market = this.SafeMarket(symbol, market)
 	var price *string = this.SafeString(trade, "price")
 	var typeVar *string = this.SafeStringLower(trade, "orderType")
 	var side *string = this.SafeString(trade, "side")
@@ -421,7 +421,7 @@ func (this *Bitopro) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("TICKER"+":", symbol))
 
@@ -452,7 +452,7 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 		return // some TICKER frames arrive without a pair - nothing to resolve them against
 	}
 	// market-ids are lowercase in REST API and uppercase in WS API
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
+	var market map[string]any = this.SafeMarket(marketId, nil, "_")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, ":"), symbol))

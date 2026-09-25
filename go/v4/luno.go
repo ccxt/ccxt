@@ -877,7 +877,7 @@ func (this *Luno) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -936,7 +936,7 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
 		side = SafeStringPtr("buy")
 	}
 	var marketId *string = this.SafeString(order, "pair")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var price *string = this.SafeString(order, "limit_price")
 	var amount *string = this.SafeString(order, "limit_volume")
 	var quoteFee *float64 = this.SafeNumber(order, "fee_counter")
@@ -1225,7 +1225,7 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
-		var market map[string]any = MapTyped(this.SafeMarket(id))
+		var market map[string]any = this.SafeMarket(id)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		var ticker any = tickers[id]
 		AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
@@ -1258,7 +1258,7 @@ func (this *Luno) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1403,7 +1403,7 @@ func (this *Luno) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1463,7 +1463,7 @@ func (this *Luno) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"duration": this.SafeValue(this.Timeframes, timeframe, timeframe),
 		"pair":     market["id"],
@@ -1545,7 +1545,7 @@ func (this *Luno) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1607,7 +1607,7 @@ func (this *Luno) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1663,7 +1663,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1822,7 +1822,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " fetchLedger() requires a currency code argument if no account id specified in params"))
 		}
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "currency")
 		var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
 		if account == nil {
@@ -1898,7 +1898,7 @@ func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 	var currencyId *string = this.SafeString(entry, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	currency = MapTyped(this.SafeCurrency(currencyId, currency))
+	currency = this.SafeCurrency(currencyId, currency)
 	var available_delta *string = this.SafeString(entry, "available_delta")
 	var balance_delta *string = this.SafeString(entry, "balance_delta")
 	var after *string = this.SafeString(entry, "balance")
@@ -1971,7 +1971,7 @@ func (this *Luno) createDepositAddressBody(ch chan any, code any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"asset": currency["id"],
 	}
@@ -2027,7 +2027,7 @@ func (this *Luno) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"asset": currency["id"],
 	}
@@ -2117,7 +2117,7 @@ func (this *Luno) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalArg
 	}
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}

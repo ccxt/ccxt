@@ -182,7 +182,7 @@ func (this *Bullish) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades::", market["symbol"]))
 	var url string = "/trading-api/v1/market-data/trades"
 	var request map[string]any = map[string]any{
@@ -226,7 +226,7 @@ func (this *Bullish) HandleTrades(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var rawTrades []any = ccxt.SafeListTypedDefault(data, "trades", []any{})
 	var trades any = this.ParseTrades(rawTrades, market)
 	if !(ccxt.InOp(this.Trades, symbol)) {
@@ -266,7 +266,7 @@ func (this *Bullish) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), market["id"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", symbol))
@@ -322,7 +322,7 @@ func (this *Bullish) HandleTicker(client any, message any) {
 	var updateType *string = this.SafeString(message, "type", "")
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var parsed any = this.ParseTicker(data, market)
 	if updateType != nil && *updateType == "update" {
@@ -362,7 +362,7 @@ func (this *Bullish) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var url string = "/trading-api/v1/market-data/orderbook"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook::", market["symbol"]))
 	var request map[string]any = map[string]any{

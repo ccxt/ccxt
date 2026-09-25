@@ -538,7 +538,7 @@ func (this *P2b) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -665,7 +665,7 @@ func (this *P2b) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -740,7 +740,7 @@ func (this *P2b) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	if lastId == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTrades () requires an extra parameter params[\"lastId\"]"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 		"lastId": lastId,
@@ -877,7 +877,7 @@ func (this *P2b) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market":   market["id"],
 		"interval": timeframe,
@@ -1042,7 +1042,7 @@ func (this *P2b) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	if IsEqual(typeVar, "market") {
 		panic(BadRequest(this.Id + " createOrder () can only accept orders with type \"limit\""))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 		"side":   side,
@@ -1108,7 +1108,7 @@ func (this *P2b) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market":  market["id"],
 		"orderId": id,
@@ -1180,7 +1180,7 @@ func (this *P2b) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -1255,7 +1255,7 @@ func (this *P2b) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.SafeMarket(symbol))
+	var market map[string]any = this.SafeMarket(symbol)
 	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
@@ -1347,7 +1347,7 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if IsGreaterThan((Subtract(until, since)), 86400000) {
 		panic(BadRequest(this.Id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var sinceSec int64 = this.ParseToInt(Divide(since, 1000))
 	var untilSec int64 = this.ParseToInt(Divide(until, 1000))
 	var request map[string]any = map[string]any{
@@ -1542,7 +1542,7 @@ func (this *P2b) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct2(order, "timestamp", "ctime", 1000)
 	var marketId *string = this.SafeString(order, "market")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 this.SafeString2(order, "id", "orderId"),

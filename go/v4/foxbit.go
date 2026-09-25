@@ -650,7 +650,7 @@ func (this *Foxbit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -790,7 +790,7 @@ func (this *Foxbit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var marketId *string = this.SafeString(entry, "market_symbol")
-		var market map[string]any = MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(result, symbol, this.ParseTradingFee(entry, market))
 	}
@@ -825,7 +825,7 @@ func (this *Foxbit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var defaultLimit int = 20
 	var request map[string]any = map[string]any{
 		"market": market["id"],
@@ -897,7 +897,7 @@ func (this *Foxbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -956,7 +956,7 @@ func (this *Foxbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"market":   market["id"],
@@ -1217,7 +1217,7 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar any, side a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	typeVar = ToUpper(typeVar)
 	if (!IsEqual(typeVar, "LIMIT")) && (!IsEqual(typeVar, "MARKET")) && (!IsEqual(typeVar, "STOP_MARKET")) && (!IsEqual(typeVar, "STOP_LIMIT")) && (!IsEqual(typeVar, "INSTANT")) {
 		panic(InvalidOrder(Add(Add("Invalid order type: ", typeVar), ". Must be one of: limit, market, stop_market, stop_limit, instant.")))
@@ -1303,7 +1303,7 @@ func (this *Foxbit) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var order map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(order, "symbol")
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		var typeVar *string = this.SafeStringUpper(order, "type")
 		var orderParams any = this.SafeDict(order, "params", map[string]any{})
 		if (typeVar == nil || *typeVar != "LIMIT") && (typeVar == nil || *typeVar != "MARKET") && (typeVar == nil || *typeVar != "STOP_MARKET") && (typeVar == nil || *typeVar != "STOP_LIMIT") && (typeVar == nil || *typeVar != "INSTANT") {
@@ -1451,7 +1451,7 @@ func (this *Foxbit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"type": "ALL",
 	}
 	if symbol != nil {
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		request["type"] = "MARKET"
 		request["market_symbol"] = market["id"]
 	}
@@ -1641,7 +1641,7 @@ func (this *Foxbit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market_symbol": market["id"],
 	}
@@ -1700,7 +1700,7 @@ func (this *Foxbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency_symbol": currency["id"],
 	}
@@ -1761,7 +1761,7 @@ func (this *Foxbit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	if limit != nil {
 		request["page_size"] = limit
@@ -1830,7 +1830,7 @@ func (this *Foxbit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	if limit != nil {
 		request["page_size"] = limit
@@ -2012,7 +2012,7 @@ func (this *Foxbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a side argument"))
 	}
@@ -2089,7 +2089,7 @@ func (this *Foxbit) withdrawBody(ch chan any, code any, amount any, address any,
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency_symbol":     currency["id"],
 		"amount":              this.NumberToString(amount),
@@ -2163,7 +2163,7 @@ func (this *Foxbit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["start_time"] = this.Iso8601(since)
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	request["symbol"] = currency["id"]
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetAccountsSymbolTransactions(this.Extend(request, params))).Raw))

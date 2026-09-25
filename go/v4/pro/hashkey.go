@@ -133,7 +133,7 @@ func (this *Hashkey) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var topic string = "kline_" + *interval
@@ -175,7 +175,7 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId, market)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
@@ -239,7 +239,7 @@ func (this *Hashkey) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var topic string = "realtimes"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
@@ -314,7 +314,7 @@ func (this *Hashkey) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var topic string = "trade"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
@@ -353,7 +353,7 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -399,7 +399,7 @@ func (this *Hashkey) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var topic string = "depth"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
@@ -849,7 +849,7 @@ func (this *Hashkey) ParseWsPosition(position any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "s")
-	market = ccxt.MapTyped(this.SafeMarket(marketId))
+	market = this.SafeMarket(marketId)
 	var timestamp *int64 = this.SafeInteger(position, "E")
 	return this.SafePosition(map[string]any{
 		"symbol":                      ccxt.GetValue(market, "symbol"),

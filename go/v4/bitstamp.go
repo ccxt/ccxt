@@ -1507,7 +1507,7 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1613,7 +1613,7 @@ func (this *Bitstamp) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1921,7 +1921,7 @@ func (this *Bitstamp) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 		"time": "hour",
@@ -1999,7 +1999,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 		"step": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -2151,7 +2151,7 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market_symbol": market["id"],
 	}
@@ -2423,7 +2423,7 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar any, side
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair":   market["id"],
 		"amount": this.AmountToPrecision(symbol, amount),
@@ -2509,7 +2509,7 @@ func (this *Bitstamp) editOrderBody(ch chan any, id any, symbol any, typeVar any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"amount": this.AmountToPrecision(symbol, amount),
 		"price":  this.PriceToPrecision(symbol, price),
@@ -2953,7 +2953,7 @@ func (this *Bitstamp) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	//
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	var transactions any = this.FilterByArray(response, "type", []any{"0", "1"}, false)
 
@@ -3311,7 +3311,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//         },
 	//     ]
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	if typeVar != nil && *typeVar == "trade" {
@@ -3433,7 +3433,7 @@ func (this *Bitstamp) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var response []any = ListTyped(PanicOnError((<-this.PrivatePostUserTransactions(this.Extend(request, params))).Raw))
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 
 	ch <- this.ParseLedger(response, currency, since, limit)
@@ -3463,7 +3463,7 @@ func (this *Bitstamp) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market_symbol": market["id"],
 	}
@@ -3690,7 +3690,7 @@ func (this *Bitstamp) withdrawBody(ch chan any, code any, amount any, address an
 		response = (<-this.RequestAsync(Add(name, "_withdrawal/"), "private", "POST", this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["iban"] = address
 		request["account_currency"] = GetValue(currency, "id")
 
@@ -3729,7 +3729,7 @@ func (this *Bitstamp) transferBody(ch chan any, code any, amount any, fromAccoun
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"amount":   this.ParseToNumeric(this.CurrencyToPrecision(code, amount)),
 		"currency": ToUpper(currency["id"]),

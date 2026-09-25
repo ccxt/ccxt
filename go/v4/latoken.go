@@ -830,7 +830,7 @@ func (this *Latoken) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["baseId"],
 		"quote":    market["quoteId"],
@@ -973,7 +973,7 @@ func (this *Latoken) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"base":  market["baseId"],
 		"quote": market["quoteId"],
@@ -1186,7 +1186,7 @@ func (this *Latoken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["baseId"],
 		"quote":    market["quoteId"],
@@ -1260,7 +1260,7 @@ func (this *Latoken) fetchPublicTradingFeeBody(ch chan any, symbol any, optional
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["baseId"],
 		"quote":    market["quoteId"],
@@ -1301,7 +1301,7 @@ func (this *Latoken) fetchPrivateTradingFeeBody(ch chan any, symbol any, optiona
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["baseId"],
 		"quote":    market["quoteId"],
@@ -1581,7 +1581,7 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = MapTyped(this.Omit(params, "stop"))
 	// privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["baseId"],
 		"quote":    market["quoteId"],
@@ -1811,7 +1811,7 @@ func (this *Latoken) createOrderBody(ch chan any, symbol any, typeVar any, side 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var uppercaseType string = ToUpper(typeVar)
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
@@ -2040,7 +2040,7 @@ func (this *Latoken) fetchTransactionsBody(ch chan any, optionalArgs ...any) any
 	//
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	var content []any = SafeListTypedDefault(response, "content", []any{})
 
@@ -2162,7 +2162,7 @@ func (this *Latoken) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAuthTransfer(params)).Raw))
 	//
@@ -2230,7 +2230,7 @@ func (this *Latoken) transferBody(ch chan any, code any, amount any, fromAccount
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency":  currency["id"],
 		"recipient": toAccount,

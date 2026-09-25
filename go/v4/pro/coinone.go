@@ -85,7 +85,7 @@ func (this *Coinone) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", market["symbol"]))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
@@ -180,7 +180,7 @@ func (this *Coinone) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", market["symbol"]))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
@@ -321,7 +321,7 @@ func (this *Coinone) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trade:", market["symbol"]))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
@@ -391,7 +391,7 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(base, "/"), quote))
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	market = ccxt.MapTyped(this.SafeMarket(symbol, market))
+	market = this.SafeMarket(symbol, market)
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side *string = nil
 	if isSellerMaker != nil {

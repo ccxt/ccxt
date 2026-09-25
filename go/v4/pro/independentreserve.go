@@ -78,7 +78,7 @@ func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optiona
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "?subscribe=ticker-"), market["base"]), "-"), market["quote"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
@@ -181,7 +181,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, opti
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	if limit == nil {
 		limit = ccxt.Int64PtrTyped(100)

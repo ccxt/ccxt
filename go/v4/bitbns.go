@@ -499,7 +499,7 @@ func (this *Bitbns) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -852,7 +852,7 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar any, side a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "t_rate"})
 	var targetRate *string = this.SafeString(params, "target_rate")
 	var trailRate *string = this.SafeString(params, "trail_rate")
@@ -938,7 +938,7 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
 	var request map[string]any = map[string]any{
@@ -1002,7 +1002,7 @@ func (this *Bitbns) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"entry_id": id,
@@ -1081,7 +1081,7 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
 	var quoteSide string = "listOpen"
@@ -1159,7 +1159,7 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	var orderId *string = this.SafeString2(trade, "id", "tradeId")
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "date"))
 	timestamp = this.SafeInteger(trade, "timestamp", timestamp)
@@ -1251,7 +1251,7 @@ func (this *Bitbns) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"page":   0,
@@ -1339,7 +1339,7 @@ func (this *Bitbns) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"coin":   market["baseId"],
 		"market": market["quoteId"],
@@ -1391,7 +1391,7 @@ func (this *Bitbns) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"symbol": currency["id"],
 		"page":   0,
@@ -1460,7 +1460,7 @@ func (this *Bitbns) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"symbol": currency["id"],
 		"page":   0,
@@ -1606,7 +1606,7 @@ func (this *Bitbns) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"symbol": currency["id"],
 	}

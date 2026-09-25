@@ -1030,7 +1030,7 @@ func (this *Ndax) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	limit = func() any {
 		if limit == nil {
 			return 100
@@ -1124,7 +1124,7 @@ func (this *Ndax) ParseTicker(ticker any, optionalArgs ...any) any {
 	if marketId == nil {
 		marketId = this.SafeString(ticker, "trading_pairs")
 	}
-	market = MapTyped(this.SafeMarket(marketId, market, "_"))
+	market = this.SafeMarket(marketId, market, "_")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var last *string = this.SafeString2(ticker, "LastTradedPx", "last_price")
 	var percentage *string = this.SafeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h")
@@ -1229,7 +1229,7 @@ func (this *Ndax) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
 		"InstrumentId": market["id"],
@@ -1322,7 +1322,7 @@ func (this *Ndax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
 		"InstrumentId": market["id"],
@@ -1564,7 +1564,7 @@ func (this *Ndax) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
 		"InstrumentId": market["id"],
@@ -1765,7 +1765,7 @@ func (this *Ndax) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(item, "ProductId")
-	currency = MapTyped(this.SafeCurrency(currencyId, currency))
+	currency = this.SafeCurrency(currencyId, currency)
 	var credit *string = this.SafeString(item, "CR")
 	var debit *string = this.SafeString(item, "DR")
 	var amount *string = nil
@@ -1870,7 +1870,7 @@ func (this *Ndax) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 
 	ch <- this.ParseLedger(response, currency, since, limit)
@@ -2034,7 +2034,7 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		}
 	}
 	params = MapTyped(this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"}))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var orderSide int = func() int {
 		if IsEqual(side, "buy") {
 			return 0
@@ -2123,7 +2123,7 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	var clientOrderId *int64 = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
 	params = MapTyped(this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId"}))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var orderSide int = func() int {
 		if IsEqual(side, "buy") {
 			return 0
@@ -2310,7 +2310,7 @@ func (this *Ndax) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"AccountId": accountId,
 	}
 	if symbol != nil {
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		request["IntrumentId"] = market["id"]
 	}
 
@@ -2829,7 +2829,7 @@ func (this *Ndax) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = MapTyped(this.Omit(params, []any{"accountId", "AccountId"}))
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"omsId":          omsId,
 		"AccountId":      accountId,
@@ -2958,7 +2958,7 @@ func (this *Ndax) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(this.Omit(params, []any{"accountId", "AccountId"}))
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	var request map[string]any = map[string]any{
 		"omsId":     omsId,
@@ -3044,7 +3044,7 @@ func (this *Ndax) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(this.Omit(params, []any{"accountId", "AccountId"}))
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	var request map[string]any = map[string]any{
 		"omsId":     omsId,
@@ -3289,7 +3289,7 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var withdrawTemplateTypesRequest map[string]any = map[string]any{
 		"omsId":     omsId,
 		"AccountId": accountId,

@@ -210,7 +210,7 @@ func (this *Deribit) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var interval *string = this.SafeString(params, "interval", "100ms")
 	params = this.Omit(params, "interval")
@@ -277,7 +277,7 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var channels []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
+		var market map[string]any = this.Market(ccxt.GetValue(symbols, i))
 		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add("ticker.", market["id"]), "."), interval))
 	}
 	var message map[string]any = map[string]any{
@@ -371,7 +371,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var channels []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
+		var market map[string]any = this.Market(ccxt.GetValue(symbols, i))
 		channels = append(channels, ccxt.Add("quote.", market["id"]))
 	}
 	var message map[string]any = map[string]any{
@@ -426,7 +426,7 @@ func (this *Deribit) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) a
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instrument_name")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(market, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	return this.SafeTicker(map[string]any{
@@ -545,7 +545,7 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 1)
 	var interval *string = this.SafeString(parts, 2)
 	var symbol *string = this.SafeSymbol(marketId)
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var trades []any = ccxt.SafeListTyped(params, "data")
 	if ccxt.IsEqual(this.SafeDict(this.Trades, symbol), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1108,7 +1108,7 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	var parts []string = strings.Split(*channel, ".")
 	var marketId *string = this.SafeString(parts, 2)
 	var rawTimeframe *string = this.SafeString(parts, 3)
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var timeframes any = this.SafeDict(wsOptions, "timeframes", map[string]any{})

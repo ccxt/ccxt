@@ -1234,7 +1234,7 @@ func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	if outcomeObj == nil {
 		var marketId *string = this.SafeString(order, "marketId")
 		var outcome *string = this.SafeStringUpper(order, "outcome")
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var outcomeName any = ccxt.DerefScalar(this.SafeString(market, "market"))
 		if ccxt.IsEqual(outcomeName, nil) {
 			outcomeName = marketId
@@ -1345,7 +1345,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		outcomeObj = this.Outcome(outcome)
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(outcomeObj, "market")))
+		var market map[string]any = this.Market(ccxt.GetValue(outcomeObj, "market"))
 		request["marketId"] = market["id"]
 	}
 	if limit != nil {
@@ -1658,7 +1658,7 @@ func (this *Binance) fetchPositionBody(ch chan any, outcome any, optionalArgs ..
 
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		outcomeObj = this.Outcome(outcome)
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(outcomeObj, "market")))
+		var market map[string]any = this.Market(ccxt.GetValue(outcomeObj, "market"))
 		request["marketTopicId"] = ccxt.GetValue(market["info"], "marketTopicId")
 	}
 
@@ -1692,7 +1692,7 @@ func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) 
 	if outcomeObj == nil {
 		var marketId *string = this.SafeString(position, "marketId")
 		var outcome *string = this.SafeStringUpper(position, "outcomeName")
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var outcomeName any = ccxt.DerefScalar(this.SafeString(market, "market"))
 		if ccxt.IsEqual(outcomeName, nil) {
 			outcomeName = marketId
@@ -1895,7 +1895,7 @@ func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	if outcomeObj == nil {
 		var marketId *string = this.SafeString(trade, "marketId")
 		var outcome *string = this.SafeStringUpper(trade, "outcome")
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var outcomeName any = ccxt.DerefScalar(this.SafeString(market, "market"))
 		if ccxt.IsEqual(outcomeName, nil) {
 			outcomeName = marketId
@@ -2134,7 +2134,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 	// markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
 	// is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
-	var market map[string]any = ccxt.MapTyped(this.Market(marketSymbol))
+	var market map[string]any = this.Market(marketSymbol)
 	var typeUpper string = ccxt.ToUpper(typeVar)
 	var sideUpper string = ccxt.ToUpper(side)
 

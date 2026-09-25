@@ -1317,7 +1317,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	var depositWithdrawCodes []string = ObjectKeys(depositWithdrawFees)
 	for i := 0; i < len(depositWithdrawCodes); i++ {
 		var code string = GetValue(depositWithdrawCodes, i).(string)
-		var currency map[string]any = MapTyped(this.Currency(code))
+		var currency map[string]any = this.Currency(code)
 		depositWithdrawFees[code] = this.AssignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency)
 	}
 	return depositWithdrawFees
@@ -1368,7 +1368,7 @@ func (this *Whitebit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = GetValue(symbols, i).(string)
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		var fee map[string]any = MapTyped(this.SafeDict(response, market["baseId"], map[string]any{}))
 		var makerFee *string = this.SafeString(fee, "maker_fee")
 		var takerFee *string = this.SafeString(fee, "taker_fee")
@@ -1707,7 +1707,7 @@ func (this *Whitebit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -1823,7 +1823,7 @@ func (this *Whitebit) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString2(ticker, "tradingPairs", "ticker_id")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	// last price is provided as "last" or "last_price"
 	var last *string = this.SafeStringN(ticker, []any{"last", "last_price", "lastPrice"})
 	// if "close" is provided, use it, otherwise use <last>
@@ -1931,7 +1931,7 @@ func (this *Whitebit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 					var orderId *string = this.SafeString(order, "orderId")
 					if IsEqual(orderId, id) {
 						var marketId *string = this.SafeString(order, "market")
-						var marketNew any = this.SafeMarket(marketId, nil, "_")
+						var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 
 						ch <- this.ParseOrder(order, marketNew)
 						chSent = true
@@ -1973,7 +1973,7 @@ func (this *Whitebit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 				var marketIds []string = ObjectKeys(response)
 				for i := 0; i < len(marketIds); i++ {
 					var marketId string = GetValue(marketIds, i).(string)
-					var marketNew any = this.SafeMarket(marketId, nil, "_")
+					var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 					var marketOrders []any = SafeListTyped(response, marketId)
 					for j := 0; j < len(marketOrders); j++ {
 						var order any = func() any {
@@ -2133,7 +2133,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
-		var market any = this.SafeMarket(marketId)
+		var market map[string]any = this.SafeMarket(marketId)
 		var ticker map[string]any = MapTyped(this.ParseTicker(GetValue(response, marketId), market))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		AddElementToObject(result, symbol, ticker)
@@ -2169,7 +2169,7 @@ func (this *Whitebit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -2232,7 +2232,7 @@ func (this *Whitebit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -2341,7 +2341,7 @@ func (this *Whitebit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var keys []string = ObjectKeys(response)
 		for i := 0; i < len(keys); i++ {
 			var marketId string = GetValue(keys, i).(string)
-			var marketNew map[string]any = MapTyped(this.SafeMarket(marketId, nil, "_"))
+			var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 			var rawTrades []any = SafeListTypedDefault(response, marketId, []any{})
 			var parsed any = this.ParseTrades(rawTrades, marketNew, since, limit)
 			results = this.ArrayConcat(results, parsed)
@@ -2398,7 +2398,7 @@ func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	var timestamp *int64 = this.SafeTimestamp2(trade, "time", "trade_timestamp")
 	var orderId *string = this.SafeString2(trade, "dealOrderId", "orderId")
 	var cost *string = this.SafeString(trade, "deal")
@@ -2474,7 +2474,7 @@ func (this *Whitebit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -2693,7 +2693,7 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 		"side":   side,
@@ -2833,7 +2833,7 @@ func (this *Whitebit) editOrderBody(ch chan any, id any, symbol any, typeVar any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -2913,7 +2913,7 @@ func (this *Whitebit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market":  market["id"],
 		"orderId": ParseInt(id),
@@ -3087,7 +3087,7 @@ func (this *Whitebit) cancelAllOrdersAfterBody(ch chan any, timeout any, optiona
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrdersAfter() requires a symbol argument in params"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	params = MapTyped(this.Omit(params, "symbol"))
 	if IsEqual(timeout, nil) {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
@@ -3346,7 +3346,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	var results any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
-		var marketNew map[string]any = MapTyped(this.SafeMarket(marketId, nil, "_"))
+		var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 		var orders []any = SafeListTyped(response, marketId)
 		for j := 0; j < len(orders); j++ {
 			var order map[string]any = MapTyped(this.ParseOrder(func() any {
@@ -3421,7 +3421,7 @@ func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "market")
-	market = MapTyped(this.SafeMarket(marketId, market, "_"))
+	market = this.SafeMarket(marketId, market, "_")
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var side *string = this.SafeString(order, "side")
 	var filled *string = this.SafeString(order, "dealStock")
@@ -3600,7 +3600,7 @@ func (this *Whitebit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["ticker"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -3674,7 +3674,7 @@ func (this *Whitebit) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["ticker"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -3746,7 +3746,7 @@ func (this *Whitebit) fetchDepositAddressBody(ch chan any, code any, optionalArg
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"ticker": currency["id"],
 	}
@@ -3839,7 +3839,7 @@ func (this *Whitebit) createDepositAddressBody(ch chan any, code any, optionalAr
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"ticker": currency["id"],
 	}
@@ -4013,7 +4013,7 @@ func (this *Whitebit) transferBody(ch chan any, code any, amount any, fromAccoun
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromAccountId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toAccountId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -4080,7 +4080,7 @@ func (this *Whitebit) withdrawBody(ch chan any, code any, amount any, address an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code)) // check if it has canDeposit
+	var currency map[string]any = this.Currency(code) // check if it has canDeposit
 	var request map[string]any = map[string]any{
 		"ticker":  currency["id"],
 		"amount":  this.CurrencyToPrecision(code, amount),
@@ -4149,7 +4149,7 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) any
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	currency = MapTyped(this.SafeCurrency(nil, currency))
+	currency = this.SafeCurrency(nil, currency)
 	var address *string = this.SafeString(transaction, "address")
 	var timestamp *int64 = this.SafeTimestamp(transaction, "createdAt")
 	var currencyId *string = this.SafeString(transaction, "ticker")
@@ -4252,7 +4252,7 @@ func (this *Whitebit) fetchDepositBody(ch chan any, id any, optionalArgs ...any)
 		"offset":            0,
 	}
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["ticker"] = GetValue(currency, "id")
 	}
 
@@ -4339,7 +4339,7 @@ func (this *Whitebit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"offset":            0,
 	}
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["ticker"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -4706,7 +4706,7 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires a symbol argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -4827,7 +4827,7 @@ func (this *Whitebit) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["ticker"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -4910,8 +4910,8 @@ func (this *Whitebit) fetchConvertQuoteBody(ch chan any, fromCode any, toCode an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var fromCurrency map[string]any = MapTyped(this.Currency(fromCode))
-	var toCurrency map[string]any = MapTyped(this.Currency(toCode))
+	var fromCurrency map[string]any = this.Currency(fromCode)
+	var toCurrency map[string]any = this.Currency(toCode)
 	var request map[string]any = map[string]any{
 		"from":      fromCode,
 		"to":        toCode,
@@ -4964,8 +4964,8 @@ func (this *Whitebit) createConvertTradeBody(ch chan any, id any, fromCode any, 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var fromCurrency map[string]any = MapTyped(this.Currency(fromCode))
-	var toCurrency map[string]any = MapTyped(this.Currency(toCode))
+	var fromCurrency map[string]any = this.Currency(fromCode)
+	var toCurrency map[string]any = this.Currency(toCode)
 	var request map[string]any = map[string]any{
 		"quoteId": id,
 	}
@@ -5156,7 +5156,7 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan any, symbol any, optional
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -5277,7 +5277,7 @@ func (this *Whitebit) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -5441,7 +5441,7 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -5475,7 +5475,7 @@ func (this *Whitebit) ParseFundingRateHistory(info any, optionalArgs ...any) any
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "market")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeTimestamp(info, "fundingTime")
 	return map[string]any{
 		"info":        info,

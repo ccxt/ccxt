@@ -319,7 +319,7 @@ func (this *Bitflyer) ParseExpiryDate(expiry any) any {
 	var month *string = this.SafeString(months, monthName)
 	return this.Parse8601(Add(Add(Add(Add(year+"-", month), "-"), day), "T00:00:00Z"))
 }
-func (this *Bitflyer) SafeMarket(optionalArgs ...any) any {
+func (this *Bitflyer) SafeMarket(optionalArgs ...any) map[string]any {
 	// Bitflyer has a different type of conflict in markets, because
 	// some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
 	// Since they're the same we just need to return one
@@ -639,7 +639,7 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -702,7 +702,7 @@ func (this *Bitflyer) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -761,7 +761,7 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "size")
 	var id *string = this.SafeString(trade, "id")
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"info":         trade,
@@ -808,7 +808,7 @@ func (this *Bitflyer) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -858,7 +858,7 @@ func (this *Bitflyer) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -1069,7 +1069,7 @@ func (this *Bitflyer) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 		"count":        limit,
@@ -1228,7 +1228,7 @@ func (this *Bitflyer) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -1345,7 +1345,7 @@ func (this *Bitflyer) withdrawBody(ch chan any, code any, amount any, address an
 	if (!IsEqual(code, "JPY")) && (!IsEqual(code, "USD")) && (!IsEqual(code, "EUR")) {
 		panic(ExchangeError(Add(Add(this.Id+" allows withdrawing JPY, USD, EUR only, ", code), " is not supported")))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency_code": currency["id"],
 		"amount":        amount,
@@ -1396,7 +1396,7 @@ func (this *Bitflyer) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	if limit != nil {
 		request["count"] = limit // default 100
@@ -1456,7 +1456,7 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	if limit != nil {
 		request["count"] = limit // default 100
@@ -1606,7 +1606,7 @@ func (this *Bitflyer) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}

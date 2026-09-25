@@ -940,7 +940,7 @@ func (this *Blofin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -1007,7 +1007,7 @@ func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "ts")
 	var marketId *string = this.SafeString(ticker, "instId")
-	market = MapTyped(this.SafeMarket(marketId, market, "-"))
+	market = this.SafeMarket(marketId, market, "-")
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
@@ -1070,7 +1070,7 @@ func (this *Blofin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -1107,7 +1107,7 @@ func (this *Blofin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1305,7 +1305,7 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		ch <- BoxAbsent(retRes100519)
 		return nil
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -1379,7 +1379,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
@@ -1457,7 +1457,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		ch <- BoxAbsent(retRes111319)
 		return nil
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -1556,7 +1556,7 @@ func (this *Blofin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "swap") != true {
 		panic(ExchangeError(this.Id + " fetchFundingRate() is only valid for swap markets"))
 	}
@@ -1751,7 +1751,7 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId":    market["id"],
 		"side":      side,
@@ -1897,7 +1897,7 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) any {
 		typeVar = SafeStringPtr("trigger")
 	}
 	var marketId *string = this.SafeString(order, "instId")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeSymbol(marketId, market, "-")
 	var filled *string = this.SafeString(order, "filledSize")
 	var price *string = this.SafeStringN(order, []any{"px", "price", "orderPrice"})
@@ -2008,7 +2008,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var isStopLossPriceDefined bool = (this.SafeString(params, "stopLossPrice") != nil)
 	var isTakeProfitPriceDefined bool = (this.SafeString(params, "takeProfitPrice") != nil)
 	var isTriggerOrder bool = (this.SafeString(params, "triggerPrice") != nil)
@@ -2066,7 +2066,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar any, side any, op
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var hedged *bool = this.SafeBool(params, "hedged", false)
 	var positionSide string = "net"
 	if hedged != nil && *hedged == true {
@@ -2156,7 +2156,7 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -2473,7 +2473,7 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -2539,7 +2539,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -2645,7 +2645,7 @@ func (this *Blofin) withdrawBody(ch chan any, code any, amount any, address any,
 	params = MapTyped(GetValue(tagparamsVariable, 1))
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"address":  address,
@@ -2752,7 +2752,7 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
@@ -2905,7 +2905,7 @@ func (this *Blofin) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	_ = currency
 	var currencyId *string = this.SafeString(item, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	currency = MapTyped(this.SafeCurrency(currencyId, currency))
+	currency = this.SafeCurrency(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(item, "ts")
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
@@ -2971,7 +2971,7 @@ func (this *Blofin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request []any = []any{}
 	var method any = this.HandleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders")
 	var clientOrderIds any = this.ParseIds(this.SafeValue(params, "clientOrderId"))
@@ -3053,7 +3053,7 @@ func (this *Blofin) transferBody(ch chan any, code any, amount any, fromAccount 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -3111,7 +3111,7 @@ func (this *Blofin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -3436,7 +3436,7 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	var instIds any = ""
 	for i := 0; i < GetArrayLength(symbolsList); i++ {
 		var entry *string = SafeStringPtr(GetValue(symbolsList, i))
-		var entryMarket map[string]any = MapTyped(this.Market(entry))
+		var entryMarket map[string]any = this.Market(entry)
 		if i > 0 {
 			instIds = Add(Add(instIds, ","), entryMarket["id"])
 		} else {
@@ -3502,7 +3502,7 @@ func (this *Blofin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 		panic(BadRequest(this.Id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId":     market["id"],
 		"marginMode": marginMode,
@@ -3575,7 +3575,7 @@ func (this *Blofin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("setLeverage", params, "cross")
 	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
@@ -3629,7 +3629,7 @@ func (this *Blofin) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("closePosition", params, "cross")
@@ -3751,7 +3751,7 @@ func (this *Blofin) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountMarginMode(params)).Raw))
 	//

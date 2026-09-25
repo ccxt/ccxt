@@ -508,7 +508,7 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan any, symbol any, optiona
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -537,7 +537,7 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan any, symbol any, optiona
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -613,7 +613,7 @@ func (this *Blockchaincom) fetchTickerBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -759,7 +759,7 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar any,
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var orderType *string = this.SafeString(params, "ordType", typeVar)
 	var uppercaseOrderType string = strings.ToUpper(*orderType)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdId", this.Uuid16())
@@ -1100,7 +1100,7 @@ func (this *Blockchaincom) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(trade, "qty")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var datetime *string = this.Iso8601(timestamp)
-	market = MapTyped(this.SafeMarket(marketId, market, "-"))
+	market = this.SafeMarket(marketId, market, "-")
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
@@ -1198,7 +1198,7 @@ func (this *Blockchaincom) fetchDepositAddressBody(ch chan any, code any, option
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -1343,7 +1343,7 @@ func (this *Blockchaincom) withdrawBody(ch chan any, code any, amount any, addre
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"amount":      amount,
 		"currency":    currency["id"],
@@ -1405,7 +1405,7 @@ func (this *Blockchaincom) fetchWithdrawalsBody(ch chan any, optionalArgs ...any
 	}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWithdrawals(this.Extend(request, params))).Raw))
@@ -1487,7 +1487,7 @@ func (this *Blockchaincom) fetchDepositsBody(ch chan any, optionalArgs ...any) a
 	}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetDeposits(this.Extend(request, params))).Raw))
