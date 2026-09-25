@@ -2344,7 +2344,6 @@ class alpaca extends Exchange {
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $this->implode_hostname($baseApiUrl);
         $headersValue = array();
         if ($headers !== null) {
             $headersValue = $headers;
@@ -2364,7 +2363,7 @@ class alpaca extends Exchange {
                 $headersValue['Content-Type'] = 'application/json';
             }
         }
-        $url = $url . $endpoint;
+        $url = $this->implode_hostname($baseApiUrl) . $endpoint;
         $bodyResolved = ($bodyJson === null) ? $body : $bodyJson;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
     }

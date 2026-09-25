@@ -3736,8 +3736,7 @@ class kraken extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $apiUrl . $url;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $apiUrl . $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function nonce(): float {

@@ -2179,13 +2179,13 @@ class gemini extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $apiUrl . $url;
+        $fullUrl = $apiUrl . $url;
         $headersResolved = ($api === 'private') ? $headersSigned : $headers;
         $bodyResolved = $body;
         if (($method === 'POST') || ($method === 'DELETE')) {
             $bodyResolved = $this->json($query);
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
+        return array( 'url' => $fullUrl, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

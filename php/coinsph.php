@@ -2286,10 +2286,9 @@ class coinsph extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $apiUrl;
         $query = $this->omit($params, $this->extract_params($path));
         $endpoint = $this->implode_params($path, $params);
-        $url = $url . '/' . $endpoint;
+        $url = $apiUrl . '/' . $endpoint;
         if ($api === 'private') {
             $this->check_required_credentials();
             $query['timestamp'] = $this->milliseconds();

@@ -3378,21 +3378,15 @@ class bitrue extends Exchange {
         $type = $this->safe_string($api, 0);
         $version = $this->safe_string($api, 1);
         $access = $this->safe_string($api, 2);
-        $url = null;
-        if (($type === 'api' && $version === 'kline') || ($type === 'open' && mb_strpos($path, 'listenKey') !== false)) {
-            $apiUrl2 = $this->safe_string($this->urls['api'], $type);
-            if ($apiUrl2 === null) {
-                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-            }
-            $url = $apiUrl2;
-        } else {
-            $apiUrl = $this->safe_string($this->urls['api'], $type);
-            if ($apiUrl === null) {
-                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
-            }
-            $url = $apiUrl . '/' . $version;
+        $apiUrl = $this->safe_string($this->urls['api'], $type);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $url . '/' . $this->implode_params($path, $params);
+        $url = $apiUrl;
+        if (!(($type === 'api' && $version === 'kline') || ($type === 'open' && mb_strpos($path, 'listenKey') !== false))) {
+            $url .= '/' . $version;
+        }
+        $url .= '/' . $this->implode_params($path, $params);
         $paramsOmitted = $this->omit($params, $this->extract_params($path));
         if ($access === 'private') {
             $this->check_required_credentials();

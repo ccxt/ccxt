@@ -1950,8 +1950,8 @@ class bitopro extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $apiUrl . $url;
-        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
+        $fullUrl = $apiUrl . $url;
+        return array( 'url' => $fullUrl, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

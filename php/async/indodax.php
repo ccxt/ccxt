@@ -1605,7 +1605,7 @@ class indodax extends Exchange {
         if ($isPublic) {
             $query = $this->omit($params, $this->extract_params($path));
             $requestPath = '/' . $this->implode_params($path, $params);
-            $url = $url . $requestPath;
+            $url .= $requestPath;
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode_with_array_repeat($query);
             }

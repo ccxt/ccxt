@@ -12177,7 +12177,6 @@ class kucoin extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $apiUrl;
         $tradeType = $this->safe_string($query, 'tradeType');
         if (!$this->is_empty($query)) {
             if ((($method === 'GET') || ($method === 'DELETE')) && ($path !== 'orders/multi-cancel')) {
@@ -12191,7 +12190,7 @@ class kucoin extends Exchange {
                 $headersBase['Content-Type'] = 'application/json';
             }
         }
-        $url = $url . $endpoint;
+        $headersResult = $headersBase;
         $isFuturePrivate = ($api === 'futuresPrivate');
         $isPrivate = ($api === 'private');
         $isBroker = ($api === 'broker');
@@ -12233,9 +12232,9 @@ class kucoin extends Exchange {
                     $headersSigned['KC-BROKER-NAME'] = $brokerName;
                 }
             }
-            return array( 'url' => $url, 'method' => $method, 'body' => $bodyJson, 'headers' => $headersSigned );
+            $headersResult = $headersSigned;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyJson, 'headers' => $headersBase );
+        return array( 'url' => $apiUrl . $endpoint, 'method' => $method, 'body' => $bodyJson, 'headers' => $headersResult );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

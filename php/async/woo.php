@@ -3653,8 +3653,8 @@ class woo extends Exchange {
     public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestHeaders = null;
         $requestBody = null;
-        $version = $section[0];
-        $access = $section[1];
+        $version = $this->safe_string($section, 0);
+        $access = $this->safe_string($section, 1);
         $pathWithParams = $this->implode_params($path, $params);
         $baseApiUrl = $this->safe_string($this->urls['api'], $access);
         if ($baseApiUrl === null) {
@@ -3664,7 +3664,7 @@ class woo extends Exchange {
         $url .= '/' . $version . '/';
         $paramsSorted = $this->keysort($this->omit($params, $this->extract_params($path)));
         if ($access === 'public') {
-            $url .= $access . '/' . $pathWithParams;
+            $url .= 'public/' . $pathWithParams;
             if (count($paramsSorted) > 0) {
                 $url .= '?' . $this->urlencode($paramsSorted);
             }

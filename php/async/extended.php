@@ -3763,7 +3763,6 @@ class extended extends Exchange {
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $this->implode_hostname($baseApiUrl);
         if ($accessibility === 'private') {
             // this.checkRequiredCredentials ();
             if ($this->apiKey === null) {
@@ -3777,7 +3776,7 @@ class extended extends Exchange {
                 $requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        $url = $url . '/api/' . $version . $endpoint;
+        $url = $this->implode_hostname($baseApiUrl) . '/api/' . $version . $endpoint;
         if (($method === 'GET' || $method === 'DELETE' || $queryPost) && (count($query) > 0)) {
             $url .= '?' . $this->urlencode_with_array_repeat($query);
         }

@@ -1109,11 +1109,9 @@ class bitbank extends Exchange {
             $requestTime = (string) $this->milliseconds();
             $timeWindow = $this->safe_string($this->options, 'timeWindow', '5000');
             $nonce = (string) $this->incrementing_nonce();
-            $auth = null;
+            $auth = $nonce;
             if ($isTimeWindow) {
                 $auth = $requestTime . $timeWindow;
-            } else {
-                $auth = $nonce;
             }
             $url .= $this->version . '/' . $this->implode_params($path, $params);
             if ($method === 'POST') {

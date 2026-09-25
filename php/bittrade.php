@@ -2058,7 +2058,7 @@ class bittrade extends Exchange {
         $requestBody = null;
         $url = '/';
         if ($api === 'market') {
-            $url .= $api;
+            $url .= 'market';
         } elseif (($api === 'public') || ($api === 'private')) {
             $url .= $this->version;
         } elseif (($api === 'v2Public') || ($api === 'v2Private')) {
