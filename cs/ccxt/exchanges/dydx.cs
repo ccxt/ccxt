@@ -1504,7 +1504,7 @@ public partial class dydx : Exchange
         return r;
     }
 
-    public virtual List<object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual List<object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -1516,13 +1516,13 @@ public partial class dydx : Exchange
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        string orderType = ((string)type).ToUpper();
+        string orderType = type.ToUpper();
         Dictionary<string, object> market = this.market(symbol);
         if ((side == null))
         {
             throw new ArgumentsRequired ((this.id + " createOrderRequest() requires a side argument")) ;
         }
-        string orderSide = ((string)side).ToUpper();
+        string orderSide = side.ToUpper();
         object subaccountId = 0;
         IList<object> subaccountIdparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "createOrder", "subAccountId", subaccountId);
         subaccountId = subaccountIdparametersVariable[0];

@@ -1103,7 +1103,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		if marketId != nil {
-			ccxt.AddElementToObject(subscription, marketId, true)
+			subscription[*marketId] = true
 		}
 		marketIds = []any{marketId}
 		if isNested == true {

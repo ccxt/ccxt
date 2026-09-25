@@ -3584,7 +3584,7 @@ func (this *Krakenfutures) ParseBalance(response any) any {
 			account["total"] = this.SafeString(auxiliary, "pv")
 		}
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

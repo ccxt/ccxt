@@ -1118,7 +1118,7 @@ func (this *Woofipro) ParseCurrency(rawCurrency any) any {
 		var networkName *string = this.SafeString(networkRow, "name", networkId)
 		var networkCode *string = this.NetworkIdToCode(networkName, code)
 		if networkCode != nil {
-			AddElementToObject(resultingNetworks, networkCode, map[string]any{
+			resultingNetworks[*networkCode] = map[string]any{
 				"id":      networkId,
 				"network": networkCode,
 				"limits": map[string]any{
@@ -1140,7 +1140,7 @@ func (this *Woofipro) ParseCurrency(rawCurrency any) any {
 					"network":    networkEntry,
 					"networkRow": networkRow,
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -3520,7 +3520,7 @@ func (this *Woofipro) ParseBalance(response any) any {
 		account["total"] = this.SafeString(balance, "holding")
 		account["used"] = this.SafeString(balance, "frozen")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

@@ -2776,7 +2776,7 @@ func (this *Bybit) ParseCurrency(currency any) any {
 		var networkId *string = this.SafeString(chain, "chain")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"info":      chain,
 				"id":        networkId,
 				"network":   networkCode,
@@ -2795,7 +2795,7 @@ func (this *Bybit) ParseCurrency(currency any) any {
 						"max": nil,
 					},
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -4853,7 +4853,7 @@ func (this *Bybit) ParseBalance(response any) any {
 					var currencyId *string = this.SafeString(coinEntry, "coin")
 					var code *string = this.SafeCurrencyCode(currencyId)
 					if code != nil {
-						AddElementToObject(result, code, account)
+						result[*code] = account
 					}
 				}
 			} else {
@@ -4869,7 +4869,7 @@ func (this *Bybit) ParseBalance(response any) any {
 				var currencyId *string = this.SafeStringN(entry, []any{"tokenId", "coin", "currencyCoin"})
 				var code *string = this.SafeCurrencyCode(currencyId)
 				if code != nil {
-					AddElementToObject(result, code, account)
+					result[*code] = account
 				}
 			}
 		}
@@ -11969,7 +11969,7 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) 
 		var inactive bool = (disableFrom != nil && *disableFrom == true) || (disableTo != nil && *disableTo == true)
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {
-			AddElementToObject(result, code, map[string]any{
+			result[*code] = map[string]any{
 				"info":      entry,
 				"id":        id,
 				"code":      code,
@@ -11996,7 +11996,7 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) 
 					},
 				},
 				"created": nil,
-			})
+			}
 		}
 	}
 

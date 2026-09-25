@@ -1233,7 +1233,7 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 		var network *string = this.NetworkIdToCode(networkId, code)
 		var dwStatuses []any = SafeListTyped(indexed["statuses"], networkId)
 		if network != nil {
-			AddElementToObject(networks, network, map[string]any{
+			networks[*network] = map[string]any{
 				"info":      networkId,
 				"id":        strings.ToLower(*networkId),
 				"network":   networkId,
@@ -1248,7 +1248,7 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 						"max": nil,
 					},
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1335,7 +1335,7 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			account["total"] = this.SafeString(balance, 2)
 			account["free"] = this.SafeString(balance, 4)
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 	}

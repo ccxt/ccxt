@@ -754,7 +754,7 @@ public partial class myriad : PredictionExchange
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    public async virtual Task<Dictionary<string, object>> FetchTradeQuote(object outcome, object side, double amount, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchTradeQuote(object outcome, string? side, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -763,7 +763,7 @@ public partial class myriad : PredictionExchange
         string? networkId = this.safeString(info, "networkId");
         string? marketId = this.safeString(info, "marketId");
         Int64? outcomeId = this.safeInteger(info, "outcomeId");
-        string sideStr = ((string)side).ToLower();
+        string sideStr = side.ToLower();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market_id", this.parseToInt(marketId) },
             { "network_id", this.parseToInt(networkId) },
@@ -1052,7 +1052,7 @@ public partial class myriad : PredictionExchange
      * @description builds and EIP-712 signs a single order-book order; shared by createOrder and createOrders
      * @returns {object} a dict with the signed order, signature, timeInForce and networkId
      */
-    public virtual Dictionary<string, object> buildOrderbookOrder(object outcome, object type, object side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> buildOrderbookOrder(object outcome, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.privateKey == null))
@@ -1065,8 +1065,8 @@ public partial class myriad : PredictionExchange
         string? marketId = this.safeString(info, "marketId");
         Int64? outcomeId = this.safeInteger(info, "outcomeId", 0);
         string trader = this.ethGetAddressFromPrivateKey(this.privateKey);
-        string typeStr = ((type == null)) ? "limit" : ((string)type).ToLower();
-        string sideStr = ((string)side).ToLower();
+        string typeStr = ((type == null)) ? "limit" : type.ToLower();
+        string sideStr = side.ToLower();
         int sideInt = (sideStr == "buy") ? 0 : 1;
         bool isMarket = (typeStr == "market");
         string defaultTif = "GTC";
@@ -2344,7 +2344,7 @@ public partial class myriad : PredictionExchange
         return Precise.stringDiv(decimalString, scale);
     }
 
-    public virtual object parseTradeTx(object txHash, object quote, object market, object side)
+    public virtual object parseTradeTx(object txHash, object quote, object market, string? side)
     {
         return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", txHash },

@@ -3159,7 +3159,7 @@ func (this *Okx) ParseCurrency(currency any) any {
 		var chainPart string = Join(parts, "-")
 		var networkCode *string = this.NetworkIdToCode(chainPart, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"id":        networkId,
 				"network":   networkCode,
 				"active":    nil,
@@ -3174,7 +3174,7 @@ func (this *Okx) ParseCurrency(currency any) any {
 					},
 				},
 				"info": chain,
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -4159,7 +4159,7 @@ func (this *Okx) ParseTradingBalance(response any) any {
 			account["free"] = availEq
 		}
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	result["timestamp"] = timestamp
@@ -4181,7 +4181,7 @@ func (this *Okx) ParseFundingBalance(response any) any {
 		account["free"] = this.SafeString(balance, "availBal")
 		account["used"] = this.SafeString(balance, "frozenBal")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -11690,7 +11690,7 @@ func (this *Okx) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) an
 		var id *string = this.SafeString(entry, "ccy")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {
-			AddElementToObject(result, code, map[string]any{
+			result[*code] = map[string]any{
 				"info":      entry,
 				"id":        id,
 				"code":      code,
@@ -11717,7 +11717,7 @@ func (this *Okx) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) an
 					},
 				},
 				"created": nil,
-			})
+			}
 		}
 	}
 

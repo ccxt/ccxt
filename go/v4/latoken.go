@@ -798,7 +798,7 @@ func (this *Latoken) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		account["free"] = this.SafeString(balance, "available")
 		account["used"] = this.SafeString(balance, "blocked")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	result["timestamp"] = maxTimestamp

@@ -2497,7 +2497,7 @@ public partial class polymarket : PredictionExchange
      * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
      * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
      */
-    public virtual Dictionary<string, object> buildClobOrderBody(object outcome, object type, object side, double? amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> buildClobOrderBody(object outcome, string? type, string? side, double? amount, object price = null, object parameters = null)
     {
         // pure builder, no network I/O — intentionally synchronous. a no-op async method
         // transpiles in php to a promise-typed wrapper around a body that returns a plain
@@ -2506,8 +2506,8 @@ public partial class polymarket : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         string? tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
-        string sideStr = ((string)side).ToUpper();
-        bool isMarket = (isEqual(type, "market"));
+        string sideStr = side.ToUpper();
+        bool isMarket = ((type == "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
         // native override: params.orderType (GTC, GTD, FOK or FAK)
         string? orderTypeStr = this.safeStringUpper(parameters, "orderType");

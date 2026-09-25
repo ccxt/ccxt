@@ -771,7 +771,7 @@ func (this *Bitteam) ParseCurrency(currency any) any {
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var networkFee *float64 = this.SafeNumber(feesByNetworkId, networkId)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"id":        networkId,
 				"network":   networkCode,
 				"deposit":   deposit,
@@ -794,7 +794,7 @@ func (this *Bitteam) ParseCurrency(currency any) any {
 					},
 				},
 				"info": currency,
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -2519,11 +2519,11 @@ func (this *Bitteam) ParseBalance(response any) any {
 		var total *string = this.SafeString(currencyBalance, "total")
 		var currencyCode *string = this.SafeCurrencyCode(strings.ToLower(rawCurrencyId))
 		if currencyCode != nil {
-			AddElementToObject(balance, currencyCode, map[string]any{
+			balance[*currencyCode] = map[string]any{
 				"free":  free,
 				"used":  used,
 				"total": total,
-			})
+			}
 		}
 	}
 	return this.SafeBalance(balance)

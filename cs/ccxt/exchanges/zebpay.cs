@@ -1281,10 +1281,10 @@ public partial class zebpay : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual List<object> orderRequest(string? symbol, object type, object amount, object request, object price = null, object parameters = null)
+    public virtual List<object> orderRequest(string? symbol, string? type, object amount, object request, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string upperCaseType = ((string)type).ToUpper();
+        string upperCaseType = type.ToUpper();
         string? triggerPrice = this.safeString(parameters, "stopLossPrice");
         string? quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost", null);
         string? timeInForce = this.safeString(parameters, "timeInForce", "GTC");

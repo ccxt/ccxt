@@ -7223,7 +7223,7 @@ func (this *Bitget) ParseUtaBalance(balance any) any {
 		account["free"] = this.SafeString(entry, "available")
 		account["total"] = this.SafeString2(entry, "equity", "balance")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -7305,7 +7305,7 @@ func (this *Bitget) ParseBalance(balance any) any {
 			}
 		}
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -14885,7 +14885,7 @@ func (this *Bitget) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any)
 		var id *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {
-			AddElementToObject(result, code, map[string]any{
+			result[*code] = map[string]any{
 				"info":      entry,
 				"id":        id,
 				"code":      code,
@@ -14912,7 +14912,7 @@ func (this *Bitget) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any)
 					},
 				},
 				"created": nil,
-			})
+			}
 		}
 	}
 

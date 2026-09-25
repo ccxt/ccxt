@@ -783,7 +783,7 @@ func (this *Btcmarkets) ParseBalance(response any) any {
 		account["used"] = this.SafeString(balance, "locked")
 		account["total"] = this.SafeString(balance, "balance")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

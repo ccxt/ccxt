@@ -932,7 +932,7 @@ func (this *Cryptocom) ParseCurrency(currency any) any {
 		var networkId *string = this.SafeString(chain, "network_id")
 		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
-			AddElementToObject(networks, network, map[string]any{
+			networks[*network] = map[string]any{
 				"info":      chain,
 				"id":        networkId,
 				"network":   network,
@@ -947,7 +947,7 @@ func (this *Cryptocom) ParseCurrency(currency any) any {
 						"max": nil,
 					},
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1695,7 +1695,7 @@ func (this *Cryptocom) ParseBalance(response any) any {
 		account["total"] = this.SafeString(balance, "quantity")
 		account["used"] = this.SafeString(balance, "reserved_qty")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -2841,13 +2841,13 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code any,
 		var networkId *string = this.SafeString(value, "network")
 		var network *string = this.NetworkIdToCode(networkId, responseCode)
 		if network != nil {
-			AddElementToObject(result, network, map[string]any{
+			result[*network] = map[string]any{
 				"info":     value,
 				"currency": responseCode,
 				"network":  network,
 				"address":  address,
 				"tag":      tag,
-			})
+			}
 		}
 	}
 

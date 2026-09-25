@@ -3472,7 +3472,7 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 		var parsedTicker map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, tickerMarketType))
 		var symbol *string = ccxt.SafeStringPtr(parsedTicker["symbol"])
 		if symbol != nil {
-			ccxt.AddElementToObject(newTickers, symbol, parsedTicker)
+			newTickers[*symbol] = parsedTicker
 		}
 		if isBidAsk {
 			if symbol != nil {

@@ -782,7 +782,7 @@ func (this *Upbit) ParseBalance(response any) any {
 		account["free"] = this.SafeString(balance, "balance")
 		account["used"] = this.SafeString(balance, "locked")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -1434,7 +1434,7 @@ func (this *Upbit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		element["info"] = GetValue(fetchMarketResponse, i)
 		var feeSymbol *string = this.SafeString(GetValue(fetchMarketResponse, i), "symbol")
 		if feeSymbol != nil {
-			AddElementToObject(response, feeSymbol, element)
+			response[*feeSymbol] = element
 		}
 	}
 

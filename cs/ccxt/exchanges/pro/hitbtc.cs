@@ -163,7 +163,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [symbol] unified CCXT symbol
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    public async virtual Task<object> subscribePrivate(object name, object symbol = null, object parameters = null)
+    public async virtual Task<object> subscribePrivate(string? name, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -172,7 +172,7 @@ public partial class hitbtc : ccxt.hitbtc
         }
         await this.authenticate();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
-        List<object> splitName = ((string)name).Split(new [] {"_subscribe"}, StringSplitOptions.None).ToList<object>();
+        List<object> splitName = name.Split(new [] {"_subscribe"}, StringSplitOptions.None).ToList<object>();
         object messageHash = this.safeString(splitName, 0, "");
         if ((symbol != null))
         {

@@ -539,7 +539,7 @@ func (this *Independentreserve) ParseBalance(response any) any {
 		account["free"] = this.SafeString(balance, "AvailableBalance")
 		account["total"] = this.SafeString(balance, "TotalBalance")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -1193,10 +1193,10 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var tradingFee *float64 = this.SafeNumber(fee, "Fee")
 		if code != nil {
-			AddElementToObject(fees, code, map[string]any{
+			fees[*code] = map[string]any{
 				"info": fee,
 				"fee":  tradingFee,
-			})
+			}
 		}
 	}
 	var result map[string]any = map[string]any{}

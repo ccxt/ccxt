@@ -1553,7 +1553,7 @@ func (this *Mexc) ParseCurrency(rawCurrency any) any {
 		var networkId *string = this.SafeString2(chain, "netWork", "network")
 		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
-			AddElementToObject(networks, network, map[string]any{
+			networks[*network] = map[string]any{
 				"info":      chain,
 				"id":        networkId,
 				"network":   network,
@@ -1569,7 +1569,7 @@ func (this *Mexc) ParseCurrency(rawCurrency any) any {
 					},
 				},
 				"contract": this.SafeString(chain, "contract"),
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{

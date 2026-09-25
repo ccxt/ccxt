@@ -613,7 +613,7 @@ func (this *Bigone) ParseCurrency(rawCurrency any) any {
 		var withdrawalFee *string = this.SafeString(chain, "withdrawal_fee")
 		var precision any = this.ParsePrecision(this.SafeString2(chain, "withdrawal_scale", "scale"))
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"id":        networkId,
 				"network":   networkCode,
 				"margin":    nil,
@@ -633,7 +633,7 @@ func (this *Bigone) ParseCurrency(rawCurrency any) any {
 					},
 				},
 				"info": chain,
-			})
+			}
 		}
 	}
 	var chainLength int = len(chains)
@@ -1627,7 +1627,7 @@ func (this *Bigone) ParseBalance(response any) any {
 		account["total"] = this.SafeString(balance, "balance")
 		account["used"] = this.SafeString(balance, "locked_balance")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

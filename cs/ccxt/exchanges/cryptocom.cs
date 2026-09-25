@@ -1676,7 +1676,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -1688,10 +1688,10 @@ public partial class cryptocom : Exchange
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = type.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
-            { "side", ((string)side).ToUpper() },
+            { "side", side.ToUpper() },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
         if ((uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT"))
@@ -1750,7 +1750,7 @@ public partial class cryptocom : Exchange
             string? priceString = this.numberToString(price);
             if ((uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT"))
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     if (Precise.stringLt(priceString, triggerPrice))
                     {
@@ -1771,7 +1771,7 @@ public partial class cryptocom : Exchange
                 }
             } else
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     if (Precise.stringLt(priceString, triggerPrice))
                     {
@@ -1951,7 +1951,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(result));
     }
 
-    public virtual Dictionary<string, object> createAdvancedOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createAdvancedOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -1967,10 +1967,10 @@ public partial class cryptocom : Exchange
         // namely here we don't support ref_price or spot_margin
         // and market-buy orders need to send notional instead of quantity
         Dictionary<string, object> market = this.market(symbol);
-        string uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = type.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
-            { "side", ((string)side).ToUpper() },
+            { "side", side.ToUpper() },
         };
         if ((uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT"))
         {
@@ -2012,7 +2012,7 @@ public partial class cryptocom : Exchange
             string? priceString = this.numberToString(price);
             if ((uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT"))
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     if (Precise.stringLt(priceString, triggerPrice))
                     {
@@ -2033,7 +2033,7 @@ public partial class cryptocom : Exchange
                 }
             } else
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     if (Precise.stringLt(priceString, triggerPrice))
                     {
@@ -2075,7 +2075,7 @@ public partial class cryptocom : Exchange
         {
             request["type"] = uppercaseType;
         }
-        if ((isEqual(side, "buy")) && ((uppercaseType == "MARKET") || (uppercaseType == "STOP_LOSS") || (uppercaseType == "TAKE_PROFIT")))
+        if (((side == "buy")) && ((uppercaseType == "MARKET") || (uppercaseType == "STOP_LOSS") || (uppercaseType == "TAKE_PROFIT")))
         {
             // use createmarketBuy logic here
             string? quoteAmount = null;

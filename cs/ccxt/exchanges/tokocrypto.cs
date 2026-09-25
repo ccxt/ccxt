@@ -1724,7 +1724,7 @@ public partial class tokocrypto : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceCustom(response, type, marginMode));
     }
 
-    public virtual object parseBalanceCustom(object response, object type = null, object marginMode = null)
+    public virtual object parseBalanceCustom(object response, string? type = null, string? marginMode = null)
     {
         Int64? timestamp = this.safeInteger(response, "updateTime");
         Dictionary<string, object> result = new Dictionary<string, object>() {

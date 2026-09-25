@@ -1342,7 +1342,7 @@ func (this *Poloniex) HandleTicker(client any, message map[string]any) any {
 				ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 			}
 			if symbol != nil {
-				ccxt.AddElementToObject(newTickers, symbol, ticker)
+				newTickers[*symbol] = ticker
 			}
 		}
 	}
@@ -1519,7 +1519,7 @@ func (this *Poloniex) ParseWsBalance(response []any) any {
 		newAccount["free"] = this.SafeString(balance, "available")
 		newAccount["used"] = this.SafeString(balance, "hold")
 		if code != nil {
-			ccxt.AddElementToObject(result, code, newAccount)
+			result[*code] = newAccount
 		}
 	}
 	return this.SafeBalance(result)

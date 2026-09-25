@@ -1126,7 +1126,7 @@ func (this *Onetrading) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}()))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
-			AddElementToObject(result, symbol, ticker)
+			result[*symbol] = ticker
 		}
 	}
 
@@ -1441,7 +1441,7 @@ func (this *Onetrading) ParseBalance(response any) any {
 		account["free"] = this.SafeString(balance, "available")
 		account["used"] = this.SafeString(balance, "locked")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

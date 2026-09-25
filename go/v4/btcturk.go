@@ -460,7 +460,7 @@ func (this *Btcturk) ParseBalance(response any) any {
 		account["free"] = this.SafeString(entry, "free")
 		account["used"] = this.SafeString(entry, "locked")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

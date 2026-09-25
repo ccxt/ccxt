@@ -539,7 +539,7 @@ func (this *Luno) ParseCurrency(rawCurrency any) any {
 		var networkId *string = this.SafeString(networkEntry, "name")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"id":      networkId,
 				"network": networkCode,
 				"limits": map[string]any{
@@ -558,7 +558,7 @@ func (this *Luno) ParseCurrency(rawCurrency any) any {
 				"fee":       nil,
 				"precision": nil,
 				"info":      networkEntry,
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{

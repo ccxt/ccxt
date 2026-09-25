@@ -4250,7 +4250,7 @@ public partial class okx : Exchange
         return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -4264,13 +4264,13 @@ public partial class okx : Exchange
         Dictionary<string, object> market = this.market(symbol);
         object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
         object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
-        bool conditional = ((stopLossPrice != null)) || ((takeProfitPrice != null)) || (isEqual(type, "conditional"));
+        bool conditional = ((stopLossPrice != null)) || ((takeProfitPrice != null)) || ((type == "conditional"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side },
             { "ordType", type },
         };
-        bool isConditionalOrOCO = conditional || (isEqual(type, "oco"));
+        bool isConditionalOrOCO = conditional || ((type == "oco"));
         string? closeFraction = this.safeString(parameters, "closeFraction");
         bool shouldOmitSize = isConditionalOrOCO && (closeFraction != null);
         if (!shouldOmitSize)
@@ -4296,7 +4296,7 @@ public partial class okx : Exchange
         bool isTrailingPercentOrder = (trailingPercent != null);
         string? trailingPrice = this.safeString2(parameters, "trailingPrice", "callbackSpread");
         bool isTrailingPriceOrder = (trailingPrice != null);
-        bool trigger = ((triggerPrice != null)) || (isEqual(type, "trigger"));
+        bool trigger = ((triggerPrice != null)) || ((type == "trigger"));
         bool isReduceOnly = ((this.safeBool(parameters, "reduceOnly", false) == true)) || ((closeFraction != null));
         string? defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
         string? marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not omitted so as to be extended into the request
@@ -4313,7 +4313,7 @@ public partial class okx : Exchange
         {
             if ((margin == true))
             {
-                object defaultCurrency = (isEqual(side, "buy")) ? (market.ContainsKey("quote") ? market["quote"] : null) : (market.ContainsKey("base") ? market["base"] : null);
+                object defaultCurrency = ((side == "buy")) ? (market.ContainsKey("quote") ? market["quote"] : null) : (market.ContainsKey("base") ? market["base"] : null);
                 string? currency = this.safeString(parameters, "ccy", defaultCurrency);
                 request["ccy"] = this.safeCurrencyCode(currency);
             }
@@ -4338,7 +4338,7 @@ public partial class okx : Exchange
                     parameters = hedgedparametersVariable[1];
                     if ((hedged == true))
                     {
-                        bool isBuy = (isEqual(side, "buy"));
+                        bool isBuy = ((side == "buy"));
                         bool isProtective = ((takeProfitPrice != null)) || ((stopLossPrice != null)) || isReduceOnly;
                         if (isProtective)
                         {
@@ -4358,16 +4358,16 @@ public partial class okx : Exchange
             }
             request["tdMode"] = marginMode;
         }
-        bool isMarketOrder = isEqual(type, "market");
+        bool isMarketOrder = (type == "market");
         bool? postOnly = false;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, isEqual(type, "post_only"), parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, (type == "post_only"), parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         parameters = this.omit(parameters, new List<object>() {"currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent"});
-        bool ioc = (timeInForce == "IOC") || (isEqual(type, "ioc"));
-        bool fok = (timeInForce == "FOK") || (isEqual(type, "fok"));
+        bool ioc = (timeInForce == "IOC") || ((type == "ioc"));
+        bool fok = (timeInForce == "FOK") || ((type == "fok"));
         // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
-        bool marketIOC = (isMarketOrder && ioc) || (isEqual(type, "optimal_limit_ioc"));
+        bool marketIOC = (isMarketOrder && ioc) || ((type == "optimal_limit_ioc"));
         string? defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
         string? tgtCcy = this.safeString(parameters, "tgtCcy", defaultTgtCcy);
         if (((contract != true)) && ((margin != true)))
@@ -4377,7 +4377,7 @@ public partial class okx : Exchange
         if (isMarketOrder || marketIOC)
         {
             request["ordType"] = "market";
-            if (((spot == true)) && (isEqual(side, "buy")))
+            if (((spot == true)) && ((side == "buy")))
             {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
@@ -4570,7 +4570,7 @@ public partial class okx : Exchange
             {
                 request["ordType"] = "oco";
             }
-            if (isEqual(side, "sell"))
+            if ((side == "sell"))
             {
                 request = this.omit(request, "tgtCcy");
             }
@@ -4757,7 +4757,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data));
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -4765,7 +4765,7 @@ public partial class okx : Exchange
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         bool? isAlgoOrder = null;
-        if ((isEqual(type, "trigger")) || (isEqual(type, "conditional")) || (isEqual(type, "move_order_stop")) || (isEqual(type, "oco")) || (isEqual(type, "iceberg")) || (isEqual(type, "twap")))
+        if (((type == "trigger")) || ((type == "conditional")) || ((type == "move_order_stop")) || ((type == "oco")) || ((type == "iceberg")) || ((type == "twap")))
         {
             isAlgoOrder = true;
         }
@@ -4812,7 +4812,7 @@ public partial class okx : Exchange
                     throw new BadRequest ((this.id + " editOrder() requires a newSlOrdPx parameter for editing an algo order")) ;
                 }
                 request["newSlTriggerPx"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                request["newSlOrdPx"] = (isEqual(type, "market")) ? "-1" : this.priceToPrecision(symbol, stopLossPrice);
+                request["newSlOrdPx"] = ((type == "market")) ? "-1" : this.priceToPrecision(symbol, stopLossPrice);
                 request["newSlTriggerPxType"] = stopLossTriggerPriceType;
             }
             if ((takeProfitTriggerPrice != null))
@@ -4822,7 +4822,7 @@ public partial class okx : Exchange
                     throw new BadRequest ((this.id + " editOrder() requires a newTpOrdPx parameter for editing an algo order")) ;
                 }
                 request["newTpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                request["newTpOrdPx"] = (isEqual(type, "market")) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice);
+                request["newTpOrdPx"] = ((type == "market")) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice);
                 request["newTpTriggerPxType"] = takeProfitTriggerPriceType;
             }
         } else
@@ -4830,13 +4830,13 @@ public partial class okx : Exchange
             if ((stopLossTriggerPrice != null))
             {
                 request["newSlTriggerPx"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                request["newSlOrdPx"] = (isEqual(type, "market")) ? "-1" : this.priceToPrecision(symbol, stopLossPrice);
+                request["newSlOrdPx"] = ((type == "market")) ? "-1" : this.priceToPrecision(symbol, stopLossPrice);
                 request["newSlTriggerPxType"] = stopLossTriggerPriceType;
             }
             if ((takeProfitTriggerPrice != null))
             {
                 request["newTpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                request["newTpOrdPx"] = (isEqual(type, "market")) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice);
+                request["newTpOrdPx"] = ((type == "market")) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice);
                 request["newTpTriggerPxType"] = takeProfitTriggerPriceType;
             }
             if (hasStopLoss)

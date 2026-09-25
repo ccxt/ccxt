@@ -448,7 +448,7 @@ func (this *Cex) ParseCurrency(rawCurrency any) any {
 		var deposit bool = (this.SafeString(rawNetwork, "deposit") != nil && *this.SafeString(rawNetwork, "deposit") == "enabled")
 		var withdraw bool = (this.SafeString(rawNetwork, "withdrawal") != nil && *this.SafeString(rawNetwork, "withdrawal") == "enabled")
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"id":        networkId,
 				"network":   networkCode,
 				"margin":    nil,
@@ -468,7 +468,7 @@ func (this *Cex) ParseCurrency(rawCurrency any) any {
 					},
 				},
 				"info": rawNetwork,
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1234,7 +1234,7 @@ func (this *Cex) ParseBalance(response any) any {
 			"total": this.SafeString(balance, "balance"),
 		}
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

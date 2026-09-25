@@ -680,7 +680,7 @@ func (this *Bitbns) ParseBalance(response any) any {
 			}
 			var code *string = this.SafeCurrencyCode(currencyId)
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 	}

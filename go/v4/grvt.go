@@ -1885,7 +1885,7 @@ func (this *Grvt) ParseBalance(response any) any {
 		account["total"] = this.SafeString(balance, "balance")
 		account["free"] = availableBalance // todo: revise after API team clarification
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

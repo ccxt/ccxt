@@ -418,11 +418,11 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the place_order execute
      */
-    public async virtual Task<Dictionary<string, object>> CreateOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(type, "limit"))
+        if (!(type == "limit"))
         {
             throw new InvalidOrder ((this.id + " createOrder() supports limit orders only")) ;
         }
@@ -435,7 +435,7 @@ public partial class nado : Exchange
         string? amountString = this.amountToPrecision(symbol, amount);
         string? priceX18 = this.convertToX18(priceString);
         string? amountX18 = this.convertToX18(amountString);
-        if (isEqual(side, "sell"))
+        if ((side == "sell"))
         {
             amountX18 = Precise.stringMul(amountX18, "-1");
         }
@@ -473,7 +473,7 @@ public partial class nado : Exchange
         {
             placeOrder["spot_leverage"] = spotLeverage;
         }
-        bool isBuy = (isEqual(side, "buy"));
+        bool isBuy = ((side == "buy"));
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         string? stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
         string? takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
@@ -607,11 +607,11 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_and_place execute
      */
-    public async virtual Task<Dictionary<string, object>> EditOrderRequest(string? id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> EditOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(type, "limit"))
+        if (!(type == "limit"))
         {
             throw new InvalidOrder ((this.id + " editOrder() supports limit orders only")) ;
         }
@@ -633,7 +633,7 @@ public partial class nado : Exchange
         string? amountString = this.amountToPrecision(symbol, amount);
         string? priceX18 = this.convertToX18(priceString);
         string? amountX18 = this.convertToX18(amountString);
-        if (isEqual(side, "sell"))
+        if ((side == "sell"))
         {
             amountX18 = Precise.stringMul(amountX18, "-1");
         }

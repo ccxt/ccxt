@@ -5720,7 +5720,7 @@ public partial class hyperliquid : Exchange
         return this.safeValue(config, "cost", 1);
     }
 
-    public virtual List<object> parseCreateEditOrderArgs(object id, object symbol, object type, object side, double? amount, double? price = null, object parameters = null)
+    public virtual List<object> parseCreateEditOrderArgs(object id, object symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);

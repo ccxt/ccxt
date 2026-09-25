@@ -2668,7 +2668,7 @@ public partial class gate : ccxt.gate
         return await this.watchMultiple(url, messageHashes, message, messageHashes, sub);
     }
 
-    public async virtual Task<object> authenticate(object url, object messageType)
+    public async virtual Task<object> authenticate(string? url, object messageType)
     {
         object channel = add(messageType, ".login");
         var client = this.client(url);

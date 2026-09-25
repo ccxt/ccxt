@@ -527,7 +527,7 @@ func (this *Indodax) ParseBalance(response any) any {
 		account["free"] = this.SafeString(free, currencyId)
 		account["used"] = this.SafeString(used, currencyId)
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -1840,13 +1840,13 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 			}
 			var finalNetwork any = network // java req
 			if code != nil {
-				AddElementToObject(result, code, map[string]any{
+				result[*code] = map[string]any{
 					"info":     map[string]any{},
 					"currency": code,
 					"network":  finalNetwork,
 					"address":  address,
 					"tag":      nil,
-				})
+				}
 			}
 		}
 	}

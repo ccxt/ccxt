@@ -1176,7 +1176,7 @@ func (this *Bitopro) ParseBalance(response any) any {
 			"total": amount,
 		}
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

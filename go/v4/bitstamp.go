@@ -2085,7 +2085,7 @@ func (this *Bitstamp) ParseBalance(response any) any {
 		account["used"] = this.SafeString(currencyBalance, "reserved")
 		account["total"] = this.SafeString(currencyBalance, "total")
 		if currencyCode != nil {
-			AddElementToObject(result, currencyCode, account)
+			result[*currencyCode] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -2310,11 +2310,11 @@ func (this *Bitstamp) ParseTransactionFees(response any, optionalArgs ...any) ma
 			continue
 		}
 		if code != nil {
-			AddElementToObject(result, code, map[string]any{
+			result[*code] = map[string]any{
 				"withdraw_fee": this.SafeNumber(fees, "fee"),
 				"deposit":      map[string]any{},
 				"info":         this.SafeDict(currencies, id),
-			})
+			}
 		}
 	}
 	return result

@@ -2747,14 +2747,14 @@ public partial class hitbtc : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual List<object> createOrderRequest(IDictionary<string, object> market, object marketType, object type, object side, object amount, object price = null, object marginMode = null, object parameters = null)
+    public virtual List<object> createOrderRequest(IDictionary<string, object> market, object marketType, string? type, string? side, object amount, object price = null, object marginMode = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        bool isLimit = (isEqual(type, "limit"));
+        bool isLimit = ((type == "limit"));
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         string? timeInForce = this.safeString(parameters, "timeInForce");
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
-        bool isPostOnly = this.isPostOnly(isEqual(type, "market"), null, parameters);
+        bool isPostOnly = this.isPostOnly((type == "market"), null, parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", type },
             { "side", side },
@@ -2780,7 +2780,7 @@ public partial class hitbtc : Exchange
         {
             request["time_in_force"] = timeInForce;
         }
-        if (isLimit || (isEqual(type, "stopLimit")) || (isEqual(type, "takeProfitLimit")))
+        if (isLimit || ((type == "stopLimit")) || ((type == "takeProfitLimit")))
         {
             if ((price == null))
             {
@@ -2802,11 +2802,11 @@ public partial class hitbtc : Exchange
             if (isLimit)
             {
                 request["type"] = "stopLimit";
-            } else if (isEqual(type, "market"))
+            } else if ((type == "market"))
             {
                 request["type"] = "stopMarket";
             }
-        } else if ((isEqual(type, "stopLimit")) || (isEqual(type, "stopMarket")) || (isEqual(type, "takeProfitLimit")) || (isEqual(type, "takeProfitMarket")))
+        } else if (((type == "stopLimit")) || ((type == "stopMarket")) || ((type == "takeProfitLimit")) || ((type == "takeProfitMarket")))
         {
             throw new ExchangeError ((this.id + " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")) ;
         }

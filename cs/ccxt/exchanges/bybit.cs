@@ -5356,22 +5356,23 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null, object isUTA = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null, object isUTA = null)
     {
         object symbolVar = symbol;
+        string? sideVar = side;
         parameters ??= new Dictionary<string, object>();
         isUTA ??= true;
         if ((type == null))
         {
             throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
-        if ((side == null))
+        if ((sideVar == null))
         {
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        string lowerCaseType = ((string)type).ToLower();
+        string lowerCaseType = type.ToLower();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -5392,7 +5393,7 @@ public partial class bybit : Exchange
         bool hasTakeProfit = (takeProfit != null);
         bool isMarket = lowerCaseType == "market";
         bool isLimit = lowerCaseType == "limit";
-        bool isBuy = isEqual(side, "buy");
+        bool isBuy = isEqual(sideVar, "buy");
         bool switchToOco = (isStopLossOrder && isTakeProfitOrder) || (this.safeBool(parameters, "tradingStopEndpoint", false) == true);
         string? defaultMethod = null;
         if (isTrailingOrder || ((switchToOco == true)))
@@ -5489,7 +5490,7 @@ public partial class bybit : Exchange
             }
         } else
         {
-            request["side"] = this.capitalize(side);
+            request["side"] = this.capitalize(sideVar);
             request["orderType"] = this.capitalize(lowerCaseType);
             string? timeInForce = this.safeStringLower(parameters, "timeInForce"); // this is same as exchange specific param
             bool? postOnly = null;
@@ -5542,7 +5543,7 @@ public partial class bybit : Exchange
         string? cost = this.safeString(parameters, "cost");
         parameters = this.omit(parameters, "cost");
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
-        bool isMarketBuyAndCostInferable = (lowerCaseType == "market") && (isEqual(side, "buy")) && (((price != null)) || ((cost != null)));
+        bool isMarketBuyAndCostInferable = (lowerCaseType == "market") && (isEqual(sideVar, "buy")) && (((price != null)) || ((cost != null)));
         bool isMarketOrder = lowerCaseType == "market";
         if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && isMarketOrder && isTrue(isUTA) && !isMarketBuyAndCostInferable)
         {
@@ -5565,7 +5566,7 @@ public partial class bybit : Exchange
                 request["marketUnit"] = "baseCoin";
                 request["qty"] = amountString;
             }
-        } else if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && isMarketOrder && (isEqual(side, "buy")))
+        } else if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && isMarketOrder && (isEqual(sideVar, "buy")))
         {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
@@ -5710,9 +5711,9 @@ public partial class bybit : Exchange
             if ((reduceOnly == true))
             {
                 parameters = this.omit(parameters, "reduceOnly");
-                side = (isEqual(side, "buy")) ? "sell" : "buy";
+                sideVar = (isEqual(sideVar, "buy")) ? "sell" : "buy";
             }
-            request["positionIdx"] = (isEqual(side, "buy")) ? 1 : 2;
+            request["positionIdx"] = (isEqual(sideVar, "buy")) ? 1 : 2;
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"});
         return this.extend(request, parameters);
@@ -5822,7 +5823,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data));
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -11771,7 +11772,7 @@ public partial class bybit : Exchange
         };
     }
 
-    public virtual string? parseMarginModeType(object marginMode)
+    public virtual string? parseMarginModeType(string? marginMode)
     {
         Dictionary<string, object> marginModes = new Dictionary<string, object>() {
             { "ISOLATED_MARGIN", "isolated" },

@@ -3023,7 +3023,7 @@ func (this *Gate) ParseCurrency(rawCurrency any) any {
 		var networkId *string = this.SafeString(chain, "name")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"info":      chain,
 				"id":        networkId,
 				"network":   networkCode,
@@ -3042,7 +3042,7 @@ func (this *Gate) ParseCurrency(rawCurrency any) any {
 						"max": nil,
 					},
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{

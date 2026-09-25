@@ -745,7 +745,7 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) any {
 		}()
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"info":      rawCurrency,
 				"id":        networkId,
 				"network":   networkCode,
@@ -760,7 +760,7 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) any {
 						"max": nil,
 					},
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1425,7 +1425,7 @@ func (this *Bitvavo) ParseBalance(response any) any {
 		account["free"] = this.SafeString(balance, "available")
 		account["used"] = this.SafeString(balance, "inOrder")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

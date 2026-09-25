@@ -1858,7 +1858,7 @@ func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) an
 		account["free"] = this.SafeString(balance, "free")
 		account["used"] = this.SafeString(balance, "locked")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)

@@ -2928,7 +2928,7 @@ func (this *Kucoin) ParseCurrency(currency any) any {
 		var chainId *string = this.SafeString(chain, "chainId")
 		var networkCode *string = this.NetworkIdToCode(chainId, code)
 		if networkCode != nil {
-			AddElementToObject(networks, networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"info":      chain,
 				"id":        chainId,
 				"name":      this.SafeString(chain, "chainName"),
@@ -2948,7 +2948,7 @@ func (this *Kucoin) ParseCurrency(currency any) any {
 						"max": this.SafeNumber2(chain, "maxDeposit", "maxDepositSize"),
 					},
 				},
-			})
+			}
 		}
 	}
 	// kucoin has determined 'fiat' currencies with below logic
@@ -10314,7 +10314,7 @@ func (this *Kucoin) fetchContractBalanceBody(ch chan any, optionalArgs ...any) a
 	account["free"] = this.SafeString(data, "availableBalance")
 	account["total"] = this.SafeString(data, "accountEquity")
 	if currencyCode != nil {
-		AddElementToObject(result, currencyCode, account)
+		result[*currencyCode] = account
 	}
 
 	ch <- this.SafeBalance(result)

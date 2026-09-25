@@ -1033,7 +1033,7 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
-			ccxt.AddElementToObject(symbols, symbol, true)
+			symbols[*symbol] = true
 		}
 		trades.(ccxt.Appender).Append(parsed)
 	}
@@ -1597,7 +1597,7 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 		stored.(ccxt.Appender).Append(order)
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol != nil {
-			ccxt.AddElementToObject(marketSymbols, symbol, true)
+			marketSymbols[*symbol] = true
 		}
 	}
 	var keys []string = ccxt.ObjectKeys(marketSymbols)

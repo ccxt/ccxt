@@ -2680,7 +2680,7 @@ public partial class coinex : Exchange
         return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2698,7 +2698,7 @@ public partial class coinex : Exchange
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
         string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         string? option = this.safeString(parameters, "option");
-        bool isMarketOrder = isEqual(type, "market");
+        bool isMarketOrder = (type == "market");
         bool postOnly = this.isPostOnly(isMarketOrder, option == "maker_only", parameters);
         string? timeInForceRaw = this.safeStringUpper(parameters, "timeInForce");
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
@@ -2727,7 +2727,7 @@ public partial class coinex : Exchange
             {
                 request["side"] = side;
             }
-            object requestType = type;
+            string? requestType = type;
             if (postOnly)
             {
                 requestType = "maker_only";
@@ -2783,7 +2783,7 @@ public partial class coinex : Exchange
             {
                 request["market_type"] = "SPOT";
             }
-            if ((isEqual(type, "market")) && (isEqual(side, "buy")))
+            if (((type == "market")) && ((side == "buy")))
             {
                 bool? createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);

@@ -906,7 +906,7 @@ func (this *Bitrue) ParseCurrency(rawCurrency any) any {
 		var networkId *string = this.SafeString(entry, "chain")
 		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
-			AddElementToObject(networks, network, map[string]any{
+			networks[*network] = map[string]any{
 				"info":      entry,
 				"id":        networkId,
 				"network":   network,
@@ -921,7 +921,7 @@ func (this *Bitrue) ParseCurrency(rawCurrency any) any {
 						"max": this.SafeNumber(entry, "maxWithdraw"),
 					},
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1237,7 +1237,7 @@ func (this *Bitrue) ParseBalance(response any) any {
 		account["free"] = this.SafeString2(balance, "free", "accountNormal")
 		account["used"] = this.SafeString2(balance, "locked", "accountLock")
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	result["timestamp"] = timestamp

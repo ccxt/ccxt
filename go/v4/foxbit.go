@@ -451,7 +451,7 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) any {
 		var isWithdrawEnabled bool = (this.SafeString(networkWithdrawInfo, "status") != nil && *this.SafeString(networkWithdrawInfo, "status") == "ENABLED")
 		var isDepositEnabled bool = (this.SafeString(networkDepositInfo, "status") != nil && *this.SafeString(networkDepositInfo, "status") == "ENABLED")
 		if networkCode != nil {
-			AddElementToObject(parsedNetworks, networkCode, map[string]any{
+			parsedNetworks[*networkCode] = map[string]any{
 				"info":      rawCurrency,
 				"id":        networkId,
 				"network":   networkCode,
@@ -475,7 +475,7 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) any {
 						"max": nil,
 					},
 				},
-			})
+			}
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1045,7 +1045,7 @@ func (this *Foxbit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			"total": total,
 		}
 		if currencyCode != nil {
-			AddElementToObject(result, currencyCode, balanceObj)
+			result[*currencyCode] = balanceObj
 		}
 	}
 

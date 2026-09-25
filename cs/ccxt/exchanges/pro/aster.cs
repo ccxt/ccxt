@@ -468,7 +468,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public virtual Dictionary<string, object> parseWsTicker(object message, object marketType)
+    public virtual Dictionary<string, object> parseWsTicker(object message, string? marketType)
     {
         string? eventVar = this.safeString(message, "e");
         string? marketId = this.safeString(message, "s");

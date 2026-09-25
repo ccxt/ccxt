@@ -2418,7 +2418,7 @@ public partial class kraken : Exchange
         }, marketVar);
     }
 
-    public virtual List<object> orderRequest(string? method, object symbol, object type, object request, object amount, object price = null, object parameters = null)
+    public virtual List<object> orderRequest(string? method, string? symbol, string? type, object request, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2438,8 +2438,8 @@ public partial class kraken : Exchange
         string? trailingLimitPercent = this.safeString(parameters, "trailingLimitPercent");
         bool isTrailingAmountOrder = (trailingAmount != null);
         bool isTrailingPercentOrder = (trailingPercent != null);
-        bool isLimitOrder = ((type != null)) && ((string)type).EndsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
-        bool isMarketOrder = isEqual(type, "market");
+        bool isLimitOrder = ((type != null)) && type.EndsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        bool isMarketOrder = (type == "market");
         string? cost = this.safeString(parameters, "cost");
         string? flags = this.safeString(parameters, "oflags");
         parameters = this.omit(parameters, new List<object>() {"cost", "oflags"});
@@ -2560,7 +2560,7 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["timeinforce"] = timeInForce;
         }
-        bool isMarket = (isEqual(type, "market"));
+        bool isMarket = ((type == "market"));
         bool? postOnly = null;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];

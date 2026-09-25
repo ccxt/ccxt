@@ -1427,11 +1427,12 @@ public partial class krakenfutures : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         object symbolVar = symbol;
+        string? typeVar = type;
         parameters ??= new Dictionary<string, object>();
-        if ((type == null))
+        if ((typeVar == null))
         {
             throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
@@ -1441,24 +1442,24 @@ public partial class krakenfutures : Exchange
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        type = this.safeString(parameters, "orderType", type);
+        typeVar = this.safeString(parameters, "orderType", typeVar);
         string? timeInForce = this.safeString(parameters, "timeInForce");
         bool? postOnly = false;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), isEqual(type, "post"), parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(typeVar, "market"), isEqual(typeVar, "post"), parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         if ((postOnly == true))
         {
-            type = "post";
+            typeVar = "post";
         } else if (timeInForce == "ioc")
         {
-            type = "ioc";
-        } else if (isEqual(type, "limit"))
+            typeVar = "ioc";
+        } else if (isEqual(typeVar, "limit"))
         {
-            type = "lmt";
-        } else if (isEqual(type, "market"))
+            typeVar = "lmt";
+        } else if (isEqual(typeVar, "market"))
         {
-            type = "mkt";
+            typeVar = "mkt";
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1485,18 +1486,18 @@ public partial class krakenfutures : Exchange
         }
         if (isTriggerOrder)
         {
-            type = "stp";
+            typeVar = "stp";
             request["stopPrice"] = this.priceToPrecision(symbolVar, triggerPrice);
         } else if (isStopLossOrTakeProfitTrigger)
         {
             reduceOnly = true;
             if (isStopLossTriggerOrder)
             {
-                type = "stp";
+                typeVar = "stp";
                 request["stopPrice"] = this.priceToPrecision(symbolVar, stopLossTriggerPrice);
             } else if (isTakeProfitTriggerOrder)
             {
-                type = "take_profit";
+                typeVar = "take_profit";
                 request["stopPrice"] = this.priceToPrecision(symbolVar, takeProfitTriggerPrice);
             }
         }
@@ -1504,15 +1505,15 @@ public partial class krakenfutures : Exchange
         {
             request["reduceOnly"] = true;
         }
-        request["orderType"] = type;
+        request["orderType"] = typeVar;
         price = this.parseNumber(price); // some callers pass null instead of undefined, normalize it
-        bool isLimitOrder = (isEqual(type, "lmt")) || (isEqual(type, "post")) || (isEqual(type, "ioc"));
+        bool isLimitOrder = (isEqual(typeVar, "lmt")) || (isEqual(typeVar, "post")) || (isEqual(typeVar, "ioc"));
         string? limitPriceParam = this.safeString(parameters, "limitPrice"); // the venue's own field name, forwarded as-is by this.extend below
         if (isLimitOrder && ((price == null)) && ((limitPriceParam == null)))
         {
-            throw new ArgumentsRequired ((((this.id + " createOrder () requires a price argument for ") + (type)) + " orders")) ;
+            throw new ArgumentsRequired ((((this.id + " createOrder () requires a price argument for ") + (typeVar)) + " orders")) ;
         }
-        bool isMarketOrder = (isEqual(type, "mkt"));
+        bool isMarketOrder = (isEqual(typeVar, "mkt"));
         if (((price != null)) && !isMarketOrder)
         {
             request["limitPrice"] = this.priceToPrecision(symbolVar, price);
