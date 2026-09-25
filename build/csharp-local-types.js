@@ -12533,13 +12533,18 @@ const DESTRUCTURED_DECLARATION_ELEMENT0 = {
     'handleOptionIntegerAndParams': 'Int64?', 'handleOptionIntegerAndParams2': 'Int64?',
 };
 // the audited string helpers: a caller default that can flow out as element 0 must be a string literal or absent
-function destructuredStringHelperElement0 (call, helper) {
+function destructuredStringHelperElement0 (call, helper, csharp) {
     if (!Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, helper)) {
         return undefined;
     }
     const position = DESTRUCTURED_STRING_HELPERS[helper];
     const argument = position > 0 ? call.arguments?.[position - 1] : undefined;
-    return (argument === undefined || isUndefinedLiteral (argument) || isStringLiteral (argument)) ? 'string?' : undefined;
+    if (argument === undefined || isUndefinedLiteral (argument) || isStringLiteral (argument)) {
+        return 'string?';
+    }
+    // or a local the printer declares string / string? (destructuredStringElementProof's rule)
+    const local = (csharp !== undefined && argument.kind === ts.SyntaxKind.Identifier) ? localIdentifierType (csharp, argument) : undefined;
+    return STRING_TYPES.includes (local) ? 'string?' : undefined;
 }
 
 // `this.<helper> (...)[0]`, or `t[0]` of a local `t` holding that call and never rewritten or
@@ -12572,7 +12577,7 @@ function handleTupleElement0ReadType (csharp, initializer) {
     if (helper === undefined) {
         return undefined;
     }
-    return destructuredHelperElement0Type (call, helper);
+    return destructuredHelperElement0Type (call, helper, undefined, csharp);
 }
 
 // `this.<name>(...)` whose name is a handle-family member or an audited tuple helper of the tables below
@@ -12587,12 +12592,13 @@ function destructuredAuditedCallName (node) {
         return undefined;
     }
     const audited = Object.prototype.hasOwnProperty.call (DESTRUCTURED_ELEMENT0_TYPES, name)
-        || Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, name) || DESTRUCTURED_DICT_HELPERS.includes (name);
+        || Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, name) || DESTRUCTURED_DICT_HELPERS.includes (name)
+        || Object.prototype.hasOwnProperty.call (BOOL_OPTION_HELPERS, name);
     return audited ? name : undefined;
 }
 
 // the element-0 box of an audited tuple helper call (see the element-0 / string / dict tables)
-function destructuredHelperElement0Type (call, helper) {
+function destructuredHelperElement0Type (call, helper, targetName, csharp) {
     if (Object.prototype.hasOwnProperty.call (DESTRUCTURED_DECLARATION_ELEMENT0, helper)) {
         return DESTRUCTURED_DECLARATION_ELEMENT0[helper];
     }
@@ -12602,7 +12608,12 @@ function destructuredHelperElement0Type (call, helper) {
     if (DESTRUCTURED_DICT_HELPERS.includes (helper)) {
         return 'Dictionary<string, object>';
     }
-    return destructuredStringHelperElement0 (call, helper);
+    // a documented bool option local (BOOL_OPTION_LOCALS) whose default argument is a bool literal or absent
+    if (Object.prototype.hasOwnProperty.call (BOOL_OPTION_HELPERS, helper) && BOOL_OPTION_LOCALS.includes (targetName)) {
+        const argument = call.arguments?.[BOOL_OPTION_HELPERS[helper] - 1];
+        return (argument === undefined || isUndefinedLiteral (argument) || isBoolLiteralArgument (argument)) ? 'bool?' : undefined;
+    }
+    return destructuredStringHelperElement0 (call, helper, csharp);
 }
 
 // the C# type retypeDestructuredElement0 declares slot `slot` of `const [ ... ] = this.<helper> (...)` with
@@ -12611,7 +12622,7 @@ function destructuredSlotType (csharp, scope, declaration, slot, context) {
     if (helper === undefined || scope === undefined) {
         return undefined;
     }
-    const type = destructuredHelperElement0Type (declaration.initializer, helper);
+    const type = destructuredHelperElement0Type (declaration.initializer, helper, declaration.name.elements?.[0]?.name?.escapedText, csharp);
     const stringSlots = Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, helper) && STRING_TYPES.includes (type);
     const slots = stringSlots ? stringElementIndexes (helper) : [ 0 ];
     const element = declaration.name.elements?.[slot];
